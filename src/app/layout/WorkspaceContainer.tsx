@@ -1,6 +1,9 @@
 import { ReactNode } from "react";
 
 export function WorkspaceContainer({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen pt-20 pb-12 px-4 relative">{children}</div>;
+  return (
+    <div className="min-h-screen pt-[4.5rem] pb-10 px-6">
+      {children}
+    </div>
+  );
 }
-

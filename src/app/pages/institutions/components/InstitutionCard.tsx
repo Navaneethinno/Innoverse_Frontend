@@ -1,52 +1,82 @@
 import { motion } from "motion/react";
-import { ArrowRight, Globe } from "lucide-react";
+import { ArrowUpRight, MapPin } from "lucide-react";
 import { useNavigate } from "react-router";
-import { InstitutionAvatar, StatusBadge } from "../../../legacy/legacy-components";
+import { StatusBadge } from "../../../legacy/legacy-components";
 import type { Institution } from "../../../features/institution/institution.types";
+
+const GRADIENTS = [
+  "from-[#6C7FFF] to-[#B39DFA]",
+  "from-[#6EDFC4] to-[#3BBFA0]",
+  "from-[#FFB3A0] to-[#FF8C6B]",
+  "from-[#FFCB6B] to-[#F59E0B]",
+  "from-[#B39DFA] to-[#6C7FFF]",
+];
 
 export function InstitutionCard({ inst, index }: { inst: Institution; index: number }) {
   const navigate = useNavigate();
+  const grad = GRADIENTS[index % GRADIENTS.length];
 
   return (
     <motion.div
-      key={inst.id}
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.28 }}
-      whileHover={{ y: -4, boxShadow: "0 16px 48px rgba(124,140,255,0.14)" }}
-      className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm cursor-pointer group relative overflow-hidden"
+      transition={{ delay: index * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(108,127,255,0.16)" }}
+      className="rounded-2xl p-5 cursor-pointer group relative overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.68)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(255,255,255,0.88)",
+        boxShadow: "0 4px 20px rgba(108,127,255,0.07), 0 1px 3px rgba(108,127,255,0.04)",
+      }}
       onClick={() => navigate(`/institutions/${inst.id}`)}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${inst.name} workspace`}
+      aria-label={`Open ${inst.name}`}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/institutions/${inst.id}`)}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/0 to-purple-50/0 group-hover:from-indigo-50/60 group-hover:to-purple-50/40 transition-all duration-300 pointer-events-none rounded-2xl" />
+      {/* Hover gradient wash */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+        style={{ background: "linear-gradient(135deg, rgba(108,127,255,0.04) 0%, rgba(179,157,250,0.06) 100%)" }} />
+
       <div className="relative">
         <div className="flex items-start justify-between mb-4">
-          <InstitutionAvatar name={inst.name} />
+          {/* Avatar with gradient ring */}
+          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-white text-base font-black shadow-md`}>
+            {inst.name.charAt(0).toUpperCase()}
+          </div>
           <StatusBadge status={inst.status} />
         </div>
-        <h3 className="text-sm font-semibold text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug">{inst.name}</h3>
-        <p className="text-xs text-slate-500 mt-0.5">{inst.type}</p>
-        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+
+        <h3 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug tracking-tight">
+          {inst.name}
+        </h3>
+        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{inst.type}</p>
+
+        {/* Stats row */}
+        <div className="mt-4 pt-4 border-t border-slate-100/80 grid grid-cols-2 gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Accounts</p>
-            <p className="text-sm font-bold text-slate-700 mt-0.5">{inst.totalAccounts.toLocaleString()}</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Accounts</p>
+            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.totalAccounts.toLocaleString()}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Volume</p>
-            <p className="text-sm font-bold text-slate-700 mt-0.5">{inst.totalVolume}</p>
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Volume</p>
+            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.totalVolume}</p>
           </div>
         </div>
+
         <div className="mt-3 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Globe size={11} />
-            <span>{inst.city}</span>
-          </div>
-          <span className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs text-indigo-600 font-medium transition-opacity">
-            Open <ArrowRight size={11} />
+          <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+            <MapPin size={10} /> {inst.city}
           </span>
+          <motion.span
+            initial={{ opacity: 0, x: -4 }}
+            whileHover={{ opacity: 1, x: 0 }}
+            className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-indigo-500 font-bold transition-opacity"
+          >
+            Open <ArrowUpRight size={11} />
+          </motion.span>
         </div>
       </div>
     </motion.div>

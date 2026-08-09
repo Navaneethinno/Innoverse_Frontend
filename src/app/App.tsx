@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router";
 import { Skeleton } from "./components/ui/skeleton";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppLayout } from "@/app/layout/AppLayout";
 
 const LoginPage = lazy(() => import("./pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })));
 const SetupPage = lazy(() => import("./pages/auth/SetupPage").then((m) => ({ default: m.SetupPage })));
@@ -30,12 +31,14 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/setup" element={<SetupPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><ControlSpacePage /></ProtectedRoute>} />
-        <Route path="/institutions" element={<ProtectedRoute><InstitutionListPage /></ProtectedRoute>} />
-        <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
-        <Route path="/institutions/create" element={<ProtectedRoute><CreateInstitutionFlow /></ProtectedRoute>} />
-        <Route path="/review" element={<ProtectedRoute><ReviewCenterPage /></ProtectedRoute>} />
-        <Route path="/review/:id" element={<ProtectedRoute><CompareViewPage /></ProtectedRoute>} />
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<ProtectedRoute><ControlSpacePage /></ProtectedRoute>} />
+          <Route path="/institutions" element={<ProtectedRoute><InstitutionListPage /></ProtectedRoute>} />
+          <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
+          <Route path="/institutions/create" element={<ProtectedRoute><CreateInstitutionFlow /></ProtectedRoute>} />
+          <Route path="/review" element={<ProtectedRoute><ReviewCenterPage /></ProtectedRoute>} />
+          <Route path="/review/:id" element={<ProtectedRoute><CompareViewPage /></ProtectedRoute>} />
+        </Route>
       </Routes>
     </Suspense>
   );

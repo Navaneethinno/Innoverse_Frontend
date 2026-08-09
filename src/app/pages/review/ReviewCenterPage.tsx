@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
-import { GradientMesh } from "../../legacy/legacy-components";
 import { ApprovalCard } from "./components/ApprovalCard";
 import { useReviewStore } from "../../features/review/review.store";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -22,15 +21,14 @@ export function ReviewCenterPage() {
   const resolved = useMemo(() => changes.filter((c) => c.status !== "pending"), [changes]);
 
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4 relative bg-[#F9FAFB]">
-      <GradientMesh />
-      <div className="relative max-w-3xl mx-auto">
-        <div className="flex items-start justify-between mb-8 pt-2">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-800 tracking-tight">Review Center</h1>
-            <p className="text-sm text-slate-500 mt-1">{pending.length} pending · {resolved.length} resolved today</p>
-          </div>
+    <div className="pt-4 pb-8">
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Approvals</p>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Review Center</h1>
+          <p className="text-sm text-slate-400 mt-1.5 font-medium">{pending.length} pending · {resolved.length} resolved today</p>
         </div>
+      </div>
 
         {error && (
           <Alert variant="destructive" className="mb-4">
@@ -46,7 +44,7 @@ export function ReviewCenterPage() {
         {isLoading ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <div key={i} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.85)" }}>
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-xl" />
                   <div className="flex-1 space-y-2">
@@ -63,8 +61,8 @@ export function ReviewCenterPage() {
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
               <CheckCircle size={26} className="text-emerald-500" />
             </div>
-            <p className="text-slate-700 font-medium">All caught up</p>
-            <p className="text-sm text-slate-400 mt-1">No pending reviews at this time</p>
+            <p className="text-slate-700 font-bold">All caught up</p>
+            <p className="text-sm text-slate-400 mt-1 font-medium">No pending reviews at this time</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -89,7 +87,6 @@ export function ReviewCenterPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }
