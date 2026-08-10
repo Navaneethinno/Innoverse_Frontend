@@ -1,4 +1,4 @@
-import { apiClient } from "../../lib/apiClient";
+import { apiService } from "../../features/api.service";
 import type { PendingChange } from "./review.types";
 
 const delay = (ms = 250) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -35,26 +35,29 @@ const MOCK_CHANGES: PendingChange[] = [
 export const reviewApi = {
   list: async () => {
     try {
-      return await apiClient<PendingChange[]>("/api/reviews");
-    } catch {
-      await delay();
-      return MOCK_CHANGES;
+      return await apiService.getReviews();
+    } catch (e) {
+      if (e instanceof TypeError) {
+        await delay();
+        return MOCK_CHANGES;
+      }
+      throw e;
     }
   },
   getById: async (id: string) => {
     const changes = await reviewApi.list();
-    return changes.find((change) => change.id === id) ?? null;
+    return changes.find((change) => String(change.id) === String(id)) ?? null;
   },
   updateStatus: async (id: string, status: PendingChange["status"]) => {
     try {
-      return await apiClient<PendingChange>(`/api/reviews/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      });
-    } catch {
-      await delay();
-      const item = MOCK_CHANGES.find((change) => change.id === id);
-      return item ? { ...item, status } : null;
+      return await apiService.updateReviewStatus(id, status);
+    } catch (e) {
+      if (e instanceof TypeError) {
+        await delay();
+        const item = MOCK_CHANGES.find((change) => change.id === id);
+        return item ? { ...item, status } : null;
+      }
+      throw e;
     }
   },
 };

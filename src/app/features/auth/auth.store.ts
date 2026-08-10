@@ -1,51 +1,65 @@
 import { create } from "zustand";
 import type { AuthState, AuthUser } from "./auth.types";
+import { loginRequest } from "./auth.service";
 
-const STORAGE_KEY = "innoverse.auth";
+const TOKEN_KEY = "access_token";
+const USER_KEY = "user";
 
-const readInitialState = (): Pick<AuthState, "user" | "token" | "isAuthenticated"> => {
+// Default permissions when backend doesn't send them yet
+const DEFAULT_PERMISSIONS = ["VIEW", "ADD", "EDIT", "AUTHORIZE"];
+
+const readStorage = (): Pick<AuthState, "user" | "token" | "isAuthenticated"> => {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { user: null, token: null, isAuthenticated: false };
-    const parsed = JSON.parse(raw) as { user?: AuthUser; token?: string };
-    return {
-      user: parsed.user ?? null,
-      token: parsed.token ?? null,
-      isAuthenticated: Boolean(parsed.token),
-    };
+    const token = window.localStorage.getItem(TOKEN_KEY);
+    const userRaw = window.localStorage.getItem(USER_KEY);
+    const user = userRaw ? (JSON.parse(userRaw) as AuthUser) : null;
+    return { token, user, isAuthenticated: Boolean(token) };
   } catch {
     return { user: null, token: null, isAuthenticated: false };
   }
 };
 
-const persist = (state: Pick<AuthState, "user" | "token">) => {
+const persist = (user: AuthUser | null, token: string | null) => {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Ignore storage errors in restrictive environments.
-  }
+    if (token && user) {
+      window.localStorage.setItem(TOKEN_KEY, token);
+      window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+    } else {
+      window.localStorage.removeItem(TOKEN_KEY);
+      window.localStorage.removeItem(USER_KEY);
+    }
+  } catch { /* ignore */ }
 };
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  ...readInitialState(),
-  login: async ({ email }) => {
-    const user: AuthUser = {
-      id: "user-admin",
-      name: "Admin",
-      email,
-      role: "Platform Admin",
-    };
-    const token = "mock-token";
-    persist({ user, token });
-    set({ user, token, isAuthenticated: true });
-    return true;
-  },
-  logout: () => {
+export const useAuthStore = create<AuthState>((set) => ({
+  ...readStorage(),
+
+  login: async ({ username, password }) => {
     try {
-      window.localStorage.removeItem(STORAGE_KEY);
+      const { access_token, user: responseUser } = await loginRequest(username, password);
+      const user: AuthUser = {
+        id: responseUser?.id ?? username,
+        name: responseUser?.name ?? username,
+        username: responseUser?.username ?? username,
+        role: responseUser?.role ?? "Platform Admin",
+        permissions: responseUser?.permissions ?? DEFAULT_PERMISSIONS,
+      };
+      persist(user, access_token);
+      set({ user, token: access_token, isAuthenticated: true });
+      return true;
     } catch {
-      // Ignore storage errors in restrictive environments.
+      return false;
     }
+  },
+
+  logout: () => {
+    persist(null, null);
     set({ user: null, token: null, isAuthenticated: false });
   },
 }));
+
+// Auto-logout on 401 from apiClient (avoids circular import)
+window.addEventListener("auth:unauthorized", () => {
+  useAuthStore.getState().logout();
+  window.location.href = "/login";
+});

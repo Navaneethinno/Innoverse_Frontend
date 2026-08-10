@@ -1,4 +1,4 @@
-import { apiClient } from "../../lib/apiClient";
+import { apiService } from "../../features/api.service";
 import type { Institution } from "./institution.types";
 
 const delay = (ms = 250) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -44,41 +44,45 @@ const MOCK_INSTITUTIONS: Institution[] = [
 export const institutionApi = {
   list: async () => {
     try {
-      return await apiClient<Institution[]>("/api/institutions");
-    } catch {
-      await delay();
-      return MOCK_INSTITUTIONS;
+      return await apiService.getInstitutions();
+    } catch (e) {
+      // Only fall back to mock data on network errors, not API errors
+      if (e instanceof TypeError) {
+        await delay();
+        return MOCK_INSTITUTIONS;
+      }
+      throw e;
     }
   },
   getById: async (id: string) => {
     const institutions = await institutionApi.list();
-    return institutions.find((institution) => institution.id === id) ?? null;
+    return institutions.find((institution) => String(institution.id) === String(id)) ?? null;
   },
   create: async (payload: Partial<Institution>) => {
     try {
-      return await apiClient<Institution>("/api/institutions", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-    } catch {
-      await delay();
-      return {
-        id: `inst-${Date.now()}`,
-        name: payload.name ?? "New Institution",
-        type: payload.type ?? "Commercial Bank",
-        status: "draft",
-        email: payload.email ?? "",
-        phone: payload.phone ?? "",
-        address: payload.address ?? "",
-        city: payload.city ?? "",
-        country: payload.country ?? "United States",
-        regNumber: payload.regNumber ?? "",
-        createdAt: new Date().toDateString(),
-        maker: "Platform Admin",
-        totalAccounts: 0,
-        totalVolume: "$0",
-        tags: payload.tags ?? [],
-      };
+      return await apiService.createInstitution(payload);
+    } catch (e) {
+      if (e instanceof TypeError) {
+        await delay();
+        return {
+          id: `inst-${Date.now()}`,
+          name: payload.name ?? "New Institution",
+          type: payload.type ?? "Commercial Bank",
+          status: "draft",
+          email: payload.email ?? "",
+          phone: payload.phone ?? "",
+          address: payload.address ?? "",
+          city: payload.city ?? "",
+          country: payload.country ?? "United States",
+          regNumber: payload.regNumber ?? "",
+          createdAt: new Date().toDateString(),
+          maker: "Platform Admin",
+          totalAccounts: 0,
+          totalVolume: "$0",
+          tags: payload.tags ?? [],
+        };
+      }
+      throw e;
     }
   },
 };

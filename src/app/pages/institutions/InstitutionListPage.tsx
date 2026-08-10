@@ -23,8 +23,12 @@ export function InstitutionListPage() {
     () =>
       institutions.filter((inst) => {
         const q = search.toLowerCase();
-        const matchSearch = !q || inst.name.toLowerCase().includes(q) || inst.type.toLowerCase().includes(q) || inst.city.toLowerCase().includes(q);
-        const matchStatus = statusFilter === "all" || inst.status === statusFilter;
+        const matchSearch = !q
+          || (inst.name ?? "").toLowerCase().includes(q)
+          || (inst.legal_name ?? "").toLowerCase().includes(q)
+          || (inst.code ?? "").toLowerCase().includes(q)
+          || (inst.city ?? "").toLowerCase().includes(q);
+        const matchStatus = statusFilter === "all" || inst.status?.toLowerCase() === statusFilter;
         return matchSearch && matchStatus;
       }),
     [institutions, search, statusFilter],
@@ -44,7 +48,9 @@ export function InstitutionListPage() {
         <div>
           <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Registry</p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Institutions</h1>
-          <p className="text-sm text-slate-400 mt-1.5 font-medium">{institutions.length} registered · {institutions.filter((i) => i.status === "active").length} active</p>
+          <p className="text-sm text-slate-400 mt-1.5 font-medium">
+            {institutions.length} registered · {institutions.filter((i) => i.status?.toLowerCase() === "active").length} active
+          </p>
         </div>
         <motion.button
           whileHover={{ scale: 1.03, y: -1 }} whileTap={{ scale: 0.97 }}

@@ -29,16 +29,17 @@ export const useInstitutionStore = create<InstitutionStore>((set) => ({
     }
   },
   fetchInstitutionById: async (id) => {
-    set({ selectedInstitutionId: id, error: null });
+    set({ selectedInstitutionId: id, isLoading: true, error: null });
     try {
       const institution = await institutionApi.getById(id);
       if (!institution) {
-        set({ error: "Institution not found" });
+        set({ error: "Institution not found", isLoading: false });
         return null;
       }
+      set({ isLoading: false });
       return institution;
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to load institution" });
+      set({ error: error instanceof Error ? error.message : "Failed to load institution", isLoading: false });
       return null;
     }
   },

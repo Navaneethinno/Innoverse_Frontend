@@ -1,14 +1,15 @@
 export interface AuthUser {
   id: string;
   name: string;
-  email: string;
+  username: string;
   role: string;
+  permissions: string[];
 }
 
 export interface AuthState {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
-  login: (payload: { email: string; password: string }) => Promise<boolean>;
+  login: (payload: { username: string; password: string }) => Promise<boolean>;
   logout: () => void;
 }

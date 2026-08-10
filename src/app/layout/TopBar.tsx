@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "../lib/utils";
 import { useSidebar } from "./SidebarContext";
+import { useAuthStore } from "../features/auth/auth.store";
 
 export function TopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,6 +17,8 @@ export function TopBar() {
     if (pathname.startsWith("/institutions")) return ["Institutions"];
     if (pathname.startsWith("/review/")) return ["Review Center", "Compare"];
     if (pathname.startsWith("/review")) return ["Review Center"];
+    if (pathname.startsWith("/platform-users/pending")) return ["Platform Users", "Pending Approvals"];
+    if (pathname.startsWith("/platform-users")) return ["Platform Users"];
     return ["Dashboard"];
   }, [pathname]);
 
@@ -28,6 +31,8 @@ export function TopBar() {
   }, []);
 
   const { collapsed } = useSidebar();
+  const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
   const leftOffset = collapsed ? 56 + 12 + 8 : 200 + 12 + 8;
 
   if (pathname === "/login" || pathname === "/setup") return null;
@@ -101,9 +106,9 @@ export function TopBar() {
               className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100/80 transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7FFF] to-[#B39DFA] text-white flex items-center justify-center text-[11px] font-bold shadow-sm shadow-indigo-200/50">
-                A
+                {user?.name?.charAt(0).toUpperCase() ?? "A"}
               </div>
-              <span className="hidden sm:block text-xs font-semibold text-slate-600">Admin</span>
+              <span className="hidden sm:block text-xs font-semibold text-slate-600">{user?.name ?? "Admin"}</span>
             </button>
 
             <AnimatePresence>
@@ -122,13 +127,16 @@ export function TopBar() {
                   }}
                 >
                   <div className="px-4 py-3 border-b border-slate-100/80">
-                    <p className="text-xs font-bold text-slate-800">Admin User</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Platform Owner</p>
+                    <p className="text-xs font-bold text-slate-800">{user?.name ?? "Admin"}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{user?.role ?? "Platform Owner"}</p>
                   </div>
                   <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-indigo-50/60 transition-colors">
                     <Settings size={13} /> Settings
                   </button>
-                  <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/60 transition-colors border-t border-slate-100/60">
+                  <button
+                    onClick={() => { logout(); navigate("/login"); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-50/60 transition-colors border-t border-slate-100/60"
+                  >
                     <LogOut size={13} /> Sign out
                   </button>
                 </motion.div>

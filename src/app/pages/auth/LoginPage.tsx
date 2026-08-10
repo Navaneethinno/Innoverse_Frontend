@@ -7,7 +7,7 @@ import { useAuthStore } from "../../features/auth/auth.store";
 import { notifications } from "../../lib/notifications";
 
 export function LoginPage() {
-  const [email, setEmail] = useState("admin@institutionos.com");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,19 +16,21 @@ export function LoginPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Please enter your email and password");
+    if (!username || !password) {
+      setError("Please enter your username and password");
       return;
     }
     setError("");
     setLoading(true);
-    const ok = await login({ email, password });
+    const ok = await login({ username, password });
     setLoading(false);
     if (ok) {
       notifications.success("Signed in successfully");
-      navigate("/setup");
+      navigate("/dashboard");
     } else {
-      notifications.error("Unable to sign in");
+      const msg = "Invalid credentials. Please try again.";
+      setError(msg);
+      notifications.error(msg);
     }
   };
 
@@ -56,12 +58,13 @@ export function LoginPage() {
           <h2 className="text-base font-semibold text-slate-800 mb-6">Welcome back</h2>
           <form onSubmit={submit} noValidate className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
               <div className="relative">
                 <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
                   className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm text-slate-800 bg-slate-50 border border-slate-200"
                 />
               </div>

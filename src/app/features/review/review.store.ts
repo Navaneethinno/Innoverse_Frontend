@@ -43,17 +43,19 @@ export const useReviewStore = create<ReviewStore>((set) => ({
   },
   selectChange: (id) => set({ selectedChangeId: id }),
   updateChangeStatus: async (id, status) => {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
-      const updated = await reviewApi.updateStatus(id, status);
-      if (!updated) throw new Error("Approval not found");
+      await reviewApi.updateStatus(id, status);
       set((state) => ({
-        changes: state.changes.map((change) => (change.id === id ? updated : change)),
-        isLoading: false,
+        changes: state.changes.map((change) =>
+          String(change.id) === String(id)
+            ? { ...change, auth_status: status, status }
+            : change
+        ),
       }));
       return true;
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to update approval", isLoading: false });
+      set({ error: error instanceof Error ? error.message : "Failed to update approval" });
       return false;
     }
   },

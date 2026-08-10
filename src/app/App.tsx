@@ -12,6 +12,8 @@ const InstitutionDetailPage = lazy(() => import("./pages/institutions/Institutio
 const CreateInstitutionFlow = lazy(() => import("./pages/institutions/CreateInstitutionFlow").then((m) => ({ default: m.CreateInstitutionFlow })));
 const ReviewCenterPage = lazy(() => import("./pages/review/ReviewCenterPage").then((m) => ({ default: m.ReviewCenterPage })));
 const CompareViewPage = lazy(() => import("./pages/review/CompareViewPage").then((m) => ({ default: m.CompareViewPage })));
+const PlatformUsersPage = lazy(() => import("./pages/platform-users/PlatformUsersPage").then((m) => ({ default: m.PlatformUsersPage })));
+const PlatformUsersPendingPage = lazy(() => import("./pages/platform-users/PlatformUsersPendingPage").then((m) => ({ default: m.PlatformUsersPendingPage })));
 
 function PageFallback() {
   return (
@@ -38,6 +40,8 @@ export default function App() {
           <Route path="/institutions/create" element={<ProtectedRoute><CreateInstitutionFlow /></ProtectedRoute>} />
           <Route path="/review" element={<ProtectedRoute><ReviewCenterPage /></ProtectedRoute>} />
           <Route path="/review/:id" element={<ProtectedRoute><CompareViewPage /></ProtectedRoute>} />
+          <Route path="/platform-users" element={<ProtectedRoute><PlatformUsersPage /></ProtectedRoute>} />
+          <Route path="/platform-users/pending" element={<ProtectedRoute><PlatformUsersPendingPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </Suspense>

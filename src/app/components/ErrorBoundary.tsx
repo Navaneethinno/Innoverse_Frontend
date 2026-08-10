@@ -1,14 +1,14 @@
 import { Component, type ReactNode } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 type Props = { children: ReactNode };
-type State = { hasError: boolean };
+type State = { hasError: boolean; message: string };
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, message: "" };
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, message: error?.message ?? "" };
   }
 
   componentDidCatch(error: Error) {
@@ -18,15 +18,24 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] px-4">
-          <div className="max-w-md w-full rounded-2xl border border-red-100 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-3 text-red-600 mb-3">
-              <AlertCircle className="h-5 w-5" />
-              <h1 className="text-base font-semibold">Something went wrong</h1>
+        <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#F4F6FF" }}>
+          <div className="max-w-md w-full rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(255,107,107,0.15)", boxShadow: "0 4px 24px rgba(255,107,107,0.08)" }}>
+            <div className="flex items-center gap-3 text-red-500 mb-3">
+              <AlertCircle className="h-5 w-5 shrink-0" />
+              <h1 className="text-sm font-bold">Something went wrong</h1>
             </div>
-            <p className="text-sm text-slate-600">
-              The interface hit an unexpected error. Please refresh the page and try again.
-            </p>
+            {this.state.message && (
+              <p className="text-xs text-slate-500 font-mono bg-slate-50 rounded-xl px-3 py-2 mb-4 break-all">
+                {this.state.message}
+              </p>
+            )}
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+            >
+              <RefreshCw size={12} /> Reload page
+            </button>
           </div>
         </div>
       );

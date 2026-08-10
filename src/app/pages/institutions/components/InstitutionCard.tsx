@@ -1,8 +1,8 @@
 import { motion } from "motion/react";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { useNavigate } from "react-router";
-import { StatusBadge } from "../../../legacy/legacy-components";
 import type { Institution } from "../../../features/institution/institution.types";
+import { cn } from "../../../lib/utils";
 
 const GRADIENTS = [
   "from-[#6C7FFF] to-[#B39DFA]",
@@ -12,9 +12,28 @@ const GRADIENTS = [
   "from-[#B39DFA] to-[#6C7FFF]",
 ];
 
+const STATUS_STYLES: Record<string, { pill: string; dot: string; label: string }> = {
+  ACTIVE:    { pill: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", label: "Active" },
+  active:    { pill: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", label: "Active" },
+  PENDING:   { pill: "bg-amber-50 text-amber-700 border-amber-200",       dot: "bg-amber-500",   label: "Pending" },
+  pending:   { pill: "bg-amber-50 text-amber-700 border-amber-200",       dot: "bg-amber-500",   label: "Pending" },
+  REJECTED:  { pill: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500",     label: "Rejected" },
+  rejected:  { pill: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500",     label: "Rejected" },
+  SUSPENDED: { pill: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500",  label: "Suspended" },
+  suspended: { pill: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500",  label: "Suspended" },
+  DRAFT:     { pill: "bg-slate-50 text-slate-500 border-slate-200",       dot: "bg-slate-400",   label: "Draft" },
+  draft:     { pill: "bg-slate-50 text-slate-500 border-slate-200",       dot: "bg-slate-400",   label: "Draft" },
+};
+
 export function InstitutionCard({ inst, index }: { inst: Institution; index: number }) {
   const navigate = useNavigate();
   const grad = GRADIENTS[index % GRADIENTS.length];
+
+  const displayName = inst.name || inst.legal_name || inst.code || "—";
+  const displayType = inst.type || inst.legal_name || "Institution";
+  const displayCity = inst.city || inst.state || inst.country || null;
+  const statusKey = String(inst.status ?? "DRAFT");
+  const statusCfg = STATUS_STYLES[statusKey] ?? STATUS_STYLES.DRAFT;
 
   return (
     <motion.div
@@ -33,50 +52,47 @@ export function InstitutionCard({ inst, index }: { inst: Institution; index: num
       onClick={() => navigate(`/institutions/${inst.id}`)}
       role="button"
       tabIndex={0}
-      aria-label={`Open ${inst.name}`}
+      aria-label={`Open ${displayName}`}
       onKeyDown={(e) => e.key === "Enter" && navigate(`/institutions/${inst.id}`)}
     >
-      {/* Hover gradient wash */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
         style={{ background: "linear-gradient(135deg, rgba(108,127,255,0.04) 0%, rgba(179,157,250,0.06) 100%)" }} />
 
       <div className="relative">
         <div className="flex items-start justify-between mb-4">
-          {/* Avatar with gradient ring */}
-          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-white text-base font-black shadow-md`}>
-            {inst.name.charAt(0).toUpperCase()}
+          <div className={cn(`w-11 h-11 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-white text-base font-black shadow-md`)}>
+            {displayName.charAt(0).toUpperCase()}
           </div>
-          <StatusBadge status={inst.status} />
+          <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border", statusCfg.pill)}>
+            <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", statusCfg.dot)} />
+            {statusCfg.label}
+          </span>
         </div>
 
         <h3 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug tracking-tight">
-          {inst.name}
+          {displayName}
         </h3>
-        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{inst.type}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{displayType}</p>
 
         {/* Stats row */}
         <div className="mt-4 pt-4 border-t border-slate-100/80 grid grid-cols-2 gap-3">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Accounts</p>
-            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.totalAccounts.toLocaleString()}</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Code</p>
+            <p className="text-sm font-black text-slate-700 mt-0.5 font-mono">{inst.code || "—"}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Volume</p>
-            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.totalVolume}</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Version</p>
+            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.version ?? "—"}</p>
           </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between">
           <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-            <MapPin size={10} /> {inst.city}
+            {displayCity ? <><MapPin size={10} /> {displayCity}</> : <span className="text-slate-300">No location</span>}
           </span>
-          <motion.span
-            initial={{ opacity: 0, x: -4 }}
-            whileHover={{ opacity: 1, x: 0 }}
-            className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-indigo-500 font-bold transition-opacity"
-          >
+          <span className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-indigo-500 font-bold transition-opacity">
             Open <ArrowUpRight size={11} />
-          </motion.span>
+          </span>
         </div>
       </div>
     </motion.div>

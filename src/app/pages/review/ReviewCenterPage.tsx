@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { ApprovalCard } from "./components/ApprovalCard";
 import { useReviewStore } from "../../features/review/review.store";
+import { useAuthStore } from "../../features/auth/auth.store";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { toast } from "sonner";
@@ -11,14 +12,15 @@ import { toast } from "sonner";
 export function ReviewCenterPage() {
   const navigate = useNavigate();
   const { changes, isLoading, error, fetchChanges, updateChangeStatus } = useReviewStore();
+  const currentUser = useAuthStore((s) => s.user);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     void fetchChanges();
   }, [fetchChanges]);
 
-  const pending = useMemo(() => changes.filter((c) => c.status === "pending"), [changes]);
-  const resolved = useMemo(() => changes.filter((c) => c.status !== "pending"), [changes]);
+  const pending = useMemo(() => changes.filter((c) => c.auth_status?.toUpperCase() === "PENDING" || c.status?.toUpperCase() === "PENDING"), [changes]);
+  const resolved = useMemo(() => changes.filter((c) => c.auth_status?.toUpperCase() !== "PENDING" && c.status?.toUpperCase() !== "PENDING"), [changes]);
 
   return (
     <div className="pt-4 pb-8">
@@ -70,16 +72,25 @@ export function ReviewCenterPage() {
               <ApprovalCard
                 key={change.id}
                 change={change}
-                expanded={expanded === change.id}
-                onToggleExpanded={() => setExpanded(expanded === change.id ? null : change.id)}
+                expanded={expanded === String(change.id)}
+                isOwnRequest={String(change.created_by?.id) === String(currentUser?.id)}
+                onToggleExpanded={() => setExpanded(expanded === String(change.id) ? null : String(change.id))}
                 onApprove={async () => {
-                  const ok = await updateChangeStatus(change.id, "approved");
-                  if (ok) toast.success("Approval approved");
+                  if (String(change.created_by?.id) === String(currentUser?.id)) {
+                    toast.error("Maker cannot approve own request");
+                    return;
+                  }
+                  const ok = await updateChangeStatus(String(change.id), "approved");
+                  if (ok) toast.success("Approved successfully");
                   else toast.error(useReviewStore.getState().error ?? "Failed to approve");
                 }}
                 onReject={async () => {
-                  const ok = await updateChangeStatus(change.id, "rejected");
-                  if (ok) toast.success("Approval rejected");
+                  if (String(change.created_by?.id) === String(currentUser?.id)) {
+                    toast.error("Maker cannot reject own request");
+                    return;
+                  }
+                  const ok = await updateChangeStatus(String(change.id), "rejected");
+                  if (ok) toast.success("Rejected successfully");
                   else toast.error(useReviewStore.getState().error ?? "Failed to reject");
                 }}
                 onCompare={() => navigate(`/review/${change.id}`)}
