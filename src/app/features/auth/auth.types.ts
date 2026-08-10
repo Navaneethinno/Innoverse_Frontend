@@ -1,9 +1,19 @@
-export interface AuthUser {
-  id: string;
+export interface AuthInstitution {
+  id: string | number;
   name: string;
+  type: "PLATFORM_OWNER" | "PLATFORM_USER";
+}
+
+export interface AuthProfile {
+  id: string | number;
+  name: string;
+}
+
+export interface AuthUser {
+  id: string | number;
   username: string;
-  role: string;
-  permissions: string[];
+  institution: AuthInstitution | null;
+  profile: AuthProfile | null;
 }
 
 export interface AuthState {

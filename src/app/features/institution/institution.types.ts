@@ -3,6 +3,7 @@ export type InstStatus = "ACTIVE" | "PENDING" | "REJECTED" | "SUSPENDED" | "DRAF
 export interface NamedUser {
   id: string | number;
   name: string;
+  username?: string;
 }
 
 export interface Institution {
@@ -24,13 +25,4 @@ export interface Institution {
   version?: number;
   created_by?: NamedUser | null;
   approved_by?: NamedUser | null;
-  // Legacy / computed fields (kept for backward compat)
-  address?: string;
-  regNumber?: string;
-  createdAt?: string;
-  maker?: string;
-  checker?: string;
-  totalAccounts?: number;
-  totalVolume?: string;
-  tags?: string[];
 }

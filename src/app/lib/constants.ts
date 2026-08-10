@@ -6,7 +6,5 @@ export const ROUTES = {
   dashboard: "/dashboard",
   institutions: "/institutions",
   institutionDetail: (id = ":id") => `/institutions/${id}`,
-  review: "/review",
-  reviewDetail: (id = ":id") => `/review/${id}`,
 };
 

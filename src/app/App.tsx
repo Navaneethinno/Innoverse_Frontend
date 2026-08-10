@@ -10,10 +10,9 @@ const ControlSpacePage = lazy(() => import("./pages/dashboard/ControlSpacePage")
 const InstitutionListPage = lazy(() => import("./pages/institutions/InstitutionListPage").then((m) => ({ default: m.InstitutionListPage })));
 const InstitutionDetailPage = lazy(() => import("./pages/institutions/InstitutionDetailPage").then((m) => ({ default: m.InstitutionDetailPage })));
 const CreateInstitutionFlow = lazy(() => import("./pages/institutions/CreateInstitutionFlow").then((m) => ({ default: m.CreateInstitutionFlow })));
-const ReviewCenterPage = lazy(() => import("./pages/review/ReviewCenterPage").then((m) => ({ default: m.ReviewCenterPage })));
-const CompareViewPage = lazy(() => import("./pages/review/CompareViewPage").then((m) => ({ default: m.CompareViewPage })));
-const PlatformUsersPage = lazy(() => import("./pages/platform-users/PlatformUsersPage").then((m) => ({ default: m.PlatformUsersPage })));
-const PlatformUsersPendingPage = lazy(() => import("./pages/platform-users/PlatformUsersPendingPage").then((m) => ({ default: m.PlatformUsersPendingPage })));
+const UsersPage = lazy(() => import("./pages/users/UsersPage").then((m) => ({ default: m.UsersPage })));
+const ProfilesPage = lazy(() => import("./pages/profiles/ProfilesPage").then((m) => ({ default: m.ProfilesPage })));
+const ApplicationsPage = lazy(() => import("./pages/applications/ApplicationsPage").then((m) => ({ default: m.ApplicationsPage })));
 
 function PageFallback() {
   return (
@@ -36,12 +35,12 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<ProtectedRoute><ControlSpacePage /></ProtectedRoute>} />
           <Route path="/institutions" element={<ProtectedRoute><InstitutionListPage /></ProtectedRoute>} />
-          <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
+          <Route path="/institutions/pending" element={<Navigate to="/institutions" replace />} />
           <Route path="/institutions/create" element={<ProtectedRoute><CreateInstitutionFlow /></ProtectedRoute>} />
-          <Route path="/review" element={<ProtectedRoute><ReviewCenterPage /></ProtectedRoute>} />
-          <Route path="/review/:id" element={<ProtectedRoute><CompareViewPage /></ProtectedRoute>} />
-          <Route path="/platform-users" element={<ProtectedRoute><PlatformUsersPage /></ProtectedRoute>} />
-          <Route path="/platform-users/pending" element={<ProtectedRoute><PlatformUsersPendingPage /></ProtectedRoute>} />
+          <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+          <Route path="/profiles" element={<ProtectedRoute><ProfilesPage /></ProtectedRoute>} />
+          <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </Suspense>

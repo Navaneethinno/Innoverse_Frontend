@@ -4,7 +4,7 @@ import { ArrowRight, Building2, CheckCircle, Clock, Plus, Shield, TrendingUp, Za
 import { motion } from "motion/react";
 import { cn } from "../../lib/utils";
 import { useInstitutionStore } from "../../features/institution/institution.store";
-import { useReviewStore } from "../../features/review/review.store";
+import { useAuthStore } from "../../features/auth/auth.store";
 import { LoadingState } from "../../components/common/LoadingState";
 import { ErrorState } from "../../components/common/ErrorState";
 
@@ -49,20 +49,21 @@ function StatCard({
 
 export function ControlSpacePage() {
   const navigate = useNavigate();
-  const { institutions, isLoading: iL, error: iE, fetchInstitutions } = useInstitutionStore();
-  const { changes, isLoading: rL, error: rE, fetchChanges } = useReviewStore();
+  const currentUser = useAuthStore((s) => s.user);
+  const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
+  const { institutions, isLoading: iL, error: iE, fetchInstitutions, pendingInstitutions, fetchPendingInstitutions } = useInstitutionStore();
 
   useEffect(() => {
     void fetchInstitutions();
-    void fetchChanges();
-  }, [fetchInstitutions, fetchChanges]);
+    if (isPlatformOwner) void fetchPendingInstitutions();
+  }, [fetchInstitutions, fetchPendingInstitutions, isPlatformOwner]);
 
   const stats = useMemo(() => ({
     total: institutions.length,
     active: institutions.filter((i) => i.status === "active").length,
     pending: institutions.filter((i) => i.status === "pending" || i.status === "draft").length,
-    reviews: changes.filter((c) => c.status === "pending").length,
-  }), [institutions, changes]);
+    reviews: pendingInstitutions.length,
+  }), [institutions, pendingInstitutions]);
 
   const feed = [
     { event: "Institution approved", entity: "First National Bank", time: "2m ago", icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-50" },
@@ -70,9 +71,8 @@ export function ControlSpacePage() {
     { event: "Review pending", entity: "Metro Credit Union", time: "1h ago", icon: Clock, color: "text-amber-500", bg: "bg-amber-50" },
   ];
 
-  if (iL || rL) return <div className="pt-6"><LoadingState lines={4} /></div>;
-  const error = iE ?? rE;
-  if (error) return <div className="pt-6"><ErrorState title="Dashboard unavailable" description={error} onRetry={() => { void fetchInstitutions(); void fetchChanges(); }} /></div>;
+  if (iL) return <div className="pt-6"><LoadingState lines={4} /></div>;
+  if (iE) return <div className="pt-6"><ErrorState title="Dashboard unavailable" description={iE} onRetry={() => { void fetchInstitutions(); void fetchPendingInstitutions(); }} /></div>;
 
   return (
     <div className="pt-4 pb-8">
@@ -85,18 +85,18 @@ export function ControlSpacePage() {
       >
         <div>
           <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Control Space</p>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Good morning, Admin</h1>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Good morning, {currentUser?.username ?? "Admin"}</h1>
           <p className="text-sm text-slate-400 mt-1.5 font-medium">Here's what's happening across your workspace.</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.03, y: -1 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/review")}
+          onClick={() => navigate("/institutions")}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50 transition-shadow hover:shadow-xl hover:shadow-indigo-200/60"
           style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
         >
           <Zap size={14} />
-          Review Center
+          Pending Approvals
         </motion.button>
       </motion.div>
 
@@ -114,7 +114,7 @@ export function ControlSpacePage() {
           <StatCard label="Pending" value={stats.pending} sub="Awaiting action" gradient="bg-gradient-to-br from-[#FFB3A0] to-[#FF8C6B]" icon={Clock} delay={0.15} />
         </div>
         <div className="col-span-6 sm:col-span-3">
-          <StatCard label="Reviews" value={stats.reviews} sub="Needs approval" gradient="bg-gradient-to-br from-[#FFCB6B] to-[#F59E0B]" icon={TrendingUp} delay={0.20} />
+          <StatCard label="Pending Approvals" value={stats.reviews} sub="Needs approval" gradient="bg-gradient-to-br from-[#FFCB6B] to-[#F59E0B]" icon={TrendingUp} delay={0.20} />
         </div>
 
         {/* Activity feed — large tile */}

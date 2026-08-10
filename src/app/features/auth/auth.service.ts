@@ -1,15 +1,11 @@
+import type { AuthUser } from "./auth.types";
+
 const BASE_URL = "http://127.0.0.1:8000";
 
 export interface LoginResponse {
   access_token: string;
   token_type: string;
-  user?: {
-    id?: string;
-    name?: string;
-    username?: string;
-    role?: string;
-    permissions?: string[];
-  };
+  user: AuthUser;
 }
 
 export async function loginRequest(username: string, password: string): Promise<LoginResponse> {
@@ -25,21 +21,36 @@ export async function loginRequest(username: string, password: string): Promise<
     const detail =
       typeof payload === "object" && payload !== null && "detail" in payload
         ? String((payload as { detail?: unknown }).detail)
-        : `Login failed (${response.status})`;
+        : typeof payload === "object" && payload !== null && "message" in payload
+          ? String((payload as { message?: unknown }).message)
+          : `Login failed (${response.status})`;
     throw new Error(detail);
   }
 
-  // Support flat, nested data.access_token, and data.data.access_token shapes
+  // Unwrap envelope: { success, message, data: { access_token, token_type, user } }
+  const data = (payload as { data?: unknown })?.data ?? payload;
+
   const token =
-    (payload as { data?: { data?: { access_token?: string } } })?.data?.data?.access_token ??
-    (payload as { data?: { access_token?: string } })?.data?.access_token ??
-    (payload as { access_token?: string })?.access_token;
+    (data as { access_token?: string })?.access_token;
 
   if (!token) throw new Error("No access token in response");
 
-  const user =
-    (payload as { data?: { user?: LoginResponse["user"] } })?.data?.user ??
-    (payload as { user?: LoginResponse["user"] })?.user;
+  const rawUser = (data as { user?: unknown })?.user as Record<string, unknown> | undefined;
 
-  return { access_token: token, token_type: payload?.token_type ?? "bearer", user };
+  const user: AuthUser = {
+    id: (rawUser?.id as string | number) ?? username,
+    username: (rawUser?.username as string) ?? username,
+    institution: rawUser?.institution
+      ? (rawUser.institution as AuthUser["institution"])
+      : null,
+    profile: rawUser?.profile
+      ? (rawUser.profile as AuthUser["profile"])
+      : null,
+  };
+
+  return {
+    access_token: token,
+    token_type: (data as { token_type?: string })?.token_type ?? "bearer",
+    user,
+  };
 }

@@ -1,11 +1,17 @@
 import { apiClient } from "../lib/apiClient";
 import type { Institution } from "./institution/institution.types";
-import type { PendingChange } from "./review/review.types";
-import type { PlatformUser, CreatePlatformUserPayload } from "./platform-users/platformUser.types";
+import type { Profile, CreateProfilePayload } from "./profiles/profile.types";
+import type { User, CreateUserPayload } from "./users/user.types";
+import type { Application } from "./applications/application.types";
+import type {
+  InstitutionKycRecord,
+  InstitutionKycPayload,
+  UserKycRecord,
+  UserKycPayload,
+} from "./kyc/kyc.types";
 
-type Envelope<T> = { success: boolean; data: T } | T;
+type Envelope<T> = { success: boolean; message?: string; data: T } | T;
 
-// Only unwrap if response has BOTH success + data keys (strict envelope check)
 function unwrap<T>(res: Envelope<T>, fallback: T): T {
   if (
     res !== null &&
@@ -19,15 +25,27 @@ function unwrap<T>(res: Envelope<T>, fallback: T): T {
   return (res as T) ?? fallback;
 }
 
-export const apiService = {
-  // --- Auth ---
-  // login is handled by auth.service.ts directly (no token needed)
+export interface Permission {
+  menu_code: string;
+  action_code: string;
+}
 
-  // --- Institutions ---
+export const apiService = {
+  // ─── Institutions ─────────────────────────────────────────────────────────
+
   getInstitutions: async (): Promise<Institution[]> => {
     const res = await apiClient<Envelope<Institution[]>>("/institutions");
-    console.log("API RESPONSE /institutions:", res);
     return unwrap(res, []);
+  },
+
+  getPendingInstitutions: async (): Promise<Institution[]> => {
+    const res = await apiClient<Envelope<Institution[]>>("/institutions/pending");
+    return unwrap(res, []);
+  },
+
+  getInstitutionById: async (institution_id: string | number): Promise<Institution | null> => {
+    const res = await apiClient<Envelope<Institution>>(`/institutions/${institution_id}`);
+    return unwrap(res, null as unknown as Institution);
   },
 
   createInstitution: async (payload: Partial<Institution>): Promise<Institution> => {
@@ -38,47 +56,104 @@ export const apiService = {
     return unwrap(res, payload as Institution);
   },
 
-  // --- Reviews ---
-  getReviews: async (): Promise<PendingChange[]> => {
-    const res = await apiClient<Envelope<PendingChange[]>>("/reviews");
-    console.log("API RESPONSE /reviews:", res);
-    const data = unwrap(res, []);
-    // Normalize: ensure status mirrors auth_status
-    return data.map((item) => ({ ...item, status: item.auth_status ?? item.status ?? "PENDING" }));
+  approveInstitution: async (pending_id: string | number): Promise<void> => {
+    await apiClient(`/institutions/${pending_id}/approve`, { method: "POST" });
   },
 
-  updateReviewStatus: async (id: string, status: PendingChange["status"]): Promise<PendingChange | null> => {
-    const action = status.toLowerCase() === "approved" || status.toLowerCase() === "approve" ? "approve" : "reject";
-    await apiClient(`/reviews/${id}/${action}`, { method: "POST" });
-    return null;
+  rejectInstitution: async (pending_id: string | number): Promise<void> => {
+    await apiClient(`/institutions/${pending_id}/reject`, { method: "POST" });
   },
 
-  // --- Platform Users ---
-  getPlatformUsers: async (): Promise<PlatformUser[]> => {
-    const res = await apiClient<Envelope<PlatformUser[]>>("/platform-users");
-    console.log("API RESPONSE /platform-users:", res);
+  assignApplication: async (institution_id: string | number, application_id: string | number): Promise<void> => {
+    await apiClient(`/institutions/${institution_id}/assign-application`, {
+      method: "POST",
+      body: JSON.stringify({ application_id }),
+    });
+  },
+
+  // ─── Profiles ─────────────────────────────────────────────────────────────
+
+  getProfiles: async (): Promise<Profile[]> => {
+    const res = await apiClient<Envelope<Profile[]>>("/profiles");
     return unwrap(res, []);
   },
 
-  getPendingPlatformUsers: async (): Promise<PlatformUser[]> => {
-    const res = await apiClient<Envelope<PlatformUser[]>>("/platform-users/pending");
-    console.log("API RESPONSE /platform-users/pending:", res);
-    return unwrap(res, []);
+  getProfileById: async (profile_id: string | number): Promise<Profile | null> => {
+    const res = await apiClient<Envelope<Profile>>(`/profiles/${profile_id}`);
+    return unwrap(res, null as unknown as Profile);
   },
 
-  createPlatformUser: async (payload: CreatePlatformUserPayload): Promise<PlatformUser> => {
-    const res = await apiClient<Envelope<PlatformUser>>("/platform-users", {
+  createProfile: async (payload: CreateProfilePayload): Promise<Profile> => {
+    const res = await apiClient<Envelope<Profile>>("/profiles", {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    return unwrap(res, payload as unknown as PlatformUser);
+    return unwrap(res, payload as unknown as Profile);
   },
 
-  approvePlatformUser: async (id: string): Promise<void> => {
-    await apiClient(`/platform-users/${id}/approve`, { method: "POST" });
+  // permissions must be the full desired set — backend does a full replace
+  setProfilePermissions: async (profile_id: string | number, permissions: Permission[]): Promise<void> => {
+    await apiClient(`/profiles/${profile_id}/permissions`, {
+      method: "POST",
+      body: JSON.stringify({ permissions }),
+    });
   },
 
-  rejectPlatformUser: async (id: string): Promise<void> => {
-    await apiClient(`/platform-users/${id}/reject`, { method: "POST" });
+  // ─── Users ────────────────────────────────────────────────────────────────
+
+  getUsers: async (): Promise<User[]> => {
+    const res = await apiClient<Envelope<User[]>>("/users");
+    return unwrap(res, []);
+  },
+
+  createUser: async (payload: CreateUserPayload): Promise<User> => {
+    const res = await apiClient<Envelope<User>>("/users", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return unwrap(res, payload as unknown as User);
+  },
+
+  // ─── Applications ─────────────────────────────────────────────────────────
+
+  getApplications: async (): Promise<Application[]> => {
+    const res = await apiClient<Envelope<Application[]>>("/applications");
+    return unwrap(res, []);
+  },
+
+  createApplication: async (payload: { code: string; name: string }): Promise<Application> => {
+    const res = await apiClient<Envelope<Application>>("/applications", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return unwrap(res, payload as unknown as Application);
+  },
+
+  // ─── KYC ──────────────────────────────────────────────────────────────────
+
+  getInstitutionKyc: async (institution_id: string | number): Promise<InstitutionKycRecord | null> => {
+    const res = await apiClient<Envelope<InstitutionKycRecord>>(`/institutions/${institution_id}/kyc`);
+    return unwrap(res, null as unknown as InstitutionKycRecord);
+  },
+
+  saveInstitutionKyc: async (institution_id: string | number, payload: InstitutionKycPayload): Promise<InstitutionKycRecord> => {
+    const res = await apiClient<Envelope<InstitutionKycRecord>>(`/institutions/${institution_id}/kyc`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return unwrap(res, payload as unknown as InstitutionKycRecord);
+  },
+
+  getUserKyc: async (user_id: string | number): Promise<UserKycRecord | null> => {
+    const res = await apiClient<Envelope<UserKycRecord>>(`/users/${user_id}/kyc`);
+    return unwrap(res, null as unknown as UserKycRecord);
+  },
+
+  saveUserKyc: async (user_id: string | number, payload: UserKycPayload): Promise<UserKycRecord> => {
+    const res = await apiClient<Envelope<UserKycRecord>>(`/users/${user_id}/kyc`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return unwrap(res, payload as unknown as UserKycRecord);
   },
 };

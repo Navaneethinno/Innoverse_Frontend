@@ -5,9 +5,6 @@ import { loginRequest } from "./auth.service";
 const TOKEN_KEY = "access_token";
 const USER_KEY = "user";
 
-// Default permissions when backend doesn't send them yet
-const DEFAULT_PERMISSIONS = ["VIEW", "ADD", "EDIT", "AUTHORIZE"];
-
 const readStorage = (): Pick<AuthState, "user" | "token" | "isAuthenticated"> => {
   try {
     const token = window.localStorage.getItem(TOKEN_KEY);
@@ -36,14 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async ({ username, password }) => {
     try {
-      const { access_token, user: responseUser } = await loginRequest(username, password);
-      const user: AuthUser = {
-        id: responseUser?.id ?? username,
-        name: responseUser?.name ?? username,
-        username: responseUser?.username ?? username,
-        role: responseUser?.role ?? "Platform Admin",
-        permissions: responseUser?.permissions ?? DEFAULT_PERMISSIONS,
-      };
+      const { access_token, user } = await loginRequest(username, password);
       persist(user, access_token);
       set({ user, token: access_token, isAuthenticated: true });
       return true;
@@ -58,7 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }));
 
-// Auto-logout on 401 from apiClient (avoids circular import)
+// Auto-logout on 401 from apiClient
 window.addEventListener("auth:unauthorized", () => {
   useAuthStore.getState().logout();
   window.location.href = "/login";

@@ -1,6 +1,5 @@
 import { cn } from "../../lib/utils";
 import type { InstStatus } from "../../features/institution/institution.types";
-import type { ChangeStatus } from "../../features/review/review.types";
 
 const STATUS_CONFIG: Record<string, { label: string; dot: string; pill: string }> = {
   active: { label: "Active", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -11,7 +10,7 @@ const STATUS_CONFIG: Record<string, { label: string; dot: string; pill: string }
   approved: { label: "Approved", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
 };
 
-export function StatusBadge({ status }: { status: InstStatus | ChangeStatus | string }) {
+export function StatusBadge({ status }: { status: InstStatus | string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.draft;
   return (
     <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border", cfg.pill)}>

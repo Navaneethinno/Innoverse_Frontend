@@ -15,10 +15,9 @@ export function TopBar() {
   const crumbs = useMemo(() => {
     if (pathname.startsWith("/institutions/")) return ["Institutions", "Detail"];
     if (pathname.startsWith("/institutions")) return ["Institutions"];
-    if (pathname.startsWith("/review/")) return ["Review Center", "Compare"];
-    if (pathname.startsWith("/review")) return ["Review Center"];
-    if (pathname.startsWith("/platform-users/pending")) return ["Platform Users", "Pending Approvals"];
-    if (pathname.startsWith("/platform-users")) return ["Platform Users"];
+    if (pathname.startsWith("/users")) return ["Users"];
+    if (pathname.startsWith("/profiles")) return ["Profiles"];
+    if (pathname.startsWith("/applications")) return ["Applications"];
     return ["Dashboard"];
   }, [pathname]);
 
@@ -93,7 +92,7 @@ export function TopBar() {
           </button>
 
           <button
-            onClick={() => navigate("/review")}
+            onClick={() => navigate("/institutions")}
             className="relative p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors"
           >
             <Bell size={15} strokeWidth={1.8} />
@@ -106,9 +105,9 @@ export function TopBar() {
               className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl hover:bg-slate-100/80 transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6C7FFF] to-[#B39DFA] text-white flex items-center justify-center text-[11px] font-bold shadow-sm shadow-indigo-200/50">
-                {user?.name?.charAt(0).toUpperCase() ?? "A"}
+                {user?.username?.charAt(0).toUpperCase() ?? "A"}
               </div>
-              <span className="hidden sm:block text-xs font-semibold text-slate-600">{user?.name ?? "Admin"}</span>
+              <span className="hidden sm:block text-xs font-semibold text-slate-600">{user?.username ?? "Admin"}</span>
             </button>
 
             <AnimatePresence>
@@ -127,8 +126,8 @@ export function TopBar() {
                   }}
                 >
                   <div className="px-4 py-3 border-b border-slate-100/80">
-                    <p className="text-xs font-bold text-slate-800">{user?.name ?? "Admin"}</p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{user?.role ?? "Platform Owner"}</p>
+                    <p className="text-xs font-bold text-slate-800">{user?.username ?? "Admin"}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{user?.institution?.name ?? "Platform"}</p>
                   </div>
                   <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-600 hover:bg-indigo-50/60 transition-colors">
                     <Settings size={13} /> Settings

@@ -2,9 +2,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, Fingerprint, Lock, Mail, RefreshCw, Shield } from "lucide-react";
-import { GradientMesh } from "../../legacy/legacy-components";
 import { useAuthStore } from "../../features/auth/auth.store";
 import { notifications } from "../../lib/notifications";
+
+function GradientMesh() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+      <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl" style={{ background: "radial-gradient(circle, #7C8CFF, transparent 70%)" }} />
+      <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl" style={{ background: "radial-gradient(circle, #7FE0C2, transparent 70%)" }} />
+    </div>
+  );
+}
 
 export function LoginPage() {
   const [username, setUsername] = useState("");
