@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, ArrowLeft, Building2, CheckCircle, Clock, Edit3, Eye, Globe, Mail, MapPin, Phone, User } from "lucide-react";
+import { motion } from "motion/react";
+import { AlertCircle, ArrowLeft, Building2, CheckCircle } from "lucide-react";
 import { useInstitutionStore } from "../../features/institution/institution.store";
 import type { Institution } from "../../features/institution/institution.types";
 import { Skeleton } from "../../components/ui/skeleton";
-import { toast } from "sonner";
 import { cn } from "../../lib/utils";
 
 const glass = {
@@ -27,23 +26,20 @@ const STATUS_STYLES: Record<string, { pill: string; dot: string; label: string }
   DRAFT:     { pill: "bg-slate-50 text-slate-500 border-slate-200",       dot: "bg-slate-400",   label: "Draft" },
 };
 
-type EditableKey = "email" | "phone" | "address_line1" | "city";
-
-const EDITABLE_FIELDS: { key: EditableKey; label: string; icon: React.ElementType }[] = [
-  { key: "email",        label: "Email",          icon: Mail },
-  { key: "phone",        label: "Phone",          icon: Phone },
-  { key: "address_line1", label: "Address",       icon: MapPin },
-  { key: "city",         label: "City",           icon: Globe },
-];
+function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+      <p className="text-xs text-slate-700 mt-0.5">{value ?? <span className="text-slate-300 italic">—</span>}</p>
+    </div>
+  );
+}
 
 export function InstitutionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { fetchInstitutionById, updateInstitution } = useInstitutionStore();
+  const { fetchInstitutionById } = useInstitutionStore();
   const [institution, setInstitution] = useState<Institution | null>(null);
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [values, setValues] = useState<Institution | null>(null);
-  const [pendingDialog, setPendingDialog] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,19 +48,12 @@ export function InstitutionDetailPage() {
     setIsLoading(true);
     setError(null);
     const item = await fetchInstitutionById(id);
-    if (item) { setInstitution(item); setValues(item); }
+    if (item) setInstitution(item);
     else setError("Institution not found");
     setIsLoading(false);
   };
 
   useEffect(() => { void load(); }, [id]);
-
-  const handleSave = (field: string) => {
-    if (!institution || !values) return;
-    const changed = values[field as keyof Institution] !== institution[field as keyof Institution];
-    setEditingField(null);
-    if (changed) setPendingDialog(field);
-  };
 
   if (isLoading || !institution) {
     return (
@@ -88,10 +77,10 @@ export function InstitutionDetailPage() {
     );
   }
 
-  const displayName = institution.name || institution.legal_name || institution.code || "—";
-  const statusKey = String(institution.status ?? "DRAFT");
+  const displayName = institution.name || institution.code || "—";
+  const statusKey = String(institution.status ?? institution.auth_status ?? "DRAFT");
   const statusCfg = STATUS_STYLES[statusKey] ?? STATUS_STYLES.DRAFT;
-  const location = [institution.address_line1, institution.city, institution.state, institution.country].filter(Boolean).join(", ");
+  const kyc = institution.kyc;
 
   return (
     <div className="pt-4 pb-8">
@@ -119,136 +108,102 @@ export function InstitutionDetailPage() {
             </div>
           </div>
         </div>
-        <button className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100/80 transition-colors border border-slate-200/60">
-          <Eye size={13} /> Audit Log
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: details */}
+        {/* Left: institution + KYC details */}
         <div className="lg:col-span-2 space-y-5">
 
-          {/* Editable fields */}
+          {/* Institution info */}
           <div className="rounded-2xl p-6" style={glass}>
-            <h2 className="text-sm font-bold text-slate-800 mb-5">Institution Details</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {EDITABLE_FIELDS.map(({ key, label, icon: Icon }) => {
-                const val = values?.[key] ?? null;
-                return (
-                  <div key={key}>
-                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                      <Icon size={10} /> {label}
-                    </label>
-                    {editingField === key ? (
-                      <input
-                        value={String(val ?? "")}
-                        onChange={(e) => setValues((v) => v ? { ...v, [key]: e.target.value } : v)}
-                        autoFocus
-                        onBlur={() => handleSave(key)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSave(key);
-                          if (e.key === "Escape") { setEditingField(null); setValues(institution); }
-                        }}
-                        className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-                        style={{ background: "rgba(108,127,255,0.06)", border: "2px solid rgba(108,127,255,0.30)" }}
-                      />
-                    ) : (
-                      <button
-                        onClick={() => setEditingField(key)}
-                        className="group/f w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-left hover:bg-white/60 transition-colors"
-                        style={{ border: "1px solid rgba(108,127,255,0.08)" }}
-                      >
-                        <span className="flex-1 min-w-0 truncate text-slate-700">{val ?? <span className="text-slate-300 italic">Not set</span>}</span>
-                        <Edit3 size={11} className="text-slate-300 opacity-0 group-hover/f:opacity-100 transition-opacity shrink-0" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Info tiles */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { label: "Owner",      value: institution.owner?.name ?? "—",       icon: User },
-              { label: "Version",    value: institution.version ?? "—",            icon: Clock },
-              { label: "Created By", value: institution.created_by?.name ?? "—",  icon: Building2 },
-              { label: "Approved By", value: institution.approved_by?.name ?? "—", icon: CheckCircle },
-            ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className="rounded-2xl p-4 text-center" style={glass}>
-                <Icon size={16} className="text-indigo-400 mx-auto mb-2" />
-                <p className="text-lg font-black text-slate-800">{String(value)}</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{label}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Location */}
-          {location && (
-            <div className="rounded-2xl p-5" style={glass}>
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin size={13} className="text-indigo-400" />
-                <h2 className="text-sm font-bold text-slate-800">Location</h2>
-              </div>
-              <p className="text-sm text-slate-600">{location}</p>
-              {institution.postal_code && <p className="text-xs text-slate-400 mt-1">Postal: {institution.postal_code}</p>}
-            </div>
-          )}
-        </div>
-
-        {/* Right: legal info */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="rounded-2xl p-5 sticky top-20" style={glass}>
-            <h2 className="text-sm font-bold text-slate-800 mb-4">Legal Information</h2>
-            <div className="space-y-3">
+            <h2 className="text-sm font-bold text-slate-800 mb-5">Institution</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
-                { label: "Legal Name",   value: institution.legal_name },
-                { label: "Code",         value: institution.code },
-                { label: "Address Line 2", value: institution.address_line2 },
-                { label: "State",        value: institution.state },
-                { label: "Country",      value: institution.country },
+                { label: "Code",        value: institution.code },
+                { label: "Type",        value: institution.type },
+                { label: "Auth Status", value: institution.auth_status },
+                { label: "Status",      value: institution.status },
               ].map(({ label, value }) => (
-                <div key={label}>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-                  <p className="text-xs text-slate-700 mt-0.5">{value ?? <span className="text-slate-300 italic">—</span>}</p>
+                <div key={label} className="rounded-2xl p-4 text-center" style={glass}>
+                  <p className="text-lg font-black text-slate-800 truncate">{value ?? "—"}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Maker-checker info */}
+          <div className="rounded-2xl p-6" style={glass}>
+            <h2 className="text-sm font-bold text-slate-800 mb-4">Maker-Checker</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(108,127,255,0.04)", border: "1px solid rgba(108,127,255,0.08)" }}>
+                <Building2 size={14} className="text-indigo-400 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Created By</p>
+                  <p className="text-sm font-semibold text-slate-700">{institution.created_by?.name ?? "—"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(108,127,255,0.04)", border: "1px solid rgba(108,127,255,0.08)" }}>
+                <CheckCircle size={14} className="text-emerald-400 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approved By</p>
+                  <p className="text-sm font-semibold text-slate-700">{institution.approved_by?.name ?? "—"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* KYC details */}
+          {kyc && (
+            <div className="rounded-2xl p-6" style={glass}>
+              <h2 className="text-sm font-bold text-slate-800 mb-4">KYC Details</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InfoRow label="Legal Name"          value={kyc.legal_name} />
+                <InfoRow label="Registration Number" value={kyc.registration_number} />
+                <InfoRow label="Tax ID"              value={kyc.tax_id} />
+                <InfoRow label="Email"               value={kyc.email} />
+                <InfoRow label="Phone"               value={kyc.phone} />
+                <InfoRow label="Website"             value={kyc.website} />
+                <InfoRow label="KYC Status"          value={kyc.kyc_status} />
+              </div>
+              {(kyc.address_line1 || kyc.city) && (
+                <div className="mt-4 pt-4 border-t border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Address</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InfoRow label="Address Line 1" value={kyc.address_line1} />
+                    <InfoRow label="Address Line 2" value={kyc.address_line2} />
+                    <InfoRow label="City"           value={kyc.city} />
+                    <InfoRow label="State"          value={kyc.state} />
+                    <InfoRow label="Country"        value={kyc.country} />
+                    <InfoRow label="Postal Code"    value={kyc.postal_code} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: summary */}
+        <div className="lg:col-span-1">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl p-5 sticky top-20"
+            style={glass}
+          >
+            <h2 className="text-sm font-bold text-slate-800 mb-4">Summary</h2>
+            <div className="space-y-3">
+              <InfoRow label="Code"        value={institution.code} />
+              <InfoRow label="Name"        value={institution.name} />
+              <InfoRow label="Type"        value={institution.type} />
+              <InfoRow label="Auth Status" value={institution.auth_status} />
+              {kyc?.legal_name && <InfoRow label="Legal Name" value={kyc.legal_name} />}
+              {kyc?.city && <InfoRow label="City" value={kyc.city} />}
+              {kyc?.country && <InfoRow label="Country" value={kyc.country} />}
+            </div>
+          </motion.div>
         </div>
       </div>
-
-      {/* Maker-checker dialog */}
-      <AnimatePresence>
-        {pendingDialog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setPendingDialog(null)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-              className="relative rounded-2xl p-6 w-full max-w-sm"
-              style={{ background: "rgba(255,255,255,0.96)", border: "1px solid rgba(255,255,255,0.95)", boxShadow: "0 24px 64px rgba(108,127,255,0.16)" }}
-            >
-              <h3 className="text-sm font-bold text-slate-800 mb-1.5">Submit Change Request</h3>
-              <p className="text-xs text-slate-500 mb-4">This change will be queued for checker approval before taking effect.</p>
-              <div className="p-3 rounded-xl mb-4" style={{ background: "rgba(108,127,255,0.06)", border: "1px solid rgba(108,127,255,0.12)" }}>
-                <p className="text-xs font-bold text-indigo-700">Maker-Checker enforced</p>
-                <p className="text-xs text-indigo-500 mt-0.5">A second approver will review this change</p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setPendingDialog(null)} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors border border-slate-200/60">Cancel</button>
-                <button
-                  onClick={() => { updateInstitution(values); toast.success("Change request queued"); setPendingDialog(null); }}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50"
-                  style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
-                >
-                  Submit for Review
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

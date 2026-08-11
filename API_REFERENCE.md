@@ -226,12 +226,12 @@ List all approved institutions.
 ---
 
 ### GET `/institutions/pending`
-List institutions awaiting approval.
+List pending institution onboarding requests that the current user is eligible to act on. Requests created by the current user are excluded — a maker cannot review their own submission.
 
 **Permission required:** `INSTITUTIONS / AUTHORIZE`  
 **Restriction:** Only accessible by `PLATFORM_OWNER` institution users.
 
-**Response `data`:** array of pending institution objects
+**Response `data`:** array of pending institution objects the caller can approve or reject
 ```json
 [
   {
@@ -240,11 +240,29 @@ List institutions awaiting approval.
     "name": "New Bank Ltd",
     "type": "PLATFORM_USER",
     "auth_status": "PENDING",
-    "created_by": { "id": 1, "name": "platform_admin" },
-    "reviewed_by": null
+    "created_by": { "id": 1, "name": "admin1" },
+    "reviewed_by": null,
+    "kyc": {
+      "legal_name": "New Bank Limited",
+      "registration_number": "REG-001",
+      "tax_id": "TAX-001",
+      "email": "admin@newbank.com",
+      "phone": "+91-9000000001",
+      "website": "https://newbank.com",
+      "address_line1": "1 Finance St",
+      "address_line2": null,
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "country": "India",
+      "postal_code": "400001",
+      "id": 0,
+      "institution_id": 0,
+      "kyc_status": null
+    }
   }
 ]
-```
+
+> `kyc` is `null` if no KYC data was submitted with the request.
 
 ---
 
@@ -260,7 +278,7 @@ Get a single approved institution by ID.
 ---
 
 ### POST `/institutions`
-Submit a new institution for review. Creates a pending record — does **not** immediately approve.
+Submit a complete institution onboarding request including KYC. Creates a pending record — does **not** immediately approve.
 
 **Permission required:** `INSTITUTIONS / ADD`  
 **Restriction:** Only `PLATFORM_OWNER` users can submit institutions.
@@ -270,36 +288,92 @@ Submit a new institution for review. Creates a pending record — does **not** i
 {
   "code": "NEWBANK",
   "name": "New Bank Ltd",
-  "type": "PLATFORM_USER"
+  "type": "PLATFORM_USER",
+  "kyc": {
+    "legal_name": "New Bank Limited",
+    "registration_number": "REG-001",
+    "tax_id": "TAX-001",
+    "email": "admin@newbank.com",
+    "phone": "+91-9000000001",
+    "website": "https://newbank.com",
+    "address_line1": "1 Finance St",
+    "address_line2": null,
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "country": "India",
+    "postal_code": "400001"
+  }
 }
 ```
 
-> `type` can be `PLATFORM_OWNER` or `PLATFORM_USER`. Defaults to `PLATFORM_USER`.  
-> `code` must be globally unique.
+> `type` defaults to `PLATFORM_USER`. Institutions created via the API are always `PLATFORM_USER`. `PLATFORM_OWNER` is seeded manually and never created through this endpoint.  
+> `code` must be globally unique — rejected if it already exists in approved or pending records.  
+> All `kyc` fields are optional individually, but the `kyc` object itself is required.
 
-**Response `data`:** the pending institution object
+**Response `data`:** the pending institution object including the submitted KYC
+```json
+{
+  "id": 1,
+  "code": "NEWBANK",
+  "name": "New Bank Ltd",
+  "type": "PLATFORM_USER",
+  "auth_status": "PENDING",
+  "created_by": { "id": 1, "name": "admin1" },
+  "reviewed_by": null,
+  "kyc": {
+    "legal_name": "New Bank Limited",
+    "registration_number": "REG-001",
+    "tax_id": "TAX-001",
+    "email": "admin@newbank.com",
+    "phone": "+91-9000000001",
+    "website": "https://newbank.com",
+    "address_line1": "1 Finance St",
+    "address_line2": null,
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "country": "India",
+    "postal_code": "400001",
+    "id": 0,
+    "institution_id": 0,
+    "kyc_status": null
+  }
+}
 
 ---
 
 ### POST `/institutions/{pending_id}/approve`
-Approve a pending institution. Moves it from `institution_pending` to `institution`.
+Approve a pending institution. Atomically moves it from `institution_pending` to `institution` and persists the associated KYC record.
 
 **Permission required:** `INSTITUTIONS / AUTHORIZE`  
-**Restriction:** Only `PLATFORM_OWNER` users. Cannot approve your own submission.
+**Restriction:** Only `PLATFORM_OWNER` users. The user who submitted the request cannot approve it (maker-checker enforced server-side).
 
 **Path param:** `pending_id` — the ID from the pending list
 
 **No request body.**
 
 **Response `data`:** the approved institution object
+```json
+{
+  "id": 2,
+  "code": "NEWBANK",
+  "name": "New Bank Ltd",
+  "type": "PLATFORM_USER",
+  "status": "ACTIVE",
+  "auth_status": "APPROVED",
+  "created_by": { "id": 1, "name": "admin1" },
+  "approved_by": { "id": 2, "name": "admin2" }
+}
+```
+
+> After approval, `GET /institutions/{institution_id}/kyc` will return the KYC data that was submitted at creation time.
 
 ---
 
 ### POST `/institutions/{pending_id}/reject`
-Reject a pending institution.
+Reject a pending institution. Does not create an approved institution record.
 
 **Permission required:** `INSTITUTIONS / AUTHORIZE`  
-**Restriction:** Only `PLATFORM_OWNER` users.
+**Restriction:** Only `PLATFORM_OWNER` users. The user who submitted the request cannot reject it (same maker-checker rule as approve).
 
 **Path param:** `pending_id` — the ID from the pending list
 
@@ -402,11 +476,11 @@ Get KYC details for an institution.
 ---
 
 ### POST `/institutions/{institution_id}/kyc`
-Create or update KYC for an institution (upsert).
+Update KYC for an already-approved institution (upsert). Not required for initial onboarding — KYC is submitted as part of `POST /institutions` and is automatically persisted on approval.
 
 **Permission required:** `KYC / ADD`
 
-**Path param:** `institution_id` — integer
+**Path param:** `institution_id` — the ID of an **approved** institution
 
 **Request body:** all fields optional
 ```json
@@ -513,12 +587,13 @@ Create or update KYC for a user (upsert).
 - **Institution type gating:** After login, check `user.institution.type`. Hide institution approval UI for `PLATFORM_USER` accounts.
 - **Permission-based UI:** The backend enforces permissions on every request. Mirror this on the frontend by checking which menu/action combinations the user's profile has before rendering buttons/routes.
 - **Pending vs approved institutions:** `POST /institutions` creates a *pending* record. The approved list (`GET /institutions`) only shows fully approved ones. Use `GET /institutions/pending` to build the approval queue UI.
-- **KYC upsert:** Both KYC endpoints are upsert — safe to call on create and update with the same endpoint.
+- **KYC upsert:** `POST /institutions/{institution_id}/kyc` and `POST /users/{user_id}/kyc` are both upserts — safe to call for both create and update.
+- **Institution KYC on creation:** KYC is submitted as part of `POST /institutions` inside the `kyc` object. A separate KYC call is not needed for initial onboarding. `POST /institutions/{institution_id}/kyc` is only needed for subsequent KYC updates after approval.
+- **Maker-checker:** The user who submits `POST /institutions` cannot approve or reject it. A different `PLATFORM_OWNER` user must call approve/reject. `GET /institutions/pending` already filters out the caller's own submissions server-side — the frontend does not need to hide them manually.
 - **Sequence for onboarding a new institution:**
-  1. `POST /institutions` → creates pending record
-  2. `GET /institutions/pending` → reviewer sees it
-  3. `POST /institutions/{pending_id}/approve` → moves to approved
-  4. `POST /institutions/{institution_id}/kyc` → fill KYC details
-  5. `POST /profiles` → create a profile for the institution
-  6. `POST /profiles/{profile_id}/permissions` → assign permissions
-  7. `POST /users` → create users under that institution
+  1. `POST /institutions` (with nested `kyc`) → creates pending record with KYC attached
+  2. `GET /institutions/pending` → reviewer sees the request including KYC details
+  3. `POST /institutions/{pending_id}/approve` → different user approves; institution + KYC created atomically
+  4. `POST /profiles` → create a profile for the new institution
+  5. `POST /profiles/{profile_id}/permissions` → assign permissions to the profile
+  6. `POST /users` → create users under that institution

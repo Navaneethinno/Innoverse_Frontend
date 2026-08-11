@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import type { Institution } from "../../../features/institution/institution.types";
 import { cn } from "../../../lib/utils";
@@ -29,11 +29,11 @@ export function InstitutionCard({ inst, index }: { inst: Institution; index: num
   const navigate = useNavigate();
   const grad = GRADIENTS[index % GRADIENTS.length];
 
-  const displayName = inst.name || inst.legal_name || inst.code || "—";
-  const displayType = inst.type || inst.legal_name || "Institution";
-  const displayCity = inst.city || inst.state || inst.country || null;
-  const statusKey = String(inst.status ?? "DRAFT");
+  const displayName = inst.name || inst.code || "—";
+  const statusKey = String(inst.status ?? inst.auth_status ?? "DRAFT");
   const statusCfg = STATUS_STYLES[statusKey] ?? STATUS_STYLES.DRAFT;
+  // KYC city for location hint (available after approval via GET /institutions/{id}/kyc, or on pending records)
+  const displayCity = inst.kyc?.city ?? null;
 
   return (
     <motion.div
@@ -72,23 +72,22 @@ export function InstitutionCard({ inst, index }: { inst: Institution; index: num
         <h3 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug tracking-tight">
           {displayName}
         </h3>
-        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{displayType}</p>
+        <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{inst.type}</p>
 
-        {/* Stats row */}
         <div className="mt-4 pt-4 border-t border-slate-100/80 grid grid-cols-2 gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Code</p>
             <p className="text-sm font-black text-slate-700 mt-0.5 font-mono">{inst.code || "—"}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Version</p>
-            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.version ?? "—"}</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-300 font-bold">Auth Status</p>
+            <p className="text-sm font-black text-slate-700 mt-0.5">{inst.auth_status ?? "—"}</p>
           </div>
         </div>
 
         <div className="mt-3 flex items-center justify-between">
-          <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-            {displayCity ? <><MapPin size={10} /> {displayCity}</> : <span className="text-slate-300">No location</span>}
+          <span className="text-[11px] text-slate-400 font-medium">
+            {displayCity ?? <span className="text-slate-300">No location</span>}
           </span>
           <span className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-indigo-500 font-bold transition-opacity">
             Open <ArrowUpRight size={11} />

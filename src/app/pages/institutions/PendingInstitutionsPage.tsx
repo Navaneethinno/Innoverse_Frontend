@@ -22,6 +22,8 @@ export function PendingInstitutionsPage() {
 
   const { pendingInstitutions, isLoading, error, fetchPendingInstitutions, approveInstitution, rejectInstitution } = useInstitutionStore();
 
+  // Backend already excludes requests created by the current user (maker-checker).
+  // Every item in pendingInstitutions is one the current user can act on.
   useEffect(() => {
     void fetchPendingInstitutions();
   }, [fetchPendingInstitutions]);
@@ -56,7 +58,9 @@ export function PendingInstitutionsPage() {
         <div>
           <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Maker-Checker</p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Pending Institutions</h1>
-          <p className="text-sm text-slate-400 mt-1.5 font-medium">{pendingInstitutions.length} awaiting review</p>
+          <p className="text-sm text-slate-400 mt-1.5 font-medium">
+            {isLoading ? "Loading…" : `${pendingInstitutions.length} pending approval${pendingInstitutions.length !== 1 ? "s" : ""}`}
+          </p>
         </div>
         <button
           onClick={() => navigate("/institutions")}
@@ -99,7 +103,7 @@ export function PendingInstitutionsPage() {
                       <ClipboardCheck size={20} className="text-emerald-400" />
                     </div>
                     <p className="text-sm font-bold text-slate-600">All caught up</p>
-                    <p className="text-xs text-slate-400">No pending institutions</p>
+                    <p className="text-xs text-slate-400">No pending approvals</p>
                   </div>
                 </td>
               </tr>
@@ -113,7 +117,7 @@ export function PendingInstitutionsPage() {
                   <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{inst.code}</td>
                   <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{inst.name}</td>
                   <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.type}</td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.email ?? "-"}</td>
+                  <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.kyc?.email ?? "-"}</td>
                   <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{inst.created_by?.name ?? "-"}</td>
                   <td className="px-5 py-3.5 text-center">
                     <div className="flex items-center justify-center gap-2">

@@ -1,5 +1,5 @@
 import { apiService } from "../../features/api.service";
-import type { Institution } from "./institution.types";
+import type { Institution, CreateInstitutionPayload } from "./institution.types";
 
 export const institutionApi = {
   list: async (): Promise<Institution[]> => {
@@ -14,7 +14,7 @@ export const institutionApi = {
     return apiService.getInstitutionById(id);
   },
 
-  create: async (payload: Partial<Institution>): Promise<Institution> => {
+  create: async (payload: CreateInstitutionPayload): Promise<Institution> => {
     return apiService.createInstitution(payload);
   },
 

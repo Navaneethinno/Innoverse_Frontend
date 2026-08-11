@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Institution } from "./institution.types";
+import type { Institution, CreateInstitutionPayload } from "./institution.types";
 import { institutionApi } from "./institution.api";
 
 interface InstitutionStore {
@@ -11,7 +11,7 @@ interface InstitutionStore {
   fetchInstitutions: () => Promise<void>;
   fetchPendingInstitutions: () => Promise<void>;
   fetchInstitutionById: (id: string) => Promise<Institution | null>;
-  createInstitution: (payload: Partial<Institution>) => Promise<Institution | null>;
+  createInstitution: (payload: CreateInstitutionPayload) => Promise<Institution | null>;
   approveInstitution: (id: string | number) => Promise<boolean>;
   rejectInstitution: (id: string | number) => Promise<boolean>;
   setSelectedInstitutionId: (id: string) => void;

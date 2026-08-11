@@ -1,5 +1,5 @@
 import { apiClient } from "../lib/apiClient";
-import type { Institution } from "./institution/institution.types";
+import type { Institution, CreateInstitutionPayload } from "./institution/institution.types";
 import type { Profile, CreateProfilePayload } from "./profiles/profile.types";
 import type { User, CreateUserPayload } from "./users/user.types";
 import type { Application } from "./applications/application.types";
@@ -48,12 +48,12 @@ export const apiService = {
     return unwrap(res, null as unknown as Institution);
   },
 
-  createInstitution: async (payload: Partial<Institution>): Promise<Institution> => {
+  createInstitution: async (payload: CreateInstitutionPayload): Promise<Institution> => {
     const res = await apiClient<Envelope<Institution>>("/institutions", {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    return unwrap(res, payload as Institution);
+    return unwrap(res, payload as unknown as Institution);
   },
 
   approveInstitution: async (pending_id: string | number): Promise<void> => {

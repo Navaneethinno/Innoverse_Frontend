@@ -40,8 +40,8 @@ export function InstitutionListPage() {
 
   const visibleInstitutions = useMemo(() => {
     if (isPlatformOwner) return institutions;
-    return institutions.filter((inst) => String(inst.id) === String(currentUser?.institution_id));
-  }, [institutions, isPlatformOwner, currentUser?.institution_id]);
+    return institutions.filter((inst) => String(inst.id) === String(currentUser?.institution?.id));
+  }, [institutions, isPlatformOwner, currentUser?.institution?.id]);
 
   const filtered = useMemo(
     () =>
@@ -223,7 +223,7 @@ export function InstitutionListPage() {
                       <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{inst.code}</td>
                       <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{inst.name}</td>
                       <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.type}</td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.email ?? "-"}</td>
+                      <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.kyc?.email ?? "-"}</td>
                       <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{inst.created_by?.name ?? "-"}</td>
                       <td className="px-5 py-3.5 text-center">
                         <div className="flex items-center justify-center gap-2">
