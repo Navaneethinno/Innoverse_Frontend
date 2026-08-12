@@ -1,3 +1,5 @@
+import type { CheckerConfigPayload } from "../maker-checker.types";
+
 export interface User {
   id: string | number;
   username: string;
@@ -14,6 +16,9 @@ export interface CreateUserPayload {
   password: string;
   profile_id: string | number;
   remark?: string | null;
+  checker_mode?: CheckerConfigPayload["checker_mode"];
+  checker_assignments?: CheckerConfigPayload["checker_assignments"];
+  required_checker_count?: number | null;
 }
 
 export interface UpdateUserPayload {

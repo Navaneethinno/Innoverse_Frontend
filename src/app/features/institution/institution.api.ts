@@ -32,4 +32,10 @@ export const institutionApi = {
 
   reject: (request_id: string, payload?: CheckerDecisionRequest): Promise<MakerCheckerResponse> =>
     apiService.rejectInstitution(request_id, payload),
+
+  continueRejectedAdd: (
+    request_id: string,
+    payload: { after_data?: Record<string, unknown>; remark?: string | null },
+    mode: "edit" | "delete",
+  ): Promise<MakerCheckerResponse> => apiService.continueRejectedInstitutionAdd(request_id, payload, mode),
 };

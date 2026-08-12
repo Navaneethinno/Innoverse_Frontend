@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, ShieldCheck, Plus, X } from "lucide-react";
 import { useAuthStore } from "../../features/auth/auth.store";
+import { useUserStore } from "../../features/users/user.store";
 import { apiService } from "../../features/api.service";
 import { PendingTable } from "../../components/common/PendingTable";
+import { MakerCheckerConfig } from "../../components/common/MakerCheckerConfig";
+import { StatusBadge } from "../../components/common/StatusBadge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { notifications } from "../../lib/notifications";
 import { cn } from "../../lib/utils";
@@ -32,6 +35,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 
 export function KycPage() {
   const currentUser = useAuthStore((s) => s.user);
+  const { users, fetchUsers } = useUserStore();
   const [activeTab, setActiveTab] = useState<KycTab>("institution");
   const [viewMode, setViewMode] = useState<"current" | "pending">("current");
 
@@ -41,6 +45,7 @@ export function KycPage() {
   const [instKycError, setInstKycError] = useState<string | null>(null);
   const [showInstForm, setShowInstForm] = useState(false);
   const [instForm, setInstForm] = useState<InstitutionKycPayload>({});
+  const [instCheckerConfig, setInstCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
   const [instSubmitting, setInstSubmitting] = useState(false);
 
   // User KYC
@@ -49,6 +54,7 @@ export function KycPage() {
   const [userKycError, setUserKycError] = useState<string | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [userForm, setUserForm] = useState<UserKycPayload>({});
+  const [userCheckerConfig, setUserCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
   const [userSubmitting, setUserSubmitting] = useState(false);
 
   // Pending
@@ -97,20 +103,18 @@ export function KycPage() {
   };
 
   useEffect(() => {
-    if (viewMode === "current") {
-      if (activeTab === "institution") void loadInstKyc();
-      else void loadUserKyc();
-    } else {
-      void loadPending();
-    }
-  }, [activeTab, viewMode]);
+    void fetchUsers();
+    if (activeTab === "institution") void loadInstKyc();
+    else void loadUserKyc();
+    void loadPending();
+  }, [activeTab, viewMode, fetchUsers]);
 
   const handleInstSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!institutionId) return;
     setInstSubmitting(true);
     try {
-      await apiService.saveInstitutionKyc(institutionId, instForm);
+      await apiService.saveInstitutionKyc(institutionId, { ...instForm, ...instCheckerConfig });
       notifications.success("Institution KYC request submitted for approval");
       setShowInstForm(false);
       setInstForm({});
@@ -126,7 +130,7 @@ export function KycPage() {
     if (!userId) return;
     setUserSubmitting(true);
     try {
-      await apiService.saveUserKyc(userId, userForm);
+      await apiService.saveUserKyc(userId, { ...userForm, ...userCheckerConfig });
       notifications.success("User KYC request submitted for approval");
       setShowUserForm(false);
       setUserForm({});
@@ -248,6 +252,15 @@ export function KycPage() {
                       {instSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>
                   </div>
+                  <div className="sm:col-span-2">
+                    <MakerCheckerConfig
+                      value={instCheckerConfig}
+                      onChange={setInstCheckerConfig}
+                      candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                      makerInstitutionId={currentUser?.institution?.id}
+                      currentMakerId={currentUser?.id}
+                    />
+                  </div>
                 </form>
               </motion.div>
             )}
@@ -267,6 +280,7 @@ export function KycPage() {
               <div className="flex items-center gap-2 mb-5">
                 <ShieldCheck size={16} className="text-emerald-500" />
                 <h2 className="text-sm font-bold text-slate-800">Current Institution KYC</h2>
+                <StatusBadge status={instKyc.kyc_status} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoRow label="Legal Name" value={instKyc.legal_name} />
@@ -291,6 +305,18 @@ export function KycPage() {
               <p className="text-xs text-slate-400">Submit a KYC record to get started</p>
             </div>
           )}
+
+          <div className="mt-5">
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Pending Institution KYC</h3>
+            <PendingTable
+              requests={pending}
+              isLoading={pendingLoading}
+              currentUserId={currentUser?.id}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              entityLabel="KYC"
+            />
+          </div>
         </>
       ) : (
         <>
@@ -321,6 +347,15 @@ export function KycPage() {
                       {userSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>
                   </div>
+                  <div className="sm:col-span-2">
+                    <MakerCheckerConfig
+                      value={userCheckerConfig}
+                      onChange={setUserCheckerConfig}
+                      candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                      makerInstitutionId={currentUser?.institution?.id}
+                      currentMakerId={currentUser?.id}
+                    />
+                  </div>
                 </form>
               </motion.div>
             )}
@@ -340,6 +375,7 @@ export function KycPage() {
               <div className="flex items-center gap-2 mb-5">
                 <ShieldCheck size={16} className="text-emerald-500" />
                 <h2 className="text-sm font-bold text-slate-800">Current User KYC</h2>
+                <StatusBadge status={userKyc.kyc_status} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InfoRow label="Full Name" value={userKyc.full_name} />
@@ -364,6 +400,18 @@ export function KycPage() {
               <p className="text-xs text-slate-400">Submit a KYC record to get started</p>
             </div>
           )}
+
+          <div className="mt-5">
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Pending User KYC</h3>
+            <PendingTable
+              requests={pending}
+              isLoading={pendingLoading}
+              currentUserId={currentUser?.id}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              entityLabel="KYC"
+            />
+          </div>
         </>
       )}
     </div>

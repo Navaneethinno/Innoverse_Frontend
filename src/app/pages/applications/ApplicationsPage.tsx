@@ -3,14 +3,19 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, AppWindow, Plus, X, Check, ClipboardCheck } from "lucide-react";
 import { useAuthStore } from "../../features/auth/auth.store";
 import { useInstitutionStore } from "../../features/institution/institution.store";
+import { useUserStore } from "../../features/users/user.store";
 import { apiService } from "../../features/api.service";
 import { PendingTable } from "../../components/common/PendingTable";
+import { MakerCheckerConfig } from "../../components/common/MakerCheckerConfig";
+import { LifecycleMutationDialog } from "../../components/common/LifecycleMutationDialog";
+import { AuditTimeline } from "../../components/common/AuditTimeline";
+import { StatusBadge } from "../../components/common/StatusBadge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { notifications } from "../../lib/notifications";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
 import type { Application, CreateApplicationPayload } from "../../features/applications/application.types";
-import type { PendingRequestOut } from "../../features/maker-checker.types";
+import type { PendingRequestOut, AuditEntryOut } from "../../features/maker-checker.types";
 
 const glass = {
   background: "rgba(255,255,255,0.65)",
@@ -27,6 +32,7 @@ export function ApplicationsPage() {
   const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
 
   const { institutions, fetchInstitutions } = useInstitutionStore();
+  const { users, fetchUsers } = useUserStore();
   const [applications, setApplications] = useState<Application[]>([]);
   const [pending, setPending] = useState<PendingRequestOut[]>([]);
   const [assignPending, setAssignPending] = useState<PendingRequestOut[]>([]);
@@ -36,7 +42,17 @@ export function ApplicationsPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CreateApplicationPayload>({ code: "", name: "", remark: "" });
+  const [checkerConfig, setCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"edit" | "delete" | "activate" | "deactivate" | null>(null);
+  const [actionRemark, setActionRemark] = useState("");
+  const [actionName, setActionName] = useState("");
+  const [auditEntries, setAuditEntries] = useState<AuditEntryOut[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [continueTarget, setContinueTarget] = useState<AuditEntryOut | null>(null);
+  const [continueMode, setContinueMode] = useState<"edit" | "delete">("edit");
+  const [continueJson, setContinueJson] = useState("");
 
   const [selectedInst, setSelectedInst] = useState("");
   const [selectedApp, setSelectedApp] = useState("");
@@ -76,14 +92,15 @@ export function ApplicationsPage() {
     else if (activeTab === "pending") void loadPending();
     else void loadAssignPending();
     if (isPlatformOwner) void fetchInstitutions();
-  }, [activeTab, fetchInstitutions, isPlatformOwner]);
+    void fetchUsers();
+  }, [activeTab, fetchInstitutions, fetchUsers, isPlatformOwner]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.code || !form.name) { notifications.error("Code and name are required"); return; }
     setSubmitting(true);
     try {
-      await apiService.createApplication({ code: form.code, name: form.name, remark: form.remark || null });
+      await apiService.createApplication({ code: form.code, name: form.name, remark: form.remark || null, ...checkerConfig });
       notifications.success("Application creation request submitted for approval");
       setShowForm(false);
       setForm({ code: "", name: "", remark: "" });
@@ -141,6 +158,60 @@ export function ApplicationsPage() {
       toast.success("Assignment rejected");
       setAssignPending((p) => p.filter((r) => r.request_id !== request_id));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed to reject"); }
+  };
+
+  const openAction = async (app: Application, action: "edit" | "delete" | "activate" | "deactivate") => {
+    setSelectedApplication(app);
+    setSelectedAction(action);
+    setActionName(app.name ?? "");
+    setActionRemark("");
+    setAuditLoading(true);
+    try {
+      setAuditEntries(await apiService.getApplicationAudit(app.id));
+    } catch {
+      setAuditEntries([]);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const submitAction = async () => {
+    if (!selectedApplication || !selectedAction) return;
+    let result = null;
+    if (selectedAction === "edit") result = await apiService.updateApplication(selectedApplication.id, { name: actionName || undefined, remark: actionRemark || null });
+    if (selectedAction === "delete") result = await apiService.deleteApplication(selectedApplication.id, { remark: actionRemark || null });
+    if (selectedAction === "activate") result = await apiService.activateApplication(selectedApplication.id, { remark: actionRemark || null });
+    if (selectedAction === "deactivate") result = await apiService.deactivateApplication(selectedApplication.id, { remark: actionRemark || null });
+    if (result) {
+      notifications.success("Application request submitted for approval");
+      setSelectedApplication(null);
+      setSelectedAction(null);
+      void loadAll();
+    } else {
+      notifications.error("Failed to submit application request");
+    }
+  };
+
+  const submitContinue = async () => {
+    if (!continueTarget) return;
+    let after_data: Record<string, unknown> | undefined;
+    if (continueMode === "edit") {
+      try {
+        after_data = continueJson ? JSON.parse(continueJson) : undefined;
+      } catch {
+        notifications.error("Rejected ADD continuation must be valid JSON");
+        return;
+      }
+    }
+    try {
+      await apiService.continueRejectedApplicationAdd(String(continueTarget.request_id), { after_data, remark: actionRemark || null }, continueMode);
+      notifications.success("Rejected ADD continued");
+      setContinueTarget(null);
+      void loadPending();
+      void loadAll();
+    } catch (e) {
+      notifications.error(e instanceof Error ? e.message : "Failed to continue rejected ADD");
+    }
   };
 
   return (
@@ -203,6 +274,15 @@ export function ApplicationsPage() {
                   style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}>
                   {submitting ? "Submitting…" : "Submit for Approval"}
                 </motion.button>
+              </div>
+              <div className="sm:col-span-3">
+                <MakerCheckerConfig
+                  value={checkerConfig}
+                  onChange={setCheckerConfig}
+                  candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                  makerInstitutionId={currentUser?.institution?.id}
+                  currentMakerId={currentUser?.id}
+                />
               </div>
             </form>
           </motion.div>
@@ -290,13 +370,70 @@ export function ApplicationsPage() {
                     className="border-b border-slate-50 hover:bg-white/60 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{a.code}</td>
                     <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{a.name}</td>
-                    <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{a.auth_status ?? a.status ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-center"><StatusBadge status={a.auth_status ?? a.status ?? ""} /></td>
+                    <td className="px-5 py-3.5 text-center">
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <button onClick={() => void openAction(a, "edit")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Edit</button>
+                        <button onClick={() => void openAction(a, "delete")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Delete</button>
+                        <button onClick={() => void openAction(a, "activate")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Activate</button>
+                        <button onClick={() => void openAction(a, "deactivate")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Deactivate</button>
+                      </div>
+                    </td>
                   </motion.tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedApplication && selectedAction && (
+        <LifecycleMutationDialog
+          open
+          title={`Application ${selectedAction}`}
+          onClose={() => { setSelectedApplication(null); setSelectedAction(null); }}
+          onSubmit={() => void submitAction()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+          makerInstitutionId={currentUser?.institution?.id}
+          currentMakerId={currentUser?.id}
+          showCheckerConfig={false}
+        >
+          <div className="space-y-3">
+            {selectedAction === "edit" && (
+              <input value={actionName} onChange={(e) => setActionName(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" placeholder="Application name" />
+            )}
+            <textarea value={actionRemark} onChange={(e) => setActionRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+            <div className="rounded-2xl border border-slate-100 p-4">
+              <h3 className="text-xs font-bold mb-3">Lifecycle</h3>
+              <AuditTimeline entries={auditEntries} isLoading={auditLoading} onContinueRejectedAdd={(entry) => { setContinueTarget(entry); setContinueMode("edit"); setContinueJson(JSON.stringify(entry.after_data ?? {}, null, 2)); }} />
+            </div>
+          </div>
+        </LifecycleMutationDialog>
+      )}
+
+      {continueTarget && (
+        <LifecycleMutationDialog
+          open
+          title="Continue rejected ADD"
+          onClose={() => setContinueTarget(null)}
+          onSubmit={() => void submitContinue()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+          makerInstitutionId={currentUser?.institution?.id}
+          currentMakerId={currentUser?.id}
+        >
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setContinueMode("edit")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Edit continuation</button>
+              <button type="button" onClick={() => setContinueMode("delete")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Delete continuation</button>
+            </div>
+            {continueMode === "edit" && <textarea value={continueJson} onChange={(e) => setContinueJson(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm min-h-40 font-mono" />}
+            <textarea value={actionRemark} onChange={(e) => setActionRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+          </div>
+        </LifecycleMutationDialog>
       )}
     </div>
   );

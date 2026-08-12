@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useInstitutionStore } from "../../features/institution/institution.store";
 import { useAuthStore } from "../../features/auth/auth.store";
+import { useUserStore } from "../../features/users/user.store";
+import { MakerCheckerConfig } from "../../components/common/MakerCheckerConfig";
 import type { CreateInstitutionPayload, InstitutionKycCreate } from "../../features/institution/institution.types";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
@@ -127,11 +129,21 @@ export function CreateInstitutionFlow() {
   const currentUser = useAuthStore((s) => s.user);
   const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
   const { createInstitution, isLoading, error } = useInstitutionStore();
+  const { users, fetchUsers } = useUserStore();
 
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState<FormData>(EMPTY);
+  const [checkerConfig, setCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    void fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    void fetchUsers();
+  }, [fetchUsers]);
 
   if (!isPlatformOwner) {
     return (
@@ -204,6 +216,12 @@ export function CreateInstitutionFlow() {
     if (!validate()) return;
     if (step < STEPS.length - 1) { setStep((s) => s + 1); return; }
     const payload = buildPayload(form);
+    payload.checker_mode = checkerConfig.checker_mode;
+    payload.checker_assignments = checkerConfig.checker_assignments;
+    payload.required_checker_count = checkerConfig.required_checker_count;
+    payload.kyc.checker_mode = checkerConfig.checker_mode;
+    payload.kyc.checker_assignments = checkerConfig.checker_assignments;
+    payload.kyc.required_checker_count = checkerConfig.required_checker_count;
     const result = await createInstitution(payload);
     if (result) setSubmitted(true);
   };
@@ -360,6 +378,14 @@ export function CreateInstitutionFlow() {
                         </p>
                       </div>
                     </div>
+
+                    <MakerCheckerConfig
+                      value={checkerConfig}
+                      onChange={setCheckerConfig}
+                      candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                      makerInstitutionId={currentUser?.institution?.id}
+                      currentMakerId={currentUser?.id}
+                    />
                   </div>
                 )}
               </>

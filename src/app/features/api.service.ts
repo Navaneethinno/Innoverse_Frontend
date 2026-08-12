@@ -4,7 +4,7 @@ import type { Profile, CreateProfilePayload, UpdateProfilePayload, SetPermission
 import type { User, CreateUserPayload, UpdateUserPayload, RemarkPayload as UserRemarkPayload } from "./users/user.types";
 import type { Application, CreateApplicationPayload, UpdateApplicationPayload } from "./applications/application.types";
 import type { InstitutionKycRecord, InstitutionKycPayload, UserKycRecord, UserKycPayload } from "./kyc/kyc.types";
-import type { PendingRequestOut, AuditEntryOut, MakerCheckerResponse, CheckerDecisionRequest } from "./maker-checker.types";
+import type { PendingRequestOut, AuditEntryOut, MakerCheckerResponse, CheckerDecisionRequest, CheckerConfigPayload } from "./maker-checker.types";
 
 export type { CheckerDecisionRequest, MakerCheckerResponse, PendingRequestOut, AuditEntryOut };
 
@@ -91,6 +91,9 @@ export const apiService = {
   rejectInstitution: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/institutions/requests/${request_id}/reject`, payload ?? {}),
 
+  continueRejectedInstitutionAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/institutions/${request_id}/${mode}`, payload),
+
   // ─── Profiles ─────────────────────────────────────────────────────────────
 
   getProfiles: () => get<Profile[]>("/profiles", []),
@@ -127,6 +130,9 @@ export const apiService = {
   rejectProfile: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/profiles/requests/${request_id}/reject`, payload ?? {}),
 
+  continueRejectedProfileAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/profiles/${request_id}/${mode}`, payload),
+
   // ─── Users ────────────────────────────────────────────────────────────────
 
   getUsers: () => get<User[]>("/users", []),
@@ -160,6 +166,9 @@ export const apiService = {
   rejectUser: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/users/requests/${request_id}/reject`, payload ?? {}),
 
+  continueRejectedUserAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/users/${request_id}/${mode}`, payload),
+
   // ─── Applications ─────────────────────────────────────────────────────────
 
   getApplications: () => get<Application[]>("/applications", []),
@@ -192,6 +201,9 @@ export const apiService = {
 
   rejectApplication: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/applications/requests/${request_id}/reject`, payload ?? {}),
+
+  continueRejectedApplicationAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/applications/${request_id}/${mode}`, payload),
 
   assignApplication: (institution_id: string | number, application_id: string | number, remark?: string | null) =>
     post<MakerCheckerResponse>(`/institutions/${institution_id}/assign-application`, { application_id, remark }),
@@ -266,7 +278,7 @@ export const apiService = {
 
   getPendingModules: () => get<PendingRequestOut[]>("/modules/pending", []),
 
-  createModule: (payload: { application_id: number; code: string; name: string; remark?: string | null }) =>
+  createModule: (payload: { application_id: number; code: string; name: string; remark?: string | null } & CheckerConfigPayload) =>
     post<MakerCheckerResponse>("/modules", payload),
 
   updateModule: (id: string | number, payload: { name?: string; remark?: string | null }) =>
@@ -290,6 +302,9 @@ export const apiService = {
   rejectModule: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/modules/requests/${request_id}/reject`, payload ?? {}),
 
+  continueRejectedModuleAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/modules/${request_id}/${mode}`, payload),
+
   // ─── Menus ────────────────────────────────────────────────────────────────
 
   getMenus: (module_id?: number) =>
@@ -297,7 +312,7 @@ export const apiService = {
 
   getPendingMenus: () => get<PendingRequestOut[]>("/menus/pending", []),
 
-  createMenu: (payload: { module_id: number; code: string; name: string; remark?: string | null }) =>
+  createMenu: (payload: { module_id: number; code: string; name: string; remark?: string | null } & CheckerConfigPayload) =>
     post<MakerCheckerResponse>("/menus", payload),
 
   updateMenu: (id: string | number, payload: { name?: string; remark?: string | null }) =>
@@ -321,13 +336,16 @@ export const apiService = {
   rejectMenu: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/menus/requests/${request_id}/reject`, payload ?? {}),
 
+  continueRejectedMenuAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/menus/${request_id}/${mode}`, payload),
+
   // ─── Menu Actions ─────────────────────────────────────────────────────────
 
   getMenuActions: () => get<unknown[]>("/menu-actions", []),
 
   getPendingMenuActions: () => get<PendingRequestOut[]>("/menu-actions/pending", []),
 
-  createMenuAction: (payload: { menu_id: number; code: string; name: string; remark?: string | null }) =>
+  createMenuAction: (payload: { menu_id: number; code: string; name: string; remark?: string | null } & CheckerConfigPayload) =>
     post<MakerCheckerResponse>("/menu-actions", payload),
 
   updateMenuAction: (id: string | number, payload: { name?: string; remark?: string | null }) =>
@@ -350,4 +368,7 @@ export const apiService = {
 
   rejectMenuAction: (request_id: string, payload?: CheckerDecisionRequest) =>
     post<MakerCheckerResponse>(`/menu-actions/requests/${request_id}/reject`, payload ?? {}),
+
+  continueRejectedMenuActionAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") =>
+    post<MakerCheckerResponse>(`/pending/adds/menu-actions/${request_id}/${mode}`, payload),
 };

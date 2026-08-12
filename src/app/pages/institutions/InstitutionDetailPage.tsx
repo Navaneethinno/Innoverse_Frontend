@@ -1,209 +1,152 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "motion/react";
-import { AlertCircle, ArrowLeft, Building2, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, Pencil, Trash2, Power, PowerOff, History } from "lucide-react";
 import { useInstitutionStore } from "../../features/institution/institution.store";
 import type { Institution } from "../../features/institution/institution.types";
+import type { AuditEntryOut } from "../../features/maker-checker.types";
 import { Skeleton } from "../../components/ui/skeleton";
-import { cn } from "../../lib/utils";
-
-const glass = {
-  background: "rgba(255,255,255,0.68)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.88)",
-  boxShadow: "0 4px 20px rgba(108,127,255,0.07), 0 1px 3px rgba(108,127,255,0.04)",
-};
-
-const STATUS_STYLES: Record<string, { pill: string; dot: string; label: string }> = {
-  ACTIVE:    { pill: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", label: "Active" },
-  active:    { pill: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", label: "Active" },
-  PENDING:   { pill: "bg-amber-50 text-amber-700 border-amber-200",       dot: "bg-amber-500",   label: "Pending" },
-  pending:   { pill: "bg-amber-50 text-amber-700 border-amber-200",       dot: "bg-amber-500",   label: "Pending" },
-  REJECTED:  { pill: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500",     label: "Rejected" },
-  rejected:  { pill: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500",     label: "Rejected" },
-  SUSPENDED: { pill: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500",  label: "Suspended" },
-  DRAFT:     { pill: "bg-slate-50 text-slate-500 border-slate-200",       dot: "bg-slate-400",   label: "Draft" },
-};
-
-function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
-  return (
-    <div>
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-      <p className="text-xs text-slate-700 mt-0.5">{value ?? <span className="text-slate-300 italic">—</span>}</p>
-    </div>
-  );
-}
+import { AuditTimeline } from "../../components/common/AuditTimeline";
+import { StatusBadge } from "../../components/common/StatusBadge";
+import { LifecycleMutationDialog } from "../../components/common/LifecycleMutationDialog";
+import { notifications } from "../../lib/notifications";
 
 export function InstitutionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { fetchInstitutionById } = useInstitutionStore();
+  const { fetchInstitutionById, getInstitutionAudit, updateInstitution, deleteInstitution, activateInstitution, deactivateInstitution, continueRejectedAdd } = useInstitutionStore();
   const [institution, setInstitution] = useState<Institution | null>(null);
+  const [auditEntries, setAuditEntries] = useState<AuditEntryOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [auditLoading, setAuditLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<"edit" | "delete" | "activate" | "deactivate" | null>(null);
+  const [remark, setRemark] = useState("");
+  const [editName, setEditName] = useState("");
+  const [continueTarget, setContinueTarget] = useState<AuditEntryOut | null>(null);
+  const [continueMode, setContinueMode] = useState<"edit" | "delete">("edit");
+  const [continueJson, setContinueJson] = useState("");
 
   const load = async () => {
     if (!id) return;
     setIsLoading(true);
     setError(null);
     const item = await fetchInstitutionById(id);
-    if (item) setInstitution(item);
-    else setError("Institution not found");
+    if (!item) setError("Institution not found");
+    else {
+      setInstitution(item);
+      setEditName(item.name ?? "");
+      setAuditLoading(true);
+      setAuditEntries(await getInstitutionAudit(id));
+      setAuditLoading(false);
+    }
     setIsLoading(false);
   };
 
   useEffect(() => { void load(); }, [id]);
 
-  if (isLoading || !institution) {
-    return (
-      <div className="pt-4 pb-8 space-y-4">
-        <Skeleton className="h-8 w-48 rounded-xl" />
-        <Skeleton className="h-56 w-full rounded-2xl" />
-        <Skeleton className="h-32 w-full rounded-2xl" />
-      </div>
-    );
-  }
+  const makerPending = useMemo(
+    () => auditEntries.find((e) => e.action === "ADD" && e.auth_status === "REJECTED"),
+    [auditEntries],
+  );
 
-  if (error) {
-    return (
-      <div className="pt-4 flex flex-col items-center py-20 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <AlertCircle size={22} className="text-red-400" />
-        </div>
-        <p className="text-sm font-bold text-slate-700">{error}</p>
-        <button onClick={() => void load()} className="mt-3 text-xs font-bold text-indigo-500 underline">Retry</button>
-      </div>
-    );
-  }
+  const submitAction = async () => {
+    if (!id || !action) return;
+    const payload = { remark: remark || null };
+    let result = null;
+    if (action === "edit") result = await updateInstitution(id, { name: editName || undefined, remark: remark || null });
+    if (action === "delete") result = await deleteInstitution(id, payload);
+    if (action === "activate") result = await activateInstitution(id, payload);
+    if (action === "deactivate") result = await deactivateInstitution(id, payload);
+    if (result) {
+      notifications.success("Institution request submitted for approval");
+      setAction(null);
+      void load();
+    } else {
+      notifications.error(useInstitutionStore.getState().error ?? "Failed to submit institution request");
+    }
+  };
 
-  const displayName = institution.name || institution.code || "—";
-  const statusKey = String(institution.status ?? institution.auth_status ?? "DRAFT");
-  const statusCfg = STATUS_STYLES[statusKey] ?? STATUS_STYLES.DRAFT;
-  const kyc = institution.kyc;
+  const submitContinue = async () => {
+    if (!continueTarget) return;
+    const after_data = continueMode === "delete" ? null : (continueJson ? JSON.parse(continueJson) : undefined);
+    const result = await continueRejectedAdd(String(continueTarget.request_id), { after_data: after_data ?? undefined, remark: remark || null }, continueMode);
+    if (result) {
+      notifications.success("Rejected ADD continued");
+      setContinueTarget(null);
+      void load();
+    } else {
+      notifications.error(useInstitutionStore.getState().error ?? "Failed to continue rejected ADD");
+    }
+  };
+
+  if (isLoading || !institution) return <div className="pt-4 pb-8 space-y-4"><Skeleton className="h-8 w-48 rounded-xl" /><Skeleton className="h-56 w-full rounded-2xl" /></div>;
+  if (error) return <div className="pt-4 flex flex-col items-center py-20 text-center"><div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4"><AlertCircle size={22} className="text-red-400" /></div><p className="text-sm font-bold text-slate-700">{error}</p><button onClick={() => void load()} className="mt-3 text-xs font-bold text-indigo-500 underline">Retry</button></div>;
 
   return (
-    <div className="pt-4 pb-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => navigate("/institutions")}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors"
+    <div className="pt-4 pb-8 space-y-5">
+      <div className="flex items-center justify-between">
+        <button onClick={() => navigate("/institutions")} className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700"><ArrowLeft size={13} /> Institutions</button>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={() => { setAction("edit"); setRemark(""); }} className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1"><Pencil size={13} /> Edit</button>
+          <button onClick={() => { setAction("delete"); setRemark(""); }} className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1"><Trash2 size={13} /> Delete</button>
+          <button onClick={() => { setAction("activate"); setRemark(""); }} className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1"><Power size={13} /> Activate</button>
+          <button onClick={() => { setAction("deactivate"); setRemark(""); }} className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1"><PowerOff size={13} /> Deactivate</button>
+        </div>
+      </div>
+      <div className="rounded-2xl p-5 bg-white/70 border border-white/80">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
+            <p className="text-xs text-slate-400 font-mono">{institution.code}</p>
+          </div>
+          <StatusBadge status={institution.auth_status ?? institution.status} />
+        </div>
+        <p className="text-sm text-slate-500">Type: {institution.type}</p>
+        {makerPending && <p className="mt-2 text-xs text-amber-600">Rejected ADD available for continuation using audit key {makerPending.audit_key}</p>}
+      </div>
+      <div className="rounded-2xl p-5 bg-white/70 border border-white/80">
+        <div className="flex items-center gap-2 mb-4"><History size={14} className="text-indigo-500" /><h2 className="text-sm font-bold">Lifecycle History</h2></div>
+        <AuditTimeline entries={auditEntries} isLoading={auditLoading} onContinueRejectedAdd={(entry) => { setContinueTarget(entry); setContinueMode("edit"); setContinueJson(JSON.stringify(entry.after_data ?? {}, null, 2)); }} />
+      </div>
+      {action && (
+        <LifecycleMutationDialog
+          open={true}
+          title={`Institution ${action}`}
+          onClose={() => setAction(null)}
+          onSubmit={() => void submitAction()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={[]}
+          showCheckerConfig={false}
         >
-          <ArrowLeft size={13} /> Institutions
-        </button>
-        <span className="text-slate-200">/</span>
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6C7FFF] to-[#B39DFA] flex items-center justify-center text-white font-black text-sm shadow-md shadow-indigo-200/40 shrink-0">
-            {displayName.charAt(0).toUpperCase()}
+          <div className="space-y-3">
+            {action === "edit" && <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />}
+            <textarea value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-black text-slate-800 tracking-tight truncate">{displayName}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs text-slate-400 font-mono">{institution.code}</span>
-              <span className="text-slate-200">·</span>
-              <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border", statusCfg.pill)}>
-                <span className={cn("w-1.5 h-1.5 rounded-full", statusCfg.dot)} />{statusCfg.label}
-              </span>
+        </LifecycleMutationDialog>
+      )}
+      {continueTarget && (
+        <LifecycleMutationDialog
+          open={true}
+          title="Continue rejected ADD"
+          onClose={() => setContinueTarget(null)}
+          onSubmit={() => void submitContinue()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={[]}
+          showCheckerConfig={false}
+        >
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setContinueMode("edit")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Edit continuation</button>
+              <button type="button" onClick={() => setContinueMode("delete")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Delete continuation</button>
             </div>
+            {continueMode === "edit" && <textarea value={continueJson} onChange={(e) => setContinueJson(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm min-h-40 font-mono" />}
+            <textarea value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
           </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left: institution + KYC details */}
-        <div className="lg:col-span-2 space-y-5">
-
-          {/* Institution info */}
-          <div className="rounded-2xl p-6" style={glass}>
-            <h2 className="text-sm font-bold text-slate-800 mb-5">Institution</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: "Code",        value: institution.code },
-                { label: "Type",        value: institution.type },
-                { label: "Auth Status", value: institution.auth_status },
-                { label: "Status",      value: institution.status },
-              ].map(({ label, value }) => (
-                <div key={label} className="rounded-2xl p-4 text-center" style={glass}>
-                  <p className="text-lg font-black text-slate-800 truncate">{value ?? "—"}</p>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Maker-checker info */}
-          <div className="rounded-2xl p-6" style={glass}>
-            <h2 className="text-sm font-bold text-slate-800 mb-4">Maker-Checker</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(108,127,255,0.04)", border: "1px solid rgba(108,127,255,0.08)" }}>
-                <Building2 size={14} className="text-indigo-400 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Created By</p>
-                  <p className="text-sm font-semibold text-slate-700">{institution.created_by?.name ?? "—"}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(108,127,255,0.04)", border: "1px solid rgba(108,127,255,0.08)" }}>
-                <CheckCircle size={14} className="text-emerald-400 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approved By</p>
-                  <p className="text-sm font-semibold text-slate-700">{institution.approved_by?.name ?? "—"}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* KYC details */}
-          {kyc && (
-            <div className="rounded-2xl p-6" style={glass}>
-              <h2 className="text-sm font-bold text-slate-800 mb-4">KYC Details</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InfoRow label="Legal Name"          value={kyc.legal_name} />
-                <InfoRow label="Registration Number" value={kyc.registration_number} />
-                <InfoRow label="Tax ID"              value={kyc.tax_id} />
-                <InfoRow label="Email"               value={kyc.email} />
-                <InfoRow label="Phone"               value={kyc.phone} />
-                <InfoRow label="Website"             value={kyc.website} />
-                <InfoRow label="KYC Status"          value={kyc.kyc_status} />
-              </div>
-              {(kyc.address_line1 || kyc.city) && (
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Address</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <InfoRow label="Address Line 1" value={kyc.address_line1} />
-                    <InfoRow label="Address Line 2" value={kyc.address_line2} />
-                    <InfoRow label="City"           value={kyc.city} />
-                    <InfoRow label="State"          value={kyc.state} />
-                    <InfoRow label="Country"        value={kyc.country} />
-                    <InfoRow label="Postal Code"    value={kyc.postal_code} />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right: summary */}
-        <div className="lg:col-span-1">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-5 sticky top-20"
-            style={glass}
-          >
-            <h2 className="text-sm font-bold text-slate-800 mb-4">Summary</h2>
-            <div className="space-y-3">
-              <InfoRow label="Code"        value={institution.code} />
-              <InfoRow label="Name"        value={institution.name} />
-              <InfoRow label="Type"        value={institution.type} />
-              <InfoRow label="Auth Status" value={institution.auth_status} />
-              {kyc?.legal_name && <InfoRow label="Legal Name" value={kyc.legal_name} />}
-              {kyc?.city && <InfoRow label="City" value={kyc.city} />}
-              {kyc?.country && <InfoRow label="Country" value={kyc.country} />}
-            </div>
-          </motion.div>
-        </div>
-      </div>
+        </LifecycleMutationDialog>
+      )}
     </div>
   );
 }

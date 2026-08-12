@@ -20,6 +20,7 @@ interface InstitutionStore {
   getInstitutionAudit: (id: string | number) => Promise<AuditEntryOut[]>;
   approveInstitution: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
   rejectInstitution: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
+  continueRejectedAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") => Promise<MakerCheckerResponse | null>;
   setSelectedInstitutionId: (id: string) => void;
   updateInstitutionInList: (institution: Institution | null) => void;
 }
@@ -152,6 +153,16 @@ export const useInstitutionStore = create<InstitutionStore>((set) => ({
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to reject institution" });
       return false;
+    }
+  },
+
+  continueRejectedAdd: async (request_id, payload, mode) => {
+    set({ error: null });
+    try {
+      return await institutionApi.continueRejectedAdd(request_id, payload, mode);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : "Failed to continue rejected institution request" });
+      return null;
     }
   },
 

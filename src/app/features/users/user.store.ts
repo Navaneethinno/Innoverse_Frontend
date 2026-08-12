@@ -18,6 +18,7 @@ interface UserStore {
   getUserAudit: (id: string | number) => Promise<AuditEntryOut[]>;
   approveUser: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
   rejectUser: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
+  continueRejectedAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") => Promise<MakerCheckerResponse | null>;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -129,6 +130,16 @@ export const useUserStore = create<UserStore>((set) => ({
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to reject user" });
       return false;
+    }
+  },
+
+  continueRejectedAdd: async (request_id, payload, mode) => {
+    set({ error: null });
+    try {
+      return await apiService.continueRejectedUserAdd(request_id, payload, mode);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : "Failed to continue rejected user request" });
+      return null;
     }
   },
 }));

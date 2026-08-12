@@ -3,7 +3,7 @@ import { Check, X, ClipboardCheck } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 import { ChangeViewer } from "./ChangeViewer";
 import type { PendingRequestOut } from "../../features/maker-checker.types";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { cn } from "../../lib/utils";
 
 interface PendingTableProps {
@@ -22,6 +22,33 @@ const glass = {
   border: "1px solid rgba(255,255,255,0.85)",
   boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
 };
+
+function getEntityLabel(req: PendingRequestOut) {
+  const after = (req.after_data ?? {}) as Record<string, unknown>;
+  const before = (req.before_data ?? {}) as Record<string, unknown>;
+  return String(after.name ?? after.username ?? after.code ?? before.name ?? before.username ?? before.code ?? req.entity_id);
+}
+
+function getActionClass(action: string) {
+  switch (action) {
+    case "ADD":
+      return "bg-emerald-50 text-emerald-700";
+    case "EDIT":
+      return "bg-blue-50 text-blue-700";
+    case "DELETE":
+      return "bg-red-50 text-red-700";
+    case "ACTIVATE":
+      return "bg-emerald-50 text-emerald-700";
+    case "DEACTIVATE":
+      return "bg-orange-50 text-orange-700";
+    default:
+      return "bg-slate-50 text-slate-600";
+  }
+}
+
+function isFinalizedStatus(status: string) {
+  return ["REJECTED", "APPROVED", "AUTHORIZED", "DEAUTHORIZED", "LIFECYCLE_COMPLETED"].includes(status);
+}
 
 export function PendingTable({ requests, isLoading, currentUserId, onApprove, onReject, entityLabel = "record" }: PendingTableProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -44,7 +71,7 @@ export function PendingTable({ requests, isLoading, currentUserId, onApprove, on
       <table className="w-full">
         <thead>
           <tr className="border-b border-slate-100/80">
-            {["Action", "Entity", "Maker", "Approvals", "Remark", "Actions"].map((h) => (
+            {["Audit Key", "Request ID", "Action", "Status", "Entity", "Maker", "Checker Mode", "Approvals", "Remark", "Actions"].map((h) => (
               <th key={h} className="text-center px-4 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
             ))}
           </tr>
@@ -53,14 +80,14 @@ export function PendingTable({ requests, isLoading, currentUserId, onApprove, on
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <tr key={i} className="border-b border-slate-50">
-                {Array.from({ length: 6 }).map((_, j) => (
+                {Array.from({ length: 10 }).map((_, j) => (
                   <td key={j} className="px-4 py-3.5"><Skeleton className="h-4 w-20 mx-auto" /></td>
                 ))}
               </tr>
             ))
           ) : requests.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-5 py-14 text-center">
+              <td colSpan={10} className="px-5 py-14 text-center">
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
                     <ClipboardCheck size={20} className="text-emerald-400" />
@@ -74,44 +101,45 @@ export function PendingTable({ requests, isLoading, currentUserId, onApprove, on
             requests.map((req, i) => {
               const after = (req.after_data ?? {}) as Record<string, unknown>;
               const isMaker = String(req.maker?.id) === String(currentUserId);
-              const isCompleted = req.approval_count >= req.required_checker_count;
+              const isCompleted = isFinalizedStatus(req.auth_status);
               const isExpanded = expanded === req.request_id;
               const isProcessing = processing === req.request_id;
-              const entityName = String(after.name ?? after.username ?? after.code ?? req.entity_id);
+              const entityName = getEntityLabel(req);
+              const checkerMode = req.checker_mode ?? (req.checker_assignments?.length ? "ASSIGNED_PARALLEL" : "ANY");
+              const checkerLabel = checkerMode === "ASSIGNED_SEQUENTIAL"
+                ? "Assigned Sequential"
+                : checkerMode === "ASSIGNED_PARALLEL"
+                  ? "Assigned Parallel"
+                  : "Any";
+              const actionClass = getActionClass(req.action);
 
               return (
-                <>
+                <Fragment key={req.request_id}>
                   <motion.tr
-                    key={req.request_id}
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
                     className={cn("border-b border-slate-50 hover:bg-white/60 transition-colors cursor-pointer", isExpanded && "bg-white/60")}
                     onClick={() => setExpanded(isExpanded ? null : req.request_id)}
                   >
+                    <td className="px-4 py-3 text-center text-[10px] font-mono text-slate-500">{req.audit_key}</td>
+                    <td className="px-4 py-3 text-center text-[10px] font-mono text-slate-500">{req.request_id}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={cn(
-                        "inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase",
-                        req.action === "ADD" ? "bg-emerald-50 text-emerald-700" :
-                        req.action === "EDIT" ? "bg-blue-50 text-blue-700" :
-                        req.action === "DELETE" ? "bg-red-50 text-red-700" :
-                        "bg-slate-50 text-slate-600"
-                      )}>
+                      <span className={cn("inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase", actionClass)}>
                         {req.action}
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-center text-[10px] font-bold text-slate-500">{req.auth_status}</td>
                     <td className="px-4 py-3 text-xs font-semibold text-slate-800 text-center">{entityName}</td>
                     <td className="px-4 py-3 text-xs text-slate-400 text-center">{req.maker?.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-center text-xs text-slate-500">{checkerLabel}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={cn(
-                        "text-xs font-bold",
-                        isCompleted ? "text-emerald-600" : "text-amber-600"
-                      )}>
+                      <span className={cn("text-xs font-bold", isCompleted ? "text-emerald-600" : "text-amber-600")}>
                         {req.approval_count} / {req.required_checker_count}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-400 text-center max-w-[120px] truncate">{req.remark ?? "—"}</td>
                     <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                       {isMaker ? (
-                        <span className="text-[11px] text-slate-400 italic">You submitted this</span>
+                        <span className="text-[11px] text-slate-400 italic">View only</span>
                       ) : isCompleted ? (
                         <span className="text-[11px] text-emerald-600 font-bold">Completed</span>
                       ) : (
@@ -139,7 +167,7 @@ export function PendingTable({ requests, isLoading, currentUserId, onApprove, on
                   </motion.tr>
                   {isExpanded && (
                     <tr key={`${req.request_id}-detail`} className="bg-slate-50/60">
-                      <td colSpan={6} className="px-6 py-4">
+                      <td colSpan={10} className="px-6 py-4">
                         <ChangeViewer
                           action={req.action}
                           before_data={req.before_data}
@@ -148,7 +176,7 @@ export function PendingTable({ requests, isLoading, currentUserId, onApprove, on
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })
           )}

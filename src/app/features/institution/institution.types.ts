@@ -1,3 +1,5 @@
+import type { CheckerConfigPayload } from "../maker-checker.types";
+
 export type AuthStatus =
   | "ACTIVE"
   | "INACTIVE"
@@ -17,7 +19,7 @@ export interface NamedUser {
   username?: string;
 }
 
-export interface InstitutionKycCreate {
+export interface InstitutionKycCreate extends CheckerConfigPayload {
   legal_name?: string | null;
   registration_number?: string | null;
   tax_id?: string | null;
@@ -50,6 +52,9 @@ export interface CreateInstitutionPayload {
   type: string;
   remark?: string | null;
   kyc: InstitutionKycCreate;
+  checker_mode?: CheckerConfigPayload["checker_mode"];
+  checker_assignments?: CheckerConfigPayload["checker_assignments"];
+  required_checker_count?: number | null;
 }
 
 export interface UpdateInstitutionPayload {

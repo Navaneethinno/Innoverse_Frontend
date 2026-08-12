@@ -1,3 +1,5 @@
+import type { CheckerConfigPayload } from "../maker-checker.types";
+
 export interface Profile {
   id: string | number;
   code: string;
@@ -20,6 +22,9 @@ export interface CreateProfilePayload {
   name: string;
   institution_id: string | number;
   remark?: string | null;
+  checker_mode?: CheckerConfigPayload["checker_mode"];
+  checker_assignments?: CheckerConfigPayload["checker_assignments"];
+  required_checker_count?: number | null;
 }
 
 export interface UpdateProfilePayload {

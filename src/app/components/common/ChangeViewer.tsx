@@ -6,10 +6,38 @@ interface ChangeViewerProps {
   after_data: Record<string, unknown> | null;
 }
 
+function isSensitiveKey(key: string) {
+  return /password|secret|token|otp|pin|credential/i.test(key);
+}
+
 function formatValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
+  if (Array.isArray(v)) return v.map((item) => formatValue(item)).join(", ");
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
+}
+
+function humanizeValue(key: string, value: unknown): string {
+  if (isSensitiveKey(key)) return "••••••";
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (item && typeof item === "object") {
+          const obj = item as Record<string, unknown>;
+          const label = obj.name ?? obj.label ?? obj.checker_name ?? obj.user_name ?? obj.username ?? obj.checker_id ?? obj.user_id;
+          const sequence = obj.sequence ?? obj.sequence_no;
+          return sequence !== undefined ? `${label} (seq ${sequence})` : String(label);
+        }
+        return String(item);
+      })
+      .join(", ");
+  }
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    if ("id" in obj && "name" in obj) return `${String(obj.name)} (${String(obj.id)})`;
+    return JSON.stringify(obj, null, 2);
+  }
+  return formatValue(value);
 }
 
 function FieldRow({ label, before, after, changed }: { label: string; before?: string; after?: string; changed?: boolean }) {
@@ -68,8 +96,9 @@ export function ChangeViewer({ action, before_data, after_data }: ChangeViewerPr
       )}
       <div className="px-3">
         {allKeys.map((key) => {
-          const beforeVal = formatValue(before?.[key]);
-          const afterVal = formatValue(data?.[key]);
+          if (isSensitiveKey(key)) return null;
+          const beforeVal = humanizeValue(key, before?.[key]);
+          const afterVal = humanizeValue(key, data?.[key]);
           const changed = isEdit && beforeVal !== afterVal;
           return (
             <FieldRow

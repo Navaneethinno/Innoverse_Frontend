@@ -4,10 +4,16 @@ import { Plus, X, Layers, AlertCircle } from "lucide-react";
 import { useProfileStore } from "../../features/profiles/profile.store";
 import { useAuthStore } from "../../features/auth/auth.store";
 import { useInstitutionStore } from "../../features/institution/institution.store";
+import { useUserStore } from "../../features/users/user.store";
+import { MakerCheckerConfig } from "../../components/common/MakerCheckerConfig";
+import { AuditTimeline } from "../../components/common/AuditTimeline";
+import { LifecycleMutationDialog } from "../../components/common/LifecycleMutationDialog";
+import { StatusBadge } from "../../components/common/StatusBadge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { notifications } from "../../lib/notifications";
 import type { CreateProfilePayload } from "../../features/profiles/profile.types";
 import type { Permission, SetPermissionsPayload } from "../../features/profiles/profile.types";
+import type { AuditEntryOut } from "../../features/maker-checker.types";
 
 const glass = {
   background: "rgba(255,255,255,0.65)",
@@ -37,19 +43,32 @@ export function ProfilesPage() {
   const currentUser = useAuthStore((s) => s.user);
   const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
 
-  const { profiles, isLoading, error, fetchProfiles, createProfile, setPermissions } = useProfileStore();
+  const { profiles, isLoading, error, fetchProfiles, createProfile, setPermissions, updateProfile, deleteProfile, activateProfile, deactivateProfile, getProfileAudit, continueRejectedAdd } = useProfileStore();
   const { institutions, fetchInstitutions } = useInstitutionStore();
+  const { users, fetchUsers } = useUserStore();
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CreateProfilePayload>({ code: "", name: "", institution_id: "" });
   const [submitting, setSubmitting] = useState(false);
   const [permTarget, setPermTarget] = useState<string | number | null>(null);
   const [selectedPerms, setSelectedPerms] = useState<Permission[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | number | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"edit" | "delete" | "activate" | "deactivate" | null>(null);
+  const [editName, setEditName] = useState("");
+  const [remark, setRemark] = useState("");
+  const [auditEntries, setAuditEntries] = useState<AuditEntryOut[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [continueTarget, setContinueTarget] = useState<AuditEntryOut | null>(null);
+  const [continueMode, setContinueMode] = useState<"edit" | "delete">("edit");
+  const [continueJson, setContinueJson] = useState("");
 
   useEffect(() => {
     void fetchProfiles();
     if (isPlatformOwner) void fetchInstitutions();
+    void fetchUsers();
   }, [fetchProfiles, fetchInstitutions, isPlatformOwner]);
+
+  const [checkerConfig, setCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +81,7 @@ export function ProfilesPage() {
       code: form.code,
       name: form.name,
       institution_id: isPlatformOwner ? form.institution_id : (currentUser?.institution?.id ?? ""),
+      ...checkerConfig,
     };
     const result = await createProfile(payload);
     setSubmitting(false);
@@ -92,6 +112,46 @@ export function ProfilesPage() {
       setPermTarget(null);
     } else {
       notifications.error(useProfileStore.getState().error ?? "Failed to update permissions");
+    }
+  };
+
+  const openProfileAction = async (profileId: string | number, action: "edit" | "delete" | "activate" | "deactivate") => {
+    setSelectedProfileId(profileId);
+    setSelectedAction(action);
+    setRemark("");
+    const profile = profiles.find((p) => String(p.id) === String(profileId));
+    setEditName(profile?.name ?? "");
+    setAuditLoading(true);
+    setAuditEntries(await getProfileAudit(profileId));
+    setAuditLoading(false);
+  };
+
+  const submitProfileAction = async () => {
+    if (selectedProfileId === null || !selectedAction) return;
+    let result = null;
+    if (selectedAction === "edit") result = await updateProfile(selectedProfileId, { name: editName || undefined, remark: remark || null });
+    if (selectedAction === "delete") result = await deleteProfile(selectedProfileId, { remark: remark || null });
+    if (selectedAction === "activate") result = await activateProfile(selectedProfileId, { remark: remark || null });
+    if (selectedAction === "deactivate") result = await deactivateProfile(selectedProfileId, { remark: remark || null });
+    if (result) {
+      notifications.success("Profile request submitted for approval");
+      setSelectedAction(null);
+      void fetchProfiles();
+    } else {
+      notifications.error(useProfileStore.getState().error ?? "Failed to submit profile request");
+    }
+  };
+
+  const submitContinue = async () => {
+    if (!continueTarget) return;
+    const after_data = continueMode === "delete" ? null : (continueJson ? JSON.parse(continueJson) : undefined);
+    const result = await continueRejectedAdd(String(continueTarget.request_id), { after_data: after_data ?? undefined, remark: remark || null }, continueMode);
+    if (result) {
+      notifications.success("Rejected ADD continued");
+      setContinueTarget(null);
+      void fetchProfiles();
+    } else {
+      notifications.error(useProfileStore.getState().error ?? "Failed to continue rejected ADD");
     }
   };
 
@@ -171,6 +231,15 @@ export function ProfilesPage() {
                 >
                   {submitting ? "Creating…" : "Create Profile"}
                 </motion.button>
+              </div>
+              <div className="sm:col-span-2">
+                <MakerCheckerConfig
+                  value={checkerConfig}
+                  onChange={setCheckerConfig}
+                  candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                  makerInstitutionId={currentUser?.institution?.id}
+                  currentMakerId={currentUser?.id}
+                />
               </div>
             </form>
           </motion.div>
@@ -283,12 +352,13 @@ export function ProfilesPage() {
                       : "-"}
                   </td>
                   <td className="px-5 py-3.5 text-center">
-                    <button
-                      onClick={() => { setPermTarget(p.id); setSelectedPerms(p.permissions ?? []); }}
-                      className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-indigo-600 border border-indigo-200/60 hover:bg-indigo-50/60 transition-colors"
-                    >
-                      Permissions
-                    </button>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <button onClick={() => { setPermTarget(p.id); setSelectedPerms(p.permissions ?? []); }} className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-indigo-600 border border-indigo-200/60 hover:bg-indigo-50/60 transition-colors">Permissions</button>
+                      <button onClick={() => void openProfileAction(p.id, "edit")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Edit</button>
+                      <button onClick={() => void openProfileAction(p.id, "delete")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Delete</button>
+                      <button onClick={() => void openProfileAction(p.id, "activate")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Activate</button>
+                      <button onClick={() => void openProfileAction(p.id, "deactivate")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Deactivate</button>
+                    </div>
                   </td>
                 </motion.tr>
               ))
@@ -296,6 +366,52 @@ export function ProfilesPage() {
           </tbody>
         </table>
       </motion.div>
+
+      {selectedAction && (
+        <LifecycleMutationDialog
+          open
+          title={`Profile ${selectedAction}`}
+          onClose={() => setSelectedAction(null)}
+          onSubmit={() => void submitProfileAction()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={[]}
+          showCheckerConfig={false}
+        >
+          <div className="space-y-3">
+            {selectedAction === "edit" && <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />}
+            <textarea value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+            {selectedProfileId !== null && (
+              <div className="rounded-2xl border border-slate-100 p-4">
+                <h3 className="text-xs font-bold mb-3">Lifecycle</h3>
+                <AuditTimeline entries={auditEntries} isLoading={auditLoading} onContinueRejectedAdd={(entry) => { setContinueTarget(entry); setContinueMode("edit"); setContinueJson(JSON.stringify(entry.after_data ?? {}, null, 2)); }} />
+              </div>
+            )}
+          </div>
+        </LifecycleMutationDialog>
+      )}
+
+      {continueTarget && (
+        <LifecycleMutationDialog
+          open
+          title="Continue rejected ADD"
+          onClose={() => setContinueTarget(null)}
+          onSubmit={() => void submitContinue()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={[]}
+          showCheckerConfig={false}
+        >
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setContinueMode("edit")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Edit continuation</button>
+              <button type="button" onClick={() => setContinueMode("delete")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Delete continuation</button>
+            </div>
+            {continueMode === "edit" && <textarea value={continueJson} onChange={(e) => setContinueJson(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm min-h-40 font-mono" />}
+            <textarea value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+          </div>
+        </LifecycleMutationDialog>
+      )}
     </div>
   );
 }

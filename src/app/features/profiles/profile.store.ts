@@ -19,6 +19,7 @@ interface ProfileStore {
   setPermissions: (id: string | number, payload: SetPermissionsPayload) => Promise<boolean>;
   approveProfile: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
   rejectProfile: (request_id: string, payload?: CheckerDecisionRequest) => Promise<boolean>;
+  continueRejectedAdd: (request_id: string, payload: { after_data?: Record<string, unknown>; remark?: string | null }, mode: "edit" | "delete") => Promise<MakerCheckerResponse | null>;
 }
 
 export const useProfileStore = create<ProfileStore>((set) => ({
@@ -141,6 +142,16 @@ export const useProfileStore = create<ProfileStore>((set) => ({
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to reject profile" });
       return false;
+    }
+  },
+
+  continueRejectedAdd: async (request_id, payload, mode) => {
+    set({ error: null });
+    try {
+      return await apiService.continueRejectedProfileAdd(request_id, payload, mode);
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : "Failed to continue rejected profile request" });
+      return null;
     }
   },
 }));

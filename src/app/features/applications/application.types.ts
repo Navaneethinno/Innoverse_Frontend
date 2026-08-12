@@ -1,3 +1,5 @@
+import type { CheckerConfigPayload } from "../maker-checker.types";
+
 export interface Application {
   id: string | number;
   code: string;
@@ -7,7 +9,7 @@ export interface Application {
   auth_status?: string;
 }
 
-export interface CreateApplicationPayload {
+export interface CreateApplicationPayload extends CheckerConfigPayload {
   code: string;
   name: string;
   remark?: string | null;

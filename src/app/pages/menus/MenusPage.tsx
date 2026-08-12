@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, X, AlertCircle, Layers } from "lucide-react";
 import { useAuthStore } from "../../features/auth/auth.store";
+import { useUserStore } from "../../features/users/user.store";
 import { apiService } from "../../features/api.service";
 import { PendingTable } from "../../components/common/PendingTable";
+import { MakerCheckerConfig } from "../../components/common/MakerCheckerConfig";
+import { LifecycleMutationDialog } from "../../components/common/LifecycleMutationDialog";
+import { AuditTimeline } from "../../components/common/AuditTimeline";
+import { StatusBadge } from "../../components/common/StatusBadge";
 import { Skeleton } from "../../components/ui/skeleton";
 import { notifications } from "../../lib/notifications";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
-import type { PendingRequestOut } from "../../features/maker-checker.types";
+import type { PendingRequestOut, AuditEntryOut } from "../../features/maker-checker.types";
 
 const glass = {
   background: "rgba(255,255,255,0.65)",
@@ -26,6 +31,7 @@ interface MenuAction { id: number; code: string; name: string; status?: string; 
 
 export function MenusPage() {
   const currentUser = useAuthStore((s) => s.user);
+  const { users, fetchUsers } = useUserStore();
   const [subTab, setSubTab] = useState<SubTab>("modules");
   const [viewMode, setViewMode] = useState<"list" | "pending">("list");
 
@@ -38,7 +44,17 @@ export function MenusPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [checkerConfig, setCheckerConfig] = useState({ checker_mode: "ANY" as const, checker_assignments: [], required_checker_count: 1 });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Module | Menu | MenuAction | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"edit" | "delete" | "activate" | "deactivate" | null>(null);
+  const [actionName, setActionName] = useState("");
+  const [actionRemark, setActionRemark] = useState("");
+  const [auditEntries, setAuditEntries] = useState<AuditEntryOut[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [continueTarget, setContinueTarget] = useState<AuditEntryOut | null>(null);
+  const [continueMode, setContinueMode] = useState<"edit" | "delete">("edit");
+  const [continueJson, setContinueJson] = useState("");
 
   const loadList = async () => {
     setIsLoading(true);
@@ -73,7 +89,8 @@ export function MenusPage() {
     setShowForm(false);
     if (viewMode === "list") void loadList();
     else void loadPending();
-  }, [subTab, viewMode]);
+    void fetchUsers();
+  }, [subTab, viewMode, fetchUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,13 +99,13 @@ export function MenusPage() {
     try {
       if (subTab === "modules") {
         if (!form.application_id) { notifications.error("Application ID is required"); setSubmitting(false); return; }
-        await apiService.createModule({ application_id: Number(form.application_id), code: form.code, name: form.name, remark: form.remark || null });
+        await apiService.createModule({ application_id: Number(form.application_id), code: form.code, name: form.name, remark: form.remark || null, ...checkerConfig });
       } else if (subTab === "menus") {
         if (!form.module_id) { notifications.error("Module ID is required"); setSubmitting(false); return; }
-        await apiService.createMenu({ module_id: Number(form.module_id), code: form.code, name: form.name, remark: form.remark || null });
+        await apiService.createMenu({ module_id: Number(form.module_id), code: form.code, name: form.name, remark: form.remark || null, ...checkerConfig });
       } else {
         if (!form.menu_id) { notifications.error("Menu ID is required"); setSubmitting(false); return; }
-        await apiService.createMenuAction({ menu_id: Number(form.menu_id), code: form.code, name: form.name, remark: form.remark || null });
+        await apiService.createMenuAction({ menu_id: Number(form.menu_id), code: form.code, name: form.name, remark: form.remark || null, ...checkerConfig });
       }
       notifications.success("Request submitted for approval");
       setShowForm(false);
@@ -119,6 +136,82 @@ export function MenusPage() {
       toast.success("Request rejected");
       setPending((p) => p.filter((r) => r.request_id !== request_id));
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed to reject"); }
+  };
+
+  const loadAudit = async (item: Module | Menu | MenuAction) => {
+    setAuditLoading(true);
+    try {
+      if (subTab === "modules") setAuditEntries(await apiService.getModuleAudit(item.id));
+      else if (subTab === "menus") setAuditEntries(await apiService.getMenuAudit(item.id));
+      else setAuditEntries(await apiService.getMenuActionAudit(item.id));
+    } catch {
+      setAuditEntries([]);
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const openAction = async (item: Module | Menu | MenuAction, action: "edit" | "delete" | "activate" | "deactivate") => {
+    setSelectedItem(item);
+    setSelectedAction(action);
+    setActionName(item.name);
+    setActionRemark("");
+    await loadAudit(item);
+  };
+
+  const submitAction = async () => {
+    if (!selectedItem || !selectedAction) return;
+    const payload = { remark: actionRemark || null };
+    let result = null;
+    if (subTab === "modules") {
+      if (selectedAction === "edit") result = await apiService.updateModule(selectedItem.id, { name: actionName || undefined, remark: actionRemark || null });
+      if (selectedAction === "delete") result = await apiService.deleteModule(selectedItem.id, payload);
+      if (selectedAction === "activate") result = await apiService.activateModule(selectedItem.id, payload);
+      if (selectedAction === "deactivate") result = await apiService.deactivateModule(selectedItem.id, payload);
+    } else if (subTab === "menus") {
+      if (selectedAction === "edit") result = await apiService.updateMenu(selectedItem.id, { name: actionName || undefined, remark: actionRemark || null });
+      if (selectedAction === "delete") result = await apiService.deleteMenu(selectedItem.id, payload);
+      if (selectedAction === "activate") result = await apiService.activateMenu(selectedItem.id, payload);
+      if (selectedAction === "deactivate") result = await apiService.deactivateMenu(selectedItem.id, payload);
+    } else {
+      if (selectedAction === "edit") result = await apiService.updateMenuAction(selectedItem.id, { name: actionName || undefined, remark: actionRemark || null });
+      if (selectedAction === "delete") result = await apiService.deleteMenuAction(selectedItem.id, payload);
+      if (selectedAction === "activate") result = await apiService.activateMenuAction(selectedItem.id, payload);
+      if (selectedAction === "deactivate") result = await apiService.deactivateMenuAction(selectedItem.id, payload);
+    }
+    if (result) {
+      notifications.success("Request submitted for approval");
+      setSelectedItem(null);
+      setSelectedAction(null);
+      void loadList();
+      void loadPending();
+    } else {
+      notifications.error("Failed to submit request");
+    }
+  };
+
+  const submitContinue = async () => {
+    if (!continueTarget) return;
+    let after_data: Record<string, unknown> | undefined;
+    if (continueMode === "edit") {
+      try {
+        after_data = continueJson ? JSON.parse(continueJson) : undefined;
+      } catch {
+        notifications.error("Rejected ADD continuation must be valid JSON");
+        return;
+      }
+    }
+    try {
+      if (subTab === "modules") await apiService.continueRejectedModuleAdd(String(continueTarget.request_id), { after_data, remark: actionRemark || null }, continueMode);
+      else if (subTab === "menus") await apiService.continueRejectedMenuAdd(String(continueTarget.request_id), { after_data, remark: actionRemark || null }, continueMode);
+      else await apiService.continueRejectedMenuActionAdd(String(continueTarget.request_id), { after_data, remark: actionRemark || null }, continueMode);
+      notifications.success("Rejected ADD continued");
+      setContinueTarget(null);
+      void loadPending();
+      void loadList();
+    } catch (e) {
+      notifications.error(e instanceof Error ? e.message : "Failed to continue rejected ADD");
+    }
   };
 
   const items = subTab === "modules" ? modules : subTab === "menus" ? menus : menuActions;
@@ -221,6 +314,15 @@ export function MenusPage() {
                   {submitting ? "Submitting…" : "Submit for Approval"}
                 </motion.button>
               </div>
+              <div className="sm:col-span-2">
+                <MakerCheckerConfig
+                  value={checkerConfig}
+                  onChange={setCheckerConfig}
+                  candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+                  makerInstitutionId={currentUser?.institution?.id}
+                  currentMakerId={currentUser?.id}
+                />
+              </div>
             </form>
           </motion.div>
         )}
@@ -247,7 +349,7 @@ export function MenusPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100/80">
-                {["Code", "Name", "Status"].map((h) => (
+                {["Code", "Name", "Status", "Actions"].map((h) => (
                   <th key={h} className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
                 ))}
               </tr>
@@ -256,14 +358,14 @@ export function MenusPage() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i} className="border-b border-slate-50">
-                    {Array.from({ length: 3 }).map((_, j) => (
+                    {Array.from({ length: 4 }).map((_, j) => (
                       <td key={j} className="px-5 py-3.5"><Skeleton className="h-4 w-24 mx-auto" /></td>
                     ))}
                   </tr>
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-5 py-14 text-center">
+                  <td colSpan={4} className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
                         <Layers size={20} className="text-indigo-400" />
@@ -278,13 +380,63 @@ export function MenusPage() {
                     className="border-b border-slate-50 hover:bg-white/60 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{item.code}</td>
                     <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{item.name}</td>
-                    <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{item.auth_status ?? item.status ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-center"><StatusBadge status={item.auth_status ?? item.status ?? ""} /></td>
+                    <td className="px-5 py-3.5 text-center">
+                      <button onClick={() => void openAction(item, "edit")} className="px-3 py-1.5 rounded-xl text-[11px] font-bold border border-slate-200">Manage</button>
+                    </td>
                   </motion.tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedItem && selectedAction && (
+        <LifecycleMutationDialog
+          open
+          title={`${subTabLabel} ${selectedAction}`}
+          onClose={() => { setSelectedItem(null); setSelectedAction(null); }}
+          onSubmit={() => void submitAction()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+          makerInstitutionId={currentUser?.institution?.id}
+          currentMakerId={currentUser?.id}
+          showCheckerConfig={false}
+        >
+          <div className="space-y-3">
+            {selectedAction === "edit" && <input value={actionName} onChange={(e) => setActionName(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />}
+            <textarea value={actionRemark} onChange={(e) => setActionRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+            <div className="rounded-2xl border border-slate-100 p-4">
+              <h3 className="text-xs font-bold mb-3">Lifecycle</h3>
+              <AuditTimeline entries={auditEntries} isLoading={auditLoading} onContinueRejectedAdd={(entry) => { setContinueTarget(entry); setContinueMode("edit"); setContinueJson(JSON.stringify(entry.after_data ?? {}, null, 2)); }} />
+            </div>
+          </div>
+        </LifecycleMutationDialog>
+      )}
+
+      {continueTarget && (
+        <LifecycleMutationDialog
+          open
+          title="Continue rejected ADD"
+          onClose={() => setContinueTarget(null)}
+          onSubmit={() => void submitContinue()}
+          checkerConfig={{ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 }}
+          setCheckerConfig={() => {}}
+          candidates={users.map((u) => ({ id: u.id, name: u.username, institution_id: u.institution?.id }))}
+          makerInstitutionId={currentUser?.institution?.id}
+          currentMakerId={currentUser?.id}
+        >
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setContinueMode("edit")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Edit continuation</button>
+              <button type="button" onClick={() => setContinueMode("delete")} className="px-3 py-1.5 rounded-lg text-xs font-bold border">Delete continuation</button>
+            </div>
+            {continueMode === "edit" && <textarea value={continueJson} onChange={(e) => setContinueJson(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm min-h-40 font-mono" />}
+            <textarea value={actionRemark} onChange={(e) => setActionRemark(e.target.value)} placeholder="Remark" className="w-full rounded-xl border px-3 py-2 text-sm min-h-24" />
+          </div>
+        </LifecycleMutationDialog>
       )}
     </div>
   );

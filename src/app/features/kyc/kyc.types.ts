@@ -1,3 +1,5 @@
+import type { CheckerConfigPayload } from "../maker-checker.types";
+
 export interface InstitutionKycRecord {
   id: string | number;
   institution_id: string | number;
@@ -16,7 +18,7 @@ export interface InstitutionKycRecord {
   kyc_status: "PENDING" | "VERIFIED" | "REJECTED";
 }
 
-export interface InstitutionKycPayload {
+export interface InstitutionKycPayload extends CheckerConfigPayload {
   legal_name?: string;
   registration_number?: string;
   tax_id?: string;
@@ -48,7 +50,7 @@ export interface UserKycRecord {
   kyc_status: "PENDING" | "VERIFIED" | "REJECTED";
 }
 
-export interface UserKycPayload {
+export interface UserKycPayload extends CheckerConfigPayload {
   full_name?: string;
   date_of_birth?: string;
   email?: string;
