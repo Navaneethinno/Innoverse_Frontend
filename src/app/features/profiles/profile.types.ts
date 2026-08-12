@@ -3,6 +3,7 @@ export interface Profile {
   code: string;
   name: string;
   status?: string;
+  auth_status?: string;
   institution: { id: string | number; name: string } | null;
   permissions?: Permission[];
   created_by?: { id: string | number; name: string } | null;
@@ -18,4 +19,15 @@ export interface CreateProfilePayload {
   code: string;
   name: string;
   institution_id: string | number;
+  remark?: string | null;
+}
+
+export interface UpdateProfilePayload {
+  name?: string;
+  remark?: string | null;
+}
+
+export interface SetPermissionsPayload {
+  permissions: Permission[];
+  remark?: string | null;
 }

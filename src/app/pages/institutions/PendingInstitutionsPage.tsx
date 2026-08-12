@@ -22,21 +22,19 @@ export function PendingInstitutionsPage() {
 
   const { pendingInstitutions, isLoading, error, fetchPendingInstitutions, approveInstitution, rejectInstitution } = useInstitutionStore();
 
-  // Backend already excludes requests created by the current user (maker-checker).
-  // Every item in pendingInstitutions is one the current user can act on.
   useEffect(() => {
     void fetchPendingInstitutions();
   }, [fetchPendingInstitutions]);
 
-  const handleApprove = async (id: string | number) => {
-    const ok = await approveInstitution(id);
-    if (ok) toast.success("Institution approved");
+  const handleApprove = async (request_id: string) => {
+    const ok = await approveInstitution(request_id);
+    if (ok) toast.success("Institution request approved");
     else toast.error(useInstitutionStore.getState().error ?? "Failed to approve");
   };
 
-  const handleReject = async (id: string | number) => {
-    const ok = await rejectInstitution(id);
-    if (ok) toast.success("Institution rejected");
+  const handleReject = async (request_id: string) => {
+    const ok = await rejectInstitution(request_id);
+    if (ok) toast.success("Institution request rejected");
     else toast.error(useInstitutionStore.getState().error ?? "Failed to reject");
   };
 
@@ -81,7 +79,7 @@ export function PendingInstitutionsPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100/80">
-              {["Code", "Name", "Type", "Email", "Created By", "Actions"].map((h) => (
+              {["Action", "Name", "Type", "Maker", "Approvals", "Actions"].map((h) => (
                 <th key={h} className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
               ))}
             </tr>
@@ -108,38 +106,48 @@ export function PendingInstitutionsPage() {
                 </td>
               </tr>
             ) : (
-              pendingInstitutions.map((inst, i) => (
-                <motion.tr
-                  key={inst.id}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-                  className="border-b border-slate-50 hover:bg-white/60 transition-colors"
-                >
-                  <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{inst.code}</td>
-                  <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{inst.name}</td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.type}</td>
-                  <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.kyc?.email ?? "-"}</td>
-                  <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{inst.created_by?.name ?? "-"}</td>
-                  <td className="px-5 py-3.5 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                        onClick={() => void handleReject(inst.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-red-500 border border-red-200/60 hover:bg-red-50/60 transition-colors"
-                      >
-                        <X size={11} /> Reject
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                        onClick={() => void handleApprove(inst.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-md shadow-emerald-200/50"
-                        style={{ background: "linear-gradient(135deg, #6EDFC4 0%, #3BBFA0 100%)" }}
-                      >
-                        <Check size={11} /> Approve
-                      </motion.button>
-                    </div>
-                  </td>
-                </motion.tr>
-              ))
+              pendingInstitutions.map((req, i) => {
+                const after = (req.after_data ?? {}) as Record<string, unknown>;
+                const isMaker = String(req.maker?.id) === String(currentUser?.id);
+                return (
+                  <motion.tr
+                    key={req.request_id}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+                    className="border-b border-slate-50 hover:bg-white/60 transition-colors"
+                  >
+                    <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{req.action}</td>
+                    <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{String(after.name ?? req.entity_id)}</td>
+                    <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{String(after.type ?? "—")}</td>
+                    <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{req.maker?.name ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
+                      {req.approval_count} / {req.required_checker_count}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      {isMaker ? (
+                        <span className="text-[11px] text-slate-400 italic">You submitted this</span>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => void handleReject(req.request_id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-red-500 border border-red-200/60 hover:bg-red-50/60 transition-colors"
+                          >
+                            <X size={11} /> Reject
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                            onClick={() => void handleApprove(req.request_id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-md shadow-emerald-200/50"
+                            style={{ background: "linear-gradient(135deg, #6EDFC4 0%, #3BBFA0 100%)" }}
+                          >
+                            <Check size={11} /> Approve
+                          </motion.button>
+                        </div>
+                      )}
+                    </td>
+                  </motion.tr>
+                );
+              })
             )}
           </tbody>
         </table>

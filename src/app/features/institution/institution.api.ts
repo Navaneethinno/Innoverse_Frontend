@@ -1,28 +1,35 @@
 import { apiService } from "../../features/api.service";
-import type { Institution, CreateInstitutionPayload } from "./institution.types";
+import type { Institution, CreateInstitutionPayload, UpdateInstitutionPayload, RemarkPayload } from "./institution.types";
+import type { PendingRequestOut, AuditEntryOut, MakerCheckerResponse, CheckerDecisionRequest } from "../maker-checker.types";
 
 export const institutionApi = {
-  list: async (): Promise<Institution[]> => {
-    return apiService.getInstitutions();
-  },
+  list: (): Promise<Institution[]> => apiService.getInstitutions(),
 
-  listPending: async (): Promise<Institution[]> => {
-    return apiService.getPendingInstitutions();
-  },
+  listPending: (): Promise<PendingRequestOut[]> => apiService.getPendingInstitutions(),
 
-  getById: async (id: string): Promise<Institution | null> => {
-    return apiService.getInstitutionById(id);
-  },
+  getById: (id: string): Promise<Institution | null> => apiService.getInstitutionById(id),
 
-  create: async (payload: CreateInstitutionPayload): Promise<Institution> => {
-    return apiService.createInstitution(payload);
-  },
+  create: (payload: CreateInstitutionPayload): Promise<MakerCheckerResponse> =>
+    apiService.createInstitution(payload),
 
-  approve: async (id: string | number): Promise<void> => {
-    return apiService.approveInstitution(id);
-  },
+  update: (id: string | number, payload: UpdateInstitutionPayload): Promise<MakerCheckerResponse> =>
+    apiService.updateInstitution(id, payload),
 
-  reject: async (id: string | number): Promise<void> => {
-    return apiService.rejectInstitution(id);
-  },
+  delete: (id: string | number, payload?: RemarkPayload): Promise<MakerCheckerResponse> =>
+    apiService.deleteInstitution(id, payload),
+
+  activate: (id: string | number, payload?: RemarkPayload): Promise<MakerCheckerResponse> =>
+    apiService.activateInstitution(id, payload),
+
+  deactivate: (id: string | number, payload?: RemarkPayload): Promise<MakerCheckerResponse> =>
+    apiService.deactivateInstitution(id, payload),
+
+  getAudit: (id: string | number): Promise<AuditEntryOut[]> =>
+    apiService.getInstitutionAudit(id),
+
+  approve: (request_id: string, payload?: CheckerDecisionRequest): Promise<MakerCheckerResponse> =>
+    apiService.approveInstitution(request_id, payload),
+
+  reject: (request_id: string, payload?: CheckerDecisionRequest): Promise<MakerCheckerResponse> =>
+    apiService.rejectInstitution(request_id, payload),
 };

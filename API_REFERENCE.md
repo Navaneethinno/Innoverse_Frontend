@@ -1,294 +1,286 @@
-# Innoverse Backend — API Reference
+# Innoverse Backend API Reference
 
-**Base URL:** `http://localhost:8000`  
-**Auth:** All endpoints except `/auth/login` require a Bearer token in the `Authorization` header.  
-**Response envelope:** Every response follows this shape:
+**Base URL:** `http://localhost:8000`
+
+**Authentication:** all routes except `/auth/login` require `Authorization: Bearer <token>`.
+
+**Response envelope:**
 
 ```json
 {
   "success": true,
-  "message": "...",
-  "data": { ... }
+  "message": "Success",
+  "data": {}
 }
 ```
 
----
+## Auth
 
-## Authentication
-
-### POST `/auth/login`
-Login with username and password. Returns a JWT token and user context.
-
-**Permission required:** None (public)
-
-**Request body:**
+### `POST /auth/login`
+Request:
 ```json
 {
-  "username": "platform_admin",
-  "password": "admin123"
+  "username": "admin1",
+  "password": "123"
 }
 ```
 
-**Response `data`:**
+Response `data`:
 ```json
 {
   "access_token": "<jwt>",
   "token_type": "bearer",
   "user": {
     "id": 1,
-    "username": "platform_admin",
+    "username": "admin1",
     "institution": {
       "id": 1,
-      "name": "Platform Owner",
+      "name": "Innovitegra Platform Owner",
       "type": "PLATFORM_OWNER"
     },
     "profile": {
       "id": 1,
-      "name": "Super Admin"
+      "name": "Super Administrator"
     }
   }
 }
 ```
 
-> Store `access_token` and send it as `Authorization: Bearer <token>` on every subsequent request.  
-> `institution.type` will be either `PLATFORM_OWNER` or `PLATFORM_USER` — use this to conditionally show admin-only UI sections.
+## Common shapes
 
----
+### `CheckerDecisionRequest`
+```json
+{
+  "remark": "Approved"
+}
+```
+
+### `PendingRequestOut`
+```json
+{
+  "request_id": "uuid",
+  "entity_type": "INSTITUTION",
+  "entity_id": 1,
+  "action": "ADD",
+  "auth_status": "ADD_AUTH",
+  "maker": { "id": 1, "name": "admin1" },
+  "required_checker_count": 1,
+  "approval_count": 0,
+  "after_data": {},
+  "before_data": null,
+  "remark": null,
+  "created_at": "2026-08-11T12:00:00"
+}
+```
+
+### `AuditEntryOut`
+```json
+{
+  "id": 1,
+  "request_id": "uuid",
+  "entity_id": 1,
+  "entity_type": "INSTITUTION",
+  "action": "ADD",
+  "auth_status": "ACTIVE",
+  "event_type": "REQUEST",
+  "maker": { "id": 1, "name": "admin1" },
+  "checker": { "id": 2, "name": "admin2" },
+  "decision": "APPROVE",
+  "required_checker_count": 1,
+  "approval_count": 1,
+  "before_data": {},
+  "after_data": {},
+  "remark": "ok",
+  "created_at": "2026-08-11T12:00:00"
+}
+```
 
 ## Users
 
-### GET `/users`
-List all users belonging to the logged-in user's institution.
+### `GET /users`
+Permission: `USERS / VIEW`
 
-**Permission required:** `USERS / VIEW`
+### `POST /users`
+Permission: `USERS / ADD`
 
-**Response `data`:** array of user objects
-```json
-[
-  {
-    "id": 1,
-    "username": "platform_admin",
-    "institution": { "id": 1, "name": "Platform Owner" },
-    "profile": { "id": 1, "name": "Super Admin" },
-    "status": "ACTIVE"
-  }
-]
-```
-
----
-
-### POST `/users`
-Create a new user under the logged-in user's institution.
-
-**Permission required:** `USERS / ADD`
-
-**Request body:**
+Request:
 ```json
 {
   "username": "new_user",
   "password": "secret123",
-  "profile_id": 1
+  "profile_id": 1,
+  "remark": null
 }
 ```
 
-> `profile_id` must belong to the same institution as the logged-in user.
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "User ADD request submitted" }
+```
 
-**Response `data`:** the created user object (same shape as list item above)
+### `GET /users/pending`
+Permission: `USERS / AUTHORIZE`
 
----
+### `GET /users/{user_id}`
+Permission: `USERS / VIEW`
+
+### `GET /users/{user_id}/audit`
+Permission: `USERS / VIEW`
+
+### `PUT /users/{user_id}`
+Permission: `USERS / EDIT`
+
+Request:
+```json
+{
+  "profile_id": 1,
+  "remark": "update profile"
+}
+```
+
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "User EDIT request submitted" }
+```
+
+### `DELETE /users/{user_id}`
+Permission: `USERS / DELETE`
+
+Request:
+```json
+{ "remark": "delete" }
+```
+
+### `POST /users/{user_id}/activate`
+Permission: `USERS / EDIT`
+
+Request:
+```json
+{ "remark": "activate" }
+```
+
+### `POST /users/{user_id}/deactivate`
+Permission: `USERS / EDIT`
+
+Request:
+```json
+{ "remark": "deactivate" }
+```
+
+### `POST /users/requests/{request_id}/approve`
+Permission: `USERS / AUTHORIZE`
+
+Request:
+```json
+{ "remark": "ok" }
+```
+
+### `POST /users/requests/{request_id}/reject`
+Permission: `USERS / AUTHORIZE`
+
+Request:
+```json
+{ "remark": "no" }
+```
 
 ## Profiles
 
-### GET `/profiles`
-List all profiles for the logged-in user's institution.
+### `GET /profiles`
+Permission: `PROFILES / VIEW`
 
-**Permission required:** `PROFILES / VIEW`
+### `POST /profiles`
+Permission: `PROFILES / ADD`
 
-**Response `data`:** array of profile objects
-```json
-[
-  {
-    "id": 1,
-    "code": "SUPER_ADMIN",
-    "name": "Super Admin",
-    "institution": { "id": 1, "name": "Platform Owner" },
-    "status": "ACTIVE"
-  }
-]
-```
-
----
-
-### GET `/profiles/{profile_id}`
-Get a single profile by ID, including its institution.
-
-**Permission required:** `PROFILES / VIEW`
-
-**Path param:** `profile_id` — integer
-
-**Response `data`:** single profile object (same shape as list item above)
-
----
-
-### POST `/profiles`
-Create a new profile for an institution.
-
-**Permission required:** `PROFILES / ADD`
-
-**Request body:**
+Request:
 ```json
 {
   "code": "OPS",
   "name": "Operations",
-  "institution_id": 1
+  "institution_id": 1,
+  "remark": null
 }
 ```
 
-> `PLATFORM_USER` institutions can only create profiles for their own `institution_id`.  
-> `code` must be unique per institution.
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "Profile ADD request submitted" }
+```
 
-**Response `data`:** the created profile object
+### `GET /profiles/pending`
+Permission: `PROFILES / AUTHORIZE`
 
----
+### `GET /profiles/{profile_id}`
+Permission: `PROFILES / VIEW`
 
-### POST `/profiles/{profile_id}/permissions`
-Replace all permissions for a profile. This is a full replace — send the complete desired permission set every time.
+### `GET /profiles/{profile_id}/audit`
+Permission: `PROFILES / VIEW`
 
-**Permission required:** `PROFILES / ADD`
+### `PUT /profiles/{profile_id}`
+Permission: `PROFILES / EDIT`
 
-**Path param:** `profile_id` — integer
+Request:
+```json
+{
+  "name": "New Name",
+  "remark": "update"
+}
+```
 
-**Request body:**
+### `DELETE /profiles/{profile_id}`
+Permission: `PROFILES / DELETE`
+
+Request:
+```json
+{ "remark": "delete" }
+```
+
+### `POST /profiles/{profile_id}/activate`
+Permission: `PROFILES / EDIT`
+
+### `POST /profiles/{profile_id}/deactivate`
+Permission: `PROFILES / EDIT`
+
+### `POST /profiles/{profile_id}/permissions`
+Permission: `PROFILES / EDIT`
+
+Request:
 ```json
 {
   "permissions": [
-    { "menu_code": "USERS",        "action_code": "VIEW" },
-    { "menu_code": "USERS",        "action_code": "ADD" },
-    { "menu_code": "PROFILES",     "action_code": "VIEW" },
-    { "menu_code": "PROFILES",     "action_code": "ADD" },
-    { "menu_code": "INSTITUTIONS", "action_code": "VIEW" },
-    { "menu_code": "INSTITUTIONS", "action_code": "ADD" },
-    { "menu_code": "INSTITUTIONS", "action_code": "AUTHORIZE" },
-    { "menu_code": "APPLICATIONS", "action_code": "VIEW" },
-    { "menu_code": "APPLICATIONS", "action_code": "ADD" },
-    { "menu_code": "KYC",          "action_code": "VIEW" },
-    { "menu_code": "KYC",          "action_code": "ADD" }
-  ]
+    { "menu_code": "USERS", "action_code": "USERS_VIEW" },
+    { "menu_code": "USERS", "action_code": "USERS_ADD" },
+    { "menu_code": "PROFILES", "action_code": "PROFILES_VIEW" }
+  ],
+  "remark": "refresh permissions"
 }
 ```
 
-**Available `menu_code` / `action_code` combinations:**
-
-| menu_code | action_code | What it gates |
-|---|---|---|
-| `USERS` | `VIEW` | List users |
-| `USERS` | `ADD` | Create user |
-| `PROFILES` | `VIEW` | List / get profiles |
-| `PROFILES` | `ADD` | Create profile, update permissions |
-| `INSTITUTIONS` | `VIEW` | List / get institutions |
-| `INSTITUTIONS` | `ADD` | Submit institution for review |
-| `INSTITUTIONS` | `AUTHORIZE` | Approve / reject institutions, view pending |
-| `APPLICATIONS` | `VIEW` | List applications |
-| `APPLICATIONS` | `ADD` | Create application, assign to institution |
-| `KYC` | `VIEW` | Get institution or user KYC |
-| `KYC` | `ADD` | Save institution or user KYC |
-
-**Response `data`:**
+Response `data`:
 ```json
-{ "profile_id": 1, "permissions_count": 11 }
+{ "request_id": "uuid", "message": "Profile permissions EDIT request submitted" }
 ```
 
----
+### `POST /profiles/requests/{request_id}/approve`
+Permission: `PROFILES / AUTHORIZE`
+
+### `POST /profiles/requests/{request_id}/reject`
+Permission: `PROFILES / AUTHORIZE`
 
 ## Institutions
 
-### GET `/institutions`
-List all approved institutions.
+### `GET /institutions`
+Permission: `INSTITUTIONS / VIEW`
 
-**Permission required:** `INSTITUTIONS / VIEW`
+### `POST /institutions`
+Permission: `INSTITUTIONS / ADD`
 
-**Response `data`:** array of institution objects
-```json
-[
-  {
-    "id": 1,
-    "code": "PLATFORM",
-    "name": "Platform Owner",
-    "type": "PLATFORM_OWNER",
-    "status": "ACTIVE",
-    "auth_status": "APPROVED",
-    "created_by": null,
-    "approved_by": null
-  }
-]
-```
-
----
-
-### GET `/institutions/pending`
-List pending institution onboarding requests that the current user is eligible to act on. Requests created by the current user are excluded — a maker cannot review their own submission.
-
-**Permission required:** `INSTITUTIONS / AUTHORIZE`  
-**Restriction:** Only accessible by `PLATFORM_OWNER` institution users.
-
-**Response `data`:** array of pending institution objects the caller can approve or reject
-```json
-[
-  {
-    "id": 1,
-    "code": "NEWBANK",
-    "name": "New Bank Ltd",
-    "type": "PLATFORM_USER",
-    "auth_status": "PENDING",
-    "created_by": { "id": 1, "name": "admin1" },
-    "reviewed_by": null,
-    "kyc": {
-      "legal_name": "New Bank Limited",
-      "registration_number": "REG-001",
-      "tax_id": "TAX-001",
-      "email": "admin@newbank.com",
-      "phone": "+91-9000000001",
-      "website": "https://newbank.com",
-      "address_line1": "1 Finance St",
-      "address_line2": null,
-      "city": "Mumbai",
-      "state": "Maharashtra",
-      "country": "India",
-      "postal_code": "400001",
-      "id": 0,
-      "institution_id": 0,
-      "kyc_status": null
-    }
-  }
-]
-
-> `kyc` is `null` if no KYC data was submitted with the request.
-
----
-
-### GET `/institutions/{institution_id}`
-Get a single approved institution by ID.
-
-**Permission required:** `INSTITUTIONS / VIEW`
-
-**Path param:** `institution_id` — integer
-
-**Response `data`:** single institution object (same shape as list item above)
-
----
-
-### POST `/institutions`
-Submit a complete institution onboarding request including KYC. Creates a pending record — does **not** immediately approve.
-
-**Permission required:** `INSTITUTIONS / ADD`  
-**Restriction:** Only `PLATFORM_OWNER` users can submit institutions.
-
-**Request body:**
+Request:
 ```json
 {
   "code": "NEWBANK",
   "name": "New Bank Ltd",
   "type": "PLATFORM_USER",
+  "remark": "onboard",
   "kyc": {
     "legal_name": "New Bank Limited",
     "registration_number": "REG-001",
@@ -306,241 +298,164 @@ Submit a complete institution onboarding request including KYC. Creates a pendin
 }
 ```
 
-> `type` defaults to `PLATFORM_USER`. Institutions created via the API are always `PLATFORM_USER`. `PLATFORM_OWNER` is seeded manually and never created through this endpoint.  
-> `code` must be globally unique — rejected if it already exists in approved or pending records.  
-> All `kyc` fields are optional individually, but the `kyc` object itself is required.
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "Institution ADD request submitted" }
+```
 
-**Response `data`:** the pending institution object including the submitted KYC
+### `GET /institutions/pending`
+Permission: `INSTITUTIONS / AUTHORIZE`
+
+### `GET /institutions/{institution_id}`
+Permission: `INSTITUTIONS / VIEW`
+
+### `GET /institutions/{institution_id}/audit`
+Permission: `INSTITUTIONS / VIEW`
+
+### `PUT /institutions/{institution_id}`
+Permission: `INSTITUTIONS / EDIT`
+
+Request:
 ```json
 {
-  "id": 1,
-  "code": "NEWBANK",
-  "name": "New Bank Ltd",
-  "type": "PLATFORM_USER",
-  "auth_status": "PENDING",
-  "created_by": { "id": 1, "name": "admin1" },
-  "reviewed_by": null,
-  "kyc": {
-    "legal_name": "New Bank Limited",
-    "registration_number": "REG-001",
-    "tax_id": "TAX-001",
-    "email": "admin@newbank.com",
-    "phone": "+91-9000000001",
-    "website": "https://newbank.com",
-    "address_line1": "1 Finance St",
-    "address_line2": null,
-    "city": "Mumbai",
-    "state": "Maharashtra",
-    "country": "India",
-    "postal_code": "400001",
-    "id": 0,
-    "institution_id": 0,
-    "kyc_status": null
-  }
-}
-
----
-
-### POST `/institutions/{pending_id}/approve`
-Approve a pending institution. Atomically moves it from `institution_pending` to `institution` and persists the associated KYC record.
-
-**Permission required:** `INSTITUTIONS / AUTHORIZE`  
-**Restriction:** Only `PLATFORM_OWNER` users. The user who submitted the request cannot approve it (maker-checker enforced server-side).
-
-**Path param:** `pending_id` — the ID from the pending list
-
-**No request body.**
-
-**Response `data`:** the approved institution object
-```json
-{
-  "id": 2,
-  "code": "NEWBANK",
-  "name": "New Bank Ltd",
-  "type": "PLATFORM_USER",
-  "status": "ACTIVE",
-  "auth_status": "APPROVED",
-  "created_by": { "id": 1, "name": "admin1" },
-  "approved_by": { "id": 2, "name": "admin2" }
+  "name": "Updated Name",
+  "remark": "rename"
 }
 ```
 
-> After approval, `GET /institutions/{institution_id}/kyc` will return the KYC data that was submitted at creation time.
+### `DELETE /institutions/{institution_id}`
+Permission: `INSTITUTIONS / DELETE`
 
----
+Request:
+```json
+{ "remark": "delete" }
+```
 
-### POST `/institutions/{pending_id}/reject`
-Reject a pending institution. Does not create an approved institution record.
+### `POST /institutions/{institution_id}/activate`
+Permission: `INSTITUTIONS / EDIT`
 
-**Permission required:** `INSTITUTIONS / AUTHORIZE`  
-**Restriction:** Only `PLATFORM_OWNER` users. The user who submitted the request cannot reject it (same maker-checker rule as approve).
+### `POST /institutions/{institution_id}/deactivate`
+Permission: `INSTITUTIONS / EDIT`
 
-**Path param:** `pending_id` — the ID from the pending list
+### `POST /institutions/requests/{request_id}/approve`
+Permission: `INSTITUTIONS / AUTHORIZE`
 
-**No request body.**
-
-**Response `data`:** the updated pending institution object with `auth_status: "REJECTED"`
-
----
+### `POST /institutions/requests/{request_id}/reject`
+Permission: `INSTITUTIONS / AUTHORIZE`
 
 ## Applications
 
-### GET `/applications`
-List all applications.
+### `GET /applications`
+Permission: `APPLICATIONS / VIEW`
 
-**Permission required:** `APPLICATIONS / VIEW`
+### `POST /applications`
+Permission: `APPLICATIONS / ADD`
 
-**Response `data`:** array of application objects
-```json
-[
-  {
-    "id": 1,
-    "code": "INNOVERSE",
-    "name": "Innoverse",
-    "status": "ACTIVE"
-  }
-]
-```
-
----
-
-### POST `/applications`
-Create a new application.
-
-**Permission required:** `APPLICATIONS / ADD`
-
-**Request body:**
+Request:
 ```json
 {
-  "code": "RECON",
-  "name": "Reconciliation System"
+  "code": "APPX1",
+  "name": "App X1",
+  "remark": "create"
 }
 ```
 
-> `code` must be globally unique.
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "Application ADD request submitted" }
+```
 
-**Response `data`:** the created application object
+### `GET /applications/pending`
+Permission: `APPLICATIONS / AUTHORIZE`
 
----
+### `GET /applications/{application_id}`
+Permission: `APPLICATIONS / VIEW`
 
-### POST `/institutions/{institution_id}/assign-application`
-Assign an existing application to an institution.
+### `GET /applications/{application_id}/audit`
+Permission: `APPLICATIONS / VIEW`
 
-**Permission required:** `APPLICATIONS / ADD`
+### `PUT /applications/{application_id}`
+Permission: `APPLICATIONS / EDIT`
 
-**Path param:** `institution_id` — integer
+### `DELETE /applications/{application_id}`
+Permission: `APPLICATIONS / DELETE`
 
-**Request body:**
+### `POST /applications/{application_id}/activate`
+Permission: `APPLICATIONS / EDIT`
+
+### `POST /applications/{application_id}/deactivate`
+Permission: `APPLICATIONS / EDIT`
+
+### `POST /applications/requests/{request_id}/approve`
+Permission: `APPLICATIONS / AUTHORIZE`
+
+### `POST /applications/requests/{request_id}/reject`
+Permission: `APPLICATIONS / AUTHORIZE`
+
+### `GET /institutions/{institution_id}/applications/pending`
+Permission: `APPLICATIONS / AUTHORIZE`
+
+### `POST /institutions/{institution_id}/assign-application`
+Permission: `APPLICATIONS / ADD`
+
+Request:
 ```json
 {
-  "application_id": 1
+  "application_id": 1,
+  "remark": "assign"
 }
 ```
 
-**Response `data`:** confirmation object
+Response `data`:
+```json
+{ "request_id": "uuid", "message": "Application assignment ADD request submitted" }
+```
 
----
+### `POST /institution-applications/requests/{request_id}/approve`
+Permission: `APPLICATIONS / AUTHORIZE`
+
+### `POST /institution-applications/requests/{request_id}/reject`
+Permission: `APPLICATIONS / AUTHORIZE`
 
 ## KYC
 
-### GET `/institutions/{institution_id}/kyc`
-Get KYC details for an institution.
+### `POST /institutions/{institution_id}/kyc`
+Permission: `INSTITUTION_KYC / ADD`
 
-**Permission required:** `KYC / VIEW`
-
-**Path param:** `institution_id` — integer
-
-**Response `data`:**
+Request:
 ```json
 {
-  "id": 1,
-  "institution_id": 1,
-  "legal_name": "Platform Owner Pvt Ltd",
-  "registration_number": "REG123",
-  "tax_id": "TAX456",
-  "email": "contact@platform.com",
-  "phone": "+91-9999999999",
-  "website": "https://platform.com",
-  "address_line1": "123 Main St",
+  "legal_name": "Updated Legal Name",
+  "registration_number": "REG-001",
+  "tax_id": "TAX-001",
+  "email": "admin@example.com",
+  "phone": "+91-9000000001",
+  "website": "https://example.com",
+  "address_line1": "1 Finance St",
   "address_line2": null,
-  "city": "Bangalore",
-  "state": "Karnataka",
+  "city": "Mumbai",
+  "state": "Maharashtra",
   "country": "India",
-  "postal_code": "560001",
-  "kyc_status": "PENDING"
+  "postal_code": "400001"
 }
 ```
 
-> `kyc_status` values: `PENDING`, `VERIFIED`, `REJECTED`
+### `GET /institutions/{institution_id}/kyc`
+Permission: `INSTITUTION_KYC / VIEW`
 
----
+### `GET /institution-kyc/pending`
+Permission: `INSTITUTION_KYC / AUTHORIZE`
 
-### POST `/institutions/{institution_id}/kyc`
-Update KYC for an already-approved institution (upsert). Not required for initial onboarding — KYC is submitted as part of `POST /institutions` and is automatically persisted on approval.
+### `POST /institution-kyc/requests/{request_id}/approve`
+Permission: `INSTITUTION_KYC / AUTHORIZE`
 
-**Permission required:** `KYC / ADD`
+### `POST /institution-kyc/requests/{request_id}/reject`
+Permission: `INSTITUTION_KYC / AUTHORIZE`
 
-**Path param:** `institution_id` — the ID of an **approved** institution
+### `POST /users/{user_id}/kyc`
+Permission: `USER_KYC / ADD`
 
-**Request body:** all fields optional
-```json
-{
-  "legal_name": "Platform Owner Pvt Ltd",
-  "registration_number": "REG123",
-  "tax_id": "TAX456",
-  "email": "contact@platform.com",
-  "phone": "+91-9999999999",
-  "website": "https://platform.com",
-  "address_line1": "123 Main St",
-  "address_line2": null,
-  "city": "Bangalore",
-  "state": "Karnataka",
-  "country": "India",
-  "postal_code": "560001"
-}
-```
-
-**Response `data`:** the saved KYC object
-
----
-
-### GET `/users/{user_id}/kyc`
-Get KYC details for a user.
-
-**Permission required:** `KYC / VIEW`
-
-**Path param:** `user_id` — integer
-
-**Response `data`:**
-```json
-{
-  "id": 1,
-  "user_id": 1,
-  "full_name": "John Doe",
-  "date_of_birth": "1990-01-15",
-  "email": "john@example.com",
-  "phone": "+91-9999999999",
-  "id_type": "Aadhaar",
-  "id_number": "1234-5678-9012",
-  "address_line1": "123 Main St",
-  "city": "Bangalore",
-  "state": "Karnataka",
-  "country": "India",
-  "postal_code": "560001",
-  "kyc_status": "PENDING"
-}
-```
-
----
-
-### POST `/users/{user_id}/kyc`
-Create or update KYC for a user (upsert).
-
-**Permission required:** `KYC / ADD`
-
-**Path param:** `user_id` — integer
-
-**Request body:** all fields optional
+Request:
 ```json
 {
   "full_name": "John Doe",
@@ -557,20 +472,184 @@ Create or update KYC for a user (upsert).
 }
 ```
 
-**Response `data`:** the saved KYC object
+### `GET /users/{user_id}/kyc`
+Permission: `USER_KYC / VIEW`
 
----
+### `GET /user-kyc/pending`
+Permission: `USER_KYC / AUTHORIZE`
 
-## Error Responses
+### `POST /user-kyc/requests/{request_id}/approve`
+Permission: `USER_KYC / AUTHORIZE`
 
-| HTTP Status | When |
-|---|---|
-| `401 Unauthorized` | Missing/invalid/expired token, wrong credentials |
-| `403 Forbidden` | Valid token but missing permission, or wrong institution type |
-| `404 Not Found` | Resource does not exist |
-| `400 Bad Request` | Validation error, duplicate code, business rule violation |
+### `POST /user-kyc/requests/{request_id}/reject`
+Permission: `USER_KYC / AUTHORIZE`
 
-**Error body shape:**
+## Menu / module management
+
+All of these routes require the `MENUS` menu permissions:
+
+- `MENUS / VIEW`
+- `MENUS / ADD`
+- `MENUS / EDIT`
+- `MENUS / DELETE`
+- `MENUS / AUTHORIZE`
+
+### `GET /modules`
+Permission: `MENUS / VIEW`
+
+Query params:
+- `application_id` optional integer
+
+### `GET /modules/pending`
+Permission: `MENUS / AUTHORIZE`
+
+### `GET /modules/{module_id}/audit`
+Permission: `MENUS / VIEW`
+
+### `POST /modules`
+Permission: `MENUS / ADD`
+Request:
+```json
+{
+  "application_id": 1,
+  "code": "MODX1",
+  "name": "Module X1",
+  "remark": "create"
+}
+```
+
+### `PUT /modules/{module_id}`
+Permission: `MENUS / EDIT`
+
+### `DELETE /modules/{module_id}`
+Permission: `MENUS / DELETE`
+
+### `POST /modules/{module_id}/activate`
+Permission: `MENUS / EDIT`
+
+### `POST /modules/{module_id}/deactivate`
+Permission: `MENUS / EDIT`
+
+### `POST /modules/requests/{request_id}/approve`
+Permission: `MENUS / AUTHORIZE`
+
+### `POST /modules/requests/{request_id}/reject`
+Permission: `MENUS / AUTHORIZE`
+
+### `GET /menus`
+Permission: `MENUS / VIEW`
+
+Query params:
+- `module_id` optional integer
+
+### `GET /menus/pending`
+Permission: `MENUS / AUTHORIZE`
+
+### `GET /menus/{menu_id}/audit`
+Permission: `MENUS / VIEW`
+
+### `POST /menus`
+Permission: `MENUS / ADD`
+Request:
+```json
+{
+  "module_id": 1,
+  "code": "MENX1",
+  "name": "Menu X1",
+  "remark": "create"
+}
+```
+
+### `PUT /menus/{menu_id}`
+Permission: `MENUS / EDIT`
+
+### `DELETE /menus/{menu_id}`
+Permission: `MENUS / DELETE`
+
+### `POST /menus/{menu_id}/activate`
+Permission: `MENUS / EDIT`
+
+### `POST /menus/{menu_id}/deactivate`
+Permission: `MENUS / EDIT`
+
+### `POST /menus/requests/{request_id}/approve`
+Permission: `MENUS / AUTHORIZE`
+
+### `POST /menus/requests/{request_id}/reject`
+Permission: `MENUS / AUTHORIZE`
+
+### `GET /menu-actions`
+Permission: `MENUS / VIEW`
+
+### `GET /menu-actions/pending`
+Permission: `MENUS / AUTHORIZE`
+
+### `GET /menu-actions/{menu_action_id}/audit`
+Permission: `MENUS / VIEW`
+
+### `POST /menu-actions`
+Permission: `MENUS / ADD`
+Request:
+```json
+{
+  "menu_id": 1,
+  "code": "ACTX1",
+  "name": "Action X1",
+  "remark": "create"
+}
+```
+
+### `PUT /menu-actions/{menu_action_id}`
+Permission: `MENUS / EDIT`
+
+### `DELETE /menu-actions/{menu_action_id}`
+Permission: `MENUS / DELETE`
+
+### `POST /menu-actions/{menu_action_id}/activate`
+Permission: `MENUS / EDIT`
+
+### `POST /menu-actions/{menu_action_id}/deactivate`
+Permission: `MENUS / EDIT`
+
+### `POST /menu-actions/requests/{request_id}/approve`
+Permission: `MENUS / AUTHORIZE`
+
+### `POST /menu-actions/requests/{request_id}/reject`
+Permission: `MENUS / AUTHORIZE`
+
+## Audit
+
+### `GET /audit/institutions/{institution_id}`
+Permission: `INSTITUTIONS / INSTITUTIONS_VIEW`
+
+### `GET /audit/users/{user_id}`
+Permission: `USERS / USERS_VIEW`
+
+### `GET /audit/profiles/{profile_id}`
+Permission: `PROFILES / PROFILES_VIEW`
+
+### `GET /audit/applications/{application_id}`
+Permission: `APPLICATIONS / APPLICATIONS_VIEW`
+
+## Pending dashboard
+
+### `GET /pending/all`
+Returns the combined pending request list the current user can authorize.
+
+### `GET /pending/institutions`
+Permission: `INSTITUTIONS / INSTITUTIONS_AUTHORIZE`
+
+### `GET /pending/users`
+Permission: `USERS / USERS_AUTHORIZE`
+
+### `GET /pending/profiles`
+Permission: `PROFILES / PROFILES_AUTHORIZE`
+
+### `GET /pending/applications`
+Permission: `APPLICATIONS / APPLICATIONS_AUTHORIZE`
+
+## Error responses
+
 ```json
 {
   "success": false,
@@ -579,21 +658,15 @@ Create or update KYC for a user (upsert).
 }
 ```
 
----
+Common HTTP statuses:
+- `400` validation or business-rule failure
+- `401` missing or invalid token
+- `403` permission denied or institution restriction
+- `404` record not found
 
-## Notes for Frontend
+## Supported payload notes
 
-- **Token storage:** Store the JWT in memory or `httpOnly` cookie. Avoid `localStorage` for sensitive apps.
-- **Institution type gating:** After login, check `user.institution.type`. Hide institution approval UI for `PLATFORM_USER` accounts.
-- **Permission-based UI:** The backend enforces permissions on every request. Mirror this on the frontend by checking which menu/action combinations the user's profile has before rendering buttons/routes.
-- **Pending vs approved institutions:** `POST /institutions` creates a *pending* record. The approved list (`GET /institutions`) only shows fully approved ones. Use `GET /institutions/pending` to build the approval queue UI.
-- **KYC upsert:** `POST /institutions/{institution_id}/kyc` and `POST /users/{user_id}/kyc` are both upserts — safe to call for both create and update.
-- **Institution KYC on creation:** KYC is submitted as part of `POST /institutions` inside the `kyc` object. A separate KYC call is not needed for initial onboarding. `POST /institutions/{institution_id}/kyc` is only needed for subsequent KYC updates after approval.
-- **Maker-checker:** The user who submits `POST /institutions` cannot approve or reject it. A different `PLATFORM_OWNER` user must call approve/reject. `GET /institutions/pending` already filters out the caller's own submissions server-side — the frontend does not need to hide them manually.
-- **Sequence for onboarding a new institution:**
-  1. `POST /institutions` (with nested `kyc`) → creates pending record with KYC attached
-  2. `GET /institutions/pending` → reviewer sees the request including KYC details
-  3. `POST /institutions/{pending_id}/approve` → different user approves; institution + KYC created atomically
-  4. `POST /profiles` → create a profile for the new institution
-  5. `POST /profiles/{profile_id}/permissions` → assign permissions to the profile
-  6. `POST /users` → create users under that institution
+- `POST /institutions` requires a nested `kyc` object.
+- `POST /users/{user_id}/kyc` and `POST /institutions/{institution_id}/kyc` are upserts.
+- `DELETE` and `activate`/`deactivate` routes accept an optional JSON body with `remark`.
+- Maker-checker request ids are UUIDs and approval/rejection endpoints use those UUIDs.

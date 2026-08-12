@@ -21,6 +21,7 @@ interface FormData {
   code: string;
   name: string;
   type: string;
+  remark: string;
   // Step 2 — KYC contact & identity
   kyc_legal_name: string;
   kyc_registration_number: string;
@@ -41,6 +42,7 @@ const EMPTY: FormData = {
   code: "",
   name: "",
   type: "PLATFORM_USER",
+  remark: "",
   kyc_legal_name: "",
   kyc_registration_number: "",
   kyc_tax_id: "",
@@ -70,7 +72,7 @@ function buildPayload(form: FormData): CreateInstitutionPayload {
     country:             form.kyc_country             || null,
     postal_code:         form.kyc_postal_code         || null,
   };
-  return { code: form.code, name: form.name, type: form.type, kyc };
+  return { code: form.code, name: form.name, type: form.type, remark: form.remark || null, kyc };
 }
 
 // Module-level — stable identity across renders, no focus loss
@@ -202,8 +204,8 @@ export function CreateInstitutionFlow() {
     if (!validate()) return;
     if (step < STEPS.length - 1) { setStep((s) => s + 1); return; }
     const payload = buildPayload(form);
-    const created = await createInstitution(payload);
-    if (created) setSubmitted(true);
+    const result = await createInstitution(payload);
+    if (result) setSubmitted(true);
   };
 
   return (
@@ -251,6 +253,7 @@ export function CreateInstitutionFlow() {
                     <h2 className="text-sm font-semibold text-slate-800">Basic Information</h2>
                     <InputField label="Institution Code" fieldKey="code" placeholder="NEWBANK" required value={form.code} error={errors.code} onChange={setField} />
                     <InputField label="Institution Name" fieldKey="name" placeholder="New Bank Ltd" required value={form.name} error={errors.name} onChange={setField} />
+                    <InputField label="Remark" fieldKey="remark" placeholder="Onboarding new institution" value={form.remark} onChange={setField} />
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">Institution Type</label>
                       <select

@@ -49,10 +49,8 @@ export function InstitutionListPage() {
         const q = search.toLowerCase();
         const matchSearch = !q
           || (inst.name ?? "").toLowerCase().includes(q)
-          || (inst.legal_name ?? "").toLowerCase().includes(q)
-          || (inst.code ?? "").toLowerCase().includes(q)
-          || (inst.city ?? "").toLowerCase().includes(q);
-        const matchStatus = statusFilter === "all" || inst.status?.toLowerCase() === statusFilter;
+          || (inst.code ?? "").toLowerCase().includes(q);
+        const matchStatus = statusFilter === "all" || inst.auth_status?.toLowerCase() === statusFilter || inst.status?.toLowerCase() === statusFilter;
         return matchSearch && matchStatus;
       }),
     [visibleInstitutions, search, statusFilter],
@@ -61,20 +59,20 @@ export function InstitutionListPage() {
   const filterOptions = [
     { value: "all", label: "All" },
     { value: "active", label: "Active" },
-    { value: "pending", label: "Pending" },
-    { value: "suspended", label: "Suspended" },
-    { value: "draft", label: "Draft" },
+    { value: "add_auth", label: "Pending Add" },
+    { value: "edit_auth", label: "Pending Edit" },
+    { value: "inactive", label: "Inactive" },
   ];
 
-  const handleApprove = async (id: string | number) => {
-    const ok = await approveInstitution(id);
-    if (ok) toast.success("Institution approved");
+  const handleApprove = async (request_id: string) => {
+    const ok = await approveInstitution(request_id);
+    if (ok) toast.success("Institution request approved");
     else toast.error(useInstitutionStore.getState().error ?? "Failed to approve");
   };
 
-  const handleReject = async (id: string | number) => {
-    const ok = await rejectInstitution(id);
-    if (ok) toast.success("Institution rejected");
+  const handleReject = async (request_id: string) => {
+    const ok = await rejectInstitution(request_id);
+    if (ok) toast.success("Institution request rejected");
     else toast.error(useInstitutionStore.getState().error ?? "Failed to reject");
   };
 
@@ -85,7 +83,7 @@ export function InstitutionListPage() {
           <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Registry</p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">Institutions</h1>
           <p className="text-sm text-slate-400 mt-1.5 font-medium">
-            {visibleInstitutions.length} registered · {visibleInstitutions.filter((i) => i.status?.toLowerCase() === "active").length} active
+            {visibleInstitutions.length} registered · {visibleInstitutions.filter((i) => i.auth_status === "ACTIVE" || i.status?.toLowerCase() === "active").length} active
           </p>
         </div>
         {isPlatformOwner && (
@@ -187,7 +185,7 @@ export function InstitutionListPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100/80">
-                  {["Code", "Name", "Type", "Email", "Created By", "Actions"].map((h) => (
+                  {["Action", "Name", "Type", "Maker", "Approvals", "Actions"].map((h) => (
                     <th key={h} className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</th>
                   ))}
                 </tr>
@@ -214,38 +212,48 @@ export function InstitutionListPage() {
                     </td>
                   </tr>
                 ) : (
-                  pendingInstitutions.map((inst, i) => (
-                    <motion.tr
-                      key={inst.id}
-                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-                      className="border-b border-slate-50 hover:bg-white/60 transition-colors"
-                    >
-                      <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{inst.code}</td>
-                      <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{inst.name}</td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.type}</td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{inst.kyc?.email ?? "-"}</td>
-                      <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{inst.created_by?.name ?? "-"}</td>
-                      <td className="px-5 py-3.5 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <motion.button
-                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                            onClick={() => void handleReject(inst.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-red-500 border border-red-200/60 hover:bg-red-50/60 transition-colors"
-                          >
-                            <X size={11} /> Reject
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                            onClick={() => void handleApprove(inst.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-md shadow-emerald-200/50"
-                            style={{ background: "linear-gradient(135deg, #6EDFC4 0%, #3BBFA0 100%)" }}
-                          >
-                            <Check size={11} /> Approve
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))
+                  pendingInstitutions.map((req, i) => {
+                    const after = (req.after_data ?? {}) as Record<string, unknown>;
+                    const isMaker = String(req.maker?.id) === String(currentUser?.id);
+                    return (
+                      <motion.tr
+                        key={req.request_id}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
+                        className="border-b border-slate-50 hover:bg-white/60 transition-colors"
+                      >
+                        <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">{req.action}</td>
+                        <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">{String(after.name ?? req.entity_id)}</td>
+                        <td className="px-5 py-3.5 text-xs text-slate-500 text-center">{String(after.type ?? "—")}</td>
+                        <td className="px-5 py-3.5 text-xs text-slate-400 text-center">{req.maker?.name ?? "—"}</td>
+                        <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
+                          {req.approval_count} / {req.required_checker_count}
+                        </td>
+                        <td className="px-5 py-3.5 text-center">
+                          {isMaker ? (
+                            <span className="text-[11px] text-slate-400 italic">You submitted this</span>
+                          ) : (
+                            <div className="flex items-center justify-center gap-2">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={() => void handleReject(req.request_id)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-red-500 border border-red-200/60 hover:bg-red-50/60 transition-colors"
+                              >
+                                <X size={11} /> Reject
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={() => void handleApprove(req.request_id)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-md shadow-emerald-200/50"
+                                style={{ background: "linear-gradient(135deg, #6EDFC4 0%, #3BBFA0 100%)" }}
+                              >
+                                <Check size={11} /> Approve
+                              </motion.button>
+                            </div>
+                          )}
+                        </td>
+                      </motion.tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

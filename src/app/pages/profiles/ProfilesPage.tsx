@@ -7,7 +7,7 @@ import { useInstitutionStore } from "../../features/institution/institution.stor
 import { Skeleton } from "../../components/ui/skeleton";
 import { notifications } from "../../lib/notifications";
 import type { CreateProfilePayload } from "../../features/profiles/profile.types";
-import type { Permission } from "../../features/api.service";
+import type { Permission, SetPermissionsPayload } from "../../features/profiles/profile.types";
 
 const glass = {
   background: "rgba(255,255,255,0.65)",
@@ -63,10 +63,10 @@ export function ProfilesPage() {
       name: form.name,
       institution_id: isPlatformOwner ? form.institution_id : (currentUser?.institution?.id ?? ""),
     };
-    const created = await createProfile(payload);
+    const result = await createProfile(payload);
     setSubmitting(false);
-    if (created) {
-      notifications.success("Profile created");
+    if (result) {
+      notifications.success("Profile creation request submitted for approval");
       setForm({ code: "", name: "", institution_id: "" });
       setShowForm(false);
     } else {
@@ -85,9 +85,10 @@ export function ProfilesPage() {
 
   const handleSavePermissions = async () => {
     if (!permTarget) return;
-    const ok = await setPermissions(permTarget, selectedPerms);
+    const payload: SetPermissionsPayload = { permissions: selectedPerms };
+    const ok = await setPermissions(permTarget, payload);
     if (ok) {
-      notifications.success("Permissions updated");
+      notifications.success("Permissions update request submitted");
       setPermTarget(null);
     } else {
       notifications.error(useProfileStore.getState().error ?? "Failed to update permissions");

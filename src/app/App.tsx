@@ -13,6 +13,9 @@ const CreateInstitutionFlow = lazy(() => import("./pages/institutions/CreateInst
 const UsersPage = lazy(() => import("./pages/users/UsersPage").then((m) => ({ default: m.UsersPage })));
 const ProfilesPage = lazy(() => import("./pages/profiles/ProfilesPage").then((m) => ({ default: m.ProfilesPage })));
 const ApplicationsPage = lazy(() => import("./pages/applications/ApplicationsPage").then((m) => ({ default: m.ApplicationsPage })));
+const PendingDashboardPage = lazy(() => import("./pages/pending/PendingDashboardPage").then((m) => ({ default: m.PendingDashboardPage })));
+const MenusPage = lazy(() => import("./pages/menus/MenusPage").then((m) => ({ default: m.MenusPage })));
+const KycPage = lazy(() => import("./pages/kyc/KycPage").then((m) => ({ default: m.KycPage })));
 
 function PageFallback() {
   return (
@@ -34,6 +37,7 @@ export default function App() {
         <Route path="/setup" element={<SetupPage />} />
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<ProtectedRoute><ControlSpacePage /></ProtectedRoute>} />
+          <Route path="/pending" element={<ProtectedRoute><PendingDashboardPage /></ProtectedRoute>} />
           <Route path="/institutions" element={<ProtectedRoute><InstitutionListPage /></ProtectedRoute>} />
           <Route path="/institutions/pending" element={<Navigate to="/institutions" replace />} />
           <Route path="/institutions/create" element={<ProtectedRoute><CreateInstitutionFlow /></ProtectedRoute>} />
@@ -41,6 +45,8 @@ export default function App() {
           <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
           <Route path="/profiles" element={<ProtectedRoute><ProfilesPage /></ProtectedRoute>} />
           <Route path="/applications" element={<ProtectedRoute><ApplicationsPage /></ProtectedRoute>} />
+          <Route path="/menus" element={<ProtectedRoute><MenusPage /></ProtectedRoute>} />
+          <Route path="/kyc" element={<ProtectedRoute><KycPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </Suspense>

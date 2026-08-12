@@ -1,159 +1,353 @@
 import { apiClient } from "../lib/apiClient";
-import type { Institution, CreateInstitutionPayload } from "./institution/institution.types";
-import type { Profile, CreateProfilePayload } from "./profiles/profile.types";
-import type { User, CreateUserPayload } from "./users/user.types";
-import type { Application } from "./applications/application.types";
-import type {
-  InstitutionKycRecord,
-  InstitutionKycPayload,
-  UserKycRecord,
-  UserKycPayload,
-} from "./kyc/kyc.types";
+import type { Institution, CreateInstitutionPayload, UpdateInstitutionPayload, RemarkPayload as InstRemarkPayload } from "./institution/institution.types";
+import type { Profile, CreateProfilePayload, UpdateProfilePayload, SetPermissionsPayload } from "./profiles/profile.types";
+import type { User, CreateUserPayload, UpdateUserPayload, RemarkPayload as UserRemarkPayload } from "./users/user.types";
+import type { Application, CreateApplicationPayload, UpdateApplicationPayload } from "./applications/application.types";
+import type { InstitutionKycRecord, InstitutionKycPayload, UserKycRecord, UserKycPayload } from "./kyc/kyc.types";
+import type { PendingRequestOut, AuditEntryOut, MakerCheckerResponse, CheckerDecisionRequest } from "./maker-checker.types";
 
-type Envelope<T> = { success: boolean; message?: string; data: T } | T;
-
-function unwrap<T>(res: Envelope<T>, fallback: T): T {
-  if (
-    res !== null &&
-    typeof res === "object" &&
-    "success" in (res as object) &&
-    "data" in (res as object)
-  ) {
-    const d = (res as { success: boolean; data: T }).data;
-    return d ?? fallback;
-  }
-  return (res as T) ?? fallback;
-}
+export type { CheckerDecisionRequest, MakerCheckerResponse, PendingRequestOut, AuditEntryOut };
 
 export interface Permission {
   menu_code: string;
   action_code: string;
 }
 
+type Envelope<T> = { success: boolean; message?: string; data: T };
+
+function unwrap<T>(res: Envelope<T> | T, fallback: T): T {
+  if (
+    res !== null &&
+    typeof res === "object" &&
+    "success" in (res as object) &&
+    "data" in (res as object)
+  ) {
+    const d = (res as Envelope<T>).data;
+    return d ?? fallback;
+  }
+  return (res as T) ?? fallback;
+}
+
+async function get<T>(path: string, fallback: T): Promise<T> {
+  const res = await apiClient<Envelope<T> | T>(path);
+  return unwrap(res as Envelope<T> | T, fallback);
+}
+
+async function post<T>(path: string, body?: unknown, fallback?: T): Promise<T> {
+  const res = await apiClient<Envelope<T> | T>(path, {
+    method: "POST",
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  return unwrap(res as Envelope<T> | T, fallback as T);
+}
+
+async function put<T>(path: string, body: unknown, fallback?: T): Promise<T> {
+  const res = await apiClient<Envelope<T> | T>(path, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  return unwrap(res as Envelope<T> | T, fallback as T);
+}
+
+async function del<T>(path: string, body?: unknown, fallback?: T): Promise<T> {
+  const res = await apiClient<Envelope<T> | T>(path, {
+    method: "DELETE",
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+  return unwrap(res as Envelope<T> | T, fallback as T);
+}
+
 export const apiService = {
   // ─── Institutions ─────────────────────────────────────────────────────────
 
-  getInstitutions: async (): Promise<Institution[]> => {
-    const res = await apiClient<Envelope<Institution[]>>("/institutions");
-    return unwrap(res, []);
-  },
+  getInstitutions: () => get<Institution[]>("/institutions", []),
 
-  getPendingInstitutions: async (): Promise<Institution[]> => {
-    const res = await apiClient<Envelope<Institution[]>>("/institutions/pending");
-    return unwrap(res, []);
-  },
+  getPendingInstitutions: () => get<PendingRequestOut[]>("/institutions/pending", []),
 
-  getInstitutionById: async (institution_id: string | number): Promise<Institution | null> => {
-    const res = await apiClient<Envelope<Institution>>(`/institutions/${institution_id}`);
-    return unwrap(res, null as unknown as Institution);
-  },
+  getInstitutionById: (id: string | number) =>
+    get<Institution | null>(`/institutions/${id}`, null),
 
-  createInstitution: async (payload: CreateInstitutionPayload): Promise<Institution> => {
-    const res = await apiClient<Envelope<Institution>>("/institutions", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as Institution);
-  },
+  createInstitution: (payload: CreateInstitutionPayload) =>
+    post<MakerCheckerResponse>("/institutions", payload),
 
-  approveInstitution: async (pending_id: string | number): Promise<void> => {
-    await apiClient(`/institutions/${pending_id}/approve`, { method: "POST" });
-  },
+  updateInstitution: (id: string | number, payload: UpdateInstitutionPayload) =>
+    put<MakerCheckerResponse>(`/institutions/${id}`, payload),
 
-  rejectInstitution: async (pending_id: string | number): Promise<void> => {
-    await apiClient(`/institutions/${pending_id}/reject`, { method: "POST" });
-  },
+  deleteInstitution: (id: string | number, payload?: InstRemarkPayload) =>
+    del<MakerCheckerResponse>(`/institutions/${id}`, payload),
 
-  assignApplication: async (institution_id: string | number, application_id: string | number): Promise<void> => {
-    await apiClient(`/institutions/${institution_id}/assign-application`, {
-      method: "POST",
-      body: JSON.stringify({ application_id }),
-    });
-  },
+  activateInstitution: (id: string | number, payload?: InstRemarkPayload) =>
+    post<MakerCheckerResponse>(`/institutions/${id}/activate`, payload),
+
+  deactivateInstitution: (id: string | number, payload?: InstRemarkPayload) =>
+    post<MakerCheckerResponse>(`/institutions/${id}/deactivate`, payload),
+
+  getInstitutionAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/institutions/${id}/audit`, []),
+
+  approveInstitution: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institutions/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectInstitution: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institutions/requests/${request_id}/reject`, payload ?? {}),
 
   // ─── Profiles ─────────────────────────────────────────────────────────────
 
-  getProfiles: async (): Promise<Profile[]> => {
-    const res = await apiClient<Envelope<Profile[]>>("/profiles");
-    return unwrap(res, []);
-  },
+  getProfiles: () => get<Profile[]>("/profiles", []),
 
-  getProfileById: async (profile_id: string | number): Promise<Profile | null> => {
-    const res = await apiClient<Envelope<Profile>>(`/profiles/${profile_id}`);
-    return unwrap(res, null as unknown as Profile);
-  },
+  getPendingProfiles: () => get<PendingRequestOut[]>("/profiles/pending", []),
 
-  createProfile: async (payload: CreateProfilePayload): Promise<Profile> => {
-    const res = await apiClient<Envelope<Profile>>("/profiles", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as Profile);
-  },
+  getProfileById: (id: string | number) =>
+    get<Profile | null>(`/profiles/${id}`, null),
 
-  // permissions must be the full desired set — backend does a full replace
-  setProfilePermissions: async (profile_id: string | number, permissions: Permission[]): Promise<void> => {
-    await apiClient(`/profiles/${profile_id}/permissions`, {
-      method: "POST",
-      body: JSON.stringify({ permissions }),
-    });
-  },
+  createProfile: (payload: CreateProfilePayload) =>
+    post<MakerCheckerResponse>("/profiles", payload),
+
+  updateProfile: (id: string | number, payload: UpdateProfilePayload) =>
+    put<MakerCheckerResponse>(`/profiles/${id}`, payload),
+
+  deleteProfile: (id: string | number, payload?: { remark?: string | null }) =>
+    del<MakerCheckerResponse>(`/profiles/${id}`, payload),
+
+  activateProfile: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/profiles/${id}/activate`, payload),
+
+  deactivateProfile: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/profiles/${id}/deactivate`, payload),
+
+  getProfileAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/profiles/${id}/audit`, []),
+
+  setProfilePermissions: (id: string | number, payload: SetPermissionsPayload) =>
+    post<MakerCheckerResponse>(`/profiles/${id}/permissions`, payload),
+
+  approveProfile: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/profiles/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectProfile: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/profiles/requests/${request_id}/reject`, payload ?? {}),
 
   // ─── Users ────────────────────────────────────────────────────────────────
 
-  getUsers: async (): Promise<User[]> => {
-    const res = await apiClient<Envelope<User[]>>("/users");
-    return unwrap(res, []);
-  },
+  getUsers: () => get<User[]>("/users", []),
 
-  createUser: async (payload: CreateUserPayload): Promise<User> => {
-    const res = await apiClient<Envelope<User>>("/users", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as User);
-  },
+  getPendingUsers: () => get<PendingRequestOut[]>("/users/pending", []),
+
+  getUserById: (id: string | number) =>
+    get<User | null>(`/users/${id}`, null),
+
+  createUser: (payload: CreateUserPayload) =>
+    post<MakerCheckerResponse>("/users", payload),
+
+  updateUser: (id: string | number, payload: UpdateUserPayload) =>
+    put<MakerCheckerResponse>(`/users/${id}`, payload),
+
+  deleteUser: (id: string | number, payload?: UserRemarkPayload) =>
+    del<MakerCheckerResponse>(`/users/${id}`, payload),
+
+  activateUser: (id: string | number, payload?: UserRemarkPayload) =>
+    post<MakerCheckerResponse>(`/users/${id}/activate`, payload),
+
+  deactivateUser: (id: string | number, payload?: UserRemarkPayload) =>
+    post<MakerCheckerResponse>(`/users/${id}/deactivate`, payload),
+
+  getUserAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/users/${id}/audit`, []),
+
+  approveUser: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/users/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectUser: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/users/requests/${request_id}/reject`, payload ?? {}),
 
   // ─── Applications ─────────────────────────────────────────────────────────
 
-  getApplications: async (): Promise<Application[]> => {
-    const res = await apiClient<Envelope<Application[]>>("/applications");
-    return unwrap(res, []);
-  },
+  getApplications: () => get<Application[]>("/applications", []),
 
-  createApplication: async (payload: { code: string; name: string }): Promise<Application> => {
-    const res = await apiClient<Envelope<Application>>("/applications", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as Application);
-  },
+  getPendingApplications: () => get<PendingRequestOut[]>("/applications/pending", []),
+
+  getApplicationById: (id: string | number) =>
+    get<Application | null>(`/applications/${id}`, null),
+
+  createApplication: (payload: CreateApplicationPayload) =>
+    post<MakerCheckerResponse>("/applications", payload),
+
+  updateApplication: (id: string | number, payload: UpdateApplicationPayload) =>
+    put<MakerCheckerResponse>(`/applications/${id}`, payload),
+
+  deleteApplication: (id: string | number, payload?: { remark?: string | null }) =>
+    del<MakerCheckerResponse>(`/applications/${id}`, payload),
+
+  activateApplication: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/applications/${id}/activate`, payload),
+
+  deactivateApplication: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/applications/${id}/deactivate`, payload),
+
+  getApplicationAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/applications/${id}/audit`, []),
+
+  approveApplication: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/applications/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectApplication: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/applications/requests/${request_id}/reject`, payload ?? {}),
+
+  assignApplication: (institution_id: string | number, application_id: string | number, remark?: string | null) =>
+    post<MakerCheckerResponse>(`/institutions/${institution_id}/assign-application`, { application_id, remark }),
+
+  getPendingInstitutionApplications: (institution_id: string | number) =>
+    get<PendingRequestOut[]>(`/institutions/${institution_id}/applications/pending`, []),
+
+  approveInstitutionApplication: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institution-applications/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectInstitutionApplication: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institution-applications/requests/${request_id}/reject`, payload ?? {}),
 
   // ─── KYC ──────────────────────────────────────────────────────────────────
 
-  getInstitutionKyc: async (institution_id: string | number): Promise<InstitutionKycRecord | null> => {
-    const res = await apiClient<Envelope<InstitutionKycRecord>>(`/institutions/${institution_id}/kyc`);
-    return unwrap(res, null as unknown as InstitutionKycRecord);
-  },
+  getInstitutionKyc: (institution_id: string | number) =>
+    get<InstitutionKycRecord | null>(`/institutions/${institution_id}/kyc`, null),
 
-  saveInstitutionKyc: async (institution_id: string | number, payload: InstitutionKycPayload): Promise<InstitutionKycRecord> => {
-    const res = await apiClient<Envelope<InstitutionKycRecord>>(`/institutions/${institution_id}/kyc`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as InstitutionKycRecord);
-  },
+  saveInstitutionKyc: (institution_id: string | number, payload: InstitutionKycPayload) =>
+    post<MakerCheckerResponse>(`/institutions/${institution_id}/kyc`, payload),
 
-  getUserKyc: async (user_id: string | number): Promise<UserKycRecord | null> => {
-    const res = await apiClient<Envelope<UserKycRecord>>(`/users/${user_id}/kyc`);
-    return unwrap(res, null as unknown as UserKycRecord);
-  },
+  getPendingInstitutionKyc: () =>
+    get<PendingRequestOut[]>("/institution-kyc/pending", []),
 
-  saveUserKyc: async (user_id: string | number, payload: UserKycPayload): Promise<UserKycRecord> => {
-    const res = await apiClient<Envelope<UserKycRecord>>(`/users/${user_id}/kyc`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    return unwrap(res, payload as unknown as UserKycRecord);
-  },
+  approveInstitutionKyc: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institution-kyc/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectInstitutionKyc: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/institution-kyc/requests/${request_id}/reject`, payload ?? {}),
+
+  getUserKyc: (user_id: string | number) =>
+    get<UserKycRecord | null>(`/users/${user_id}/kyc`, null),
+
+  saveUserKyc: (user_id: string | number, payload: UserKycPayload) =>
+    post<MakerCheckerResponse>(`/users/${user_id}/kyc`, payload),
+
+  getPendingUserKyc: () =>
+    get<PendingRequestOut[]>("/user-kyc/pending", []),
+
+  approveUserKyc: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/user-kyc/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectUserKyc: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/user-kyc/requests/${request_id}/reject`, payload ?? {}),
+
+  // ─── Pending Dashboard ────────────────────────────────────────────────────
+
+  getAllPending: () => get<PendingRequestOut[]>("/pending/all", []),
+  getPendingByInstitutions: () => get<PendingRequestOut[]>("/pending/institutions", []),
+  getPendingByUsers: () => get<PendingRequestOut[]>("/pending/users", []),
+  getPendingByProfiles: () => get<PendingRequestOut[]>("/pending/profiles", []),
+  getPendingByApplications: () => get<PendingRequestOut[]>("/pending/applications", []),
+
+  // ─── Audit ────────────────────────────────────────────────────────────────
+
+  getAuditInstitution: (id: string | number) =>
+    get<AuditEntryOut[]>(`/audit/institutions/${id}`, []),
+
+  getAuditUser: (id: string | number) =>
+    get<AuditEntryOut[]>(`/audit/users/${id}`, []),
+
+  getAuditProfile: (id: string | number) =>
+    get<AuditEntryOut[]>(`/audit/profiles/${id}`, []),
+
+  getAuditApplication: (id: string | number) =>
+    get<AuditEntryOut[]>(`/audit/applications/${id}`, []),
+
+  // ─── Modules ──────────────────────────────────────────────────────────────
+
+  getModules: (application_id?: number) =>
+    get<unknown[]>(`/modules${application_id ? `?application_id=${application_id}` : ""}`, []),
+
+  getPendingModules: () => get<PendingRequestOut[]>("/modules/pending", []),
+
+  createModule: (payload: { application_id: number; code: string; name: string; remark?: string | null }) =>
+    post<MakerCheckerResponse>("/modules", payload),
+
+  updateModule: (id: string | number, payload: { name?: string; remark?: string | null }) =>
+    put<MakerCheckerResponse>(`/modules/${id}`, payload),
+
+  deleteModule: (id: string | number, payload?: { remark?: string | null }) =>
+    del<MakerCheckerResponse>(`/modules/${id}`, payload),
+
+  activateModule: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/modules/${id}/activate`, payload),
+
+  deactivateModule: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/modules/${id}/deactivate`, payload),
+
+  getModuleAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/modules/${id}/audit`, []),
+
+  approveModule: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/modules/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectModule: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/modules/requests/${request_id}/reject`, payload ?? {}),
+
+  // ─── Menus ────────────────────────────────────────────────────────────────
+
+  getMenus: (module_id?: number) =>
+    get<unknown[]>(`/menus${module_id ? `?module_id=${module_id}` : ""}`, []),
+
+  getPendingMenus: () => get<PendingRequestOut[]>("/menus/pending", []),
+
+  createMenu: (payload: { module_id: number; code: string; name: string; remark?: string | null }) =>
+    post<MakerCheckerResponse>("/menus", payload),
+
+  updateMenu: (id: string | number, payload: { name?: string; remark?: string | null }) =>
+    put<MakerCheckerResponse>(`/menus/${id}`, payload),
+
+  deleteMenu: (id: string | number, payload?: { remark?: string | null }) =>
+    del<MakerCheckerResponse>(`/menus/${id}`, payload),
+
+  activateMenu: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/menus/${id}/activate`, payload),
+
+  deactivateMenu: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/menus/${id}/deactivate`, payload),
+
+  getMenuAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/menus/${id}/audit`, []),
+
+  approveMenu: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/menus/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectMenu: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/menus/requests/${request_id}/reject`, payload ?? {}),
+
+  // ─── Menu Actions ─────────────────────────────────────────────────────────
+
+  getMenuActions: () => get<unknown[]>("/menu-actions", []),
+
+  getPendingMenuActions: () => get<PendingRequestOut[]>("/menu-actions/pending", []),
+
+  createMenuAction: (payload: { menu_id: number; code: string; name: string; remark?: string | null }) =>
+    post<MakerCheckerResponse>("/menu-actions", payload),
+
+  updateMenuAction: (id: string | number, payload: { name?: string; remark?: string | null }) =>
+    put<MakerCheckerResponse>(`/menu-actions/${id}`, payload),
+
+  deleteMenuAction: (id: string | number, payload?: { remark?: string | null }) =>
+    del<MakerCheckerResponse>(`/menu-actions/${id}`, payload),
+
+  activateMenuAction: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/menu-actions/${id}/activate`, payload),
+
+  deactivateMenuAction: (id: string | number, payload?: { remark?: string | null }) =>
+    post<MakerCheckerResponse>(`/menu-actions/${id}/deactivate`, payload),
+
+  getMenuActionAudit: (id: string | number) =>
+    get<AuditEntryOut[]>(`/menu-actions/${id}/audit`, []),
+
+  approveMenuAction: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/menu-actions/requests/${request_id}/approve`, payload ?? {}),
+
+  rejectMenuAction: (request_id: string, payload?: CheckerDecisionRequest) =>
+    post<MakerCheckerResponse>(`/menu-actions/requests/${request_id}/reject`, payload ?? {}),
 };

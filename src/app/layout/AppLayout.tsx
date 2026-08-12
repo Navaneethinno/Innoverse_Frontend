@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { LayoutDashboard, Building2, PanelLeftClose, PanelLeftOpen, Users, Layers, AppWindow } from "lucide-react";
+import { LayoutDashboard, Building2, PanelLeftClose, PanelLeftOpen, Users, Layers, AppWindow, ClipboardList, ShieldCheck, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { TopBar } from "./TopBar";
 import { WorkspaceContainer } from "./WorkspaceContainer";
@@ -8,10 +8,13 @@ import { cn } from "../lib/utils";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Pending", path: "/pending", icon: ClipboardList },
   { label: "Institutions", path: "/institutions", icon: Building2 },
   { label: "Users", path: "/users", icon: Users },
   { label: "Profiles", path: "/profiles", icon: Layers },
   { label: "Applications", path: "/applications", icon: AppWindow },
+  { label: "Menus", path: "/menus", icon: Menu },
+  { label: "KYC", path: "/kyc", icon: ShieldCheck },
 ];
 
 const SIDEBAR_EXPANDED_W = 200;
