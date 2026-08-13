@@ -256,6 +256,12 @@ export const apiService = {
   getPendingByUsers: () => get<PendingRequestOut[]>("/pending/users", []),
   getPendingByProfiles: () => get<PendingRequestOut[]>("/pending/profiles", []),
   getPendingByApplications: () => get<PendingRequestOut[]>("/pending/applications", []),
+  getPendingByInstitutionApplications: () => get<PendingRequestOut[]>("/pending/institution-applications", []),
+  getPendingByInstitutionKyc: () => get<PendingRequestOut[]>("/pending/institution-kyc", []),
+  getPendingByUserKyc: () => get<PendingRequestOut[]>("/pending/user-kyc", []),
+  getPendingByModules: () => get<PendingRequestOut[]>("/pending/modules", []),
+  getPendingByMenus: () => get<PendingRequestOut[]>("/pending/menus", []),
+  getPendingByMenuActions: () => get<PendingRequestOut[]>("/pending/menu-actions", []),
 
   // ─── Audit ────────────────────────────────────────────────────────────────
 

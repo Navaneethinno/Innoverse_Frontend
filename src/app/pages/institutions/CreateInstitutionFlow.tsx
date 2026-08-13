@@ -13,9 +13,6 @@ import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 
 const STEPS = ["Basic Info", "KYC — Contact & Identity", "KYC — Address", "Review & Submit"];
 
-// Per API reference: type is always PLATFORM_USER when created via API
-const INSTITUTION_TYPES = ["PLATFORM_USER"];
-
 const COUNTRIES = ["India", "United States", "United Kingdom", "Canada", "Australia"];
 
 interface FormData {
@@ -141,10 +138,6 @@ export function CreateInstitutionFlow() {
     void fetchUsers();
   }, [fetchUsers]);
 
-  useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
-
   if (!isPlatformOwner) {
     return (
       <div className="pt-4 flex flex-col items-center py-20 text-center">
@@ -219,9 +212,6 @@ export function CreateInstitutionFlow() {
     payload.checker_mode = checkerConfig.checker_mode;
     payload.checker_assignments = checkerConfig.checker_assignments;
     payload.required_checker_count = checkerConfig.required_checker_count;
-    payload.kyc.checker_mode = checkerConfig.checker_mode;
-    payload.kyc.checker_assignments = checkerConfig.checker_assignments;
-    payload.kyc.required_checker_count = checkerConfig.required_checker_count;
     const result = await createInstitution(payload);
     if (result) setSubmitted(true);
   };
@@ -272,17 +262,6 @@ export function CreateInstitutionFlow() {
                     <InputField label="Institution Code" fieldKey="code" placeholder="NEWBANK" required value={form.code} error={errors.code} onChange={setField} />
                     <InputField label="Institution Name" fieldKey="name" placeholder="New Bank Ltd" required value={form.name} error={errors.name} onChange={setField} />
                     <InputField label="Remark" fieldKey="remark" placeholder="Onboarding new institution" value={form.remark} onChange={setField} />
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Institution Type</label>
-                      <select
-                        value={form.type}
-                        onChange={(e) => setField("type", e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
-                      >
-                        {INSTITUTION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                      </select>
-                      <p className="text-xs text-slate-400 mt-1">Institutions created via this form are always PLATFORM_USER.</p>
-                    </div>
                   </div>
                 )}
 
@@ -341,7 +320,6 @@ export function CreateInstitutionFlow() {
                       <div className="rounded-xl border border-slate-100 px-4">
                         <ReviewRow label="Code" value={form.code} />
                         <ReviewRow label="Name" value={form.name} />
-                        <ReviewRow label="Type" value={form.type} />
                       </div>
                     </div>
 

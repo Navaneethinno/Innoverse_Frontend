@@ -265,16 +265,19 @@ Request body: `InstitutionCreate`
     "city": null,
     "state": null,
     "country": null,
-    "postal_code": null,
-    "checker_mode": "ANY",
-    "checker_assignments": [],
-    "required_checker_count": null
+    "postal_code": null
   },
   "checker_mode": "ANY",
   "checker_assignments": [],
   "required_checker_count": 1
 }
 ```
+
+Notes:
+
+- The `kyc` object contains only pure KYC data fields. Checker workflow fields (`checker_mode`, `checker_assignments`, `required_checker_count`) belong at the top level of the request, not inside `kyc`.
+- All `kyc` fields are optional (`null` is accepted).
+- On approval, the institution and its KYC record are created atomically in a single transaction.
 
 Response `data`:
 
@@ -288,14 +291,44 @@ Response `data`:
 
 ### `PUT /institutions/{institution_id}`
 
+Combined Institution EDIT — supports institution fields, KYC fields, or both in a single request.
+
 Request body: `InstitutionUpdate`
 
 ```json
 {
   "name": "Updated Bank",
-  "remark": "optional"
+  "kyc": {
+    "legal_name": "Updated Legal Name",
+    "registration_number": null,
+    "tax_id": null,
+    "email": "ops@example.com",
+    "phone": null,
+    "website": null,
+    "address_line1": null,
+    "address_line2": null,
+    "city": "Mumbai",
+    "state": null,
+    "country": null,
+    "postal_code": null
+  },
+  "remark": "optional",
+  "checker_mode": "ANY",
+  "checker_assignments": [],
+  "required_checker_count": null
 }
 ```
+
+Notes:
+
+- `name` is optional. Omit or set to `null` to leave the institution name unchanged.
+- `kyc` is optional. Omit entirely to submit an institution-only EDIT. Include it to update KYC fields (all KYC sub-fields are individually optional).
+- Both `name` and `kyc` may be provided together in a single request — this creates exactly **one** pending `EDIT_AUTH` request in `institution_audit`. No separate entry is created in `institution_kyc_audit`.
+- On approval, institution and KYC changes are applied atomically in a single transaction. If either fails, both are rolled back.
+- The `kyc` object contains only pure KYC data fields. Do not include `checker_mode`, `checker_assignments`, or `required_checker_count` inside `kyc`.
+- This endpoint does **not** invoke `POST /institutions/{id}/kyc` internally. The two workflows are completely independent.
+- `checker_mode` defaults to `ANY` if omitted.
+- `audit_key` is reused from the previous rejected EDIT lifecycle for the same institution (if one exists and is not yet completed). A new `request_id` is always generated per stage.
 
 Response `data`:
 
@@ -304,6 +337,28 @@ Response `data`:
   "audit_key": "uuid",
   "request_id": "uuid",
   "message": "Institution EDIT request submitted"
+}
+```
+
+Approve response `data` (via `POST /institutions/requests/{request_id}/approve`):
+
+```json
+{
+  "audit_key": "uuid",
+  "request_id": "uuid",
+  "result": "APPROVED",
+  "entity_id": 57
+}
+```
+
+Partial approval response (when `approval_count < required_checker_count`):
+
+```json
+{
+  "audit_key": "uuid",
+  "request_id": "uuid",
+  "result": "APPROVAL_RECORDED",
+  "approval_count": 1
 }
 ```
 
@@ -955,6 +1010,13 @@ Permission requirements:
 
 ### `POST /institutions/{institution_id}/kyc`
 
+Standalone Institution KYC submission. This is a separate workflow from the combined Institution EDIT.
+
+- Creates a request in `institution_kyc_audit` (not `institution_audit`).
+- Has its own `audit_key` and `request_id` independent of any institution EDIT lifecycle.
+- Approved via `POST /institution-kyc/requests/{request_id}/approve`.
+- The combined `PUT /institutions/{institution_id}` does **not** invoke this endpoint internally.
+
 Request body: `InstitutionKYCCreate`
 
 ```json
@@ -983,7 +1045,7 @@ Response `data`:
 {
   "audit_key": "uuid",
   "request_id": "uuid",
-  "message": "Institution KYC ADD request submitted"
+  "message": "Institution KYC EDIT request submitted"
 }
 ```
 

@@ -15,8 +15,8 @@ function GradientMesh() {
 }
 
 export function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("admin1");
+  const [password, setPassword] = useState("123");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ export function LoginPage() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] bg-gradient-to-br from-indigo-400 via-indigo-500 to-purple-600 shadow-xl shadow-indigo-300/40 mb-4">
             <Shield size={26} className="text-white" />
           </div>
-          <h1 className="text-xl font-semibold text-slate-800 tracking-tight">InstitutionOS</h1>
+          <h1 className="text-xl font-semibold text-slate-800 tracking-tight">Innoverse</h1>
           <p className="text-sm text-slate-500 mt-1">Fintech Administration Platform</p>
         </div>
         <div

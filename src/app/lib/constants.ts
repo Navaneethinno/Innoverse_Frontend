@@ -1,4 +1,4 @@
-export const APP_NAME = "InstitutionOS";
+export const APP_NAME = "Innoverse";
 
 export const ROUTES = {
   login: "/login",

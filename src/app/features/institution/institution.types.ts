@@ -19,7 +19,7 @@ export interface NamedUser {
   username?: string;
 }
 
-export interface InstitutionKycCreate extends CheckerConfigPayload {
+export interface InstitutionKycCreate {
   legal_name?: string | null;
   registration_number?: string | null;
   tax_id?: string | null;
@@ -57,9 +57,25 @@ export interface CreateInstitutionPayload {
   required_checker_count?: number | null;
 }
 
-export interface UpdateInstitutionPayload {
-  name?: string;
+export interface InstitutionKycEditPayload {
+  legal_name?: string | null;
+  registration_number?: string | null;
+  tax_id?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  postal_code?: string | null;
+}
+
+export interface UpdateInstitutionPayload extends CheckerConfigPayload {
+  name?: string | null;
   remark?: string | null;
+  kyc?: InstitutionKycEditPayload;
 }
 
 export interface RemarkPayload {
