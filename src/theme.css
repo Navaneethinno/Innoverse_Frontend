@@ -203,6 +203,28 @@
 }
 
 /*
+ * Login page: every theme-dependent visual (panel backgrounds, card,
+ * inputs, text, borders, shadows, the illustration crossfade, the toggle)
+ * shares this single transition so light/dark switches as one synchronized
+ * change instead of parts animating on their own timings.
+ */
+.login-theme-transition,
+.login-theme-transition * {
+  transition:
+    background-color 300ms ease-in-out,
+    color 300ms ease-in-out,
+    border-color 300ms ease-in-out,
+    box-shadow 300ms ease-in-out !important;
+}
+
+/* Illustration crossfade — kept on its own opacity transition (same 300ms
+   duration) rather than the blanket rule above, so it never fights the
+   framer-motion-driven entrance animations elsewhere on the page. */
+.login-theme-transition .login-illustration {
+  transition: opacity 300ms ease-in-out !important;
+}
+
+/*
  * Legacy components across the app hardcode slate/white Tailwind utilities
  * instead of the theme tokens above. Rather than rewrite every usage, remap
  * those utilities to the token palette while in dark mode so existing

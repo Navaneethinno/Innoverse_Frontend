@@ -63,13 +63,16 @@ export function LoginPage() {
     }
   };
   return (
-    <div className="min-h-screen flex relative" style={{ background: "var(--background)" }}>
+    <div
+      className="login-theme-transition min-h-screen flex relative"
+      style={{ background: "var(--background)" }}
+    >
       <button
         type="button"
         onClick={toggleMode}
         title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl text-muted-foreground hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         style={{
           background: "var(--glass-bg)",
           backdropFilter: "blur(20px)",
@@ -83,26 +86,27 @@ export function LoginPage() {
           <Moon size={16} strokeWidth={1.8} />
         )}
       </button>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4 }}
+      <div
         className="hidden lg:block lg:w-[70%] relative overflow-hidden"
         style={{ background: mode === "dark" ? "#0b1220" : "#eef2fb" }}
       >
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={mode}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            src={mode === "dark" ? loginIllustrationDark : loginIllustrationLight}
-            alt="Innoverse — Innovate. Secure. Empower."
-            className="absolute inset-0 w-full h-full object-cover object-left-bottom"
-          />
-        </AnimatePresence>
-      </motion.div>
+        {/* Both illustrations share identical sizing/position — only opacity
+            crossfades, so the image geometry never changes between themes. */}
+        <img
+          src={loginIllustrationLight}
+          alt="Innoverse — Innovate. Secure. Empower."
+          aria-hidden={mode === "dark"}
+          className="login-illustration absolute inset-0 w-full h-full object-cover object-left-bottom"
+          style={{ opacity: mode === "dark" ? 0 : 1 }}
+        />
+        <img
+          src={loginIllustrationDark}
+          alt="Innoverse — Innovate. Secure. Empower."
+          aria-hidden={mode !== "dark"}
+          className="login-illustration absolute inset-0 w-full h-full object-cover object-left-bottom"
+          style={{ opacity: mode === "dark" ? 1 : 0 }}
+        />
+      </div>
       <div className="relative w-full lg:w-[30%] flex items-center justify-center overflow-hidden">
         <GradientMesh />
         <motion.div
