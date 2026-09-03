@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, Eye, EyeOff, Fingerprint, Lock, Mail, RefreshCw, Shield } from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
 import { notifications } from "../../Utils/Lib/notifications";
-import { BackendConnectionIndicator } from "@/Components/BackendConnectionIndicator";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -62,7 +61,6 @@ export function LoginPage() {
           </div>
           <h1 className="text-xl font-semibold text-slate-800 tracking-tight">Innoverse</h1>
           <p className="text-sm text-slate-500 mt-1">Fintech Administration Platform</p>
-          <BackendConnectionIndicator />
         </div>
         <div
           className="rounded-3xl border p-8"
