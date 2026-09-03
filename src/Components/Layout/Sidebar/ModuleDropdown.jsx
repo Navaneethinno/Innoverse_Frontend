@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import {
   AlertTriangle,
   Bot,
@@ -13,13 +13,11 @@ import {
   Link2,
   Lock,
   RefreshCcw,
-  Search,
   ShieldAlert,
   ShieldCheck,
   Store,
   Truck,
   Wallet,
-  X,
 } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -50,46 +48,16 @@ function getModuleIcon(moduleName = "") {
 // allowed module_id values — see Sidebar.jsx). Selecting a module here only
 // changes which menu tree is shown; per Phase 24C spec it never fabricates
 // a navigation route from the module name.
+//
+// The module list expands inline (not as a floating overlay) and has no
+// search field of its own — the sidebar's single global "Search menu"
+// (SidebarSearch) is pinned above this component, so its position never
+// shifts regardless of whether this list is open/closed or how long it is.
 export function ModuleDropdown({ modules, selectedModule, onSelectModule, isCollapsed }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [moduleSearch, setModuleSearch] = useState("");
-  const containerRef = useRef(null);
-  const searchInputRef = useRef(null);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    function handleClick(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
-    }
-    function handleKey(e) {
-      if (e.key === "Escape") setIsOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      searchInputRef.current?.focus();
-    } else {
-      setModuleSearch("");
-    }
-  }, [isOpen]);
-
-  const trimmedModuleSearch = moduleSearch.trim().toLowerCase();
-  const filteredModules = useMemo(() => {
-    if (!trimmedModuleSearch) return modules || [];
-    return (modules || []).filter((moduleItem) =>
-      moduleItem.module_name?.toLowerCase().includes(trimmedModuleSearch),
-    );
-  }, [modules, trimmedModuleSearch]);
 
   return (
-    <div className="relative px-2" ref={containerRef}>
+    <div className="flex flex-col gap-1 px-2">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
@@ -107,89 +75,45 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         {!isCollapsed && (isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}
       </button>
 
-      {isOpen && (
-        <div
-          className="absolute left-2 right-2 top-full mt-1.5 z-50 flex flex-col rounded-xl border overflow-hidden"
-          style={{
-            background: "var(--popover)",
-            borderColor: "var(--border)",
-            boxShadow: "var(--glass-shadow)",
-          }}
-        >
-          {!isCollapsed && (
-            <div className="p-1.5 border-b" style={{ borderColor: "var(--border)" }}>
-              <div className="relative">
-                <Search
-                  size={13}
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                />
-                <input
-                  ref={searchInputRef}
-                  value={moduleSearch}
-                  onChange={(e) => setModuleSearch(e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  placeholder="Search modules..."
-                  className="w-full pl-7 pr-6 py-1.5 rounded-lg text-[11px] outline-none border"
-                  style={{
-                    background: "var(--input-background)",
-                    color: "var(--foreground)",
-                    borderColor: "var(--border)",
-                  }}
-                />
-                {moduleSearch && (
-                  <button
-                    type="button"
-                    onClick={() => setModuleSearch("")}
-                    aria-label="Clear module search"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-          <div className="flex flex-col gap-1 p-1.5 max-h-[50vh] overflow-y-auto">
-            {filteredModules.map((moduleItem) => {
-              const Icon = getModuleIcon(moduleItem.module_name);
-              const isActive = selectedModule?.module_id === moduleItem.module_id;
-              return (
-                <button
-                  key={moduleItem.module_id}
-                  type="button"
-                  title={moduleItem.module_name}
-                  onClick={() => {
-                    onSelectModule(moduleItem);
-                    setIsOpen(false);
-                  }}
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
-                    isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
-                    isActive
-                      ? "bg-primary-light text-primary"
-                      : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
-                  )}
-                >
-                  <Icon
-                    size={14}
-                    strokeWidth={1.8}
-                    className={cn(
-                      "shrink-0",
-                      isActive ? "text-primary" : "text-muted-foreground/70",
-                    )}
-                  />
-                  {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
-                </button>
-              );
-            })}
-            {filteredModules.length === 0 && !isCollapsed && (
-              <p className="px-3 py-2 text-[11px] text-muted-foreground">
-                {trimmedModuleSearch ? "No modules match your search" : "No modules available"}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      <div
+        className={cn(
+          "overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1",
+          isOpen ? "max-h-[999px] opacity-100 mt-1" : "max-h-0 opacity-0",
+        )}
+      >
+        {(modules || []).map((moduleItem) => {
+          const Icon = getModuleIcon(moduleItem.module_name);
+          const isActive = selectedModule?.module_id === moduleItem.module_id;
+          return (
+            <button
+              key={moduleItem.module_id}
+              type="button"
+              title={moduleItem.module_name}
+              onClick={() => {
+                onSelectModule(moduleItem);
+                setIsOpen(false);
+              }}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
+                isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
+                isActive
+                  ? "bg-primary-light text-primary"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
+              )}
+            >
+              <Icon
+                size={14}
+                strokeWidth={1.8}
+                className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
+              />
+              {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
+            </button>
+          );
+        })}
+        {(modules || []).length === 0 && !isCollapsed && (
+          <p className="px-3 py-2 text-[11px] text-muted-foreground">No modules available</p>
+        )}
+      </div>
     </div>
   );
 }

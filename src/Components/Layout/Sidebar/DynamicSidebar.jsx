@@ -157,15 +157,10 @@ export function DynamicSidebar() {
         boxShadow: "var(--glass-shadow)",
       }}
     >
-      {/* Pinned header: module picker + search never move, regardless of
-          how long the menu list below gets or scrolls. */}
-      <div className="flex flex-col gap-3 shrink-0">
-        <ModuleDropdown
-          modules={filteredModules}
-          selectedModule={selectedModule}
-          onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
-          isCollapsed={collapsed}
-        />
+      {/* Pinned: the one global search bar always stays here, at the very
+          top, regardless of the module list opening/closing or how long
+          the selected module's menu tree grows below it. */}
+      <div className="shrink-0">
         <SidebarSearch
           ref={searchInputRef}
           value={menuSearch}
@@ -176,6 +171,12 @@ export function DynamicSidebar() {
       </div>
 
       <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
+        <ModuleDropdown
+          modules={filteredModules}
+          selectedModule={selectedModule}
+          onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
+          isCollapsed={collapsed}
+        />
         <div className="px-2">
           <MenuList
             menuItems={filteredMenuItems}
