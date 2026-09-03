@@ -9,7 +9,7 @@ import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
-import { filterSidebarMenus } from "./menuSearchUtils";
+import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
 const SIDEBAR_EXPANDED_W = 220;
 const SIDEBAR_COLLAPSED_W = 56;
@@ -32,7 +32,19 @@ export function DynamicSidebar() {
   const menuArray = useSelector((store) => store.menu.menuArray);
   const { masterModules } = useMasterModules();
 
-  const [selectedModule, setSelectedModule] = useState(null);
+  // The selected module is tracked by id, sourced from the user's own
+  // menu_array (allowedModuleIds below) — NOT from whether the master
+  // module list happens to have loaded. /master/module/list only supplies
+  // display metadata (module_name/icon) for the dropdown; it must never gate
+  // whether the permitted menu tree itself renders once a module IS picked.
+  //
+  // No default/auto-selected module: matches payseFrontend's own Sidebar.jsx
+  // exactly (`useState("Modules")` / empty menuItems, populated only by
+  // handleModuleClick — payse never auto-picks a module on mount either).
+  // All the user's permitted modules render in the dropdown up front; the
+  // permitted menu tree for one of them appears only once the user clicks
+  // it, same as the reference.
+  const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [menuSearch, setMenuSearch] = useState("");
   const searchInputRef = useRef(null);
 
@@ -43,29 +55,64 @@ export function DynamicSidebar() {
     [menuArray],
   );
 
+  // Dev-time diagnostic only: a menu whose parent_menu_id points at nothing
+  // in the payload is a malformed menu_array from the backend, not something
+  // the frontend should paper over by inventing a root for it. Log so it's
+  // visible during verification instead of silently vanishing from the tree.
+  useEffect(() => {
+    const orphans = findOrphanedMenuItems(activeMenuArray);
+    if (orphans.length > 0) {
+      console.warn(
+        "[Sidebar] menu_array contains menu(s) with a parent_menu_id that " +
+          "matches no other menu_id and is not 0 — these will NOT be shown " +
+          "(no root is fabricated for them). Backend data to investigate:",
+        orphans.map((item) => ({
+          menu_id: item.menu_id,
+          parent_menu_id: item.parent_menu_id,
+          module_id: item.module_id,
+          menu_name: item.menu_name,
+        })),
+      );
+    }
+  }, [activeMenuArray]);
+
+  // module_id is compared as a Number on both sides (menu_array vs master
+  // module list) because the two responses are not guaranteed to send it as
+  // the same type — a numeric-string/number mismatch here would silently
+  // empty menuItemsForModule while the sidebar's non-search codepath had no
+  // fallback, which was the same class of bug fixed in menuSearchUtils'
+  // getRootMenuItems (see that file for the fuller explanation).
   const allowedModuleIds = useMemo(
-    () => [...new Set(activeMenuArray.map((item) => item.module_id))],
+    () => [...new Set(activeMenuArray.map((item) => Number(item.module_id)))],
     [activeMenuArray],
   );
 
   const filteredModules = useMemo(
-    () => (masterModules || []).filter((module) => allowedModuleIds.includes(module.module_id)),
+    () =>
+      (masterModules || []).filter((module) => allowedModuleIds.includes(Number(module.module_id))),
     [masterModules, allowedModuleIds],
   );
 
-  // Default to the first allowed module once modules/menu data arrive.
-  useEffect(() => {
-    if (!selectedModule && filteredModules.length > 0) {
-      setSelectedModule(filteredModules[0]);
-    }
-  }, [filteredModules, selectedModule]);
+  // Display object for the dropdown: prefer the real master module record
+  // (name/icon) when available, otherwise fall back to a bare id-only stand-in
+  // so the dropdown still reflects a selection even if /master/module/list
+  // failed or hasn't returned yet.
+  const selectedModule = useMemo(() => {
+    if (selectedModuleId == null) return null;
+    return (
+      filteredModules.find((module) => Number(module.module_id) === selectedModuleId) ?? {
+        module_id: selectedModuleId,
+        module_name: `Module ${selectedModuleId}`,
+      }
+    );
+  }, [filteredModules, selectedModuleId]);
 
   const menuItemsForModule = useMemo(
     () =>
-      selectedModule
-        ? activeMenuArray.filter((item) => item.module_id === selectedModule.module_id)
-        : [],
-    [activeMenuArray, selectedModule],
+      selectedModuleId == null
+        ? []
+        : activeMenuArray.filter((item) => Number(item.module_id) === selectedModuleId),
+    [activeMenuArray, selectedModuleId],
   );
 
   const trimmedSearch = menuSearch.trim();
@@ -114,7 +161,7 @@ export function DynamicSidebar() {
         <ModuleDropdown
           modules={filteredModules}
           selectedModule={selectedModule}
-          onSelectModule={setSelectedModule}
+          onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
           isCollapsed={collapsed}
         />
         <SidebarSearch

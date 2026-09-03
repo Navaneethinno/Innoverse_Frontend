@@ -83,10 +83,24 @@ function toArray(data) {
   return [];
 }
 
+// Confirmed against a real /master/module/list response: each record is
+// { id, name, status } — NOT { module_id, module_name } like menu_array's
+// own module_id field. Normalized here, at the API boundary, so every other
+// consumer (DynamicSidebar's allowedModuleIds match, ModuleDropdown) can
+// keep comparing against a single `module_id`/`module_name` shape regardless
+// of which endpoint the data came from.
+function normalizeModule(raw) {
+  return {
+    module_id: raw?.module_id ?? raw?.id,
+    module_name: raw?.module_name ?? raw?.name,
+    status: raw?.status,
+  };
+}
+
 export const masterApi = {
   // POST /master/module/list, body {} — the official generic module
   // reference-data source (NOT /institution/module/list or
   // /institution/module/get_active, which configure per-institution module
   // activation and are out of scope for the sidebar's module catalogue).
-  moduleList: async () => toArray(await masterPost("/master/module/list", {})),
+  moduleList: async () => toArray(await masterPost("/master/module/list", {})).map(normalizeModule),
 };

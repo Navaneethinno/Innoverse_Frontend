@@ -1,31 +1,26 @@
-import { NAV_ITEMS } from "@/Utils/Config/navigation";
+// Route-fabrication convention ported verbatim from payseFrontend
+// (src/Pages/Sidebar/MenuItem.jsx `handleNavigation`): the menu_name is
+// slugged into a path segment and navigated to directly, without checking
+// whether a page is registered for it. payse relies on its "/body" route
+// group's errorElement (Components/Error.jsx) to catch any slug that has no
+// matching route; Innoverse's protected route group has the same mechanism
+// (errorElement: <RouteError />), so an unmapped backend menu shows the app's
+// error/not-found screen instead of a blank page or a silently-inert click.
+export function slugifyMenuName(menuName) {
+  return String(menuName ?? "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
 
-// Innoverse's implemented pages are a small, fixed set of top-level routes
-// (see src/Router/index and NAV_ITEMS) — unlike payseFrontend, module/menu
-// names are NOT slugged into fabricated routes. Per Phase 24C spec: "Do not
-// fabricate routes for backend menus whose pages have not yet been
-// implemented. Keep menu/navigation data independent from current page
-// implementation."
-//
-// So a dynamic module/menu name is only navigable when it normalizes to the
-// label of an already-implemented route below. Anything else renders in the
-// sidebar (so the user can see their permitted navigation tree) but is
-// inert — clicking it does nothing rather than guessing/fabricating a URL.
-const normalize = (value) => String(value ?? "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-
-const IMPLEMENTED_ROUTES_BY_LABEL = new Map(
-  NAV_ITEMS.map((item) => [normalize(item.label), item.path]),
-);
-
-// A couple of common backend synonyms for the same implemented pages.
-const ALIASES = {
-  usermanagement: "users",
-  user: "users",
-  kyc: "kyc",
-};
-
-export function resolveImplementedRoute(name) {
-  const key = normalize(name);
-  const aliased = ALIASES[key] ?? key;
-  return IMPLEMENTED_ROUTES_BY_LABEL.get(aliased) ?? null;
+// payse appends a fresh uuidv4 as a route param purely to force a remount
+// when the same menu is clicked again; crypto.randomUUID() is the browser-
+// native equivalent and avoids adding the `uuid` package as a new dependency
+// for what is otherwise identical behavior.
+export function buildMenuPath(menuName) {
+  const slug = slugifyMenuName(menuName);
+  const uniqueId =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}`;
+  return `/${slug}/${uniqueId}`;
 }

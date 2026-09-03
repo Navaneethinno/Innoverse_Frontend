@@ -1,8 +1,18 @@
 import { useMemo, useState } from "react";
 import { MenuItem } from "./MenuItem";
+import { getRootMenuItems } from "./menuSearchUtils";
 
 // Ported from payseFrontend src/Pages/Sidebar/MenuList.jsx: root menus are
 // parent_menu_id === 0, sorted by backend priority (never alphabetically).
+// Root detection is delegated to menuSearchUtils' getRootMenuItems, which
+// also treats an item as a root when its declared parent isn't present in
+// the same list (e.g. the true parent belongs to a different module_id
+// slice, or ids arrive as numeric strings). Previously this filtered with a
+// bare `parent_menu_id === 0` strict-equality check, which silently found
+// nothing whenever ids didn't literally match — while the search codepath's
+// own orphan-promotion fallback tolerated it, making the sidebar appear to
+// depend on typing a search query. Sharing one root-detection function for
+// both paths removes that discrepancy.
 export function MenuList({
   menuItems,
   navigate,
@@ -13,13 +23,7 @@ export function MenuList({
 }) {
   const [activeMenuId, setActiveMenuId] = useState(null);
 
-  const sortedRootMenus = useMemo(
-    () =>
-      (menuItems || [])
-        .filter((item) => (item?.parent_menu_id ?? 0) === 0)
-        .sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0)),
-    [menuItems],
-  );
+  const sortedRootMenus = useMemo(() => getRootMenuItems(menuItems), [menuItems]);
 
   if (sortedRootMenus.length === 0) {
     if (searchQuery) {

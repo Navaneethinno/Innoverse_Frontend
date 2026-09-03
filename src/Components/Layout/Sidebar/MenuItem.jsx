@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
-import { resolveImplementedRoute } from "./menuRouteMap";
+import { buildMenuPath } from "./menuRouteMap";
+import { getChildMenuItems } from "./menuSearchUtils";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -10,10 +11,10 @@ import { resolveImplementedRoute } from "./menuRouteMap";
 // leaf menus. Only active (status === 1) menus reach this tree — filtering
 // happens once in MenuList. Actions[] are preserved on each item exactly as
 // received from the login menu_array; this component does not alter them.
+// Child lookup goes through menuSearchUtils' getChildMenuItems so id
+// comparisons are normalized the same way as root detection (see MenuList).
 function sortedChildrenOf(menuItems, parentId) {
-  return (menuItems || [])
-    .filter((sub) => sub?.parent_menu_id === parentId)
-    .sort((a, b) => (a?.priority ?? 0) - (b?.priority ?? 0));
+  return getChildMenuItems(menuItems, parentId);
 }
 
 export function MenuItem({
@@ -40,14 +41,12 @@ export function MenuItem({
       setManuallyExpanded((current) => !current);
       return;
     }
-    const path = resolveImplementedRoute(item?.menu_name);
     onNavigate(item?.menu_id);
-    if (path) {
-      // React Router navigation only — no window.location for internal nav.
-      navigate(path);
-    }
-    // Backend menus without an implemented page intentionally do not
-    // navigate anywhere; no fabricated route is created.
+    // Matches payseFrontend's handleNavigation exactly: slugify menu_name and
+    // navigate there via React Router, regardless of whether a page is
+    // registered for it. Unmatched slugs surface the app's errorElement
+    // (RouteError), same as payse's own "/body" errorElement does for it.
+    navigate(buildMenuPath(item?.menu_name));
   };
 
   const isRoot = depth === 0;
