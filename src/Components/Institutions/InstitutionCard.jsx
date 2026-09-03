@@ -3,11 +3,11 @@ import { ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/Utils/Lib/cn";
 const GRADIENTS = [
-  "from-[#6C7FFF] to-[#B39DFA]",
+  "from-[#2266EE] to-[#26FFFF]",
   "from-[#6EDFC4] to-[#3BBFA0]",
   "from-[#FFB3A0] to-[#FF8C6B]",
   "from-[#FFCB6B] to-[#F59E0B]",
-  "from-[#B39DFA] to-[#6C7FFF]",
+  "from-[#26FFFF] to-[#2266EE]",
 ];
 const STATUS_STYLES = {
   ACTIVE: {
@@ -69,10 +69,10 @@ export function InstitutionCard({ inst, index }) {
       whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(108,127,255,0.16)" }}
       className="rounded-2xl p-5 cursor-pointer group relative overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.68)",
+        background: "var(--glass-bg)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        border: "1px solid rgba(255,255,255,0.88)",
+        border: "1px solid var(--glass-border)",
         boxShadow: "0 4px 20px rgba(108,127,255,0.07), 0 1px 3px rgba(108,127,255,0.04)",
       }}
       onClick={() => navigate(`/institutions/${inst.id}`)}
@@ -109,7 +109,7 @@ export function InstitutionCard({ inst, index }) {
           </span>
         </div>
 
-        <h3 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors leading-snug tracking-tight">
+        <h3 className="text-sm font-bold text-slate-800 group-hover:text-blue-700 transition-colors leading-snug tracking-tight">
           {displayName}
         </h3>
         <p className="text-[11px] text-slate-400 mt-0.5 font-medium">{inst.type}</p>
@@ -131,7 +131,7 @@ export function InstitutionCard({ inst, index }) {
           <span className="text-[11px] text-slate-400 font-medium">
             {displayCity ?? <span className="text-slate-300">No location</span>}
           </span>
-          <span className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-indigo-500 font-bold transition-opacity">
+          <span className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 text-[11px] text-blue-500 font-bold transition-opacity">
             Open <ArrowUpRight size={11} />
           </span>
         </div>

@@ -16,7 +16,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-gradient-to-r from-[#6C7FFF] to-[#B39DFA] shadow-md shadow-indigo-200/50",
+          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-gradient-to-r from-[#2266EE] to-[#26FFFF] shadow-md shadow-blue-200/50",
           isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full justify-between",
         )}
       >
@@ -48,8 +48,8 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
               "flex items-center rounded-lg h-9 text-xs font-semibold truncate transition-colors",
               isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
               selectedModule?.module_id === moduleItem.module_id
-                ? "bg-indigo-100 text-indigo-700"
-                : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/80",
+                ? "bg-blue-100 text-blue-700"
+                : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
             )}
           >
             {!isCollapsed ? moduleItem.module_name : moduleItem.module_name?.[0]}

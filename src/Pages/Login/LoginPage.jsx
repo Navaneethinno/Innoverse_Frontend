@@ -57,7 +57,7 @@ export function LoginPage() {
         className="relative w-full max-w-sm mx-4 z-10"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] bg-gradient-to-br from-indigo-400 via-indigo-500 to-purple-600 shadow-xl shadow-indigo-300/40 mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 shadow-xl shadow-blue-300/40 mb-4">
             <Shield size={26} className="text-white" />
           </div>
           <h1 className="text-xl font-semibold text-slate-800 tracking-tight">Innoverse</h1>
@@ -67,10 +67,10 @@ export function LoginPage() {
         <div
           className="rounded-3xl border p-8"
           style={{
-            background: "rgba(255,255,255,0.85)",
+            background: "var(--glass-bg)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderColor: "rgba(255,255,255,0.9)",
+            borderColor: "var(--glass-border)",
             boxShadow: "0 20px 60px rgba(124,140,255,0.12), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
@@ -118,7 +118,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
-                className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                className="text-xs font-medium text-blue-600 hover:text-blue-700"
               >
                 Forgot Password?
               </button>
@@ -134,7 +134,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600"
+              className="w-full flex items-center justify-center gap-2 py-3 mt-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600"
             >
               {loading ? (
                 <>

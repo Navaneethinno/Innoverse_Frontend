@@ -10,11 +10,11 @@ import { useInstitutionKycQuery, useUserKycQuery } from "@/Hooks/KYC/kycHooks";
 import { useUpdateInstitutionMutation } from "@/Hooks/Institutions/institutionHooks";
 import { useUserUpdateMutation } from "@/Hooks/Users/userHooks";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 function InfoRow({ label, value }) {
   return (
@@ -123,7 +123,7 @@ export function KycPage() {
         className="flex items-end justify-between mb-6"
       >
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             Compliance
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">KYC</h1>
@@ -135,8 +135,8 @@ export function KycPage() {
           onClick={() =>
             activeTab === "institution" ? setShowInstForm(true) : setShowUserForm(true)
           }
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50"
-          style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+          style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
         >
           <Plus size={14} /> Update KYC
         </motion.button>
@@ -145,7 +145,7 @@ export function KycPage() {
       {/* Tabs */}
       <div
         className="flex items-center gap-1 mb-5 p-1 rounded-xl w-fit"
-        style={{ background: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.85)" }}
+        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
         {["institution", "user"].map((t) => (
           <button
@@ -153,10 +153,10 @@ export function KycPage() {
             onClick={() => setActiveTab(t)}
             className={cn(
               "px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize",
-              activeTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-indigo-600",
+              activeTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              activeTab === t ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}
+              activeTab === t ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
             }
           >
             {t} KYC
@@ -193,9 +193,9 @@ export function KycPage() {
                       <input
                         value={instForm[key] ?? ""}
                         onChange={(e) => setInstForm((f) => ({ ...f, [key]: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         style={{
-                          background: "rgba(255,255,255,0.80)",
+                          background: "var(--glass-bg)",
                           border: "1px solid rgba(108,127,255,0.15)",
                         }}
                       />
@@ -214,8 +214,8 @@ export function KycPage() {
                       disabled={instSubmitting}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50 disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                      className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+                      style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
                     >
                       {instSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>
@@ -308,9 +308,9 @@ export function KycPage() {
                       <input
                         value={userForm[key] ?? ""}
                         onChange={(e) => setUserForm((f) => ({ ...f, [key]: e.target.value }))}
-                        className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         style={{
-                          background: "rgba(255,255,255,0.80)",
+                          background: "var(--glass-bg)",
                           border: "1px solid rgba(108,127,255,0.15)",
                         }}
                       />
@@ -329,8 +329,8 @@ export function KycPage() {
                       disabled={userSubmitting}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50 disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                      className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+                      style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
                     >
                       {userSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>

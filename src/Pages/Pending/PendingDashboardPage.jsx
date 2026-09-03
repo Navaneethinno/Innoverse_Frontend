@@ -151,11 +151,11 @@ export function PendingDashboardPage() {
     }
   };
   const selectClass =
-    "text-xs rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-300";
+    "text-xs rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-300";
   return (
     <div className="pt-4 pb-8">
       <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-3">
-        <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+        <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
           Maker-Checker
         </p>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -168,7 +168,7 @@ export function PendingDashboardPage() {
             <>
               {requests.length} request{requests.length !== 1 ? "s" : ""} awaiting authorization
               {actionableCount > 0 && (
-                <span className="ml-2 text-indigo-500 font-semibold">
+                <span className="ml-2 text-blue-500 font-semibold">
                   · {actionableCount} require your action
                 </span>
               )}
@@ -180,7 +180,7 @@ export function PendingDashboardPage() {
       {/* Entity tabs */}
       <div
         className="flex items-center gap-1 mb-3 p-1 rounded-xl w-fit flex-wrap"
-        style={{ background: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.85)" }}
+        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
         {TABS.map(({ key, label }) => (
           <button
@@ -188,10 +188,10 @@ export function PendingDashboardPage() {
             onClick={() => setActiveTab(key)}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-              activeTab === key ? "text-white shadow-md" : "text-slate-500 hover:text-indigo-600",
+              activeTab === key ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              activeTab === key ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}
+              activeTab === key ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
             }
           >
             {label}
@@ -209,10 +209,10 @@ export function PendingDashboardPage() {
               "px-3 py-1.5 rounded-lg text-xs font-bold transition-all border",
               quickFilter === qf
                 ? "text-white border-transparent shadow-md"
-                : "text-slate-500 border-slate-200 bg-white hover:text-indigo-600",
+                : "text-slate-500 border-slate-200 bg-white hover:text-blue-600",
             )}
             style={
-              quickFilter === qf ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}
+              quickFilter === qf ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
             }
           >
             {qf === "all" ? "All" : qf === "mine" ? "My Requests" : "Requires My Action"}
@@ -228,7 +228,7 @@ export function PendingDashboardPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search…"
-            className="pl-7 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-300 w-40"
+            className="pl-7 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-300 w-40"
           />
         </div>
 

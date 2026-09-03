@@ -63,8 +63,8 @@ export function MenuItem({
           depth > 0 ? "ml-3" : "",
           isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
           isExpanded || isActiveLeaf
-            ? "bg-gradient-to-r from-[#6C7FFF] to-[#B39DFA] text-white shadow-sm"
-            : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/80",
+            ? "bg-gradient-to-r from-[#2266EE] to-[#26FFFF] text-white shadow-sm"
+            : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
         )}
       >
         {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}

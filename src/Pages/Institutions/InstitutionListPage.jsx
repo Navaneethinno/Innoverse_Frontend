@@ -15,11 +15,11 @@ import {
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 export function InstitutionListPage() {
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export function InstitutionListPage() {
     <div className="pt-4 pb-8">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             Registry
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -106,8 +106,8 @@ export function InstitutionListPage() {
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/institutions/create")}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50"
-            style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
           >
             <Plus size={14} />
             <span className="hidden sm:inline">New Institution</span>
@@ -121,8 +121,8 @@ export function InstitutionListPage() {
         <div
           className="flex items-center gap-1 mb-5 p-1 rounded-xl w-fit"
           style={{
-            background: "rgba(255,255,255,0.65)",
-            border: "1px solid rgba(255,255,255,0.85)",
+            background: "var(--glass-bg)",
+            border: "1px solid var(--glass-border)",
           }}
         >
           {["all", "pending"].map((tab) => (
@@ -131,10 +131,10 @@ export function InstitutionListPage() {
               onClick={() => setActiveTab(tab)}
               className={cn(
                 "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                activeTab === tab ? "text-white shadow-md" : "text-slate-500 hover:text-indigo-600",
+                activeTab === tab ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
               )}
               style={
-                activeTab === tab ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}
+                activeTab === tab ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
               }
             >
               {tab === "pending" && (
@@ -161,11 +161,11 @@ export function InstitutionListPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 type="text"
                 placeholder="Search institutions…"
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
                 style={{
-                  background: "rgba(255,255,255,0.65)",
+                  background: "var(--glass-bg)",
                   backdropFilter: "blur(12px)",
-                  border: "1px solid rgba(255,255,255,0.85)",
+                  border: "1px solid var(--glass-border)",
                 }}
               />
             </div>
@@ -177,16 +177,16 @@ export function InstitutionListPage() {
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
                     statusFilter === value
-                      ? "text-white border-transparent shadow-md shadow-indigo-200/50"
-                      : "text-slate-500 hover:text-indigo-600 hover:border-indigo-200",
+                      ? "text-white border-transparent shadow-md shadow-blue-200/50"
+                      : "text-slate-500 hover:text-blue-600 hover:border-blue-200",
                   )}
                   style={
                     statusFilter === value
-                      ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)", border: "none" }
+                      ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)", border: "none" }
                       : {
-                          background: "rgba(255,255,255,0.65)",
+                          background: "var(--glass-bg)",
                           backdropFilter: "blur(12px)",
-                          borderColor: "rgba(255,255,255,0.85)",
+                          borderColor: "var(--glass-border)",
                         }
                   }
                 >
@@ -219,8 +219,8 @@ export function InstitutionListPage() {
                   key={i}
                   className="rounded-2xl p-5"
                   style={{
-                    background: "rgba(255,255,255,0.65)",
-                    border: "1px solid rgba(255,255,255,0.85)",
+                    background: "var(--glass-bg)",
+                    border: "1px solid var(--glass-border)",
                   }}
                 >
                   <Skeleton className="h-11 w-11 rounded-xl mb-4" />

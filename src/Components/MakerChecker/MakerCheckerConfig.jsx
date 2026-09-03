@@ -130,7 +130,7 @@ export function MakerCheckerConfig({
               className={cn(
                 "rounded-xl border px-3 py-2 text-left text-xs font-semibold transition-colors",
                 value.checker_mode === option.value
-                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  ? "border-blue-300 bg-blue-50 text-blue-700"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
               )}
             >

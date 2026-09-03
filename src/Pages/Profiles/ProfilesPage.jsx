@@ -19,11 +19,11 @@ import {
 import { useUsersQuery } from "@/Hooks/Users/userHooks";
 import { useInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 const AVAILABLE_PERMISSIONS = [
   { menu_code: "USERS", action_code: "VIEW" },
@@ -191,7 +191,7 @@ export function ProfilesPage() {
         className="flex items-end justify-between mb-6"
       >
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             Management
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -204,8 +204,8 @@ export function ProfilesPage() {
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50"
-            style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
           >
             <Plus size={14} /> New Profile
           </motion.button>
@@ -239,9 +239,9 @@ export function ProfilesPage() {
                   <input
                     value={form[key]}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   />
@@ -255,9 +255,9 @@ export function ProfilesPage() {
                   <select
                     value={String(form.institution_id)}
                     onChange={(e) => setForm((f) => ({ ...f, institution_id: e.target.value }))}
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   >
@@ -283,8 +283,8 @@ export function ProfilesPage() {
                   disabled={submitting}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50 disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
                 >
                   {submitting ? "Creating…" : "Create Profile"}
                 </motion.button>
@@ -324,8 +324,8 @@ export function ProfilesPage() {
               exit={{ opacity: 0, scale: 0.95 }}
               className="relative rounded-2xl p-6 w-full max-w-md overflow-y-auto max-h-[80vh]"
               style={{
-                background: "rgba(255,255,255,0.96)",
-                border: "1px solid rgba(255,255,255,0.95)",
+                background: "var(--glass-bg)",
+                border: "1px solid var(--glass-border)",
                 boxShadow: "0 24px 64px rgba(108,127,255,0.16)",
               }}
             >
@@ -351,12 +351,12 @@ export function ProfilesPage() {
                             style={
                               active
                                 ? {
-                                    background: "linear-gradient(135deg, #6C7FFF, #B39DFA)",
+                                    background: "linear-gradient(135deg, #2266EE, #26FFFF)",
                                     color: "white",
                                     border: "none",
                                   }
                                 : {
-                                    background: "rgba(255,255,255,0.80)",
+                                    background: "var(--glass-bg)",
                                     color: "#64748b",
                                     border: "1px solid rgba(108,127,255,0.15)",
                                   }
@@ -379,8 +379,8 @@ export function ProfilesPage() {
                 </button>
                 <button
                   onClick={() => void handleSavePermissions()}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50"
-                  style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50"
+                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
                 >
                   Save
                 </button>
@@ -438,8 +438,8 @@ export function ProfilesPage() {
               <tr>
                 <td colSpan={5} className="px-5 py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                      <Layers size={20} className="text-indigo-400" />
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                      <Layers size={20} className="text-blue-400" />
                     </div>
                     <p className="text-sm font-bold text-slate-600">No profiles found</p>
                     <p className="text-xs text-slate-400">Create one to get started</p>
@@ -478,7 +478,7 @@ export function ProfilesPage() {
                           setPermTarget(p.id);
                           setSelectedPerms(p.permissions ?? []);
                         }}
-                        className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-indigo-600 border border-indigo-200/60 hover:bg-indigo-50/60 transition-colors"
+                        className="px-3 py-1.5 rounded-xl text-[11px] font-bold text-blue-600 border border-blue-200/60 hover:bg-blue-50/60 transition-colors"
                       >
                         Permissions
                       </button>

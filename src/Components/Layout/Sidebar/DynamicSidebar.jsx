@@ -150,11 +150,11 @@ export function DynamicSidebar() {
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       className="fixed left-3 top-3 bottom-3 z-30 flex flex-col py-3 rounded-2xl overflow-hidden"
       style={{
-        background: "rgba(255,255,255,0.72)",
+        background: "var(--glass-bg)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.90)",
-        boxShadow: "0 8px 32px rgba(108,127,255,0.10), 0 1px 3px rgba(108,127,255,0.06)",
+        border: "1px solid var(--glass-border)",
+        boxShadow: "var(--glass-shadow)",
       }}
     >
       <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
@@ -184,14 +184,14 @@ export function DynamicSidebar() {
       </div>
 
       <div className="px-2 mt-2">
-        <div className="h-px bg-gradient-to-r from-transparent via-indigo-100 to-transparent mb-3" />
+        <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-transparent mb-3" />
         <motion.button
           onClick={toggle}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className={cn(
-            "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors",
+            "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
             collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",
           )}
         >

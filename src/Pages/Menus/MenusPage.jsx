@@ -24,11 +24,11 @@ import {
 } from "@/Hooks/Menus/menuHooks";
 import { useUsersQuery } from "@/Hooks/Users/userHooks";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 export function MenusPage() {
   const currentUser = useAuth((s) => s.user);
@@ -236,7 +236,7 @@ export function MenusPage() {
         className="flex items-end justify-between mb-6"
       >
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             System
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -249,8 +249,8 @@ export function MenusPage() {
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50"
-            style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
           >
             <Plus size={14} /> New {subTabLabel}
           </motion.button>
@@ -260,7 +260,7 @@ export function MenusPage() {
       {/* Sub-tabs */}
       <div
         className="flex items-center gap-1 mb-4 p-1 rounded-xl w-fit"
-        style={{ background: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.85)" }}
+        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
         {["modules", "menus", "menu-actions"].map((t) => (
           <button
@@ -268,9 +268,9 @@ export function MenusPage() {
             onClick={() => setSubTab(t)}
             className={cn(
               "px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize",
-              subTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-indigo-600",
+              subTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
-            style={subTab === t ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}}
+            style={subTab === t ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}}
           >
             {t.replace("-", " ")}
           </button>
@@ -280,7 +280,7 @@ export function MenusPage() {
       {/* View mode toggle */}
       <div
         className="flex items-center gap-1 mb-5 p-1 rounded-xl w-fit"
-        style={{ background: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.85)" }}
+        style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
         {["list", "pending"].map((m) => (
           <button
@@ -288,10 +288,10 @@ export function MenusPage() {
             onClick={() => setViewMode(m)}
             className={cn(
               "px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize",
-              viewMode === m ? "text-white shadow-md" : "text-slate-500 hover:text-indigo-600",
+              viewMode === m ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              viewMode === m ? { background: "linear-gradient(135deg, #6C7FFF, #B39DFA)" } : {}
+              viewMode === m ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
             }
           >
             {m === "list" ? "All" : "Pending Approvals"}
@@ -329,9 +329,9 @@ export function MenusPage() {
                     onChange={(e) => setForm((f) => ({ ...f, application_id: e.target.value }))}
                     type="number"
                     placeholder="1"
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   />
@@ -347,9 +347,9 @@ export function MenusPage() {
                     onChange={(e) => setForm((f) => ({ ...f, module_id: e.target.value }))}
                     type="number"
                     placeholder="1"
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   />
@@ -365,9 +365,9 @@ export function MenusPage() {
                     onChange={(e) => setForm((f) => ({ ...f, menu_id: e.target.value }))}
                     type="number"
                     placeholder="1"
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   />
@@ -382,9 +382,9 @@ export function MenusPage() {
                     value={form[key] ?? ""}
                     onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
                     placeholder={key === "remark" ? "Optional" : key.toUpperCase()}
-                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
-                      background: "rgba(255,255,255,0.80)",
+                      background: "var(--glass-bg)",
                       border: "1px solid rgba(108,127,255,0.15)",
                     }}
                   />
@@ -403,8 +403,8 @@ export function MenusPage() {
                   disabled={submitting}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50 disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                  className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
                 >
                   {submitting ? "Submitting…" : "Submit for Approval"}
                 </motion.button>
@@ -478,8 +478,8 @@ export function MenusPage() {
                 <tr>
                   <td colSpan={4} className="px-5 py-14 text-center">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                        <Layers size={20} className="text-indigo-400" />
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                        <Layers size={20} className="text-blue-400" />
                       </div>
                       <p className="text-sm font-bold text-slate-600">
                         No {subTabLabel.toLowerCase()}s found

@@ -69,7 +69,7 @@ function InputField({
         onChange={(e) => onChange(fieldKey, e.target.value)}
         placeholder={placeholder}
         className={cn(
-          "w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all",
+          "w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all",
           error ? "border-red-300 bg-red-50" : "border-slate-200",
         )}
       />
@@ -155,8 +155,8 @@ export function CreateInstitutionFlow() {
               </button>
               <button
                 onClick={() => navigate("/institutions")}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-indigo-200/40"
-                style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
+                style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
               >
                 View Institutions
               </button>
@@ -220,13 +220,13 @@ export function CreateInstitutionFlow() {
               <div
                 className={cn(
                   "h-1 rounded-full transition-all duration-300",
-                  index <= step ? "bg-indigo-500" : "bg-slate-200",
+                  index <= step ? "bg-blue-500" : "bg-slate-200",
                 )}
               />
               <p
                 className={cn(
                   "text-[11px] mt-1.5 font-medium transition-colors",
-                  index === step ? "text-indigo-600" : "text-slate-400",
+                  index === step ? "text-blue-600" : "text-slate-400",
                 )}
               >
                 {label}
@@ -412,7 +412,7 @@ export function CreateInstitutionFlow() {
                         <select
                           value={form.kyc_country}
                           onChange={(e) => setField("kyc_country", e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all"
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
                         >
                           <option value="">Select…</option>
                           {COUNTRIES.map((c) => (
@@ -513,7 +513,7 @@ export function CreateInstitutionFlow() {
           <button
             onClick={handleNext}
             disabled={isLoading}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md shadow-indigo-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >
             {step === STEPS.length - 1 ? "Submit for Approval" : "Continue"}
           </button>

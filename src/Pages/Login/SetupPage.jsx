@@ -49,7 +49,7 @@ export function SetupPage() {
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
-                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "bg-indigo-500 text-white" : i === step ? "border-2 border-indigo-400 bg-indigo-50 text-indigo-700" : "bg-slate-100 text-slate-400"}`}
+                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "bg-blue-500 text-white" : i === step ? "border-2 border-blue-400 bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-400"}`}
               >
                 {i < step ? <Check size={13} /> : i + 1}
               </div>
@@ -65,10 +65,10 @@ export function SetupPage() {
         <div
           className="rounded-3xl border p-8"
           style={{
-            background: "rgba(255,255,255,0.85)",
+            background: "var(--glass-bg)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderColor: "rgba(255,255,255,0.9)",
+            borderColor: "var(--glass-border)",
             boxShadow: "0 20px 60px rgba(124,140,255,0.10), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
@@ -146,11 +146,11 @@ export function SetupPage() {
                       <option key={c}>{c}</option>
                     ))}
                   </select>
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-indigo-50 border border-indigo-100">
-                    <CheckCircle size={16} className="text-indigo-500 mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
+                    <CheckCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-indigo-800">Auto-save enabled</p>
-                      <p className="text-xs text-indigo-600 mt-0.5">
+                      <p className="text-sm font-medium text-blue-800">Auto-save enabled</p>
+                      <p className="text-xs text-blue-600 mt-0.5">
                         All preferences are saved automatically and encrypted at rest.
                       </p>
                     </div>
@@ -170,7 +170,7 @@ export function SetupPage() {
             )}
             <button
               onClick={() => (step < steps.length - 1 ? setStep((s) => s + 1) : nav("/dashboard"))}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600"
             >
               {step === steps.length - 1 ? "Launch Platform" : "Continue"}
             </button>

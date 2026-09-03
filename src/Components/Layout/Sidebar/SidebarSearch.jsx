@@ -15,7 +15,7 @@ export const SidebarSearch = forwardRef(function SidebarSearch(
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder="Search menu (Ctrl+K)"
-          className="w-full pl-7 pr-6 py-1.5 rounded-lg text-[11px] text-slate-700 bg-slate-50 border border-slate-200 outline-none focus:border-indigo-300"
+          className="w-full pl-7 pr-6 py-1.5 rounded-lg text-[11px] text-slate-700 bg-slate-50 border border-slate-200 outline-none focus:border-blue-300"
         />
         {value && (
           <button

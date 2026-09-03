@@ -40,7 +40,7 @@ export function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen pt-24 px-4 pb-12 bg-[#F9FAFB]">
-      <div className="mx-auto max-w-lg rounded-3xl border border-white/90 bg-white/85 p-8 shadow-xl shadow-indigo-100/40">
+      <div className="mx-auto max-w-lg rounded-3xl border border-white/90 bg-white/85 p-8 shadow-xl shadow-blue-100/40">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -49,7 +49,7 @@ export function ChangePasswordPage() {
           <ArrowLeft size={16} /> Back
         </button>
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <Lock size={18} />
           </div>
           <div>
@@ -118,7 +118,7 @@ export function ChangePasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
           >
             {loading ? "Updating..." : "Update password"}
           </button>

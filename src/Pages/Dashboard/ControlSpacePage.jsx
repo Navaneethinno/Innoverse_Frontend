@@ -10,11 +10,11 @@ import { usePendingRequestsQuery } from "@/Hooks/MakerChecker/makerCheckerHooks"
 import { useInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 const tile = "rounded-2xl p-5 border overflow-hidden relative";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 // Maps raw backend entity_type values to human-readable display names.
 // institution-kyc and user-kyc are internal-only adapter keys — they are
@@ -247,7 +247,7 @@ export function ControlSpacePage() {
         className="flex items-end justify-between mb-6"
       >
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             Control Space
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -261,8 +261,8 @@ export function ControlSpacePage() {
           whileHover={{ scale: 1.03, y: -1 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/pending")}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-indigo-200/50"
-          style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+          style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
         >
           <Zap size={14} />
           Pending Approvals
@@ -275,7 +275,7 @@ export function ControlSpacePage() {
             label="Total Institutions"
             value={stats.total}
             sub="Registered on platform"
-            gradient="bg-gradient-to-br from-[#6C7FFF] to-[#B39DFA]"
+            gradient="bg-gradient-to-br from-[#2266EE] to-[#26FFFF]"
             icon={Building2}
             delay={0.05}
           />
@@ -325,7 +325,7 @@ export function ControlSpacePage() {
             </h2>
             <button
               onClick={() => navigate("/pending")}
-              className="flex items-center gap-1 text-xs font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+              className="flex items-center gap-1 text-xs font-semibold text-blue-500 hover:text-blue-700 transition-colors"
             >
               View all <ArrowRight size={12} />
             </button>
@@ -425,7 +425,7 @@ export function ControlSpacePage() {
           />
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#6C7FFF] to-[#B39DFA] flex items-center justify-center shadow-md shadow-indigo-200/50">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2266EE] to-[#26FFFF] flex items-center justify-center shadow-md shadow-blue-200/50">
                 <Shield size={14} className="text-white" />
               </div>
               <h2 className="text-sm font-bold text-slate-800">Request Breakdown</h2>
@@ -448,7 +448,7 @@ export function ControlSpacePage() {
           </div>
           <button
             onClick={() => navigate("/institutions/create")}
-            className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-indigo-600 border border-indigo-200/60 hover:bg-white/60 transition-colors"
+            className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-blue-600 border border-blue-200/60 hover:bg-white/60 transition-colors"
           >
             + New Institution
           </button>

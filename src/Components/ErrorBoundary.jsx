@@ -19,7 +19,7 @@ class ErrorBoundaryContent extends Component {
           <div
             className="max-w-md w-full rounded-2xl p-6"
             style={{
-              background: "rgba(255,255,255,0.80)",
+              background: "var(--glass-bg)",
               border: "1px solid rgba(255,107,107,0.15)",
               boxShadow: "0 4px 24px rgba(255,107,107,0.08)",
             }}
@@ -36,7 +36,7 @@ class ErrorBoundaryContent extends Component {
             <button
               onClick={() => this.props.navigate(0)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+              style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
             >
               <RefreshCw size={12} /> Reload page
             </button>

@@ -340,7 +340,7 @@ export function ChangeViewer({ action, before_data, after_data }) {
           {unchangedKeys.length > 0 && (
             <button
               onClick={() => setShowAll((v) => !v)}
-              className="text-[10px] font-bold text-indigo-500 hover:text-indigo-700 underline"
+              className="text-[10px] font-bold text-blue-500 hover:text-blue-700 underline"
             >
               {showAll ? "Show changed only" : `Show all fields (${allKeys.length})`}
             </button>

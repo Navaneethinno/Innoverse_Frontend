@@ -27,10 +27,10 @@ import { Skeleton } from "@/Components/UI/skeleton";
 import { notifications } from "@/Utils/Lib/notifications";
 
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 const EMPTY_FORM = {
   user_name: "",
@@ -95,7 +95,7 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
                 required={!editing}
                 value={form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-indigo-400"
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
               >
                 <option value="">Select {key === "inst_id" ? "institution" : "profile"}</option>
                 {(key === "inst_id" ? institutions : profiles).map((option) => {
@@ -132,7 +132,7 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
                 }
                 value={editing && key === "user_pwd" ? "" : form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-indigo-400${key === "user_pwd" ? " pr-10" : ""}`}
+                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400${key === "user_pwd" ? " pr-10" : ""}`}
               />
             )}
             {key === "user_pwd" && (
@@ -154,7 +154,7 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
         </button>
         <button
           disabled={pending}
-          className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-2 font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 font-semibold text-white disabled:opacity-50"
         >
           {pending ? "Saving..." : editing ? "Save changes" : "Add user"}
         </button>
@@ -247,13 +247,13 @@ export function UsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-indigo-600">User Management</p>
+          <p className="text-sm font-medium text-blue-600">User Management</p>
           <h1 className="text-3xl font-bold text-slate-800">Users</h1>
           <p className="mt-1 text-slate-500">Manage application users and access.</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-2.5 font-semibold text-white"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 font-semibold text-white"
         >
           <Plus size={18} /> Add user
         </button>
@@ -264,7 +264,7 @@ export function UsersPage() {
             value={params.search}
             onChange={(event) => setParams({ ...params, page: 1, search: event.target.value })}
             placeholder="Search users"
-            className="flex-1 rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 outline-none focus:border-indigo-400"
+            className="flex-1 rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 outline-none focus:border-blue-400"
           />
           <select
             value={params.status}
@@ -329,7 +329,7 @@ export function UsersPage() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => openEdit(user)}
-                            className="rounded-lg p-2 text-indigo-600"
+                            className="rounded-lg p-2 text-blue-600"
                           >
                             Edit
                           </button>
@@ -463,7 +463,7 @@ export function UsersPage() {
                         (["deauth", "delete"].includes(action.type) && !narration.trim())
                       }
                       onClick={runAction}
-                      className="rounded-xl bg-indigo-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+                      className="rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
                     >
                       {actionPending ? "Working..." : "Confirm"}
                     </button>

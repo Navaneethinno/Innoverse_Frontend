@@ -5,11 +5,11 @@ import { ChangeViewer } from "./ChangeViewer";
 import { Fragment, useState } from "react";
 import { cn } from "@/Utils/Lib/cn";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 const ENTITY_DISPLAY = {
   INSTITUTION: "Institution",
@@ -154,7 +154,7 @@ function CopyButton({ value }) {
   return (
     <button
       onClick={copy}
-      className="ml-1 text-slate-300 hover:text-indigo-400 transition-colors shrink-0"
+      className="ml-1 text-slate-300 hover:text-blue-400 transition-colors shrink-0"
       title="Copy"
     >
       {copied ? (
@@ -220,7 +220,7 @@ function ConfirmDialog({ req, decision, onConfirm, onCancel }) {
           onChange={(e) => setRemark(e.target.value)}
           rows={2}
           placeholder={isApprove ? "Optional remark…" : "Reason for rejection…"}
-          className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 mb-4"
+          className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 resize-none focus:outline-none focus:ring-1 focus:ring-blue-300 mb-4"
         />
 
         <div className="flex gap-2 justify-end">
@@ -308,7 +308,7 @@ function ExpandedDetail({ req }) {
                   return (
                     <div key={idx} className="flex items-center gap-2 text-xs text-slate-600">
                       {isSequential && seq != null && (
-                        <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-black flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[10px] font-black flex items-center justify-center shrink-0">
                           {String(seq)}
                         </span>
                       )}

@@ -55,7 +55,7 @@ function EditField({ label, value, onChange, readOnly, type = "text", error }) {
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 ${error ? "border-red-400" : "border-slate-200"}`}
+          className={`w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 ${error ? "border-red-400" : "border-slate-200"}`}
         />
       )}
       {error && <p className="text-[11px] text-red-500 mt-0.5">{error}</p>}
@@ -303,7 +303,7 @@ export function InstitutionDetailPage() {
         <p className="text-sm font-bold text-slate-700">{error}</p>
         <button
           onClick={() => void load()}
-          className="mt-3 text-xs font-bold text-indigo-500 underline"
+          className="mt-3 text-xs font-bold text-blue-500 underline"
         >
           Retry
         </button>
@@ -335,7 +335,7 @@ export function InstitutionDetailPage() {
               onClick={() => void handleSubmitEdit()}
               disabled={submitting}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+              style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
             >
               <CheckCircle size={13} /> {submitting ? "Submitting…" : "Submit for Approval"}
             </button>
@@ -392,9 +392,9 @@ export function InstitutionDetailPage() {
         <div className="flex items-center gap-3">
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg, #6C7FFF22 0%, #B39DFA22 100%)" }}
+            style={{ background: "linear-gradient(135deg, #2266EE22 0%, #26FFFF22 100%)" }}
           >
-            <Building2 size={20} className="text-indigo-500" />
+            <Building2 size={20} className="text-blue-500" />
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
@@ -422,7 +422,7 @@ export function InstitutionDetailPage() {
               {pendingEditEntry && (
                 <button
                   onClick={() => setShowPendingChanges((v) => !v)}
-                  className="mt-1.5 text-[11px] font-bold text-indigo-500 hover:text-indigo-700 underline"
+                  className="mt-1.5 text-[11px] font-bold text-blue-500 hover:text-blue-700 underline"
                 >
                   {showPendingChanges ? "Hide Proposed Changes" : "View Proposed Changes"}
                 </button>
@@ -473,7 +473,7 @@ export function InstitutionDetailPage() {
                   value={editRemark}
                   onChange={(e) => setEditRemark(e.target.value)}
                   placeholder="Optional remark for this change"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 min-h-[72px] resize-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 min-h-[72px] resize-none"
                 />
               </div>
             </>
@@ -611,8 +611,8 @@ export function InstitutionDetailPage() {
             <button
               onClick={() => void handleSubmitEdit()}
               disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-indigo-200/50 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #6C7FFF 0%, #B39DFA 100%)" }}
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
             >
               {submitting ? "Submitting…" : "Submit for Approval"}
             </button>
@@ -623,7 +623,7 @@ export function InstitutionDetailPage() {
       {/* ── lifecycle history ── */}
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80">
         <div className="flex items-center gap-2 mb-4">
-          <History size={14} className="text-indigo-500" />
+          <History size={14} className="text-blue-500" />
           <h2 className="text-sm font-bold">Lifecycle History</h2>
         </div>
         {makerPending && (
@@ -689,7 +689,7 @@ export function InstitutionDetailPage() {
               <button
                 type="button"
                 onClick={() => setContinueMode("edit")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${continueMode === "edit" ? "border-indigo-400 text-indigo-600 bg-indigo-50" : "border-slate-200"}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${continueMode === "edit" ? "border-blue-400 text-blue-600 bg-blue-50" : "border-slate-200"}`}
               >
                 Edit continuation
               </button>

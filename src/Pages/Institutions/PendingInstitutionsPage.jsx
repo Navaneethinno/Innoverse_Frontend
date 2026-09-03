@@ -9,11 +9,11 @@ import {
   usePendingInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
-  boxShadow: "0 4px 24px rgba(108,127,255,0.08), 0 1px 3px rgba(108,127,255,0.04)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--glass-shadow)",
 };
 export function PendingInstitutionsPage() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export function PendingInstitutionsPage() {
         className="flex items-end justify-between mb-6"
       >
         <div>
-          <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-1">
+          <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
             Maker-Checker
           </p>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">

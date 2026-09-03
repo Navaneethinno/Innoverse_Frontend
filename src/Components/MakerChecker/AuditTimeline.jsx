@@ -4,10 +4,10 @@ import { CheckCircle, XCircle, Clock, FileText, ChevronDown, ChevronUp } from "l
 import { cn } from "@/Utils/Lib/cn";
 import { ChangeViewer } from "./ChangeViewer";
 const glass = {
-  background: "rgba(255,255,255,0.65)",
+  background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
   WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(255,255,255,0.85)",
+  border: "1px solid var(--glass-border)",
 };
 // ── helpers ──────────────────────────────────────────────────────────────────
 function actionLabel(action) {
@@ -260,7 +260,7 @@ export function AuditTimeline({ entries, isLoading, onContinueRejectedAdd }) {
                         e.stopPropagation();
                         onContinueRejectedAdd(group.request);
                       }}
-                      className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-600 border border-indigo-200/60 hover:bg-indigo-50/70 transition-colors"
+                      className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-blue-600 border border-blue-200/60 hover:bg-blue-50/70 transition-colors"
                     >
                       Continue rejected ADD
                     </button>
