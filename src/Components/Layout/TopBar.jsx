@@ -76,9 +76,14 @@ export function TopBar() {
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          <button className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors text-xs font-mono">
-            <Command size={11} />
-            <span className="text-[10px]">⌘K</span>
+          <button
+            type="button"
+            title="Keyboard shortcuts (Ctrl/Cmd + K)"
+            aria-label="Keyboard shortcuts"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors text-[10px] font-mono font-semibold"
+          >
+            <Command size={12} strokeWidth={1.8} />
+            <span>K</span>
           </button>
 
           <button

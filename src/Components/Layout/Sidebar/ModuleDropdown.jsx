@@ -1,6 +1,47 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
+import {
+  AlertTriangle,
+  Bot,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList,
+  CreditCard,
+  Fingerprint,
+  Landmark,
+  Layers,
+  LayoutGrid,
+  Link2,
+  Lock,
+  RefreshCcw,
+  ShieldAlert,
+  ShieldCheck,
+  Store,
+  Truck,
+  Wallet,
+} from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
+
+const MODULE_ICON_RULES = [
+  [/purse|wallet/i, Wallet],
+  [/risk/i, ShieldAlert],
+  [/cms|content/i, ClipboardList],
+  [/mms|merchant|store/i, Store],
+  [/pay/i, CreditCard],
+  [/secure|security/i, Lock],
+  [/aml/i, ShieldCheck],
+  [/chatbot|bot/i, Bot],
+  [/fraud/i, AlertTriangle],
+  [/lrms|loan|recovery/i, Landmark],
+  [/recon/i, RefreshCcw],
+  [/bridge/i, Link2],
+  [/fleet/i, Truck],
+  [/kyc|identity/i, Fingerprint],
+];
+
+function getModuleIcon(moduleName = "") {
+  const match = MODULE_ICON_RULES.find(([pattern]) => pattern.test(moduleName));
+  return match ? match[1] : Layers;
+}
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders
 // only the modules the caller passes in (already filtered to the user's
@@ -35,28 +76,37 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
           isOpen ? "max-h-[999px] opacity-100 mt-1" : "max-h-0 opacity-0",
         )}
       >
-        {(modules || []).map((moduleItem) => (
-          <button
-            key={moduleItem.module_id}
-            type="button"
-            title={moduleItem.module_name}
-            onClick={() => {
-              onSelectModule(moduleItem);
-              setIsOpen(false);
-            }}
-            className={cn(
-              "flex items-center rounded-lg h-9 text-xs font-semibold truncate transition-colors",
-              isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
-              selectedModule?.module_id === moduleItem.module_id
-                ? "bg-blue-100 text-blue-700"
-                : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
-            )}
-          >
-            {!isCollapsed ? moduleItem.module_name : moduleItem.module_name?.[0]}
-          </button>
-        ))}
+        {(modules || []).map((moduleItem) => {
+          const Icon = getModuleIcon(moduleItem.module_name);
+          const isActive = selectedModule?.module_id === moduleItem.module_id;
+          return (
+            <button
+              key={moduleItem.module_id}
+              type="button"
+              title={moduleItem.module_name}
+              onClick={() => {
+                onSelectModule(moduleItem);
+                setIsOpen(false);
+              }}
+              className={cn(
+                "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
+                isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
+                isActive
+                  ? "bg-primary-light text-primary"
+                  : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
+              )}
+            >
+              <Icon
+                size={14}
+                strokeWidth={1.8}
+                className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
+              />
+              {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
+            </button>
+          );
+        })}
         {(modules || []).length === 0 && !isCollapsed && (
-          <p className="px-3 py-2 text-[11px] text-slate-400">No modules available</p>
+          <p className="px-3 py-2 text-[11px] text-muted-foreground">No modules available</p>
         )}
       </div>
     </div>
