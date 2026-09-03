@@ -1,2 +1,0 @@
-export { AppRouter } from "./router";
-

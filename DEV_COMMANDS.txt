@@ -1,0 +1,31 @@
+Innoverse Frontend Development Commands
+
+Open the frontend folder:
+cd E:\Innoverse\_innoverse_frontend\Innoverse_old1
+
+Install dependencies:
+npm install
+
+Start the frontend:
+npm run dev
+
+Open in the browser:
+http://localhost:5173/
+
+Check which process is using port 5173:
+Get-NetTCPConnection -LocalPort 5173 -State Listen
+
+Stop the process using port 5173:
+$pid = (Get-NetTCPConnection -LocalPort 5173 -State Listen).OwningProcess
+Stop-Process -Id $pid -Force
+
+Restart the frontend:
+$pid = (Get-NetTCPConnection -LocalPort 5173 -State Listen).OwningProcess
+if ($pid) { Stop-Process -Id $pid -Force }
+npm run dev
+
+Verify the local server:
+curl.exe -I http://localhost:5173/
+
+Stop the frontend from its terminal:
+Ctrl+C
