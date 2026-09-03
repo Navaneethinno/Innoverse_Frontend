@@ -16,7 +16,8 @@ import {
 import { useAuth } from "../../Hooks/useAuth";
 import { notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
-import loginIllustration from "@/assets/login-illustration.png";
+import loginIllustrationLight from "@/assets/login-illustration.png";
+import loginIllustrationDark from "@/assets/login-illustration-dark.png";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -87,13 +88,20 @@ export function LoginPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
         className="hidden lg:block lg:w-[70%] relative overflow-hidden"
-        style={{ background: "#eef2fb" }}
+        style={{ background: mode === "dark" ? "#0b1220" : "#eef2fb" }}
       >
-        <img
-          src={loginIllustration}
-          alt="Innoverse — Innovate. Secure. Empower."
-          className="absolute inset-0 w-full h-full object-cover object-left-bottom"
-        />
+        <AnimatePresence mode="wait">
+          <motion.img
+            key={mode}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            src={mode === "dark" ? loginIllustrationDark : loginIllustrationLight}
+            alt="Innoverse — Innovate. Secure. Empower."
+            className="absolute inset-0 w-full h-full object-cover object-left-bottom"
+          />
+        </AnimatePresence>
       </motion.div>
       <div className="relative w-full lg:w-[30%] flex items-center justify-center overflow-hidden">
         <GradientMesh />
