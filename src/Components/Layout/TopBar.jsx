@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { useSidebar } from "./SidebarContext";
+import { SIDEBAR_WIDTHS } from "./Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";
@@ -24,7 +25,8 @@ export function TopBar() {
   const { mode, toggleMode } = useColorMode();
   const logout = useAuth((s) => s.logout);
   const user = useAuth((s) => s.user);
-  const leftOffset = collapsed ? 56 + 12 + 8 : 200 + 12 + 8;
+  const sidebarW = collapsed ? SIDEBAR_WIDTHS.collapsed : SIDEBAR_WIDTHS.expanded;
+  const leftOffset = sidebarW + 12 + 8;
   if (pathname === "/login" || pathname === "/setup") return null;
   return (
     <motion.header
