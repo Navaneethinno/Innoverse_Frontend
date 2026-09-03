@@ -157,10 +157,11 @@ export function DynamicSidebar() {
         boxShadow: "var(--glass-shadow)",
       }}
     >
-      {/* Pinned: the one global search bar always stays here, at the very
-          top, regardless of the module list opening/closing or how long
-          the selected module's menu tree grows below it. */}
-      <div className="shrink-0">
+      {/* Pinned: the global search bar and the "Select module" control
+          never move and never disappear, regardless of whether a module
+          is selected, the module list is open, or the menu tree below
+          scrolls/grows. */}
+      <div className="shrink-0 flex flex-col gap-3">
         <SidebarSearch
           ref={searchInputRef}
           value={menuSearch}
@@ -168,15 +169,20 @@ export function DynamicSidebar() {
           onClear={clearSearch}
           isCollapsed={collapsed}
         />
-      </div>
-
-      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
         <ModuleDropdown
           modules={filteredModules}
           selectedModule={selectedModule}
           onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
           isCollapsed={collapsed}
         />
+      </div>
+
+      <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
+        {selectedModule && !collapsed && (
+          <p className="px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+            {selectedModule.module_name}
+          </p>
+        )}
         <div className="px-2">
           <MenuList
             menuItems={filteredMenuItems}
