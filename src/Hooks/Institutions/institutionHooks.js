@@ -1,15 +1,37 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
+
+// Real permission source: the user's own menu_array (from login), NOT a
+// fabricated `user.institution.type` field — nothing in the auth flow ever
+// sets that field, so any `=== "PLATFORM_OWNER"` check against it is always
+// false. Module 14 is Institution; if any menu item under it carries the
+// named action, the user is permitted. Same actions[] data the sidebar
+// itself already uses (DynamicSidebar.jsx, Phase 24C).
+const INSTITUTION_MODULE_ID = 14;
+export function useHasInstitutionAction(actionName) {
+  const menuArray = useSelector((store) => store.menu.menuArray);
+  return useMemo(
+    () =>
+      (menuArray || []).some(
+        (item) =>
+          Number(item?.module_id) === INSTITUTION_MODULE_ID &&
+          (item?.actions || []).some((a) => a?.action_name === actionName),
+      ),
+    [menuArray, actionName],
+  );
+}
+
 const INSTITUTIONS_CHANGED_EVENT = "institutions:data-changed";
 function notifyInstitutionChange() {
   window.dispatchEvent(new Event(INSTITUTIONS_CHANGED_EVENT));
 }
-function useInstitutionAsyncQuery(queryFn, enabled) {
+
+function useInstitutionAsyncQuery(queryFn) {
   const [data, setData] = useState();
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState(true);
   const refetch = useCallback(async () => {
-    if (!enabled) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -19,7 +41,7 @@ function useInstitutionAsyncQuery(queryFn, enabled) {
     } finally {
       setIsLoading(false);
     }
-  }, [enabled, queryFn]);
+  }, [queryFn]);
   useEffect(() => {
     void refetch();
     const onInstitutionChange = () => void refetch();
@@ -28,15 +50,16 @@ function useInstitutionAsyncQuery(queryFn, enabled) {
   }, [refetch]);
   return { data, error, isLoading, refetch };
 }
+
 function useInstitutionMutation(mutationFn) {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
   const mutateAsync = useCallback(
-    async (args) => {
+    async (payload) => {
       setIsPending(true);
       setError(null);
       try {
-        const result = await mutationFn(args);
+        const result = await mutationFn(payload);
         notifyInstitutionChange();
         return result;
       } catch (nextError) {
@@ -51,64 +74,108 @@ function useInstitutionMutation(mutationFn) {
   );
   return { mutateAsync, isPending, error };
 }
-export function useInstitutionsQuery(enabled = true) {
-  return useInstitutionAsyncQuery(
-    useCallback(() => institutionsApi.list(), []),
-    enabled,
+
+// Confirmed live against a real /institution/profile/audit response:
+// { api, code, data: [...], message, pagination: {...}, remark, status } —
+// `data` is a plain array and `pagination` sits at the TOP level of the
+// payload, not nested inside `data`. /institution/profile/list is assumed
+// (not yet independently confirmed) to share this same envelope shape.
+function mapInstitutionListResponse(payload) {
+  const data = payload?.data;
+  const records =
+    (Array.isArray(data) && data) ||
+    data?.inst_profile_array ||
+    data?.institution_profile_array ||
+    data?.list ||
+    data?.data ||
+    [];
+  return {
+    institutions: Array.isArray(records) ? records : [],
+    pagination: payload?.pagination ??
+      data?.pagination ?? {
+        totalRecords: Array.isArray(records) ? records.length : 0,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 10,
+      },
+  };
+}
+
+// page/limit are read out as primitives (not the `params` object itself) so
+// the fetch's useCallback/useEffect dependencies are stable across renders
+// even when a caller passes a fresh object literal on every render (e.g.
+// `useInstitutionsQuery({ page: 1, limit: 100 })` written inline in a
+// component body). Depending on the object reference directly caused an
+// infinite fetch loop: new object -> new callback -> effect re-fires ->
+// state update -> re-render -> new object literal again, repeating forever.
+// Also tolerates callers passing something other than an object (a stray
+// boolean, undefined) by falling back to the defaults via optional chaining
+// rather than destructuring the argument directly.
+export function useInstitutionsQuery(params) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 100;
+  const query = useInstitutionAsyncQuery(
+    useCallback(() => institutionsApi.list({ page, limit }), [page, limit]),
   );
+  const mapped = mapInstitutionListResponse(query.data);
+  return { ...query, data: mapped.institutions, pagination: mapped.pagination };
 }
-export function usePendingInstitutionsQuery(enabled) {
-  return useInstitutionAsyncQuery(
-    useCallback(() => institutionsApi.listPending(), []),
-    enabled,
+
+// A read call, deliberately NOT built on useInstitutionMutation: that
+// wrapper calls notifyInstitutionChange() after every successful call so
+// list views refetch after a real data-changing action. Audit is read-only
+// (POST /institution/profile/audit, {id, page, limit}) — routing it through
+// the mutation wrapper made every audit-modal open also re-trigger every
+// open list query on the page, which is what caused the request storm seen
+// in the network tab (list -> audit -> list -> audit ...). Modeled as a
+// query instead, keyed on id, matching useInstitutionAsyncQuery's own
+// fetch-on-mount/id-change behavior with no change-broadcast side effect.
+export function useInstitutionAuditQuery(id) {
+  const query = useInstitutionAsyncQuery(
+    useCallback(
+      () => (id != null ? institutionsApi.audit({ id, page: 1, limit: 10 }) : Promise.resolve(null)),
+      [id],
+    ),
   );
+  const mapped = mapInstitutionListResponse(query.data);
+  return { ...query, data: mapped.institutions };
 }
-export function useInstitutionQuery(id) {
-  return useInstitutionAsyncQuery(
-    useCallback(() => institutionsApi.getById(id ?? ""), [id]),
-    Boolean(id),
-  );
+
+export function useActiveInstitutionsQuery() {
+  const query = useInstitutionAsyncQuery(useCallback(() => institutionsApi.getActive(), []));
+  const mapped = mapInstitutionListResponse(query.data);
+  return { ...query, data: mapped.institutions };
 }
-export function useInstitutionHistoryQuery(id) {
-  return useInstitutionAsyncQuery(
-    useCallback(() => institutionsApi.getHistory(id ?? ""), [id]),
-    Boolean(id),
-  );
+
+export function useInstitutionCreateMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.add(payload), []));
 }
-export function useCreateInstitutionMutation() {
-  return useInstitutionMutation(useCallback((payload) => institutionsApi.create(payload), []));
+export function useInstitutionUpdateMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.edit(payload), []));
 }
+// Back-compat alias for src/Pages/KYC/KycPage.jsx (out of scope for this
+// Institution/Profile wiring pass — read-only per task constraints), which
+// calls this as mutateAsync({ id, payload }) against the old fictional
+// PUT /institutions/{id} convention. Forwarded onto the real
+// /institution/profile/edit endpoint as {id, ...payload}; note this will
+// NOT satisfy that endpoint's full-profile-body requirement (it only sends
+// { kyc: {...} }), so KYC-driven institution updates remain unverified
+// until KycPage itself is revisited — flagged here, not silently fixed,
+// since KYC business logic is out of scope for this task.
 export function useUpdateInstitutionMutation() {
   return useInstitutionMutation(
-    useCallback(({ id, payload }) => institutionsApi.update(id, payload), []),
+    useCallback(({ id, payload }) => institutionsApi.edit({ id, ...payload }), []),
   );
 }
-export function useInstitutionLifecycleMutation() {
-  return useInstitutionMutation(
-    useCallback(({ action, id, payload }) => {
-      if (action === "delete") return institutionsApi.delete(id, payload);
-      if (action === "activate") return institutionsApi.activate(id, payload);
-      return institutionsApi.deactivate(id, payload);
-    }, []),
-  );
+export function useInstitutionAuthMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.auth(payload), []));
 }
-export function useContinueRejectedInstitutionMutation() {
-  return useInstitutionMutation(
-    useCallback(
-      ({ requestId, payload, mode }) =>
-        institutionsApi.continueRejectedAdd(requestId, payload, mode),
-      [],
-    ),
-  );
+export function useInstitutionDeauthMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.deauth(payload), []));
 }
-export function useInstitutionApprovalMutation() {
-  return useInstitutionMutation(
-    useCallback(
-      ({ requestId, decision }) =>
-        decision === "approve"
-          ? institutionsApi.approve(requestId)
-          : institutionsApi.reject(requestId),
-      [],
-    ),
-  );
+export function useInstitutionDeleteMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.delete(payload), []));
+}
+export function useInstitutionDeleteAuthMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.deleteAuth(payload), []));
 }

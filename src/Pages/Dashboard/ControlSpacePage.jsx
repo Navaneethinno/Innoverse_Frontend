@@ -4,10 +4,6 @@ import { ArrowRight, Building2, CheckCircle, Clock, FileText, Shield, Zap } from
 import { motion } from "motion/react";
 import { cn } from "../../Utils/Lib/utils";
 import { useAuth } from "../../Hooks/useAuth";
-import { LoadingState } from "../../Components/Common/LoadingState";
-import { ErrorState } from "../../Components/Common/ErrorState";
-import { usePendingRequestsQuery } from "@/Hooks/MakerChecker/makerCheckerHooks";
-import { useInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 const tile = "rounded-2xl p-5 border overflow-hidden relative";
 const glass = {
   background: "var(--glass-bg)",
@@ -188,56 +184,22 @@ function approvalLabel(req) {
   }
   return `${req.approval_count}/${req.required_checker_count} approvals`;
 }
+// TEMPORARY: this dashboard is intentionally static/dummy data, not wired to
+// any live endpoint. It was briefly wired to the real institution/profile
+// list + a pending-approvals endpoint, but the pending-approvals API isn't
+// confirmed to exist yet, and that live dependency turned a page that used
+// to render instantly into one that can get stuck on a loading skeleton (or
+// error) whenever either request is slow, unavailable, or shaped differently
+// than expected. Restored to static zeros per explicit instruction — revert
+// this once both a real /institution/profile/list-backed summary AND a real
+// maker-checker "pending requests" endpoint are confirmed and stable.
 export function ControlSpacePage() {
   const navigate = useNavigate();
   const currentUser = useAuth((s) => s.user);
-  const institutionsQuery = useInstitutionsQuery();
-  const institutions = institutionsQuery.data ?? [];
-  const iL = institutionsQuery.isLoading;
-  const iE = institutionsQuery.error;
-  const pendingQuery = usePendingRequestsQuery();
-  const allPending = pendingQuery.data ?? [];
-  const pendingLoading = pendingQuery.isLoading;
-  const stats = useMemo(() => {
-    // InstitutionOut has both `status` and `status_id`.
-    // An institution is active when status === "ACTIVE" (case-insensitive).
-    const active = institutions.filter((i) => (i.status ?? "").toUpperCase() === "ACTIVE").length;
-    const myRequests = currentUser
-      ? allPending.filter((r) => String(r.maker?.id) === String(currentUser.id)).length
-      : 0;
-    return {
-      total: institutions.length,
-      active,
-      pendingRequests: allPending.length,
-      myRequests,
-    };
-  }, [institutions, allPending, currentUser]);
-  // Merge KYC internal adapter counts into their parent entity groups
-  const breakdown = useMemo(
-    () =>
-      BREAKDOWN_GROUPS.map(({ label, keys }) => ({
-        label,
-        count: allPending.filter((r) => keys.includes(r.entity_type)).length,
-      })),
-    [allPending],
-  );
-  const recentPending = allPending.slice(0, 5);
-  if (iL)
-    return (
-      <div className="pt-6">
-        <LoadingState lines={4} />
-      </div>
-    );
-  if (iE)
-    return (
-      <div className="pt-6">
-        <ErrorState
-          title="Dashboard unavailable"
-          description={iE instanceof Error ? iE.message : "Failed to load institutions"}
-          onRetry={() => void institutionsQuery.refetch()}
-        />
-      </div>
-    );
+  const stats = { total: 0, active: 0, pendingRequests: 0, myRequests: 0 };
+  const breakdown = useMemo(() => BREAKDOWN_GROUPS.map(({ label }) => ({ label, count: 0 })), []);
+  const pendingLoading = false;
+  const recentPending = [];
   return (
     <div className="pt-4 pb-8">
       <motion.div

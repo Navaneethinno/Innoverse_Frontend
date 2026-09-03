@@ -3,60 +3,76 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
-import { useAuth } from "@/Hooks/useAuth";
-import { useCreateInstitutionMutation } from "@/Hooks/Institutions/institutionHooks";
-import { useUsersQuery } from "@/Hooks/Users/userHooks";
-import { MakerCheckerConfig } from "@/Components/MakerChecker/MakerCheckerConfig";
+import {
+  useHasInstitutionAction,
+  useInstitutionCreateMutation,
+} from "@/Hooks/Institutions/institutionHooks";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
-const STEPS = ["Basic Info", "KYC — Contact & Identity", "KYC — Address", "Review & Submit"];
-const COUNTRIES = ["India", "United States", "United Kingdom", "Canada", "Australia"];
+import { DateFormatField } from "@/Components/Institutions/DateFormatField";
+
+// Field set matches POST /institution/profile/add's confirmed body exactly
+// (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
+// sub-objects, since those live under separate out-of-scope sub-entities
+// (Institution/Legal, Institution/Branding, ...).
+const STEPS = ["Basic Info", "KYC Policy", "Login & PIN Policy", "Review & Submit"];
 const EMPTY = {
   code: "",
   name: "",
   type: "PLATFORM_USER",
-  remark: "",
-  kyc_legal_name: "",
-  kyc_registration_number: "",
-  kyc_tax_id: "",
-  kyc_email: "",
-  kyc_phone: "",
-  kyc_website: "",
-  kyc_address_line1: "",
-  kyc_address_line2: "",
-  kyc_city: "",
-  kyc_state: "",
-  kyc_country: "",
-  kyc_postal_code: "",
+  timezone: "Asia/Kolkata",
+  language: "en",
+  date_format: "DD-MM-YYYY",
+  has_branch: false,
+  max_branches_allowed: 1,
+  kyc_enabled: false,
+  total_kyc_levels: 0,
+  allow_downgrade_kyc: false,
+  auto_approve_kyc_level: 0,
+  allowed_login_identifiers: "USERNAME",
+  primary_login_identifier: "USERNAME",
+  is_login_pin_enabled: false,
+  login_pin_length: 4,
+  login_pin_type: "NUMERIC",
+  allow_biometric_login: false,
+  is_txn_pin_enabled: false,
+  txn_pin_length: 4,
+  is_same_login_txn_pin_allowed: false,
 };
+
 function buildPayload(form) {
-  const kyc = {
-    legal_name: form.kyc_legal_name || null,
-    registration_number: form.kyc_registration_number || null,
-    tax_id: form.kyc_tax_id || null,
-    email: form.kyc_email || null,
-    phone: form.kyc_phone || null,
-    website: form.kyc_website || null,
-    address_line1: form.kyc_address_line1 || null,
-    address_line2: form.kyc_address_line2 || null,
-    city: form.kyc_city || null,
-    state: form.kyc_state || null,
-    country: form.kyc_country || null,
-    postal_code: form.kyc_postal_code || null,
+  return {
+    code: form.code,
+    name: form.name,
+    type: form.type,
+    timezone: form.timezone,
+    language: form.language
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean),
+    date_format: form.date_format,
+    has_branch: form.has_branch,
+    max_branches_allowed: Number(form.max_branches_allowed) || 0,
+    kyc_enabled: form.kyc_enabled,
+    total_kyc_levels: Number(form.total_kyc_levels) || 0,
+    allow_downgrade_kyc: form.allow_downgrade_kyc,
+    auto_approve_kyc_level: Number(form.auto_approve_kyc_level) || 0,
+    allowed_login_identifiers: form.allowed_login_identifiers
+      .split(",")
+      .map((v) => v.trim())
+      .filter(Boolean),
+    primary_login_identifier: form.primary_login_identifier,
+    is_login_pin_enabled: form.is_login_pin_enabled,
+    login_pin_length: Number(form.login_pin_length) || 0,
+    login_pin_type: form.login_pin_type,
+    allow_biometric_login: form.allow_biometric_login,
+    is_txn_pin_enabled: form.is_txn_pin_enabled,
+    txn_pin_length: Number(form.txn_pin_length) || 0,
+    is_same_login_txn_pin_allowed: form.is_same_login_txn_pin_allowed,
   };
-  return { code: form.code, name: form.name, type: form.type, remark: form.remark || null, kyc };
 }
-// Module-level — stable identity across renders, no focus loss
-function InputField({
-  label,
-  fieldKey,
-  placeholder,
-  type = "text",
-  required = false,
-  value,
-  error,
-  onChange,
-}) {
+
+function InputField({ label, fieldKey, placeholder, required = false, value, error, onChange }) {
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -64,7 +80,7 @@ function InputField({
         {required && " *"}
       </label>
       <input
-        type={type}
+        type="text"
         value={value}
         onChange={(e) => onChange(fieldKey, e.target.value)}
         placeholder={placeholder}
@@ -81,36 +97,58 @@ function InputField({
     </div>
   );
 }
+function NumberField({ label, fieldKey, value, onChange }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => onChange(fieldKey, e.target.value)}
+        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+      />
+    </div>
+  );
+}
+function ToggleField({ label, fieldKey, value, onChange }) {
+  return (
+    <label className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => onChange(fieldKey, e.target.checked)}
+        className="h-4 w-4"
+      />
+    </label>
+  );
+}
 function ReviewRow({ label, value }) {
   return (
     <div className="flex items-start justify-between py-2.5 border-b border-slate-50 last:border-0">
       <span className="text-sm text-slate-500 shrink-0">{label}</span>
       <span className="text-sm font-medium text-slate-700 text-right ml-4 min-w-0 break-all">
-        {value || "—"}
+        {typeof value === "boolean" ? (value ? "Yes" : "No") : value || "—"}
       </span>
     </div>
   );
 }
+
 export function CreateInstitutionFlow() {
   const navigate = useNavigate();
-  const currentUser = useAuth((s) => s.user);
-  const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
-  const {
-    mutateAsync: createInstitution,
-    isPending: isLoading,
-    error: mutationError,
-  } = useCreateInstitutionMutation();
-  const { data: users = [] } = useUsersQuery();
+  // Real permission source (see useHasInstitutionAction) — the old
+  // `currentUser?.institution?.type === "PLATFORM_OWNER"` check referenced a
+  // field the auth flow never sets, so this page blocked every user
+  // regardless of their actual "Add" permission from login's menu_array.
+  const canCreateInstitution = useHasInstitutionAction("Add");
+  const { mutateAsync: createInstitution, isPending: isLoading, error: mutationError } =
+    useInstitutionCreateMutation();
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState(EMPTY);
-  const [checkerConfig, setCheckerConfig] = useState({
-    checker_mode: "ANY",
-    checker_assignments: [],
-    required_checker_count: 1,
-  });
   const [submitted, setSubmitted] = useState(false);
-  if (!isPlatformOwner) {
+
+  if (!canCreateInstitution) {
     return (
       <div className="pt-4 flex flex-col items-center py-20 text-center">
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
@@ -136,11 +174,11 @@ export function CreateInstitutionFlow() {
             <h2 className="text-lg font-bold text-slate-800 mb-2">Submitted for Approval</h2>
             <p className="text-sm text-slate-500 mb-1">
               The institution has been created with status{" "}
-              <span className="font-semibold text-amber-600">PENDING</span>.
+              <span className="font-semibold text-amber-600">Pending Add</span>.
             </p>
             <p className="text-sm text-slate-400 mb-6">
-              An authorized checker must approve it before it becomes active. You cannot approve
-              your own submission.
+              A different authorized checker must approve it — you cannot approve your own
+              submission.
             </p>
             <div className="flex gap-3 justify-center">
               <button
@@ -185,12 +223,8 @@ export function CreateInstitutionFlow() {
       setStep((s) => s + 1);
       return;
     }
-    const payload = buildPayload(form);
-    payload.checker_mode = checkerConfig.checker_mode;
-    payload.checker_assignments = checkerConfig.checker_assignments;
-    payload.required_checker_count = checkerConfig.required_checker_count;
     try {
-      const result = await createInstitution(payload);
+      const result = await createInstitution(buildPayload(form));
       if (result) setSubmitted(true);
     } catch {
       // The mutation error is rendered below without changing the existing flow.
@@ -260,7 +294,6 @@ export function CreateInstitutionFlow() {
               </div>
             ) : (
               <>
-                {/* ── Step 1: Basic Info ── */}
                 {step === 0 && (
                   <div className="space-y-5">
                     <h2 className="text-sm font-semibold text-slate-800">Basic Information</h2>
@@ -283,154 +316,157 @@ export function CreateInstitutionFlow() {
                       onChange={setField}
                     />
                     <InputField
-                      label="Remark"
-                      fieldKey="remark"
-                      placeholder="Onboarding new institution"
-                      value={form.remark}
+                      label="Type"
+                      fieldKey="type"
+                      placeholder="PLATFORM_USER"
+                      value={form.type}
                       onChange={setField}
                     />
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputField
+                        label="Timezone"
+                        fieldKey="timezone"
+                        placeholder="Asia/Kolkata"
+                        value={form.timezone}
+                        onChange={setField}
+                      />
+                      <DateFormatField
+                        value={form.date_format}
+                        onChange={(value) => setField("date_format", value)}
+                      />
+                    </div>
+                    <InputField
+                      label="Language(s) (comma separated)"
+                      fieldKey="language"
+                      placeholder="en"
+                      value={form.language}
+                      onChange={setField}
+                    />
+                    <ToggleField
+                      label="Has Branch"
+                      fieldKey="has_branch"
+                      value={form.has_branch}
+                      onChange={setField}
+                    />
+                    {form.has_branch && (
+                      <NumberField
+                        label="Max Branches Allowed"
+                        fieldKey="max_branches_allowed"
+                        value={form.max_branches_allowed}
+                        onChange={setField}
+                      />
+                    )}
                   </div>
                 )}
 
-                {/* ── Step 2: KYC Contact & Identity ── */}
                 {step === 1 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">
-                      KYC — Contact & Identity
-                    </h2>
-                    <p className="text-xs text-slate-400">
-                      Submitted as part of the institution record. All fields optional.
-                    </p>
-                    <InputField
-                      label="Legal Name"
-                      fieldKey="kyc_legal_name"
-                      placeholder="New Bank Limited"
-                      value={form.kyc_legal_name}
-                      error={errors.kyc_legal_name}
+                    <h2 className="text-sm font-semibold text-slate-800">KYC Policy</h2>
+                    <ToggleField
+                      label="KYC Enabled"
+                      fieldKey="kyc_enabled"
+                      value={form.kyc_enabled}
                       onChange={setField}
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        label="Registration Number"
-                        fieldKey="kyc_registration_number"
-                        placeholder="REG-001"
-                        value={form.kyc_registration_number}
-                        error={errors.kyc_registration_number}
-                        onChange={setField}
-                      />
-                      <InputField
-                        label="Tax ID"
-                        fieldKey="kyc_tax_id"
-                        placeholder="TAX-001"
-                        value={form.kyc_tax_id}
-                        error={errors.kyc_tax_id}
-                        onChange={setField}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        label="Email"
-                        fieldKey="kyc_email"
-                        placeholder="admin@newbank.com"
-                        type="email"
-                        value={form.kyc_email}
-                        error={errors.kyc_email}
-                        onChange={setField}
-                      />
-                      <InputField
-                        label="Phone"
-                        fieldKey="kyc_phone"
-                        placeholder="+91-9000000001"
-                        type="tel"
-                        value={form.kyc_phone}
-                        error={errors.kyc_phone}
-                        onChange={setField}
-                      />
-                    </div>
-                    <InputField
-                      label="Website"
-                      fieldKey="kyc_website"
-                      placeholder="https://newbank.com"
-                      value={form.kyc_website}
-                      error={errors.kyc_website}
-                      onChange={setField}
-                    />
+                    {form.kyc_enabled && (
+                      <>
+                        <NumberField
+                          label="Total KYC Levels"
+                          fieldKey="total_kyc_levels"
+                          value={form.total_kyc_levels}
+                          onChange={setField}
+                        />
+                        <NumberField
+                          label="Auto Approve KYC Level"
+                          fieldKey="auto_approve_kyc_level"
+                          value={form.auto_approve_kyc_level}
+                          onChange={setField}
+                        />
+                        <ToggleField
+                          label="Allow Downgrade KYC"
+                          fieldKey="allow_downgrade_kyc"
+                          value={form.allow_downgrade_kyc}
+                          onChange={setField}
+                        />
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* ── Step 3: KYC Address ── */}
                 {step === 2 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">KYC — Address</h2>
+                    <h2 className="text-sm font-semibold text-slate-800">Login & PIN Policy</h2>
                     <InputField
-                      label="Address Line 1"
-                      fieldKey="kyc_address_line1"
-                      placeholder="1 Finance St"
-                      value={form.kyc_address_line1}
-                      error={errors.kyc_address_line1}
+                      label="Allowed Login Identifiers (comma separated)"
+                      fieldKey="allowed_login_identifiers"
+                      placeholder="USERNAME,EMAIL,MOBILE"
+                      value={form.allowed_login_identifiers}
                       onChange={setField}
                     />
                     <InputField
-                      label="Address Line 2"
-                      fieldKey="kyc_address_line2"
-                      placeholder="Suite 400"
-                      value={form.kyc_address_line2}
-                      error={errors.kyc_address_line2}
+                      label="Primary Login Identifier"
+                      fieldKey="primary_login_identifier"
+                      placeholder="USERNAME"
+                      value={form.primary_login_identifier}
                       onChange={setField}
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        label="City"
-                        fieldKey="kyc_city"
-                        placeholder="Mumbai"
-                        value={form.kyc_city}
-                        error={errors.kyc_city}
-                        onChange={setField}
-                      />
-                      <InputField
-                        label="State"
-                        fieldKey="kyc_state"
-                        placeholder="Maharashtra"
-                        value={form.kyc_state}
-                        error={errors.kyc_state}
-                        onChange={setField}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        label="Postal Code"
-                        fieldKey="kyc_postal_code"
-                        placeholder="400001"
-                        value={form.kyc_postal_code}
-                        error={errors.kyc_postal_code}
-                        onChange={setField}
-                      />
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                          Country
-                        </label>
-                        <select
-                          value={form.kyc_country}
-                          onChange={(e) => setField("kyc_country", e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
-                        >
-                          <option value="">Select…</option>
-                          {COUNTRIES.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </select>
+                    <ToggleField
+                      label="Login PIN Enabled"
+                      fieldKey="is_login_pin_enabled"
+                      value={form.is_login_pin_enabled}
+                      onChange={setField}
+                    />
+                    {form.is_login_pin_enabled && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <NumberField
+                          label="Login PIN Length"
+                          fieldKey="login_pin_length"
+                          value={form.login_pin_length}
+                          onChange={setField}
+                        />
+                        <InputField
+                          label="Login PIN Type"
+                          fieldKey="login_pin_type"
+                          placeholder="NUMERIC"
+                          value={form.login_pin_type}
+                          onChange={setField}
+                        />
                       </div>
-                    </div>
+                    )}
+                    <ToggleField
+                      label="Allow Biometric Login"
+                      fieldKey="allow_biometric_login"
+                      value={form.allow_biometric_login}
+                      onChange={setField}
+                    />
+                    <ToggleField
+                      label="Transaction PIN Enabled"
+                      fieldKey="is_txn_pin_enabled"
+                      value={form.is_txn_pin_enabled}
+                      onChange={setField}
+                    />
+                    {form.is_txn_pin_enabled && (
+                      <>
+                        <NumberField
+                          label="Transaction PIN Length"
+                          fieldKey="txn_pin_length"
+                          value={form.txn_pin_length}
+                          onChange={setField}
+                        />
+                        <ToggleField
+                          label="Same Login/Transaction PIN Allowed"
+                          fieldKey="is_same_login_txn_pin_allowed"
+                          value={form.is_same_login_txn_pin_allowed}
+                          onChange={setField}
+                        />
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* ── Step 4: Review & Submit ── */}
                 {step === 3 && (
                   <div className="space-y-5">
                     <h2 className="text-sm font-semibold text-slate-800">Review & Submit</h2>
-
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
                         Institution
@@ -438,37 +474,26 @@ export function CreateInstitutionFlow() {
                       <div className="rounded-xl border border-slate-100 px-4">
                         <ReviewRow label="Code" value={form.code} />
                         <ReviewRow label="Name" value={form.name} />
+                        <ReviewRow label="Type" value={form.type} />
+                        <ReviewRow label="Timezone" value={form.timezone} />
+                        <ReviewRow label="Date Format" value={form.date_format} />
+                        <ReviewRow label="Has Branch" value={form.has_branch} />
                       </div>
                     </div>
-
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                        KYC — Contact & Identity
+                        KYC & Login Policy
                       </p>
                       <div className="rounded-xl border border-slate-100 px-4">
-                        <ReviewRow label="Legal Name" value={form.kyc_legal_name} />
-                        <ReviewRow label="Reg. Number" value={form.kyc_registration_number} />
-                        <ReviewRow label="Tax ID" value={form.kyc_tax_id} />
-                        <ReviewRow label="Email" value={form.kyc_email} />
-                        <ReviewRow label="Phone" value={form.kyc_phone} />
-                        <ReviewRow label="Website" value={form.kyc_website} />
+                        <ReviewRow label="KYC Enabled" value={form.kyc_enabled} />
+                        <ReviewRow
+                          label="Login Identifiers"
+                          value={form.allowed_login_identifiers}
+                        />
+                        <ReviewRow label="Login PIN Enabled" value={form.is_login_pin_enabled} />
+                        <ReviewRow label="Txn PIN Enabled" value={form.is_txn_pin_enabled} />
                       </div>
                     </div>
-
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                        KYC — Address
-                      </p>
-                      <div className="rounded-xl border border-slate-100 px-4">
-                        <ReviewRow label="Address Line 1" value={form.kyc_address_line1} />
-                        <ReviewRow label="Address Line 2" value={form.kyc_address_line2} />
-                        <ReviewRow label="City" value={form.kyc_city} />
-                        <ReviewRow label="State" value={form.kyc_state} />
-                        <ReviewRow label="Country" value={form.kyc_country} />
-                        <ReviewRow label="Postal Code" value={form.kyc_postal_code} />
-                      </div>
-                    </div>
-
                     <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100">
                       <AlertCircle size={15} className="text-amber-600 mt-0.5 shrink-0" />
                       <div>
@@ -476,24 +501,12 @@ export function CreateInstitutionFlow() {
                           Maker-Checker Required
                         </p>
                         <p className="text-xs text-amber-700 mt-0.5">
-                          Institution will be created with status <strong>PENDING</strong>. A
+                          Institution will be created with status <strong>Pending Add</strong>. A
                           different authorized user must approve it — you cannot approve your own
                           submission.
                         </p>
                       </div>
                     </div>
-
-                    <MakerCheckerConfig
-                      value={checkerConfig}
-                      onChange={setCheckerConfig}
-                      candidates={users.map((u) => ({
-                        id: u.id,
-                        name: u.username,
-                        institution_id: u.institution?.id,
-                      }))}
-                      makerInstitutionId={currentUser?.institution?.id}
-                      currentMakerId={currentUser?.id}
-                    />
                   </div>
                 )}
               </>
@@ -511,7 +524,7 @@ export function CreateInstitutionFlow() {
             </button>
           )}
           <button
-            onClick={handleNext}
+            onClick={() => void handleNext()}
             disabled={isLoading}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >

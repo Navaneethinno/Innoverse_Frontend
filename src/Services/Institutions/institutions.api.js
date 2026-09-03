@@ -1,107 +1,85 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
-import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
+// Institution/Profile endpoints — per the official Postman collection
+// ("InnoVerse_ConfigProcessor" → "Institution/Profile"). These are the only
+// 9 confirmed endpoints for this entity; sibling sub-entities (Institution
+// Type/Legal/Branding/Channel/Currency/Module) are out of scope and are NOT
+// implemented here.
+//
+// Follows the exact same request convention as src/Services/Users/users.api.js
+// (itself the sibling maker-checker service in this codebase): a plain POST
+// fetch with Content-Type/Deviceinfo/Authorization headers, an AbortController
+// timeout, and 401 handling — NOT src/Services/Master/master.api.js's
+// extractData() shape, and NOT src/Services/api/response.js's
+// unwrapApiResponse() (documented in master.api.js as never validated against
+// a live response). The response envelope confirmed from a real login capture
+// is { api, code, data, message, remark, status } — this module returns the
+// raw payload (like users.api.js does) so callers read payload.data directly,
+// with the exact shape of that `data` object for each endpoint still unverified
+// against a live backend (see institutionHooks.js normalization comments).
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
-import { unwrapApiResponse } from "@/Services/api/response";
-const DEFAULT_TIMEOUT = 10000;
-function handleUnauthorized() {
-  clearAuthSession();
-  window.dispatchEvent(new Event("auth:unauthorized"));
-}
-async function request(path, init, fallback) {
-  if (!NON_LOGIN_APIS_ENABLED) {
-    if (init?.method && init.method !== "GET") throw new Error("API not enabled");
-    return fallback;
-  }
+import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
+import { API_BASE_URL } from "@/Utils/Constant";
+import { DEVICE_INFO } from "@/Services/Auth/auth.service";
+
+const REQUEST_TIMEOUT = 10000;
+
+async function request(path, body) {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
   try {
-    const response = await fetch(API_BASE_URL + path, {
-      ...init,
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: "Bearer " + token } : {}),
-        ...(init?.headers ?? {}),
+        Deviceinfo: JSON.stringify(DEVICE_INFO),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      body: JSON.stringify(body ?? {}),
       signal: controller.signal,
     });
-    if (response.status === 401) {
-      handleUnauthorized();
-      throw new Error("Session expired. Please sign in again.");
-    }
-    const statusMessage = getStatusErrorMessage(response.status);
-    if (statusMessage) throw new Error(statusMessage);
     const contentType = response.headers.get("content-type") ?? "";
     const payload = contentType.includes("application/json")
       ? await response.json().catch(() => null)
       : await response.text().catch(() => null);
-    if (!response.ok) {
-      throw new Error(getApiErrorMessage(payload, "Request failed with status " + response.status));
+    if (response.status === 401) {
+      clearAuthSession();
+      window.dispatchEvent(new Event("auth:unauthorized"));
+      throw new Error("Session expired. Please sign in again.");
     }
-    return unwrapApiResponse(payload, fallback);
+    const statusMessage = getStatusErrorMessage(response.status);
+    if (statusMessage) throw new Error(statusMessage);
+    if (!response.ok)
+      throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));
+    return payload;
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+    if (error instanceof DOMException && error.name === "AbortError")
       throw new Error("Request timed out");
-    }
     throw error instanceof Error ? error : new Error("Unexpected API error");
   } finally {
     window.clearTimeout(timeout);
   }
 }
+
 export const institutionsApi = {
-  list: async () => {
-    const response = await request("/institutions", undefined, []);
-    return Array.isArray(response) ? response : Array.isArray(response?.data) ? response.data : [];
-  },
-  getById: (id) => request(`/institutions/${id}`, undefined, null),
-  create: (payload) =>
-    request("/institutions", { method: "POST", body: JSON.stringify(payload) }, undefined),
-  update: (id, payload) =>
-    request(`/institutions/${id}`, { method: "PUT", body: JSON.stringify(payload) }, undefined),
-  delete: (id, payload) =>
-    request(
-      `/institutions/${id}`,
-      { method: "DELETE", ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}) },
-      undefined,
-    ),
-  activate: (id, payload) =>
-    request(
-      `/institutions/${id}/activate`,
-      { method: "POST", ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}) },
-      undefined,
-    ),
-  deactivate: (id, payload) =>
-    request(
-      `/institutions/${id}/deactivate`,
-      { method: "POST", ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}) },
-      undefined,
-    ),
-  listPending: () => request("/pending/entities/institutions/pending", undefined, []),
-  getHistory: (id) => request(`/pending/entities/institutions/${id}/history`, undefined, []),
-  getLifecycle: (auditKey) =>
-    request(`/pending/entities/institutions/lifecycle/${auditKey}`, undefined, []),
-  approve: (requestId, payload) =>
-    request(
-      `/pending/requests/${requestId}/approve`,
-      { method: "POST", body: JSON.stringify(payload ?? {}) },
-      undefined,
-    ),
-  reject: (requestId, payload) =>
-    request(
-      `/pending/requests/${requestId}/reject`,
-      { method: "POST", body: JSON.stringify(payload ?? {}) },
-      undefined,
-    ),
-  continueRejectedAdd: (requestId, payload, mode) =>
-    mode === "edit"
-      ? request(
-          `/pending/adds/institutions/${requestId}/edit`,
-          { method: "POST", body: JSON.stringify(payload) },
-          undefined,
-        )
-      : request(
-          `/pending/adds/institutions/${requestId}/delete`,
-          { method: "POST", body: JSON.stringify({ remark: payload.remark }) },
-          undefined,
-        ),
+  // POST /institution/profile/list, body {page, limit} — the main list.
+  // No documented server-side search/filter param in the Postman collection,
+  // so search/status filtering is done client-side over this page's results
+  // (see InstitutionListPage.jsx).
+  list: (payload = { page: 1, limit: 10 }) => request("/institution/profile/list", payload),
+  // POST /institution/profile/get_active, body {} — authorized/active records only.
+  getActive: () => request("/institution/profile/get_active", {}),
+  // POST /institution/profile/add, body: full profile shape — creates a pending-add record.
+  add: (payload) => request("/institution/profile/add", payload),
+  // POST /institution/profile/edit, body: full profile shape + {id} — creates a pending-edit record.
+  edit: (payload) => request("/institution/profile/edit", payload),
+  // POST /institution/profile/auth, body {id} — checker approves a pending add/edit.
+  auth: (payload) => request("/institution/profile/auth", payload),
+  // POST /institution/profile/deauth, body {id, description} — checker rejects, with a reason.
+  deauth: (payload) => request("/institution/profile/deauth", payload),
+  // POST /institution/profile/delete, body {id} — creates a pending-delete.
+  delete: (payload) => request("/institution/profile/delete", payload),
+  // POST /institution/profile/delete_auth, body {id} — checker confirms the delete.
+  deleteAuth: (payload) => request("/institution/profile/delete_auth", payload),
+  // POST /institution/profile/audit, body {id, page, limit} — audit trail for one record.
+  audit: (payload) => request("/institution/profile/audit", payload),
 };

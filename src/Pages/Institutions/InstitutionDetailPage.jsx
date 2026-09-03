@@ -4,288 +4,178 @@ import { motion } from "motion/react";
 import {
   AlertCircle,
   ArrowLeft,
-  Pencil,
-  Trash2,
-  Power,
-  PowerOff,
-  History,
-  X,
-  CheckCircle,
-  Clock,
   Building2,
+  History,
+  Pencil,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+  X,
 } from "lucide-react";
-import { institutionsApi } from "@/Services/Institutions/institutions.api";
-import { kycApi } from "@/Services/KYC/kyc.api";
-import {
-  useContinueRejectedInstitutionMutation,
-  useInstitutionLifecycleMutation,
-  useUpdateInstitutionMutation,
-} from "@/Hooks/Institutions/institutionHooks";
-import { useUsersQuery } from "@/Hooks/Users/userHooks";
-import { Skeleton } from "@/Components/UI/skeleton";
-import { AuditTimeline } from "@/Components/MakerChecker/AuditTimeline";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { LifecycleMutationDialog } from "@/Components/MakerChecker/LifecycleMutationDialog";
-import { MakerCheckerConfig } from "@/Components/MakerChecker/MakerCheckerConfig";
-import { ChangeViewer } from "@/Components/MakerChecker/ChangeViewer";
+import { Skeleton } from "@/Components/UI/skeleton";
+import { InstitutionAuditModal } from "@/Components/Institutions/InstitutionAuditModal";
+import { DateFormatField } from "@/Components/Institutions/DateFormatField";
+import {
+  useInstitutionAuthMutation,
+  useInstitutionDeauthMutation,
+  useInstitutionDeleteAuthMutation,
+  useInstitutionDeleteMutation,
+  useInstitutionUpdateMutation,
+  useInstitutionsQuery,
+} from "@/Hooks/Institutions/institutionHooks";
 import { notifications } from "@/Utils/Lib/notifications";
-// ─── helpers ──────────────────────────────────────────────────────────────────
+
+// GAP: the confirmed Postman collection ("Institution/Profile" folder) has
+// no GET/get-by-id endpoint — only list, get_active, add, edit, auth,
+// deauth, delete, delete_auth and audit. So this page locates the record by
+// scanning a /institution/profile/list page for a matching id, the same way
+// the list page renders it, rather than calling an endpoint that does not
+// exist. If the institution isn't present in that page of results the page
+// reports "not found" — this is a known limitation until a dedicated
+// get-by-id (or a `list` filtered by id) endpoint is confirmed.
 function Field({ label, value }) {
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
         {label}
       </p>
-      <p className="text-sm text-slate-700 font-medium">{value || "—"}</p>
+      <p className="text-sm text-slate-700 font-medium">
+        {typeof value === "boolean" ? (value ? "Yes" : "No") : (value ?? "—")}
+      </p>
     </div>
   );
 }
-function EditField({ label, value, onChange, readOnly, type = "text", error }) {
+function EditField({ label, value, onChange, type = "text" }) {
   return (
     <div>
       <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
         {label}
       </label>
-      {readOnly ? (
-        <p className="text-sm text-slate-400 font-medium bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
-          {value || "—"}
-        </p>
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 ${error ? "border-red-400" : "border-slate-200"}`}
-        />
-      )}
-      {error && <p className="text-[11px] text-red-500 mt-0.5">{error}</p>}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+      />
     </div>
   );
 }
-const PENDING_EDIT_STATUSES = ["EDIT_AUTH"];
-// ─── component ────────────────────────────────────────────────────────────────
+function EditToggle({ label, value, onChange }) {
+  return (
+    <label className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        {label}
+      </span>
+      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
+    </label>
+  );
+}
+function institutionId(inst) {
+  return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
+}
+
 export function InstitutionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: users = [] } = useUsersQuery();
-  const updateMutation = useUpdateInstitutionMutation();
-  const lifecycleMutation = useInstitutionLifecycleMutation();
-  const continueMutation = useContinueRejectedInstitutionMutation();
-  const [institution, setInstitution] = useState(null);
-  const [kyc, setKyc] = useState(null);
-  const [auditEntries, setAuditEntries] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [auditLoading, setAuditLoading] = useState(false);
-  const [error, setError] = useState(null);
-  // modal actions
-  const [action, setAction] = useState(null);
-  const [remark, setRemark] = useState("");
-  // continue rejected ADD
-  const [continueTarget, setContinueTarget] = useState(null);
-  const [continueMode, setContinueMode] = useState("edit");
-  const [continueJson, setContinueJson] = useState("");
-  // edit mode
+  const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 100 });
+  const updateMutation = useInstitutionUpdateMutation();
+  const authMutation = useInstitutionAuthMutation();
+  const deauthMutation = useInstitutionDeauthMutation();
+  const deleteMutation = useInstitutionDeleteMutation();
+  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
+
+  const institution = useMemo(
+    () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
+    [institutionsQuery.data, id],
+  );
+
   const [editMode, setEditMode] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editRemark, setEditRemark] = useState("");
-  const [kycForm, setKycForm] = useState({
-    legal_name: "",
-    registration_number: "",
-    tax_id: "",
-    email: "",
-    phone: "",
-    website: "",
-    address_line1: "",
-    address_line2: "",
-    city: "",
-    state: "",
-    country: "",
-    postal_code: "",
-  });
-  const [checkerConfig, setCheckerConfig] = useState({
-    checker_mode: "ANY",
-    checker_assignments: [],
-    required_checker_count: 1,
-  });
+  const [form, setForm] = useState(null);
+  const [action, setAction] = useState(null);
+  const [description, setDescription] = useState("");
+  const [auditOpen, setAuditOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [showPendingChanges, setShowPendingChanges] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const load = async () => {
-    if (!id) return;
-    setIsLoading(true);
-    setError(null);
-    const item = await institutionsApi.getById(id);
-    if (!item) {
-      setError("Institution not found");
-      setIsLoading(false);
-      return;
-    }
-    setInstitution(item);
-    setEditName(item.name ?? "");
-    setEditRemark("");
-    const [kycData, audit] = await Promise.all([
-      kycApi.institution(id),
-      (async () => {
-        setAuditLoading(true);
-        return institutionsApi.getHistory(id);
-      })(),
-    ]);
-    setKyc(kycData);
-    if (kycData) {
-      setKycForm({
-        legal_name: kycData.legal_name ?? "",
-        registration_number: kycData.registration_number ?? "",
-        tax_id: kycData.tax_id ?? "",
-        email: kycData.email ?? "",
-        phone: kycData.phone ?? "",
-        website: kycData.website ?? "",
-        address_line1: kycData.address_line1 ?? "",
-        address_line2: kycData.address_line2 ?? "",
-        city: kycData.city ?? "",
-        state: kycData.state ?? "",
-        country: kycData.country ?? "",
-        postal_code: kycData.postal_code ?? "",
+
+  useEffect(() => {
+    if (institution && !editMode) {
+      setForm({
+        code: institution.code ?? "",
+        name: institution.name ?? "",
+        type: institution.type ?? "",
+        timezone: institution.timezone ?? "",
+        date_format: institution.date_format ?? "",
+        has_branch: Boolean(institution.has_branch),
+        max_branches_allowed: institution.max_branches_allowed ?? 0,
+        kyc_enabled: Boolean(institution.kyc_enabled),
+        total_kyc_levels: institution.total_kyc_levels ?? 0,
+        allow_downgrade_kyc: Boolean(institution.allow_downgrade_kyc),
+        auto_approve_kyc_level: institution.auto_approve_kyc_level ?? 0,
+        primary_login_identifier: institution.primary_login_identifier ?? "",
+        is_login_pin_enabled: Boolean(institution.is_login_pin_enabled),
+        login_pin_length: institution.login_pin_length ?? 0,
+        login_pin_type: institution.login_pin_type ?? "",
+        allow_biometric_login: Boolean(institution.allow_biometric_login),
+        is_txn_pin_enabled: Boolean(institution.is_txn_pin_enabled),
+        txn_pin_length: institution.txn_pin_length ?? 0,
+        is_same_login_txn_pin_allowed: Boolean(institution.is_same_login_txn_pin_allowed),
       });
     }
-    setAuditEntries(audit);
-    setAuditLoading(false);
-    setIsLoading(false);
-  };
-  useEffect(() => {
-    void load();
-  }, [id]);
-  const makerPending = useMemo(
-    () => auditEntries.find((e) => e.action === "ADD" && e.auth_status === "REJECTED"),
-    [auditEntries],
-  );
-  const hasPendingEdit = useMemo(
-    () => institution && PENDING_EDIT_STATUSES.includes(institution.auth_status ?? ""),
-    [institution],
-  );
-  const pendingEditEntry = useMemo(
-    () =>
-      hasPendingEdit
-        ? [...auditEntries]
-            .sort((a, b) => (b.sequence_no ?? 0) - (a.sequence_no ?? 0))
-            .find((e) => e.action === "EDIT" && e.event_type === "REQUEST")
-        : undefined,
-    [auditEntries, hasPendingEdit],
-  );
-  // ─── edit mode submit ──────────────────────────────────────────────────────
+  }, [institution, editMode]);
+
+  const setField = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
+
   const handleSubmitEdit = async () => {
-    if (!id || !institution) return;
-    const errors = {};
-    if (!editName.trim()) errors.name = "Institution name is required.";
-    if (kycForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(kycForm.email))
-      errors.email = "Enter a valid email address.";
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-    setFieldErrors({});
+    if (!id || !form) return;
     setSubmitting(true);
-    let res = null;
+    let result = null;
     try {
-      res = await updateMutation.mutateAsync({
+      result = await updateMutation.mutateAsync({
         id,
-        payload: {
-          name: editName || null,
-          remark: editRemark || null,
-          kyc: {
-            legal_name: kycForm.legal_name || null,
-            registration_number: kycForm.registration_number || null,
-            tax_id: kycForm.tax_id || null,
-            email: kycForm.email || null,
-            phone: kycForm.phone || null,
-            website: kycForm.website || null,
-            address_line1: kycForm.address_line1 || null,
-            address_line2: kycForm.address_line2 || null,
-            city: kycForm.city || null,
-            state: kycForm.state || null,
-            country: kycForm.country || null,
-            postal_code: kycForm.postal_code || null,
-          },
-          checker_mode: checkerConfig.checker_mode,
-          checker_assignments: checkerConfig.checker_assignments,
-          required_checker_count: checkerConfig.required_checker_count,
-        },
+        ...form,
+        language: institution?.language ?? [],
+        allowed_login_identifiers: institution?.allowed_login_identifiers ?? [],
+        max_branches_allowed: Number(form.max_branches_allowed) || 0,
+        total_kyc_levels: Number(form.total_kyc_levels) || 0,
+        auto_approve_kyc_level: Number(form.auto_approve_kyc_level) || 0,
+        login_pin_length: Number(form.login_pin_length) || 0,
+        txn_pin_length: Number(form.txn_pin_length) || 0,
       });
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Failed to submit update");
     }
     setSubmitting(false);
-    if (res) {
+    if (result) {
       notifications.success(
-        "Update submitted for authorization. The institution's current authorized information will remain unchanged until the request is approved.",
+        "Update submitted for authorization. Current authorized values remain unchanged until approved.",
       );
       setEditMode(false);
-      void load();
+      void institutionsQuery.refetch();
     }
   };
-  const handleCancelEdit = () => {
-    if (!institution) return;
-    setEditName(institution.name ?? "");
-    setEditRemark("");
-    if (kyc) {
-      setKycForm({
-        legal_name: kyc.legal_name ?? "",
-        registration_number: kyc.registration_number ?? "",
-        tax_id: kyc.tax_id ?? "",
-        email: kyc.email ?? "",
-        phone: kyc.phone ?? "",
-        website: kyc.website ?? "",
-        address_line1: kyc.address_line1 ?? "",
-        address_line2: kyc.address_line2 ?? "",
-        city: kyc.city ?? "",
-        state: kyc.state ?? "",
-        country: kyc.country ?? "",
-        postal_code: kyc.postal_code ?? "",
-      });
-    }
-    setFieldErrors({});
-    setCheckerConfig({ checker_mode: "ANY", checker_assignments: [], required_checker_count: 1 });
-    setEditMode(false);
-  };
-  // modal actions
-  const submitAction = async () => {
-    if (!id || !action) return;
-    const payload = { remark: remark || null };
-    let result = null;
+
+  const runAction = async () => {
+    if (!action || !id) return;
     try {
-      result = await lifecycleMutation.mutateAsync({ action, id, payload });
-    } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Failed to submit request");
-    }
-    if (result) {
-      notifications.success("Request submitted for approval");
+      if (action === "auth") await authMutation.mutateAsync({ id });
+      if (action === "deauth") await deauthMutation.mutateAsync({ id, description });
+      if (action === "delete") await deleteMutation.mutateAsync({ id });
+      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id });
+      notifications.success("Request submitted");
       setAction(null);
-      void load();
-    }
-  };
-  const submitContinue = async () => {
-    if (!continueTarget) return;
-    const after_data =
-      continueMode === "delete" ? null : continueJson ? JSON.parse(continueJson) : undefined;
-    let result = null;
-    try {
-      result = await continueMutation.mutateAsync({
-        requestId: String(continueTarget.request_id),
-        payload: { after_data: after_data ?? undefined, remark: remark || null },
-        mode: continueMode,
-      });
+      setDescription("");
+      void institutionsQuery.refetch();
     } catch (error) {
-      notifications.error(
-        error instanceof Error ? error.message : "Failed to continue rejected ADD",
-      );
-    }
-    if (result) {
-      notifications.success("Rejected ADD continued");
-      setContinueTarget(null);
-      void load();
+      notifications.error(error instanceof Error ? error.message : "Action failed");
     }
   };
-  // ─── render ────────────────────────────────────────────────────────────────
-  if (isLoading || !institution) {
+  const actionPending =
+    authMutation.isPending ||
+    deauthMutation.isPending ||
+    deleteMutation.isPending ||
+    deleteAuthMutation.isPending;
+
+  if (institutionsQuery.isLoading || !form) {
     return (
       <div className="pt-4 pb-8 space-y-4">
         <Skeleton className="h-8 w-48 rounded-xl" />
@@ -294,27 +184,30 @@ export function InstitutionDetailPage() {
       </div>
     );
   }
-  if (error) {
+  if (!institution) {
     return (
       <div className="pt-4 flex flex-col items-center py-20 text-center">
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
           <AlertCircle size={22} className="text-red-400" />
         </div>
-        <p className="text-sm font-bold text-slate-700">{error}</p>
+        <p className="text-sm font-bold text-slate-700">Institution not found</p>
+        <p className="text-xs text-slate-400 mt-1 max-w-sm">
+          There is no get-by-id endpoint for institution profiles — this page looks the record up
+          in the current /institution/profile/list page. It may be outside that page's results.
+        </p>
         <button
-          onClick={() => void load()}
+          onClick={() => navigate("/institutions")}
           className="mt-3 text-xs font-bold text-blue-500 underline"
         >
-          Retry
+          Back to Institutions
         </button>
       </div>
     );
   }
-  const kf = (k) => kycForm[k];
-  const setKf = (k) => (v) => setKycForm((p) => ({ ...p, [k]: v }));
+  const status = String(institution.auth_status ?? institution.status ?? "").toUpperCase();
+
   return (
     <div className="pt-4 pb-8 space-y-5">
-      {/* ── top bar ── */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <button
           onClick={() => navigate("/institutions")}
@@ -326,7 +219,7 @@ export function InstitutionDetailPage() {
         {editMode ? (
           <div className="flex gap-2">
             <button
-              onClick={handleCancelEdit}
+              onClick={() => setEditMode(false)}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50"
             >
               <X size={13} /> Cancel
@@ -337,57 +230,69 @@ export function InstitutionDetailPage() {
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
               style={{ background: "#2266EE" }}
             >
-              <CheckCircle size={13} /> {submitting ? "Submitting…" : "Submit for Approval"}
+              {submitting ? "Submitting…" : "Submit for Approval"}
             </button>
           </div>
         ) : (
           <div className="flex gap-2 flex-wrap">
             <button
-              onClick={() => {
-                if (!hasPendingEdit) setEditMode(true);
-              }}
-              disabled={!!hasPendingEdit}
-              title={hasPendingEdit ? "An edit is already pending approval" : undefined}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+              onClick={() => setEditMode(true)}
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
             >
               <Pencil size={13} /> Edit
             </button>
             <button
+              onClick={() => setAuditOpen(true)}
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
+            >
+              <History size={13} /> Audit
+            </button>
+            <button
+              onClick={() => {
+                setAction("auth");
+                setDescription("");
+              }}
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
+            >
+              <ShieldCheck size={13} /> Authorize
+            </button>
+            <button
+              onClick={() => {
+                setAction("deauth");
+                setDescription("");
+              }}
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
+            >
+              <ShieldOff size={13} /> Deauthorize
+            </button>
+            <button
               onClick={() => {
                 setAction("delete");
-                setRemark("");
+                setDescription("");
               }}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-600 hover:bg-red-50"
             >
               <Trash2 size={13} /> Delete
             </button>
-            {institution.status !== "ACTIVE" && (
+            {/* DEL_WAIT_AUTH mirrors the confirmed-live EDIT_WAIT_AUTH naming
+                pattern seen in a real /institution/profile/audit response;
+                DEL_AUTH is kept as the originally-guessed fallback since
+                only the EDIT variant has been independently confirmed. */}
+            {(status === "DEL_AUTH" || status === "DEL_WAIT_AUTH") && (
               <button
                 onClick={() => {
-                  setAction("activate");
-                  setRemark("");
+                  setAction("deleteAuth");
+                  setDescription("");
                 }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-700 hover:bg-red-50"
               >
-                <Power size={13} /> Activate
-              </button>
-            )}
-            {institution.status !== "INACTIVE" && (
-              <button
-                onClick={() => {
-                  setAction("deactivate");
-                  setRemark("");
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
-              >
-                <PowerOff size={13} /> Deactivate
+                Confirm Delete
               </button>
             )}
           </div>
         )}
       </div>
 
-      {/* ── header card ── */}
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div
@@ -402,208 +307,112 @@ export function InstitutionDetailPage() {
             <p className="text-xs text-slate-500 mt-0.5">Type: {institution.type}</p>
           </div>
         </div>
-        <StatusBadge status={institution.auth_status ?? institution.status ?? ""} />
+        <StatusBadge status={status} />
       </div>
 
-      {/* -- pending edit banner -- */}
-      {hasPendingEdit && (
-        <motion.div
-          initial={{ opacity: 0, y: -6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-amber-50 border border-amber-200 overflow-hidden"
-        >
-          <div className="px-4 py-3 flex items-start gap-3">
-            <Clock size={15} className="text-amber-500 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-amber-700">Pending Changes</p>
-              <p className="text-[11px] text-amber-600">
-                Awaiting authorization. The current authorized values are shown below.
-              </p>
-              {pendingEditEntry && (
-                <button
-                  onClick={() => setShowPendingChanges((v) => !v)}
-                  className="mt-1.5 text-[11px] font-bold text-blue-500 hover:text-blue-700 underline"
-                >
-                  {showPendingChanges ? "Hide Proposed Changes" : "View Proposed Changes"}
-                </button>
-              )}
-            </div>
-          </div>
-          {showPendingChanges && pendingEditEntry && (
-            <div className="px-4 pb-4">
-              <ChangeViewer
-                action="EDIT"
-                before_data={pendingEditEntry.before_data}
-                after_data={pendingEditEntry.after_data}
-              />
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* ── institution information ── */}
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
         <h2 className="text-sm font-bold text-slate-700">Institution Information</h2>
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           {editMode ? (
             <>
+              <Field label="Institution Code" value={institution.code} />
+              <EditField label="Institution Name" value={form.name} onChange={setField("name")} />
+              <Field label="Institution Type" value={institution.type} />
               <EditField
-                label="Institution Code"
-                value={institution.code}
-                onChange={() => {}}
-                readOnly
+                label="Timezone"
+                value={form.timezone}
+                onChange={setField("timezone")}
               />
-              <EditField
-                label="Institution Name"
-                value={editName}
-                onChange={setEditName}
-                error={fieldErrors.name}
+              <DateFormatField value={form.date_format} onChange={setField("date_format")} />
+              <EditToggle
+                label="Has Branch"
+                value={form.has_branch}
+                onChange={setField("has_branch")}
               />
-              <EditField
-                label="Institution Type"
-                value={institution.type}
-                onChange={() => {}}
-                readOnly
-              />
-              <div className="col-span-2 sm:col-span-3">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-                  Remark
-                </label>
-                <textarea
-                  value={editRemark}
-                  onChange={(e) => setEditRemark(e.target.value)}
-                  placeholder="Optional remark for this change"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 min-h-[72px] resize-none"
-                />
-              </div>
             </>
           ) : (
             <>
               <Field label="Institution Code" value={institution.code} />
               <Field label="Institution Name" value={institution.name} />
               <Field label="Institution Type" value={institution.type} />
+              <Field label="Timezone" value={institution.timezone} />
+              <Field label="Date Format" value={institution.date_format} />
+              <Field label="Has Branch" value={institution.has_branch} />
             </>
           )}
         </div>
       </div>
 
-      {/* ── KYC information ── */}
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-        <h2 className="text-sm font-bold text-slate-700">Institution KYC</h2>
-
-        {/* Contact & Identity */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Contact &amp; Identity
-          </p>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            {editMode ? (
-              <>
-                <EditField
-                  label="Legal Name"
-                  value={kf("legal_name")}
-                  onChange={setKf("legal_name")}
-                />
-                <EditField
-                  label="Registration Number"
-                  value={kf("registration_number")}
-                  onChange={setKf("registration_number")}
-                />
-                <EditField label="Tax ID" value={kf("tax_id")} onChange={setKf("tax_id")} />
-                <EditField
-                  label="Email"
-                  value={kf("email")}
-                  onChange={setKf("email")}
-                  type="email"
-                  error={fieldErrors.email}
-                />
-                <EditField label="Phone" value={kf("phone")} onChange={setKf("phone")} />
-                <EditField label="Website" value={kf("website")} onChange={setKf("website")} />
-              </>
-            ) : (
-              <>
-                <Field label="Legal Name" value={kyc?.legal_name} />
-                <Field label="Registration Number" value={kyc?.registration_number} />
-                <Field label="Tax ID" value={kyc?.tax_id} />
-                <Field label="Email" value={kyc?.email} />
-                <Field label="Phone" value={kyc?.phone} />
-                <Field label="Website" value={kyc?.website} />
-              </>
-            )}
-          </div>
+        <h2 className="text-sm font-bold text-slate-700">KYC & Login Policy</h2>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+          {editMode ? (
+            <>
+              <EditToggle
+                label="KYC Enabled"
+                value={form.kyc_enabled}
+                onChange={setField("kyc_enabled")}
+              />
+              <EditField
+                label="Total KYC Levels"
+                type="number"
+                value={form.total_kyc_levels}
+                onChange={setField("total_kyc_levels")}
+              />
+              <EditToggle
+                label="Allow Downgrade KYC"
+                value={form.allow_downgrade_kyc}
+                onChange={setField("allow_downgrade_kyc")}
+              />
+              <EditField
+                label="Primary Login Identifier"
+                value={form.primary_login_identifier}
+                onChange={setField("primary_login_identifier")}
+              />
+              <EditToggle
+                label="Login PIN Enabled"
+                value={form.is_login_pin_enabled}
+                onChange={setField("is_login_pin_enabled")}
+              />
+              <EditToggle
+                label="Biometric Login"
+                value={form.allow_biometric_login}
+                onChange={setField("allow_biometric_login")}
+              />
+              <EditToggle
+                label="Txn PIN Enabled"
+                value={form.is_txn_pin_enabled}
+                onChange={setField("is_txn_pin_enabled")}
+              />
+              <EditToggle
+                label="Same Login/Txn PIN"
+                value={form.is_same_login_txn_pin_allowed}
+                onChange={setField("is_same_login_txn_pin_allowed")}
+              />
+            </>
+          ) : (
+            <>
+              <Field label="KYC Enabled" value={institution.kyc_enabled} />
+              <Field label="Total KYC Levels" value={institution.total_kyc_levels} />
+              <Field label="Allow Downgrade KYC" value={institution.allow_downgrade_kyc} />
+              <Field
+                label="Primary Login Identifier"
+                value={institution.primary_login_identifier}
+              />
+              <Field label="Login PIN Enabled" value={institution.is_login_pin_enabled} />
+              <Field label="Biometric Login" value={institution.allow_biometric_login} />
+              <Field label="Txn PIN Enabled" value={institution.is_txn_pin_enabled} />
+              <Field
+                label="Same Login/Txn PIN"
+                value={institution.is_same_login_txn_pin_allowed}
+              />
+            </>
+          )}
         </div>
-
-        <div className="border-t border-slate-100" />
-
-        {/* Address */}
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Address
-          </p>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-            {editMode ? (
-              <>
-                <div className="col-span-2 sm:col-span-3">
-                  <EditField
-                    label="Address Line 1"
-                    value={kf("address_line1")}
-                    onChange={setKf("address_line1")}
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-3">
-                  <EditField
-                    label="Address Line 2"
-                    value={kf("address_line2")}
-                    onChange={setKf("address_line2")}
-                  />
-                </div>
-                <EditField label="City" value={kf("city")} onChange={setKf("city")} />
-                <EditField label="State" value={kf("state")} onChange={setKf("state")} />
-                <EditField label="Country" value={kf("country")} onChange={setKf("country")} />
-                <EditField
-                  label="Postal Code"
-                  value={kf("postal_code")}
-                  onChange={setKf("postal_code")}
-                />
-              </>
-            ) : (
-              <>
-                <div className="col-span-2 sm:col-span-3">
-                  <Field label="Address Line 1" value={kyc?.address_line1} />
-                </div>
-                {kyc?.address_line2 && (
-                  <div className="col-span-2 sm:col-span-3">
-                    <Field label="Address Line 2" value={kyc.address_line2} />
-                  </div>
-                )}
-                <Field label="City" value={kyc?.city} />
-                <Field label="State" value={kyc?.state} />
-                <Field label="Country" value={kyc?.country} />
-                <Field label="Postal Code" value={kyc?.postal_code} />
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* checker config — edit mode only */}
-        {editMode && (
-          <MakerCheckerConfig
-            value={checkerConfig}
-            onChange={setCheckerConfig}
-            candidates={users.map((u) => ({
-              id: u.id,
-              name: u.username,
-              institution_id: u.institution?.id,
-            }))}
-            showTitle
-          />
-        )}
-
-        {/* edit mode bottom actions */}
         {editMode && (
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
-              onClick={handleCancelEdit}
+              onClick={() => setEditMode(false)}
               className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
             >
               Cancel
@@ -620,102 +429,53 @@ export function InstitutionDetailPage() {
         )}
       </div>
 
-      {/* ── lifecycle history ── */}
-      <div className="rounded-2xl p-5 bg-white/70 border border-white/80">
-        <div className="flex items-center gap-2 mb-4">
-          <History size={14} className="text-blue-500" />
-          <h2 className="text-sm font-bold">Lifecycle History</h2>
-        </div>
-        {makerPending && (
-          <p className="mb-3 text-xs text-amber-600">
-            Rejected ADD available for continuation (audit key: {makerPending.audit_key})
-          </p>
-        )}
-        <AuditTimeline
-          entries={auditEntries}
-          isLoading={auditLoading}
-          onContinueRejectedAdd={(entry) => {
-            setContinueTarget(entry);
-            setContinueMode("edit");
-            setContinueJson(JSON.stringify(entry.after_data ?? {}, null, 2));
-            setRemark("");
-          }}
-        />
-      </div>
-
-      {/* ── modal: delete / activate / deactivate ── */}
       {action && (
-        <LifecycleMutationDialog
-          open={true}
-          title={`Institution ${action.charAt(0).toUpperCase() + action.slice(1)}`}
-          onClose={() => setAction(null)}
-          onSubmit={() => void submitAction()}
-          checkerConfig={{
-            checker_mode: "ANY",
-            checker_assignments: [],
-            required_checker_count: 1,
-          }}
-          setCheckerConfig={() => {}}
-          candidates={[]}
-          showCheckerConfig={false}
-        >
-          <textarea
-            value={remark}
-            onChange={(e) => setRemark(e.target.value)}
-            placeholder="Remark (optional)"
-            className="w-full rounded-xl border px-3 py-2 text-sm min-h-24 resize-none"
-          />
-        </LifecycleMutationDialog>
-      )}
-
-      {/* ── modal: continue rejected ADD ── */}
-      {continueTarget && (
-        <LifecycleMutationDialog
-          open={true}
-          title="Continue Rejected ADD"
-          onClose={() => setContinueTarget(null)}
-          onSubmit={() => void submitContinue()}
-          checkerConfig={{
-            checker_mode: "ANY",
-            checker_assignments: [],
-            required_checker_count: 1,
-          }}
-          setCheckerConfig={() => {}}
-          candidates={[]}
-          showCheckerConfig={false}
-        >
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setContinueMode("edit")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${continueMode === "edit" ? "border-blue-400 text-blue-600 bg-blue-50" : "border-slate-200"}`}
-              >
-                Edit continuation
-              </button>
-              <button
-                type="button"
-                onClick={() => setContinueMode("delete")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${continueMode === "delete" ? "border-red-400 text-red-600 bg-red-50" : "border-slate-200"}`}
-              >
-                Delete continuation
-              </button>
-            </div>
-            {continueMode === "edit" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h2 className="text-lg font-bold text-slate-800 mb-3">Confirm {action}</h2>
+            <p className="text-sm text-slate-600">
+              {action} institution <strong>{institution.name}</strong>?
+            </p>
+            {action === "deauth" && (
               <textarea
-                value={continueJson}
-                onChange={(e) => setContinueJson(e.target.value)}
-                className="w-full rounded-xl border px-3 py-2 text-sm min-h-40 font-mono resize-none"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Reason (required)"
+                className="mt-4 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm"
               />
             )}
-            <textarea
-              value={remark}
-              onChange={(e) => setRemark(e.target.value)}
-              placeholder="Remark (optional)"
-              className="w-full rounded-xl border px-3 py-2 text-sm min-h-20 resize-none"
-            />
-          </div>
-        </LifecycleMutationDialog>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setAction(null);
+                  setDescription("");
+                }}
+                className="rounded-xl px-4 py-2 text-sm text-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={actionPending || (action === "deauth" && !description.trim())}
+                onClick={() => void runAction()}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {actionPending ? "Working..." : "Confirm"}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {auditOpen && (
+        <InstitutionAuditModal
+          institution={institution}
+          institutionId={id}
+          onClose={() => setAuditOpen(false)}
+        />
       )}
     </div>
   );

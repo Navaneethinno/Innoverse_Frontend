@@ -1,19 +1,21 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { AlertCircle, Check, ClipboardCheck, Plus, Search, X } from "lucide-react";
-import { InstitutionCard } from "@/Components/Institutions/InstitutionCard";
-import { EmptyState } from "@/Components/Common/EmptyState";
+import { AlertCircle, Eye, History, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
-import { useAuth } from "@/Hooks/useAuth";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { InstitutionAuditModal } from "@/Components/Institutions/InstitutionAuditModal";
 import {
-  useInstitutionApprovalMutation,
+  useHasInstitutionAction,
+  useInstitutionAuthMutation,
+  useInstitutionDeauthMutation,
+  useInstitutionDeleteAuthMutation,
+  useInstitutionDeleteMutation,
   useInstitutionsQuery,
-  usePendingInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
+
 const glass = {
   background: "var(--glass-bg)",
   backdropFilter: "blur(16px)",
@@ -21,66 +23,97 @@ const glass = {
   border: "1px solid var(--glass-border)",
   boxShadow: "var(--glass-shadow)",
 };
+
+// Tab -> auth_status filter. There is no separate "pending add"/"pending
+// edit" endpoint in the Postman collection — /institution/profile/list
+// returns all records regardless of status, and the 5 tabs are all
+// client-side filters over that single response.
+//
+// A real /institution/profile/audit response (confirmed live) showed
+// auth_status: "EDIT_WAIT_AUTH" for a pending-edit record, and a real list
+// row showed status "AUTHORIZED" for an approved one — NOT the "ACTIVE" /
+// "EDIT_AUTH" values this page originally guessed (copied from a different
+// part of this codebase's maker-checker convention without checking this
+// endpoint specifically). Each tab now matches BOTH the originally-guessed
+// value and the confirmed-live one, since "NEW_WAIT_AUTH"/"DEL_WAIT_AUTH"
+// (the presumed siblings of the one confirmed value) remain unverified.
+const TAB_STATUS_ALIASES = {
+  ACTIVE: ["ACTIVE", "AUTHORIZED"],
+  NEW_AUTH: ["NEW_AUTH", "NEW_WAIT_AUTH"],
+  EDIT_AUTH: ["EDIT_AUTH", "EDIT_WAIT_AUTH"],
+  INACTIVE: ["INACTIVE", "DEACTIVATED"],
+};
+const TABS = [
+  { value: "all", label: "All" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "NEW_AUTH", label: "Pending Add" },
+  { value: "EDIT_AUTH", label: "Pending Edit" },
+  { value: "INACTIVE", label: "Inactive" },
+];
+
+function institutionId(inst) {
+  return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
+}
+
 export function InstitutionListPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
-  const currentUser = useAuth((s) => s.user);
-  const isPlatformOwner = currentUser?.institution?.type === "PLATFORM_OWNER";
-  const institutionsQuery = useInstitutionsQuery();
-  const pendingInstitutionsQuery = usePendingInstitutionsQuery(isPlatformOwner);
-  const approvalMutation = useInstitutionApprovalMutation();
-  const institutions = institutionsQuery.data ?? [];
-  const pendingInstitutions = pendingInstitutionsQuery.data ?? [];
-  const isLoading =
-    institutionsQuery.isLoading || (isPlatformOwner && pendingInstitutionsQuery.isLoading);
-  const error =
-    activeTab === "all"
-      ? institutionsQuery.error?.message
-      : pendingInstitutionsQuery.error?.message;
-  const visibleInstitutions = useMemo(() => {
-    if (isPlatformOwner) return institutions;
-    return institutions.filter((inst) => String(inst.id) === String(currentUser?.institution?.id));
-  }, [institutions, isPlatformOwner, currentUser?.institution?.id]);
-  const filterOptions = [
-    { value: "all", label: "All" },
-    { value: "active", label: "Active" },
-    { value: "new_auth", label: "Pending Add" },
-    { value: "edit_auth", label: "Pending Edit" },
-    { value: "inactive", label: "Inactive" },
-  ];
-  // match case-insensitively against both status and auth_status
+  const [action, setAction] = useState(null);
+  const [description, setDescription] = useState("");
+  const [auditInstitution, setAuditInstitution] = useState(null);
+  const canCreateInstitution = useHasInstitutionAction("Add");
+
+  const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 100 });
+  const authMutation = useInstitutionAuthMutation();
+  const deauthMutation = useInstitutionDeauthMutation();
+  const deleteMutation = useInstitutionDeleteMutation();
+  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
+
+  const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
+
   const filtered = useMemo(
     () =>
-      visibleInstitutions.filter((inst) => {
-        const q = search.toLowerCase();
+      institutions.filter((inst) => {
+        const q = search.trim().toLowerCase();
         const matchSearch =
           !q ||
-          (inst.name ?? "").toLowerCase().includes(q) ||
-          (inst.code ?? "").toLowerCase().includes(q);
-        const instStatus = (inst.auth_status ?? inst.status ?? "").toLowerCase();
-        const matchStatus = statusFilter === "all" || instStatus === statusFilter;
-        return matchSearch && matchStatus;
+          String(inst.name ?? "").toLowerCase().includes(q) ||
+          String(inst.code ?? "").toLowerCase().includes(q);
+        const status = String(inst.auth_status ?? inst.status ?? "").toUpperCase();
+        const matchTab =
+          activeTab === "all" || (TAB_STATUS_ALIASES[activeTab] ?? [activeTab]).includes(status);
+        return matchSearch && matchTab;
       }),
-    [visibleInstitutions, search, statusFilter],
+    [institutions, search, activeTab],
   );
-  const handleApprove = async (request_id) => {
+
+  const activeCount = institutions.filter((i) =>
+    TAB_STATUS_ALIASES.ACTIVE.includes(String(i.auth_status ?? i.status ?? "").toUpperCase()),
+  ).length;
+
+  const runAction = async () => {
+    if (!action) return;
     try {
-      await approvalMutation.mutateAsync({ requestId: request_id, decision: "approve" });
-      notifications.success("Institution request approved");
+      const id = institutionId(action.inst);
+      if (action.type === "auth") await authMutation.mutateAsync({ id });
+      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, description });
+      if (action.type === "delete") await deleteMutation.mutateAsync({ id });
+      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync({ id });
+      notifications.success("Institution action completed");
+      setAction(null);
+      setDescription("");
     } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Failed to approve");
+      notifications.error(error instanceof Error ? error.message : "Action failed");
     }
   };
-  const handleReject = async (request_id) => {
-    try {
-      await approvalMutation.mutateAsync({ requestId: request_id, decision: "reject" });
-      notifications.success("Institution request rejected");
-    } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Failed to reject");
-    }
-  };
+  const openAudit = (inst) => setAuditInstitution(inst);
+  const actionPending =
+    authMutation.isPending ||
+    deauthMutation.isPending ||
+    deleteMutation.isPending ||
+    deleteAuthMutation.isPending;
+
   return (
     <div className="pt-4 pb-8">
       <div className="flex items-start justify-between mb-6">
@@ -92,16 +125,10 @@ export function InstitutionListPage() {
             Institutions
           </h1>
           <p className="text-sm text-slate-400 mt-1.5 font-medium">
-            {visibleInstitutions.length} registered ·{" "}
-            {
-              visibleInstitutions.filter(
-                (i) => i.auth_status === "ACTIVE" || i.status?.toLowerCase() === "active",
-              ).length
-            }{" "}
-            active
+            {institutions.length} registered · {activeCount} active
           </p>
         </div>
-        {isPlatformOwner && (
+        {canCreateInstitution && (
           <motion.button
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
@@ -116,256 +143,221 @@ export function InstitutionListPage() {
         )}
       </div>
 
-      {/* Tabs */}
-      {isPlatformOwner && (
-        <div
-          className="flex items-center gap-1 mb-5 p-1 rounded-xl w-fit"
-          style={{
-            background: "var(--glass-bg)",
-            border: "1px solid var(--glass-border)",
-          }}
-        >
-          {["all", "pending"].map((tab) => (
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="relative flex-1 max-w-xs">
+          <Search
+            size={13}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            placeholder="Search institutions…"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            style={{
+              background: "var(--glass-bg)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid var(--glass-border)",
+            }}
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {TABS.map(({ value, label }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+              key={value}
+              onClick={() => setActiveTab(value)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
-                activeTab === tab ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
+                "px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
+                activeTab === value
+                  ? "text-white border-transparent shadow-md shadow-blue-200/50"
+                  : "text-slate-500 hover:text-blue-600 hover:border-blue-200",
               )}
               style={
-                activeTab === tab ? { background: "#2266EE" } : {}
+                activeTab === value
+                  ? { background: "#2266EE", border: "none" }
+                  : {
+                      background: "var(--glass-bg)",
+                      backdropFilter: "blur(12px)",
+                      borderColor: "var(--glass-border)",
+                    }
               }
             >
-              {tab === "pending" && (
-                <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-700 text-[9px] font-black flex items-center justify-center">
-                  {pendingInstitutions.length}
-                </span>
-              )}
-              {tab === "all" ? "All Institutions" : "Pending Approvals"}
+              {label}
             </button>
           ))}
         </div>
+      </div>
+
+      {institutionsQuery.error && (
+        <div className="flex items-center gap-2 p-4 rounded-2xl mb-4 bg-red-50 border border-red-100 text-sm text-red-600">
+          <AlertCircle size={14} /> {institutionsQuery.error.message}
+          <button
+            onClick={() => void institutionsQuery.refetch()}
+            className="ml-auto text-xs font-bold underline"
+          >
+            Retry
+          </button>
+        </div>
       )}
 
-      {activeTab === "all" ? (
-        <>
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 max-w-xs">
-              <Search
-                size={13}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-              />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                type="text"
-                placeholder="Search institutions…"
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                style={{
-                  background: "var(--glass-bg)",
-                  backdropFilter: "blur(12px)",
-                  border: "1px solid var(--glass-border)",
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              {filterOptions.map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setStatusFilter(value)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
-                    statusFilter === value
-                      ? "text-white border-transparent shadow-md shadow-blue-200/50"
-                      : "text-slate-500 hover:text-blue-600 hover:border-blue-200",
-                  )}
-                  style={
-                    statusFilter === value
-                      ? { background: "#2266EE", border: "none" }
-                      : {
-                          background: "var(--glass-bg)",
-                          backdropFilter: "blur(12px)",
-                          borderColor: "var(--glass-border)",
-                        }
-                  }
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl overflow-hidden"
+        style={glass}
+      >
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-100/80">
+              {["Code", "Name", "Type", "Status", "Actions"].map((h) => (
+                <th
+                  key={h}
+                  className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest"
                 >
-                  {label}
-                </button>
+                  {h}
+                </th>
               ))}
-            </div>
-          </div>
-
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Failed to load institutions</AlertTitle>
-              <AlertDescription className="flex items-center justify-between gap-3">
-                <span>{error}</span>
-                <button
-                  className="text-sm font-medium underline"
-                  onClick={() => void institutionsQuery.refetch()}
-                >
-                  Retry
-                </button>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl p-5"
-                  style={{
-                    background: "var(--glass-bg)",
-                    border: "1px solid var(--glass-border)",
-                  }}
-                >
-                  <Skeleton className="h-11 w-11 rounded-xl mb-4" />
-                  <Skeleton className="h-4 w-2/3 mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-6" />
-                  <Skeleton className="h-16 w-full" />
-                </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <EmptyState
-                title="No institutions found"
-                description="Adjust your search or filter criteria"
-              />
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filtered.map((inst, index) => (
-                <InstitutionCard key={inst.id} inst={inst} index={index} />
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          {error && (
-            <div className="flex items-center gap-2 p-4 rounded-2xl mb-4 bg-red-50 border border-red-100 text-sm text-red-600">
-              <AlertCircle size={14} /> {error}
-              <button
-                onClick={() => void pendingInstitutionsQuery.refetch()}
-                className="ml-auto text-xs font-bold underline"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-2xl overflow-hidden"
-            style={glass}
-          >
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100/80">
-                  {["Action", "Name", "Type", "Maker", "Approvals", "Actions"].map((h) => (
-                    <th
-                      key={h}
-                      className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest"
-                    >
-                      {h}
-                    </th>
+            </tr>
+          </thead>
+          <tbody>
+            {institutionsQuery.isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b border-slate-50">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <td key={j} className="px-5 py-3.5">
+                      <Skeleton className="h-4 w-20 mx-auto" />
+                    </td>
                   ))}
                 </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <tr key={i} className="border-b border-slate-50">
-                      {Array.from({ length: 6 }).map((_, j) => (
-                        <td key={j} className="px-5 py-3.5">
-                          <Skeleton className="h-4 w-20 mx-auto" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                ) : pendingInstitutions.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                          <ClipboardCheck size={20} className="text-emerald-400" />
-                        </div>
-                        <p className="text-sm font-bold text-slate-600">All caught up</p>
-                        <p className="text-xs text-slate-400">No pending institutions</p>
+              ))
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-5 py-16 text-center">
+                  <p className="text-sm font-bold text-slate-600">No institutions found</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Adjust your search or filter criteria
+                  </p>
+                </td>
+              </tr>
+            ) : (
+              filtered.map((inst, i) => {
+                const id = institutionId(inst);
+                const status = String(inst.auth_status ?? inst.status ?? "").toUpperCase();
+                return (
+                  <motion.tr
+                    key={id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: i * 0.03 }}
+                    className="border-b border-slate-50 hover:bg-white/60 transition-colors"
+                  >
+                    <td className="px-5 py-3.5 text-xs font-mono font-bold text-slate-700 text-center">
+                      {inst.code ?? "—"}
+                    </td>
+                    <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">
+                      {inst.name ?? "—"}
+                    </td>
+                    <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
+                      {inst.type ?? "—"}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      <StatusBadge status={status} />
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          title="View"
+                          onClick={() => navigate(`/institutions/${id}`)}
+                          className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        <button
+                          title="Audit"
+                          onClick={() => void openAudit(inst)}
+                          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                        >
+                          <History size={15} />
+                        </button>
+                        <button
+                          title="Authorize"
+                          onClick={() => setAction({ type: "auth", inst })}
+                          className="rounded-lg p-2 text-emerald-600 hover:bg-emerald-50"
+                        >
+                          <ShieldCheck size={15} />
+                        </button>
+                        <button
+                          title="Deauthorize"
+                          onClick={() => setAction({ type: "deauth", inst })}
+                          className="rounded-lg p-2 text-amber-600 hover:bg-amber-50"
+                        >
+                          <ShieldOff size={15} />
+                        </button>
+                        <button
+                          title="Delete"
+                          onClick={() => setAction({ type: "delete", inst })}
+                          className="rounded-lg p-2 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={15} />
+                        </button>
                       </div>
                     </td>
-                  </tr>
-                ) : (
-                  pendingInstitutions.map((req, i) => {
-                    const after = req.after_data ?? {};
-                    const isMaker = String(req.maker?.id) === String(currentUser?.id);
-                    return (
-                      <motion.tr
-                        key={req.request_id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="border-b border-slate-50 hover:bg-white/60 transition-colors"
-                      >
-                        <td className="px-5 py-3.5 text-xs font-bold text-slate-700 font-mono text-center">
-                          {req.action}
-                        </td>
-                        <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">
-                          {String(after.name ?? req.entity_id)}
-                        </td>
-                        <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
-                          {String(after.type ?? "—")}
-                        </td>
-                        <td className="px-5 py-3.5 text-xs text-slate-400 text-center">
-                          {req.maker?.name ?? "—"}
-                        </td>
-                        <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
-                          {req.approval_count} / {req.required_checker_count}
-                        </td>
-                        <td className="px-5 py-3.5 text-center">
-                          {isMaker ? (
-                            <span className="text-[11px] text-slate-400 italic">
-                              You submitted this
-                            </span>
-                          ) : (
-                            <div className="flex items-center justify-center gap-2">
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => void handleReject(req.request_id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-red-500 border border-red-200/60 hover:bg-red-50/60 transition-colors"
-                              >
-                                <X size={11} /> Reject
-                              </motion.button>
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => void handleApprove(req.request_id)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold text-white shadow-md shadow-emerald-200/50"
-                                style={{
-                                  background: "linear-gradient(135deg, #6EDFC4 0%, #3BBFA0 100%)",
-                                }}
-                              >
-                                <Check size={11} /> Approve
-                              </motion.button>
-                            </div>
-                          )}
-                        </td>
-                      </motion.tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                  </motion.tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </motion.div>
+
+      {action && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h2 className="text-lg font-bold text-slate-800 mb-3">Confirm institution action</h2>
+            <p className="text-sm text-slate-600">
+              {action.type} institution <strong>{action.inst?.name ?? action.inst?.code}</strong>?
+            </p>
+            {action.type === "deauth" && (
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Reason (required)"
+                className="mt-4 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm"
+              />
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setAction(null);
+                  setDescription("");
+                }}
+                className="rounded-xl px-4 py-2 text-sm text-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={actionPending || (action.type === "deauth" && !description.trim())}
+                onClick={() => void runAction()}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {actionPending ? "Working..." : "Confirm"}
+              </button>
+            </div>
           </motion.div>
-        </>
+        </div>
+      )}
+
+      {auditInstitution && (
+        <InstitutionAuditModal
+          institution={auditInstitution}
+          institutionId={institutionId(auditInstitution)}
+          onClose={() => setAuditInstitution(null)}
+        />
       )}
     </div>
   );
