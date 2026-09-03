@@ -283,3 +283,43 @@
 .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--border);
 }
+
+/* react-toastify: restyle the default white/boxed toast to match the
+   app's card + border + shadow tokens instead of the library defaults. */
+.Toastify__toast {
+  padding: 14px 12px;
+  border-radius: var(--radius);
+  background: var(--card) !important;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--glass-shadow);
+  font-family: var(--font-sans);
+}
+.Toastify__toast-body {
+  padding: 0;
+  margin: 0;
+}
+.Toastify__close-button {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+  align-self: center;
+}
+.Toastify__close-button:hover {
+  opacity: 1;
+}
+.Toastify__progress-bar {
+  height: 3px;
+}
+.Toastify__progress-bar--success {
+  background: var(--success);
+}
+.Toastify__progress-bar--error {
+  background: var(--destructive);
+}
+.Toastify__progress-bar--warning {
+  background: var(--warning);
+}
+.Toastify__progress-bar--info,
+.Toastify__progress-bar--default {
+  background: var(--primary);
+}
