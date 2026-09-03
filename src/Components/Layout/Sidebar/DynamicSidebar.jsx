@@ -157,7 +157,9 @@ export function DynamicSidebar() {
         boxShadow: "var(--glass-shadow)",
       }}
     >
-      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+      {/* Pinned header: module picker + search never move, regardless of
+          how long the menu list below gets or scrolls. */}
+      <div className="flex flex-col gap-3 shrink-0">
         <ModuleDropdown
           modules={filteredModules}
           selectedModule={selectedModule}
@@ -171,6 +173,9 @@ export function DynamicSidebar() {
           onClear={clearSearch}
           isCollapsed={collapsed}
         />
+      </div>
+
+      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
         <div className="px-2">
           <MenuList
             menuItems={filteredMenuItems}

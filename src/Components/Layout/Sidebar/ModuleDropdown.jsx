@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   Bot,
@@ -50,9 +50,26 @@ function getModuleIcon(moduleName = "") {
 // a navigation route from the module name.
 export function ModuleDropdown({ modules, selectedModule, onSelectModule, isCollapsed }) {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    function handleClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    }
+    function handleKey(e) {
+      if (e.key === "Escape") setIsOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [isOpen]);
 
   return (
-    <div className="flex flex-col gap-1 px-2">
+    <div className="relative px-2" ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
@@ -70,45 +87,49 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         {!isCollapsed && (isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}
       </button>
 
-      <div
-        className={cn(
-          "overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1",
-          isOpen ? "max-h-[999px] opacity-100 mt-1" : "max-h-0 opacity-0",
-        )}
-      >
-        {(modules || []).map((moduleItem) => {
-          const Icon = getModuleIcon(moduleItem.module_name);
-          const isActive = selectedModule?.module_id === moduleItem.module_id;
-          return (
-            <button
-              key={moduleItem.module_id}
-              type="button"
-              title={moduleItem.module_name}
-              onClick={() => {
-                onSelectModule(moduleItem);
-                setIsOpen(false);
-              }}
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
-                isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
-                isActive
-                  ? "bg-primary-light text-primary"
-                  : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
-              )}
-            >
-              <Icon
-                size={14}
-                strokeWidth={1.8}
-                className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
-              />
-              {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
-            </button>
-          );
-        })}
-        {(modules || []).length === 0 && !isCollapsed && (
-          <p className="px-3 py-2 text-[11px] text-muted-foreground">No modules available</p>
-        )}
-      </div>
+      {isOpen && (
+        <div
+          className="absolute left-2 right-2 top-full mt-1.5 z-50 flex flex-col gap-1 rounded-xl border p-1.5 max-h-[60vh] overflow-y-auto"
+          style={{
+            background: "var(--popover)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--glass-shadow)",
+          }}
+        >
+          {(modules || []).map((moduleItem) => {
+            const Icon = getModuleIcon(moduleItem.module_name);
+            const isActive = selectedModule?.module_id === moduleItem.module_id;
+            return (
+              <button
+                key={moduleItem.module_id}
+                type="button"
+                title={moduleItem.module_name}
+                onClick={() => {
+                  onSelectModule(moduleItem);
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
+                  isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
+                  isActive
+                    ? "bg-primary-light text-primary"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
+                )}
+              >
+                <Icon
+                  size={14}
+                  strokeWidth={1.8}
+                  className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
+                />
+                {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
+              </button>
+            );
+          })}
+          {(modules || []).length === 0 && !isCollapsed && (
+            <p className="px-3 py-2 text-[11px] text-muted-foreground">No modules available</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
