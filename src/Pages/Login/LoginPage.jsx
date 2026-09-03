@@ -1,9 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Eye, EyeOff, Fingerprint, Lock, Mail, RefreshCw, Shield } from "lucide-react";
+import {
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Fingerprint,
+  Lock,
+  Mail,
+  Moon,
+  RefreshCw,
+  Shield,
+  Sun,
+} from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
 import { notifications } from "../../Utils/Lib/notifications";
+import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import loginIllustration from "@/assets/login-illustration.png";
 function GradientMesh() {
   return (
@@ -29,6 +41,7 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const login = useAuth((state) => state.login);
+  const { mode, toggleMode } = useColorMode();
   const submit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
@@ -49,7 +62,26 @@ export function LoginPage() {
     }
   };
   return (
-    <div className="min-h-screen flex bg-[#F9FAFB]">
+    <div className="min-h-screen flex relative" style={{ background: "var(--background)" }}>
+      <button
+        type="button"
+        onClick={toggleMode}
+        title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl text-muted-foreground hover:text-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        style={{
+          background: "var(--glass-bg)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid var(--glass-border)",
+        }}
+      >
+        {mode === "dark" ? (
+          <Sun size={16} strokeWidth={1.8} />
+        ) : (
+          <Moon size={16} strokeWidth={1.8} />
+        )}
+      </button>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -60,7 +92,7 @@ export function LoginPage() {
         <img
           src={loginIllustration}
           alt="Innoverse — Innovate. Secure. Empower."
-          className="absolute inset-0 w-full h-full object-cover object-bottom"
+          className="absolute inset-0 w-full h-full object-cover object-left-bottom"
         />
       </motion.div>
       <div className="relative w-full lg:w-[30%] flex items-center justify-center overflow-hidden">

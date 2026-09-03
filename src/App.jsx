@@ -34,7 +34,12 @@ export function App() {
       <ColorModeProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <ToastContainer position="top-right" autoClose={5000} limit={5} />
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            limit={5}
+            style={{ top: "76px" }}
+          />
           <div className="App">
             <LoadingScreen>
               <I18nProvider>
