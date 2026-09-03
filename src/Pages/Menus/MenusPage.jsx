@@ -332,7 +332,7 @@ export function MenusPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>
@@ -350,7 +350,7 @@ export function MenusPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>
@@ -368,7 +368,7 @@ export function MenusPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>
@@ -385,7 +385,7 @@ export function MenusPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>

@@ -411,18 +411,8 @@ export function ControlSpacePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className={cn(tile, "col-span-12 lg:col-span-4 flex flex-col justify-between")}
-          style={{
-            ...glass,
-            background:
-              "linear-gradient(135deg, rgba(108,127,255,0.10) 0%, rgba(179,157,250,0.12) 50%, rgba(110,223,196,0.10) 100%)",
-          }}
+          style={glass}
         >
-          <div
-            className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none"
-            style={{
-              background: "radial-gradient(circle, rgba(108,127,255,0.18), transparent 70%)",
-            }}
-          />
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2266EE] to-[#26FFFF] flex items-center justify-center shadow-md shadow-blue-200/50">

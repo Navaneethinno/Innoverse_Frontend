@@ -66,14 +66,14 @@ export function InstitutionCard({ inst, index }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(108,127,255,0.16)" }}
+      whileHover={{ y: -5, boxShadow: "0 20px 60px rgba(34,102,238,0.16)" }}
       className="rounded-2xl p-5 cursor-pointer group relative overflow-hidden"
       style={{
         background: "var(--glass-bg)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
         border: "1px solid var(--glass-border)",
-        boxShadow: "0 4px 20px rgba(108,127,255,0.07), 0 1px 3px rgba(108,127,255,0.04)",
+        boxShadow: "0 4px 20px rgba(34,102,238,0.07), 0 1px 3px rgba(34,102,238,0.04)",
       }}
       onClick={() => navigate(`/institutions/${inst.id}`)}
       role="button"
@@ -85,7 +85,7 @@ export function InstitutionCard({ inst, index }) {
         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(108,127,255,0.04) 0%, rgba(179,157,250,0.06) 100%)",
+            "linear-gradient(135deg, rgba(34,102,238,0.04) 0%, rgba(38,255,255,0.06) 100%)",
         }}
       />
 

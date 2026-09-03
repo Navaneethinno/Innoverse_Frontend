@@ -242,7 +242,7 @@ export function ProfilesPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>
@@ -258,7 +258,7 @@ export function ProfilesPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   >
                     <option value="">Select institution…</option>
@@ -326,7 +326,7 @@ export function ProfilesPage() {
               style={{
                 background: "var(--glass-bg)",
                 border: "1px solid var(--glass-border)",
-                boxShadow: "0 24px 64px rgba(108,127,255,0.16)",
+                boxShadow: "0 24px 64px rgba(34,102,238,0.16)",
               }}
             >
               <h3 className="text-sm font-bold text-slate-800 mb-1">Set Permissions</h3>
@@ -358,7 +358,7 @@ export function ProfilesPage() {
                                 : {
                                     background: "var(--glass-bg)",
                                     color: "#64748b",
-                                    border: "1px solid rgba(108,127,255,0.15)",
+                                    border: "1px solid rgba(34,102,238,0.15)",
                                   }
                             }
                           >

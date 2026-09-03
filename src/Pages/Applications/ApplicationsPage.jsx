@@ -311,7 +311,7 @@ export function ApplicationsPage() {
                     className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     style={{
                       background: "var(--glass-bg)",
-                      border: "1px solid rgba(108,127,255,0.15)",
+                      border: "1px solid rgba(34,102,238,0.15)",
                     }}
                   />
                 </div>
@@ -373,7 +373,7 @@ export function ApplicationsPage() {
                 className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 style={{
                   background: "var(--glass-bg)",
-                  border: "1px solid rgba(108,127,255,0.15)",
+                  border: "1px solid rgba(34,102,238,0.15)",
                 }}
               >
                 <option value="">Select institution…</option>
@@ -394,7 +394,7 @@ export function ApplicationsPage() {
                 className="w-full px-3 py-2 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
                 style={{
                   background: "var(--glass-bg)",
-                  border: "1px solid rgba(108,127,255,0.15)",
+                  border: "1px solid rgba(34,102,238,0.15)",
                 }}
               >
                 <option value="">Select application…</option>
