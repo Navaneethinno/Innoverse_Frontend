@@ -54,13 +54,13 @@ export function LoginPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="hidden lg:flex lg:w-[70%] relative overflow-hidden items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #eef2fb 0%, #f7f9fd 60%, #ffffff 100%)" }}
+        className="hidden lg:block lg:w-[70%] relative overflow-hidden"
+        style={{ background: "#eef2fb" }}
       >
         <img
           src={loginIllustration}
           alt="Innoverse — Innovate. Secure. Empower."
-          className="w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-cover object-bottom"
         />
       </motion.div>
       <div className="relative w-full lg:w-[30%] flex items-center justify-center overflow-hidden">
