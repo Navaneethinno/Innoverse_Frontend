@@ -63,7 +63,7 @@ export function MenuItem({
           depth > 0 ? "ml-3" : "",
           isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
           isExpanded || isActiveLeaf
-            ? "bg-gradient-to-r from-[#2266EE] to-[#26FFFF] text-white shadow-sm"
+            ? "bg-[#2266EE] text-white shadow-sm"
             : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
         )}
       >

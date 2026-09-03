@@ -205,7 +205,7 @@ export function ProfilesPage() {
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+            style={{ background: "#2266EE" }}
           >
             <Plus size={14} /> New Profile
           </motion.button>
@@ -284,7 +284,7 @@ export function ProfilesPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                  style={{ background: "#2266EE" }}
                 >
                   {submitting ? "Creating…" : "Create Profile"}
                 </motion.button>
@@ -351,7 +351,7 @@ export function ProfilesPage() {
                             style={
                               active
                                 ? {
-                                    background: "linear-gradient(135deg, #2266EE, #26FFFF)",
+                                    background: "#2266EE",
                                     color: "white",
                                     border: "none",
                                   }
@@ -380,7 +380,7 @@ export function ProfilesPage() {
                 <button
                   onClick={() => void handleSavePermissions()}
                   className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50"
-                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                  style={{ background: "#2266EE" }}
                 >
                   Save
                 </button>

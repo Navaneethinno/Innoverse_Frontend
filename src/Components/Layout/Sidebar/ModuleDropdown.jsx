@@ -57,7 +57,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-gradient-to-r from-[#2266EE] to-[#26FFFF] shadow-md shadow-blue-200/50",
+          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-[#2266EE] shadow-md shadow-blue-200/50",
           isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full justify-between",
         )}
       >

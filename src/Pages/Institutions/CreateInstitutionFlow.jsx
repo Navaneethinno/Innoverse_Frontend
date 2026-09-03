@@ -156,7 +156,7 @@ export function CreateInstitutionFlow() {
               <button
                 onClick={() => navigate("/institutions")}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
-                style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                style={{ background: "#2266EE" }}
               >
                 View Institutions
               </button>

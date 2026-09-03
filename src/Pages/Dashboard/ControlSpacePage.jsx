@@ -262,7 +262,7 @@ export function ControlSpacePage() {
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/pending")}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-          style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+          style={{ background: "#2266EE" }}
         >
           <Zap size={14} />
           Pending Approvals
@@ -275,7 +275,7 @@ export function ControlSpacePage() {
             label="Total Institutions"
             value={stats.total}
             sub="Registered on platform"
-            gradient="bg-gradient-to-br from-[#2266EE] to-[#26FFFF]"
+            gradient="bg-[#2266EE]"
             icon={Building2}
             delay={0.05}
           />
@@ -415,7 +415,7 @@ export function ControlSpacePage() {
         >
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2266EE] to-[#26FFFF] flex items-center justify-center shadow-md shadow-blue-200/50">
+              <div className="w-8 h-8 rounded-xl bg-[#2266EE] flex items-center justify-center shadow-md shadow-blue-200/50">
                 <Shield size={14} className="text-white" />
               </div>
               <h2 className="text-sm font-bold text-slate-800">Request Breakdown</h2>

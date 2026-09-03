@@ -191,7 +191,7 @@ export function PendingDashboardPage() {
               activeTab === key ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              activeTab === key ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+              activeTab === key ? { background: "#2266EE" } : {}
             }
           >
             {label}
@@ -212,7 +212,7 @@ export function PendingDashboardPage() {
                 : "text-slate-500 border-slate-200 bg-white hover:text-blue-600",
             )}
             style={
-              quickFilter === qf ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+              quickFilter === qf ? { background: "#2266EE" } : {}
             }
           >
             {qf === "all" ? "All" : qf === "mine" ? "My Requests" : "Requires My Action"}

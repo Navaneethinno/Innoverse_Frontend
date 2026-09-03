@@ -246,7 +246,7 @@ export function ApplicationsPage() {
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+            style={{ background: "#2266EE" }}
           >
             <Plus size={14} /> New Application
           </motion.button>
@@ -271,7 +271,7 @@ export function ApplicationsPage() {
               activeTab === key ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              activeTab === key ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+              activeTab === key ? { background: "#2266EE" } : {}
             }
           >
             {label}
@@ -330,7 +330,7 @@ export function ApplicationsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                  style={{ background: "#2266EE" }}
                 >
                   {submitting ? "Submitting…" : "Submit for Approval"}
                 </motion.button>
@@ -412,7 +412,7 @@ export function ApplicationsPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                style={{ background: "#2266EE" }}
               >
                 {assigning ? "Assigning…" : "Assign"}
               </motion.button>

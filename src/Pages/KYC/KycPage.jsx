@@ -136,7 +136,7 @@ export function KycPage() {
             activeTab === "institution" ? setShowInstForm(true) : setShowUserForm(true)
           }
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-          style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+          style={{ background: "#2266EE" }}
         >
           <Plus size={14} /> Update KYC
         </motion.button>
@@ -156,7 +156,7 @@ export function KycPage() {
               activeTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              activeTab === t ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+              activeTab === t ? { background: "#2266EE" } : {}
             }
           >
             {t} KYC
@@ -215,7 +215,7 @@ export function KycPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                      style={{ background: "#2266EE" }}
                     >
                       {instSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>
@@ -330,7 +330,7 @@ export function KycPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                      style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                      style={{ background: "#2266EE" }}
                     >
                       {userSubmitting ? "Submitting…" : "Submit for Approval"}
                     </motion.button>

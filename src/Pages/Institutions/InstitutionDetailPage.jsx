@@ -335,7 +335,7 @@ export function InstitutionDetailPage() {
               onClick={() => void handleSubmitEdit()}
               disabled={submitting}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+              style={{ background: "#2266EE" }}
             >
               <CheckCircle size={13} /> {submitting ? "Submitting…" : "Submit for Approval"}
             </button>
@@ -612,7 +612,7 @@ export function InstitutionDetailPage() {
               onClick={() => void handleSubmitEdit()}
               disabled={submitting}
               className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+              style={{ background: "#2266EE" }}
             >
               {submitting ? "Submitting…" : "Submit for Approval"}
             </button>

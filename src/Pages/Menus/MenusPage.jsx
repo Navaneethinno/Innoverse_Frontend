@@ -250,7 +250,7 @@ export function MenusPage() {
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+            style={{ background: "#2266EE" }}
           >
             <Plus size={14} /> New {subTabLabel}
           </motion.button>
@@ -270,7 +270,7 @@ export function MenusPage() {
               "px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize",
               subTab === t ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
-            style={subTab === t ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}}
+            style={subTab === t ? { background: "#2266EE" } : {}}
           >
             {t.replace("-", " ")}
           </button>
@@ -291,7 +291,7 @@ export function MenusPage() {
               viewMode === m ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
             )}
             style={
-              viewMode === m ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+              viewMode === m ? { background: "#2266EE" } : {}
             }
           >
             {m === "list" ? "All" : "Pending Approvals"}
@@ -404,7 +404,7 @@ export function MenusPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+                  style={{ background: "#2266EE" }}
                 >
                   {submitting ? "Submitting…" : "Submit for Approval"}
                 </motion.button>

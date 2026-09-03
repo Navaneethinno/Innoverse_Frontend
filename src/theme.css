@@ -29,9 +29,11 @@
   --warning: #f59e0b;
   --pending: #ff8a70;
 
-  /* Gradient */
+  /* Brand CTA color (kept as a "gradient" pair, both ends the same solid
+     blue, so bg-brand-gradient still resolves to var(--primary) without
+     touching every call site that already references the utility). */
   --gradient-start: #2266ee;
-  --gradient-end: #26ffff;
+  --gradient-end: #2266ee;
 
   /* Surfaces */
   --border: #dedfdf;
@@ -102,8 +104,8 @@
   --warning: #fbbf24;
   --pending: #fb8b72;
 
-  --gradient-start: #2266ee;
-  --gradient-end: #26ffff;
+  --gradient-start: #4c86f4;
+  --gradient-end: #4c86f4;
 
   --border: #33393b;
   --input: #33393b;

@@ -107,7 +107,7 @@ export function InstitutionListPage() {
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/institutions/create")}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "linear-gradient(135deg, #2266EE 0%, #26FFFF 100%)" }}
+            style={{ background: "#2266EE" }}
           >
             <Plus size={14} />
             <span className="hidden sm:inline">New Institution</span>
@@ -134,7 +134,7 @@ export function InstitutionListPage() {
                 activeTab === tab ? "text-white shadow-md" : "text-slate-500 hover:text-blue-600",
               )}
               style={
-                activeTab === tab ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)" } : {}
+                activeTab === tab ? { background: "#2266EE" } : {}
               }
             >
               {tab === "pending" && (
@@ -182,7 +182,7 @@ export function InstitutionListPage() {
                   )}
                   style={
                     statusFilter === value
-                      ? { background: "linear-gradient(135deg, #2266EE, #26FFFF)", border: "none" }
+                      ? { background: "#2266EE", border: "none" }
                       : {
                           background: "var(--glass-bg)",
                           backdropFilter: "blur(12px)",
