@@ -7,6 +7,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { useSidebar } from "../SidebarContext";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
+import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
@@ -177,12 +178,24 @@ export function DynamicSidebar() {
         />
       </div>
 
-      <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
-        {selectedModule && !collapsed && (
-          <p className="px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-            {selectedModule.module_name}
-          </p>
-        )}
+      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
+        {selectedModule &&
+          (() => {
+            const SelectedIcon = getModuleIcon(selectedModule.module_name);
+            return (
+              <div className="px-2">
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary",
+                    collapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full",
+                  )}
+                >
+                  <SelectedIcon size={15} strokeWidth={1.8} className="shrink-0 text-primary" />
+                  {!collapsed && <span className="truncate">{selectedModule.module_name}</span>}
+                </div>
+              </div>
+            );
+          })()}
         <div className="px-2">
           <MenuList
             menuItems={filteredMenuItems}

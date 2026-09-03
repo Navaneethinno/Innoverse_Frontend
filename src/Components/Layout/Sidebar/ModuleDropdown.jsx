@@ -1,47 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  AlertTriangle,
-  Bot,
-  ChevronDown,
-  ChevronRight,
-  ClipboardList,
-  CreditCard,
-  Fingerprint,
-  Landmark,
-  Layers,
-  LayoutGrid,
-  Link2,
-  Lock,
-  RefreshCcw,
-  ShieldAlert,
-  ShieldCheck,
-  Store,
-  Truck,
-  Wallet,
-} from "lucide-react";
+import { ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
-
-const MODULE_ICON_RULES = [
-  [/purse|wallet/i, Wallet],
-  [/risk/i, ShieldAlert],
-  [/cms|content/i, ClipboardList],
-  [/mms|merchant|store/i, Store],
-  [/pay/i, CreditCard],
-  [/secure|security/i, Lock],
-  [/aml/i, ShieldCheck],
-  [/chatbot|bot/i, Bot],
-  [/fraud/i, AlertTriangle],
-  [/lrms|loan|recovery/i, Landmark],
-  [/recon/i, RefreshCcw],
-  [/bridge/i, Link2],
-  [/fleet/i, Truck],
-  [/kyc|identity/i, Fingerprint],
-];
-
-function getModuleIcon(moduleName = "") {
-  const match = MODULE_ICON_RULES.find(([pattern]) => pattern.test(moduleName));
-  return match ? match[1] : Layers;
-}
+import { getModuleIcon } from "./moduleIcons";
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders
 // only the modules the caller passes in (already filtered to the user's
@@ -93,7 +53,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
 
       {isOpen && (
         <div
-          className="absolute left-0 right-0 top-full mt-1.5 z-50 flex flex-col gap-1 rounded-xl border p-1.5 max-h-[60vh] overflow-y-auto"
+          className="absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
           style={{
             background: "var(--popover)",
             borderColor: "var(--border)",
@@ -113,15 +73,15 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg h-9 text-xs font-semibold truncate transition-colors",
-                  isCollapsed ? "justify-center w-9 mx-auto px-0" : "px-3 w-full text-left",
+                  "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold truncate transition-colors",
+                  isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full text-left",
                   isActive
                     ? "bg-primary-light text-primary"
                     : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
                 )}
               >
                 <Icon
-                  size={14}
+                  size={15}
                   strokeWidth={1.8}
                   className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
                 />
@@ -130,7 +90,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
             );
           })}
           {(modules || []).length === 0 && !isCollapsed && (
-            <p className="px-3 py-2 text-[11px] text-muted-foreground">No modules available</p>
+            <p className="px-3.5 py-2 text-[11px] text-muted-foreground">No modules available</p>
           )}
         </div>
       )}
