@@ -155,6 +155,10 @@
     transition: background-color 250ms ease, color 250ms ease;
   }
 
+  .dark body {
+    background-image: none;
+  }
+
   html {
     font-size: var(--font-size);
   }
