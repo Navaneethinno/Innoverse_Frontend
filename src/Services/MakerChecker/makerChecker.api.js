@@ -1,4 +1,4 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
@@ -45,30 +45,30 @@ async function request(path, init, fallback) {
   }
 }
 export const makerCheckerApi = {
-  getAllPending: () => request("/pending/all", undefined, []),
+  getAllPending: () => request(API_ENDPOINTS.PENDING.ALL, undefined, []),
   getPendingByEntity: (entityKey) =>
-    request(`/pending/entities/${entityKey}/pending`, undefined, []),
+    request(API_ENDPOINTS.PENDING.BY_ENTITY(entityKey), undefined, []),
   getEntityHistory: (entityKey, entityId) =>
-    request(`/pending/entities/${entityKey}/${entityId}/history`, undefined, []),
+    request(API_ENDPOINTS.PENDING.ENTITY_HISTORY(entityKey, entityId), undefined, []),
   getLifecycle: (entityKey, auditKey) =>
-    request(`/pending/entities/${entityKey}/lifecycle/${auditKey}`, undefined, []),
+    request(API_ENDPOINTS.PENDING.LIFECYCLE(entityKey, auditKey), undefined, []),
   approveRequest: (requestId, payload) =>
-    request(`/pending/requests/${requestId}/approve`, {
+    request(API_ENDPOINTS.PENDING.APPROVE(requestId), {
       method: "POST",
       body: JSON.stringify(payload ?? {}),
     }),
   rejectRequest: (requestId, payload) =>
-    request(`/pending/requests/${requestId}/reject`, {
+    request(API_ENDPOINTS.PENDING.REJECT(requestId), {
       method: "POST",
       body: JSON.stringify(payload ?? {}),
     }),
   continueRejectedAdd: (entityKey, requestId, payload) =>
-    request(`/pending/adds/${entityKey}/${requestId}/edit`, {
+    request(API_ENDPOINTS.PENDING.CONTINUE_ADD_EDIT(entityKey, requestId), {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   deleteRejectedAdd: (entityKey, requestId, payload) =>
-    request(`/pending/adds/${entityKey}/${requestId}/delete`, {
+    request(API_ENDPOINTS.PENDING.CONTINUE_ADD_DELETE(entityKey, requestId), {
       method: "POST",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),

@@ -1,4 +1,4 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
@@ -57,30 +57,34 @@ function remove(path, payload) {
   });
 }
 export const menusApi = {
-  modules: () => request("/modules", undefined, []),
-  menus: () => request("/menus", undefined, []),
-  menuActions: () => request("/menu-actions", undefined, []),
-  pending: (entity) => request(`/pending/entities/${entity}/pending`, undefined, []),
-  createModule: (payload) => post("/modules", payload),
-  createMenu: (payload) => post("/menus", payload),
-  createMenuAction: (payload) => post("/menu-actions", payload),
-  updateModule: (id, payload) => update(`/modules/${id}`, payload),
-  updateMenu: (id, payload) => update(`/menus/${id}`, payload),
-  updateMenuAction: (id, payload) => update(`/menu-actions/${id}`, payload),
-  deleteModule: (id, payload) => remove(`/modules/${id}`, payload),
-  deleteMenu: (id, payload) => remove(`/menus/${id}`, payload),
-  deleteMenuAction: (id, payload) => remove(`/menu-actions/${id}`, payload),
-  activateModule: (id, payload) => post(`/modules/${id}/activate`, payload),
-  activateMenu: (id, payload) => post(`/menus/${id}/activate`, payload),
-  activateMenuAction: (id, payload) => post(`/menu-actions/${id}/activate`, payload),
-  deactivateModule: (id, payload) => post(`/modules/${id}/deactivate`, payload),
-  deactivateMenu: (id, payload) => post(`/menus/${id}/deactivate`, payload),
-  deactivateMenuAction: (id, payload) => post(`/menu-actions/${id}/deactivate`, payload),
-  approve: (requestId, payload) => post(`/pending/requests/${requestId}/approve`, payload ?? {}),
-  reject: (requestId, payload) => post(`/pending/requests/${requestId}/reject`, payload ?? {}),
-  audit: (entity, id) => request(`/pending/entities/${entity}/${id}/history`, undefined, []),
+  modules: () => request(API_ENDPOINTS.MENUS.MODULES, undefined, []),
+  menus: () => request(API_ENDPOINTS.MENUS.MENUS, undefined, []),
+  menuActions: () => request(API_ENDPOINTS.MENUS.MENU_ACTIONS, undefined, []),
+  pending: (entity) => request(API_ENDPOINTS.PENDING.BY_ENTITY(entity), undefined, []),
+  createModule: (payload) => post(API_ENDPOINTS.MENUS.MODULES, payload),
+  createMenu: (payload) => post(API_ENDPOINTS.MENUS.MENUS, payload),
+  createMenuAction: (payload) => post(API_ENDPOINTS.MENUS.MENU_ACTIONS, payload),
+  updateModule: (id, payload) => update(API_ENDPOINTS.MENUS.MODULE_BY_ID(id), payload),
+  updateMenu: (id, payload) => update(API_ENDPOINTS.MENUS.MENU_BY_ID(id), payload),
+  updateMenuAction: (id, payload) => update(API_ENDPOINTS.MENUS.MENU_ACTION_BY_ID(id), payload),
+  deleteModule: (id, payload) => remove(API_ENDPOINTS.MENUS.MODULE_BY_ID(id), payload),
+  deleteMenu: (id, payload) => remove(API_ENDPOINTS.MENUS.MENU_BY_ID(id), payload),
+  deleteMenuAction: (id, payload) => remove(API_ENDPOINTS.MENUS.MENU_ACTION_BY_ID(id), payload),
+  activateModule: (id, payload) => post(API_ENDPOINTS.MENUS.MODULE_ACTIVATE(id), payload),
+  activateMenu: (id, payload) => post(API_ENDPOINTS.MENUS.MENU_ACTIVATE(id), payload),
+  activateMenuAction: (id, payload) => post(API_ENDPOINTS.MENUS.MENU_ACTION_ACTIVATE(id), payload),
+  deactivateModule: (id, payload) => post(API_ENDPOINTS.MENUS.MODULE_DEACTIVATE(id), payload),
+  deactivateMenu: (id, payload) => post(API_ENDPOINTS.MENUS.MENU_DEACTIVATE(id), payload),
+  deactivateMenuAction: (id, payload) =>
+    post(API_ENDPOINTS.MENUS.MENU_ACTION_DEACTIVATE(id), payload),
+  approve: (requestId, payload) => post(API_ENDPOINTS.PENDING.APPROVE(requestId), payload ?? {}),
+  reject: (requestId, payload) => post(API_ENDPOINTS.PENDING.REJECT(requestId), payload ?? {}),
+  audit: (entity, id) =>
+    request(API_ENDPOINTS.PENDING.ENTITY_HISTORY(entity, id), undefined, []),
   continueRejectedAdd: (entity, requestId, payload, mode) =>
     mode === "edit"
-      ? post(`/pending/adds/${entity}/${requestId}/edit`, payload)
-      : post(`/pending/adds/${entity}/${requestId}/delete`, { remark: payload.remark }),
+      ? post(API_ENDPOINTS.PENDING.CONTINUE_ADD_EDIT(entity, requestId), payload)
+      : post(API_ENDPOINTS.PENDING.CONTINUE_ADD_DELETE(entity, requestId), {
+          remark: payload.remark,
+        }),
 };

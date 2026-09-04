@@ -1,4 +1,4 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
@@ -40,6 +40,6 @@ async function request(path) {
   }
 }
 export const kycApi = {
-  institution: (id) => request(`/institutions/${id}/kyc`),
-  user: (id) => request(`/users/${id}/kyc`),
+  institution: (id) => request(API_ENDPOINTS.KYC.INSTITUTION(id)),
+  user: (id) => request(API_ENDPOINTS.KYC.USER(id)),
 };

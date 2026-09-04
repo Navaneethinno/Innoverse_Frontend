@@ -1,4 +1,4 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
@@ -46,36 +46,40 @@ async function request(path, init, fallback) {
   }
 }
 export const profilesApi = {
-  list: () => request("/profiles", undefined, []),
-  pending: () => request(`/pending/entities/${ENTITY_KEY}/pending`, undefined, []),
-  create: (payload) => request("/profiles", { method: "POST", body: JSON.stringify(payload) }),
+  list: () => request(API_ENDPOINTS.PROFILES.LIST, undefined, []),
+  pending: () => request(API_ENDPOINTS.PENDING.BY_ENTITY(ENTITY_KEY), undefined, []),
+  create: (payload) =>
+    request(API_ENDPOINTS.PROFILES.LIST, { method: "POST", body: JSON.stringify(payload) }),
   update: (id, payload) =>
-    request(`/profiles/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+    request(API_ENDPOINTS.PROFILES.BY_ID(id), { method: "PUT", body: JSON.stringify(payload) }),
   delete: (id, payload) =>
-    request(`/profiles/${id}`, {
+    request(API_ENDPOINTS.PROFILES.BY_ID(id), {
       method: "DELETE",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
   activate: (id, payload) =>
-    request(`/profiles/${id}/activate`, {
+    request(API_ENDPOINTS.PROFILES.ACTIVATE(id), {
       method: "POST",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
   deactivate: (id, payload) =>
-    request(`/profiles/${id}/deactivate`, {
+    request(API_ENDPOINTS.PROFILES.DEACTIVATE(id), {
       method: "POST",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
   permissions: (id, payload) =>
-    request(`/profiles/${id}/permissions`, { method: "POST", body: JSON.stringify(payload) }),
-  audit: (id) => request(`/pending/entities/${ENTITY_KEY}/${id}/history`, undefined, []),
+    request(API_ENDPOINTS.PROFILES.PERMISSIONS(id), {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  audit: (id) => request(API_ENDPOINTS.PENDING.ENTITY_HISTORY(ENTITY_KEY, id), undefined, []),
   continueRejectedAdd: (requestId, payload, mode) =>
     mode === "edit"
-      ? request(`/pending/adds/${ENTITY_KEY}/${requestId}/edit`, {
+      ? request(API_ENDPOINTS.PENDING.CONTINUE_ADD_EDIT(ENTITY_KEY, requestId), {
           method: "POST",
           body: JSON.stringify(payload),
         })
-      : request(`/pending/adds/${ENTITY_KEY}/${requestId}/delete`, {
+      : request(API_ENDPOINTS.PENDING.CONTINUE_ADD_DELETE(ENTITY_KEY, requestId), {
           method: "POST",
           body: JSON.stringify({ remark: payload.remark }),
         }),

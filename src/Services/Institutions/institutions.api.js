@@ -17,7 +17,7 @@
 // against a live backend (see institutionHooks.js normalization comments).
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { API_BASE_URL } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 
 const REQUEST_TIMEOUT = 10000;
@@ -65,21 +65,21 @@ export const institutionsApi = {
   // No documented server-side search/filter param in the Postman collection,
   // so search/status filtering is done client-side over this page's results
   // (see InstitutionListPage.jsx).
-  list: (payload = { page: 1, limit: 10 }) => request("/institution/profile/list", payload),
+  list: (payload = { page: 1, limit: 10 }) => request(API_ENDPOINTS.INSTITUTIONS.LIST, payload),
   // POST /institution/profile/get_active, body {} — authorized/active records only.
-  getActive: () => request("/institution/profile/get_active", {}),
+  getActive: () => request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, {}),
   // POST /institution/profile/add, body: full profile shape — creates a pending-add record.
-  add: (payload) => request("/institution/profile/add", payload),
+  add: (payload) => request(API_ENDPOINTS.INSTITUTIONS.ADD, payload),
   // POST /institution/profile/edit, body: full profile shape + {id} — creates a pending-edit record.
-  edit: (payload) => request("/institution/profile/edit", payload),
+  edit: (payload) => request(API_ENDPOINTS.INSTITUTIONS.EDIT, payload),
   // POST /institution/profile/auth, body {id} — checker approves a pending add/edit.
-  auth: (payload) => request("/institution/profile/auth", payload),
+  auth: (payload) => request(API_ENDPOINTS.INSTITUTIONS.AUTH, payload),
   // POST /institution/profile/deauth, body {id, description} — checker rejects, with a reason.
-  deauth: (payload) => request("/institution/profile/deauth", payload),
+  deauth: (payload) => request(API_ENDPOINTS.INSTITUTIONS.DEAUTH, payload),
   // POST /institution/profile/delete, body {id} — creates a pending-delete.
-  delete: (payload) => request("/institution/profile/delete", payload),
+  delete: (payload) => request(API_ENDPOINTS.INSTITUTIONS.DELETE, payload),
   // POST /institution/profile/delete_auth, body {id} — checker confirms the delete.
-  deleteAuth: (payload) => request("/institution/profile/delete_auth", payload),
+  deleteAuth: (payload) => request(API_ENDPOINTS.INSTITUTIONS.DELETE_AUTH, payload),
   // POST /institution/profile/audit, body {id, page, limit} — audit trail for one record.
-  audit: (payload) => request("/institution/profile/audit", payload),
+  audit: (payload) => request(API_ENDPOINTS.INSTITUTIONS.AUDIT, payload),
 };

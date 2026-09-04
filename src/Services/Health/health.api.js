@@ -1,7 +1,7 @@
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
-const HEALTH_ENDPOINT = API_BASE_URL + "/health";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+const HEALTH_ENDPOINT = API_BASE_URL + API_ENDPOINTS.HEALTH;
 const HEALTH_TIMEOUT = 10000;
 function isSuccessfulHealthResponse(value) {
   if (!value || typeof value !== "object") return false;
