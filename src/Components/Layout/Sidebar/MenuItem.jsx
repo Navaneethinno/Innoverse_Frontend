@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPath } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
@@ -67,12 +67,19 @@ export function MenuItem({
             : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
         )}
       >
-        {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
-        {!isCollapsed && hasChildren && (
-          <span className="shrink-0">
-            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </span>
-        )}
+        <span className="flex items-center gap-1.5 min-w-0">
+          {!isCollapsed && hasChildren && (
+            <span className="shrink-0">
+              {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            </span>
+          )}
+          {!isCollapsed && hasChildren && (
+            <span className="shrink-0">
+              {isExpanded ? <FolderOpen size={14} /> : <Folder size={14} />}
+            </span>
+          )}
+          {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
+        </span>
       </button>
 
       {hasChildren && !isCollapsed && (

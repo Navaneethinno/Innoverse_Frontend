@@ -62,12 +62,25 @@ export const API_ENDPOINTS = {
     DEACTIVATE: (id) => `/applications/${id}/deactivate`,
   },
 
+  // Profile (URMG) endpoints — per the official Postman collection
+  // ("InnoVerse_ConfigProcessor" -> "Profile (URMG)"). "Profile" here is a
+  // role/permission profile (menu_id/action_id grants), NOT the Institution
+  // Profile entity under INSTITUTIONS above. This group previously held a
+  // fictional REST shape (/profiles, /profiles/{id}/activate, ...) that
+  // nothing legitimate depended on (confirmed via a codebase-wide grep before
+  // this rewrite) — overwritten in place with the real paths rather than
+  // renamed, to avoid a second near-duplicate group name.
   PROFILES: {
-    LIST: "/profiles",
-    BY_ID: (id) => `/profiles/${id}`,
-    ACTIVATE: (id) => `/profiles/${id}/activate`,
-    DEACTIVATE: (id) => `/profiles/${id}/deactivate`,
-    PERMISSIONS: (id) => `/profiles/${id}/permissions`,
+    LIST: "/profile/list",
+    GET_ALL: "/profile/getall",
+    GET: "/profile/get",
+    ADD: "/profile/add",
+    EDIT: "/profile/edit",
+    AUTH: "/profile/auth",
+    DEAUTH: "/profile/deauth",
+    DELETE: "/profile/delete",
+    DELETE_AUTH: "/profile/delete_auth",
+    AUDIT_LIST: "/profile/audit_list",
   },
 
   MENUS: {
