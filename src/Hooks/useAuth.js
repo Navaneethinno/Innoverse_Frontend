@@ -25,7 +25,15 @@ export function useAuth(selector) {
       // separately from Master reference data (see Redux/MenuSlice.js).
       dispatch(setMenuArray(response.menu_array));
       return true;
-    } catch {
+    } catch (error) {
+      // Previously this swallowed every failure into a bare `false`, so the
+      // UI always showed "Invalid credentials" — even for a config error
+      // (e.g. missing VITE_AUTH_BASIC_PASSWORD, which throws before any
+      // network request is made), a CORS failure, or a timeout. Logging the
+      // real error keeps the login UX simple while making the actual cause
+      // visible in the console instead of being indistinguishable from a
+      // genuine wrong-password rejection.
+      console.error("Login failed:", error);
       return false;
     }
   };
