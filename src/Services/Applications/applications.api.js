@@ -1,4 +1,4 @@
-import { API_BASE_URL, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS, NON_LOGIN_APIS_ENABLED } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
@@ -44,46 +44,55 @@ async function request(path, init, fallback) {
     window.clearTimeout(timeout);
   }
 }
+const ENTITY_KEY = "applications";
+
 export const applicationsApi = {
-  list: () => request("/applications", undefined, []),
-  pending: () => request("/pending/entities/applications/pending", undefined, []),
+  list: () => request(API_ENDPOINTS.APPLICATIONS.LIST, undefined, []),
+  pending: () => request(API_ENDPOINTS.PENDING.BY_ENTITY(ENTITY_KEY), undefined, []),
   assignmentPending: () =>
-    request("/pending/entities/institution-applications/pending", undefined, []),
-  create: (payload) => request("/applications", { method: "POST", body: JSON.stringify(payload) }),
+    request(API_ENDPOINTS.PENDING.BY_ENTITY("institution-applications"), undefined, []),
+  create: (payload) =>
+    request(API_ENDPOINTS.APPLICATIONS.LIST, { method: "POST", body: JSON.stringify(payload) }),
   assign: (institutionId, applicationId, remark) =>
-    request(`/institutions/${institutionId}/assign-application`, {
+    request(API_ENDPOINTS.APPLICATIONS.ASSIGN(institutionId), {
       method: "POST",
       body: JSON.stringify({ application_id: applicationId, remark }),
     }),
   update: (id, payload) =>
-    request(`/applications/${id}`, { method: "PUT", body: JSON.stringify(payload) }),
+    request(API_ENDPOINTS.APPLICATIONS.BY_ID(id), { method: "PUT", body: JSON.stringify(payload) }),
   delete: (id, payload) =>
-    request(`/applications/${id}`, {
+    request(API_ENDPOINTS.APPLICATIONS.BY_ID(id), {
       method: "DELETE",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
   activate: (id, payload) =>
-    request(`/applications/${id}/activate`, {
+    request(API_ENDPOINTS.APPLICATIONS.ACTIVATE(id), {
       method: "POST",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
   deactivate: (id, payload) =>
-    request(`/applications/${id}/deactivate`, {
+    request(API_ENDPOINTS.APPLICATIONS.DEACTIVATE(id), {
       method: "POST",
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
     }),
-  audit: (id) => request(`/pending/entities/applications/${id}/history`, undefined, []),
+  audit: (id) => request(API_ENDPOINTS.PENDING.ENTITY_HISTORY(ENTITY_KEY, id), undefined, []),
   approve: (requestId) =>
-    request(`/pending/requests/${requestId}/approve`, { method: "POST", body: JSON.stringify({}) }),
+    request(API_ENDPOINTS.PENDING.APPROVE(requestId), {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
   reject: (requestId) =>
-    request(`/pending/requests/${requestId}/reject`, { method: "POST", body: JSON.stringify({}) }),
+    request(API_ENDPOINTS.PENDING.REJECT(requestId), {
+      method: "POST",
+      body: JSON.stringify({}),
+    }),
   continueRejectedAdd: (requestId, payload, mode) =>
     mode === "edit"
-      ? request(`/pending/adds/applications/${requestId}/edit`, {
+      ? request(API_ENDPOINTS.PENDING.CONTINUE_ADD_EDIT(ENTITY_KEY, requestId), {
           method: "POST",
           body: JSON.stringify(payload),
         })
-      : request(`/pending/adds/applications/${requestId}/delete`, {
+      : request(API_ENDPOINTS.PENDING.CONTINUE_ADD_DELETE(ENTITY_KEY, requestId), {
           method: "POST",
           body: JSON.stringify({ remark: payload.remark }),
         }),

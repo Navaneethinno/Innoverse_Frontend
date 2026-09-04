@@ -15,7 +15,7 @@
 // without a concrete sidebar/consumer requirement would violate the "do not
 // call every master endpoint unless the senior sidebar actually requires it"
 // rule for this phase.
-import { API_BASE_URL } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
@@ -102,5 +102,6 @@ export const masterApi = {
   // reference-data source (NOT /institution/module/list or
   // /institution/module/get_active, which configure per-institution module
   // activation and are out of scope for the sidebar's module catalogue).
-  moduleList: async () => toArray(await masterPost("/master/module/list", {})).map(normalizeModule),
+  moduleList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.MODULE_LIST, {})).map(normalizeModule),
 };

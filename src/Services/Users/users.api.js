@@ -1,6 +1,6 @@
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { API_BASE_URL } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 
 const REQUEST_TIMEOUT = 10000;
 const DEVICE_INFO = {
@@ -51,14 +51,15 @@ async function request(path, body) {
 }
 
 export const usersApi = {
-  list: (payload = { page: 1, limit: 10, search: "", status: 0 }) => request("/user/list", payload),
-  audit: (payload) => request("/user/audit_list", payload),
-  add: (payload) => request("/user/add", payload),
-  edit: (payload) => request("/user/edit", payload),
-  auth: (payload) => request("/user/auth", payload),
-  deauth: (payload) => request("/user/deauth", payload),
-  delete: (payload) => request("/user/delete", payload),
-  deleteAuth: (payload) => request("/user/delete_auth", payload),
-  getActiveInstitutions: () => request("/institution/profile/get_active", {}),
-  getAllProfiles: () => request("/profile/getall", {}),
+  list: (payload = { page: 1, limit: 10, search: "", status: 0 }) =>
+    request(API_ENDPOINTS.USERS.LIST, payload),
+  audit: (payload) => request(API_ENDPOINTS.USERS.AUDIT_LIST, payload),
+  add: (payload) => request(API_ENDPOINTS.USERS.ADD, payload),
+  edit: (payload) => request(API_ENDPOINTS.USERS.EDIT, payload),
+  auth: (payload) => request(API_ENDPOINTS.USERS.AUTH, payload),
+  deauth: (payload) => request(API_ENDPOINTS.USERS.DEAUTH, payload),
+  delete: (payload) => request(API_ENDPOINTS.USERS.DELETE, payload),
+  deleteAuth: (payload) => request(API_ENDPOINTS.USERS.DELETE_AUTH, payload),
+  getActiveInstitutions: () => request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, {}),
+  getAllProfiles: () => request(API_ENDPOINTS.USERS.ALL_PROFILES, {}),
 };

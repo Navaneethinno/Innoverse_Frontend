@@ -1,7 +1,12 @@
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
 import { getAccessToken, getRefreshToken } from "@/Services/api/authStorage";
-import { API_BASE_URL, AUTH_BASIC_PASSWORD, AUTH_BASIC_USERNAME } from "@/Utils/Constant";
+import {
+  API_BASE_URL,
+  API_ENDPOINTS,
+  AUTH_BASIC_PASSWORD,
+  AUTH_BASIC_USERNAME,
+} from "@/Utils/Constant";
 const LOGIN_TIMEOUT = 10000;
 // Exported so other authenticated services (e.g. Master reference-data calls)
 // send the same Deviceinfo header shape the backend expects for this session.
@@ -70,7 +75,7 @@ async function request(endpoint, init) {
 }
 
 export async function loginRequest(username, password) {
-  const payload = await request("/user/login", {
+  const payload = await request(API_ENDPOINTS.AUTH.LOGIN, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -85,7 +90,7 @@ export async function loginRequest(username, password) {
 export async function refreshTokenRequest() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) throw new Error("No refresh token available");
-  const payload = await request("/user/refresh_token", {
+  const payload = await request(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -98,7 +103,7 @@ export async function refreshTokenRequest() {
 }
 
 export async function changePassword(oldPassword, newPassword) {
-  return request("/user/change_password", {
+  return request(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
