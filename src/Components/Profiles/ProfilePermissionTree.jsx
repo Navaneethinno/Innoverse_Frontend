@@ -37,7 +37,10 @@ export function useMenuTreeSource() {
 }
 
 // selected: array of {menu_id, actions: [action_id...], is_configuration_only}
-export function ProfilePermissionTree({ selected, onChange }) {
+// readOnly: renders the same grant chips without any click handlers, for a
+// view-only display (e.g. the Profiles "View" action) instead of a second,
+// duplicated read-only tree component.
+export function ProfilePermissionTree({ selected, onChange, readOnly = false }) {
   const modules = useMenuTreeSource();
   const grantFor = (menuId) => selected.find((g) => g.menu_id === menuId);
 
@@ -64,15 +67,27 @@ export function ProfilePermissionTree({ selected, onChange }) {
     return <p className="text-sm text-slate-400">No menu/action data available to grant.</p>;
   }
 
+  const visibleModules = readOnly
+    ? modules.filter((module) =>
+        module.menus.some((menu) => (grantFor(menu.menu_id)?.actions?.length ?? 0) > 0),
+      )
+    : modules;
+
+  if (readOnly && visibleModules.length === 0) {
+    return <p className="text-sm text-slate-400">No permissions granted.</p>;
+  }
+
   return (
     <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-      {modules.map((module) => (
+      {visibleModules.map((module) => (
         <div key={module.moduleId} className="rounded-xl border border-slate-100 p-3">
           <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
             {module.moduleName}
           </p>
           <div className="space-y-2">
-            {module.menus.map((menu) => {
+            {module.menus
+              .filter((menu) => !readOnly || (grantFor(menu.menu_id)?.actions?.length ?? 0) > 0)
+              .map((menu) => {
               const grant = grantFor(menu.menu_id);
               return (
                 <div key={menu.menu_id} className="flex flex-wrap items-center gap-2">
@@ -82,6 +97,16 @@ export function ProfilePermissionTree({ selected, onChange }) {
                   <div className="flex flex-wrap gap-1.5">
                     {(menu.actions || []).map((action) => {
                       const active = !!grant?.actions.includes(action.action_id);
+                      if (readOnly) {
+                        return active ? (
+                          <span
+                            key={action.action_id}
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-600 text-white"
+                          >
+                            {action.action_name}
+                          </span>
+                        ) : null;
+                      }
                       return (
                         <button
                           type="button"

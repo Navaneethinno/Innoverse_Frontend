@@ -1,6 +1,17 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Eye, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
+import {
+  AlertCircle,
+  Eye,
+  History,
+  Pencil,
+  Plus,
+  Search,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfileAuditModal } from "@/Components/Profiles/ProfileAuditModal";
@@ -110,6 +121,7 @@ export function ProfilesPage() {
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditProfile, setAuditProfile] = useState(null);
+  const [viewProfile, setViewProfile] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM());
@@ -374,8 +386,13 @@ export function ProfilesPage() {
                           </button>
                         )}
                         {canViewProfile && (
-                          <button title="View / Audit" onClick={() => setAuditProfile(p)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                          <button title="View" onClick={() => setViewProfile(p)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                             <Eye size={15} />
+                          </button>
+                        )}
+                        {canViewProfile && (
+                          <button title="Audit" onClick={() => setAuditProfile(p)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                            <History size={15} />
                           </button>
                         )}
                         {canAuthorizeProfile && canAuthorize && (
@@ -529,6 +546,62 @@ export function ProfilesPage() {
           profileId={profileId(auditProfile)}
           onClose={() => setAuditProfile(null)}
         />
+      )}
+
+      {viewProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4" onClick={() => setViewProfile(null)} role="presentation">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">View profile</h2>
+              <button onClick={() => setViewProfile(null)} aria-label="Close">
+                <X />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Profile Name
+                </p>
+                <p className="text-sm font-semibold text-slate-800">
+                  {viewProfile.profile_name ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Institution
+                </p>
+                <p className="text-sm font-semibold text-slate-800">
+                  {viewProfile.institution_name ??
+                    institutionsById.get(String(viewProfile.inst_profile_id))?.name ??
+                    "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Authorization Status
+                </p>
+                {viewProfile.auth_status ? (
+                  <StatusBadge status={String(viewProfile.auth_status)} />
+                ) : (
+                  <p className="text-sm font-semibold text-slate-800">—</p>
+                )}
+              </div>
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium text-slate-700">Menu / Action grants</p>
+              <ProfilePermissionTree
+                selected={viewProfile.menu_actions ?? viewProfile.menu_info ?? []}
+                onChange={() => {}}
+                readOnly
+              />
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

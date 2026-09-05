@@ -84,21 +84,34 @@ function nameOf(user) {
   return fieldValue(user, "user_name") || "Unnamed user";
 }
 
-function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institutions, profiles }) {
+function UserForm({
+  form,
+  setForm,
+  editing,
+  onSubmit,
+  onCancel,
+  pending,
+  institutions,
+  profiles,
+  readOnly = false,
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {fields.map(([key, label]) => (
+      {fields
+        .filter(([key]) => !(readOnly && key === "user_pwd"))
+        .map(([key, label]) => (
         <label key={key} className="text-sm text-slate-700">
           <span className="mb-1.5 block font-medium">{label}</span>
           <div className="relative">
             {key === "inst_id" || key === "profile_id" ? (
               <select
                 required={!editing}
+                disabled={readOnly}
                 value={form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
               >
                 <option value="">Select {key === "inst_id" ? "institution" : "profile"}</option>
                 {(key === "inst_id" ? institutions : profiles).map((option) => {
@@ -123,7 +136,8 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
               </select>
             ) : (
               <input
-                required={!editing && ["user_name", "user_pwd"].includes(key)}
+                required={!readOnly && !editing && ["user_name", "user_pwd"].includes(key)}
+                readOnly={readOnly}
                 type={
                   key === "user_pwd"
                     ? showPassword
@@ -135,10 +149,10 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
                 }
                 value={editing && key === "user_pwd" ? "" : form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400${key === "user_pwd" ? " pr-10" : ""}`}
+                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-slate-50 text-slate-500" : ""}`}
               />
             )}
-            {key === "user_pwd" && (
+            {key === "user_pwd" && !readOnly && (
               <button
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
@@ -153,14 +167,16 @@ function UserForm({ form, setForm, editing, onSubmit, onCancel, pending, institu
       ))}
       <div className="flex justify-end gap-2 md:col-span-2">
         <button type="button" onClick={onCancel} className="rounded-xl px-4 py-2 text-slate-600">
-          Cancel
+          {readOnly ? "Close" : "Cancel"}
         </button>
-        <button
-          disabled={pending}
-          className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 font-semibold text-white disabled:opacity-50"
-        >
-          {pending ? "Saving..." : editing ? "Save changes" : "Add user"}
-        </button>
+        {!readOnly && (
+          <button
+            disabled={pending}
+            className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 font-semibold text-white disabled:opacity-50"
+          >
+            {pending ? "Saving..." : editing ? "Save changes" : "Add user"}
+          </button>
+        )}
       </div>
     </form>
   );
@@ -171,6 +187,7 @@ export function UsersPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [viewingOnly, setViewingOnly] = useState(false);
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [audit, setAudit] = useState(null);
@@ -185,11 +202,13 @@ export function UsersPage() {
   const auditMutation = useUserAuditMutation();
   const openCreate = () => {
     setEditing(null);
+    setViewingOnly(false);
     setForm(EMPTY_FORM);
     setShowForm(true);
   };
-  const openEdit = async (user) => {
+  const openEdit = async (user, { readOnly = false } = {}) => {
     setEditing(user);
+    setViewingOnly(readOnly);
     setForm(Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(user, key)])));
     setShowForm(true);
     const id = Number(userId(user));
@@ -211,6 +230,7 @@ export function UsersPage() {
   };
   const submit = async (event) => {
     event.preventDefault();
+    if (viewingOnly) return;
     try {
       const institutionId = Number(form.inst_id);
       const profileId = Number(form.profile_id);
@@ -356,7 +376,7 @@ export function UsersPage() {
                         <div className="flex gap-1">
                           <button
                             title="View"
-                            onClick={() => openEdit(user)}
+                            onClick={() => openEdit(user, { readOnly: true })}
                             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
                           >
                             <Eye size={16} />
@@ -452,7 +472,9 @@ export function UsersPage() {
               {showForm && (
                 <>
                   <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-xl font-bold">{editing ? "Edit user" : "Add user"}</h2>
+                    <h2 className="text-xl font-bold">
+                      {viewingOnly ? "View user" : editing ? "Edit user" : "Add user"}
+                    </h2>
                     <button onClick={() => setShowForm(false)}>
                       <X />
                     </button>
@@ -461,6 +483,7 @@ export function UsersPage() {
                     form={form}
                     setForm={setForm}
                     editing={editing}
+                    readOnly={viewingOnly}
                     onSubmit={submit}
                     onCancel={() => setShowForm(false)}
                     pending={createMutation.isPending || updateMutation.isPending}
