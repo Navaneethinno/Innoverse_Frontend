@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Check,
+  CheckCircle,
+  ClipboardCheck,
+  FileText,
+  KeyRound,
+  ShieldCheck,
+} from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import {
   useInstitutionCreateMutation,
@@ -15,7 +24,12 @@ import { useInstitutionTypes, useLanguages } from "@/Hooks/Master/masterHooks";
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
 // sub-objects, since those live under separate out-of-scope sub-entities
 // (Institution/Legal, Institution/Branding, ...).
-const STEPS = ["Basic Info", "KYC Policy", "Login & PIN Policy", "Review & Submit"];
+const STEPS = [
+  { label: "Basic Info", icon: FileText },
+  { label: "KYC Policy", icon: ShieldCheck },
+  { label: "Login & PIN Policy", icon: KeyRound },
+  { label: "Review & Submit", icon: ClipboardCheck },
+];
 const EMPTY = {
   code: "",
   name: "",
@@ -223,40 +237,68 @@ export function CreateInstitutionFlow() {
   return (
     <div className="pt-4 pb-8">
       <div className="max-w-xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => navigate("/institutions")}
-            className="text-sm text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            ← Back
-          </button>
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Create Institution</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Step {step + 1} of {STEPS.length}
-            </p>
-          </div>
+        <button
+          onClick={() => navigate("/institutions")}
+          className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft size={15} /> Back
+        </button>
+
+        <div className="mb-8">
+          <h1 className="text-xl font-semibold text-foreground">Create Institution</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Step {step + 1} of {STEPS.length}
+          </p>
         </div>
 
-        <div className="flex gap-2 mb-8">
-          {STEPS.map((label, index) => (
-            <div key={label} className="flex-1">
+        <div className="flex items-start mb-8">
+          {STEPS.map(({ label, icon: Icon }, index) => {
+            const isCompleted = index < step;
+            const isCurrent = index === step;
+            return (
               <div
-                className={cn(
-                  "h-1 rounded-full transition-all duration-300",
-                  index <= step ? "bg-blue-500" : "bg-slate-200",
-                )}
-              />
-              <p
-                className={cn(
-                  "text-[11px] mt-1.5 font-medium transition-colors",
-                  index === step ? "text-blue-600" : "text-slate-400",
-                )}
+                key={label}
+                className={cn("flex items-center", index < STEPS.length - 1 && "flex-1")}
               >
-                {label}
-              </p>
-            </div>
-          ))}
+                <div className="flex shrink-0 flex-col items-center gap-2">
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-full border-2 bg-card transition-colors",
+                      isCompleted
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : isCurrent
+                          ? "border-primary text-primary"
+                          : "border-border text-muted-foreground",
+                    )}
+                    style={isCurrent ? { background: "var(--primary-light)" } : undefined}
+                  >
+                    {isCompleted ? <Check size={18} /> : <Icon size={17} />}
+                  </div>
+                  <p
+                    className={cn(
+                      "w-20 text-center text-[11px] font-semibold leading-tight transition-colors",
+                      isCurrent
+                        ? "text-primary"
+                        : isCompleted
+                          ? "text-foreground"
+                          : "text-muted-foreground",
+                    )}
+                  >
+                    {label}
+                  </p>
+                </div>
+                {index < STEPS.length - 1 && (
+                  <div
+                    className={cn(
+                      "h-0.5 flex-1 mx-2 rounded-full transition-colors duration-300",
+                      index < step ? "bg-primary" : "bg-border",
+                    )}
+                    style={{ marginTop: "1.25rem" }}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {mutationError && (
