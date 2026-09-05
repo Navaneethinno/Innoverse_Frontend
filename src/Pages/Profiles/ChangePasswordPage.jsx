@@ -4,7 +4,7 @@ import { ArrowLeft, Check, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
 import { notifications } from "@/Utils/Lib/notifications";
 import { usePasswordPolicyQuery } from "@/Hooks/Users/userHooks";
-import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/passwordPolicy";
+import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/password-policy";
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();

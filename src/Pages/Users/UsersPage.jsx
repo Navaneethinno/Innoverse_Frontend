@@ -34,7 +34,7 @@ import {
   checkPasswordRequirements,
   pickDefaultPolicy,
   validatePassword,
-} from "@/Utils/Lib/passwordPolicy";
+} from "@/Utils/Lib/password-policy";
 
 const STATUS_OPTIONS = [
   { value: 0, label: "All statuses" },

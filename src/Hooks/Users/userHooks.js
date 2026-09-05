@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { usersApi } from "@/Services/Users/users.api";
-import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/passwordPolicy";
+import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 
 const USERS_CHANGED_EVENT = "users:data-changed";
 function notifyUserChange() {
