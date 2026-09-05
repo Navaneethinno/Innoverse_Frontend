@@ -94,8 +94,8 @@ export function InstitutionListPage() {
     if (!action) return;
     try {
       const id = institutionId(action.inst);
-      if (action.type === "auth") await authMutation.mutateAsync({ id });
-      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, description });
+      if (action.type === "auth") await authMutation.mutateAsync({ id, remark: description.trim() });
+      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, description: description.trim(), remark: description.trim() });
       if (action.type === "delete") await deleteMutation.mutateAsync({ id });
       if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync({ id });
       notifications.success("Institution action completed");
@@ -318,11 +318,13 @@ export function InstitutionListPage() {
             <p className="text-sm text-slate-600">
               {action.type} institution <strong>{action.inst?.name ?? action.inst?.code}</strong>?
             </p>
-            {action.type === "deauth" && (
+            {(
+              action.type === "auth" || action.type === "deauth"
+            ) && (
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Reason (required)"
+                placeholder="Remark (required)"
                 className="mt-4 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm"
               />
             )}
@@ -337,7 +339,7 @@ export function InstitutionListPage() {
                 Cancel
               </button>
               <button
-                disabled={actionPending || (action.type === "deauth" && !description.trim())}
+                disabled={actionPending || ((action.type === "auth" || action.type === "deauth") && !description.trim())}
                 onClick={() => void runAction()}
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
