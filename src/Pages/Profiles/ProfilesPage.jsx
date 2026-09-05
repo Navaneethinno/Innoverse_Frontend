@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Eye, History, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
+import { AlertCircle, Eye, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfileAuditModal } from "@/Components/Profiles/ProfileAuditModal";
