@@ -4,7 +4,7 @@ import { profilesApi } from "@/Services/Profiles/profiles.api";
 
 // Real permission source: the user's own menu_array (from login), following
 // useHasInstitutionAction's exact pattern (src/Hooks/Institutions/institutionHooks.js).
-// Users and Profiles are BOTH under module_id 16 ("User Management"), so
+// Users and Profiles can share a module in the login response, so
 // module_id alone can't tell them apart the way it does for Institution
 // (module_id 14, one menu item). Distinguished by menu_name instead —
 // tolerant-matched against /profile/i so it still works if the backend's
