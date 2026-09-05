@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import {
-  useHasInstitutionAction,
   useInstitutionCreateMutation,
 } from "@/Hooks/Institutions/institutionHooks";
 import { Skeleton } from "@/Components/UI/skeleton";
@@ -142,7 +141,6 @@ export function CreateInstitutionFlow() {
   // `currentUser?.institution?.type === "PLATFORM_OWNER"` check referenced a
   // field the auth flow never sets, so this page blocked every user
   // regardless of their actual "Add" permission from login's menu_array.
-  const canCreateInstitution = useHasInstitutionAction("Add");
   const { mutateAsync: createInstitution, isPending: isLoading, error: mutationError } =
     useInstitutionCreateMutation();
   const [step, setStep] = useState(0);

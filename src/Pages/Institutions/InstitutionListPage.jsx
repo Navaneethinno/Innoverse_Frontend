@@ -6,7 +6,6 @@ import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { InstitutionAuditModal } from "@/Components/Institutions/InstitutionAuditModal";
 import {
-  useHasInstitutionAction,
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
   useInstitutionDeleteAuthMutation,
@@ -62,7 +61,6 @@ export function InstitutionListPage() {
   const [action, setAction] = useState(null);
   const [description, setDescription] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
-  const canCreateInstitution = useHasInstitutionAction("Add");
 
   const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 100 });
   const authMutation = useInstitutionAuthMutation();
