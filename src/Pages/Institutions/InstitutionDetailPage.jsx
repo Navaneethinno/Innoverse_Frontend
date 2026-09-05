@@ -46,7 +46,7 @@ function Field({ label, value }) {
     </div>
   );
 }
-function EditField({ label, value, onChange, type = "text" }) {
+function EditField({ label, value, onChange, type = "text", disabled = false }) {
   return (
     <div>
       <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
@@ -55,15 +55,16 @@ function EditField({ label, value, onChange, type = "text" }) {
       <input
         type={type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        onChange={(e) => onChange?.(e.target.value)}
+        disabled={disabled}
+        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );
 }
 function EditToggle({ label, value, onChange }) {
   return (
-    <label className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
+    <label className="flex h-10 items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
         {label}
       </span>
@@ -323,9 +324,9 @@ export function InstitutionDetailPage() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           {editMode ? (
             <>
-              <Field label="Institution Code" value={institution.code} />
+              <EditField label="Institution Code" value={institution.code} disabled />
               <EditField label="Institution Name" value={form.name} onChange={setField("name")} />
-              <Field label="Institution Type" value={institution.type} />
+              <EditField label="Institution Type" value={institution.type} disabled />
               <EditField
                 label="Timezone"
                 value={form.timezone}
