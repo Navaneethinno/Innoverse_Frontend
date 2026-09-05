@@ -324,7 +324,11 @@ export function InstitutionDetailPage() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
           {editMode ? (
             <>
-              <EditField label="Institution Code" value={institution.code} disabled />
+              <EditField
+                label="Institution Code"
+                value={form.code}
+                onChange={setField("code")}
+              />
               <EditField label="Institution Name" value={form.name} onChange={setField("name")} />
               <EditField label="Institution Type" value={institution.type} disabled />
               <EditField
