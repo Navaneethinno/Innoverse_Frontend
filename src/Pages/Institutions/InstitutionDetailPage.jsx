@@ -313,7 +313,7 @@ export function InstitutionDetailPage() {
           <div>
             <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
             <p className="text-xs text-slate-400 font-mono">{institution.code}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Type: {institution.type}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Type: {institution.type_name ?? institution.type}</p>
           </div>
         </div>
         <StatusBadge status={status} />
@@ -330,7 +330,7 @@ export function InstitutionDetailPage() {
                 onChange={setField("code")}
               />
               <EditField label="Institution Name" value={form.name} onChange={setField("name")} />
-              <EditField label="Institution Type" value={institution.type} disabled />
+              <EditField label="Institution Type" value={institution.type_name ?? institution.type} disabled />
               <EditField
                 label="Timezone"
                 value={form.timezone}
@@ -347,7 +347,7 @@ export function InstitutionDetailPage() {
             <>
               <Field label="Institution Code" value={institution.code} />
               <Field label="Institution Name" value={institution.name} />
-              <Field label="Institution Type" value={institution.type} />
+              <Field label="Institution Type" value={institution.type_name ?? institution.type} />
               <Field label="Timezone" value={institution.timezone} />
               <Field label="Date Format" value={institution.date_format} />
               <Field label="Has Branch" value={institution.has_branch} />

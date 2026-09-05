@@ -255,7 +255,7 @@ export function InstitutionListPage() {
                       {inst.name ?? "—"}
                     </td>
                     <td className="px-5 py-3.5 text-xs text-slate-500 text-center">
-                      {inst.type ?? "—"}
+                      {inst.type_name ?? inst.type ?? "—"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <StatusBadge status={status} />
