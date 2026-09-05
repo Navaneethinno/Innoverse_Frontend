@@ -44,6 +44,7 @@ export const API_ENDPOINTS = {
     DELETE_AUTH: "/user/delete_auth",
     KYC_GET: "/user/kyc/get",
     ALL_PROFILES: "/profile/getall",
+    PASSWORD_POLICY_LIST: "/user/password_policy/list",
   },
 
   INSTITUTIONS: {

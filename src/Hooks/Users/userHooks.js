@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { usersApi } from "@/Services/Users/users.api";
+import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/passwordPolicy";
 
 const USERS_CHANGED_EVENT = "users:data-changed";
 function notifyUserChange() {
@@ -94,9 +95,10 @@ function lookupOptions(payload, keys) {
 export function useUserLookupsQuery() {
   const query = useUserAsyncQuery(
     useCallback(async () => {
-      const [institutions, profiles] = await Promise.all([
+      const [institutions, profiles, passwordPolicies] = await Promise.all([
         usersApi.getActiveInstitutions(),
         usersApi.getAllProfiles(),
+        usersApi.getPasswordPolicies(),
       ]);
       return {
         institutions: lookupOptions(institutions, [
@@ -104,6 +106,7 @@ export function useUserLookupsQuery() {
           "institution_profile_array",
         ]),
         profiles: lookupOptions(profiles, ["profile_array"]),
+        passwordPolicies: normalizePasswordPolicyList(passwordPolicies),
       };
     }, []),
   );
@@ -111,7 +114,19 @@ export function useUserLookupsQuery() {
     ...query,
     institutions: query.data?.institutions ?? [],
     profiles: query.data?.profiles ?? [],
+    passwordPolicies: query.data?.passwordPolicies ?? [],
   };
+}
+
+// Standalone fetch for screens outside the Users list (e.g. Change
+// Password) that just need the applicable policy to validate against,
+// without the institutions/profiles lookups above.
+export function usePasswordPolicyQuery() {
+  const query = useUserAsyncQuery(
+    useCallback(async () => normalizePasswordPolicyList(await usersApi.getPasswordPolicies()), []),
+  );
+  const policies = query.data ?? [];
+  return { ...query, policies, policy: pickDefaultPolicy(policies) };
 }
 export function useUserAuditMutation() {
   return useUserMutation(useCallback((payload) => usersApi.audit(payload), []));

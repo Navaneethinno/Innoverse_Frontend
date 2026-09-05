@@ -64,4 +64,6 @@ export const usersApi = {
   getActiveInstitutions: (payload = { view: "dropdown" }) =>
     request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, payload),
   getAllProfiles: () => request(API_ENDPOINTS.USERS.ALL_PROFILES, {}),
+  getPasswordPolicies: (payload = {}) =>
+    request(API_ENDPOINTS.USERS.PASSWORD_POLICY_LIST, payload),
 };

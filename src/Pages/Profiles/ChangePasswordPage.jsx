@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, Lock } from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
 import { notifications } from "@/Utils/Lib/notifications";
+import { usePasswordPolicyQuery } from "@/Hooks/Users/userHooks";
+import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/passwordPolicy";
 
 export function ChangePasswordPage() {
   const navigate = useNavigate();
   const changePassword = useAuth((state) => state.changePassword);
+  const { policy } = usePasswordPolicyQuery();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [visible, setVisible] = useState({ old: false, next: false, confirm: false });
   const [loading, setLoading] = useState(false);
+  const passwordRequirements = checkPasswordRequirements(newPassword, policy);
 
   const toggleVisibility = (field) =>
     setVisible((current) => ({ ...current, [field]: !current[field] }));
@@ -24,6 +28,11 @@ export function ChangePasswordPage() {
     }
     if (newPassword !== confirmPassword) {
       notifications.error("New passwords do not match");
+      return;
+    }
+    const issues = validatePassword(newPassword, policy);
+    if (issues.length > 0) {
+      notifications.error(`Password does not meet policy: ${issues.join(", ")}`);
       return;
     }
     setLoading(true);
@@ -95,6 +104,23 @@ export function ChangePasswordPage() {
                 {visible.next ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            {passwordRequirements.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {passwordRequirements.map((req) => (
+                  <li
+                    key={req.key}
+                    className={`flex items-center gap-1.5 text-xs font-normal ${req.met ? "text-emerald-600" : "text-slate-400"}`}
+                  >
+                    {req.met ? (
+                      <Check size={13} />
+                    ) : (
+                      <span className="h-1 w-1 rounded-full bg-current" />
+                    )}
+                    {req.label}
+                  </li>
+                ))}
+              </ul>
+            )}
           </label>
           <label className="block text-sm font-medium text-slate-700">
             Confirm New Password
