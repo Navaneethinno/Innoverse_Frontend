@@ -27,6 +27,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
+import { AuditModal } from "@/Components/Common/AuditModal";
 
 const glass = {
   background: "var(--glass-bg)",
@@ -505,17 +506,7 @@ export function UsersPage() {
                 </>
               )}
               {audit && (
-                <>
-                  <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-xl font-bold">User audit</h2>
-                    <button onClick={() => setAudit(null)}>
-                      <X />
-                    </button>
-                  </div>
-                  <pre className="max-h-[60vh] overflow-auto rounded-xl bg-slate-900 p-4 text-xs text-slate-100">
-                    {JSON.stringify(audit, null, 2)}
-                  </pre>
-                </>
+                <AuditModal title="User audit" data={audit} onClose={() => setAudit(null)} />
               )}
             </motion.div>
           </div>
