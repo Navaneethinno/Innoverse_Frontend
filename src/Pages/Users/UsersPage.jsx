@@ -28,6 +28,12 @@ import { Skeleton } from "@/Components/UI/skeleton";
 import { notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { AuditModal } from "@/Components/Common/AuditModal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+
+const STATUS_OPTIONS = [
+  { value: 0, label: "All statuses" },
+  { value: 1, label: "Active" },
+];
 
 const glass = {
   background: "var(--glass-bg)",
@@ -321,16 +327,12 @@ export function UsersPage() {
             placeholder="Search users"
             className="flex-1 rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 outline-none focus:border-blue-400"
           />
-          <select
+          <FilterSelect
             value={params.status}
-            onChange={(event) =>
-              setParams({ ...params, page: 1, status: Number(event.target.value) })
-            }
-            className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5"
-          >
-            <option value={0}>All statuses</option>
-            <option value={1}>Active</option>
-          </select>
+            onChange={(status) => setParams({ ...params, page: 1, status })}
+            options={STATUS_OPTIONS}
+            className="w-full md:w-48"
+          />
         </div>
       </div>
       {usersQuery.error && (
