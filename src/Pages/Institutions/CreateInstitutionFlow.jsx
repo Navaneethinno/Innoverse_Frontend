@@ -150,17 +150,6 @@ export function CreateInstitutionFlow() {
   const [form, setForm] = useState(EMPTY);
   const [submitted, setSubmitted] = useState(false);
 
-  if (!canCreateInstitution) {
-    return (
-      <div className="pt-4 flex flex-col items-center py-20 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <AlertCircle size={22} className="text-red-400" />
-        </div>
-        <p className="text-sm font-bold text-slate-700">No permission</p>
-        <p className="text-xs text-slate-400 mt-1">Only Platform Owners can create institutions</p>
-      </div>
-    );
-  }
   if (submitted) {
     return (
       <div className="pt-4 pb-8">

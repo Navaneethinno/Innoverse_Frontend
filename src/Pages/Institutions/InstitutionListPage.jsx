@@ -128,8 +128,7 @@ export function InstitutionListPage() {
             {institutions.length} registered · {activeCount} active
           </p>
         </div>
-        {canCreateInstitution && (
-          <motion.button
+        <motion.button
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/institutions/create")}
@@ -139,8 +138,7 @@ export function InstitutionListPage() {
             <Plus size={14} />
             <span className="hidden sm:inline">New Institution</span>
             <span className="sm:hidden">New</span>
-          </motion.button>
-        )}
+        </motion.button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
