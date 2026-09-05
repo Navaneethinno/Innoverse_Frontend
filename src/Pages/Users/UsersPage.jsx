@@ -193,12 +193,15 @@ export function UsersPage() {
   const submit = async (event) => {
     event.preventDefault();
     try {
+      const institutionId = Number(form.inst_id);
+      const profileId = Number(form.profile_id);
       if (editing)
         await updateMutation.mutateAsync({
           user_id: userId(editing),
           user_name: form.user_name,
           user_pwd: "",
-          profile_id: form.profile_id,
+          inst_id: Number.isInteger(institutionId) ? institutionId : 0,
+          profile_id: Number.isInteger(profileId) ? profileId : 0,
           user_fname: form.user_fname,
           user_lname: form.user_lname,
           email: form.email,
@@ -207,7 +210,12 @@ export function UsersPage() {
           address: form.address,
           employee_id: form.employee_id,
         });
-      else await createMutation.mutateAsync(form);
+      else
+        await createMutation.mutateAsync({
+          ...form,
+          inst_id: Number.isInteger(institutionId) ? institutionId : 0,
+          profile_id: Number.isInteger(profileId) ? profileId : 0,
+        });
       notifications.success(editing ? "User updated successfully" : "User added successfully");
       setShowForm(false);
     } catch (error) {
