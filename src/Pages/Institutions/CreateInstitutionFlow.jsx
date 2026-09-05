@@ -9,6 +9,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institutions/DateFormatField";
+import { useInstitutionTypes } from "@/Hooks/Master/masterHooks";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
@@ -147,6 +148,7 @@ export function CreateInstitutionFlow() {
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState(EMPTY);
   const [submitted, setSubmitted] = useState(false);
+  const { types: institutionTypes } = useInstitutionTypes();
 
   if (submitted) {
     return (
@@ -304,13 +306,21 @@ export function CreateInstitutionFlow() {
                       error={errors.name}
                       onChange={setField}
                     />
-                    <InputField
-                      label="Type"
-                      fieldKey="type"
-                      placeholder="PLATFORM_USER"
-                      value={form.type}
-                      onChange={setField}
-                    />
+                    <label className="block text-sm font-medium text-slate-700">
+                      <span className="mb-1.5 block">Type</span>
+                      <select
+                        value={form.type}
+                        onChange={(e) => setField("type", e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      >
+                        <option value="">Select institution type</option>
+                        {institutionTypes.map((type) => {
+                          const value = type.id ?? type.type ?? type.code;
+                          const label = type.name ?? type.type_name ?? type.code ?? value;
+                          return <option key={value} value={value}>{label}</option>;
+                        })}
+                      </select>
+                    </label>
                     <div className="grid grid-cols-2 gap-4">
                       <InputField
                         label="Timezone"

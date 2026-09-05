@@ -80,6 +80,8 @@ function toArray(data) {
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.module_list)) return data.module_list;
   if (Array.isArray(data?.list)) return data.list;
+  if (Array.isArray(data?.institution_type_list)) return data.institution_type_list;
+  if (Array.isArray(data?.institution_type_array)) return data.institution_type_array;
   return [];
 }
 
@@ -104,4 +106,7 @@ export const masterApi = {
   // activation and are out of scope for the sidebar's module catalogue).
   moduleList: async () =>
     toArray(await masterPost(API_ENDPOINTS.MASTER.MODULE_LIST, {})).map(normalizeModule),
+  institutionTypeList: async () => toArray(
+    await masterPost(API_ENDPOINTS.MASTER.INSTITUTION_TYPE_LIST, {}),
+  ),
 };
