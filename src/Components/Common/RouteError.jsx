@@ -3,9 +3,13 @@ import { AlertTriangle } from "lucide-react";
 
 export function RouteError() {
   const error = useRouteError();
-  if (import.meta.env.DEV && error) {
-    // eslint-disable-next-line no-console
-    console.error(error);
+  // Previously only logged in DEV, so a genuine production error (as
+  // opposed to an actual unmatched route) was invisible — this screen looks
+  // identical either way, and there was no way to tell them apart from a
+  // bug report alone. Always log so the real cause is at least in the
+  // console if this is ever seen again.
+  if (error) {
+    console.error("RouteError boundary caught:", error);
   }
   return (
     <div className="flex flex-col items-center justify-center h-screen text-center gap-3">
