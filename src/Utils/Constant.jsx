@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
   MASTER: {
     MODULE_LIST: "/master/module/list",
     INSTITUTION_TYPE_LIST: "/master/institution_type/list",
+    LANGUAGE_LIST: "/master/language/list",
   },
 
   USERS: {

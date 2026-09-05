@@ -19,3 +19,18 @@ export function useInstitutionTypes() {
   useEffect(() => { void load(); }, [load]);
   return { types, loading, error };
 }
+
+export function useLanguages() {
+  const [languages, setLanguages] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    try {
+      setLanguages(await masterApi.languageList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load languages"));
+    }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  return { languages, error };
+}

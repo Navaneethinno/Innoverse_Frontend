@@ -9,7 +9,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institutions/DateFormatField";
-import { useInstitutionTypes } from "@/Hooks/Master/masterHooks";
+import { useInstitutionTypes, useLanguages } from "@/Hooks/Master/masterHooks";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
@@ -21,7 +21,8 @@ const EMPTY = {
   name: "",
   type: "PLATFORM_USER",
   timezone: "Asia/Kolkata",
-  language: "en",
+  languageDefault: "en",
+  languageSupported: ["en"],
   date_format: "DD-MM-YYYY",
   has_branch: false,
   max_branches_allowed: 1,
@@ -46,10 +47,7 @@ function buildPayload(form) {
     name: form.name,
     type: Number(form.type) || 1,
     timezone: form.timezone,
-    language: {
-      default: form.language.split(",").map((v) => v.trim()).filter(Boolean)[0] || "en",
-      supported: form.language.split(",").map((v) => v.trim()).filter(Boolean),
-    },
+    language: { default: form.languageDefault, supported: form.languageSupported },
     date_format: form.date_format,
     has_branch: form.has_branch,
     max_branches_allowed: Number(form.max_branches_allowed) || 0,
@@ -149,6 +147,7 @@ export function CreateInstitutionFlow() {
   const [form, setForm] = useState(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const { types: institutionTypes } = useInstitutionTypes();
+  const { languages } = useLanguages();
 
   if (submitted) {
     return (
@@ -334,13 +333,39 @@ export function CreateInstitutionFlow() {
                         onChange={(value) => setField("date_format", value)}
                       />
                     </div>
-                    <InputField
-                      label="Language(s) (comma separated)"
-                      fieldKey="language"
-                      placeholder="en"
-                      value={form.language}
-                      onChange={setField}
-                    />
+                    <div className="space-y-3">
+                      <label className="block text-sm font-medium text-slate-700">Default language</label>
+                      <select
+                        value={form.languageDefault}
+                        onChange={(e) => setField("languageDefault", e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                      >
+                        {languages.map((language) => {
+                          const value = typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;
+                          return <option key={value} value={value}>{typeof language === "string" ? language : language.name ?? language.language_name ?? value}</option>;
+                        })}
+                      </select>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Supported languages</p>
+                      <div className="flex flex-wrap gap-4">
+                        {languages.map((language) => {
+                          const value = typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;
+                          const label = typeof language === "string" ? language : language.name ?? language.language_name ?? value;
+                          const checked = form.languageSupported.includes(value);
+                          return (
+                            <label key={value} className="flex items-center gap-2 text-sm text-slate-600">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(e) => setField("languageSupported", e.target.checked
+                                  ? [...new Set([...form.languageSupported, value])]
+                                  : form.languageSupported.filter((item) => item !== value))}
+                              />
+                              {label}{form.languageDefault === value ? " (default)" : ""}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <ToggleField
                       label="Has Branch"
                       fieldKey="has_branch"

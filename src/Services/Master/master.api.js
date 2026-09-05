@@ -82,6 +82,8 @@ function toArray(data) {
   if (Array.isArray(data?.list)) return data.list;
   if (Array.isArray(data?.institution_type_list)) return data.institution_type_list;
   if (Array.isArray(data?.institution_type_array)) return data.institution_type_array;
+  if (Array.isArray(data?.language_list)) return data.language_list;
+  if (Array.isArray(data?.language_array)) return data.language_array;
   return [];
 }
 
@@ -109,4 +111,5 @@ export const masterApi = {
   institutionTypeList: async () => toArray(
     await masterPost(API_ENDPOINTS.MASTER.INSTITUTION_TYPE_LIST, {}),
   ),
+  languageList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {})),
 };
