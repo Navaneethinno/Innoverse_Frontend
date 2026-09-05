@@ -85,6 +85,7 @@ export function useUsersQuery(params) {
   return { ...query, data: mapped.users, pagination: mapped.pagination };
 }
 function lookupOptions(payload, keys) {
+  if (Array.isArray(payload?.data)) return payload.data;
   for (const key of keys) {
     if (Array.isArray(payload?.data?.[key])) return payload.data[key];
   }
