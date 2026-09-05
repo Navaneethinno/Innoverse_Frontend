@@ -6,6 +6,7 @@ import {
   EyeOff,
   History,
   Plus,
+  Pencil,
   ShieldCheck,
   ShieldOff,
   Trash2,
@@ -353,10 +354,18 @@ export function UsersPage() {
                       <td className="px-5 py-4">
                         <div className="flex gap-1">
                           <button
+                            title="View"
                             onClick={() => openEdit(user)}
-                            className="rounded-lg p-2 text-blue-600"
+                            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
                           >
-                            Edit
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            title="Edit"
+                            onClick={() => openEdit(user)}
+                            className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
+                          >
+                            <Pencil size={16} />
                           </button>
                           <button
                             title="Audit"
@@ -375,7 +384,7 @@ export function UsersPage() {
                           <button
                             title="Deauthorize"
                             onClick={() => setAction({ type: "deauth", user })}
-                            className="rounded-lg p-2 text-amber-600"
+                            className="rounded-lg p-2 text-amber-600 hover:bg-amber-50"
                           >
                             <ShieldOff size={16} />
                           </button>
