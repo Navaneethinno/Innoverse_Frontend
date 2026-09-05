@@ -11,16 +11,19 @@ import { profilesApi } from "@/Services/Profiles/profiles.api";
 // exact casing/wording ("Profiles", "Profile", "PROFILE") differs, mirroring
 // the tolerant-alias approach already used for auth_status in
 // InstitutionListPage.jsx's TAB_STATUS_ALIASES.
-const USER_MANAGEMENT_MODULE_ID = 16;
 export function useHasProfileAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(
     () =>
       (menuArray || []).some(
         (item) =>
-          Number(item?.module_id) === USER_MANAGEMENT_MODULE_ID &&
           /profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => a?.action_name === actionName),
+          (item?.actions || []).some((a) => {
+            const granted = String(a?.action_name ?? a?.name ?? "").toLowerCase();
+            const requested = String(actionName).toLowerCase();
+            return granted === requested ||
+              (requested === "authorize" && granted === "authorise");
+          }),
       ),
     [menuArray, actionName],
   );
@@ -35,7 +38,6 @@ export function useProfileMenuItem() {
     () =>
       (menuArray || []).find(
         (item) =>
-          Number(item?.module_id) === USER_MANAGEMENT_MODULE_ID &&
           /profile/i.test(String(item?.menu_name ?? "")),
       ) ?? null,
     [menuArray],
