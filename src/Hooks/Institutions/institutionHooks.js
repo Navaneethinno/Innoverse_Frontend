@@ -16,7 +16,12 @@ export function useHasInstitutionAction(actionName) {
       (menuArray || []).some(
         (item) =>
           Number(item?.module_id) === INSTITUTION_MODULE_ID &&
-          (item?.actions || []).some((a) => a?.action_name === actionName),
+          (item?.actions || []).some((a) => {
+            const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
+            const requestedAction = String(actionName).trim().toLowerCase();
+            return grantedAction === requestedAction ||
+              (requestedAction === "add" && grantedAction === "create");
+          }),
       ),
     [menuArray, actionName],
   );
