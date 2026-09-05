@@ -55,11 +55,18 @@ function useUserMutation(mutationFn) {
 }
 
 function mapUserListResponse(payload) {
+  const data = payload?.data;
+  const users =
+    (Array.isArray(data) && data) ||
+    data?.user_array ||
+    data?.user_data ||
+    data?.list ||
+    [];
   return {
-    users: payload?.data?.user_array ?? [],
-    pagination: payload?.data?.pagination ?? {
-      totalRecords: 0,
-      totalPages: 0,
+    users: Array.isArray(users) ? users : [],
+    pagination: payload?.pagination ?? data?.pagination ?? {
+      totalRecords: Array.isArray(users) ? users.length : 0,
+      totalPages: 1,
       currentPage: 1,
       limit: 10,
     },
@@ -67,7 +74,13 @@ function mapUserListResponse(payload) {
 }
 
 export function useUsersQuery(params) {
-  const query = useUserAsyncQuery(useCallback(() => usersApi.list(params), [params]));
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+  const search = params?.search ?? "";
+  const status = params?.status ?? 0;
+  const query = useUserAsyncQuery(
+    useCallback(() => usersApi.list({ page, limit, search, status }), [page, limit, search, status]),
+  );
   const mapped = mapUserListResponse(query.data);
   return { ...query, data: mapped.users, pagination: mapped.pagination };
 }
