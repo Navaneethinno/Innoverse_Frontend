@@ -8,14 +8,12 @@ import { institutionsApi } from "@/Services/Institutions/institutions.api";
 // false. Module 14 is Institution; if any menu item under it carries the
 // named action, the user is permitted. Same actions[] data the sidebar
 // itself already uses (DynamicSidebar.jsx, Phase 24C).
-const INSTITUTION_MODULE_IDS = new Set([1, 14]);
 export function useHasInstitutionAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(
     () =>
       (menuArray || []).some(
         (item) =>
-          INSTITUTION_MODULE_IDS.has(Number(item?.module_id)) &&
           /institution\s*profile/i.test(String(item?.menu_name ?? "")) &&
           (item?.actions || []).some((a) => {
             const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
