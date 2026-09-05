@@ -29,28 +29,6 @@ export const ROUTE_METADATA = [
     breadcrumb: ["Profiles"],
     feature: "profiles",
   },
-  {
-    id: "applications",
-    path: ROUTES.applications,
-    title: "Applications",
-    breadcrumb: ["Applications"],
-    feature: "applications",
-  },
-  {
-    id: "menus",
-    path: ROUTES.menus,
-    title: "Menus & Modules",
-    breadcrumb: ["Menus & Modules"],
-    feature: "menus",
-  },
-  { id: "kyc", path: ROUTES.kyc, title: "KYC", breadcrumb: ["KYC"], feature: "kyc" },
-  {
-    id: "pending",
-    path: ROUTES.pending,
-    title: "Pending Requests",
-    breadcrumb: ["Maker-Checker", "Pending"],
-    feature: "maker-checker",
-  },
 ];
 export function getRouteMetadata(pathname) {
   return ROUTE_METADATA.find((route) => {

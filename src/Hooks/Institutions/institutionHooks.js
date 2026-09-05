@@ -153,20 +153,6 @@ export function useInstitutionCreateMutation() {
 export function useInstitutionUpdateMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.edit(payload), []));
 }
-// Back-compat alias for src/Pages/KYC/KycPage.jsx (out of scope for this
-// Institution/Profile wiring pass — read-only per task constraints), which
-// calls this as mutateAsync({ id, payload }) against the old fictional
-// PUT /institutions/{id} convention. Forwarded onto the real
-// /institution/profile/edit endpoint as {id, ...payload}; note this will
-// NOT satisfy that endpoint's full-profile-body requirement (it only sends
-// { kyc: {...} }), so KYC-driven institution updates remain unverified
-// until KycPage itself is revisited — flagged here, not silently fixed,
-// since KYC business logic is out of scope for this task.
-export function useUpdateInstitutionMutation() {
-  return useInstitutionMutation(
-    useCallback(({ id, payload }) => institutionsApi.edit({ id, ...payload }), []),
-  );
-}
 export function useInstitutionAuthMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.auth(payload), []));
 }

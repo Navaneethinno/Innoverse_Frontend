@@ -3,13 +3,9 @@ export const ROUTES = {
   login: "/login",
   setup: "/setup",
   dashboard: "/dashboard",
-  pending: "/pending",
   institutions: "/institutions",
   institutionCreate: "/institutions/create",
   institutionDetail: (id = ":id") => "/institutions/" + id,
   users: "/users",
   profiles: "/profiles",
-  applications: "/applications",
-  menus: "/menus",
-  kyc: "/kyc",
 };

@@ -1,9 +1,5 @@
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
-export { pendingRoutes } from "./pendingRoutes";
 export { institutionRoutes } from "./institutionRoutes";
 export { userRoutes } from "./userRoutes";
 export { profileRoutes } from "./profileRoutes";
-export { applicationRoutes } from "./applicationRoutes";
-export { menuRoutes } from "./menuRoutes";
-export { kycRoutes } from "./kycRoutes";
