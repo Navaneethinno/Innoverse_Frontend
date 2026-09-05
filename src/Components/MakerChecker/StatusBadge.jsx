@@ -6,12 +6,37 @@ const STATUS_CONFIG = {
     dot: "bg-emerald-500",
     pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
   },
+  AUTHORIZED: {
+    label: "Authorized",
+    dot: "bg-emerald-500",
+    pill: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  "AUTH WAIT": {
+    label: "Pending Add",
+    dot: "bg-amber-500",
+    pill: "bg-amber-50 text-amber-700 border-amber-200",
+  },
   INACTIVE: {
     label: "Inactive",
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
   },
   DELETED: { label: "Deleted", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
+  DEAUTHORIZED: {
+    label: "Deauthorized",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  DEAUTH: {
+    label: "Deauthorized",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  DEACTIVATED: {
+    label: "Deactivated",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
   // Finalized API auth_status values
   NEW_AUTH: {
     label: "Pending Add",
@@ -27,6 +52,11 @@ const STATUS_CONFIG = {
     label: "Pending Delete",
     dot: "bg-orange-500",
     pill: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  DEL_WAIT_AUTH: {
+    label: "Pending Delete",
+    dot: "bg-amber-800",
+    pill: "bg-amber-50 text-amber-900 border-amber-300",
   },
   MOD_AUTH: {
     label: "Pending Mod",

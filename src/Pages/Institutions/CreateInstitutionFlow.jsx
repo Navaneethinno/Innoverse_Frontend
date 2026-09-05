@@ -44,23 +44,25 @@ function buildPayload(form) {
   return {
     code: form.code,
     name: form.name,
-    type: form.type,
+    type: Number(form.type) || 1,
     timezone: form.timezone,
-    language: form.language
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean),
+    language: {
+      default: form.language.split(",").map((v) => v.trim()).filter(Boolean)[0] || "en",
+      supported: form.language.split(",").map((v) => v.trim()).filter(Boolean),
+    },
     date_format: form.date_format,
     has_branch: form.has_branch,
     max_branches_allowed: Number(form.max_branches_allowed) || 0,
     kyc_enabled: form.kyc_enabled,
     total_kyc_levels: Number(form.total_kyc_levels) || 0,
     allow_downgrade_kyc: form.allow_downgrade_kyc,
-    auto_approve_kyc_level: Number(form.auto_approve_kyc_level) || 0,
-    allowed_login_identifiers: form.allowed_login_identifiers
-      .split(",")
-      .map((v) => v.trim())
-      .filter(Boolean),
+    auto_approve_kyc_level: Number(form.auto_approve_kyc_level) > 0,
+    allowed_login_identifiers: {
+      identifiers: form.allowed_login_identifiers
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean),
+    },
     primary_login_identifier: form.primary_login_identifier,
     is_login_pin_enabled: form.is_login_pin_enabled,
     login_pin_length: Number(form.login_pin_length) || 0,

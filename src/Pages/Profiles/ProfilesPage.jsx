@@ -55,6 +55,52 @@ const TABS = [
   { value: "INACTIVE", label: "Inactive" },
 ];
 
+const PROFILE_COLUMNS = [
+  { key: "profile_name", label: "Profile Name" },
+  { key: "institution_name", label: "Institution Name" },
+  { key: "auth_status", label: "Authorization Status" },
+  { key: "code", label: "Institution Code", institution: true },
+  { key: "type_name", label: "Institution Type", institution: true },
+  { key: "timezone", label: "Institution Timezone", institution: true },
+  { key: "kyc_enabled", label: "Institution KYC Enabled", institution: true },
+  { key: "primary_login_identifier", label: "Institution Login Identifier", institution: true },
+  { key: "profile_id", label: "Profile ID" },
+  { key: "inst_profile_id", label: "Institution Profile ID" },
+  { key: "status", label: "Status" },
+  { key: "process_status", label: "Process Status" },
+  { key: "created_by", label: "Created By" },
+  { key: "created_userid", label: "Created User ID" },
+  { key: "created_time", label: "Created Time" },
+  { key: "updated_by", label: "Updated By" },
+  { key: "updated_userid", label: "Updated User ID" },
+  { key: "updated_time", label: "Updated Time" },
+  { key: "deauth_narration", label: "Deauthorization Narration" },
+  { key: "menu_actions", label: "Menu / Action IDs" },
+];
+
+function renderProfileValue(profile, key) {
+  const value = profile[key];
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (key === "auth_status") {
+    return value == null ? "—" : <StatusBadge status={String(value)} />;
+  }
+  if (key === "menu_actions") {
+    return Array.isArray(value) && value.length > 0 ? (
+      <ul className="space-y-1 text-left">
+        {value.map((menu, index) => (
+          <li key={`${menu.menu_id}-${index}`}>
+            <span className="font-semibold">Menu {menu.menu_id ?? "—"}:</span>{" "}
+            {Array.isArray(menu.actions) && menu.actions.length > 0
+              ? menu.actions.join(", ")
+              : "No actions"}
+          </li>
+        ))}
+      </ul>
+    ) : "No menu actions";
+  }
+  return value == null || value === "" ? "—" : String(value);
+}
+
 function profileId(profile) {
   return profile?.profile_id ?? profile?.id;
 }
@@ -91,6 +137,7 @@ export function ProfilesPage() {
   const deleteAuthMutation = useProfileDeleteAuthMutation();
 
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
+  const institutionsById = new Map(institutions.map((institution) => [String(institution.id), institution]));
 
   const filtered = useMemo(
     () =>
@@ -265,14 +312,14 @@ export function ProfilesPage() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-2xl overflow-hidden"
+        className="rounded-2xl overflow-x-auto"
         style={glass}
       >
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-100/80">
-              {["Profile Name", "Status", "Actions"].map((h) => (
-                <th key={h} className="text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {[...PROFILE_COLUMNS.map(({ label }) => label), "Actions"].map((h) => (
+                <th key={h} scope="col" className="whitespace-nowrap text-center px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   {h}
                 </th>
               ))}
@@ -282,7 +329,7 @@ export function ProfilesPage() {
             {profilesQuery.isLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-slate-50">
-                  {Array.from({ length: 3 }).map((_, j) => (
+                  {Array.from({ length: PROFILE_COLUMNS.length + 1 }).map((_, j) => (
                     <td key={j} className="px-5 py-3.5">
                       <Skeleton className="h-4 w-24 mx-auto" />
                     </td>
@@ -291,7 +338,7 @@ export function ProfilesPage() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-5 py-16 text-center">
+                <td colSpan={PROFILE_COLUMNS.length + 1} className="px-5 py-16 text-center">
                   <p className="text-sm font-bold text-slate-600">No profiles found</p>
                   <p className="text-xs text-slate-400 mt-1">Adjust your search or filter criteria</p>
                 </td>
@@ -299,7 +346,7 @@ export function ProfilesPage() {
             ) : (
               filtered.map((p, i) => {
                 const id = profileId(p);
-                const status = String(p.auth_status ?? p.status ?? "").toUpperCase();
+                const institution = institutionsById.get(String(p.inst_profile_id));
                 return (
                   <motion.tr
                     key={id}
@@ -308,12 +355,18 @@ export function ProfilesPage() {
                     transition={{ delay: i * 0.03 }}
                     className="border-b border-slate-50 hover:bg-white/60 transition-colors"
                   >
-                    <td className="px-5 py-3.5 text-xs font-semibold text-slate-800 text-center">
-                      {p.profile_name ?? "—"}
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <StatusBadge status={status} />
-                    </td>
+                    {PROFILE_COLUMNS.map(({ key, institution: isInstitutionColumn }) => (
+                      <td key={key} className="px-5 py-3.5 text-xs text-slate-800 text-center whitespace-nowrap">
+                        {renderProfileValue(
+                          isInstitutionColumn
+                            ? institution ?? {}
+                            : key === "institution_name"
+                              ? { institution_name: p.institution_name ?? institution?.name }
+                              : p,
+                          key,
+                        )}
+                      </td>
+                    ))}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-center gap-1">
                         {canEdit && (

@@ -39,9 +39,9 @@ const glass = {
 // (the presumed siblings of the one confirmed value) remain unverified.
 const TAB_STATUS_ALIASES = {
   ACTIVE: ["ACTIVE", "AUTHORIZED"],
-  NEW_AUTH: ["NEW_AUTH", "NEW_WAIT_AUTH"],
+  NEW_AUTH: ["NEW_AUTH", "NEW_WAIT_AUTH", "AUTH WAIT"],
   EDIT_AUTH: ["EDIT_AUTH", "EDIT_WAIT_AUTH"],
-  INACTIVE: ["INACTIVE", "DEACTIVATED"],
+  INACTIVE: ["INACTIVE", "DEACTIVATED", "DEAUTH", "DEL_WAIT_AUTH", "DELETED"],
 };
 const TABS = [
   { value: "all", label: "All" },

@@ -130,14 +130,21 @@ export function InstitutionDetailPage() {
     setSubmitting(true);
     let result = null;
     try {
+      const language = institution?.language ?? { default: "en", supported: ["en"] };
+      const allowedLoginIdentifiers = institution?.allowed_login_identifiers ?? { identifiers: [] };
       result = await updateMutation.mutateAsync({
         id,
         ...form,
-        language: institution?.language ?? [],
-        allowed_login_identifiers: institution?.allowed_login_identifiers ?? [],
+        type: Number(form.type) || 1,
+        language: Array.isArray(language)
+          ? { default: language[0] ?? "en", supported: language }
+          : language,
+        allowed_login_identifiers: Array.isArray(allowedLoginIdentifiers)
+          ? { identifiers: allowedLoginIdentifiers }
+          : allowedLoginIdentifiers,
         max_branches_allowed: Number(form.max_branches_allowed) || 0,
         total_kyc_levels: Number(form.total_kyc_levels) || 0,
-        auto_approve_kyc_level: Number(form.auto_approve_kyc_level) || 0,
+        auto_approve_kyc_level: Boolean(Number(form.auto_approve_kyc_level)),
         login_pin_length: Number(form.login_pin_length) || 0,
         txn_pin_length: Number(form.txn_pin_length) || 0,
       });
