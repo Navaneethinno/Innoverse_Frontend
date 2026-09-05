@@ -29,7 +29,7 @@ const EMPTY = {
   kyc_enabled: false,
   total_kyc_levels: 0,
   allow_downgrade_kyc: false,
-  auto_approve_kyc_level: 0,
+  auto_approve_kyc_level: false,
   allowed_login_identifiers: "USERNAME",
   primary_login_identifier: "USERNAME",
   is_login_pin_enabled: false,
@@ -54,7 +54,7 @@ function buildPayload(form) {
     kyc_enabled: form.kyc_enabled,
     total_kyc_levels: Number(form.total_kyc_levels) || 0,
     allow_downgrade_kyc: form.allow_downgrade_kyc,
-    auto_approve_kyc_level: Number(form.auto_approve_kyc_level) > 0,
+    auto_approve_kyc_level: Boolean(form.auto_approve_kyc_level),
     allowed_login_identifiers: {
       identifiers: form.allowed_login_identifiers
         .split(",")
@@ -400,7 +400,7 @@ export function CreateInstitutionFlow() {
                           value={form.total_kyc_levels}
                           onChange={setField}
                         />
-                        <NumberField
+                        <ToggleField
                           label="Auto Approve KYC Level"
                           fieldKey="auto_approve_kyc_level"
                           value={form.auto_approve_kyc_level}
