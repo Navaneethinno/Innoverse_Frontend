@@ -29,6 +29,17 @@
   --warning: #f59e0b;
   --pending: #ff8a70;
 
+  /* Soft/translucent tint backgrounds for the status + brand colors above.
+     Baked in as their own rgba() tokens rather than relying on Tailwind's
+     bg-x/NN opacity-modifier syntax — that modifier silently no-ops on
+     colors whose Tailwind definition is a plain var(--x) string (ours all
+     are), so bg-success/15 etc. rendered as solid/inherited color instead
+     of a tint. Use these tokens (e.g. bg-[var(--success-soft)]) instead. */
+  --success-soft: rgba(32, 201, 151, 0.15);
+  --warning-soft: rgba(245, 158, 11, 0.12);
+  --destructive-soft: rgba(255, 107, 107, 0.12);
+  --muted-foreground-soft: rgba(73, 82, 85, 0.7);
+
   /* Brand CTA color (kept as a "gradient" pair, both ends the same solid
      blue, so bg-brand-gradient still resolves to var(--primary) without
      touching every call site that already references the utility). */
@@ -103,6 +114,11 @@
   --success: #34d399;
   --warning: #fbbf24;
   --pending: #fb8b72;
+
+  --success-soft: rgba(52, 211, 153, 0.16);
+  --warning-soft: rgba(251, 191, 36, 0.16);
+  --destructive-soft: rgba(248, 113, 113, 0.16);
+  --muted-foreground-soft: rgba(164, 172, 174, 0.7);
 
   --gradient-start: #4c86f4;
   --gradient-end: #4c86f4;

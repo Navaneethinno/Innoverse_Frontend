@@ -77,13 +77,16 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
                   isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full text-left",
                   isActive
                     ? "bg-primary-light text-primary"
-                    : "text-muted-foreground hover:text-primary hover:bg-primary-light/60",
+                    : "text-muted-foreground hover:text-primary hover:bg-primary-light",
                 )}
               >
                 <Icon
                   size={15}
                   strokeWidth={1.8}
-                  className={cn("shrink-0", isActive ? "text-primary" : "text-muted-foreground/70")}
+                  className={cn(
+                    "shrink-0",
+                    isActive ? "text-primary" : "text-[var(--muted-foreground-soft)]",
+                  )}
                 />
                 {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
               </button>

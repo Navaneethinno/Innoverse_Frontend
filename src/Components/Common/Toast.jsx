@@ -4,15 +4,15 @@ import { cn } from "@/Utils/Lib/utils";
 const TOAST_VARIANTS = {
   success: {
     icon: CheckCircle2,
-    iconClass: "text-success bg-success/15",
+    iconClass: "text-success bg-[var(--success-soft)]",
   },
   error: {
     icon: XCircle,
-    iconClass: "text-destructive bg-destructive/15",
+    iconClass: "text-destructive bg-[var(--destructive-soft)]",
   },
   warning: {
     icon: AlertTriangle,
-    iconClass: "text-warning bg-warning/15",
+    iconClass: "text-warning bg-[var(--warning-soft)]",
   },
   info: {
     icon: Info,
@@ -35,7 +35,7 @@ export function Toast({ type = "info", title, message }) {
       </span>
       <div className="min-w-0 pt-0.5">
         {title && <p className="text-sm font-semibold text-foreground leading-tight">{title}</p>}
-        <p className="text-sm font-medium text-foreground/90 leading-snug">{message}</p>
+        <p className="text-sm font-medium text-foreground leading-snug">{message}</p>
       </div>
     </div>
   );

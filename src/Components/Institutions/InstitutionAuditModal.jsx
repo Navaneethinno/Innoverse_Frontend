@@ -82,7 +82,7 @@ function AuditEntry({ entry }) {
         </div>
         {!isEmptyPlaceholder(entry.audit_key) && (
           <p
-            className="max-w-[45%] truncate font-mono text-[10px] text-muted-foreground/70"
+            className="max-w-[45%] truncate font-mono text-[10px] text-[var(--muted-foreground-soft)]"
             title={entry.audit_key}
           >
             #{entry.audit_key}
@@ -121,7 +121,10 @@ function AuditEntry({ entry }) {
       </div>
 
       {!isEmptyPlaceholder(reason) && (
-        <p className="mt-2 rounded-lg bg-warning/10 px-3 py-1.5 text-[11px] font-medium text-warning">
+        <p
+          className="mt-2 rounded-lg px-3 py-1.5 text-[11px] font-medium text-warning"
+          style={{ background: "var(--warning-soft)" }}
+        >
           Reason: {reason}
         </p>
       )}
@@ -176,7 +179,10 @@ export function InstitutionAuditModal({ institution, institutionId, onClose }) {
             ))}
           </div>
         ) : auditQuery.error ? (
-          <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+          <div
+            className="flex items-center gap-2 rounded-xl border p-4 text-sm text-destructive"
+            style={{ borderColor: "var(--destructive-soft)", background: "var(--destructive-soft)" }}
+          >
             <AlertCircle size={14} /> {auditQuery.error.message}
           </div>
         ) : entries.length === 0 ? (
