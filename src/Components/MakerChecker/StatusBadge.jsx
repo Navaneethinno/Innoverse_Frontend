@@ -63,6 +63,11 @@ const STATUS_CONFIG = {
     dot: "bg-blue-500",
     pill: "bg-blue-50 text-blue-700 border-blue-200",
   },
+  EDITED: {
+    label: "Pending Edit",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
   DEL_WAIT_AUTH: {
     label: "Pending Delete",
     dot: "bg-amber-800",
