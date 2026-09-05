@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, History, Plus, Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
+import { AlertCircle, Eye, History, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2, X } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfileAuditModal } from "@/Components/Profiles/ProfileAuditModal";
@@ -88,6 +88,12 @@ function renderProfileValue(profile, key) {
     ) : "No menu actions";
   }
   return value == null || value === "" ? "—" : String(value);
+}
+
+function profileHasAction(profile, actionId) {
+  return (profile.menu_actions ?? []).some((menu) =>
+    Array.isArray(menu.actions) && menu.actions.some((action) => Number(action) === actionId),
+  );
 }
 
 function profileId(profile) {
@@ -336,6 +342,10 @@ export function ProfilesPage() {
               filtered.map((p, i) => {
                 const id = profileId(p);
                 const institution = institutionsById.get(String(p.inst_profile_id));
+                const canViewProfile = profileHasAction(p, 2);
+                const canEditProfile = profileHasAction(p, 3);
+                const canDeleteProfile = profileHasAction(p, 4);
+                const canAuthorizeProfile = profileHasAction(p, 5);
                 return (
                   <motion.tr
                     key={id}
@@ -358,15 +368,17 @@ export function ProfilesPage() {
                     ))}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-center gap-1">
-                        {canEdit && (
+                        {canEditProfile && canEdit && (
                           <button title="Edit" onClick={() => openEdit(p)} className="rounded-lg p-2 text-blue-600 hover:bg-blue-50">
-                            Edit
+                            <Pencil size={15} />
                           </button>
                         )}
-                        <button title="Audit" onClick={() => setAuditProfile(p)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
-                          <History size={15} />
-                        </button>
-                        {canAuthorize && (
+                        {canViewProfile && (
+                          <button title="View / Audit" onClick={() => setAuditProfile(p)} className="rounded-lg p-2 text-slate-600 hover:bg-slate-100">
+                            <Eye size={15} />
+                          </button>
+                        )}
+                        {canAuthorizeProfile && canAuthorize && (
                           <>
                             <button
                               title="Authorize"
@@ -384,7 +396,7 @@ export function ProfilesPage() {
                             </button>
                           </>
                         )}
-                        {canDelete && (
+                        {canDeleteProfile && canDelete && (
                           <button
                             title="Delete"
                             onClick={() => setAction({ type: "delete", profile: p })}
