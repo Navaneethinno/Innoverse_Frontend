@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AlertCircle,
+  Check,
   Eye,
   EyeOff,
   History,
@@ -29,6 +30,11 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import {
+  checkPasswordRequirements,
+  pickDefaultPolicy,
+  validatePassword,
+} from "@/Utils/Lib/passwordPolicy";
 
 const STATUS_OPTIONS = [
   { value: 0, label: "All statuses" },
@@ -99,9 +105,11 @@ function UserForm({
   pending,
   institutions,
   profiles,
+  passwordPolicy,
   readOnly = false,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const passwordRequirements = checkPasswordRequirements(form.user_pwd, passwordPolicy);
 
   return (
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -169,6 +177,19 @@ function UserForm({
               </button>
             )}
           </div>
+          {key === "user_pwd" && !editing && !readOnly && passwordRequirements.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {passwordRequirements.map((req) => (
+                <li
+                  key={req.key}
+                  className={`flex items-center gap-1.5 text-xs ${req.met ? "text-emerald-600" : "text-slate-400"}`}
+                >
+                  {req.met ? <Check size={13} /> : <span className="h-1 w-1 rounded-full bg-current" />}
+                  {req.label}
+                </li>
+              ))}
+            </ul>
+          )}
         </label>
       ))}
       <div className="flex justify-end gap-2 md:col-span-2">
@@ -319,7 +340,7 @@ export function UsersPage() {
           <Plus size={18} /> Add user
         </button>
       </div>
-      <div className="rounded-2xl p-4" style={glass}>
+      <div className="relative z-20 rounded-2xl p-4" style={glass}>
         <div className="flex flex-col gap-3 md:flex-row">
           <input
             value={params.search}
@@ -341,7 +362,7 @@ export function UsersPage() {
           {usersQuery.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={glass}>
+      <div className="relative z-0 overflow-hidden rounded-2xl" style={glass}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-slate-200/70 text-xs uppercase text-slate-500">
@@ -499,6 +520,7 @@ export function UsersPage() {
                     pending={createMutation.isPending || updateMutation.isPending}
                     institutions={lookupsQuery.institutions}
                     profiles={lookupsQuery.profiles}
+                    passwordPolicy={passwordPolicy}
                   />
                 </>
               )}
