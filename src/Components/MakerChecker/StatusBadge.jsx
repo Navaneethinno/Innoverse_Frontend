@@ -16,6 +16,11 @@ const STATUS_CONFIG = {
     dot: "bg-amber-500",
     pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
+  NEW_WAIT_AUTH: {
+    label: "Pending Add",
+    dot: "bg-amber-500",
+    pill: "bg-amber-50 text-amber-700 border-amber-200",
+  },
   INACTIVE: {
     label: "Inactive",
     dot: "bg-slate-400",
@@ -52,6 +57,11 @@ const STATUS_CONFIG = {
     label: "Pending Delete",
     dot: "bg-orange-500",
     pill: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  EDIT_WAIT_AUTH: {
+    label: "Pending Edit",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
   },
   DEL_WAIT_AUTH: {
     label: "Pending Delete",
