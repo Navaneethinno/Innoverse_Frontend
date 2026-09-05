@@ -39,6 +39,7 @@ import {
 const STATUS_OPTIONS = [
   { value: 0, label: "All statuses" },
   { value: 1, label: "Active" },
+  { value: 2, label: "Inactive" },
 ];
 
 const glass = {
@@ -220,6 +221,7 @@ export function UsersPage() {
   const [audit, setAudit] = useState(null);
   const usersQuery = useUsersQuery(params);
   const lookupsQuery = useUserLookupsQuery();
+  const passwordPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
   const createMutation = useUserCreateMutation();
   const updateMutation = useUserUpdateMutation();
   const authMutation = useUserAuthMutation();
@@ -258,6 +260,13 @@ export function UsersPage() {
   const submit = async (event) => {
     event.preventDefault();
     if (viewingOnly) return;
+    if (!editing) {
+      const issues = validatePassword(form.user_pwd, passwordPolicy);
+      if (issues.length > 0) {
+        notifications.error(`Password does not meet policy: ${issues.join(", ")}`);
+        return;
+      }
+    }
     try {
       const institutionId = Number(form.inst_id);
       const profileId = Number(form.profile_id);
