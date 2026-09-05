@@ -280,7 +280,15 @@ export function UsersPage() {
   };
   const openAudit = async (user) => {
     try {
-      setAudit(await auditMutation.mutateAsync({ user_id: userId(user), page: 1, limit: 10 }));
+      const response = await auditMutation.mutateAsync({
+        user_id: userId(user),
+        page: 1,
+        limit: 10,
+      });
+      const entries = Array.isArray(response)
+        ? response
+        : (response?.data?.user_audit_array ?? response?.data?.audit_array ?? response?.data ?? []);
+      setAudit({ user, entries });
     } catch (error) {
       notifications.error(error.message);
     }
@@ -462,7 +470,7 @@ export function UsersPage() {
         </div>
       </div>
       <AnimatePresence>
-        {(showForm || action || audit) && (
+        {(showForm || action) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -528,13 +536,18 @@ export function UsersPage() {
                   </div>
                 </>
               )}
-              {audit && (
-                <AuditModal title="User audit" data={audit} onClose={() => setAudit(null)} />
-              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {audit && (
+        <AuditModal
+          title={nameOf(audit.user)}
+          entries={audit.entries}
+          onClose={() => setAudit(null)}
+        />
+      )}
     </div>
   );
 }
