@@ -97,11 +97,16 @@ export function ProfileAuditModal({ profile, profileId, onClose }) {
   const entries = auditQuery.data ?? [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4"
+      onClick={onClose}
+      role="presentation"
+    >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
