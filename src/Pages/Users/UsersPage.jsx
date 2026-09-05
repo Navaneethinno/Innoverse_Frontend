@@ -25,6 +25,7 @@ import {
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { notifications } from "@/Utils/Lib/notifications";
+import { usersApi } from "@/Services/Users/users.api";
 
 const glass = {
   background: "var(--glass-bg)",
@@ -185,10 +186,26 @@ export function UsersPage() {
     setForm(EMPTY_FORM);
     setShowForm(true);
   };
-  const openEdit = (user) => {
+  const openEdit = async (user) => {
     setEditing(user);
     setForm(Object.fromEntries(Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(user, key)])));
     setShowForm(true);
+    const id = Number(userId(user));
+    if (!Number.isInteger(id)) return;
+    try {
+      const response = await usersApi.getKyc({ user_id: id });
+      const kyc = response?.data?.data ?? response?.data ?? {};
+      if (kyc && typeof kyc === "object") {
+        setForm((current) => ({
+          ...current,
+          ...Object.fromEntries(
+            Object.keys(EMPTY_FORM).map((key) => [key, fieldValue(kyc, key) || current[key]]),
+          ),
+        }));
+      }
+    } catch (error) {
+      notifications.error(error instanceof Error ? error.message : "Failed to load user KYC details");
+    }
   };
   const submit = async (event) => {
     event.preventDefault();
