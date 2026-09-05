@@ -55,27 +55,16 @@ const TABS = [
   { value: "INACTIVE", label: "Inactive" },
 ];
 
+// Kept intentionally short — this is the list overview, not the detail
+// view. Everything else (institution type/timezone/KYC, IDs, process
+// status, created/updated audit trail, deauth narration, menu/action
+// grants) is still available per-row via the Audit action (History icon),
+// so nothing is lost — it's just not forced into every list row.
 const PROFILE_COLUMNS = [
   { key: "profile_name", label: "Profile Name" },
   { key: "institution_name", label: "Institution Name" },
-  { key: "auth_status", label: "Authorization Status" },
   { key: "code", label: "Institution Code", institution: true },
-  { key: "type_name", label: "Institution Type", institution: true },
-  { key: "timezone", label: "Institution Timezone", institution: true },
-  { key: "kyc_enabled", label: "Institution KYC Enabled", institution: true },
-  { key: "primary_login_identifier", label: "Institution Login Identifier", institution: true },
-  { key: "profile_id", label: "Profile ID" },
-  { key: "inst_profile_id", label: "Institution Profile ID" },
-  { key: "status", label: "Status" },
-  { key: "process_status", label: "Process Status" },
-  { key: "created_by", label: "Created By" },
-  { key: "created_userid", label: "Created User ID" },
-  { key: "created_time", label: "Created Time" },
-  { key: "updated_by", label: "Updated By" },
-  { key: "updated_userid", label: "Updated User ID" },
-  { key: "updated_time", label: "Updated Time" },
-  { key: "deauth_narration", label: "Deauthorization Narration" },
-  { key: "menu_actions", label: "Menu / Action IDs" },
+  { key: "auth_status", label: "Authorization Status" },
 ];
 
 function renderProfileValue(profile, key) {
