@@ -62,11 +62,11 @@ const fields = [
 function fieldValue(user, key) {
   const aliases = {
     user_name: ["user_name", "auth_username", "username"],
-    user_fname: ["user_fname", "first_name"],
-    user_lname: ["user_lname", "last_name"],
+    user_fname: ["user_fname", "first_name", "firstname", "fname", "user_first_name"],
+    user_lname: ["user_lname", "last_name", "lastname", "lname", "user_last_name"],
     inst_id: ["inst_id", "institution_id"],
     profile_id: ["profile_id"],
-    employee_id: ["employee_id"],
+    employee_id: ["employee_id", "employeeId"],
   };
   return (
     (aliases[key] || [key])
