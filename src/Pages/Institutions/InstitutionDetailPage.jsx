@@ -77,6 +77,7 @@ function institutionId(inst) {
 
 export function InstitutionDetailPage() {
   const { id } = useParams();
+  const numericId = Number(id);
   const navigate = useNavigate();
   const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 100 });
   const updateMutation = useInstitutionUpdateMutation();
@@ -126,14 +127,14 @@ export function InstitutionDetailPage() {
   const setField = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleSubmitEdit = async () => {
-    if (!id || !form) return;
+    if (!Number.isInteger(numericId) || !form) return;
     setSubmitting(true);
     let result = null;
     try {
       const language = institution?.language ?? { default: "en", supported: ["en"] };
       const allowedLoginIdentifiers = institution?.allowed_login_identifiers ?? { identifiers: [] };
       result = await updateMutation.mutateAsync({
-        id,
+        id: numericId,
         ...form,
         type: Number(form.type) || 1,
         language: Array.isArray(language)
@@ -162,12 +163,12 @@ export function InstitutionDetailPage() {
   };
 
   const runAction = async () => {
-    if (!action || !id) return;
+    if (!action || !Number.isInteger(numericId)) return;
     try {
-      if (action === "auth") await authMutation.mutateAsync({ id });
-      if (action === "deauth") await deauthMutation.mutateAsync({ id, description });
-      if (action === "delete") await deleteMutation.mutateAsync({ id });
-      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id });
+      if (action === "auth") await authMutation.mutateAsync({ id: numericId });
+      if (action === "deauth") await deauthMutation.mutateAsync({ id: numericId, description });
+      if (action === "delete") await deleteMutation.mutateAsync({ id: numericId });
+      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id: numericId });
       notifications.success("Request submitted");
       setAction(null);
       setDescription("");
@@ -480,7 +481,7 @@ export function InstitutionDetailPage() {
       {auditOpen && (
         <InstitutionAuditModal
           institution={institution}
-          institutionId={id}
+          institutionId={numericId}
           onClose={() => setAuditOpen(false)}
         />
       )}
