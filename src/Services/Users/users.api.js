@@ -60,6 +60,7 @@ export const usersApi = {
   deauth: (payload) => request(API_ENDPOINTS.USERS.DEAUTH, payload),
   delete: (payload) => request(API_ENDPOINTS.USERS.DELETE, payload),
   deleteAuth: (payload) => request(API_ENDPOINTS.USERS.DELETE_AUTH, payload),
-  getActiveInstitutions: () => request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, {}),
+  getActiveInstitutions: (payload = { view: "dropdown" }) =>
+    request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, payload),
   getAllProfiles: () => request(API_ENDPOINTS.USERS.ALL_PROFILES, {}),
 };
