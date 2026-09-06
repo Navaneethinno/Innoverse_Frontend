@@ -1,17 +1,18 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useMemo, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import {
   AlertCircle,
   Check,
+  ChevronDown,
   Eye,
   EyeOff,
   History,
   Plus,
   Pencil,
+  Search,
   ShieldCheck,
   ShieldOff,
   Trash2,
-  X,
 } from "lucide-react";
 import {
   useUserAuthMutation,
@@ -25,29 +26,45 @@ import {
   useUsersQuery,
 } from "@/Hooks/Users/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { Skeleton } from "@/Components/UI/skeleton";
 import { notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { DataTable } from "@/Components/Common/DataTable";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { Modal } from "@/Components/Common/Modal";
+import { cn } from "@/Utils/Lib/cn";
 import {
   checkPasswordRequirements,
   pickDefaultPolicy,
   validatePassword,
 } from "@/Utils/Lib/password-policy";
 
-const STATUS_OPTIONS = [
-  { value: 0, label: "All statuses" },
-  { value: 1, label: "Active" },
-  { value: 2, label: "Inactive" },
-];
+// The users list endpoint only supports status 0/1/2 (all/active/inactive)
+// server-side — there is no dedicated "pending" auth_status filter param
+// confirmed for /user/list. To keep the same 3-tab All/Active/Pending
+// pattern as Institutions/Profiles without inventing a new endpoint, the
+// "Pending" tab fetches the same status:0 (all) page and narrows it
+// client-side by auth_status — a best-effort match limited to what's on the
+// current page (documented in the report as a follow-up once/if the
+// backend exposes a real pending filter).
+const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
+const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
+const TABS = ["all", "active", "pending"];
+const TAB_LABEL = { all: "All", active: "Active", pending: "Pending" };
 
-const glass = {
-  background: "var(--glass-bg)",
-  backdropFilter: "blur(16px)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--glass-shadow)",
-};
+function userTabOf(user) {
+  const status = String(user.auth_status ?? (user.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase();
+  if (ACTIVE_STATUSES.includes(status)) return "active";
+  if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
+  return "pending";
+}
+function userTimestamp(user) {
+  const raw = user.updated_time ?? user.created_time;
+  const time = raw ? new Date(raw).getTime() : NaN;
+  return Number.isNaN(time) ? 0 : time;
+}
+
 const EMPTY_FORM = {
   user_name: "",
   user_fname: "",
@@ -60,6 +77,7 @@ const EMPTY_FORM = {
   mobile: "",
   gender: "",
   address: "",
+  password_policy_id: "",
 };
 const fields = [
   ["user_name", "Username"],
@@ -97,23 +115,63 @@ function nameOf(user) {
   return fieldValue(user, "user_name") || "Unnamed user";
 }
 
+function PasswordPolicyField({ policies, policy, selectedId, onSelect, requirements }) {
+  const [expanded, setExpanded] = useState(false);
+  const options = policies.length > 0
+    ? policies.map((p) => ({ value: p.id, label: p.name }))
+    : [{ value: "", label: "No policies available" }];
+
+  return (
+    <div className="md:col-span-2">
+      <span className="mb-1.5 block text-sm font-medium text-slate-700">Password policy</span>
+      <FilterSelect value={selectedId} onChange={onSelect} options={options} className="w-full" />
+      {policy && (
+        <div className="mt-1.5">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700"
+          >
+            View Password Policy
+            <ChevronDown size={13} className={cn("transition-transform", expanded && "rotate-180")} />
+          </button>
+          {expanded && (
+            <ul className="mt-2 space-y-1 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+              {requirements.length === 0 ? (
+                <li className="text-xs text-slate-400">No specific requirements for this policy.</li>
+              ) : (
+                requirements.map((req) => (
+                  <li key={req.key} className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <Check size={12} className="text-slate-400" />
+                    {req.label}
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UserForm({
   form,
   setForm,
   editing,
   onSubmit,
-  onCancel,
-  pending,
   institutions,
   profiles,
-  passwordPolicy,
+  passwordPolicies,
+  selectedPolicy,
   readOnly = false,
 }) {
   const [showPassword, setShowPassword] = useState(false);
-  const passwordRequirements = checkPasswordRequirements(form.user_pwd, passwordPolicy);
+  const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
+  const policyRequirements = checkPasswordRequirements("", selectedPolicy);
 
   return (
-    <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <form onSubmit={onSubmit} id="user-form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {fields
         .filter(([key]) => !(readOnly && key === "user_pwd"))
         .map(([key, label]) => (
@@ -193,25 +251,22 @@ function UserForm({
           )}
         </label>
       ))}
-      <div className="flex justify-end gap-2 md:col-span-2">
-        <button type="button" onClick={onCancel} className="rounded-xl px-4 py-2 text-slate-600">
-          {readOnly ? "Close" : "Cancel"}
-        </button>
-        {!readOnly && (
-          <button
-            disabled={pending}
-            className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-2 font-semibold text-white disabled:opacity-50"
-          >
-            {pending ? "Saving..." : editing ? "Save changes" : "Add user"}
-          </button>
-        )}
-      </div>
+      {!readOnly && !editing && (
+        <PasswordPolicyField
+          policies={passwordPolicies}
+          policy={selectedPolicy}
+          selectedId={form.password_policy_id}
+          onSelect={(value) => setForm({ ...form, password_policy_id: value })}
+          requirements={policyRequirements}
+        />
+      )}
     </form>
   );
 }
 
 export function UsersPage() {
   const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0 });
+  const [activeTab, setActiveTab] = useState("all");
   const [form, setForm] = useState(EMPTY_FORM);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -221,7 +276,10 @@ export function UsersPage() {
   const [audit, setAudit] = useState(null);
   const usersQuery = useUsersQuery(params);
   const lookupsQuery = useUserLookupsQuery();
-  const passwordPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
+  const defaultPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
+  const selectedPolicy =
+    lookupsQuery.passwordPolicies.find((p) => String(p.id) === String(form.password_policy_id)) ??
+    defaultPolicy;
   const createMutation = useUserCreateMutation();
   const updateMutation = useUserUpdateMutation();
   const authMutation = useUserAuthMutation();
@@ -229,10 +287,31 @@ export function UsersPage() {
   const deleteMutation = useUserDeleteMutation();
   const deleteAuthMutation = useUserDeleteAuthMutation();
   const auditMutation = useUserAuditMutation();
+
+  const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
+  const visibleUsers = useMemo(() => {
+    if (activeTab === "all") return rawUsers;
+    const rows = rawUsers.filter((u) => userTabOf(u) === activeTab);
+    return activeTab === "pending" ? [...rows].sort((a, b) => userTimestamp(b) - userTimestamp(a)) : rows;
+  }, [rawUsers, activeTab]);
+  const counts = useMemo(() => {
+    const result = { all: rawUsers.length, active: 0, pending: 0 };
+    rawUsers.forEach((u) => {
+      const tab = userTabOf(u);
+      if (tab === "active" || tab === "pending") result[tab] += 1;
+    });
+    return result;
+  }, [rawUsers]);
+
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    setParams((p) => ({ ...p, page: 1, status: tab === "active" ? 1 : 0 }));
+  };
+
   const openCreate = () => {
     setEditing(null);
     setViewingOnly(false);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, password_policy_id: defaultPolicy?.id ?? "" });
     setShowForm(true);
   };
   const openEdit = async (user, { readOnly = false } = {}) => {
@@ -261,7 +340,7 @@ export function UsersPage() {
     event.preventDefault();
     if (viewingOnly) return;
     if (!editing) {
-      const issues = validatePassword(form.user_pwd, passwordPolicy);
+      const issues = validatePassword(form.user_pwd, selectedPolicy);
       if (issues.length > 0) {
         notifications.error(`Password does not meet policy: ${issues.join(", ")}`);
         return;
@@ -285,12 +364,15 @@ export function UsersPage() {
           address: form.address,
           employee_id: form.employee_id,
         });
-      else
+      else {
+        const { password_policy_id, ...userPayload } = form;
+        void password_policy_id;
         await createMutation.mutateAsync({
-          ...form,
+          ...userPayload,
           inst_id: Number.isInteger(institutionId) ? institutionId : 0,
           profile_id: Number.isInteger(profileId) ? profileId : 0,
         });
+      }
       notifications.success(editing ? "User updated successfully" : "User added successfully");
       setShowForm(false);
     } catch (error) {
@@ -334,245 +416,206 @@ export function UsersPage() {
     deauthMutation.isPending ||
     deleteMutation.isPending ||
     deleteAuthMutation.isPending;
+
+  const columns = [
+    { key: "user", label: "User", align: "left", sortValue: nameOf, render: (u) => <span className="font-semibold text-slate-800">{nameOf(u)}</span> },
+    {
+      key: "profile",
+      label: "Profile",
+      sortValue: (u) => u.profile_name ?? u.profile?.name ?? fieldValue(u, "profile_id"),
+      render: (u) => u.profile_name ?? u.profile?.name ?? fieldValue(u, "profile_id") ?? "-",
+    },
+    {
+      key: "institution",
+      label: "Institution",
+      sortValue: (u) => u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id"),
+      render: (u) => u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id") ?? "-",
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortValue: (u) => String(u.auth_status ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")),
+      render: (u) => <StatusBadge status={u.auth_status ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+      render: (user) => (
+        <div className="flex flex-wrap items-center justify-center gap-1">
+          <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+            <Eye size={14} />
+          </button>
+          <button title="Edit" onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+            <Pencil size={14} />
+          </button>
+          <button title="Audit" onClick={() => openAudit(user)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+            <History size={14} />
+          </button>
+          <button title="Authorize" onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+            <ShieldCheck size={14} />
+          </button>
+          <button title="Deauthorize" onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+            <ShieldOff size={14} />
+          </button>
+          <button title="Delete" onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="pt-3 pb-6">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-blue-600">User Management</p>
-          <h1 className="text-3xl font-bold text-slate-800">Users</h1>
-          <p className="mt-1 text-slate-500">Manage application users and access.</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">User Management</p>
+          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
+          <p className="mt-1 text-xs font-medium text-slate-400">Manage application users and access.</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 font-semibold text-white"
+          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-3.5 py-2 text-sm font-bold text-white"
         >
-          <Plus size={18} /> Add user
+          <Plus size={16} /> Add user
         </button>
       </div>
-      <div className="relative z-20 rounded-2xl p-4" style={glass}>
-        <div className="flex flex-col gap-3 md:flex-row">
+
+      <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative w-full max-w-xs">
+          <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={params.search}
             onChange={(event) => setParams({ ...params, page: 1, search: event.target.value })}
             placeholder="Search users"
-            className="flex-1 rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 outline-none focus:border-blue-400"
-          />
-          <FilterSelect
-            value={params.status}
-            onChange={(status) => setParams({ ...params, page: 1, status })}
-            options={STATUS_OPTIONS}
-            className="w-full md:w-48"
+            className="w-full rounded-xl py-2 pl-9 pr-4 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+            style={{ background: "var(--glass-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}
           />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {TABS.map((value) => (
+            <button
+              key={value}
+              onClick={() => selectTab(value)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
+                activeTab === value
+                  ? "border-transparent text-white shadow-md shadow-blue-200/50"
+                  : "text-slate-500 hover:border-blue-200 hover:text-blue-600",
+              )}
+              style={
+                activeTab === value
+                  ? { background: "#2266EE", border: "none" }
+                  : { background: "var(--glass-bg)", backdropFilter: "blur(12px)", borderColor: "var(--glass-border)" }
+              }
+            >
+              {TAB_LABEL[value]} ({counts[value]})
+            </button>
+          ))}
+        </div>
       </div>
+
       {usersQuery.error && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-          <AlertCircle size={18} />
+        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <AlertCircle size={16} />
           {usersQuery.error.message}
         </div>
       )}
-      <div className="relative z-0 overflow-hidden rounded-2xl" style={glass}>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200/70 text-xs uppercase text-slate-500">
-              <tr>
-                {["User", "Profile", "Institution", "Status", "Actions"].map((heading) => (
-                  <th key={heading} className="px-5 py-4">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {usersQuery.isLoading
-                ? Array.from({ length: 5 }, (_, index) => (
-                    <tr key={index}>
-                      <td colSpan="5" className="px-5 py-4">
-                        <Skeleton className="h-5 w-full" />
-                      </td>
-                    </tr>
-                  ))
-                : usersQuery.data.map((user) => (
-                    <tr key={userId(user)} className="hover:bg-white/50">
-                      <td className="px-5 py-4 font-semibold text-slate-800">{nameOf(user)}</td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {user.profile_name ??
-                          user.profile?.name ??
-                          fieldValue(user, "profile_id") ??
-                          "-"}
-                      </td>
-                      <td className="px-5 py-4 text-slate-600">
-                        {user.institution_name ??
-                          user.institution?.name ??
-                          fieldValue(user, "inst_id") ??
-                          "-"}
-                      </td>
-                      <td className="px-5 py-4">
-                        <StatusBadge
-                          status={user.auth_status ?? (user.status === 1 ? "ACTIVE" : "INACTIVE")}
-                        />
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex gap-1">
-                          <button
-                            title="View"
-                            onClick={() => openEdit(user, { readOnly: true })}
-                            className="rounded-lg p-2 text-slate-600 hover:bg-slate-100"
-                          >
-                            <Eye size={16} />
-                          </button>
-                          <button
-                            title="Edit"
-                            onClick={() => openEdit(user)}
-                            className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            title="Audit"
-                            onClick={() => openAudit(user)}
-                            className="rounded-lg p-2 text-slate-600"
-                          >
-                            <History size={16} />
-                          </button>
-                          <button
-                            title="Authorize"
-                            onClick={() => setAction({ type: "auth", user })}
-                            className="rounded-lg p-2 text-emerald-600"
-                          >
-                            <ShieldCheck size={16} />
-                          </button>
-                          <button
-                            title="Deauthorize"
-                            onClick={() => setAction({ type: "deauth", user })}
-                            className="rounded-lg p-2 text-amber-600 hover:bg-amber-50"
-                          >
-                            <ShieldOff size={16} />
-                          </button>
-                          <button
-                            title="Delete"
-                            onClick={() => setAction({ type: "delete", user })}
-                            className="rounded-lg p-2 text-red-600"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          <button
-                            title="Delete authorization"
-                            onClick={() => setAction({ type: "deleteAuth", user })}
-                            className="rounded-lg p-2 text-red-700"
-                          >
-                            Delete auth
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-              {!usersQuery.isLoading && usersQuery.data.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-5 py-12 text-center text-slate-500">
-                    No users found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="flex items-center justify-between border-t border-slate-200/70 px-5 py-4 text-sm text-slate-600">
-          <span>
-            Page {usersQuery.pagination?.currentPage ?? params.page} of{" "}
-            {usersQuery.pagination?.totalPages ?? 0} ({usersQuery.pagination?.totalRecords ?? 0}{" "}
-            users)
-          </span>
-          <div className="flex gap-2">
-            <button
-              disabled={params.page === 1}
-              onClick={() => setParams({ ...params, page: params.page - 1 })}
-              className="rounded-lg border px-3 py-1.5 disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              disabled={params.page >= (usersQuery.pagination?.totalPages ?? params.page)}
-              onClick={() => setParams({ ...params, page: params.page + 1 })}
-              className="rounded-lg border px-3 py-1.5 disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
+
+      <DataTable
+        columns={columns}
+        rows={visibleUsers}
+        rowKey={(u) => userId(u)}
+        isLoading={usersQuery.isLoading}
+        title="Users"
+        searchableKeys={["user_name", "email"]}
+        emptyTitle="No users found"
+        serverPagination={
+          activeTab === "all"
+            ? {
+                page: usersQuery.pagination?.currentPage ?? params.page,
+                totalPages: usersQuery.pagination?.totalPages ?? 1,
+                totalRecords: usersQuery.pagination?.totalRecords ?? visibleUsers.length,
+                onPageChange: (page) => setParams((p) => ({ ...p, page })),
+              }
+            : null
+        }
+      />
+
       <AnimatePresence>
-        {(showForm || action) && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
-            >
-              {showForm && (
+        {showForm && (
+          <Modal
+            open={showForm}
+            onClose={() => setShowForm(false)}
+            title={viewingOnly ? "View user" : editing ? "Edit user" : "Add user"}
+            size="lg"
+            footer={
+              !viewingOnly && (
                 <>
-                  <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-xl font-bold">
-                      {viewingOnly ? "View user" : editing ? "Edit user" : "Add user"}
-                    </h2>
-                    <button onClick={() => setShowForm(false)}>
-                      <X />
-                    </button>
-                  </div>
-                  <UserForm
-                    form={form}
-                    setForm={setForm}
-                    editing={editing}
-                    readOnly={viewingOnly}
-                    onSubmit={submit}
-                    onCancel={() => setShowForm(false)}
-                    pending={createMutation.isPending || updateMutation.isPending}
-                    institutions={lookupsQuery.institutions}
-                    profiles={lookupsQuery.profiles}
-                    passwordPolicy={passwordPolicy}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    form="user-form"
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                    className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                  >
+                    {createMutation.isPending || updateMutation.isPending
+                      ? "Saving..."
+                      : editing
+                        ? "Save changes"
+                        : "Add user"}
+                  </button>
                 </>
-              )}
-              {action && (
-                <>
-                  <div className="mb-5 flex items-center justify-between">
-                    <h2 className="text-xl font-bold">Confirm user action</h2>
-                    <button onClick={() => setAction(null)}>
-                      <X />
-                    </button>
-                  </div>
-                  <p className="text-slate-600">
-                    {action.type} user <strong>{nameOf(action.user)}</strong>?
-                  </p>
-                  {["deauth", "delete"].includes(action.type) && (
-                    <textarea
-                      value={narration}
-                      onChange={(event) => setNarration(event.target.value)}
-                      placeholder="Narration"
-                      className="mt-4 min-h-24 w-full rounded-xl border p-3"
-                    />
-                  )}
-                  <div className="mt-5 flex justify-end gap-2">
-                    <button onClick={() => setAction(null)} className="rounded-xl px-4 py-2">
-                      Cancel
-                    </button>
-                    <button
-                      disabled={
-                        actionPending ||
-                        (["deauth", "delete"].includes(action.type) && !narration.trim())
-                      }
-                      onClick={runAction}
-                      className="rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-                    >
-                      {actionPending ? "Working..." : "Confirm"}
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </div>
+              )
+            }
+          >
+            <UserForm
+              form={form}
+              setForm={setForm}
+              editing={editing}
+              readOnly={viewingOnly}
+              onSubmit={submit}
+              institutions={lookupsQuery.institutions}
+              profiles={lookupsQuery.profiles}
+              passwordPolicies={lookupsQuery.passwordPolicies}
+              selectedPolicy={selectedPolicy}
+            />
+          </Modal>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        open={!!action}
+        onClose={() => setAction(null)}
+        title="Confirm user action"
+        description={
+          action && (
+            <>
+              {action.type} user <strong>{nameOf(action.user)}</strong>?
+            </>
+          )
+        }
+        pending={actionPending}
+        confirmDisabled={action && ["deauth", "delete"].includes(action.type) && !narration.trim()}
+        destructive={action?.type === "delete"}
+        onConfirm={runAction}
+      >
+        {action && ["deauth", "delete"].includes(action.type) && (
+          <textarea
+            value={narration}
+            onChange={(event) => setNarration(event.target.value)}
+            placeholder="Narration"
+            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
+          />
+        )}
+      </ConfirmDialog>
 
       {audit && (
         <AuditModal

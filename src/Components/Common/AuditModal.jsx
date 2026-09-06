@@ -1,7 +1,7 @@
-import { motion } from "motion/react";
-import { AlertCircle, CalendarClock, History, User, X } from "lucide-react";
+import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { Modal } from "@/Components/Common/Modal";
 import { cn } from "@/Utils/Lib/utils";
 
 // Values the backend sends as literal placeholder strings for "no value" —
@@ -176,39 +176,14 @@ export function AuditModal({
   renderExtra,
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
-      role="presentation"
+    <Modal
+      open
+      onClose={onClose}
+      title={`Audit — ${title}`}
+      subtitle={`${entries.length} ${entries.length === 1 ? "record" : "records"}`}
+      icon={<History size={15} />}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-light text-primary">
-              <History size={16} />
-            </span>
-            <div className="min-w-0">
-              <h2 className="truncate text-base font-bold text-foreground">Audit — {title}</h2>
-              <p className="text-xs text-muted-foreground">
-                {entries.length} {entries.length === 1 ? "record" : "records"}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
+      <>
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, i) => (
@@ -243,7 +218,7 @@ export function AuditModal({
             ))}
           </div>
         )}
-      </motion.div>
-    </div>
+      </>
+    </Modal>
   );
 }
