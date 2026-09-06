@@ -592,7 +592,7 @@ export function CreateInstitutionFlow() {
           <button
             onClick={() => void handleNext()}
             disabled={isLoading}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >
             {step === STEPS.length - 1 ? "Submit for Approval" : "Continue"}
           </button>

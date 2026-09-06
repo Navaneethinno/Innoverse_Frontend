@@ -474,7 +474,7 @@ export function InstitutionDetailPage() {
               <button
                 disabled={actionPending || ((action === "auth" || action === "deauth") && !description.trim())}
                 onClick={() => void runAction()}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {actionPending ? "Working..." : "Confirm"}
               </button>

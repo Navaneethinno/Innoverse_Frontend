@@ -39,9 +39,8 @@ export function ConfirmDialog({
             type="button"
             disabled={pending || confirmDisabled}
             onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50 ${
-              destructive ? "bg-red-600" : "bg-blue-600"
-            }`}
+            className="rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+            style={{ background: destructive ? "var(--destructive)" : "var(--primary)" }}
           >
             {pending ? "Working..." : confirmLabel}
           </button>

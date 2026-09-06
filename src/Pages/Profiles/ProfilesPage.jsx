@@ -372,7 +372,7 @@ export function ProfilesPage() {
                   type="submit"
                   form="profile-form"
                   disabled={submitting}
-                  className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : editing ? "Save changes" : "Create profile"}
                 </button>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   AlertCircle,
   Check,
@@ -474,12 +474,15 @@ export function UsersPage() {
           <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
           <p className="mt-1 text-xs font-medium text-slate-400">Manage application users and access.</p>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.03, y: -1 }}
+          whileTap={{ scale: 0.97 }}
           onClick={openCreate}
-          className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-3.5 py-2 text-sm font-bold text-white"
+          className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+          style={{ background: "var(--primary)" }}
         >
-          <Plus size={16} /> Add user
-        </button>
+          <Plus size={14} /> Add user
+        </motion.button>
       </div>
 
       <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
@@ -564,7 +567,7 @@ export function UsersPage() {
                     type="submit"
                     form="user-form"
                     disabled={createMutation.isPending || updateMutation.isPending}
-                    className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                    className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
                   >
                     {createMutation.isPending || updateMutation.isPending
                       ? "Saving..."
