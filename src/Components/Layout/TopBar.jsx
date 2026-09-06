@@ -1,8 +1,9 @@
 import { useMemo, useState, useRef, useEffect } from "react";
-import { Bell, ChevronRight, Command, LogOut, Moon, Settings, Sparkles, Sun } from "lucide-react";
+import { Bell, ChevronRight, Command, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
+import { Logo } from "@/Components/Common/Logo";
 import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTHS } from "./Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
@@ -49,9 +50,7 @@ export function TopBar() {
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-primary-light transition-colors shrink-0 group"
         >
-          <div className="w-6 h-6 rounded-lg bg-brand-gradient flex items-center justify-center shadow-sm">
-            <Sparkles size={11} className="text-white" />
-          </div>
+          <Logo size="sm" />
           <span className="hidden sm:block text-xs font-bold text-transparent bg-clip-text bg-brand-gradient leading-none tracking-tight">
             Innoverse
           </span>

@@ -10,12 +10,12 @@ import {
   Mail,
   Moon,
   RefreshCw,
-  Shield,
   Sun,
 } from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
 import { notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
+import { Logo } from "@/Components/Common/Logo";
 import loginIllustrationLight from "@/assets/login-illustration.png";
 import loginIllustrationDark from "@/assets/login-illustration-dark.png";
 function GradientMesh() {
@@ -115,9 +115,7 @@ export function LoginPage() {
           className="relative w-full max-w-sm mx-4 z-10"
         >
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-[18px] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 shadow-xl shadow-blue-300/40 mb-4">
-              <Shield size={26} className="text-white" />
-            </div>
+            <Logo size="lg" className="mx-auto mb-4" />
             <h1 className="text-xl font-semibold text-slate-800 tracking-tight">Innoverse</h1>
             <p className="text-sm text-slate-500 mt-1">Fintech Administration Platform</p>
           </div>

@@ -55,6 +55,31 @@ export default {
       backgroundImage: {
         "brand-gradient": "linear-gradient(135deg, var(--gradient-start), var(--gradient-end))",
       },
+      // Ties Tailwind's font-sans/font-mono utilities to the same CSS
+      // variables fonts.css sets on <body> — without this, those utility
+      // classes would silently fall back to Tailwind's own built-in font
+      // stack instead of the app's actual typeface if anyone ever used
+      // them, since Tailwind doesn't know about var(--font-sans) otherwise.
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["var(--font-mono)", "Menlo", "monospace"],
+      },
+      // Ties text-xs..text-2xl (the sizes actually used throughout this
+      // app's className strings, not the rarely-used raw h1-h4 tags) to the
+      // SAME --text-* variables defined in theme.css, so changing a value
+      // there is the one real place that changes font size everywhere —
+      // previously these Tailwind utilities used Tailwind's own hardcoded
+      // default scale, completely disconnected from theme.css's tokens.
+      // Line-heights are kept at Tailwind's own sensible defaults for each
+      // step; only the size itself is now variable-driven.
+      fontSize: {
+        xs: ["var(--text-xs)", { lineHeight: "1rem" }],
+        sm: ["var(--text-sm)", { lineHeight: "1.25rem" }],
+        base: ["var(--text-base)", { lineHeight: "1.5rem" }],
+        lg: ["var(--text-lg)", { lineHeight: "1.75rem" }],
+        xl: ["var(--text-xl)", { lineHeight: "1.75rem" }],
+        "2xl": ["var(--text-2xl)", { lineHeight: "2rem" }],
+      },
     },
   },
   plugins: [],
