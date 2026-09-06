@@ -1,10 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
-  /* Gotham-Bold is preferred when installed/provided by the deployment;
-     keep the existing web-safe stack as a fallback for environments without
-     the proprietary font file. */
-  --font-sans: "Gotham-Bold", "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
+  /* Inter is the primary UI typeface — the de facto standard for
+     professional dashboard/SaaS interfaces (Linear, Stripe, Vercel all use
+     it or a close relative). It's already loaded via the Google Fonts
+     @import above, so this adds no extra network dependency.
+     "Plus Jakarta Sans" stays as a fallback (kept in case any component
+     still references it directly), then system-ui/-apple-system round out
+     the stack for the brief pre-webfont-load paint.
+     NOTE: this previously listed "Gotham-Bold" first, but no @font-face for
+     it exists anywhere in this project (no font file is bundled either), so
+     every browser silently skipped it and rendered "Plus Jakarta Sans" for
+     all body text — a softer, more rounded/informal look than intended.
+     "Gotham-Bold" as a name also implies a single bold display weight, which
+     isn't appropriate for body copy at multiple weights anyway. */
+  --font-sans: "Inter", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
