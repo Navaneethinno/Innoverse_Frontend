@@ -1,38 +1,25 @@
-import { ROUTES } from "@/Utils/Config/routes";
-export const ROUTE_METADATA = [
-  {
-    id: "dashboard",
-    path: ROUTES.dashboard,
-    title: "Dashboard",
-    breadcrumb: ["Dashboard"],
-    feature: "dashboard",
-  },
-  {
-    id: "institutions",
-    path: ROUTES.institutions,
-    title: "Institutions",
-    breadcrumb: ["Institutions"],
-    feature: "institutions",
-  },
-  {
-    id: "institution-detail",
-    path: "/institutions/:id",
-    title: "Institution Detail",
-    breadcrumb: ["Institutions", "Detail"],
-    feature: "institutions",
-  },
-  { id: "users", path: ROUTES.users, title: "Users", breadcrumb: ["Users"], feature: "users" },
-  {
-    id: "profiles",
-    path: ROUTES.profiles,
-    title: "Profiles",
-    breadcrumb: ["Profiles"],
-    feature: "profiles",
-  },
-];
+// Matches by the URL's first path segment rather than the full path,
+// because the sidebar's fabricated navigation (MenuItem.jsx, ported from
+// payseFrontend) always appends a random id — a click lands on paths like
+// /user/<uuid> or /profile/<uuid>, not the clean /users or /profiles this
+// file used to list as exact/prefix matches. Matching on the full path (or
+// even a full-path prefix) meant almost every real page fell through to no
+// match at all, and TopBar's breadcrumb silently showed "Dashboard"
+// everywhere. Segment-based matching handles every current fabricated
+// route (and any future one with the same slug) without needing this file
+// hand-kept in sync with the router every time a new alias route is added.
+const SEGMENT_LABELS = {
+  dashboard: { title: "Dashboard", breadcrumb: ["Dashboard"] },
+  institutions: { title: "Institutions", breadcrumb: ["Institutions"] },
+  institutionprofile: { title: "Institution Profile", breadcrumb: ["Institutions"] },
+  users: { title: "Users", breadcrumb: ["Users"] },
+  user: { title: "Users", breadcrumb: ["Users"] },
+  profiles: { title: "Profiles", breadcrumb: ["Profiles"] },
+  profile: { title: "Profiles", breadcrumb: ["Profiles"] },
+  "change-password": { title: "Change Password", breadcrumb: ["Settings", "Change Password"] },
+};
+
 export function getRouteMetadata(pathname) {
-  return ROUTE_METADATA.find((route) => {
-    if (route.path.includes(":id")) return pathname.startsWith(route.path.replace("/:id", "/"));
-    return pathname === route.path || pathname.startsWith(`${route.path}/`);
-  });
+  const firstSegment = pathname.split("/").filter(Boolean)[0] ?? "";
+  return SEGMENT_LABELS[firstSegment] ?? SEGMENT_LABELS.dashboard;
 }
