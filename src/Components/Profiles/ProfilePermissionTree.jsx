@@ -1,5 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
+import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { cn } from "@/Utils/Lib/cn";
 
 // Base data source deliberately reused rather than inventing a new master
 // endpoint: the Postman collection has no confirmed /master/menu/list or
@@ -36,99 +38,273 @@ export function useMenuTreeSource() {
   }, [menuArray, masterModules]);
 }
 
-// selected: array of {menu_id, actions: [action_id...], is_configuration_only}
-// readOnly: renders the same grant chips without any click handlers, for a
-// view-only display (e.g. the Profiles "View" action) instead of a second,
-// duplicated read-only tree component.
+function allActionIds(menu) {
+  return (menu.actions || []).map((a) => a.action_id);
+}
+
+/**
+ * Menu/action grant picker. Grouped by module, each module collapsible
+ * (closed by default) so this stays usable with dozens/hundreds of modules
+ * instead of one long scroll — a text filter narrows modules/menus by name
+ * for the same reason.
+ *
+ * Each menu row is a single checkbox: checking it grants every action the
+ * menu has in one click (matching the realistic "grant this whole menu"
+ * bulk-provisioning flow, not forcing five individual clicks per menu) and
+ * expands the row to show each action so the admin can deselect the ones
+ * they don't want. Unchecking the row clears every action for that menu and
+ * collapses it back down. A "Select all" control at the module header does
+ * the same thing for every menu in that module in one click.
+ *
+ * selected: array of {menu_id, actions: [action_id...], is_configuration_only}
+ * readOnly: renders the same grants without any click handlers (e.g. the
+ * Profiles "View" action) instead of a second, duplicated read-only tree.
+ */
 export function ProfilePermissionTree({ selected, onChange, readOnly = false }) {
   const modules = useMenuTreeSource();
-  const grantFor = (menuId) => selected.find((g) => g.menu_id === menuId);
+  const [query, setQuery] = useState("");
+  const [openModuleIds, setOpenModuleIds] = useState(() => new Set());
 
-  const toggleAction = (menuId, actionId) => {
-    const existing = grantFor(menuId);
-    if (!existing) {
-      onChange([...selected, { menu_id: menuId, actions: [actionId], is_configuration_only: 0 }]);
+  const grantFor = (menuId) => selected.find((g) => g.menu_id === menuId);
+  const isMenuGranted = (menuId) => (grantFor(menuId)?.actions?.length ?? 0) > 0;
+
+  const toggleModuleOpen = (moduleId) => {
+    setOpenModuleIds((current) => {
+      const next = new Set(current);
+      if (next.has(moduleId)) next.delete(moduleId);
+      else next.add(moduleId);
+      return next;
+    });
+  };
+
+  const setMenuGrant = (menu, actionIds) => {
+    if (actionIds.length === 0) {
+      onChange(selected.filter((g) => g.menu_id !== menu.menu_id));
       return;
     }
-    const hasAction = existing.actions.includes(actionId);
-    const nextActions = hasAction
-      ? existing.actions.filter((a) => a !== actionId)
-      : [...existing.actions, actionId];
-    if (nextActions.length === 0) {
-      onChange(selected.filter((g) => g.menu_id !== menuId));
+    const existing = grantFor(menu.menu_id);
+    if (!existing) {
+      onChange([
+        ...selected,
+        { menu_id: menu.menu_id, actions: actionIds, is_configuration_only: 0 },
+      ]);
     } else {
       onChange(
-        selected.map((g) => (g.menu_id === menuId ? { ...g, actions: nextActions } : g)),
+        selected.map((g) => (g.menu_id === menu.menu_id ? { ...g, actions: actionIds } : g)),
       );
     }
   };
 
+  const toggleMenuRow = (menu) => {
+    setMenuGrant(menu, isMenuGranted(menu.menu_id) ? [] : allActionIds(menu));
+  };
+
+  const toggleAction = (menu, actionId) => {
+    const existing = grantFor(menu.menu_id);
+    const current = existing?.actions ?? [];
+    const next = current.includes(actionId)
+      ? current.filter((a) => a !== actionId)
+      : [...current, actionId];
+    setMenuGrant(menu, next);
+  };
+
+  const toggleModuleSelectAll = (module) => {
+    const allGranted = module.menus.every((menu) => {
+      const grant = grantFor(menu.menu_id);
+      return (grant?.actions?.length ?? 0) === allActionIds(menu).length;
+    });
+    const withoutModule = selected.filter(
+      (g) => !module.menus.some((menu) => menu.menu_id === g.menu_id),
+    );
+    onChange(
+      allGranted
+        ? withoutModule
+        : [
+            ...withoutModule,
+            ...module.menus.map((menu) => ({
+              menu_id: menu.menu_id,
+              actions: allActionIds(menu),
+              is_configuration_only: 0,
+            })),
+          ],
+    );
+  };
+
+  const filteredModules = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return modules;
+    return modules
+      .map((module) => ({
+        ...module,
+        menus: module.menus.filter((menu) => menu.menu_name?.toLowerCase().includes(q)),
+      }))
+      .filter(
+        (module) => module.moduleName.toLowerCase().includes(q) || module.menus.length > 0,
+      );
+  }, [modules, query]);
+
+  const visibleModules = readOnly
+    ? filteredModules
+        .map((module) => ({
+          ...module,
+          menus: module.menus.filter((menu) => isMenuGranted(menu.menu_id)),
+        }))
+        .filter((module) => module.menus.length > 0)
+    : filteredModules;
+
   if (modules.length === 0) {
     return <p className="text-sm text-slate-400">No menu/action data available to grant.</p>;
   }
-
-  const visibleModules = readOnly
-    ? modules.filter((module) =>
-        module.menus.some((menu) => (grantFor(menu.menu_id)?.actions?.length ?? 0) > 0),
-      )
-    : modules;
-
   if (readOnly && visibleModules.length === 0) {
     return <p className="text-sm text-slate-400">No permissions granted.</p>;
   }
 
+  // When filtering, auto-expand every matching module so results are
+  // immediately visible instead of hidden behind a collapsed header.
+  const isOpen = (moduleId) => query.trim() !== "" || openModuleIds.has(moduleId);
+
   return (
-    <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-      {visibleModules.map((module) => (
-        <div key={module.moduleId} className="rounded-xl border border-slate-100 p-3">
-          <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">
-            {module.moduleName}
-          </p>
-          <div className="space-y-2">
-            {module.menus
-              .filter((menu) => !readOnly || (grantFor(menu.menu_id)?.actions?.length ?? 0) > 0)
-              .map((menu) => {
-              const grant = grantFor(menu.menu_id);
-              return (
-                <div key={menu.menu_id} className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-semibold text-slate-700 min-w-[120px]">
-                    {menu.menu_name}
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(menu.actions || []).map((action) => {
-                      const active = !!grant?.actions.includes(action.action_id);
-                      if (readOnly) {
-                        return active ? (
-                          <span
-                            key={action.action_id}
-                            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-blue-600 text-white"
-                          >
-                            {action.action_name}
-                          </span>
-                        ) : null;
-                      }
-                      return (
-                        <button
-                          type="button"
-                          key={action.action_id}
-                          onClick={() => toggleAction(menu.menu_id, action.action_id)}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all ${
-                            active
-                              ? "bg-blue-600 text-white border-transparent"
-                              : "text-slate-500 border-slate-200 hover:border-blue-300"
-                          }`}
-                        >
-                          {action.action_name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+    <div className="space-y-3">
+      {!readOnly && (
+        <div className="relative">
+          <Search
+            size={13}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search modules or menus…"
+            className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
+          />
         </div>
-      ))}
+      )}
+
+      <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+        {visibleModules.map((module) => {
+          const allGranted =
+            !readOnly &&
+            module.menus.length > 0 &&
+            module.menus.every(
+              (menu) => (grantFor(menu.menu_id)?.actions?.length ?? 0) === allActionIds(menu).length,
+            );
+          const grantedCount = module.menus.filter((menu) => isMenuGranted(menu.menu_id)).length;
+          return (
+            <div key={module.moduleId} className="rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between gap-2 px-3 py-2">
+                <button
+                  type="button"
+                  onClick={() => toggleModuleOpen(module.moduleId)}
+                  className="flex min-w-0 items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-500"
+                >
+                  {isOpen(module.moduleId) ? (
+                    <ChevronDown size={13} className="shrink-0" />
+                  ) : (
+                    <ChevronRight size={13} className="shrink-0" />
+                  )}
+                  <span className="truncate">{module.moduleName}</span>
+                  {readOnly ? (
+                    <span className="font-normal normal-case text-slate-400">
+                      ({module.menus.length})
+                    </span>
+                  ) : (
+                    <span className="font-normal normal-case text-slate-400">
+                      ({grantedCount}/{module.menus.length})
+                    </span>
+                  )}
+                </button>
+                {!readOnly && (
+                  <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+                    <input
+                      type="checkbox"
+                      checked={allGranted}
+                      onChange={() => toggleModuleSelectAll(module)}
+                      className="h-3.5 w-3.5 accent-blue-600"
+                    />
+                    Select all
+                  </label>
+                )}
+              </div>
+
+              {isOpen(module.moduleId) && (
+                <div className="space-y-1.5 border-t border-slate-100 p-3">
+                  {module.menus.map((menu) => {
+                    const grant = grantFor(menu.menu_id);
+                    const granted = isMenuGranted(menu.menu_id);
+                    return (
+                      <div
+                        key={menu.menu_id}
+                        className={cn(
+                          "rounded-lg border px-3 py-2 transition-colors",
+                          granted ? "border-blue-200 bg-blue-50/40" : "border-slate-100",
+                        )}
+                      >
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={granted}
+                            disabled={readOnly}
+                            onChange={() => toggleMenuRow(menu)}
+                            className="h-4 w-4 shrink-0 accent-blue-600"
+                          />
+                          <span className="text-xs font-semibold text-slate-700">
+                            {menu.menu_name}
+                          </span>
+                        </label>
+
+                        {granted && (
+                          <div className="mt-2 flex flex-wrap items-center gap-3 pl-6">
+                            {(menu.actions || []).map((action) => {
+                              const active = !!grant?.actions.includes(action.action_id);
+                              return (
+                                <label
+                                  key={action.action_id}
+                                  className={cn(
+                                    "flex items-center gap-1.5 text-[11px] font-medium",
+                                    readOnly ? "text-slate-500" : "cursor-pointer text-slate-600",
+                                  )}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={active}
+                                    disabled={readOnly}
+                                    onChange={() => toggleAction(menu, action.action_id)}
+                                    className="h-3.5 w-3.5 accent-blue-600"
+                                  />
+                                  {action.action_name}
+                                </label>
+                              );
+                            })}
+                            {!readOnly && (
+                              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                                <input
+                                  type="checkbox"
+                                  checked={!!grant?.is_configuration_only}
+                                  onChange={() =>
+                                    onChange(
+                                      selected.map((g) =>
+                                        g.menu_id === menu.menu_id
+                                          ? { ...g, is_configuration_only: g.is_configuration_only ? 0 : 1 }
+                                          : g,
+                                      ),
+                                    )
+                                  }
+                                  className="h-3.5 w-3.5 accent-blue-600"
+                                />
+                                Configuration only
+                              </label>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

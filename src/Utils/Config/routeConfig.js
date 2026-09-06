@@ -8,14 +8,21 @@
 // everywhere. Segment-based matching handles every current fabricated
 // route (and any future one with the same slug) without needing this file
 // hand-kept in sync with the router every time a new alias route is added.
+// Two-level breadcrumb (module / menu) matching the sidebar's own module
+// grouping (e.g. the "USER MANAGEMENT" section header containing "User" and
+// "Profile" rows) so the top bar reads as a clear route, not just a bare
+// page name.
 const SEGMENT_LABELS = {
   dashboard: { title: "Dashboard", breadcrumb: ["Dashboard"] },
-  institutions: { title: "Institutions", breadcrumb: ["Institutions"] },
-  institutionprofile: { title: "Institution Profile", breadcrumb: ["Institutions"] },
-  users: { title: "Users", breadcrumb: ["Users"] },
-  user: { title: "Users", breadcrumb: ["Users"] },
-  profiles: { title: "Profiles", breadcrumb: ["Profiles"] },
-  profile: { title: "Profiles", breadcrumb: ["Profiles"] },
+  institutions: { title: "Institutions", breadcrumb: ["Institution", "Institutions"] },
+  institutionprofile: {
+    title: "Institution Profile",
+    breadcrumb: ["Institution", "Institution Profile"],
+  },
+  users: { title: "Users", breadcrumb: ["User Management", "User"] },
+  user: { title: "Users", breadcrumb: ["User Management", "User"] },
+  profiles: { title: "Profiles", breadcrumb: ["User Management", "Profile"] },
+  profile: { title: "Profiles", breadcrumb: ["User Management", "Profile"] },
   "change-password": { title: "Change Password", breadcrumb: ["Settings", "Change Password"] },
 };
 
