@@ -27,32 +27,32 @@ export const API_ENDPOINTS = {
 
   HEALTH: "/health",
 
-  // Confirmed against the "Master (Reference Data)" folder of the official
-  // Postman collection (updated by backend, 2026-09) — this is the complete
-  // set of /master/* list endpoints that exist. All are POST with body {}.
+  // Backend dropped the trailing "/list" segment from every Master
+  // (Reference Data) endpoint (2026-09 update) — paths below match exactly
+  // what was given, no "/list" suffix. All are POST with body {}.
   MASTER: {
-    ACTION_LIST: "/master/action/list",
-    STATUS_LIST: "/master/status/list",
-    MODULE_LIST: "/master/module/list",
-    MENU_LIST: "/master/menu/list",
-    MENU_ACTION_LIST: "/master/menu_action/list",
-    CHANNEL_LIST: "/master/channel/list",
-    ACCT_PROD_TYPE_LIST: "/master/acct_prod_type/list",
-    ACCT_OPERATION_MODE_LIST: "/master/acct_operation_mode/list",
-    ACCT_DORMANCY_ACTION_LIST: "/master/acct_dormancy_action/list",
-    ACCT_SEQUENCE_LIST: "/master/acct_sequence/list",
-    TRANSACTION_LIST: "/master/transaction/list",
-    FREQUENCY_LIST: "/master/frequency/list",
-    KYC_PROCESS_LIST: "/master/kyc_process/list",
-    KYC_DATA_FIELD_LIST: "/master/kyc_data_field/list",
-    KYC_DOCUMENT_TYPE_LIST: "/master/kyc_document_type/list",
-    PARTY_TYPE_LIST: "/master/party_type/list",
-    INSTITUTION_TYPE_LIST: "/master/institution_type/list",
-    OWNERSHIP_LIST: "/master/ownership/list",
-    RESIDENCY_TYPE_LIST: "/master/residency_type/list",
-    COUNTRY_LIST: "/master/country/list",
-    CURRENCY_LIST: "/master/currency/list",
-    LANGUAGE_LIST: "/master/language/list",
+    ACTION_LIST: "/master/action",
+    STATUS_LIST: "/master/status",
+    MODULE_LIST: "/master/module",
+    MENU_LIST: "/master/menu",
+    MENU_ACTION_LIST: "/master/menu_action",
+    CHANNEL_LIST: "/master/channel",
+    ACCT_PROD_TYPE_LIST: "/master/acct_prod_type",
+    ACCT_OPERATION_MODE_LIST: "/master/acct_operation_mode",
+    ACCT_DORMANCY_ACTION_LIST: "/master/acct_dormancy_action",
+    ACCT_SEQUENCE_LIST: "/master/acct_sequence",
+    TRANSACTION_LIST: "/master/transaction",
+    FREQUENCY_LIST: "/master/frequency",
+    KYC_PROCESS_LIST: "/master/kyc_process",
+    KYC_DATA_FIELD_LIST: "/master/kyc_data_field",
+    KYC_DOCUMENT_TYPE_LIST: "/master/kyc_document_type",
+    PARTY_TYPE_LIST: "/master/party_type",
+    INSTITUTION_TYPE_LIST: "/master/institution_type",
+    OWNERSHIP_LIST: "/master/ownership",
+    RESIDENCY_TYPE_LIST: "/master/residency_type",
+    COUNTRY_LIST: "/master/country",
+    CURRENCY_LIST: "/master/currency",
+    LANGUAGE_LIST: "/master/language",
   },
 
   USERS: {
