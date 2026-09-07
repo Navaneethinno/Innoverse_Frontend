@@ -3,18 +3,14 @@
 // Data)" folder and are distinct from the Institution/Module CONFIGURATION
 // endpoints (/institution/module/list, /institution/module/get_active).
 //
-// Phase 24C only wires up POST /master/module/list, because that is the only
-// master reference-data call the senior payseFrontend Sidebar actually makes
-// (see payseFrontend src/Hooks/InstaEnroll/useFetchModuleData.jsx, which
-// calls its own equivalent module list endpoint once per authenticated
-// session and dispatches the result into Redux). payseFrontend's Sidebar
-// does NOT call a separate master menu/menu-action/action endpoint for
-// navigation — menu hierarchy and actions[] come entirely from the login
-// response's data.menu_array. So /master/menu/list, /master/menu_action/list
-// and /master/action/list are intentionally NOT called here; wiring them in
-// without a concrete sidebar/consumer requirement would violate the "do not
-// call every master endpoint unless the senior sidebar actually requires it"
-// rule for this phase.
+// All 22 /master/*/list endpoints confirmed in the collection are exposed
+// below. Only moduleList/institutionTypeList/languageList have a live
+// consumer today (the sidebar's module catalogue, per payseFrontend's
+// Sidebar/useFetchModuleData.jsx equivalent, which likewise does not call
+// menu/menu_action/action for navigation — that hierarchy comes entirely
+// from the login response's data.menu_array). The rest are wired up as
+// plain service calls for future features (Config - Acct forms, etc.) to
+// consume without adding more plumbing later.
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
@@ -76,14 +72,19 @@ async function masterPost(path, body) {
   }
 }
 
-function toArray(data) {
+// Generic unwrapper for every /master/<resource>/list response. The exact
+// wrapper key isn't confirmed per-resource beyond module/institution_type/
+// language (the only three actually exercised live so far) — rather than
+// hardcoding a guessed key per new resource, this tries the plain array
+// first, then the two naming conventions already observed in real responses
+// (`<resource>_list` / `<resource>_array`), then the generic `list` key.
+function toArray(data, resource) {
   if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.module_list)) return data.module_list;
+  if (resource) {
+    if (Array.isArray(data?.[`${resource}_list`])) return data[`${resource}_list`];
+    if (Array.isArray(data?.[`${resource}_array`])) return data[`${resource}_array`];
+  }
   if (Array.isArray(data?.list)) return data.list;
-  if (Array.isArray(data?.institution_type_list)) return data.institution_type_list;
-  if (Array.isArray(data?.institution_type_array)) return data.institution_type_array;
-  if (Array.isArray(data?.language_list)) return data.language_list;
-  if (Array.isArray(data?.language_array)) return data.language_array;
   return [];
 }
 
@@ -107,9 +108,47 @@ export const masterApi = {
   // /institution/module/get_active, which configure per-institution module
   // activation and are out of scope for the sidebar's module catalogue).
   moduleList: async () =>
-    toArray(await masterPost(API_ENDPOINTS.MASTER.MODULE_LIST, {})).map(normalizeModule),
-  institutionTypeList: async () => toArray(
-    await masterPost(API_ENDPOINTS.MASTER.INSTITUTION_TYPE_LIST, {}),
-  ),
-  languageList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {})),
+    toArray(await masterPost(API_ENDPOINTS.MASTER.MODULE_LIST, {}), "module").map(normalizeModule),
+  institutionTypeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.INSTITUTION_TYPE_LIST, {}), "institution_type"),
+  languageList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {}), "language"),
+
+  // The remaining /master/*/list endpoints confirmed in the Postman
+  // collection but with no consumer in the app yet — exposed here so a
+  // future feature (e.g. Config - Acct forms) can call them without adding
+  // more service-layer plumbing first.
+  actionList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.ACTION_LIST, {}), "action"),
+  statusList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.STATUS_LIST, {}), "status"),
+  menuList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.MENU_LIST, {}), "menu"),
+  menuActionList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.MENU_ACTION_LIST, {}), "menu_action"),
+  channelList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.CHANNEL_LIST, {}), "channel"),
+  acctProdTypeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.ACCT_PROD_TYPE_LIST, {}), "acct_prod_type"),
+  acctOperationModeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.ACCT_OPERATION_MODE_LIST, {}), "acct_operation_mode"),
+  acctDormancyActionList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.ACCT_DORMANCY_ACTION_LIST, {}), "acct_dormancy_action"),
+  acctSequenceList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.ACCT_SEQUENCE_LIST, {}), "acct_sequence"),
+  transactionList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.TRANSACTION_LIST, {}), "transaction"),
+  frequencyList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.FREQUENCY_LIST, {}), "frequency"),
+  kycProcessList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_PROCESS_LIST, {}), "kyc_process"),
+  kycDataFieldList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_DATA_FIELD_LIST, {}), "kyc_data_field"),
+  kycDocumentTypeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_DOCUMENT_TYPE_LIST, {}), "kyc_document_type"),
+  partyTypeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.PARTY_TYPE_LIST, {}), "party_type"),
+  ownershipList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.OWNERSHIP_LIST, {}), "ownership"),
+  residencyTypeList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.RESIDENCY_TYPE_LIST, {}), "residency_type"),
+  countryList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.COUNTRY_LIST, {}), "country"),
+  currencyList: async () =>
+    toArray(await masterPost(API_ENDPOINTS.MASTER.CURRENCY_LIST, {}), "currency"),
 };
