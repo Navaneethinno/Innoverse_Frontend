@@ -2,6 +2,7 @@ import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Modal } from "@/Components/Common/Modal";
+import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 
 // Values the backend sends as literal placeholder strings for "no value" —
@@ -174,6 +175,13 @@ export function AuditModal({
   getActionLabel = (entry) => entry.audit_action,
   getEntryKey = (entry, index) => entry.id ?? entry.audit_key ?? index,
   renderExtra,
+  // Optional: when the record has an open pending request, showing it here
+  // means the checker doesn't have to leave the audit trail they're already
+  // looking at to see what's actually being asked of them.
+  pendingChanges = null,
+  pendingLoading = false,
+  pendingError = null,
+  currentRecord = null,
 }) {
   return (
     <Modal
@@ -184,6 +192,18 @@ export function AuditModal({
       icon={<History size={15} />}
     >
       <>
+        {(pendingLoading ||
+          pendingError ||
+          (pendingChanges?.pending_action && pendingChanges.pending_action !== "NONE")) && (
+          <div className="mb-4">
+            <PendingChangesPanel
+              data={pendingChanges}
+              isLoading={pendingLoading}
+              error={pendingError}
+              currentRecord={currentRecord}
+            />
+          </div>
+        )}
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, i) => (

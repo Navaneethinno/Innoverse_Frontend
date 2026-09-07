@@ -1,5 +1,7 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
+import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { useProfileAuditQuery } from "@/Hooks/Profiles/profileHooks";
+import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { profileId } from "./ProfileForm";
 
 // Audit-trail modal wrapper for a single profile — relocated from
@@ -39,6 +41,7 @@ function renderMenuGrants(entry) {
 
 export function AuditProfile({ profile, onClose }) {
   const auditQuery = useProfileAuditQuery(profileId(profile));
+  const { data, isLoading, error } = usePendingChanges(profilesApi.pending, profileId(profile), true);
 
   return (
     <AuditModal
@@ -52,6 +55,10 @@ export function AuditProfile({ profile, onClose }) {
       getActionLabel={(entry) => entry.audit_action ?? entry.profile_name ?? null}
       getEntryKey={(entry, index) => entry.audit_id ?? entry.audit_key ?? index}
       renderExtra={renderMenuGrants}
+      pendingChanges={data}
+      pendingLoading={isLoading}
+      pendingError={error}
+      currentRecord={profile}
     />
   );
 }

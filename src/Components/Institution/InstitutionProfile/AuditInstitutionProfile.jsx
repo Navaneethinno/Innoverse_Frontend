@@ -1,5 +1,7 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
+import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { useInstitutionAuditQuery } from "@/Hooks/Institutions/institutionHooks";
+import { institutionsApi } from "@/Services/Institutions/institutions.api";
 
 // Relocated verbatim from Components/Institutions/InstitutionAuditModal.jsx
 // to live alongside the rest of the InstitutionProfile feature files,
@@ -22,6 +24,7 @@ const AUDIT_FIELDS = [
 
 export function AuditInstitutionProfile({ institution, institutionId, onClose }) {
   const auditQuery = useInstitutionAuditQuery(institutionId);
+  const { data, isLoading, error } = usePendingChanges(institutionsApi.pending, institutionId, true);
 
   return (
     <AuditModal
@@ -32,6 +35,10 @@ export function AuditInstitutionProfile({ institution, institutionId, onClose })
       error={auditQuery.error}
       onRetry={() => void auditQuery.refetch()}
       onClose={onClose}
+      pendingChanges={data}
+      pendingLoading={isLoading}
+      pendingError={error}
+      currentRecord={institution}
     />
   );
 }
