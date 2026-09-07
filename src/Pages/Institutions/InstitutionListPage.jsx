@@ -50,15 +50,26 @@ export function InstitutionListPage() {
   const [description, setDescription] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
 
-  // limit is intentionally generous, not "page 1 of many": /institution/profile/list
-  // has no status-filter or search param (confirmed via Postman), and this
-  // page's tabs (All/Active/Pending) and search both filter client-side, so
-  // the full working set needs to be in memory for those to be correct.
-  // DataTable still only renders 10 rows at a time (client-side pagination),
-  // so the UI itself stays fast/clean regardless of how many records this
-  // fetches — the ceiling here is a real backend limitation (no server-side
-  // filtering), not a UI one.
-  const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 500 });
+  const [page, setPage] = useState(1);
+
+  // /institution/profile/list has no status-filter or search param
+  // (confirmed via Postman) — unlike /user/list, which does and so can
+  // paginate correctly under any tab/search. Real per-page server requests
+  // ({page, limit:10}, reading pagination.totalRecords) only produce
+  // correct results here for the genuinely unfiltered view: page 2 of
+  // "Active" wouldn't correspond to anything real if the server did the
+  // slicing before any status filtering happened on our end. So: when
+  // viewing "All" with no search, fetch real pages from the server (fast,
+  // scales to any record count). The moment a tab or search narrows the
+  // view, we need the fuller working set in memory to filter correctly,
+  // so switch to a larger single fetch and let DataTable paginate that
+  // client-side instead — same tradeoff already accepted for the "Active"/
+  // "Pending" tabs in UsersPage.jsx, whose backend also can't filter
+  // everything the UI exposes.
+  const needsFullBatch = activeTab !== "all" || search.trim() !== "";
+  const institutionsQuery = useInstitutionsQuery(
+    needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 },
+  );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
@@ -174,7 +185,10 @@ export function InstitutionListPage() {
           <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             type="text"
             placeholder="Search institutions…"
             className="w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -185,7 +199,10 @@ export function InstitutionListPage() {
           {TABS.map((value) => (
             <button
               key={value}
-              onClick={() => setActiveTab(value)}
+              onClick={() => {
+                setActiveTab(value);
+                setPage(1);
+              }}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
                 activeTab === value
@@ -222,6 +239,16 @@ export function InstitutionListPage() {
         searchableKeys={["name", "code"]}
         emptyTitle="No institutions found"
         emptyDescription="Adjust your search or filter criteria"
+        serverPagination={
+          needsFullBatch
+            ? null
+            : {
+                page: institutionsQuery.pagination?.currentPage ?? page,
+                totalPages: institutionsQuery.pagination?.totalPages ?? 1,
+                totalRecords: institutionsQuery.pagination?.totalRecords ?? filtered.length,
+                onPageChange: setPage,
+              }
+        }
       />
 
       <ConfirmDialog

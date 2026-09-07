@@ -90,11 +90,16 @@ export function ProfilesPage() {
   const canDelete = useHasProfileAction("Delete");
   const canAuthorize = useHasProfileAction("Authorize");
 
+  const [page, setPage] = useState(1);
+
   // Same reasoning as InstitutionListPage.jsx: /profile/list has no
-  // status-filter or search param, so this page's tabs/search filter
-  // client-side and need the full working set in memory. DataTable still
-  // only renders 10 rows at a time regardless of how many are loaded here.
-  const profilesQuery = useProfilesQuery({ page: 1, limit: 500 });
+  // status-filter or search param (confirmed via Postman), so real
+  // per-page server requests only produce correct results for the
+  // genuinely unfiltered view. "All" with no search fetches real pages
+  // from the server (scales to any record count); a tab or search
+  // switches to a larger single fetch, filtered client-side.
+  const needsFullBatch = activeTab !== "all" || search.trim() !== "";
+  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -302,7 +307,10 @@ export function ProfilesPage() {
           <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             type="text"
             placeholder="Search profiles…"
             className="w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -313,7 +321,10 @@ export function ProfilesPage() {
           {TABS.map((value) => (
             <button
               key={value}
-              onClick={() => setActiveTab(value)}
+              onClick={() => {
+                setActiveTab(value);
+                setPage(1);
+              }}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
                 activeTab === value
@@ -350,6 +361,16 @@ export function ProfilesPage() {
         searchableKeys={["profile_name"]}
         emptyTitle="No profiles found"
         emptyDescription="Adjust your search or filter criteria"
+        serverPagination={
+          needsFullBatch
+            ? null
+            : {
+                page: profilesQuery.pagination?.currentPage ?? page,
+                totalPages: profilesQuery.pagination?.totalPages ?? 1,
+                totalRecords: profilesQuery.pagination?.totalRecords ?? filtered.length,
+                onPageChange: setPage,
+              }
+        }
       />
 
       <AnimatePresence>
