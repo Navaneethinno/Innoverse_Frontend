@@ -229,14 +229,27 @@ export function User() {
     {
       key: "institution",
       label: "Institution",
-      sortValue: (u) => u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id"),
-      render: (u) => u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id") ?? "-",
+      sortValue: (u) =>
+        u.inst_profile_name ?? u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id"),
+      render: (u) =>
+        u.inst_profile_name ?? u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id") ?? "-",
     },
     {
-      key: "status",
+      key: "status_name",
       label: "Status",
-      sortValue: (u) => String(u.auth_status ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")),
-      render: (u) => <StatusBadge status={u.auth_status ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")} />,
+      sortValue: (u) => u.status_name ?? (u.status === 1 ? "Active" : "Inactive"),
+      render: (u) =>
+        u.status == null && !u.status_name ? (
+          "—"
+        ) : (
+          <StatusBadge status={String(u.status_name ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
+        ),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      sortValue: (u) => String(u.auth_status ?? ""),
+      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} /> : "—"),
     },
     {
       key: "actions",

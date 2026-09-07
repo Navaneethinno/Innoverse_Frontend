@@ -220,14 +220,35 @@ export function Profile() {
     {
       key: "institution_name",
       label: "Institution Name",
-      sortValue: (p) => p.institution_name ?? institutionsById.get(String(p.inst_profile_id))?.name ?? "",
-      render: (p) => renderProfileValue({ institution_name: p.institution_name ?? institutionsById.get(String(p.inst_profile_id))?.name }, "institution_name"),
+      sortValue: (p) =>
+        p.inst_profile_name ?? p.institution_name ?? institutionsById.get(String(p.inst_profile_id))?.name ?? "",
+      render: (p) =>
+        renderProfileValue(
+          {
+            institution_name:
+              p.inst_profile_name ??
+              p.institution_name ??
+              institutionsById.get(String(p.inst_profile_id))?.name,
+          },
+          "institution_name",
+        ),
     },
     {
       key: "code",
       label: "Institution Code",
       sortValue: (p) => institutionsById.get(String(p.inst_profile_id))?.code ?? "",
       render: (p) => renderProfileValue(institutionsById.get(String(p.inst_profile_id)) ?? {}, "code"),
+    },
+    {
+      key: "status_name",
+      label: "Status",
+      sortValue: (p) => p.status_name ?? p.status ?? "",
+      render: (p) =>
+        p.status == null && !p.status_name ? (
+          "—"
+        ) : (
+          <StatusBadge status={String(p.status_name ?? (p.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
+        ),
     },
     { key: "auth_status", label: "Authorization Status", sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
     {

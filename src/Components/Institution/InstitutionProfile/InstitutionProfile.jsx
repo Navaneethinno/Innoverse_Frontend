@@ -140,7 +140,23 @@ export function InstitutionProfile() {
     { key: "code", label: "Code", render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
     { key: "name", label: "Name", render: (r) => <span className="font-semibold text-slate-800">{r.name ?? "—"}</span> },
     { key: "type", label: "Type", sortValue: (r) => r.type_name ?? r.type ?? "", render: (r) => r.type_name ?? r.type ?? "—" },
-    { key: "status", label: "Status", sortValue: statusOf, render: (r) => <StatusBadge status={statusOf(r)} /> },
+    {
+      key: "status_name",
+      label: "Status",
+      sortValue: (r) => r.status_name ?? r.status ?? "",
+      render: (r) =>
+        r.status == null && !r.status_name ? (
+          "—"
+        ) : (
+          <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
+        ),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      sortValue: statusOf,
+      render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} /> : "—"),
+    },
     {
       key: "actions",
       label: "Actions",
