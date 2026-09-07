@@ -62,12 +62,11 @@ export const profilesApi = {
   // regardless of auth_status (same maker-checker convention as
   // institutions: a checker needs to see pending records too).
   list: (payload = { page: 1, limit: 10 }) => request(API_ENDPOINTS.PROFILES.LIST, payload),
-  // POST /profile/getall, body {} — lightweight, unpaginated list used for
-  // pickers. Already called elsewhere as usersApi.getAllProfiles() against
-  // this same path (API_ENDPOINTS.USERS.ALL_PROFILES) for the user-form
-  // profile dropdown; exposed here too under its natural home so
-  // Profile-owned screens don't reach into the Users service for it.
-  getAll: () => request(API_ENDPOINTS.PROFILES.GET_ALL, {}),
+  // /profile/getall was removed by the backend — pickers now reuse the same
+  // /user/profile/list endpoint with a large limit instead of true
+  // pagination, same "full batch" tradeoff already used for Institutions/
+  // Profiles list views when a filter needs the whole working set in memory.
+  getAll: () => request(API_ENDPOINTS.PROFILES.LIST, { page: 1, limit: 500 }),
   // POST /profile/get, body {profile_id} — get one profile by id. Profile
   // has a real get-by-id endpoint (unlike Institution, which has none), so
   // detail/edit screens use this directly instead of scanning a list page.

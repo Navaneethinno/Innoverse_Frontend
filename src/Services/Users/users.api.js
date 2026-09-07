@@ -63,7 +63,9 @@ export const usersApi = {
   getKyc: (payload) => request(API_ENDPOINTS.USERS.KYC_GET, payload),
   getActiveInstitutions: (payload = { view: "dropdown" }) =>
     request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, payload),
-  getAllProfiles: () => request(API_ENDPOINTS.USERS.ALL_PROFILES, {}),
+  // /profile/getall was removed by the backend — reuse /user/profile/list
+  // with a large limit instead (same tradeoff as profilesApi.getAll()).
+  getAllProfiles: () => request(API_ENDPOINTS.PROFILES.LIST, { page: 1, limit: 500 }),
   getPasswordPolicies: (payload = {}) =>
     request(API_ENDPOINTS.USERS.PASSWORD_POLICY_LIST, payload),
 };

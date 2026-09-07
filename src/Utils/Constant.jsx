@@ -65,7 +65,6 @@ export const API_ENDPOINTS = {
     DELETE: "/user/delete",
     DELETE_AUTH: "/user/delete_auth",
     KYC_GET: "/user/kyc/get",
-    ALL_PROFILES: "/profile/getall",
     PASSWORD_POLICY_LIST: "/user/password_policy/list",
   },
 
@@ -86,15 +85,14 @@ export const API_ENDPOINTS = {
   // role/permission profile (menu_id/action_id grants), NOT the Institution
   // Profile entity under INSTITUTIONS above.
   PROFILES: {
-    LIST: "/profile/list",
-    GET_ALL: "/profile/getall",
-    GET: "/profile/get",
-    ADD: "/profile/add",
-    EDIT: "/profile/edit",
-    AUTH: "/profile/auth",
-    DEAUTH: "/profile/deauth",
-    DELETE: "/profile/delete",
-    DELETE_AUTH: "/profile/delete_auth",
-    AUDIT_LIST: "/profile/audit_list",
+    LIST: "/user/profile/list",
+    GET: "/user/profile/get",
+    ADD: "/user/profile/add",
+    EDIT: "/user/profile/edit",
+    AUTH: "/user/profile/auth",
+    DEAUTH: "/user/profile/deauth",
+    DELETE: "/user/profile/delete",
+    DELETE_AUTH: "/user/profile/delete_auth",
+    AUDIT_LIST: "/user/profile/audit_list",
   },
 };
