@@ -68,7 +68,7 @@ const META_KEYS = new Set([
   "deauth_narration",
 ]);
 
-function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
+function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }) {
   const status = String(entry.auth_status ?? entry.status ?? "").toUpperCase();
   const reason = entry.deauth_narration;
   const actionLabel = getActionLabel(entry);
@@ -122,6 +122,19 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
       )}
 
       {renderExtra?.(entry)}
+
+      {pendingPanel && (
+        <div
+          className="mt-3 rounded-xl border-2 border-dashed p-3"
+          style={{ borderColor: "var(--warning)", background: "var(--warning-soft)" }}
+        >
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-warning">
+            <History size={11} className="shrink-0" />
+            What this pending request changes
+          </p>
+          {pendingPanel}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6">
         <span className="flex items-center gap-1.5">
@@ -254,17 +267,18 @@ export function AuditModal({
         ) : (
           <div className="space-y-3">
             {sortedEntries.map((entry, index) => (
-              <div key={getEntryKey(entry, index)} className="space-y-3">
-                <AuditEntry
-                  entry={entry}
-                  fields={fields}
-                  getActionLabel={getActionLabel}
-                  renderExtra={renderExtra}
-                />
-                {pendingMatchesEntry && entry.audit_key === pendingChanges?.audit_key && (
-                  <PendingChangesPanel data={pendingChanges} currentRecord={currentRecord} />
-                )}
-              </div>
+              <AuditEntry
+                key={getEntryKey(entry, index)}
+                entry={entry}
+                fields={fields}
+                getActionLabel={getActionLabel}
+                renderExtra={renderExtra}
+                pendingPanel={
+                  pendingMatchesEntry && entry.audit_key === pendingChanges?.audit_key ? (
+                    <PendingChangesPanel data={pendingChanges} currentRecord={currentRecord} />
+                  ) : null
+                }
+              />
             ))}
           </div>
         )}

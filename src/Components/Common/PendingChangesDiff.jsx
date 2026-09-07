@@ -254,23 +254,25 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                   <tr key={row.field} className="border-b border-slate-50 last:border-0">
                     <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(row.field)}</td>
                     {!isAdd && (
-                      <td
-                        className={cn(
-                          "px-3 py-1.5",
-                          changed ? "text-red-500 line-through decoration-red-300" : "text-slate-500",
+                      <td className="px-3 py-1.5">
+                        {changed ? (
+                          <span className="inline-block rounded-md bg-red-100 px-2 py-0.5 font-medium text-red-700 line-through decoration-red-400 decoration-2">
+                            {displayValue(row.current)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">{displayValue(row.current)}</span>
                         )}
-                      >
-                        {displayValue(row.current)}
                       </td>
                     )}
                     {!isDelete && (
-                      <td
-                        className={cn(
-                          "px-3 py-1.5",
-                          changed ? "font-semibold text-emerald-700" : "text-slate-500",
+                      <td className="px-3 py-1.5">
+                        {changed ? (
+                          <span className="inline-block rounded-md bg-emerald-100 px-2 py-0.5 font-bold text-emerald-800">
+                            {displayValue(row.proposed)}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">{displayValue(row.proposed)}</span>
                         )}
-                      >
-                        {displayValue(row.proposed)}
                       </td>
                     )}
                   </tr>
