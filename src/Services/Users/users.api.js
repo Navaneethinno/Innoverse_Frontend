@@ -50,22 +50,28 @@ async function request(path, body) {
   }
 }
 
+const USER = API_ENDPOINTS.USER_MANAGEMENT.USER;
+
 export const usersApi = {
-  list: (payload = { page: 1, limit: 10, search: "", status: 0 }) =>
-    request(API_ENDPOINTS.USERS.LIST, payload),
-  audit: (payload) => request(API_ENDPOINTS.USERS.AUDIT_LIST, payload),
-  add: (payload) => request(API_ENDPOINTS.USERS.ADD, payload),
-  edit: (payload) => request(API_ENDPOINTS.USERS.EDIT, payload),
-  auth: (payload) => request(API_ENDPOINTS.USERS.AUTH, payload),
-  deauth: (payload) => request(API_ENDPOINTS.USERS.DEAUTH, payload),
-  delete: (payload) => request(API_ENDPOINTS.USERS.DELETE, payload),
-  deleteAuth: (payload) => request(API_ENDPOINTS.USERS.DELETE_AUTH, payload),
-  getKyc: (payload) => request(API_ENDPOINTS.USERS.KYC_GET, payload),
+  list: (payload = { page: 1, limit: 10, search: "", status: 0 }) => request(USER.LIST, payload),
+  get: (payload) => request(USER.GET, payload),
+  getActive: (payload = {}) => request(USER.GET_ACTIVE, payload),
+  audit: (payload) => request(USER.AUDIT, payload),
+  pending: (payload = {}) => request(USER.PENDING, payload),
+  add: (payload) => request(USER.ADD, payload),
+  edit: (payload) => request(USER.EDIT, payload),
+  auth: (payload) => request(USER.AUTH, payload),
+  deauth: (payload) => request(USER.DEAUTH, payload),
+  delete: (payload) => request(USER.DELETE, payload),
+  deleteAuth: (payload) => request(USER.DELETE_AUTH, payload),
+  deactivate: (payload) => request(USER.DEACTIVATE, payload),
+  reactivate: (payload) => request(USER.REACTIVATE, payload),
+  getKyc: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.KYC.GET, payload),
   getActiveInstitutions: (payload = { view: "dropdown" }) =>
-    request(API_ENDPOINTS.INSTITUTIONS.GET_ACTIVE, payload),
+    request(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.GET_ACTIVE, payload),
   // /profile/getall was removed by the backend — reuse /user/profile/list
   // with a large limit instead (same tradeoff as profilesApi.getAll()).
-  getAllProfiles: () => request(API_ENDPOINTS.PROFILES.LIST, { page: 1, limit: 500 }),
-  getPasswordPolicies: (payload = {}) =>
-    request(API_ENDPOINTS.USERS.PASSWORD_POLICY_LIST, payload),
+  getAllProfiles: () =>
+    request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, { page: 1, limit: 500 }),
+  getPasswordPolicies: (payload = {}) => request(USER.PASSWORD_POLICY_LIST, payload),
 };

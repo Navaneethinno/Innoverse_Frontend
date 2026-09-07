@@ -61,23 +61,23 @@ export const profilesApi = {
   // POST /profile/list, body {page, limit} — the main list, all profiles
   // regardless of auth_status (same maker-checker convention as
   // institutions: a checker needs to see pending records too).
-  list: (payload = { page: 1, limit: 10 }) => request(API_ENDPOINTS.PROFILES.LIST, payload),
+  list: (payload = { page: 1, limit: 10 }) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, payload),
   // /profile/getall was removed by the backend — pickers now reuse the same
   // /user/profile/list endpoint with a large limit instead of true
   // pagination, same "full batch" tradeoff already used for Institutions/
   // Profiles list views when a filter needs the whole working set in memory.
-  getAll: () => request(API_ENDPOINTS.PROFILES.LIST, { page: 1, limit: 500 }),
+  getAll: () => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, { page: 1, limit: 500 }),
   // POST /profile/get, body {profile_id} — get one profile by id. Profile
   // has a real get-by-id endpoint (unlike Institution, which has none), so
   // detail/edit screens use this directly instead of scanning a list page.
-  get: (payload) => request(API_ENDPOINTS.PROFILES.GET, payload),
+  get: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET, payload),
   // POST /profile/add, body {profile_info: {profile_id: 0, profile_name,
   // inst_profile_id}, menu_info: [{menu_id, actions: [action_id...],
   // is_configuration_only}]} — creates a pending-add.
-  add: (payload) => request(API_ENDPOINTS.PROFILES.ADD, payload),
+  add: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.ADD, payload),
   // POST /profile/edit — same shape as add, profile_info.profile_id is the
   // real id being edited; creates a pending-edit.
-  edit: (payload) => request(API_ENDPOINTS.PROFILES.EDIT, payload),
+  edit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.EDIT, payload),
   // POST /profile/auth, body {profile_id, inst_profile_id, menu_id,
   // action_id}. Unlike institutionsApi.auth ({id} approves the whole
   // record), this endpoint's contract is per menu+action grant. Per payse's
@@ -89,19 +89,23 @@ export const profilesApi = {
   // explicitly so this stays a literal pass-through of the endpoint
   // contract; see useProfileAuthMutation in profileHooks.js for how the
   // checker-context ids are supplied.
-  auth: (payload) => request(API_ENDPOINTS.PROFILES.AUTH, payload),
+  auth: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.AUTH, payload),
   // POST /profile/deauth, body {profile_id, inst_profile_id, menu_id,
   // action_id, deauth_narration} — same per-call shape as auth, with a
   // required reason. payse's AuthProfile.jsx calls this with the fixed
   // "Deauthorize" action id (4).
-  deauth: (payload) => request(API_ENDPOINTS.PROFILES.DEAUTH, payload),
+  deauth: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.DEAUTH, payload),
   // POST /profile/delete, body {profile_id, inst_profile_id, del_narration}
   // — creates a pending-delete.
-  delete: (payload) => request(API_ENDPOINTS.PROFILES.DELETE, payload),
+  delete: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.DELETE, payload),
   // POST /profile/delete_auth, body {profile_id, inst_profile_id} — checker
   // confirms the delete.
-  deleteAuth: (payload) => request(API_ENDPOINTS.PROFILES.DELETE_AUTH, payload),
-  // POST /profile/audit_list, body {profile_id, page, limit} — audit trail
+  deleteAuth: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.DELETE_AUTH, payload),
+  // POST /profile/audit, body {profile_id, page, limit} — audit trail
   // for one profile, matching the pattern already built for Institutions.
-  audit: (payload) => request(API_ENDPOINTS.PROFILES.AUDIT_LIST, payload),
+  audit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.AUDIT, payload),
+  // Confirmed endpoints not yet consumed by any page — wired for future use.
+  getActive: (payload = {}) =>
+    request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET_ACTIVE, payload),
+  pending: (payload = {}) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.PENDING, payload),
 };

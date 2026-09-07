@@ -55,44 +55,77 @@ export const API_ENDPOINTS = {
     LANGUAGE_LIST: "/master/language",
   },
 
-  USERS: {
-    LIST: "/user/list",
-    AUDIT_LIST: "/user/audit_list",
-    ADD: "/user/add",
-    EDIT: "/user/edit",
-    AUTH: "/user/auth",
-    DEAUTH: "/user/deauth",
-    DELETE: "/user/delete",
-    DELETE_AUTH: "/user/delete_auth",
-    KYC_GET: "/user/kyc/get",
-    PASSWORD_POLICY_LIST: "/user/password_policy/list",
+  // Grouped Module -> Menu, matching the sidebar's own grouping and the
+  // exact endpoint list given by the backend (2026-09). Anything not in
+  // that list (the old /user/audit_list, /user/profile/audit_list,
+  // /profile/getall, singular /user/kyc/get) has been removed rather than
+  // kept as a dead alias.
+  USER_MANAGEMENT: {
+    USER: {
+      LIST: "/user/list",
+      GET: "/user/get",
+      GET_ACTIVE: "/user/get_active",
+      ADD: "/user/add",
+      AUDIT: "/user/audit",
+      PENDING: "/user/pending",
+      AUTH: "/user/auth",
+      DEAUTH: "/user/deauth",
+      EDIT: "/user/edit",
+      DELETE: "/user/delete",
+      DELETE_AUTH: "/user/delete_auth",
+      DEACTIVATE: "/user/deactivate",
+      REACTIVATE: "/user/reactivate",
+      PASSWORD_POLICY_LIST: "/user/password_policy/list",
+    },
+    // KYC is its own sub-entity under /user/kyc/* — confirmed live but not
+    // consumed by any page yet (only the old singular /user/kyc/get was
+    // wired, as usersApi.getKyc; kept working here under its new home).
+    KYC: {
+      LIST: "/user/kyc/list",
+      GET: "/user/kyc/get",
+      GET_ACTIVE: "/user/kyc/get_active",
+      ADD: "/user/kyc/add",
+      AUDIT: "/user/kyc/audit",
+      PENDING: "/user/kyc/pending",
+      AUTH: "/user/kyc/auth",
+      DEAUTH: "/user/kyc/deauth",
+      EDIT: "/user/kyc/edit",
+      DELETE: "/user/kyc/delete",
+      DELETE_AUTH: "/user/kyc/delete_auth",
+      DEACTIVATE: "/user/kyc/deactivate",
+      REACTIVATE: "/user/kyc/reactivate",
+    },
+    // "Profile" here is a role/permission profile (menu_id/action_id
+    // grants), NOT the Institution Profile entity under INSTITUTION below.
+    PROFILE: {
+      LIST: "/user/profile/list",
+      GET: "/user/profile/get",
+      GET_ACTIVE: "/user/profile/get_active",
+      ADD: "/user/profile/add",
+      AUDIT: "/user/profile/audit",
+      PENDING: "/user/profile/pending",
+      AUTH: "/user/profile/auth",
+      DEAUTH: "/user/profile/deauth",
+      EDIT: "/user/profile/edit",
+      DELETE: "/user/profile/delete",
+      DELETE_AUTH: "/user/profile/delete_auth",
+    },
   },
 
-  INSTITUTIONS: {
-    LIST: "/institution/profile/list",
-    GET_ACTIVE: "/institution/profile/get_active",
-    ADD: "/institution/profile/add",
-    EDIT: "/institution/profile/edit",
-    AUTH: "/institution/profile/auth",
-    DEAUTH: "/institution/profile/deauth",
-    DELETE: "/institution/profile/delete",
-    DELETE_AUTH: "/institution/profile/delete_auth",
-    AUDIT: "/institution/profile/audit",
-  },
-
-  // Profile (URMG) endpoints — per the official Postman collection
-  // ("InnoVerse_ConfigProcessor" -> "Profile (URMG)"). "Profile" here is a
-  // role/permission profile (menu_id/action_id grants), NOT the Institution
-  // Profile entity under INSTITUTIONS above.
-  PROFILES: {
-    LIST: "/user/profile/list",
-    GET: "/user/profile/get",
-    ADD: "/user/profile/add",
-    EDIT: "/user/profile/edit",
-    AUTH: "/user/profile/auth",
-    DEAUTH: "/user/profile/deauth",
-    DELETE: "/user/profile/delete",
-    DELETE_AUTH: "/user/profile/delete_auth",
-    AUDIT_LIST: "/user/profile/audit_list",
+  INSTITUTION: {
+    INSTITUTION_PROFILE: {
+      LIST: "/institution/profile/list",
+      GET_ACTIVE: "/institution/profile/get_active",
+      ADD: "/institution/profile/add",
+      AUDIT: "/institution/profile/audit",
+      PENDING: "/institution/profile/pending",
+      AUTH: "/institution/profile/auth",
+      DEAUTH: "/institution/profile/deauth",
+      EDIT: "/institution/profile/edit",
+      DELETE: "/institution/profile/delete",
+      DELETE_AUTH: "/institution/profile/delete_auth",
+      DEACTIVATE: "/institution/profile/deactivate",
+      REACTIVATE: "/institution/profile/reactivate",
+    },
   },
 };
