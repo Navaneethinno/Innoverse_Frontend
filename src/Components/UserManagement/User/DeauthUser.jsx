@@ -1,12 +1,17 @@
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { nameOf } from "./UserForm";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+import { usersApi } from "@/Services/Users/users.api";
+import { nameOf, userId } from "./UserForm";
 
 // Deauthorize-user confirmation (requires narration) — split out of the old
-// shared ConfirmDialog instance in UsersPage.jsx.
+// shared ConfirmDialog instance in UsersPage.jsx. Shows the checker exactly
+// what the maker asked to change (via /user/pending) before they reject it.
 export function DeauthUser({ user, narration, setNarration, pending, onClose, onConfirm }) {
+  const open = !!user;
+  const { data, isLoading, error } = usePendingChanges(usersApi.pending, open ? userId(user) : null, open);
   return (
     <ConfirmDialog
-      open={!!user}
+      open={open}
       onClose={onClose}
       title="Confirm user action"
       description={
@@ -20,6 +25,7 @@ export function DeauthUser({ user, narration, setNarration, pending, onClose, on
       confirmDisabled={!narration.trim()}
       onConfirm={onConfirm}
     >
+      <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
       <textarea
         value={narration}
         onChange={(event) => setNarration(event.target.value)}
