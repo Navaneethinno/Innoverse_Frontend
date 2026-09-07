@@ -25,7 +25,12 @@ export function usePendingChanges(fetchPending, id, open) {
     setError(null);
     fetchPending({ id })
       .then((result) => {
-        if (!cancelled) setData(result);
+        // The real response wraps the pending object in a single-element
+        // array (payload.data: [{ id, pending_action, changes, ... }]),
+        // same as the login/refresh session response — not the bare object
+        // directly on `data`.
+        const unwrapped = Array.isArray(result?.data) ? result.data[0] : (result?.data ?? result);
+        if (!cancelled) setData(unwrapped ?? null);
       })
       .catch((nextError) => {
         if (!cancelled) setError(nextError instanceof Error ? nextError.message : "Failed to load changes");
