@@ -130,6 +130,30 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     );
   };
 
+  // Grants/clears every menu in every module at once — the module-level
+  // "Select all" checkboxes only cover their own module, so with several
+  // modules an admin granting a full profile still had to click each one.
+  const allModulesGranted =
+    modules.length > 0 &&
+    modules.every((module) =>
+      module.menus.every(
+        (menu) => (grantFor(menu.menu_id)?.actions?.length ?? 0) === allActionIds(menu).length,
+      ),
+    );
+  const toggleSelectAllModules = () => {
+    onChange(
+      allModulesGranted
+        ? []
+        : modules.flatMap((module) =>
+            module.menus.map((menu) => ({
+              menu_id: menu.menu_id,
+              actions: allActionIds(menu),
+              is_configuration_only: 0,
+            })),
+          ),
+    );
+  };
+
   const filteredModules = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return modules;
@@ -178,6 +202,23 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
             className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
           />
         </div>
+      )}
+
+      {!readOnly && modules.length > 1 && (
+        <label className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2">
+          <span className="text-[11px] font-black uppercase tracking-widest text-blue-700">
+            All modules
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+            <input
+              type="checkbox"
+              checked={allModulesGranted}
+              onChange={toggleSelectAllModules}
+              className="h-3.5 w-3.5 accent-blue-600"
+            />
+            Select all
+          </span>
+        </label>
       )}
 
       <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
