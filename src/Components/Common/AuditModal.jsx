@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -183,6 +184,29 @@ export function AuditModal({
   pendingError = null,
   currentRecord = null,
 }) {
+  const hasPending =
+    pendingLoading || pendingError || (pendingChanges?.pending_action && pendingChanges.pending_action !== "NONE");
+
+  // Newest first — the pending/open request (if any) is always the most
+  // recent thing that happened to the record, so this also naturally puts
+  // it right at the top instead of buried under older entries.
+  const sortedEntries = useMemo(() => {
+    const timeOf = (entry) => {
+      const raw = entry.updated_time ?? entry.auth_time ?? entry.created_time;
+      const t = raw ? new Date(raw).getTime() : NaN;
+      return Number.isNaN(t) ? -Infinity : t;
+    };
+    return entries
+      .map((entry, index) => ({ entry, index }))
+      .sort((a, b) => timeOf(b.entry) - timeOf(a.entry) || a.index - b.index)
+      .map(({ entry }) => entry);
+  }, [entries]);
+
+  const pendingMatchesEntry =
+    hasPending && !pendingLoading && !pendingError
+      ? sortedEntries.some((entry) => entry.audit_key === pendingChanges?.audit_key)
+      : false;
+
   return (
     <Modal
       open
@@ -192,9 +216,11 @@ export function AuditModal({
       icon={<History size={15} />}
     >
       <>
-        {(pendingLoading ||
-          pendingError ||
-          (pendingChanges?.pending_action && pendingChanges.pending_action !== "NONE")) && (
+        {/* Fallback only — normally the panel renders inline, right next to
+            the audit entry sharing the same audit_key, so it reads as part
+            of that entry rather than a disconnected block. This only fires
+            while loading/erroring, or if the matching entry hasn't loaded. */}
+        {hasPending && (pendingLoading || pendingError || !pendingMatchesEntry) && (
           <div className="mb-4">
             <PendingChangesPanel
               data={pendingChanges}
@@ -227,14 +253,18 @@ export function AuditModal({
           <p className="py-10 text-center text-sm text-muted-foreground">No audit history found.</p>
         ) : (
           <div className="space-y-3">
-            {entries.map((entry, index) => (
-              <AuditEntry
-                key={getEntryKey(entry, index)}
-                entry={entry}
-                fields={fields}
-                getActionLabel={getActionLabel}
-                renderExtra={renderExtra}
-              />
+            {sortedEntries.map((entry, index) => (
+              <div key={getEntryKey(entry, index)} className="space-y-3">
+                <AuditEntry
+                  entry={entry}
+                  fields={fields}
+                  getActionLabel={getActionLabel}
+                  renderExtra={renderExtra}
+                />
+                {pendingMatchesEntry && entry.audit_key === pendingChanges?.audit_key && (
+                  <PendingChangesPanel data={pendingChanges} currentRecord={currentRecord} />
+                )}
+              </div>
             ))}
           </div>
         )}
