@@ -103,7 +103,7 @@ function useProfileMutation(mutationFn) {
 // independently verified live for /profile/list specifically (network calls
 // blocked in this sandbox), so this tolerates several plausible array keys
 // the same way institutions' mapper does.
-function mapProfileListResponse(payload) {
+export function mapProfileListResponse(payload) {
   const data = payload?.data;
   const records =
     (Array.isArray(data) && data) ||

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Search } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Modal } from "@/Components/Common/Modal";
@@ -140,6 +140,15 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  * - title: used as the "View all" modal heading
  * - searchableKeys: fields to search against inside the "View all" modal
  * - emptyTitle / emptyDescription
+ * - fetchMore(page, limit): when provided, the "View all" modal switches
+ *   from rendering the already-loaded `rows` to its own infinite-scroll
+ *   fetch loop against the backend — loads page 1 on open, then the next
+ *   page automatically as the user scrolls near the bottom, appending
+ *   rows instead of ever holding the whole dataset in memory or in one
+ *   request. Must resolve to { rows, totalPages }. Without this prop the
+ *   modal falls back to listing whatever's already in `rows` (unchanged
+ *   behavior for tables too small to matter).
+ * - infiniteScrollLimit: page size used by fetchMore, default 50.
  */
 export function DataTable({
   columns,
@@ -153,11 +162,63 @@ export function DataTable({
   emptyTitle,
   emptyDescription,
   className,
+  fetchMore = null,
+  infiniteScrollLimit = 50,
 }) {
   const [sort, setSort] = useState({ key: null, direction: null });
   const [page, setPage] = useState(1);
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [viewAllSearch, setViewAllSearch] = useState("");
+
+  const [infiniteRows, setInfiniteRows] = useState([]);
+  const [infinitePage, setInfinitePage] = useState(0);
+  const [infiniteHasMore, setInfiniteHasMore] = useState(true);
+  const [infiniteLoading, setInfiniteLoading] = useState(false);
+  const [infiniteError, setInfiniteError] = useState(null);
+  const scrollRef = useRef(null);
+
+  const loadNextInfinitePage = useCallback(async () => {
+    if (!fetchMore || infiniteLoading || !infiniteHasMore) return;
+    setInfiniteLoading(true);
+    setInfiniteError(null);
+    const nextPage = infinitePage + 1;
+    try {
+      const result = await fetchMore(nextPage, infiniteScrollLimit);
+      setInfiniteRows((current) => [...current, ...(result?.rows ?? [])]);
+      setInfinitePage(nextPage);
+      setInfiniteHasMore(nextPage < (result?.totalPages ?? nextPage));
+    } catch (error) {
+      setInfiniteError(error instanceof Error ? error.message : "Failed to load more records");
+    } finally {
+      setInfiniteLoading(false);
+    }
+  }, [fetchMore, infiniteLoading, infiniteHasMore, infinitePage, infiniteScrollLimit]);
+
+  // Reset and fetch page 1 fresh every time the modal opens, rather than
+  // keeping stale data from a previous open (records may have changed via
+  // an auth/edit/delete action in between).
+  useEffect(() => {
+    if (!fetchMore || !viewAllOpen) return;
+    setInfiniteRows([]);
+    setInfinitePage(0);
+    setInfiniteHasMore(true);
+    setInfiniteError(null);
+  }, [fetchMore, viewAllOpen]);
+
+  useEffect(() => {
+    if (!fetchMore || !viewAllOpen) return;
+    if (infinitePage === 0 && infiniteRows.length === 0 && infiniteHasMore) {
+      void loadNextInfinitePage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchMore, viewAllOpen, infinitePage, infiniteRows.length, infiniteHasMore]);
+
+  const handleModalScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120;
+    if (nearBottom) void loadNextInfinitePage();
+  };
 
   const onSort = (key) => {
     setSort((current) => {
@@ -183,13 +244,16 @@ export function DataTable({
     else setPage(clamped);
   };
 
+  const sortedInfiniteRows = useSortedRows(infiniteRows, columns, sort);
+  const modalSourceRows = fetchMore ? sortedInfiniteRows : sortedRows;
+
   const modalRows = useMemo(() => {
     const q = viewAllSearch.trim().toLowerCase();
-    if (!q) return sortedRows;
-    return sortedRows.filter((row) =>
+    if (!q) return modalSourceRows;
+    return modalSourceRows.filter((row) =>
       searchableKeys.some((key) => String(row[key] ?? "").toLowerCase().includes(q)),
     );
-  }, [sortedRows, viewAllSearch, searchableKeys]);
+  }, [modalSourceRows, viewAllSearch, searchableKeys]);
 
   return (
     <div className={className}>
@@ -257,7 +321,11 @@ export function DataTable({
         open={viewAllOpen}
         onClose={() => setViewAllOpen(false)}
         title={title}
-        subtitle={`${modalRows.length} of ${sortedRows.length} records`}
+        subtitle={
+          fetchMore
+            ? `${modalRows.length} loaded${infiniteHasMore ? " · scroll for more" : " · all loaded"}`
+            : `${modalRows.length} of ${sortedRows.length} records`
+        }
         size="xl"
         bodyClassName="px-0 py-0"
       >
@@ -272,20 +340,40 @@ export function DataTable({
                 className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
               />
             </div>
+            {fetchMore && viewAllSearch.trim() !== "" && (
+              <p className="mt-1.5 text-[11px] text-amber-600">
+                Only searches records already loaded — scroll down first to load more, then search.
+              </p>
+            )}
           </div>
         )}
-        <div className="max-h-[65vh] overflow-y-auto px-5 py-3">
+        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="max-h-[65vh] overflow-y-auto px-5 py-3">
           <table className="w-full">
             <TableHead columns={columns} sort={sort} onSort={onSort} />
             <TableBody
               columns={columns}
               rows={modalRows}
-              isLoading={false}
+              isLoading={fetchMore ? infiniteRows.length === 0 && infiniteLoading : false}
               emptyTitle={emptyTitle}
               emptyDescription={emptyDescription}
               rowKey={rowKey}
             />
           </table>
+          {fetchMore && infiniteRows.length > 0 && (
+            <div className="py-3 text-center text-xs text-slate-400">
+              {infiniteError ? (
+                <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-blue-600 underline">
+                  Failed to load more — retry
+                </button>
+              ) : infiniteLoading ? (
+                "Loading more…"
+              ) : infiniteHasMore ? (
+                "Scroll for more"
+              ) : (
+                "All records loaded"
+              )}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

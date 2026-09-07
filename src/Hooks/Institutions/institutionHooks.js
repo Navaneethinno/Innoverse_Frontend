@@ -85,7 +85,7 @@ function useInstitutionMutation(mutationFn) {
 // `data` is a plain array and `pagination` sits at the TOP level of the
 // payload, not nested inside `data`. /institution/profile/list is assumed
 // (not yet independently confirmed) to share this same envelope shape.
-function mapInstitutionListResponse(payload) {
+export function mapInstitutionListResponse(payload) {
   const data = payload?.data;
   const records =
     (Array.isArray(data) && data) ||

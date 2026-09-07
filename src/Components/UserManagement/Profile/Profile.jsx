@@ -6,6 +6,7 @@ import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTr
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import {
+  mapProfileListResponse,
   useHasProfileAction,
   useProfileAuthMutation,
   useProfileCreateMutation,
@@ -16,6 +17,7 @@ import {
   useProfileUpdateMutation,
   useProfilesQuery,
 } from "@/Hooks/Profiles/profileHooks";
+import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -380,6 +382,10 @@ export function Profile() {
         searchableKeys={["profile_name"]}
         emptyTitle="No profiles found"
         emptyDescription="Adjust your search or filter criteria"
+        fetchMore={async (page, limit) => {
+          const mapped = mapProfileListResponse(await profilesApi.list({ page, limit }));
+          return { rows: mapped.profiles, totalPages: mapped.pagination.totalPages };
+        }}
         serverPagination={
           needsFullBatch
             ? null

@@ -55,7 +55,7 @@ function useUserMutation(mutationFn) {
   return { mutateAsync, isPending, error };
 }
 
-function mapUserListResponse(payload) {
+export function mapUserListResponse(payload) {
   const data = payload?.data;
   const users =
     (Array.isArray(data) && data) ||

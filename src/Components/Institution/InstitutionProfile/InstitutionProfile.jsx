@@ -5,12 +5,14 @@ import { AlertCircle, Eye, History, Plus, Search, ShieldCheck, ShieldOff, Trash2
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
+  mapInstitutionListResponse,
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
   useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
+import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
@@ -268,6 +270,10 @@ export function InstitutionProfile() {
         searchableKeys={["name", "code"]}
         emptyTitle="No institutions found"
         emptyDescription="Adjust your search or filter criteria"
+        fetchMore={async (page, limit) => {
+          const mapped = mapInstitutionListResponse(await institutionsApi.list({ page, limit }));
+          return { rows: mapped.institutions, totalPages: mapped.pagination.totalPages };
+        }}
         serverPagination={
           needsFullBatch
             ? null

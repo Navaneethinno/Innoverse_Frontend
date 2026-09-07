@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import {
+  mapUserListResponse,
   useUserAuthMutation,
   useUserAuditMutation,
   useUserCreateMutation,
@@ -348,6 +349,12 @@ export function User() {
         title="Users"
         searchableKeys={["user_name", "email"]}
         emptyTitle="No users found"
+        fetchMore={async (page, limit) => {
+          const mapped = mapUserListResponse(
+            await usersApi.list({ page, limit, search: "", status: 0 }),
+          );
+          return { rows: mapped.users, totalPages: mapped.pagination.totalPages };
+        }}
         serverPagination={
           activeTab === "all"
             ? {
