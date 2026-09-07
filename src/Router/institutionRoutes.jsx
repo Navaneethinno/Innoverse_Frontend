@@ -2,18 +2,18 @@ import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { pageElement } from "./routeSupport";
 const InstitutionListPage = lazy(() =>
-  import("@/Pages/Institutions/InstitutionListPage").then((m) => ({
-    default: m.InstitutionListPage,
+  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+    default: m.InstitutionProfile,
   })),
 );
 const InstitutionCreatePage = lazy(() =>
-  import("@/Pages/Institutions/CreateInstitutionFlow").then((m) => ({
-    default: m.CreateInstitutionFlow,
+  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+    default: m.AddInstitutionProfile,
   })),
 );
 const InstitutionDetailPage = lazy(() =>
-  import("@/Pages/Institutions/InstitutionDetailPage").then((m) => ({
-    default: m.InstitutionDetailPage,
+  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+    default: m.ViewInstitutionProfile,
   })),
 );
 export const institutionRoutes = [

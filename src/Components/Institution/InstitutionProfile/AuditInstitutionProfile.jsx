@@ -1,6 +1,10 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { useInstitutionAuditQuery } from "@/Hooks/Institutions/institutionHooks";
 
+// Relocated verbatim from Components/Institutions/InstitutionAuditModal.jsx
+// to live alongside the rest of the InstitutionProfile feature files,
+// matching payse's AuditInstitutions.jsx convention.
+//
 // Field labels/order confirmed against a real POST /institution/profile/audit
 // response — see institutionHooks.js's mapInstitutionListResponse comment
 // for the full envelope shape this was verified against.
@@ -16,7 +20,7 @@ const AUDIT_FIELDS = [
   ["total_kyc_levels", "Total KYC Levels"],
 ];
 
-export function InstitutionAuditModal({ institution, institutionId, onClose }) {
+export function AuditInstitutionProfile({ institution, institutionId, onClose }) {
   const auditQuery = useInstitutionAuditQuery(institutionId);
 
   return (

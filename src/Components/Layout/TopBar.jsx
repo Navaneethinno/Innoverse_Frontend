@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { Logo } from "@/Components/Common/Logo";
 import { useSidebar } from "./SidebarContext";
-import { SIDEBAR_WIDTHS } from "./Sidebar/DynamicSidebar";
+import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";

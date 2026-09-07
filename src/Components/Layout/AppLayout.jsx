@@ -9,7 +9,7 @@ import { clearAuthSession } from "@/Services/api/authStorage";
 import { TopBar } from "./TopBar";
 import { WorkspaceContainer } from "./WorkspaceContainer";
 import { SidebarStateProvider, useSidebar } from "./SidebarContext";
-import { DynamicSidebar, SIDEBAR_WIDTHS } from "./Sidebar/DynamicSidebar";
+import { DynamicSidebar, SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 function Layout() {
   const { collapsed } = useSidebar();
   const sidebarW = collapsed ? SIDEBAR_WIDTHS.collapsed : SIDEBAR_WIDTHS.expanded;

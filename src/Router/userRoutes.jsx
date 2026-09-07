@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 const UsersPage = lazy(() =>
-  import("@/Pages/Users/UsersPage").then((m) => ({ default: m.UsersPage })),
+  import("@/Components/UserManagement/User").then((m) => ({ default: m.User })),
 );
 // The sidebar's leaf-click navigation (MenuItem.jsx, ported from
 // payseFrontend) slugifies menu_name and always navigates to

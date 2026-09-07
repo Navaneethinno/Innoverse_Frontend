@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { motion } from "motion/react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,8 +13,6 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
-import { InstitutionAuditModal } from "@/Components/Institutions/InstitutionAuditModal";
-import { DateFormatField } from "@/Components/Institutions/DateFormatField";
 import {
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
@@ -25,6 +22,12 @@ import {
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 import { notifications } from "@/Utils/Lib/notifications";
+import { Field, institutionId } from "./InstitutionProfileForm";
+import { EditInstitutionProfile } from "./EditInstitutionProfile";
+import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
+import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
+import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
+import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
 // no GET/get-by-id endpoint — only list, get_active, add, edit, auth,
@@ -34,49 +37,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 // exist. If the institution isn't present in that page of results the page
 // reports "not found" — this is a known limitation until a dedicated
 // get-by-id (or a `list` filtered by id) endpoint is confirmed.
-function Field({ label, value }) {
-  return (
-    <div>
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
-        {label}
-      </p>
-      <p className="text-sm text-slate-700 font-medium">
-        {typeof value === "boolean" ? (value ? "Yes" : "No") : (value ?? "—")}
-      </p>
-    </div>
-  );
-}
-function EditField({ label, value, onChange, type = "text", disabled = false }) {
-  return (
-    <div>
-      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        disabled={disabled}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-      />
-    </div>
-  );
-}
-function EditToggle({ label, value, onChange }) {
-  return (
-    <label className="flex h-10 items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-        {label}
-      </span>
-      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
-    </label>
-  );
-}
-function institutionId(inst) {
-  return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
-}
-
-export function InstitutionDetailPage() {
+export function ViewInstitutionProfile() {
   const { id } = useParams();
   const numericId = Number(id);
   const navigate = useNavigate();
@@ -161,6 +122,11 @@ export function InstitutionDetailPage() {
       setEditMode(false);
       void institutionsQuery.refetch();
     }
+  };
+
+  const closeAction = () => {
+    setAction(null);
+    setDescription("");
   };
 
   const runAction = async () => {
@@ -319,172 +285,82 @@ export function InstitutionDetailPage() {
         <StatusBadge status={status} />
       </div>
 
-      <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-        <h2 className="text-sm font-bold text-slate-700">Institution Information</h2>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-          {editMode ? (
-            <>
-              <EditField
-                label="Institution Code"
-                value={form.code}
-                onChange={setField("code")}
-              />
-              <EditField label="Institution Name" value={form.name} onChange={setField("name")} />
-              <EditField label="Institution Type" value={institution.type_name ?? institution.type} disabled />
-              <EditField
-                label="Timezone"
-                value={form.timezone}
-                onChange={setField("timezone")}
-              />
-              <DateFormatField value={form.date_format} onChange={setField("date_format")} />
-              <EditToggle
-                label="Has Branch"
-                value={form.has_branch}
-                onChange={setField("has_branch")}
-              />
-            </>
-          ) : (
-            <>
+      {editMode ? (
+        <EditInstitutionProfile institution={institution} form={form} setField={setField} />
+      ) : (
+        <>
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
+            <h2 className="text-sm font-bold text-slate-700">Institution Information</h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <Field label="Institution Code" value={institution.code} />
               <Field label="Institution Name" value={institution.name} />
               <Field label="Institution Type" value={institution.type_name ?? institution.type} />
               <Field label="Timezone" value={institution.timezone} />
               <Field label="Date Format" value={institution.date_format} />
               <Field label="Has Branch" value={institution.has_branch} />
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-        <h2 className="text-sm font-bold text-slate-700">KYC & Login Policy</h2>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-          {editMode ? (
-            <>
-              <EditToggle
-                label="KYC Enabled"
-                value={form.kyc_enabled}
-                onChange={setField("kyc_enabled")}
-              />
-              <EditField
-                label="Total KYC Levels"
-                type="number"
-                value={form.total_kyc_levels}
-                onChange={setField("total_kyc_levels")}
-              />
-              <EditToggle
-                label="Allow Downgrade KYC"
-                value={form.allow_downgrade_kyc}
-                onChange={setField("allow_downgrade_kyc")}
-              />
-              <EditField
-                label="Primary Login Identifier"
-                value={form.primary_login_identifier}
-                onChange={setField("primary_login_identifier")}
-              />
-              <EditToggle
-                label="Login PIN Enabled"
-                value={form.is_login_pin_enabled}
-                onChange={setField("is_login_pin_enabled")}
-              />
-              <EditToggle
-                label="Biometric Login"
-                value={form.allow_biometric_login}
-                onChange={setField("allow_biometric_login")}
-              />
-              <EditToggle
-                label="Txn PIN Enabled"
-                value={form.is_txn_pin_enabled}
-                onChange={setField("is_txn_pin_enabled")}
-              />
-              <EditToggle
-                label="Same Login/Txn PIN"
-                value={form.is_same_login_txn_pin_allowed}
-                onChange={setField("is_same_login_txn_pin_allowed")}
-              />
-            </>
-          ) : (
-            <>
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
+            <h2 className="text-sm font-bold text-slate-700">KYC & Login Policy</h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <Field label="KYC Enabled" value={institution.kyc_enabled} />
               <Field label="Total KYC Levels" value={institution.total_kyc_levels} />
               <Field label="Allow Downgrade KYC" value={institution.allow_downgrade_kyc} />
-              <Field
-                label="Primary Login Identifier"
-                value={institution.primary_login_identifier}
-              />
+              <Field label="Primary Login Identifier" value={institution.primary_login_identifier} />
               <Field label="Login PIN Enabled" value={institution.is_login_pin_enabled} />
               <Field label="Biometric Login" value={institution.allow_biometric_login} />
               <Field label="Txn PIN Enabled" value={institution.is_txn_pin_enabled} />
-              <Field
-                label="Same Login/Txn PIN"
-                value={institution.is_same_login_txn_pin_allowed}
-              />
-            </>
-          )}
-        </div>
-        {editMode && (
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-            <button
-              onClick={() => setEditMode(false)}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => void handleSubmitEdit()}
-              disabled={submitting}
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-              style={{ background: "#2266EE" }}
-            >
-              {submitting ? "Submitting…" : "Submit for Approval"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {action && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
-          >
-            <h2 className="text-lg font-bold text-slate-800 mb-3">Confirm {action}</h2>
-            <p className="text-sm text-slate-600">
-              {action} institution <strong>{institution.name}</strong>?
-            </p>
-            {(action === "auth" || action === "deauth") && (
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Remark (required)"
-                className="mt-4 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm"
-              />
-            )}
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setAction(null);
-                  setDescription("");
-                }}
-                className="rounded-xl px-4 py-2 text-sm text-slate-600"
-              >
-                Cancel
-              </button>
-              <button
-                disabled={actionPending || ((action === "auth" || action === "deauth") && !description.trim())}
-                onClick={() => void runAction()}
-                className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {actionPending ? "Working..." : "Confirm"}
-              </button>
+              <Field label="Same Login/Txn PIN" value={institution.is_same_login_txn_pin_allowed} />
             </div>
-          </motion.div>
+          </div>
+        </>
+      )}
+
+      {editMode && (
+        <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button
+            onClick={() => setEditMode(false)}
+            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => void handleSubmitEdit()}
+            disabled={submitting}
+            className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
+            style={{ background: "#2266EE" }}
+          >
+            {submitting ? "Submitting…" : "Submit for Approval"}
+          </button>
         </div>
       )}
 
+      <AuthInstitutionProfile
+        institution={action === "auth" ? institution : null}
+        description={description}
+        setDescription={setDescription}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <DeauthInstitutionProfile
+        institution={action === "deauth" ? institution : null}
+        description={description}
+        setDescription={setDescription}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <DeleteInstitutionProfile
+        institution={action === "delete" || action === "deleteAuth" ? institution : null}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+
       {auditOpen && (
-        <InstitutionAuditModal
+        <AuditInstitutionProfile
           institution={institution}
           institutionId={numericId}
           onClose={() => setAuditOpen(false)}

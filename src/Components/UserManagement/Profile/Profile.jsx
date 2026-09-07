@@ -2,10 +2,8 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, Eye, History, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { ProfileAuditModal } from "@/Components/Profiles/ProfileAuditModal";
 import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
 import { DataTable } from "@/Components/Common/DataTable";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
 import {
   useHasProfileAction,
@@ -21,6 +19,13 @@ import {
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
+import { EMPTY_FORM, profileId } from "./ProfileForm";
+import { AddProfile } from "./AddProfile";
+import { EditProfile } from "./EditProfile";
+import { AuthProfile } from "./AuthProfile";
+import { DeauthProfile } from "./DeauthProfile";
+import { DeleteProfile } from "./DeleteProfile";
+import { AuditProfile } from "./AuditProfile";
 
 // Fixed action ids for the checker's own Authorize/Deauthorize buttons, per
 // payse's AuthProfile.jsx (action_id: 5 for authorize, 4 for deauthorize) —
@@ -65,15 +70,7 @@ function profileHasAction(profile, actionId) {
   );
 }
 
-function profileId(profile) {
-  return profile?.profile_id ?? profile?.id;
-}
-
-function EMPTY_FORM() {
-  return { profile_name: "", inst_profile_id: "", menu_info: [] };
-}
-
-export function ProfilesPage() {
+export function Profile() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
@@ -83,7 +80,6 @@ export function ProfilesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM());
-  const [submitting, setSubmitting] = useState(false);
 
   const canAdd = useHasProfileAction("Add");
   const canEdit = useHasProfileAction("Edit");
@@ -92,7 +88,7 @@ export function ProfilesPage() {
 
   const [page, setPage] = useState(1);
 
-  // Same reasoning as InstitutionListPage.jsx: /profile/list has no
+  // Same reasoning as InstitutionProfile.jsx: /profile/list has no
   // status-filter or search param (confirmed via Postman), so real
   // per-page server requests only produce correct results for the
   // genuinely unfiltered view. "All" with no search fetches real pages
@@ -152,7 +148,6 @@ export function ProfilesPage() {
 
   const submitForm = async (event) => {
     event.preventDefault();
-    setSubmitting(true);
     try {
       const payload = {
         profile_info: {
@@ -170,9 +165,12 @@ export function ProfilesPage() {
       setShowForm(false);
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Failed to save profile");
-    } finally {
-      setSubmitting(false);
     }
+  };
+
+  const closeAction = () => {
+    setAction(null);
+    setNarration("");
   };
 
   const runAction = async () => {
@@ -374,105 +372,54 @@ export function ProfilesPage() {
       />
 
       <AnimatePresence>
-        {showForm && (
-          <Modal
+        {showForm && !editing && (
+          <AddProfile
             open={showForm}
             onClose={() => setShowForm(false)}
-            title={editing ? "Edit profile" : "New profile"}
-            size="lg"
-            footer={
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  form="profile-form"
-                  disabled={submitting}
-                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
-                >
-                  {submitting ? "Saving..." : editing ? "Save changes" : "Create profile"}
-                </button>
-              </>
-            }
-          >
-            <form onSubmit={submitForm} className="space-y-4" id="profile-form">
-              <label className="block text-sm text-slate-700">
-                <span className="mb-1.5 block font-medium">Profile name</span>
-                <input
-                  required
-                  value={form.profile_name}
-                  onChange={(e) => setForm({ ...form, profile_name: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
-                />
-              </label>
-              <label className="block text-sm text-slate-700">
-                <span className="mb-1.5 block font-medium">Institution</span>
-                <select
-                  required
-                  value={form.inst_profile_id}
-                  onChange={(e) => setForm({ ...form, inst_profile_id: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
-                >
-                  <option value="">Select institution…</option>
-                  {institutions.map((inst) => {
-                    const id = inst.id ?? inst.inst_id ?? inst.institution_id;
-                    return (
-                      <option key={id} value={id}>
-                        {inst.name ?? id}
-                      </option>
-                    );
-                  })}
-                </select>
-              </label>
-              <div>
-                <p className="mb-1.5 block text-sm font-medium text-slate-700">Menu / Action grants</p>
-                <ProfilePermissionTree
-                  selected={form.menu_info}
-                  onChange={(menu_info) => setForm({ ...form, menu_info })}
-                />
-              </div>
-            </form>
-          </Modal>
+            form={form}
+            setForm={setForm}
+            institutions={institutions}
+            onSubmit={submitForm}
+            submitting={createMutation.isPending}
+          />
+        )}
+        {showForm && editing && (
+          <EditProfile
+            open={showForm}
+            onClose={() => setShowForm(false)}
+            form={form}
+            setForm={setForm}
+            institutions={institutions}
+            onSubmit={submitForm}
+            submitting={updateMutation.isPending}
+          />
         )}
       </AnimatePresence>
 
-      <ConfirmDialog
-        open={!!action}
-        onClose={() => {
-          setAction(null);
-          setNarration("");
-        }}
-        title="Confirm profile action"
-        description={
-          action && (
-            <>
-              {action.type} profile <strong>{action.profile?.profile_name}</strong>?
-            </>
-          )
-        }
+      <AuthProfile
+        profile={action?.type === "auth" ? action.profile : null}
         pending={actionPending}
-        confirmDisabled={action && ["deauth", "delete"].includes(action.type) && !narration.trim()}
-        destructive={action?.type === "delete"}
+        onClose={closeAction}
         onConfirm={() => void runAction()}
-      >
-        {action && ["deauth", "delete"].includes(action.type) && (
-          <textarea
-            value={narration}
-            onChange={(e) => setNarration(e.target.value)}
-            placeholder="Reason (required)"
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
-          />
-        )}
-      </ConfirmDialog>
+      />
+      <DeauthProfile
+        profile={action?.type === "deauth" ? action.profile : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <DeleteProfile
+        profile={action?.type === "delete" ? action.profile : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
 
-      {auditProfile && (
-        <ProfileAuditModal profile={auditProfile} profileId={profileId(auditProfile)} onClose={() => setAuditProfile(null)} />
-      )}
+      {auditProfile && <AuditProfile profile={auditProfile} onClose={() => setAuditProfile(null)} />}
 
       {viewProfile && (
         <Modal open={!!viewProfile} onClose={() => setViewProfile(null)} title="View profile" size="lg">

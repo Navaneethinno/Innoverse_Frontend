@@ -17,7 +17,7 @@ import {
 } from "@/Hooks/Institutions/institutionHooks";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
-import { DateFormatField } from "@/Components/Institutions/DateFormatField";
+import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
 import { useInstitutionTypes, useLanguages } from "@/Hooks/Master/masterHooks";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
@@ -148,7 +148,7 @@ function ReviewRow({ label, value }) {
   );
 }
 
-export function CreateInstitutionFlow() {
+export function AddInstitutionProfile() {
   const navigate = useNavigate();
   // Real permission source (see useHasInstitutionAction) — the old
   // `currentUser?.institution?.type === "PLATFORM_OWNER"` check referenced a

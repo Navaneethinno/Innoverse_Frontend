@@ -3,9 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import { AlertCircle, Eye, History, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { InstitutionAuditModal } from "@/Components/Institutions/InstitutionAuditModal";
 import { DataTable } from "@/Components/Common/DataTable";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import {
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
@@ -15,6 +13,11 @@ import {
 } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
+import { institutionId } from "./InstitutionProfileForm";
+import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
+import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
+import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
+import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 // Every non-active, non-terminal auth_status groups into the "Pending" tab.
 // The real, specific value (NEW_AUTH / EDIT_AUTH / DEL_WAIT_AUTH / ...) is
@@ -38,11 +41,16 @@ function timestampOf(inst) {
   const time = raw ? new Date(raw).getTime() : NaN;
   return Number.isNaN(time) ? 0 : time;
 }
-function institutionId(inst) {
-  return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
-}
 
-export function InstitutionListPage() {
+// PendingInstitutionsPage.jsx (formerly a separate route) used a different,
+// request-based maker-checker data model (usePendingInstitutionsQuery /
+// request_id / after_data) rather than a simple status filter over this same
+// institution list — so its logic was NOT folded in here as a tab (that
+// would misrepresent different data). It is no longer routed (institutionRoutes
+// redirects /institutions/pending -> /institutions) and was left in place,
+// unrelated to this list's own "Pending" tab which just groups this list's
+// own non-active/non-terminal auth_status rows exactly as before.
+export function InstitutionProfile() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -64,7 +72,7 @@ export function InstitutionListPage() {
   // view, we need the fuller working set in memory to filter correctly,
   // so switch to a larger single fetch and let DataTable paginate that
   // client-side instead — same tradeoff already accepted for the "Active"/
-  // "Pending" tabs in UsersPage.jsx, whose backend also can't filter
+  // "Pending" tabs in Profile.jsx, whose backend also can't filter
   // everything the UI exposes.
   const needsFullBatch = activeTab !== "all" || search.trim() !== "";
   const institutionsQuery = useInstitutionsQuery(
@@ -101,6 +109,11 @@ export function InstitutionListPage() {
     }
     return rows;
   }, [institutions, search, activeTab]);
+
+  const closeAction = () => {
+    setAction(null);
+    setDescription("");
+  };
 
   const runAction = async () => {
     if (!action) return;
@@ -251,37 +264,31 @@ export function InstitutionListPage() {
         }
       />
 
-      <ConfirmDialog
-        open={!!action}
-        onClose={() => {
-          setAction(null);
-          setDescription("");
-        }}
-        title="Confirm institution action"
-        description={
-          action && (
-            <>
-              {action.type} institution <strong>{action.inst?.name ?? action.inst?.code}</strong>?
-            </>
-          )
-        }
+      <AuthInstitutionProfile
+        institution={action?.type === "auth" ? action.inst : null}
+        description={description}
+        setDescription={setDescription}
         pending={actionPending}
-        confirmDisabled={(action?.type === "auth" || action?.type === "deauth") && !description.trim()}
-        destructive={action?.type === "delete"}
+        onClose={closeAction}
         onConfirm={() => void runAction()}
-      >
-        {action && (action.type === "auth" || action.type === "deauth") && (
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Remark (required)"
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
-          />
-        )}
-      </ConfirmDialog>
+      />
+      <DeauthInstitutionProfile
+        institution={action?.type === "deauth" ? action.inst : null}
+        description={description}
+        setDescription={setDescription}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <DeleteInstitutionProfile
+        institution={action?.type === "delete" ? action.inst : null}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
 
       {auditInstitution && (
-        <InstitutionAuditModal
+        <AuditInstitutionProfile
           institution={auditInstitution}
           institutionId={institutionId(auditInstitution)}
           onClose={() => setAuditInstitution(null)}

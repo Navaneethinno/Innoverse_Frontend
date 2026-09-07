@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
-import { useSidebar } from "../SidebarContext";
+import { useSidebar } from "@/Components/Layout/SidebarContext";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
 import { getModuleIcon } from "./moduleIcons";

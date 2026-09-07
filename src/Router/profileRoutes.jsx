@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 const ProfilesPage = lazy(() =>
-  import("@/Pages/Profiles/ProfilesPage").then((m) => ({ default: m.ProfilesPage })),
+  import("@/Components/UserManagement/Profile").then((m) => ({ default: m.Profile })),
 );
 const ChangePasswordPage = lazy(() =>
   import("@/Pages/Profiles/ChangePasswordPage").then((m) => ({ default: m.ChangePasswordPage })),

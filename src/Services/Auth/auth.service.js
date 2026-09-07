@@ -27,7 +27,11 @@ function getBasicAuthorization() {
 }
 
 function parseSessionResponse(payload) {
-  const data = payload?.data ?? unwrapApiResponse(payload, payload);
+  const rawData = payload?.data ?? unwrapApiResponse(payload, payload);
+  // The login/refresh endpoints wrap the session object in a single-element
+  // array (payload.data: [{ user_session_info, user_details, menu_array }]),
+  // unlike other list endpoints that return the array directly as the payload.
+  const data = Array.isArray(rawData) ? rawData[0] : rawData;
   const sessionInfo = data?.user_session_info;
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");

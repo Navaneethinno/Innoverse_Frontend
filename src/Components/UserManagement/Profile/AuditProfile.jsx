@@ -1,11 +1,10 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { useProfileAuditQuery } from "@/Hooks/Profiles/profileHooks";
+import { profileId } from "./ProfileForm";
 
-// Mirrors AuditModal's formatting approach (real key/value fields, not a
-// raw JSON dump), adapted to whatever fields a real /profile/audit_list
-// response actually contains. The exact field set is unverified against a
-// live backend — this renders the fields payse's own AuditProfile.jsx reads
-// off each record.
+// Audit-trail modal wrapper for a single profile — relocated from
+// Components/Profiles/ProfileAuditModal.jsx to live alongside the rest of
+// the Profile feature files, matching payse's AuditProfile.jsx convention.
 const AUDIT_FIELDS = [
   ["profile_name", "Profile Name"],
   ["audit_note", "Audit Note"],
@@ -38,12 +37,12 @@ function renderMenuGrants(entry) {
   );
 }
 
-export function ProfileAuditModal({ profile, profileId, onClose }) {
-  const auditQuery = useProfileAuditQuery(profileId);
+export function AuditProfile({ profile, onClose }) {
+  const auditQuery = useProfileAuditQuery(profileId(profile));
 
   return (
     <AuditModal
-      title={profile?.profile_name ?? `#${profileId}`}
+      title={profile?.profile_name ?? `#${profileId(profile)}`}
       entries={auditQuery.data ?? []}
       fields={AUDIT_FIELDS}
       isLoading={auditQuery.isLoading}
