@@ -4,8 +4,10 @@ import {
   AlertCircle,
   ArrowLeft,
   Building2,
+  FileEdit,
   History,
   Pencil,
+  Send,
   ShieldCheck,
   ShieldOff,
   Trash2,
@@ -18,6 +20,7 @@ import {
   useInstitutionDeauthMutation,
   useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
+  useInstitutionSubmitMutation,
   useInstitutionUpdateMutation,
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
@@ -27,6 +30,7 @@ import { EditInstitutionProfile } from "./EditInstitutionProfile";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
 import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
 import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
+import { SubmitInstitutionProfile } from "./SubmitInstitutionProfile";
 import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
@@ -47,14 +51,22 @@ export function ViewInstitutionProfile() {
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
   const deleteAuthMutation = useInstitutionDeleteAuthMutation();
+  const submitMutation = useInstitutionSubmitMutation();
 
   const institution = useMemo(
     () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
     [institutionsQuery.data, id],
   );
+  // process_status/auth_status carries "DRAFT" for a not-yet-submitted
+  // record (add-as-draft, or a draft edit staged on top of an Active
+  // record) — per the confirmed 2026-09 spec, editing it applies
+  // immediately with no checker, and only its own maker can /submit it.
+  const isDraft =
+    String(institution?.process_status ?? institution?.auth_status ?? "").toUpperCase() === "DRAFT";
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditOpen, setAuditOpen] = useState(false);
@@ -89,7 +101,13 @@ export function ViewInstitutionProfile() {
 
   const setField = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
 
-  const handleSubmitEdit = async () => {
+  // isDraftEdit: only meaningful when editing an Active/Rejected-Edit
+  // record — stages a Draft Edit (process_status -> Draft, no checker
+  // yet) instead of submitting to Pending Edit immediately. Irrelevant
+  // (and not sent) when the record is already a Draft, since the backend
+  // infers "apply immediately, no lifecycle change" from the record's own
+  // state in that case regardless of this flag.
+  const handleSubmitEdit = async (isDraftEdit = false) => {
     if (!Number.isInteger(numericId) || !form) return;
     setSubmitting(true);
     let result = null;
@@ -113,6 +131,7 @@ export function ViewInstitutionProfile() {
         login_pin_length: Number(form.login_pin_length) || 0,
         txn_pin_length: Number(form.txn_pin_length) || 0,
         narration: (form.narration ?? "").trim(),
+        is_draft: isDraft ? undefined : isDraftEdit,
         // Optional stale-write guard — rejected with 409 if the record
         // changed since this page loaded it.
         expected_updated_time: institution?.updated_time,
@@ -123,7 +142,11 @@ export function ViewInstitutionProfile() {
     setSubmitting(false);
     if (result) {
       notifications.success(
-        "Update submitted for authorization. Current authorized values remain unchanged until approved.",
+        isDraft
+          ? "Draft saved."
+          : isDraftEdit
+            ? "Saved as a draft edit — call Submit when ready for checker review."
+            : "Update submitted for authorization. Current authorized values remain unchanged until approved.",
       );
       setEditMode(false);
       void institutionsQuery.refetch();
@@ -206,17 +229,34 @@ export function ViewInstitutionProfile() {
             >
               <X size={13} /> Cancel
             </button>
+            {!isDraft && (
+              <button
+                onClick={() => void handleSubmitEdit(true)}
+                disabled={submitting}
+                className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              >
+                <FileEdit size={13} /> Save as Draft Edit
+              </button>
+            )}
             <button
-              onClick={() => void handleSubmitEdit()}
+              onClick={() => void handleSubmitEdit(false)}
               disabled={submitting}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
               style={{ background: "#2266EE" }}
             >
-              {submitting ? "Submitting…" : "Submit for Approval"}
+              {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
             </button>
           </div>
         ) : (
           <div className="flex gap-2 flex-wrap">
+            {isDraft && (
+              <button
+                onClick={() => setSubmitOpen(true)}
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-blue-600 hover:bg-blue-50"
+              >
+                <Send size={13} /> Submit for Review
+              </button>
+            )}
             <button
               onClick={() => setEditMode(true)}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
@@ -292,6 +332,19 @@ export function ViewInstitutionProfile() {
         <StatusBadge status={status} />
       </div>
 
+      {isDraft && !editMode && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
+          <FileEdit size={15} className="text-blue-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-blue-800">This record is a Draft</p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              Only visible to you until you submit it for checker review. Keep editing freely — it
+              won't reach a checker until you click Submit for Review.
+            </p>
+          </div>
+        </div>
+      )}
+
       {editMode ? (
         <EditInstitutionProfile institution={institution} form={form} setField={setField} />
       ) : (
@@ -325,20 +378,29 @@ export function ViewInstitutionProfile() {
       )}
 
       {editMode && (
-        <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+        <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
           <button
             onClick={() => setEditMode(false)}
             className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
             Cancel
           </button>
+          {!isDraft && (
+            <button
+              onClick={() => void handleSubmitEdit(true)}
+              disabled={submitting}
+              className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+            >
+              Save as Draft Edit
+            </button>
+          )}
           <button
-            onClick={() => void handleSubmitEdit()}
+            onClick={() => void handleSubmitEdit(false)}
             disabled={submitting}
             className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
             style={{ background: "#2266EE" }}
           >
-            {submitting ? "Submitting…" : "Submit for Approval"}
+            {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
           </button>
         </div>
       )}
@@ -366,6 +428,27 @@ export function ViewInstitutionProfile() {
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}
+      />
+      <SubmitInstitutionProfile
+        institution={submitOpen ? institution : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={submitMutation.isPending}
+        onClose={() => {
+          setSubmitOpen(false);
+          setNarration("");
+        }}
+        onConfirm={async () => {
+          try {
+            await submitMutation.mutateAsync({ id: numericId, narration: narration.trim() });
+            notifications.success("Submitted for checker review.");
+            setSubmitOpen(false);
+            setNarration("");
+            void institutionsQuery.refetch();
+          } catch (error) {
+            notifications.error(error instanceof Error ? error.message : "Failed to submit");
+          }
+        }}
       />
 
       {auditOpen && (
