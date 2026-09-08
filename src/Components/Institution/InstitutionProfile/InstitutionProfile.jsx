@@ -197,7 +197,9 @@ export function InstitutionProfile() {
         // record (per the confirmed 2026-09 spec) — only the maker who owns
         // it can act on it further via /submit, so a Submit action only
         // makes sense for rows actually in that state.
-        const draft = String(inst.process_status ?? inst.auth_status ?? "").toUpperCase() === "DRAFT";
+        const draft =
+          String(inst.process_status ?? inst.auth_status ?? inst.status ?? "").toUpperCase() ===
+          "DRAFT";
         const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
@@ -213,12 +215,16 @@ export function InstitutionProfile() {
                 <Send size={14} />
               </button>
             )}
-            <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-              <ShieldCheck size={14} />
-            </button>
-            <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-              <ShieldOff size={14} />
-            </button>
+            {!draft && (
+              <>
+                <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                  <ShieldCheck size={14} />
+                </button>
+                <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                  <ShieldOff size={14} />
+                </button>
+              </>
+            )}
             {active && (
               <button title="Deactivate" onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />

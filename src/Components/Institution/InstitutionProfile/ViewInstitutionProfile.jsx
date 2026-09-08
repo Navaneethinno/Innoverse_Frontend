@@ -61,8 +61,13 @@ export function ViewInstitutionProfile() {
   // record (add-as-draft, or a draft edit staged on top of an Active
   // record) — per the confirmed 2026-09 spec, editing it applies
   // immediately with no checker, and only its own maker can /submit it.
+  // Matches the exact same fallback chain used for the status badge below
+  // (auth_status ?? status) — process_status added in front since the spec
+  // names that field, but whichever one the backend actually populates,
+  // this stays consistent with what's visibly rendered as "DRAFT".
   const isDraft =
-    String(institution?.process_status ?? institution?.auth_status ?? "").toUpperCase() === "DRAFT";
+    String(institution?.process_status ?? institution?.auth_status ?? institution?.status ?? "")
+      .toUpperCase() === "DRAFT";
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
@@ -261,7 +266,7 @@ export function ViewInstitutionProfile() {
               onClick={() => setEditMode(true)}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
             >
-              <Pencil size={13} /> Edit
+              <Pencil size={13} /> {isDraft ? "Edit Draft" : "Edit"}
             </button>
             <button
               onClick={() => setAuditOpen(true)}
@@ -269,24 +274,28 @@ export function ViewInstitutionProfile() {
             >
               <History size={13} /> Audit
             </button>
-            <button
-              onClick={() => {
-                setAction("auth");
-                setNarration("");
-              }}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
-            >
-              <ShieldCheck size={13} /> Authorize
-            </button>
-            <button
-              onClick={() => {
-                setAction("deauth");
-                setNarration("");
-              }}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
-            >
-              <ShieldOff size={13} /> Deauthorize
-            </button>
+            {!isDraft && (
+              <>
+                <button
+                  onClick={() => {
+                    setAction("auth");
+                    setNarration("");
+                  }}
+                  className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
+                >
+                  <ShieldCheck size={13} /> Authorize
+                </button>
+                <button
+                  onClick={() => {
+                    setAction("deauth");
+                    setNarration("");
+                  }}
+                  className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
+                >
+                  <ShieldOff size={13} /> Deauthorize
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 setAction("delete");
