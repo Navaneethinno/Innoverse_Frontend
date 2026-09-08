@@ -41,8 +41,8 @@ const DEAUTHORIZE_ACTION_ID = 4;
 // real specific value still shows per-row via StatusBadge.
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
-const TABS = ["all", "active", "pending"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending" };
+const TABS = ["all", "active", "pending", "inactive"];
+const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
 
 function statusOf(p) {
   return String(p.auth_status ?? p.status ?? "").toUpperCase();
@@ -112,10 +112,9 @@ export function Profile() {
   const institutionsById = new Map(institutions.map((institution) => [String(institution.id), institution]));
 
   const counts = useMemo(() => {
-    const result = { all: profiles.length, active: 0, pending: 0 };
+    const result = { all: profiles.length, active: 0, pending: 0, inactive: 0 };
     profiles.forEach((p) => {
-      const tab = tabOf(p);
-      if (tab === "active" || tab === "pending") result[tab] += 1;
+      result[tabOf(p)] += 1;
     });
     return result;
   }, [profiles]);
@@ -193,7 +192,7 @@ export function Profile() {
           inst_profile_id: instProfileId,
           menu_id: checkerMenuItem?.menu_id,
           action_id: DEAUTHORIZE_ACTION_ID,
-          deauth_narration: narration,
+          narration: narration,
         });
       if (action.type === "delete")
         await deleteMutation.mutateAsync({

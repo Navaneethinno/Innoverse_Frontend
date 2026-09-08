@@ -44,8 +44,8 @@ import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 // still shown per-row via StatusBadge — only the tab grouping simplifies.
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED", "DEAUTH", "DELETED"];
-const TABS = ["all", "active", "pending"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending" };
+const TABS = ["all", "active", "pending", "inactive"];
+const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
 
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
@@ -119,10 +119,9 @@ export function InstitutionProfile() {
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
   const counts = useMemo(() => {
-    const result = { all: institutions.length, active: 0, pending: 0 };
+    const result = { all: institutions.length, active: 0, pending: 0, inactive: 0 };
     institutions.forEach((inst) => {
-      const tab = tabOf(inst);
-      if (tab === "active" || tab === "pending") result[tab] += 1;
+      result[tabOf(inst)] += 1;
     });
     return result;
   }, [institutions]);

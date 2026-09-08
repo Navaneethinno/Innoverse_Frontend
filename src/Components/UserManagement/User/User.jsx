@@ -47,8 +47,8 @@ import { AuditUser } from "./AuditUser";
 // backend exposes a real pending filter).
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
-const TABS = ["all", "active", "pending"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending" };
+const TABS = ["all", "active", "pending", "inactive"];
+const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
 
 function userTabOf(user) {
   const status = String(user.auth_status ?? (user.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase();
@@ -93,10 +93,9 @@ export function User() {
     return activeTab === "pending" ? [...rows].sort((a, b) => userTimestamp(b) - userTimestamp(a)) : rows;
   }, [rawUsers, activeTab]);
   const counts = useMemo(() => {
-    const result = { all: rawUsers.length, active: 0, pending: 0 };
+    const result = { all: rawUsers.length, active: 0, pending: 0, inactive: 0 };
     rawUsers.forEach((u) => {
-      const tab = userTabOf(u);
-      if (tab === "active" || tab === "pending") result[tab] += 1;
+      result[userTabOf(u)] += 1;
     });
     return result;
   }, [rawUsers]);
@@ -183,7 +182,7 @@ export function User() {
       const payload = { user_id: userId(action.user) };
       if (action.type === "auth") await authMutation.mutateAsync(payload);
       if (action.type === "deauth")
-        await deauthMutation.mutateAsync({ ...payload, deauth_narration: narration });
+        await deauthMutation.mutateAsync({ ...payload, narration: narration });
       if (action.type === "delete")
         await deleteMutation.mutateAsync({ ...payload, del_narration: narration });
       if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync(payload);

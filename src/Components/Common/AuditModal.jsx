@@ -66,12 +66,12 @@ const META_KEYS = new Set([
   "updated_time",
   "auth_username",
   "auth_time",
-  "deauth_narration",
+  "narration",
 ]);
 
 function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }) {
   const status = String(entry.auth_status ?? entry.status ?? "").toUpperCase();
-  const reason = entry.deauth_narration;
+  const reason = entry.narration;
   const actionLabel = getActionLabel(entry);
 
   // A curated field list is preferred (matches the entity's known shape);

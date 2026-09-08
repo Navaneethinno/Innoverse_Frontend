@@ -91,7 +91,7 @@ export const profilesApi = {
   // checker-context ids are supplied.
   auth: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.AUTH, payload),
   // POST /profile/deauth, body {profile_id, inst_profile_id, menu_id,
-  // action_id, deauth_narration} — same per-call shape as auth, with a
+  // action_id, narration} — same per-call shape as auth, with a
   // required reason. payse's AuthProfile.jsx calls this with the fixed
   // "Deauthorize" action id (4).
   deauth: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.DEAUTH, payload),
