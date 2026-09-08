@@ -56,6 +56,18 @@ const EMPTY = {
   narration: "",
 };
 
+// The created record's id isn't independently confirmed for this specific
+// response (no live capture of /institution/profile/add yet) — tolerant of
+// the two shapes already confirmed elsewhere in this codebase (a bare
+// object on `data`, or the single-element array wrapper seen on
+// login/pending) so a "Continue Editing Draft" link can be offered when
+// it's actually present, and simply omitted (no crash, no guess) when not.
+function extractCreatedId(payload) {
+  const data = payload?.data;
+  const record = Array.isArray(data) ? data[0] : data;
+  return record?.id ?? null;
+}
+
 function buildPayload(form, isDraft) {
   return {
     code: form.code,
@@ -168,6 +180,7 @@ export function AddInstitutionProfile() {
   const [form, setForm] = useState(EMPTY);
   const [submitted, setSubmitted] = useState(false);
   const [savedAsDraft, setSavedAsDraft] = useState(false);
+  const [createdId, setCreatedId] = useState(null);
   const { types: institutionTypes } = useInstitutionTypes();
   const { languages } = useLanguages();
 
@@ -204,18 +217,29 @@ export function AddInstitutionProfile() {
                   setForm(EMPTY);
                   setStep(0);
                   setSubmitted(false);
+                  setCreatedId(null);
                 }}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
               >
                 Create Another
               </button>
-              <button
-                onClick={() => navigate("/institutions")}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
-                style={{ background: "#2266EE" }}
-              >
-                View Institutions
-              </button>
+              {savedAsDraft && createdId != null ? (
+                <button
+                  onClick={() => navigate(`/institutions/${createdId}`)}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
+                  style={{ background: "#2266EE" }}
+                >
+                  Continue Editing Draft
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate("/institutions")}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
+                  style={{ background: "#2266EE" }}
+                >
+                  View Institutions
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -245,6 +269,7 @@ export function AddInstitutionProfile() {
       const result = await createInstitution(buildPayload(form, isDraft));
       if (result) {
         setSavedAsDraft(isDraft);
+        setCreatedId(extractCreatedId(result));
         setSubmitted(true);
       }
     } catch {
