@@ -13,7 +13,7 @@ export function SubmitInstitutionProfile({ institution, narration, setNarration,
       description={
         institution && (
           <>
-            submit <strong>{institution?.name ?? institution?.code}</strong> for checker review?
+            submit draft <strong>{institution?.name ?? institution?.code}</strong> for checker review?
           </>
         )
       }

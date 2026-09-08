@@ -259,7 +259,7 @@ export function ViewInstitutionProfile() {
                 onClick={() => setSubmitOpen(true)}
                 className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-blue-600 hover:bg-blue-50"
               >
-                <Send size={13} /> Submit for Review
+                <Send size={13} /> Submit Draft
               </button>
             )}
             <button
@@ -348,7 +348,7 @@ export function ViewInstitutionProfile() {
             <p className="text-xs font-semibold text-blue-800">This record is a Draft</p>
             <p className="text-xs text-blue-700 mt-0.5">
               Only visible to you until you submit it for checker review. Keep editing freely — it
-              won't reach a checker until you click Submit for Review.
+              won't reach a checker until you click Submit Draft.
             </p>
           </div>
         </div>

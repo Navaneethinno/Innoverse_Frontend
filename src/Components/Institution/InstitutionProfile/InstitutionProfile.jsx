@@ -211,7 +211,7 @@ export function InstitutionProfile() {
               <History size={14} />
             </button>
             {draft && (
-              <button title="Submit for review" onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button title="Submit Draft" onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Send size={14} />
               </button>
             )}
