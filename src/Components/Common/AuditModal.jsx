@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -200,7 +200,57 @@ export function AuditModal({
   pendingLoading = false,
   pendingError = null,
   currentRecord = null,
+  // Optional: when provided, the modal loads more audit history as the
+  // user scrolls near the bottom instead of only ever showing the first
+  // page — fetchMore(page, limit) resolves to the next page's entries
+  // array (starting from page 2; page 1 is whatever the caller already
+  // fetched into `entries`). Fewer than `auditLimit` rows back, or an
+  // empty array, is taken as "no more pages" — no separate totalPages
+  // plumbing needed from the caller's own first-page fetch.
+  fetchMore = null,
+  auditLimit = 10,
 }) {
+  const [moreEntries, setMoreEntries] = useState([]);
+  const [nextPage, setNextPage] = useState(2);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(null);
+
+  // Reset the accumulated pages whenever the underlying first page changes
+  // (a different record's audit trail was opened) rather than whenever the
+  // array reference merely changes on every render.
+  useEffect(() => {
+    setMoreEntries([]);
+    setNextPage(2);
+    setHasMore(true);
+    setLoadMoreError(null);
+  }, [title]);
+
+  const loadMore = useCallback(async () => {
+    if (!fetchMore || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      const rows = await fetchMore(nextPage, auditLimit);
+      const list = Array.isArray(rows) ? rows : [];
+      setMoreEntries((current) => [...current, ...list]);
+      setNextPage((p) => p + 1);
+      if (list.length < auditLimit) setHasMore(false);
+    } catch (error) {
+      setLoadMoreError(error instanceof Error ? error.message : "Failed to load more");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [fetchMore, loadingMore, hasMore, nextPage, auditLimit]);
+
+  const handleBodyScroll = (event) => {
+    if (!fetchMore) return;
+    const el = event.target;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) void loadMore();
+  };
+
+  const allEntries = useMemo(() => [...entries, ...moreEntries], [entries, moreEntries]);
+
   const hasPending =
     pendingLoading || pendingError || (pendingChanges?.pending_action && pendingChanges.pending_action !== "NONE");
 
@@ -213,11 +263,11 @@ export function AuditModal({
       const t = raw ? new Date(raw).getTime() : NaN;
       return Number.isNaN(t) ? -Infinity : t;
     };
-    return entries
+    return allEntries
       .map((entry, index) => ({ entry, index }))
       .sort((a, b) => timeOf(b.entry) - timeOf(a.entry) || a.index - b.index)
       .map(({ entry }) => entry);
-  }, [entries]);
+  }, [allEntries]);
 
   const pendingMatchesEntry =
     hasPending && !pendingLoading && !pendingError
@@ -229,8 +279,11 @@ export function AuditModal({
       open
       onClose={onClose}
       title={`Audit — ${title}`}
-      subtitle={`${entries.length} ${entries.length === 1 ? "record" : "records"}`}
+      subtitle={`${allEntries.length} ${allEntries.length === 1 ? "record" : "records"}${
+        fetchMore && hasMore ? " · scroll for more" : ""
+      }`}
       icon={<History size={15} />}
+      onBodyScroll={handleBodyScroll}
     >
       <>
         {/* Fallback only — normally the panel renders inline, right next to
@@ -266,7 +319,7 @@ export function AuditModal({
               </button>
             )}
           </div>
-        ) : entries.length === 0 ? (
+        ) : allEntries.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">No audit history found.</p>
         ) : (
           <div className="space-y-3">
@@ -284,6 +337,21 @@ export function AuditModal({
                 }
               />
             ))}
+            {fetchMore && (
+              <div className="py-2 text-center text-xs text-muted-foreground">
+                {loadMoreError ? (
+                  <button type="button" onClick={() => void loadMore()} className="font-semibold text-blue-600 underline">
+                    Failed to load more — retry
+                  </button>
+                ) : loadingMore ? (
+                  "Loading more…"
+                ) : hasMore ? (
+                  "Scroll for more"
+                ) : (
+                  "All history loaded"
+                )}
+              </div>
+            )}
           </div>
         )}
       </>

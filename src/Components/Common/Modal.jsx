@@ -26,6 +26,7 @@ export function Modal({
   footer,
   children,
   bodyClassName,
+  onBodyScroll,
 }) {
   if (!open) return null;
   return (
@@ -69,7 +70,10 @@ export function Modal({
           </button>
         </div>
 
-        <div className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4", bodyClassName)}>
+        <div
+          className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4", bodyClassName)}
+          onScroll={onBodyScroll}
+        >
           {children}
         </div>
 

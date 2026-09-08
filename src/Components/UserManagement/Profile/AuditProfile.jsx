@@ -1,6 +1,6 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { useProfileAuditQuery } from "@/Hooks/Profiles/profileHooks";
+import { mapProfileListResponse, useProfileAuditQuery } from "@/Hooks/Profiles/profileHooks";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { profileId } from "./ProfileForm";
 
@@ -59,6 +59,11 @@ export function AuditProfile({ profile, onClose }) {
       pendingLoading={isLoading}
       pendingError={error}
       currentRecord={profile}
+      fetchMore={(page, limit) =>
+        profilesApi
+          .audit({ profile_id: profileId(profile), page, limit })
+          .then((response) => mapProfileListResponse(response).profiles)
+      }
     />
   );
 }

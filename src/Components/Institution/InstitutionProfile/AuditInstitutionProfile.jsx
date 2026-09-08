@@ -1,6 +1,6 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { useInstitutionAuditQuery } from "@/Hooks/Institutions/institutionHooks";
+import { mapInstitutionListResponse, useInstitutionAuditQuery } from "@/Hooks/Institutions/institutionHooks";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 
 // Relocated verbatim from Components/Institutions/InstitutionAuditModal.jsx
@@ -39,6 +39,11 @@ export function AuditInstitutionProfile({ institution, institutionId, onClose })
       pendingLoading={isLoading}
       pendingError={error}
       currentRecord={institution}
+      fetchMore={(page, limit) =>
+        institutionsApi
+          .audit({ id: institutionId, page, limit })
+          .then((response) => mapInstitutionListResponse(response).institutions)
+      }
     />
   );
 }
