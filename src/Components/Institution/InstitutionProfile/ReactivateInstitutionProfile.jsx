@@ -1,10 +1,9 @@
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 
-// Delete-institution confirmation — split out of the old shared inline
-// confirm dialogs in InstitutionListPage.jsx / InstitutionDetailPage.jsx.
-// narration is optional per the confirmed spec (unlike deauth, where it's
-// required) but still accepted, so it's offered here rather than dropped.
-export function DeleteInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
+// Maker requests reactivation of an Inactive record — creates a pending
+// reactivate, approved/rejected via the same Auth/Deauth actions as
+// add/edit. narration is optional per the confirmed spec.
+export function ReactivateInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
   return (
     <ConfirmDialog
       open={!!institution}
@@ -13,12 +12,11 @@ export function DeleteInstitutionProfile({ institution, narration, setNarration,
       description={
         institution && (
           <>
-            delete institution <strong>{institution?.name ?? institution?.code}</strong>?
+            reactivate institution <strong>{institution?.name ?? institution?.code}</strong>?
           </>
         )
       }
       pending={pending}
-      destructive
       onConfirm={onConfirm}
     >
       <textarea

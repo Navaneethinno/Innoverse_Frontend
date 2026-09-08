@@ -62,6 +62,16 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           />
         </div>
       </div>
+
+      <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-3">
+        <h2 className="text-sm font-bold text-slate-700">Narration</h2>
+        <textarea
+          value={form.narration ?? ""}
+          onChange={(e) => setField("narration")(e.target.value)}
+          placeholder="Reason for this change (optional)"
+          className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+      </div>
     </>
   );
 }

@@ -1,15 +1,30 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { AlertCircle, Eye, History, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Eye,
+  History,
+  Plus,
+  PowerOff,
+  Power,
+  Search,
+  Send,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+} from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
   mapInstitutionListResponse,
   useInstitutionAuthMutation,
+  useInstitutionDeactivateMutation,
   useInstitutionDeauthMutation,
   useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
+  useInstitutionReactivateMutation,
+  useInstitutionSubmitMutation,
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
@@ -19,6 +34,9 @@ import { institutionId } from "./InstitutionProfileForm";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
 import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
 import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
+import { DeactivateInstitutionProfile } from "./DeactivateInstitutionProfile";
+import { ReactivateInstitutionProfile } from "./ReactivateInstitutionProfile";
+import { SubmitInstitutionProfile } from "./SubmitInstitutionProfile";
 import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 // Every non-active, non-terminal auth_status groups into the "Pending" tab.
@@ -57,7 +75,7 @@ export function InstitutionProfile() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
-  const [description, setDescription] = useState("");
+  const [narration, setNarration] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
 
   const [page, setPage] = useState(1);
@@ -84,6 +102,9 @@ export function InstitutionProfile() {
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
   const deleteAuthMutation = useInstitutionDeleteAuthMutation();
+  const deactivateMutation = useInstitutionDeactivateMutation();
+  const reactivateMutation = useInstitutionReactivateMutation();
+  const submitMutation = useInstitutionSubmitMutation();
 
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
@@ -114,20 +135,24 @@ export function InstitutionProfile() {
 
   const closeAction = () => {
     setAction(null);
-    setDescription("");
+    setNarration("");
   };
 
   const runAction = async () => {
     if (!action) return;
     try {
       const id = institutionId(action.inst);
-      if (action.type === "auth") await authMutation.mutateAsync({ id, remark: description.trim() });
-      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, description: description.trim(), remark: description.trim() });
-      if (action.type === "delete") await deleteMutation.mutateAsync({ id });
-      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync({ id });
+      const trimmed = narration.trim();
+      if (action.type === "auth") await authMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "delete") await deleteMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "deactivate") await deactivateMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "reactivate") await reactivateMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "submit") await submitMutation.mutateAsync({ id, narration: trimmed });
       notifications.success("Institution action completed");
       setAction(null);
-      setDescription("");
+      setNarration("");
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Action failed");
     }
@@ -136,7 +161,10 @@ export function InstitutionProfile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
-    deleteAuthMutation.isPending;
+    deleteAuthMutation.isPending ||
+    deactivateMutation.isPending ||
+    reactivateMutation.isPending ||
+    submitMutation.isPending;
 
   const columns = [
     { key: "code", label: "Code", render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
@@ -165,20 +193,42 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
+        // process_status/auth_status carries "DRAFT" for a not-yet-submitted
+        // record (per the confirmed 2026-09 spec) — only the maker who owns
+        // it can act on it further via /submit, so a Submit action only
+        // makes sense for rows actually in that state.
+        const draft = String(inst.process_status ?? inst.auth_status ?? "").toUpperCase() === "DRAFT";
+        const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
+        const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex flex-wrap items-center justify-center gap-1">
             <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Eye size={14} />
             </button>
             <button title="Audit" onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
               <History size={14} />
             </button>
+            {draft && (
+              <button title="Submit for review" onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+                <Send size={14} />
+              </button>
+            )}
             <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
               <ShieldCheck size={14} />
             </button>
             <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
               <ShieldOff size={14} />
             </button>
+            {active && (
+              <button title="Deactivate" onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
+                <PowerOff size={14} />
+              </button>
+            )}
+            {inactive && (
+              <button title="Reactivate" onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <Power size={14} />
+              </button>
+            )}
             <button title="Delete" onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
               <Trash2 size={14} />
             </button>
@@ -288,22 +338,48 @@ export function InstitutionProfile() {
 
       <AuthInstitutionProfile
         institution={action?.type === "auth" ? action.inst : null}
-        description={description}
-        setDescription={setDescription}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}
       />
       <DeauthInstitutionProfile
         institution={action?.type === "deauth" ? action.inst : null}
-        description={description}
-        setDescription={setDescription}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}
       />
       <DeleteInstitutionProfile
         institution={action?.type === "delete" ? action.inst : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <DeactivateInstitutionProfile
+        institution={action?.type === "deactivate" ? action.inst : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <ReactivateInstitutionProfile
+        institution={action?.type === "reactivate" ? action.inst : null}
+        narration={narration}
+        setNarration={setNarration}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      />
+      <SubmitInstitutionProfile
+        institution={action?.type === "submit" ? action.inst : null}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}

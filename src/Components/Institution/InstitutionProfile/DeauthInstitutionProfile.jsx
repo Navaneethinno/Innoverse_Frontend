@@ -3,11 +3,12 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { institutionId } from "./InstitutionProfileForm";
 
-// Deauthorize-institution confirmation (requires remark) — split out of the
+// Deauthorize-institution confirmation (requires narration — a rejection
+// must always record a reason, per the confirmed spec) — split out of the
 // old shared inline confirm dialogs in InstitutionListPage.jsx /
 // InstitutionDetailPage.jsx. Shows the checker exactly what the maker asked
 // to change (via /institution/profile/pending) before they reject it.
-export function DeauthInstitutionProfile({ institution, description, setDescription, pending, onClose, onConfirm }) {
+export function DeauthInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
   const open = !!institution;
   const { data, isLoading, error } = usePendingChanges(
     institutionsApi.pending,
@@ -27,14 +28,14 @@ export function DeauthInstitutionProfile({ institution, description, setDescript
         )
       }
       pending={pending}
-      confirmDisabled={!description.trim()}
+      confirmDisabled={!narration.trim()}
       onConfirm={onConfirm}
     >
       <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
       <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Remark (required)"
+        value={narration}
+        onChange={(e) => setNarration(e.target.value)}
+        placeholder="Narration (required)"
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

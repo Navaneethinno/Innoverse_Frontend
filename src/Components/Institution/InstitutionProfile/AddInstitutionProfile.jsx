@@ -53,12 +53,15 @@ const EMPTY = {
   is_txn_pin_enabled: false,
   txn_pin_length: 4,
   is_same_login_txn_pin_allowed: false,
+  narration: "",
 };
 
-function buildPayload(form) {
+function buildPayload(form, isDraft) {
   return {
     code: form.code,
     name: form.name,
+    narration: form.narration.trim(),
+    is_draft: isDraft,
     type: Number(form.type) || 1,
     timezone: form.timezone,
     language: { default: form.languageDefault, supported: form.languageSupported },
@@ -69,12 +72,16 @@ function buildPayload(form) {
     total_kyc_levels: Number(form.total_kyc_levels) || 0,
     allow_downgrade_kyc: form.allow_downgrade_kyc,
     auto_approve_kyc_level: Boolean(form.auto_approve_kyc_level),
-    allowed_login_identifiers: {
-      identifiers: form.allowed_login_identifiers
+    // Confirmed shape is an object of booleans keyed by identifier name
+    // (e.g. { "email": true, "mobile": true }), not an { identifiers: [...] }
+    // array wrapper — built here from the comma-separated admin input.
+    allowed_login_identifiers: Object.fromEntries(
+      form.allowed_login_identifiers
         .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean),
-    },
+        .map((v) => v.trim().toLowerCase())
+        .filter(Boolean)
+        .map((identifier) => [identifier, true]),
+    ),
     primary_login_identifier: form.primary_login_identifier,
     is_login_pin_enabled: form.is_login_pin_enabled,
     login_pin_length: Number(form.login_pin_length) || 0,
@@ -160,6 +167,7 @@ export function AddInstitutionProfile() {
   const [errors, setErrors] = useState({});
   const [form, setForm] = useState(EMPTY);
   const [submitted, setSubmitted] = useState(false);
+  const [savedAsDraft, setSavedAsDraft] = useState(false);
   const { types: institutionTypes } = useInstitutionTypes();
   const { languages } = useLanguages();
 
@@ -175,14 +183,20 @@ export function AddInstitutionProfile() {
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
               <CheckCircle size={28} className="text-emerald-500" />
             </div>
-            <h2 className="text-lg font-bold text-slate-800 mb-2">Submitted for Approval</h2>
+            <h2 className="text-lg font-bold text-slate-800 mb-2">
+              {savedAsDraft ? "Saved as Draft" : "Submitted for Approval"}
+            </h2>
             <p className="text-sm text-slate-500 mb-1">
               The institution has been created with status{" "}
-              <span className="font-semibold text-amber-600">Pending Add</span>.
+              <span className="font-semibold text-amber-600">
+                {savedAsDraft ? "Draft" : "Pending Add"}
+              </span>
+              .
             </p>
             <p className="text-sm text-slate-400 mb-6">
-              A different authorized checker must approve it — you cannot approve your own
-              submission.
+              {savedAsDraft
+                ? "It's only visible to you until you submit it for checker review."
+                : "A different authorized checker must approve it — you cannot approve your own submission."}
             </p>
             <div className="flex gap-3 justify-center">
               <button
@@ -221,15 +235,18 @@ export function AddInstitutionProfile() {
     setErrors(next);
     return Object.keys(next).length === 0;
   };
-  const handleNext = async () => {
+  const handleNext = async (isDraft = false) => {
     if (!validate()) return;
     if (step < STEPS.length - 1) {
       setStep((s) => s + 1);
       return;
     }
     try {
-      const result = await createInstitution(buildPayload(form));
-      if (result) setSubmitted(true);
+      const result = await createInstitution(buildPayload(form, isDraft));
+      if (result) {
+        setSavedAsDraft(isDraft);
+        setSubmitted(true);
+      }
     } catch {
       // The mutation error is rendered below without changing the existing flow.
     }
@@ -560,6 +577,17 @@ export function AddInstitutionProfile() {
                         <ReviewRow label="Txn PIN Enabled" value={form.is_txn_pin_enabled} />
                       </div>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Narration (optional)
+                      </label>
+                      <textarea
+                        value={form.narration}
+                        onChange={(e) => setField("narration", e.target.value)}
+                        placeholder="Reason for this request"
+                        className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                      />
+                    </div>
                     <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100">
                       <AlertCircle size={15} className="text-amber-600 mt-0.5 shrink-0" />
                       <div>
@@ -589,8 +617,17 @@ export function AddInstitutionProfile() {
               Back
             </button>
           )}
+          {step === STEPS.length - 1 && (
+            <button
+              onClick={() => void handleNext(true)}
+              disabled={isLoading}
+              className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
+            >
+              Save as Draft
+            </button>
+          )}
           <button
-            onClick={() => void handleNext()}
+            onClick={() => void handleNext(false)}
             disabled={isLoading}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >

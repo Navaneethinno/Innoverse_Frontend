@@ -3,11 +3,12 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { institutionId } from "./InstitutionProfileForm";
 
-// Authorize-institution confirmation (requires remark) — split out of the
-// old shared inline confirm dialogs in InstitutionListPage.jsx /
-// InstitutionDetailPage.jsx. Shows the checker exactly what the maker asked
-// to change (via /institution/profile/pending) before they authorize it.
-export function AuthInstitutionProfile({ institution, description, setDescription, pending, onClose, onConfirm }) {
+// Authorize-institution confirmation — split out of the old shared inline
+// confirm dialogs in InstitutionListPage.jsx / InstitutionDetailPage.jsx.
+// Shows the checker exactly what the maker asked to change (via
+// /institution/profile/pending) before they authorize it. narration is
+// optional per the confirmed spec (unlike deauth, where it's required).
+export function AuthInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
   const open = !!institution;
   const { data, isLoading, error } = usePendingChanges(
     institutionsApi.pending,
@@ -27,14 +28,13 @@ export function AuthInstitutionProfile({ institution, description, setDescriptio
         )
       }
       pending={pending}
-      confirmDisabled={!description.trim()}
       onConfirm={onConfirm}
     >
       <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
       <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Remark (required)"
+        value={narration}
+        onChange={(e) => setNarration(e.target.value)}
+        placeholder="Narration (optional)"
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

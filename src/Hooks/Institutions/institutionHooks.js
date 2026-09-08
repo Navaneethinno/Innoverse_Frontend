@@ -170,3 +170,12 @@ export function useInstitutionDeleteMutation() {
 export function useInstitutionDeleteAuthMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.deleteAuth(payload), []));
 }
+export function useInstitutionSubmitMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.submit(payload), []));
+}
+export function useInstitutionDeactivateMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.deactivate(payload), []));
+}
+export function useInstitutionReactivateMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.reactivate(payload), []));
+}

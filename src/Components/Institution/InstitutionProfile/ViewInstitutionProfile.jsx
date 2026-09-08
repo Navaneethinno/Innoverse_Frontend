@@ -56,7 +56,7 @@ export function ViewInstitutionProfile() {
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
   const [action, setAction] = useState(null);
-  const [description, setDescription] = useState("");
+  const [narration, setNarration] = useState("");
   const [auditOpen, setAuditOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -82,6 +82,7 @@ export function ViewInstitutionProfile() {
         is_txn_pin_enabled: Boolean(institution.is_txn_pin_enabled),
         txn_pin_length: institution.txn_pin_length ?? 0,
         is_same_login_txn_pin_allowed: Boolean(institution.is_same_login_txn_pin_allowed),
+        narration: "",
       });
     }
   }, [institution, editMode]);
@@ -94,7 +95,10 @@ export function ViewInstitutionProfile() {
     let result = null;
     try {
       const language = institution?.language ?? { default: "en", supported: ["en"] };
-      const allowedLoginIdentifiers = institution?.allowed_login_identifiers ?? { identifiers: [] };
+      // Confirmed shape is an object of booleans keyed by identifier name
+      // (e.g. { "email": true, "mobile": true }) — not editable on this
+      // screen, so passed through as-is rather than reconstructed.
+      const allowedLoginIdentifiers = institution?.allowed_login_identifiers ?? {};
       result = await updateMutation.mutateAsync({
         id: numericId,
         ...form,
@@ -102,14 +106,16 @@ export function ViewInstitutionProfile() {
         language: Array.isArray(language)
           ? { default: language[0] ?? "en", supported: language }
           : language,
-        allowed_login_identifiers: Array.isArray(allowedLoginIdentifiers)
-          ? { identifiers: allowedLoginIdentifiers }
-          : allowedLoginIdentifiers,
+        allowed_login_identifiers: allowedLoginIdentifiers,
         max_branches_allowed: Number(form.max_branches_allowed) || 0,
         total_kyc_levels: Number(form.total_kyc_levels) || 0,
         auto_approve_kyc_level: Boolean(Number(form.auto_approve_kyc_level)),
         login_pin_length: Number(form.login_pin_length) || 0,
         txn_pin_length: Number(form.txn_pin_length) || 0,
+        narration: (form.narration ?? "").trim(),
+        // Optional stale-write guard — rejected with 409 if the record
+        // changed since this page loaded it.
+        expected_updated_time: institution?.updated_time,
       });
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Failed to submit update");
@@ -126,19 +132,20 @@ export function ViewInstitutionProfile() {
 
   const closeAction = () => {
     setAction(null);
-    setDescription("");
+    setNarration("");
   };
 
   const runAction = async () => {
     if (!action || !Number.isInteger(numericId)) return;
     try {
-      if (action === "auth") await authMutation.mutateAsync({ id: numericId, remark: description.trim() });
-      if (action === "deauth") await deauthMutation.mutateAsync({ id: numericId, description: description.trim(), remark: description.trim() });
-      if (action === "delete") await deleteMutation.mutateAsync({ id: numericId });
-      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id: numericId });
+      const trimmed = narration.trim();
+      if (action === "auth") await authMutation.mutateAsync({ id: numericId, narration: trimmed });
+      if (action === "deauth") await deauthMutation.mutateAsync({ id: numericId, narration: trimmed });
+      if (action === "delete") await deleteMutation.mutateAsync({ id: numericId, narration: trimmed });
+      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id: numericId, narration: trimmed });
       notifications.success("Request submitted");
       setAction(null);
-      setDescription("");
+      setNarration("");
       void institutionsQuery.refetch();
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Action failed");
@@ -225,7 +232,7 @@ export function ViewInstitutionProfile() {
             <button
               onClick={() => {
                 setAction("auth");
-                setDescription("");
+                setNarration("");
               }}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
             >
@@ -234,7 +241,7 @@ export function ViewInstitutionProfile() {
             <button
               onClick={() => {
                 setAction("deauth");
-                setDescription("");
+                setNarration("");
               }}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
             >
@@ -243,7 +250,7 @@ export function ViewInstitutionProfile() {
             <button
               onClick={() => {
                 setAction("delete");
-                setDescription("");
+                setNarration("");
               }}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-600 hover:bg-red-50"
             >
@@ -257,7 +264,7 @@ export function ViewInstitutionProfile() {
               <button
                 onClick={() => {
                   setAction("deleteAuth");
-                  setDescription("");
+                  setNarration("");
                 }}
                 className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-700 hover:bg-red-50"
               >
@@ -338,22 +345,24 @@ export function ViewInstitutionProfile() {
 
       <AuthInstitutionProfile
         institution={action === "auth" ? institution : null}
-        description={description}
-        setDescription={setDescription}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}
       />
       <DeauthInstitutionProfile
         institution={action === "deauth" ? institution : null}
-        description={description}
-        setDescription={setDescription}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}
       />
       <DeleteInstitutionProfile
         institution={action === "delete" || action === "deleteAuth" ? institution : null}
+        narration={narration}
+        setNarration={setNarration}
         pending={actionPending}
         onClose={closeAction}
         onConfirm={() => void runAction()}

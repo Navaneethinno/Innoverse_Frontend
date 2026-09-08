@@ -117,6 +117,7 @@ export const API_ENDPOINTS = {
       LIST: "/institution/profile/list",
       GET_ACTIVE: "/institution/profile/get_active",
       ADD: "/institution/profile/add",
+      SUBMIT: "/institution/profile/submit",
       AUDIT: "/institution/profile/audit",
       PENDING: "/institution/profile/pending",
       AUTH: "/institution/profile/auth",
