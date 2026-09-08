@@ -198,7 +198,6 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         </div>
         <dl className="space-y-2.5 px-3 py-3">
           {[
-            ["Audit Key", data.audit_key],
             ["Pending Action", data.pending_action],
             ["Requested By", data.requested_by],
             ["Requested Time", formatMetaTime(data.requested_time)],
@@ -239,12 +238,13 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         {rows.length === 0 ? (
           <p className="px-3 py-3 text-xs text-slate-400">No field-level changes reported.</p>
         ) : (
-          <table className="w-full text-xs">
+          <div className="max-h-64 overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[360px] text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <th className="px-3 py-1.5 text-left">Field</th>
-                {!isAdd && <th className="px-3 py-1.5 text-left">Before</th>}
-                {!isDelete && <th className="px-3 py-1.5 text-left">After</th>}
+                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">Field</th>
+                {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">Before</th>}
+                {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">After</th>}
               </tr>
             </thead>
             <tbody>
@@ -280,6 +280,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
