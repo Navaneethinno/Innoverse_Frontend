@@ -358,3 +358,26 @@
 .Toastify__progress-bar--default {
   background: var(--primary);
 }
+
+/* Slim, rounded scrollbar for internal scroll containers (modals, dropdowns,
+   diff tables) — the browser default is bulky/dated next to this app's
+   glass/rounded aesthetic. Firefox uses `scrollbar-width`/`scrollbar-color`;
+   Chromium/Safari use the `::-webkit-scrollbar` pseudo-elements. */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}

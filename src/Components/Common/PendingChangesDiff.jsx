@@ -238,7 +238,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         {rows.length === 0 ? (
           <p className="px-3 py-3 text-xs text-slate-400">No field-level changes reported.</p>
         ) : (
-          <div className="max-h-64 overflow-y-auto overflow-x-auto">
+          <div className="thin-scrollbar max-h-64 overflow-y-auto overflow-x-auto">
           <table className="w-full min-w-[360px] text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">

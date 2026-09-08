@@ -125,10 +125,10 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }
 
       {pendingPanel && (
         <div
-          className="mt-3 rounded-xl border-2 border-dashed p-3"
-          style={{ borderColor: "var(--warning)", background: "var(--warning-soft)" }}
+          className="mt-3 rounded-xl border p-3"
+          style={{ borderColor: "var(--primary-light)", background: "var(--primary-light)" }}
         >
-          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-warning">
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
             <History size={11} className="shrink-0" />
             What this pending request changes
           </p>
