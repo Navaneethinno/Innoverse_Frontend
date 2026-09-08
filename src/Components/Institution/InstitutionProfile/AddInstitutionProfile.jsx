@@ -223,21 +223,19 @@ export function AddInstitutionProfile() {
               >
                 Create Another
               </button>
-              {savedAsDraft && createdId != null ? (
+              <button
+                onClick={() => navigate("/institutions")}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+              >
+                View Institutions
+              </button>
+              {savedAsDraft && createdId != null && (
                 <button
                   onClick={() => navigate(`/institutions/${createdId}`)}
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
                   style={{ background: "#2266EE" }}
                 >
                   Continue Editing Draft
-                </button>
-              ) : (
-                <button
-                  onClick={() => navigate("/institutions")}
-                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
-                  style={{ background: "#2266EE" }}
-                >
-                  View Institutions
                 </button>
               )}
             </div>
