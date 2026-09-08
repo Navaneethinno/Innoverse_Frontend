@@ -57,17 +57,19 @@ export function ViewInstitutionProfile() {
     () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
     [institutionsQuery.data, id],
   );
-  // process_status/auth_status carries "DRAFT" for a not-yet-submitted
-  // record (add-as-draft, or a draft edit staged on top of an Active
-  // record) — per the confirmed 2026-09 spec, editing it applies
+  // Single source of truth for both the visible status badge and every
+  // draft-mode check below — computed once here so they can never diverge.
+  // auth_status ?? status is the exact chain the badge uses; a previous
+  // version additionally tried institution?.process_status first, but `??`
+  // only skips null/undefined, so a record with process_status: "" (defined,
+  // just empty) would have silently broken the whole chain instead of
+  // falling through to auth_status/status like the badge does.
+  const status = String(institution?.auth_status ?? institution?.status ?? "").toUpperCase();
+  // "DRAFT" is not a real auth_status/status value with any lifecycle
+  // meaning of its own — the backend uses it as a literal marker meaning
+  // "not yet submitted", per the confirmed 2026-09 spec. Editing it applies
   // immediately with no checker, and only its own maker can /submit it.
-  // Matches the exact same fallback chain used for the status badge below
-  // (auth_status ?? status) — process_status added in front since the spec
-  // names that field, but whichever one the backend actually populates,
-  // this stays consistent with what's visibly rendered as "DRAFT".
-  const isDraft =
-    String(institution?.process_status ?? institution?.auth_status ?? institution?.status ?? "")
-      .toUpperCase() === "DRAFT";
+  const isDraft = status === "DRAFT";
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
@@ -214,7 +216,6 @@ export function ViewInstitutionProfile() {
       </div>
     );
   }
-  const status = String(institution.auth_status ?? institution.status ?? "").toUpperCase();
 
   return (
     <div className="pt-4 pb-8 space-y-5">

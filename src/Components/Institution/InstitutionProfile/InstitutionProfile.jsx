@@ -193,13 +193,14 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
-        // process_status/auth_status carries "DRAFT" for a not-yet-submitted
-        // record (per the confirmed 2026-09 spec) — only the maker who owns
-        // it can act on it further via /submit, so a Submit action only
-        // makes sense for rows actually in that state.
-        const draft =
-          String(inst.process_status ?? inst.auth_status ?? inst.status ?? "").toUpperCase() ===
-          "DRAFT";
+        // "DRAFT" is a literal marker meaning "not yet submitted" (per the
+        // confirmed 2026-09 spec) — only the maker who owns it can act on
+        // it further via /submit, so a Submit action only makes sense for
+        // rows actually in that state. Reuses statusOf() (the exact same
+        // chain the status badge itself uses) rather than a separate guess
+        // at which field holds it, so this can never disagree with what's
+        // visibly rendered.
+        const draft = statusOf(inst) === "DRAFT";
         const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
