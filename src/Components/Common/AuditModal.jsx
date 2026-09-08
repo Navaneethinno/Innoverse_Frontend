@@ -3,6 +3,7 @@ import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Modal } from "@/Components/Common/Modal";
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -97,12 +98,15 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }
         )}
         <StatusBadge status={status} />
         {!isEmptyPlaceholder(entry.audit_key) && (
-          <p
-            className="ml-auto max-w-full basis-full truncate font-mono text-[10px] text-[var(--muted-foreground-soft)] sm:basis-auto"
-            title={entry.audit_key}
-          >
-            #{entry.audit_key}
-          </p>
+          <span className="ml-auto flex max-w-full basis-full items-center gap-1 sm:basis-auto">
+            <p
+              className="min-w-0 truncate font-mono text-[10px] text-[var(--muted-foreground-soft)]"
+              title={entry.audit_key}
+            >
+              #{entry.audit_key}
+            </p>
+            <CopyButton value={entry.audit_key} />
+          </span>
         )}
       </div>
 
