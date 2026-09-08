@@ -16,6 +16,7 @@ import {
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
 import {
+  useHasInstitutionAction,
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
   useInstitutionDeleteAuthMutation,
@@ -52,6 +53,12 @@ export function ViewInstitutionProfile() {
   const deleteMutation = useInstitutionDeleteMutation();
   const deleteAuthMutation = useInstitutionDeleteAuthMutation();
   const submitMutation = useInstitutionSubmitMutation();
+
+  // Real permission source — same menu_array the sidebar itself reads.
+  const canEdit = useHasInstitutionAction("Edit");
+  const canAuthorize = useHasInstitutionAction("Authorize");
+  const canDeauthorize = useHasInstitutionAction("Deauthorize");
+  const canDelete = useHasInstitutionAction("Delete");
 
   const institution = useMemo(
     () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
@@ -260,54 +267,58 @@ export function ViewInstitutionProfile() {
                 <Send size={13} /> Submit Draft
               </button>
             )}
-            <button
-              onClick={() => setEditMode(true)}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
-            >
-              <Pencil size={13} /> {isDraft ? "Edit Draft" : "Edit"}
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setEditMode(true)}
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
+              >
+                <Pencil size={13} /> {isDraft ? "Edit Draft" : "Edit"}
+              </button>
+            )}
             <button
               onClick={() => setAuditOpen(true)}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
             >
               <History size={13} /> Audit
             </button>
-            {!isDraft && (
-              <>
-                <button
-                  onClick={() => {
-                    setAction("auth");
-                    setNarration("");
-                  }}
-                  className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
-                >
-                  <ShieldCheck size={13} /> Authorize
-                </button>
-                <button
-                  onClick={() => {
-                    setAction("deauth");
-                    setNarration("");
-                  }}
-                  className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
-                >
-                  <ShieldOff size={13} /> Deauthorize
-                </button>
-              </>
+            {!isDraft && canAuthorize && (
+              <button
+                onClick={() => {
+                  setAction("auth");
+                  setNarration("");
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
+              >
+                <ShieldCheck size={13} /> Authorize
+              </button>
             )}
-            <button
-              onClick={() => {
-                setAction("delete");
-                setNarration("");
-              }}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-600 hover:bg-red-50"
-            >
-              <Trash2 size={13} /> Delete
-            </button>
+            {!isDraft && canDeauthorize && (
+              <button
+                onClick={() => {
+                  setAction("deauth");
+                  setNarration("");
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
+              >
+                <ShieldOff size={13} /> Deauthorize
+              </button>
+            )}
+            {canDelete && (
+              <button
+                onClick={() => {
+                  setAction("delete");
+                  setNarration("");
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 size={13} /> Delete
+              </button>
+            )}
             {/* DEL_WAIT_AUTH mirrors the confirmed-live EDIT_WAIT_AUTH naming
                 pattern seen in a real /institution/profile/audit response;
                 DEL_AUTH is kept as the originally-guessed fallback since
                 only the EDIT variant has been independently confirmed. */}
-            {(status === "DEL_AUTH" || status === "DEL_WAIT_AUTH") && (
+            {(status === "DEL_AUTH" || status === "DEL_WAIT_AUTH") && canAuthorize && (
               <button
                 onClick={() => {
                   setAction("deleteAuth");

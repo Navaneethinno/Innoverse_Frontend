@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import {
   mapUserListResponse,
+  useHasUserAction,
   useUserAuthMutation,
   useUserAuditMutation,
   useUserCreateMutation,
@@ -63,6 +64,14 @@ function userTimestamp(user) {
 }
 
 export function User() {
+  // Real permission source — same menu_array the sidebar itself reads.
+  const canView = useHasUserAction("View");
+  const canAdd = useHasUserAction("Add");
+  const canEdit = useHasUserAction("Edit");
+  const canAuthorize = useHasUserAction("Authorize");
+  const canDeauthorize = useHasUserAction("Deauthorize");
+  const canDelete = useHasUserAction("Delete");
+
   const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0 });
   const [activeTab, setActiveTab] = useState("all");
   const [form, setForm] = useState(EMPTY_FORM);
@@ -257,24 +266,34 @@ export function User() {
       sortable: false,
       render: (user) => (
         <div className="flex flex-wrap items-center justify-center gap-1">
-          <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-            <Eye size={14} />
-          </button>
-          <button title="Edit" onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-            <Pencil size={14} />
-          </button>
+          {canView && (
+            <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <Eye size={14} />
+            </button>
+          )}
+          {canEdit && (
+            <button title="Edit" onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <Pencil size={14} />
+            </button>
+          )}
           <button title="Audit" onClick={() => openAudit(user)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
             <History size={14} />
           </button>
-          <button title="Authorize" onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-            <ShieldCheck size={14} />
-          </button>
-          <button title="Deauthorize" onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-            <ShieldOff size={14} />
-          </button>
-          <button title="Delete" onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-            <Trash2 size={14} />
-          </button>
+          {canAuthorize && (
+            <button title="Authorize" onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+              <ShieldCheck size={14} />
+            </button>
+          )}
+          {canDeauthorize && (
+            <button title="Deauthorize" onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+              <ShieldOff size={14} />
+            </button>
+          )}
+          {canDelete && (
+            <button title="Delete" onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       ),
     },
@@ -288,15 +307,17 @@ export function User() {
           <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
           <p className="mt-1 text-xs font-medium text-slate-400">Manage application users and access.</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.03, y: -1 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={openCreate}
-          className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-          style={{ background: "var(--primary)" }}
-        >
-          <Plus size={14} /> Add user
-        </motion.button>
+        {canAdd && (
+          <motion.button
+            whileHover={{ scale: 1.03, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={openCreate}
+            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            style={{ background: "var(--primary)" }}
+          >
+            <Plus size={14} /> Add user
+          </motion.button>
+        )}
       </div>
 
       <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">

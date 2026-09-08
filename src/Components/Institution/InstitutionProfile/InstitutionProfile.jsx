@@ -18,6 +18,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
   mapInstitutionListResponse,
+  useHasInstitutionAction,
   useInstitutionAuthMutation,
   useInstitutionDeactivateMutation,
   useInstitutionDeauthMutation,
@@ -82,6 +83,19 @@ function timestampOf(inst) {
 // own non-active/non-terminal auth_status rows exactly as before.
 export function InstitutionProfile() {
   const navigate = useNavigate();
+  // Real permission source — the user's own menu_array (from login), the
+  // exact same data the sidebar itself uses to decide what to show. An
+  // action button only renders if its name is actually present in the
+  // "Institution Profile" menu's actions[] for this user, so a user with
+  // only View/Edit/Add/Authorise granted never sees Delete/Deactivate/
+  // Reactivate/Deauthorize buttons that would just fail server-side anyway.
+  const canView = useHasInstitutionAction("View");
+  const canAdd = useHasInstitutionAction("Add");
+  const canAuthorize = useHasInstitutionAction("Authorize");
+  const canDeauthorize = useHasInstitutionAction("Deauthorize");
+  const canDelete = useHasInstitutionAction("Delete");
+  const canDeactivate = useHasInstitutionAction("Deactivate");
+  const canReactivate = useHasInstitutionAction("Reactivate");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
@@ -215,40 +229,44 @@ export function InstitutionProfile() {
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
-            <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-              <Eye size={14} />
-            </button>
+            {canView && (
+              <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+                <Eye size={14} />
+              </button>
+            )}
             <button title="Audit" onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
               <History size={14} />
             </button>
-            {draft && (
+            {draft && canAdd && (
               <button title="Submit Draft" onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Send size={14} />
               </button>
             )}
-            {!draft && (
-              <>
-                <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                  <ShieldCheck size={14} />
-                </button>
-                <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                  <ShieldOff size={14} />
-                </button>
-              </>
+            {!draft && canAuthorize && (
+              <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <ShieldCheck size={14} />
+              </button>
             )}
-            {active && (
+            {!draft && canDeauthorize && (
+              <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <ShieldOff size={14} />
+              </button>
+            )}
+            {active && canDeactivate && (
               <button title="Deactivate" onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />
               </button>
             )}
-            {inactive && (
+            {inactive && canReactivate && (
               <button title="Reactivate" onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                 <Power size={14} />
               </button>
             )}
-            <button title="Delete" onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-              <Trash2 size={14} />
-            </button>
+            {canDelete && (
+              <button title="Delete" onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         );
       },
@@ -265,17 +283,19 @@ export function InstitutionProfile() {
             {institutions.length} registered · {counts.active} active
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.03, y: -1 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate("/institutions/create")}
-          className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-          style={{ background: "#2266EE" }}
-        >
-          <Plus size={14} />
-          <span className="hidden sm:inline">New Institution</span>
-          <span className="sm:hidden">New</span>
-        </motion.button>
+        {canAdd && (
+          <motion.button
+            whileHover={{ scale: 1.03, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate("/institutions/create")}
+            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            style={{ background: "#2266EE" }}
+          >
+            <Plus size={14} />
+            <span className="hidden sm:inline">New Institution</span>
+            <span className="sm:hidden">New</span>
+          </motion.button>
+        )}
       </div>
 
       <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">

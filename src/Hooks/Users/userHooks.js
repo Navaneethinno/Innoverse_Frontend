@@ -1,6 +1,31 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
+
+// Real permission source: the user's own menu_array (from login) — the
+// exact same data the sidebar itself uses to decide what to show, matching
+// useHasInstitutionAction/useHasProfileAction's pattern. Matched against
+// the "User" menu specifically so it isn't confused by "User Management"
+// (the module name) or "Profile" (the sibling menu under the same module).
+export function useHasUserAction(actionName) {
+  const menuArray = useSelector((store) => store.menu.menuArray);
+  return useMemo(
+    () =>
+      (menuArray || []).some(
+        (item) =>
+          String(item?.menu_name ?? "").trim().toLowerCase() === "user" &&
+          (item?.actions || []).some((a) => {
+            const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
+            const requestedAction = String(actionName).trim().toLowerCase();
+            return grantedAction === requestedAction ||
+              (requestedAction === "add" && grantedAction === "create") ||
+              (requestedAction === "authorize" && grantedAction === "authorise");
+          }),
+      ),
+    [menuArray, actionName],
+  );
+}
 
 const USERS_CHANGED_EVENT = "users:data-changed";
 function notifyUserChange() {
