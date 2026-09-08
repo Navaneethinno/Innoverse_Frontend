@@ -57,19 +57,16 @@ export function ViewInstitutionProfile() {
     () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
     [institutionsQuery.data, id],
   );
-  // Single source of truth for both the visible status badge and every
-  // draft-mode check below — computed once here so they can never diverge.
-  // auth_status ?? status is the exact chain the badge uses; a previous
-  // version additionally tried institution?.process_status first, but `??`
-  // only skips null/undefined, so a record with process_status: "" (defined,
-  // just empty) would have silently broken the whole chain instead of
-  // falling through to auth_status/status like the badge does.
+  // Single source of truth for the visible status badge — auth_status ??
+  // status is the exact chain used everywhere else in this codebase.
   const status = String(institution?.auth_status ?? institution?.status ?? "").toUpperCase();
-  // "DRAFT" is not a real auth_status/status value with any lifecycle
-  // meaning of its own — the backend uses it as a literal marker meaning
-  // "not yet submitted", per the confirmed 2026-09 spec. Editing it applies
-  // immediately with no checker, and only its own maker can /submit it.
-  const isDraft = status === "DRAFT";
+  // Confirmed against a real record's raw response: entity status is a
+  // numeric code, and 9 means Draft (not yet submitted) — "DRAFT" as a
+  // literal string is not what the field actually holds, so status===
+  // "DRAFT" alone was silently never true. Numeric check is now primary;
+  // the string is kept only as a tolerant fallback in case some other
+  // response shape does send it as text.
+  const isDraft = Number(institution?.status) === 9 || status === "DRAFT";
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);

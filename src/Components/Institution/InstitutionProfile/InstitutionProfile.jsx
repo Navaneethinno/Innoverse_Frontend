@@ -50,6 +50,16 @@ const TAB_LABEL = { all: "All", active: "Active", pending: "Pending" };
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
 }
+// Entity status is a numeric code (1 = Active, 0 = Inactive, 9 = Draft) —
+// status_name is only the human-readable label for display, never compared
+// against directly. Confirmed against a real record: status_name showed
+// "Draft" while status was the number 9, not the string "DRAFT". The
+// string check is kept only as a tolerant fallback in case some other
+// response shape sends it as text instead.
+const INSTITUTION_STATUS_DRAFT = 9;
+function isInstitutionDraft(inst) {
+  return Number(inst.status) === INSTITUTION_STATUS_DRAFT || statusOf(inst) === "DRAFT";
+}
 function tabOf(inst) {
   const status = statusOf(inst);
   if (ACTIVE_STATUSES.includes(status)) return "active";
@@ -178,7 +188,11 @@ export function InstitutionProfile() {
         r.status == null && !r.status_name ? (
           "—"
         ) : (
-          <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
+          <StatusBadge
+            status={String(
+              r.status_name ?? (isInstitutionDraft(r) ? "DRAFT" : r.status === 1 ? "ACTIVE" : "INACTIVE"),
+            ).toUpperCase()}
+          />
         ),
     },
     {
@@ -193,14 +207,11 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
-        // "DRAFT" is a literal marker meaning "not yet submitted" (per the
-        // confirmed 2026-09 spec) — only the maker who owns it can act on
-        // it further via /submit, so a Submit action only makes sense for
-        // rows actually in that state. Reuses statusOf() (the exact same
-        // chain the status badge itself uses) rather than a separate guess
-        // at which field holds it, so this can never disagree with what's
-        // visibly rendered.
-        const draft = statusOf(inst) === "DRAFT";
+        // status 9 = Draft (not yet submitted, per the confirmed 2026-09
+        // spec) — only the maker who owns it can act on it further via
+        // /submit, so a Submit action only makes sense for rows actually
+        // in that state.
+        const draft = isInstitutionDraft(inst);
         const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
