@@ -407,7 +407,17 @@ export function AddInstitutionProfile() {
           })}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
+        <div
+          className={cn(
+            "grid gap-8",
+            // Review & Submit already shows everything the live preview would
+            // — showing both is a redundant duplicate review, so this step
+            // drops the preview column and lets the review fill the width.
+            step === STEPS.length - 1
+              ? "grid-cols-1 max-w-3xl mx-auto w-full"
+              : "lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start",
+          )}
+        >
           <div>
         {mutationError && (
           <Alert variant="destructive" className="mb-4">
@@ -732,7 +742,9 @@ export function AddInstitutionProfile() {
           </button>
         </div>
           </div>
-          <LivePreview form={form} step={step} steps={STEPS} t={t} />
+          {step !== STEPS.length - 1 && (
+            <LivePreview form={form} step={step} steps={STEPS} t={t} />
+          )}
         </div>
       </div>
     </div>

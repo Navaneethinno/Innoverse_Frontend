@@ -124,6 +124,7 @@ export const institutions = {
   typeLabel: "Type",
   selectInstitutionType: "Select institution type",
   selectTimezone: "Select timezone",
+  previewNotSet: "Not set",
   timezoneLabel: "Timezone",
   timezonePlaceholder: "Asia/Kolkata",
   defaultLanguage: "Default language",

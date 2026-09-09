@@ -119,6 +119,7 @@ export const institutions = {
   typeLabel: "Tipo",
   selectInstitutionType: "Selecione o tipo de instituição",
   selectTimezone: "Selecione o fuso horário",
+  previewNotSet: "Não definido",
   timezoneLabel: "Fuso Horário",
   timezonePlaceholder: "Asia/Kolkata",
   defaultLanguage: "Idioma padrão",
