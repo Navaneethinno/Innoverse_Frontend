@@ -31,7 +31,7 @@ import {
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { cn } from "@/Utils/Lib/cn";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
 import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
@@ -173,13 +173,14 @@ export function InstitutionProfile() {
     try {
       const id = institutionId(action.inst);
       const trimmed = narration.trim();
-      if (action.type === "auth") await authMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "deauth") await deauthMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "delete") await deleteMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "deactivate") await deactivateMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "reactivate") await reactivateMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "submit") await submitMutation.mutateAsync({ id, narration: trimmed });
-      notifications.success("Institution action completed");
+      let result;
+      if (action.type === "auth") result = await authMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "deauth") result = await deauthMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "delete") result = await deleteMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "reactivate") result = await reactivateMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "submit") result = await submitMutation.mutateAsync({ id, narration: trimmed });
+      notifications.success(apiMessage(result, "Institution action completed"));
       setAction(null);
       setNarration("");
     } catch (error) {

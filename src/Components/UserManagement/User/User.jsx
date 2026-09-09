@@ -24,7 +24,7 @@ import {
   useUsersQuery,
 } from "@/Hooks/Users/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { DataTable } from "@/Components/Common/DataTable";
 import { cn } from "@/Utils/Lib/cn";
@@ -155,8 +155,9 @@ export function User() {
     try {
       const institutionId = Number(form.inst_id);
       const profileId = Number(form.profile_id);
+      let result;
       if (editing)
-        await updateMutation.mutateAsync({
+        result = await updateMutation.mutateAsync({
           user_id: userId(editing),
           user_name: form.user_name,
           user_pwd: "",
@@ -173,13 +174,15 @@ export function User() {
       else {
         const { password_policy_id, ...userPayload } = form;
         void password_policy_id;
-        await createMutation.mutateAsync({
+        result = await createMutation.mutateAsync({
           ...userPayload,
           inst_id: Number.isInteger(institutionId) ? institutionId : 0,
           profile_id: Number.isInteger(profileId) ? profileId : 0,
         });
       }
-      notifications.success(editing ? "User updated successfully" : "User added successfully");
+      notifications.success(
+        apiMessage(result, editing ? "User updated successfully" : "User added successfully"),
+      );
       setShowForm(false);
     } catch (error) {
       notifications.error(error.message);
@@ -189,13 +192,14 @@ export function User() {
     if (!action) return;
     try {
       const payload = { user_id: userId(action.user) };
-      if (action.type === "auth") await authMutation.mutateAsync(payload);
+      let result;
+      if (action.type === "auth") result = await authMutation.mutateAsync(payload);
       if (action.type === "deauth")
-        await deauthMutation.mutateAsync({ ...payload, narration: narration });
+        result = await deauthMutation.mutateAsync({ ...payload, narration: narration });
       if (action.type === "delete")
-        await deleteMutation.mutateAsync({ ...payload, del_narration: narration });
-      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync(payload);
-      notifications.success("User action completed");
+        result = await deleteMutation.mutateAsync({ ...payload, del_narration: narration });
+      if (action.type === "deleteAuth") result = await deleteAuthMutation.mutateAsync(payload);
+      notifications.success(apiMessage(result, "User action completed"));
       setAction(null);
       setNarration("");
     } catch (error) {

@@ -20,7 +20,7 @@ import {
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
 import { AddProfile } from "./AddProfile";
 import { EditProfile } from "./EditProfile";
@@ -158,10 +158,14 @@ export function Profile() {
         },
         menu_info: form.menu_info,
       };
-      if (editing) await updateMutation.mutateAsync(payload);
-      else await createMutation.mutateAsync(payload);
+      const result = editing
+        ? await updateMutation.mutateAsync(payload)
+        : await createMutation.mutateAsync(payload);
       notifications.success(
-        editing ? "Profile edit submitted for approval" : "Profile creation submitted for approval",
+        apiMessage(
+          result,
+          editing ? "Profile edit submitted for approval" : "Profile creation submitted for approval",
+        ),
       );
       setShowForm(false);
     } catch (error) {
@@ -179,15 +183,16 @@ export function Profile() {
     const id = profileId(action.profile);
     const instProfileId = action.profile?.inst_profile_id;
     try {
+      let result;
       if (action.type === "auth")
-        await authMutation.mutateAsync({
+        result = await authMutation.mutateAsync({
           profile_id: id,
           inst_profile_id: instProfileId,
           menu_id: checkerMenuItem?.menu_id,
           action_id: AUTHORIZE_ACTION_ID,
         });
       if (action.type === "deauth")
-        await deauthMutation.mutateAsync({
+        result = await deauthMutation.mutateAsync({
           profile_id: id,
           inst_profile_id: instProfileId,
           menu_id: checkerMenuItem?.menu_id,
@@ -195,14 +200,14 @@ export function Profile() {
           narration: narration,
         });
       if (action.type === "delete")
-        await deleteMutation.mutateAsync({
+        result = await deleteMutation.mutateAsync({
           profile_id: id,
           inst_profile_id: instProfileId,
           del_narration: narration,
         });
       if (action.type === "deleteAuth")
-        await deleteAuthMutation.mutateAsync({ profile_id: id, inst_profile_id: instProfileId });
-      notifications.success("Profile action completed");
+        result = await deleteAuthMutation.mutateAsync({ profile_id: id, inst_profile_id: instProfileId });
+      notifications.success(apiMessage(result, "Profile action completed"));
       setAction(null);
       setNarration("");
     } catch (error) {

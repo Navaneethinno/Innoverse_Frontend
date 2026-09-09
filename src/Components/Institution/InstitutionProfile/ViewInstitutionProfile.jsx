@@ -8,7 +8,7 @@ import {
   useInstitutionUpdateMutation,
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { Field, institutionId } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
@@ -154,11 +154,14 @@ export function ViewInstitutionProfile() {
     setSubmitting(false);
     if (result) {
       notifications.success(
-        isDraft
-          ? "Draft saved."
-          : isDraftEdit
-            ? "Saved as a draft edit — call Submit when ready for checker review."
-            : "Update submitted for authorization. Current authorized values remain unchanged until approved.",
+        apiMessage(
+          result,
+          isDraft
+            ? "Draft saved."
+            : isDraftEdit
+              ? "Saved as a draft edit — call Submit when ready for checker review."
+              : "Update submitted for authorization. Current authorized values remain unchanged until approved.",
+        ),
       );
       exitEditMode();
       void institutionsQuery.refetch();
