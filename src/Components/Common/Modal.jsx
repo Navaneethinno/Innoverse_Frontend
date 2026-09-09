@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -29,7 +30,8 @@ export function Modal({
   onBodyScroll,
 }) {
   if (!open) return null;
-  return (
+  return createPortal(
+    (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
       onClick={onClose}
@@ -84,5 +86,7 @@ export function Modal({
         )}
       </motion.div>
     </div>
+    ),
+    document.body,
   );
 }

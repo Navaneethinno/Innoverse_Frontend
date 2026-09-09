@@ -15,6 +15,11 @@
 const SEGMENT_LABELS = {
   dashboard: { title: "Dashboard", breadcrumb: ["Dashboard"] },
   institutions: { title: "Institutions", breadcrumb: ["Institution", "Institutions"] },
+  institutionmodule: { title: "Institution Module", breadcrumb: ["Institution", "Institution Module"] },
+  institutionlegal: { title: "Institution Legal", breadcrumb: ["Institution", "Institution Legal"] },
+  institutionbranding: { title: "Institution Branding", breadcrumb: ["Institution", "Institution Branding"] },
+  institutionchannel: { title: "Institution Channel", breadcrumb: ["Institution", "Institution Channel"] },
+  institutioncurrency: { title: "Institution Currency", breadcrumb: ["Institution", "Institution Currency"] },
   institutionprofile: {
     title: "Institution Profile",
     breadcrumb: ["Institution", "Institution Profile"],

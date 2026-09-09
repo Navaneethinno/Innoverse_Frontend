@@ -16,6 +16,31 @@ const STATUS_CONFIG = {
     dot: "bg-amber-500",
     pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
+  "PENDING ADD": {
+    label: "Pending Add",
+    dot: "bg-amber-500",
+    pill: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  "PENDING EDIT": {
+    label: "Pending Edit",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  "PENDING DELETE": {
+    label: "Pending Delete",
+    dot: "bg-orange-500",
+    pill: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  "PENDING DEACTIVATE": {
+    label: "Pending Deactivate",
+    dot: "bg-orange-500",
+    pill: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  "PENDING REACTIVATE": {
+    label: "Pending Reactivate",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
   NEW_WAIT_AUTH: {
     label: "Pending Add",
     dot: "bg-amber-500",
@@ -120,7 +145,8 @@ const STATUS_CONFIG = {
   },
 };
 export function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status] ?? {
+  const normalizedStatus = String(status ?? "").trim().toUpperCase();
+  const cfg = STATUS_CONFIG[normalizedStatus] ?? {
     label: status,
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
