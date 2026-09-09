@@ -235,7 +235,7 @@ export function AddInstitutionProfile() {
               </button>
               {savedAsDraft && createdId != null && (
                 <button
-                  onClick={() => navigate(`/institutions/${createdId}`)}
+                  onClick={() => navigate(`/institutions/${createdId}?edit=1`)}
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
                   style={{ background: "#2266EE" }}
                 >
