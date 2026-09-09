@@ -10,6 +10,7 @@ import { TopBar } from "./TopBar";
 import { WorkspaceContainer } from "./WorkspaceContainer";
 import { SidebarStateProvider, useSidebar } from "./SidebarContext";
 import { DynamicSidebar, SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
+import { PageBreadcrumbs } from "./PageBreadcrumbs";
 function Layout() {
   const { collapsed } = useSidebar();
   const sidebarW = collapsed ? SIDEBAR_WIDTHS.collapsed : SIDEBAR_WIDTHS.expanded;
@@ -25,6 +26,7 @@ function Layout() {
       >
         <TopBar />
         <WorkspaceContainer>
+          <PageBreadcrumbs />
           <Outlet />
         </WorkspaceContainer>
       </div>
