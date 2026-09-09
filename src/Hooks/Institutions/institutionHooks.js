@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // Real permission source: the user's own menu_array (from login), NOT a
 // fabricated `user.institution.type` field — nothing in the auth flow ever
@@ -122,6 +124,10 @@ export function useInstitutionsQuery(params) {
   const query = useInstitutionAsyncQuery(
     useCallback(() => institutionsApi.list({ page, limit }), [page, limit]),
   );
+  // Live push from the backend (any user/tab/device authorizing, editing,
+  // deleting, ... an institution) triggers the same refetch a local mutation
+  // already does — see notifyInstitutionChange() above.
+  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, notifyInstitutionChange);
   const mapped = mapInstitutionListResponse(query.data);
   return { ...query, data: mapped.institutions, pagination: mapped.pagination };
 }

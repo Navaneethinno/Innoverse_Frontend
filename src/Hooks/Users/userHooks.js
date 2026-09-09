@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // Real permission source: the user's own menu_array (from login) — the
 // exact same data the sidebar itself uses to decide what to show, matching
@@ -107,6 +109,10 @@ export function useUsersQuery(params) {
   const query = useUserAsyncQuery(
     useCallback(() => usersApi.list({ page, limit, search, status }), [page, limit, search, status]),
   );
+  // Live push from the backend (any user/tab/device authorizing, editing,
+  // deleting, ... a user) triggers the same refetch a local mutation
+  // already does — see notifyUserChange() above.
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, notifyUserChange);
   const mapped = mapUserListResponse(query.data);
   return { ...query, data: mapped.users, pagination: mapped.pagination };
 }

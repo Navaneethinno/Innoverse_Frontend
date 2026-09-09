@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // Real permission source: the user's own menu_array (from login), following
 // useHasInstitutionAction's exact pattern (src/Hooks/Institutions/institutionHooks.js).
@@ -130,6 +132,10 @@ export function useProfilesQuery(params) {
   const query = useProfileAsyncQuery(
     useCallback(() => profilesApi.list({ page, limit }), [page, limit]),
   );
+  // Live push from the backend (any user/tab/device authorizing, editing,
+  // deleting, ... a profile) triggers the same refetch a local mutation
+  // already does — see notifyProfileChange() above.
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, notifyProfileChange);
   const mapped = mapProfileListResponse(query.data);
   return { ...query, data: mapped.profiles, pagination: mapped.pagination };
 }
