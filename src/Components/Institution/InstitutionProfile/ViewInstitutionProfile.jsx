@@ -25,6 +25,7 @@ import {
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 import { notifications } from "@/Utils/Lib/notifications";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { Field, institutionId } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
@@ -66,12 +67,13 @@ export function ViewInstitutionProfile() {
   // status is the exact chain used everywhere else in this codebase.
   const status = String(institution?.auth_status ?? institution?.status ?? "").toUpperCase();
   // Confirmed against a real record's raw response: entity status is a
-  // numeric code, and 9 means Draft (not yet submitted) — "DRAFT" as a
+  // numeric code (INSTITUTION_DRAFT_STATUS_CODE, in Constant.jsx and
+  // env-overridable) meaning Draft (not yet submitted) — "DRAFT" as a
   // literal string is not what the field actually holds, so status===
   // "DRAFT" alone was silently never true. Numeric check is now primary;
   // the string is kept only as a tolerant fallback in case some other
   // response shape does send it as text.
-  const isDraft = Number(institution?.status) === 9 || status === "DRAFT";
+  const isDraft = Number(institution?.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "DRAFT";
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);

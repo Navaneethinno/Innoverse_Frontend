@@ -6,6 +6,14 @@ export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME || "
 export const AUTH_BASIC_PASSWORD = import.meta.env.VITE_AUTH_BASIC_PASSWORD;
 export const NON_LOGIN_APIS_ENABLED = import.meta.env.VITE_ENABLE_NON_LOGIN_APIS === "true";
 
+// The numeric `status` code meaning "Draft" (not yet submitted) on an
+// Institution Profile record — confirmed live as 9, but not documented as a
+// stable contract, so it's overridable via env instead of a second hardcoded
+// literal if the backend ever renumbers it.
+export const INSTITUTION_DRAFT_STATUS_CODE = Number(
+  import.meta.env.VITE_INSTITUTION_DRAFT_STATUS_CODE ?? 9,
+);
+
 // Every backend route path called from src/Services/*.api.js, centralized
 // here so a path only ever needs to be typed (and changed) in one place.
 // Grouped by the domain that owns the route.

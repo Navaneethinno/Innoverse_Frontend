@@ -28,6 +28,7 @@ import {
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { cn } from "@/Utils/Lib/cn";
 import { notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
@@ -50,15 +51,16 @@ const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: 
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
 }
-// Entity status is a numeric code (1 = Active, 0 = Inactive, 9 = Draft) —
-// status_name is only the human-readable label for display, never compared
-// against directly. Confirmed against a real record: status_name showed
-// "Draft" while status was the number 9, not the string "DRAFT". The
-// string check is kept only as a tolerant fallback in case some other
-// response shape sends it as text instead.
-const INSTITUTION_STATUS_DRAFT = 9;
+// Entity status is a numeric code (1 = Active, 0 = Inactive, INSTITUTION_
+// DRAFT_STATUS_CODE = Draft) — status_name is only the human-readable label
+// for display, never compared against directly. Confirmed against a real
+// record: status_name showed "Draft" while status was the number 9, not the
+// string "DRAFT" — that code lives in Constant.jsx (env-overridable) rather
+// than hardcoded here, in case the backend ever renumbers it. The string
+// check is kept only as a tolerant fallback in case some other response
+// shape sends it as text instead.
 function isInstitutionDraft(inst) {
-  return Number(inst.status) === INSTITUTION_STATUS_DRAFT || statusOf(inst) === "DRAFT";
+  return Number(inst.status) === INSTITUTION_DRAFT_STATUS_CODE || statusOf(inst) === "DRAFT";
 }
 function tabOf(inst) {
   const status = statusOf(inst);
