@@ -18,6 +18,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
 import {
   useInstitutionModuleMutation,
   useInstitutionModulesQuery,
@@ -88,18 +89,14 @@ function ModuleActions({ row, onRefresh, onEdit }) {
               setAction({ method: "view", label: "View" });
               setDetails(row);
             }}
-            className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
+            className={actionButtonClass("view")}
           >
             <Eye size={14} />
           </button>
         </UiTooltip>
         {canEdit && !pending && !pendingDelete && !rejectedDelete && (
           <UiTooltip label="Edit">
-            <button
-              type="button"
-              onClick={onEdit}
-              className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
-            >
+            <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
             </button>
           </UiTooltip>
@@ -118,7 +115,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             <button
               type="button"
               onClick={() => setAction({ method, label })}
-              className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
+              className={actionButtonClass(method)}
             >
               <Icon size={14} />
             </button>

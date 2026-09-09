@@ -19,6 +19,7 @@ import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { institutionBrandingApi } from "@/Services/Institutions/institutionBranding.api";
 import {
   useInstitutionBrandingMutation,
@@ -98,18 +99,14 @@ function BrandingActions({ row, onRefresh, onEdit }) {
           <button
             type="button"
             onClick={() => setDetails(row)}
-            className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
+            className={actionButtonClass("view")}
           >
             <Eye size={14} />
           </button>
         </UiTooltip>
         {canEdit && !pending && !pendingDelete && !rejectedDelete && (
           <UiTooltip label="Edit">
-            <button
-              type="button"
-              onClick={onEdit}
-              className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
-            >
+            <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
             </button>
           </UiTooltip>
@@ -128,7 +125,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
             <button
               type="button"
               onClick={() => setAction({ method, label })}
-              className="rounded-lg p-1.5 text-primary hover:bg-primary/10"
+              className={actionButtonClass(method)}
             >
               <Icon size={14} />
             </button>
