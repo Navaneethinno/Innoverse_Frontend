@@ -1,26 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  AlertCircle,
-  ArrowLeft,
-  Building2,
-  FileEdit,
-  History,
-  Pencil,
-  Send,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-  X,
-} from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { AlertCircle, ArrowLeft, Building2, FileEdit, X } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
 import {
   useHasInstitutionAction,
-  useInstitutionAuthMutation,
-  useInstitutionDeauthMutation,
-  useInstitutionDeleteMutation,
-  useInstitutionSubmitMutation,
   useInstitutionUpdateMutation,
   useInstitutionsQuery,
 } from "@/Hooks/Institutions/institutionHooks";
@@ -28,11 +12,6 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { Field, institutionId } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
-import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
-import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
-import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
-import { SubmitInstitutionProfile } from "./SubmitInstitutionProfile";
-import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
 // no GET/get-by-id endpoint — only list, get_active, add, edit, auth,
@@ -42,22 +21,23 @@ import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 // exist. If the institution isn't present in that page of results the page
 // reports "not found" — this is a known limitation until a dedicated
 // get-by-id (or a `list` filtered by id) endpoint is confirmed.
+//
+// This page is view-only plus (when linked to with ?edit=1) the edit form —
+// Audit/Authorize/Deauthorize/Delete/Submit Draft all live exclusively in
+// the list's Actions column now, not duplicated here as a second button
+// bar. Edit is reached via the list's own pencil icon.
 export function ViewInstitutionProfile() {
   const { id } = useParams();
   const numericId = Number(id);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const institutionsQuery = useInstitutionsQuery({ page: 1, limit: 100 });
   const updateMutation = useInstitutionUpdateMutation();
-  const authMutation = useInstitutionAuthMutation();
-  const deauthMutation = useInstitutionDeauthMutation();
-  const deleteMutation = useInstitutionDeleteMutation();
-  const submitMutation = useInstitutionSubmitMutation();
 
   // Real permission source — same menu_array the sidebar itself reads.
+  // Guards against landing here via a hand-typed ?edit=1 without the grant,
+  // even though the list only ever links here with it when canEdit is true.
   const canEdit = useHasInstitutionAction("Edit");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDeauthorize = useHasInstitutionAction("Deauthorize");
-  const canDelete = useHasInstitutionAction("Delete");
 
   const institution = useMemo(
     () => (institutionsQuery.data ?? []).find((i) => String(institutionId(i)) === String(id)),
@@ -75,13 +55,23 @@ export function ViewInstitutionProfile() {
   // response shape does send it as text.
   const isDraft = Number(institution?.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "DRAFT";
 
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(searchParams.get("edit") === "1");
   const [form, setForm] = useState(null);
-  const [submitOpen, setSubmitOpen] = useState(false);
-  const [action, setAction] = useState(null);
-  const [narration, setNarration] = useState("");
-  const [auditOpen, setAuditOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const exitEditMode = () => {
+    setEditMode(false);
+    if (searchParams.get("edit")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("edit");
+      setSearchParams(next, { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    if (searchParams.get("edit") === "1" && canEdit) setEditMode(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, canEdit]);
 
   useEffect(() => {
     if (institution && !editMode) {
@@ -159,33 +149,10 @@ export function ViewInstitutionProfile() {
             ? "Saved as a draft edit — call Submit when ready for checker review."
             : "Update submitted for authorization. Current authorized values remain unchanged until approved.",
       );
-      setEditMode(false);
+      exitEditMode();
       void institutionsQuery.refetch();
     }
   };
-
-  const closeAction = () => {
-    setAction(null);
-    setNarration("");
-  };
-
-  const runAction = async () => {
-    if (!action || !Number.isInteger(numericId)) return;
-    try {
-      const trimmed = narration.trim();
-      if (action === "auth") await authMutation.mutateAsync({ id: numericId, narration: trimmed });
-      if (action === "deauth") await deauthMutation.mutateAsync({ id: numericId, narration: trimmed });
-      if (action === "delete") await deleteMutation.mutateAsync({ id: numericId, narration: trimmed });
-      notifications.success("Request submitted");
-      setAction(null);
-      setNarration("");
-      void institutionsQuery.refetch();
-    } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Action failed");
-    }
-  };
-  const actionPending =
-    authMutation.isPending || deauthMutation.isPending || deleteMutation.isPending;
 
   if (institutionsQuery.isLoading || !form) {
     return (
@@ -227,10 +194,10 @@ export function ViewInstitutionProfile() {
           <ArrowLeft size={13} /> Institutions
         </button>
 
-        {editMode ? (
+        {editMode && (
           <div className="flex gap-2">
             <button
-              onClick={() => setEditMode(false)}
+              onClick={exitEditMode}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50"
             >
               <X size={13} /> Cancel
@@ -252,64 +219,6 @@ export function ViewInstitutionProfile() {
             >
               {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
             </button>
-          </div>
-        ) : (
-          <div className="flex gap-2 flex-wrap">
-            {isDraft && (
-              <button
-                onClick={() => setSubmitOpen(true)}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-blue-600 hover:bg-blue-50"
-              >
-                <Send size={13} /> Submit Draft
-              </button>
-            )}
-            {canEdit && (
-              <button
-                onClick={() => setEditMode(true)}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
-              >
-                <Pencil size={13} /> {isDraft ? "Edit Draft" : "Edit"}
-              </button>
-            )}
-            <button
-              onClick={() => setAuditOpen(true)}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 hover:bg-slate-50"
-            >
-              <History size={13} /> Audit
-            </button>
-            {!isDraft && canAuthorize && (
-              <button
-                onClick={() => {
-                  setAction("auth");
-                  setNarration("");
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-emerald-600 hover:bg-emerald-50"
-              >
-                <ShieldCheck size={13} /> Authorize
-              </button>
-            )}
-            {!isDraft && canDeauthorize && (
-              <button
-                onClick={() => {
-                  setAction("deauth");
-                  setNarration("");
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-amber-600 hover:bg-amber-50"
-              >
-                <ShieldOff size={13} /> Deauthorize
-              </button>
-            )}
-            {canDelete && (
-              <button
-                onClick={() => {
-                  setAction("delete");
-                  setNarration("");
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-600 hover:bg-red-50"
-              >
-                <Trash2 size={13} /> Delete
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -337,8 +246,8 @@ export function ViewInstitutionProfile() {
           <div>
             <p className="text-xs font-semibold text-blue-800">This record is a Draft</p>
             <p className="text-xs text-blue-700 mt-0.5">
-              Only visible to you until you submit it for checker review. Keep editing freely — it
-              won't reach a checker until you click Submit Draft.
+              Only visible to you until you submit it for checker review. Use Submit Draft from the
+              Institutions list when ready.
             </p>
           </div>
         </div>
@@ -379,7 +288,7 @@ export function ViewInstitutionProfile() {
       {editMode && (
         <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
           <button
-            onClick={() => setEditMode(false)}
+            onClick={exitEditMode}
             className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
             Cancel
@@ -402,60 +311,6 @@ export function ViewInstitutionProfile() {
             {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
           </button>
         </div>
-      )}
-
-      <AuthInstitutionProfile
-        institution={action === "auth" ? institution : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <DeauthInstitutionProfile
-        institution={action === "deauth" ? institution : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <DeleteInstitutionProfile
-        institution={action === "delete" ? institution : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <SubmitInstitutionProfile
-        institution={submitOpen ? institution : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={submitMutation.isPending}
-        onClose={() => {
-          setSubmitOpen(false);
-          setNarration("");
-        }}
-        onConfirm={async () => {
-          try {
-            await submitMutation.mutateAsync({ id: numericId, narration: narration.trim() });
-            notifications.success("Submitted for checker review.");
-            setSubmitOpen(false);
-            setNarration("");
-            void institutionsQuery.refetch();
-          } catch (error) {
-            notifications.error(error instanceof Error ? error.message : "Failed to submit");
-          }
-        }}
-      />
-
-      {auditOpen && (
-        <AuditInstitutionProfile
-          institution={institution}
-          institutionId={numericId}
-          onClose={() => setAuditOpen(false)}
-        />
       )}
     </div>
   );

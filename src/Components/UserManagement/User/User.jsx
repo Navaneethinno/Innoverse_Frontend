@@ -64,7 +64,9 @@ function userTimestamp(user) {
 
 export function User() {
   // Real permission source — same menu_array the sidebar itself reads.
-  const canView = useHasUserAction("View");
+  // View is the one exception: it's not consistently granted via login's
+  // menu_array actions[] the way the others are, so it's always shown
+  // rather than gated — a user should always be able to look at a record.
   const canAdd = useHasUserAction("Add");
   const canEdit = useHasUserAction("Edit");
   const canAuthorize = useHasUserAction("Authorize");
@@ -253,11 +255,9 @@ export function User() {
       sortable: false,
       render: (user) => (
         <div className="flex flex-wrap items-center justify-center gap-1">
-          {canView && (
-            <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-              <Eye size={14} />
-            </button>
-          )}
+          <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+            <Eye size={14} />
+          </button>
           {canEdit && (
             <button title="Edit" onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Pencil size={14} />

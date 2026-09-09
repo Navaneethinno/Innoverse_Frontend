@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Eye,
   History,
+  Pencil,
   Plus,
   PowerOff,
   Power,
@@ -88,9 +89,12 @@ export function InstitutionProfile() {
   // exact same data the sidebar itself uses to decide what to show. An
   // action button only renders if its name is actually present in the
   // "Institution Profile" menu's actions[] for this user, so a user with
-  // only View/Edit/Add/Authorise granted never sees Delete/Deactivate/
+  // only Edit/Add/Authorise granted never sees Delete/Deactivate/
   // Reactivate/Deauthorize buttons that would just fail server-side anyway.
-  const canView = useHasInstitutionAction("View");
+  // View is the one exception: it's not consistently granted via login's
+  // menu_array actions[] the way the others are, so it's always shown
+  // rather than gated — a user should always be able to look at a record.
+  const canEdit = useHasInstitutionAction("Edit");
   const canAdd = useHasInstitutionAction("Add");
   const canAuthorize = useHasInstitutionAction("Authorize");
   const canDeauthorize = useHasInstitutionAction("Deauthorize");
@@ -227,9 +231,12 @@ export function InstitutionProfile() {
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
-            {canView && (
-              <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-                <Eye size={14} />
+            <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <Eye size={14} />
+            </button>
+            {canEdit && (
+              <button title="Edit" onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+                <Pencil size={14} />
               </button>
             )}
             <button title="Audit" onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
