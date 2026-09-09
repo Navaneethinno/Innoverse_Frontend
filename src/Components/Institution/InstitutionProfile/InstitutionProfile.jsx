@@ -22,7 +22,6 @@ import {
   useInstitutionAuthMutation,
   useInstitutionDeactivateMutation,
   useInstitutionDeauthMutation,
-  useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
   useInstitutionReactivateMutation,
   useInstitutionSubmitMutation,
@@ -125,7 +124,6 @@ export function InstitutionProfile() {
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
-  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
   const deactivateMutation = useInstitutionDeactivateMutation();
   const reactivateMutation = useInstitutionReactivateMutation();
   const submitMutation = useInstitutionSubmitMutation();
@@ -169,7 +167,6 @@ export function InstitutionProfile() {
       if (action.type === "auth") await authMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deauth") await deauthMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "delete") await deleteMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deactivate") await deactivateMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "reactivate") await reactivateMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "submit") await submitMutation.mutateAsync({ id, narration: trimmed });
@@ -184,7 +181,6 @@ export function InstitutionProfile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
-    deleteAuthMutation.isPending ||
     deactivateMutation.isPending ||
     reactivateMutation.isPending ||
     submitMutation.isPending;

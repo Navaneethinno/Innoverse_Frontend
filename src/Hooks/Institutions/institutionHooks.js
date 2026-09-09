@@ -167,9 +167,6 @@ export function useInstitutionDeauthMutation() {
 export function useInstitutionDeleteMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.delete(payload), []));
 }
-export function useInstitutionDeleteAuthMutation() {
-  return useInstitutionMutation(useCallback((payload) => institutionsApi.deleteAuth(payload), []));
-}
 export function useInstitutionSubmitMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.submit(payload), []));
 }

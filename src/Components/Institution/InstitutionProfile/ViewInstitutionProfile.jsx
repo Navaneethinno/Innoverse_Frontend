@@ -19,7 +19,6 @@ import {
   useHasInstitutionAction,
   useInstitutionAuthMutation,
   useInstitutionDeauthMutation,
-  useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
   useInstitutionSubmitMutation,
   useInstitutionUpdateMutation,
@@ -51,7 +50,6 @@ export function ViewInstitutionProfile() {
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
-  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
   const submitMutation = useInstitutionSubmitMutation();
 
   // Real permission source — same menu_array the sidebar itself reads.
@@ -176,7 +174,6 @@ export function ViewInstitutionProfile() {
       if (action === "auth") await authMutation.mutateAsync({ id: numericId, narration: trimmed });
       if (action === "deauth") await deauthMutation.mutateAsync({ id: numericId, narration: trimmed });
       if (action === "delete") await deleteMutation.mutateAsync({ id: numericId, narration: trimmed });
-      if (action === "deleteAuth") await deleteAuthMutation.mutateAsync({ id: numericId, narration: trimmed });
       notifications.success("Request submitted");
       setAction(null);
       setNarration("");
@@ -186,10 +183,7 @@ export function ViewInstitutionProfile() {
     }
   };
   const actionPending =
-    authMutation.isPending ||
-    deauthMutation.isPending ||
-    deleteMutation.isPending ||
-    deleteAuthMutation.isPending;
+    authMutation.isPending || deauthMutation.isPending || deleteMutation.isPending;
 
   if (institutionsQuery.isLoading || !form) {
     return (
@@ -314,21 +308,6 @@ export function ViewInstitutionProfile() {
                 <Trash2 size={13} /> Delete
               </button>
             )}
-            {/* DEL_WAIT_AUTH mirrors the confirmed-live EDIT_WAIT_AUTH naming
-                pattern seen in a real /institution/profile/audit response;
-                DEL_AUTH is kept as the originally-guessed fallback since
-                only the EDIT variant has been independently confirmed. */}
-            {(status === "DEL_AUTH" || status === "DEL_WAIT_AUTH") && canAuthorize && (
-              <button
-                onClick={() => {
-                  setAction("deleteAuth");
-                  setNarration("");
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-red-700 hover:bg-red-50"
-              >
-                Confirm Delete
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -440,7 +419,7 @@ export function ViewInstitutionProfile() {
         onConfirm={() => void runAction()}
       />
       <DeleteInstitutionProfile
-        institution={action === "delete" || action === "deleteAuth" ? institution : null}
+        institution={action === "delete" ? institution : null}
         narration={narration}
         setNarration={setNarration}
         pending={actionPending}
