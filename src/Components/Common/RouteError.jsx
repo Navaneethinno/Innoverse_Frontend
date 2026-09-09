@@ -1,5 +1,6 @@
 import { Link, useRouteError } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import notFoundAnimation from "@/assets/animations/404-warning-green.lottie";
 import { useTranslation } from "react-i18next";
 
 export function RouteError() {
@@ -20,7 +21,7 @@ export function RouteError() {
       <div className="relative flex w-full max-w-xl flex-col items-center gap-3 rounded-[2rem] border border-white/70 bg-card/60 px-8 py-10 shadow-xl backdrop-blur-xl dark:border-white/10">
       <DotLottieReact
         className="h-64 w-64 mix-blend-multiply dark:mix-blend-screen"
-        src="/assets/animations/404-warning-green.lottie"
+        src={notFoundAnimation}
         loop
         autoplay
         aria-label="Page not found"

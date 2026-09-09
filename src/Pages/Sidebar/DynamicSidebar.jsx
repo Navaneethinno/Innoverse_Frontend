@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { useSidebar } from "@/Components/Layout/SidebarContext";
+import { useAuth } from "@/Hooks/useAuth";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
 import { getModuleIcon } from "./moduleIcons";
@@ -30,6 +32,7 @@ export function DynamicSidebar() {
   const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
   const { collapsed, toggle } = useSidebar();
+  const logout = useAuth((state) => state.logout);
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
 
   const menuArray = useSelector((store) => store.menu.menuArray);
@@ -212,6 +215,36 @@ export function DynamicSidebar() {
 
       <div className="px-2 mt-2">
         <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-transparent mb-3" />
+        <UiTooltip label="Sign out" side="right">
+          <motion.button
+            onClick={() => {
+              logout();
+              navigate("/login", { replace: true });
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            aria-label={t("common:signOut")}
+            className={cn(
+              "mb-2 flex items-center gap-2.5 rounded-xl h-9 text-red-500 hover:text-red-600 hover:bg-red-50/80 transition-colors",
+              collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",
+            )}
+          >
+            <LogOut size={15} strokeWidth={1.8} />
+            <AnimatePresence initial={false}>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold whitespace-nowrap overflow-hidden"
+                >
+                  {t("common:signOut")}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </UiTooltip>
         <motion.button
           onClick={toggle}
           whileHover={{ scale: 1.04 }}
