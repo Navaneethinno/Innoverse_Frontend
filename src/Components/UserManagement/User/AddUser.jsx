@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { UserForm } from "./UserForm";
 
@@ -16,12 +17,13 @@ export function AddUser({
   selectedPolicy,
   submitting,
 }) {
+  const { t } = useTranslation("users");
   if (!open) return null;
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Add user"
+      title={t("addUser")}
       size="lg"
       footer={
         <>
@@ -30,7 +32,7 @@ export function AddUser({
             onClick={onClose}
             className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
-            Cancel
+            {t("common:cancel")}
           </button>
           <button
             type="submit"
@@ -38,7 +40,7 @@ export function AddUser({
             disabled={submitting}
             className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
           >
-            {submitting ? "Saving..." : "Add user"}
+            {submitting ? t("saving") : t("addUser")}
           </button>
         </>
       }

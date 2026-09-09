@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, CheckCircle, ChevronRight, Settings } from "lucide-react";
 function GradientMesh() {
@@ -17,9 +18,10 @@ function GradientMesh() {
   );
 }
 export function SetupPage() {
+  const { t } = useTranslation("setup");
   const [step, setStep] = useState(0);
   const nav = useNavigate();
-  const steps = ["Company Info", "Contact", "Preferences"];
+  const steps = [t("companyInfo"), t("contact"), t("preferences")];
   const [data, setData] = useState({
     companyName: "",
     regNumber: "",
@@ -42,8 +44,8 @@ export function SetupPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-200/40 mb-4">
             <Settings size={20} className="text-white" />
           </div>
-          <h1 className="text-xl font-semibold text-slate-800">Platform Setup</h1>
-          <p className="text-sm text-slate-500 mt-1">Configure your Innoverse workspace</p>
+          <h1 className="text-xl font-semibold text-slate-800">{t("platformSetup")}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t("configureWorkspace")}</p>
         </div>
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
@@ -84,13 +86,13 @@ export function SetupPage() {
                 <div className="space-y-4">
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                    placeholder="Acme Financial Group"
+                    placeholder={t("companyNamePlaceholder")}
                     value={data.companyName}
                     onChange={(e) => setData({ ...data, companyName: e.target.value })}
                   />
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                    placeholder="REG-2024-XXXXX"
+                    placeholder={t("regNumberPlaceholder")}
                     value={data.regNumber}
                     onChange={(e) => setData({ ...data, regNumber: e.target.value })}
                   />
@@ -100,19 +102,19 @@ export function SetupPage() {
                 <div className="space-y-4">
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                    placeholder="Jane Smith"
+                    placeholder={t("contactNamePlaceholder")}
                     value={data.contactName}
                     onChange={(e) => setData({ ...data, contactName: e.target.value })}
                   />
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                    placeholder="jane@company.com"
+                    placeholder={t("contactEmailPlaceholder")}
                     value={data.contactEmail}
                     onChange={(e) => setData({ ...data, contactEmail: e.target.value })}
                   />
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder={t("contactPhonePlaceholder")}
                     value={data.contactPhone}
                     onChange={(e) => setData({ ...data, contactPhone: e.target.value })}
                   />
@@ -149,9 +151,9 @@ export function SetupPage() {
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
                     <CheckCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">Auto-save enabled</p>
+                      <p className="text-sm font-medium text-blue-800">{t("autoSaveEnabled")}</p>
                       <p className="text-xs text-blue-600 mt-0.5">
-                        All preferences are saved automatically and encrypted at rest.
+                        {t("autoSaveDescription")}
                       </p>
                     </div>
                   </div>
@@ -165,14 +167,14 @@ export function SetupPage() {
                 onClick={() => setStep((s) => s - 1)}
                 className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50"
               >
-                Back
+                {t("common:back")}
               </button>
             )}
             <button
               onClick={() => (step < steps.length - 1 ? setStep((s) => s + 1) : nav("/dashboard"))}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600"
             >
-              {step === steps.length - 1 ? "Launch Platform" : "Continue"}
+              {step === steps.length - 1 ? t("launchPlatform") : t("continue")}
             </button>
           </div>
         </div>

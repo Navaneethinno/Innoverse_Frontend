@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -11,7 +12,6 @@ import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 
 const SIDEBAR_EXPANDED_W = 220;
 const SIDEBAR_COLLAPSED_W = 56;
@@ -27,6 +27,7 @@ const SIDEBAR_COLLAPSED_W = 56;
 //     -> parent/child/sub-child hierarchy built from menu_id/parent_menu_id
 //        (MenuList/MenuItem), sorted by backend priority, status===1 only.
 export function DynamicSidebar() {
+  const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
   const { collapsed, toggle } = useSidebar();
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
@@ -104,7 +105,7 @@ export function DynamicSidebar() {
     return (
       filteredModules.find((module) => Number(module.module_id) === selectedModuleId) ?? {
         module_id: selectedModuleId,
-        module_name: `Module ${selectedModuleId}`,
+        module_name: t("moduleFallbackName", { id: selectedModuleId }),
       }
     );
   }, [filteredModules, selectedModuleId]);
@@ -186,7 +187,6 @@ export function DynamicSidebar() {
             return (
               <div className="px-2">
                 <div
-                  title={getUiTooltipText(selectedModule.module_name)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary",
                     collapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full",
@@ -216,8 +216,7 @@ export function DynamicSidebar() {
           onClick={toggle}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={getUiTooltipText(collapsed ? "Expand sidebar" : "Collapse sidebar")}
+          aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           className={cn(
             "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
             collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",
@@ -237,7 +236,7 @@ export function DynamicSidebar() {
                 transition={{ duration: 0.2 }}
                 className="text-xs font-semibold whitespace-nowrap overflow-hidden"
               >
-                Collapse
+                {t("collapse")}
               </motion.span>
             )}
           </AnimatePresence>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, Eye, History, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -20,7 +21,6 @@ import {
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
 import { AddProfile } from "./AddProfile";
@@ -43,7 +43,6 @@ const DEAUTHORIZE_ACTION_ID = 4;
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
 const TABS = ["all", "active", "pending", "inactive"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
 
 function statusOf(p) {
   return String(p.auth_status ?? p.status ?? "").toUpperCase();
@@ -74,6 +73,13 @@ function profileHasAction(profile, actionId) {
 }
 
 export function Profile() {
+  const { t } = useTranslation("profiles");
+  const TAB_LABEL = {
+    all: t("tabAll"),
+    active: t("tabActive"),
+    pending: t("tabPending"),
+    inactive: t("tabInactive"),
+  };
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
@@ -223,10 +229,10 @@ export function Profile() {
     deleteAuthMutation.isPending;
 
   const columns = [
-    { key: "profile_name", label: "Profile Name", align: "left", render: (p) => renderProfileValue(p, "profile_name") },
+    { key: "profile_name", label: t("profileName"), align: "left", render: (p) => renderProfileValue(p, "profile_name") },
     {
       key: "institution_name",
-      label: "Institution Name",
+      label: t("institutionName"),
       sortValue: (p) =>
         p.inst_profile_name ?? p.institution_name ?? institutionsById.get(String(p.inst_profile_id))?.name ?? "",
       render: (p) =>
@@ -242,13 +248,13 @@ export function Profile() {
     },
     {
       key: "code",
-      label: "Institution Code",
+      label: t("institutionCode"),
       sortValue: (p) => institutionsById.get(String(p.inst_profile_id))?.code ?? "",
       render: (p) => renderProfileValue(institutionsById.get(String(p.inst_profile_id)) ?? {}, "code"),
     },
     {
       key: "status_name",
-      label: "Status",
+      label: t("common:status"),
       sortValue: (p) => p.status_name ?? p.status ?? "",
       render: (p) =>
         p.status == null && !p.status_name ? (
@@ -257,10 +263,10 @@ export function Profile() {
           <StatusBadge status={String(p.status_name ?? (p.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
         ),
     },
-    { key: "auth_status", label: "Authorization Status", sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
+    { key: "auth_status", label: t("authorizationStatus"), sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (p) => {
         const canViewProfile = profileHasAction(p, 2);
@@ -270,32 +276,32 @@ export function Profile() {
         return (
           <div className="flex items-center justify-center gap-1">
             {canEditProfile && canEdit && (
-              <button title={getUiTooltipText("Edit")} onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button title={t("common:edit")} onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Pencil size={14} />
               </button>
             )}
             {canViewProfile && (
-              <button title={getUiTooltipText("View")} onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <button title={t("common:view")} onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <Eye size={14} />
               </button>
             )}
             {canViewProfile && (
-              <button title={getUiTooltipText("Audit")} onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <button title={t("common:audit")} onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <History size={14} />
               </button>
             )}
             {canAuthorizeProfile && canAuthorize && (
               <>
-                <button title={getUiTooltipText("Authorize")} onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <button title={t("common:authorize")} onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                   <ShieldCheck size={14} />
                 </button>
-                <button title={getUiTooltipText("Deauthorize")} onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <button title={t("common:deauthorize")} onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
                   <ShieldOff size={14} />
                 </button>
               </>
             )}
             {canDeleteProfile && canDelete && (
-              <button title={getUiTooltipText("Delete")} onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+              <button title={t("common:delete")} onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
                 <Trash2 size={14} />
               </button>
             )}
@@ -309,10 +315,10 @@ export function Profile() {
     <div className="pt-3 pb-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-400">User Management</p>
-          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Profiles</h1>
+          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-400">{t("userManagement")}</p>
+          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
           <p className="mt-1 text-xs font-medium text-slate-400">
-            {profiles.length} profiles · {counts.active} active
+            {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
           </p>
         </div>
         {canAdd && (
@@ -323,7 +329,7 @@ export function Profile() {
             className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
             style={{ background: "#2266EE" }}
           >
-            <Plus size={14} /> New Profile
+            <Plus size={14} /> {t("newProfile")}
           </motion.button>
         )}
       </div>
@@ -338,7 +344,7 @@ export function Profile() {
               setPage(1);
             }}
             type="text"
-            placeholder="Search profiles…"
+            placeholder={t("searchProfilesPlaceholder")}
             className="w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
             style={{ background: "var(--glass-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}
           />
@@ -373,7 +379,7 @@ export function Profile() {
         <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {profilesQuery.error.message}
           <button onClick={() => void profilesQuery.refetch()} className="ml-auto text-xs font-bold underline">
-            Retry
+            {t("common:retry")}
           </button>
         </div>
       )}
@@ -383,10 +389,10 @@ export function Profile() {
         rows={filtered}
         rowKey={(p) => profileId(p)}
         isLoading={profilesQuery.isLoading}
-        title="Profiles"
+        title={t("profilesTitle")}
         searchableKeys={["profile_name"]}
-        emptyTitle="No profiles found"
-        emptyDescription="Adjust your search or filter criteria"
+        emptyTitle={t("noProfilesFound")}
+        emptyDescription={t("adjustSearchOrFilter")}
         fetchMore={async (page, limit) => {
           const mapped = mapProfileListResponse(await profilesApi.list({ page, limit }));
           return { rows: mapped.profiles, totalPages: mapped.pagination.totalPages };
@@ -454,20 +460,20 @@ export function Profile() {
       {auditProfile && <AuditProfile profile={auditProfile} onClose={() => setAuditProfile(null)} />}
 
       {viewProfile && (
-        <Modal open={!!viewProfile} onClose={() => setViewProfile(null)} title="View profile" size="lg">
+        <Modal open={!!viewProfile} onClose={() => setViewProfile(null)} title={t("viewProfile")} size="lg">
           <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Profile Name</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("profileName")}</p>
               <p className="text-sm font-semibold text-slate-800">{viewProfile.profile_name ?? "—"}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Institution</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("institution")}</p>
               <p className="text-sm font-semibold text-slate-800">
                 {viewProfile.institution_name ?? institutionsById.get(String(viewProfile.inst_profile_id))?.name ?? "—"}
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Authorization Status</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("authorizationStatus")}</p>
               {viewProfile.auth_status ? (
                 <StatusBadge status={String(viewProfile.auth_status)} />
               ) : (
@@ -476,7 +482,7 @@ export function Profile() {
             </div>
           </div>
           <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">Menu / Action grants</p>
+            <p className="mb-2 text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
             <ProfilePermissionTree selected={viewProfile.menu_actions ?? viewProfile.menu_info ?? []} onChange={() => {}} readOnly />
           </div>
         </Modal>

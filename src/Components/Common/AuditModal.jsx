@@ -87,7 +87,7 @@ function deriveEntryChangeAction(entry) {
   return "EDIT";
 }
 
-function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
+function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
   const status = String(entry.auth_status ?? entry.status ?? "").toUpperCase();
   const reason = entry.narration;
   const actionLabel = getActionLabel(entry);
@@ -153,7 +153,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
         >
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
             <History size={11} className="shrink-0" />
-            What changed in this update
+            {t("common:whatChangedInThisUpdate")}
           </p>
           <PendingChangesPanel
             data={{ pending_action: changeAction, changes: entry.changes }}
@@ -165,7 +165,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
       <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6">
         <span className="flex items-center gap-1.5">
           <User size={11} className="shrink-0" />
-          Created by{" "}
+          {t("common:createdBy")}{" "}
           <span className="font-semibold text-foreground">
             {entry.created_by ?? entry.created_username ?? "—"}
           </span>
@@ -177,7 +177,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
         {!isEmptyPlaceholder(entry.auth_username ?? entry.updated_by) && (
           <span className="flex items-center gap-1.5">
             <User size={11} className="shrink-0" />
-            {entry.auth_username ? "Authorized by" : "Updated by"}{" "}
+            {entry.auth_username ? t("common:authorizedBy") : t("common:updatedBy")}{" "}
             <span className="font-semibold text-foreground">
               {entry.auth_username ?? entry.updated_by}
             </span>
@@ -192,7 +192,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
           className="mt-2 rounded-lg px-3 py-1.5 text-[11px] font-medium text-warning"
           style={{ background: "var(--warning-soft)" }}
         >
-          Reason: {reason}
+          {t("common:reason")}: {reason}
         </p>
       )}
     </div>
@@ -318,9 +318,9 @@ export function AuditModal({
     <Modal
       open
       onClose={onClose}
-      title={`Audit — ${title}`}
-      subtitle={`${entries.length} ${entries.length === 1 ? "record" : "records"}${
-        hasMore ? " · scroll for more" : ""
+      title={`${t("common:audit")} — ${title}`}
+      subtitle={`${entries.length} ${entries.length === 1 ? t("common:record") : t("common:recordsWord")}${
+        hasMore ? " · " + t("common:scrollForMore") : ""
       }`}
       icon={<History size={15} />}
       onBodyScroll={handleBodyScroll}
@@ -343,7 +343,7 @@ export function AuditModal({
           </button>
         </div>
       ) : entries.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">No audit history found.</p>
+        <p className="py-10 text-center text-sm text-muted-foreground">{t("common:noAuditHistoryFound")}</p>
       ) : (
         <div className="space-y-3">
           {sortedEntries.map((entry, index) => (
@@ -353,19 +353,20 @@ export function AuditModal({
               fields={fields}
               getActionLabel={getActionLabel}
               renderExtra={renderExtra}
+              t={t}
             />
           ))}
           <div className="py-2 text-center text-xs text-muted-foreground">
             {loadMoreError ? (
               <button type="button" onClick={() => void loadMore()} className="font-semibold text-blue-600 underline">
-                Failed to load more — retry
+                {t("common:failedLoadMoreRetry")}
               </button>
             ) : loadingMore ? (
-              "Loading more…"
+              t("common:loadingMore")
             ) : hasMore ? (
-              "Scroll for more"
+              t("common:scrollForMore")
             ) : (
-              "All history loaded"
+              t("common:allHistoryLoaded")
             )}
           </div>
         </div>

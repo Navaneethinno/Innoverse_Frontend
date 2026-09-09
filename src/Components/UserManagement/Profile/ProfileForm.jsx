@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
 
 export function EMPTY_FORM() {
@@ -13,10 +14,11 @@ export function profileId(profile) {
 // markup. Still uses the existing ProfilePermissionTree.jsx building block
 // for the menu/action grant tree (not duplicated here).
 export function ProfileForm({ form, setForm, institutions, onSubmit }) {
+  const { t } = useTranslation("profiles");
   return (
     <form onSubmit={onSubmit} className="space-y-4" id="profile-form">
       <label className="block text-sm text-slate-700">
-        <span className="mb-1.5 block font-medium">Profile name</span>
+        <span className="mb-1.5 block font-medium">{t("profileName")}</span>
         <input
           required
           value={form.profile_name}
@@ -25,14 +27,14 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
         />
       </label>
       <label className="block text-sm text-slate-700">
-        <span className="mb-1.5 block font-medium">Institution</span>
+        <span className="mb-1.5 block font-medium">{t("institution")}</span>
         <select
           required
           value={form.inst_profile_id}
           onChange={(e) => setForm({ ...form, inst_profile_id: e.target.value })}
           className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
         >
-          <option value="">Select institution…</option>
+          <option value="">{t("selectInstitution")}</option>
           {institutions.map((inst) => {
             const id = inst.id ?? inst.inst_id ?? inst.institution_id;
             return (
@@ -44,7 +46,7 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
         </select>
       </label>
       <div>
-        <p className="mb-1.5 block text-sm font-medium text-slate-700">Menu / Action grants</p>
+        <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
         <ProfilePermissionTree
           selected={form.menu_info}
           onChange={(menu_info) => setForm({ ...form, menu_info })}

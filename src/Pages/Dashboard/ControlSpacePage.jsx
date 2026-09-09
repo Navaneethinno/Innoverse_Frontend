@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Building2, CheckCircle, Clock, FileText, Shield } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "../../Utils/Lib/utils";
@@ -11,7 +12,7 @@ const glass = {
   border: "1px solid var(--glass-border)",
   boxShadow: "var(--glass-shadow)",
 };
-const BREAKDOWN_GROUPS = ["Institutions", "Users", "Profiles"];
+const BREAKDOWN_GROUP_KEYS = ["institutions", "users", "profiles"];
 function StatCard({ label, value, sub, gradient, icon: Icon, delay = 0 }) {
   return (
     <motion.div
@@ -53,6 +54,7 @@ function StatCard({ label, value, sub, gradient, icon: Icon, delay = 0 }) {
 // fictional aggregator endpoint has been removed rather than left pointing
 // at a route that no longer exists.
 export function ControlSpacePage() {
+  const { t } = useTranslation("dashboard");
   const navigate = useNavigate();
   const currentUser = useAuth((s) => s.user);
   const stats = { total: 0, active: 0, pendingRequests: 0, myRequests: 0 };
@@ -65,22 +67,22 @@ export function ControlSpacePage() {
         className="mb-6"
       >
         <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
-          Control Space
+          {t("controlSpace")}
         </p>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
-          Good morning, {currentUser?.username ?? "Admin"}
+          {t("goodMorning", { name: currentUser?.username ?? t("admin") })}
         </h1>
         <p className="text-sm text-slate-400 mt-1.5 font-medium">
-          Here's what's happening across your workspace.
+          {t("workspaceSummary")}
         </p>
       </motion.div>
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-6 sm:col-span-3">
           <StatCard
-            label="Total Institutions"
+            label={t("totalInstitutions")}
             value={stats.total}
-            sub="Registered on platform"
+            sub={t("registeredOnPlatform")}
             gradient="bg-[#2266EE]"
             icon={Building2}
             delay={0.05}
@@ -88,9 +90,9 @@ export function ControlSpacePage() {
         </div>
         <div className="col-span-6 sm:col-span-3">
           <StatCard
-            label="Active Institutions"
+            label={t("activeInstitutions")}
             value={stats.active}
-            sub="Fully operational"
+            sub={t("fullyOperational")}
             gradient="bg-gradient-to-br from-[#6EDFC4] to-[#3BBFA0]"
             icon={CheckCircle}
             delay={0.1}
@@ -98,9 +100,9 @@ export function ControlSpacePage() {
         </div>
         <div className="col-span-6 sm:col-span-3">
           <StatCard
-            label="Pending Requests"
+            label={t("pendingRequests")}
             value={stats.pendingRequests}
-            sub="Awaiting authorization"
+            sub={t("awaitingAuthorization")}
             gradient="bg-gradient-to-br from-[#FFB3A0] to-[#FF8C6B]"
             icon={Clock}
             delay={0.15}
@@ -108,9 +110,9 @@ export function ControlSpacePage() {
         </div>
         <div className="col-span-6 sm:col-span-3">
           <StatCard
-            label="My Requests"
+            label={t("myRequests")}
             value={stats.myRequests}
-            sub="Requests you submitted"
+            sub={t("requestsYouSubmitted")}
             gradient="bg-gradient-to-br from-[#FFCB6B] to-[#F59E0B]"
             icon={FileText}
             delay={0.2}
@@ -125,8 +127,8 @@ export function ControlSpacePage() {
           style={glass}
         >
           <CheckCircle size={24} className="text-emerald-400" />
-          <p className="text-sm font-bold text-slate-500">All caught up</p>
-          <p className="text-xs text-slate-400">No pending requests</p>
+          <p className="text-sm font-bold text-slate-500">{t("allCaughtUp")}</p>
+          <p className="text-xs text-slate-400">{t("noPendingRequests")}</p>
         </motion.div>
 
         <motion.div
@@ -141,12 +143,12 @@ export function ControlSpacePage() {
               <div className="w-8 h-8 rounded-xl bg-[#2266EE] flex items-center justify-center shadow-md shadow-blue-200/50">
                 <Shield size={14} className="text-white" />
               </div>
-              <h2 className="text-sm font-bold text-slate-800">Request Breakdown</h2>
+              <h2 className="text-sm font-bold text-slate-800">{t("requestBreakdown")}</h2>
             </div>
             <div className="space-y-2">
-              {BREAKDOWN_GROUPS.map((label) => (
-                <div key={label} className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">{label}</span>
+              {BREAKDOWN_GROUP_KEYS.map((key) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 font-medium">{t(key)}</span>
                   <span className="text-xs font-bold text-slate-300">0</span>
                 </div>
               ))}
@@ -156,7 +158,7 @@ export function ControlSpacePage() {
             onClick={() => navigate("/institutions/create")}
             className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-blue-600 border border-blue-200/60 hover:bg-white/60 transition-colors"
           >
-            + New Institution
+            {t("newInstitution")}
           </button>
         </motion.div>
       </div>

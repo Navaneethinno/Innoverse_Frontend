@@ -1,24 +1,21 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, ChevronRight, Command, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { Bell, Command, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { cn } from "@/Utils/Lib/utils";
 import { Logo } from "@/Components/Common/Logo";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
-import { getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 export function TopBar() {
-  const { t } = useTranslation();
+  const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const crumbs = useMemo(() => getRouteMetadata(pathname)?.breadcrumb ?? ["Dashboard"], [pathname]);
   useEffect(() => {
     function handleClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
@@ -62,29 +59,14 @@ export function TopBar() {
 
         <div className="w-px h-4 bg-border shrink-0" />
 
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1 flex-1 min-w-0" aria-label="Breadcrumb">
-          {crumbs.map((crumb, i) => (
-            <span key={crumb} className="flex items-center gap-1 min-w-0">
-              {i > 0 && <ChevronRight size={11} className="text-[var(--muted-foreground-soft)] shrink-0" />}
-              <span
-                className={cn(
-                  "text-xs truncate font-medium",
-                  i === crumbs.length - 1 ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {crumb}
-              </span>
-            </span>
-          ))}
-        </nav>
+        <div className="flex-1 min-w-0" />
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
-            title={getUiTooltipText("Keyboard shortcuts (Ctrl/Cmd + K)")}
-            aria-label="Keyboard shortcuts"
+            title={getUiTooltipText(t("layout:keyboardShortcutsHint"))}
+            aria-label={t("layout:keyboardShortcuts")}
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[10px] font-mono font-semibold"
           >
             <Command size={12} strokeWidth={1.8} />
@@ -96,8 +78,8 @@ export function TopBar() {
           <button
             type="button"
             onClick={toggleMode}
-            title={getUiTooltipText(mode === "dark" ? "Switch to light mode" : "Switch to dark mode")}
-            aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={getUiTooltipText(mode === "dark" ? t("layout:switchToLightMode") : t("layout:switchToDarkMode"))}
+            aria-label={mode === "dark" ? t("layout:switchToLightMode") : t("layout:switchToDarkMode")}
             className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {mode === "dark" ? (
@@ -121,10 +103,10 @@ export function TopBar() {
               className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl hover:bg-muted transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-brand-gradient text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
-                {user?.username?.charAt(0).toUpperCase() ?? "A"}
+                {user?.username?.charAt(0).toUpperCase() ?? t("layout:admin").charAt(0)}
               </div>
               <span className="hidden sm:block text-xs font-semibold text-foreground">
-                {user?.username ?? "Admin"}
+                {user?.username ?? t("layout:admin")}
               </span>
             </button>
 
@@ -144,9 +126,9 @@ export function TopBar() {
                   }}
                 >
                   <div className="px-4 py-3 border-b border-border">
-                    <p className="text-xs font-bold text-foreground">{user?.username ?? "Admin"}</p>
+                    <p className="text-xs font-bold text-foreground">{user?.username ?? t("layout:admin")}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {user?.institution?.name ?? "Platform"}
+                      {user?.institution?.name ?? t("layout:platform")}
                     </p>
                   </div>
                   <button

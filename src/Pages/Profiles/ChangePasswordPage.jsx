@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -7,6 +8,7 @@ import { usePasswordPolicyQuery } from "@/Hooks/Users/userHooks";
 import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/password-policy";
 
 export function ChangePasswordPage() {
+  const { t } = useTranslation("changePassword");
   const navigate = useNavigate();
   const changePassword = useAuth((state) => state.changePassword);
   const { policy } = usePasswordPolicyQuery();
@@ -55,20 +57,20 @@ export function ChangePasswordPage() {
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800"
         >
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} /> {t("common:back")}
         </button>
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
             <Lock size={18} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-slate-800">Change password</h1>
-            <p className="text-sm text-slate-500">Update your application password.</p>
+            <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>
+            <p className="text-sm text-slate-500">{t("subtitle")}</p>
           </div>
         </div>
         <form onSubmit={submit} className="space-y-4">
           <label className="block text-sm font-medium text-slate-700">
-            Old Password
+            {t("oldPassword")}
             <div className="relative mt-1.5">
               <input
                 type={visible.old ? "text" : "password"}
@@ -79,7 +81,7 @@ export function ChangePasswordPage() {
               <button
                 type="button"
                 onClick={() => toggleVisibility("old")}
-                aria-label={visible.old ? "Hide old password" : "Show old password"}
+                aria-label={visible.old ? t("hideOldPassword") : t("showOldPassword")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 {visible.old ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -87,7 +89,7 @@ export function ChangePasswordPage() {
             </div>
           </label>
           <label className="block text-sm font-medium text-slate-700">
-            New Password
+            {t("newPassword")}
             <div className="relative mt-1.5">
               <input
                 type={visible.next ? "text" : "password"}
@@ -98,7 +100,7 @@ export function ChangePasswordPage() {
               <button
                 type="button"
                 onClick={() => toggleVisibility("next")}
-                aria-label={visible.next ? "Hide new password" : "Show new password"}
+                aria-label={visible.next ? t("hideNewPassword") : t("showNewPassword")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 {visible.next ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -123,7 +125,7 @@ export function ChangePasswordPage() {
             )}
           </label>
           <label className="block text-sm font-medium text-slate-700">
-            Confirm New Password
+            {t("confirmNewPassword")}
             <div className="relative mt-1.5">
               <input
                 type={visible.confirm ? "text" : "password"}
@@ -134,7 +136,7 @@ export function ChangePasswordPage() {
               <button
                 type="button"
                 onClick={() => toggleVisibility("confirm")}
-                aria-label={visible.confirm ? "Hide confirmed password" : "Show confirmed password"}
+                aria-label={visible.confirm ? t("hideConfirmedPassword") : t("showConfirmedPassword")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 {visible.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -146,7 +148,7 @@ export function ChangePasswordPage() {
             disabled={loading}
             className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 text-sm font-semibold text-white disabled:opacity-60"
           >
-            {loading ? "Updating..." : "Update password"}
+            {loading ? t("updating") : t("updatePassword")}
           </button>
         </form>
       </div>

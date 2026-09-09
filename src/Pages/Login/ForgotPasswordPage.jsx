@@ -1,8 +1,10 @@
 import { ArrowLeft, LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation("forgotPassword");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] px-4">
@@ -10,16 +12,16 @@ export function ForgotPasswordPage() {
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
           <LockKeyhole size={22} />
         </div>
-        <h1 className="text-lg font-semibold text-slate-800">Forgot Password?</h1>
+        <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Password recovery is not connected yet. Please contact your administrator for assistance.
+          {t("notConnectedYet")}
         </p>
         <button
           type="button"
           onClick={() => navigate("/login")}
           className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
         >
-          <ArrowLeft size={15} /> Back to sign in
+          <ArrowLeft size={15} /> {t("backToSignIn")}
         </button>
       </div>
     </div>

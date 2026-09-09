@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, ArrowLeft, Building2, FileEdit, X } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Skeleton } from "@/Components/UI/skeleton";
@@ -27,6 +28,7 @@ import { EditInstitutionProfile } from "./EditInstitutionProfile";
 // the list's Actions column now, not duplicated here as a second button
 // bar. Edit is reached via the list's own pencil icon.
 export function ViewInstitutionProfile() {
+  const { t } = useTranslation("institutions");
   const { id } = useParams();
   const numericId = Number(id);
   const navigate = useNavigate();
@@ -183,16 +185,15 @@ export function ViewInstitutionProfile() {
         <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
           <AlertCircle size={22} className="text-red-400" />
         </div>
-        <p className="text-sm font-bold text-slate-700">Institution not found</p>
+        <p className="text-sm font-bold text-slate-700">{t("institutionNotFound")}</p>
         <p className="text-xs text-slate-400 mt-1 max-w-sm">
-          There is no get-by-id endpoint for institution profiles — this page looks the record up
-          in the current /institution/profile/list page. It may be outside that page's results.
+          {t("institutionNotFoundDescription")}
         </p>
         <button
           onClick={() => navigate("/institutions")}
           className="mt-3 text-xs font-bold text-blue-500 underline"
         >
-          Back to Institutions
+          {t("backToInstitutions")}
         </button>
       </div>
     );
@@ -205,7 +206,7 @@ export function ViewInstitutionProfile() {
           onClick={() => navigate("/institutions")}
           className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700"
         >
-          <ArrowLeft size={13} /> Institutions
+          <ArrowLeft size={13} /> {t("institutionsBreadcrumb")}
         </button>
 
         {editMode && (
@@ -214,7 +215,7 @@ export function ViewInstitutionProfile() {
               onClick={exitEditMode}
               className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50"
             >
-              <X size={13} /> Cancel
+              <X size={13} /> {t("common:cancel")}
             </button>
             {!isDraft && (
               <button
@@ -222,7 +223,7 @@ export function ViewInstitutionProfile() {
                 disabled={submitting}
                 className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
               >
-                <FileEdit size={13} /> Save as Draft Edit
+                <FileEdit size={13} /> {t("saveAsDraftEdit")}
               </button>
             )}
             <button
@@ -231,7 +232,7 @@ export function ViewInstitutionProfile() {
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
               style={{ background: "#2266EE" }}
             >
-              {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
+              {submitting ? t("savingEllipsis") : isDraft ? t("saveDraft") : t("submitForApproval")}
             </button>
           </div>
         )}
@@ -248,7 +249,7 @@ export function ViewInstitutionProfile() {
           <div>
             <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
             <p className="text-xs text-slate-400 font-mono">{institution.code}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Type: {institution.type_name ?? institution.type}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t("typeColonLabel")} {institution.type_name ?? institution.type}</p>
           </div>
         </div>
         <StatusBadge status={status} />
@@ -258,10 +259,9 @@ export function ViewInstitutionProfile() {
         <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
           <FileEdit size={15} className="text-blue-600 mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-semibold text-blue-800">This record is a Draft</p>
+            <p className="text-xs font-semibold text-blue-800">{t("recordIsDraft")}</p>
             <p className="text-xs text-blue-700 mt-0.5">
-              Only visible to you until you submit it for checker review. Use Submit Draft from the
-              Institutions list when ready.
+              {t("recordIsDraftDescription")}
             </p>
           </div>
         </div>
@@ -272,28 +272,28 @@ export function ViewInstitutionProfile() {
       ) : (
         <>
           <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-            <h2 className="text-sm font-bold text-slate-700">Institution Information</h2>
+            <h2 className="text-sm font-bold text-slate-700">{t("institutionInformation")}</h2>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              <Field label="Institution Code" value={institution.code} />
-              <Field label="Institution Name" value={institution.name} />
-              <Field label="Institution Type" value={institution.type_name ?? institution.type} />
-              <Field label="Timezone" value={institution.timezone} />
-              <Field label="Date Format" value={institution.date_format} />
-              <Field label="Has Branch" value={institution.has_branch} />
+              <Field label={t("institutionCode")} value={institution.code} />
+              <Field label={t("institutionName")} value={institution.name} />
+              <Field label={t("institutionType")} value={institution.type_name ?? institution.type} />
+              <Field label={t("timezoneLabel")} value={institution.timezone} />
+              <Field label={t("reviewDateFormat")} value={institution.date_format} />
+              <Field label={t("hasBranch")} value={institution.has_branch} />
             </div>
           </div>
 
           <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-            <h2 className="text-sm font-bold text-slate-700">KYC & Login Policy</h2>
+            <h2 className="text-sm font-bold text-slate-700">{t("kycLoginPolicySectionLabel")}</h2>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              <Field label="KYC Enabled" value={institution.kyc_enabled} />
-              <Field label="Total KYC Levels" value={institution.total_kyc_levels} />
-              <Field label="Allow Downgrade KYC" value={institution.allow_downgrade_kyc} />
-              <Field label="Primary Login Identifier" value={institution.primary_login_identifier} />
-              <Field label="Login PIN Enabled" value={institution.is_login_pin_enabled} />
-              <Field label="Biometric Login" value={institution.allow_biometric_login} />
-              <Field label="Txn PIN Enabled" value={institution.is_txn_pin_enabled} />
-              <Field label="Same Login/Txn PIN" value={institution.is_same_login_txn_pin_allowed} />
+              <Field label={t("kycEnabled")} value={institution.kyc_enabled} />
+              <Field label={t("totalKycLevels")} value={institution.total_kyc_levels} />
+              <Field label={t("allowDowngradeKyc")} value={institution.allow_downgrade_kyc} />
+              <Field label={t("primaryLoginIdentifier")} value={institution.primary_login_identifier} />
+              <Field label={t("loginPinEnabled")} value={institution.is_login_pin_enabled} />
+              <Field label={t("biometricLogin")} value={institution.allow_biometric_login} />
+              <Field label={t("reviewTxnPinEnabled")} value={institution.is_txn_pin_enabled} />
+              <Field label={t("sameLoginTxnPin")} value={institution.is_same_login_txn_pin_allowed} />
             </div>
           </div>
         </>
@@ -305,7 +305,7 @@ export function ViewInstitutionProfile() {
             onClick={exitEditMode}
             className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
-            Cancel
+            {t("common:cancel")}
           </button>
           {!isDraft && (
             <button
@@ -313,7 +313,7 @@ export function ViewInstitutionProfile() {
               disabled={submitting}
               className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
             >
-              Save as Draft Edit
+              {t("saveAsDraftEdit")}
             </button>
           )}
           <button
@@ -322,7 +322,7 @@ export function ViewInstitutionProfile() {
             className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
             style={{ background: "#2266EE" }}
           >
-            {submitting ? "Saving…" : isDraft ? "Save Draft" : "Submit for Approval"}
+            {submitting ? t("savingEllipsis") : isDraft ? t("saveDraft") : t("submitForApproval")}
           </button>
         </div>
       )}

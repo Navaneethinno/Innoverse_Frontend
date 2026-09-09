@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AlertCircle,
@@ -24,11 +25,11 @@ import { useInstitutionTypes, useLanguages } from "@/Hooks/Master/masterHooks";
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
 // sub-objects, since those live under separate out-of-scope sub-entities
 // (Institution/Legal, Institution/Branding, ...).
-const STEPS = [
-  { label: "Basic Info", icon: FileText },
-  { label: "KYC Policy", icon: ShieldCheck },
-  { label: "Login & PIN Policy", icon: KeyRound },
-  { label: "Review & Submit", icon: ClipboardCheck },
+const STEP_DEFS = [
+  { key: "stepBasicInfo", icon: FileText },
+  { key: "stepKycPolicy", icon: ShieldCheck },
+  { key: "stepLoginPinPolicy", icon: KeyRound },
+  { key: "stepReviewSubmit", icon: ClipboardCheck },
 ];
 const EMPTY = {
   code: "",
@@ -157,17 +158,19 @@ function ToggleField({ label, fieldKey, value, onChange }) {
   );
 }
 function ReviewRow({ label, value }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-start justify-between py-2.5 border-b border-slate-50 last:border-0">
       <span className="text-sm text-slate-500 shrink-0">{label}</span>
       <span className="text-sm font-medium text-slate-700 text-right ml-4 min-w-0 break-all">
-        {typeof value === "boolean" ? (value ? "Yes" : "No") : value || "—"}
+        {typeof value === "boolean" ? (value ? t("common:yes") : t("common:no")) : value || "—"}
       </span>
     </div>
   );
 }
 
 export function AddInstitutionProfile() {
+  const { t } = useTranslation("institutions");
   const navigate = useNavigate();
   // Real permission source (see useHasInstitutionAction) — the old
   // `currentUser?.institution?.type === "PLATFORM_OWNER"` check referenced a
@@ -183,6 +186,7 @@ export function AddInstitutionProfile() {
   const [createdId, setCreatedId] = useState(null);
   const { types: institutionTypes } = useInstitutionTypes();
   const { languages } = useLanguages();
+  const STEPS = STEP_DEFS.map((step) => ({ ...step, label: t(step.key) }));
 
   if (submitted) {
     return (
@@ -197,19 +201,19 @@ export function AddInstitutionProfile() {
               <CheckCircle size={28} className="text-emerald-500" />
             </div>
             <h2 className="text-lg font-bold text-slate-800 mb-2">
-              {savedAsDraft ? "Saved as Draft" : "Submitted for Approval"}
+              {savedAsDraft ? t("savedAsDraftTitle") : t("submittedForApprovalTitle")}
             </h2>
             <p className="text-sm text-slate-500 mb-1">
-              The institution has been created with status{" "}
+              {t("createdWithStatusPrefix")}{" "}
               <span className="font-semibold text-amber-600">
-                {savedAsDraft ? "Draft" : "Pending Add"}
+                {savedAsDraft ? t("statusDraft") : t("statusPendingAdd")}
               </span>
               .
             </p>
             <p className="text-sm text-slate-400 mb-6">
               {savedAsDraft
-                ? "It's only visible to you until you submit it for checker review."
-                : "A different authorized checker must approve it — you cannot approve your own submission."}
+                ? t("draftVisibleOnlyToYou")
+                : t("checkerMustApprove")}
             </p>
             <div className="flex gap-3 justify-center">
               <button
@@ -221,13 +225,13 @@ export function AddInstitutionProfile() {
                 }}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
               >
-                Create Another
+                {t("createAnother")}
               </button>
               <button
                 onClick={() => navigate("/institutions")}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
               >
-                View Institutions
+                {t("viewInstitutions")}
               </button>
               {savedAsDraft && createdId != null && (
                 <button
@@ -235,7 +239,7 @@ export function AddInstitutionProfile() {
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
                   style={{ background: "#2266EE" }}
                 >
-                  Continue Editing Draft
+                  {t("continueEditingDraft")}
                 </button>
               )}
             </div>
@@ -251,8 +255,8 @@ export function AddInstitutionProfile() {
   const validate = () => {
     const next = {};
     if (step === 0) {
-      if (!form.code.trim()) next.code = "Code is required";
-      if (!form.name.trim()) next.name = "Institution name is required";
+      if (!form.code.trim()) next.code = t("codeRequired");
+      if (!form.name.trim()) next.name = t("nameRequired");
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -281,13 +285,13 @@ export function AddInstitutionProfile() {
           onClick={() => navigate("/institutions")}
           className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft size={15} /> Back
+          <ArrowLeft size={15} /> {t("common:back")}
         </button>
 
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">Create Institution</h1>
+          <h1 className="text-xl font-semibold text-foreground">{t("createInstitutionTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Step {step + 1} of {STEPS.length}
+            {t("stepOfTotal", { step: step + 1, total: STEPS.length })}
           </p>
         </div>
 
@@ -344,7 +348,7 @@ export function AddInstitutionProfile() {
         {mutationError && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Unable to submit</AlertTitle>
+            <AlertTitle>{t("unableToSubmit")}</AlertTitle>
             <AlertDescription>{mutationError.message}</AlertDescription>
           </Alert>
         )}
@@ -368,33 +372,33 @@ export function AddInstitutionProfile() {
               <>
                 {step === 0 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">Basic Information</h2>
+                    <h2 className="text-sm font-semibold text-slate-800">{t("basicInformation")}</h2>
                     <InputField
-                      label="Institution Code"
+                      label={t("institutionCode")}
                       fieldKey="code"
-                      placeholder="NEWBANK"
+                      placeholder={t("institutionCodePlaceholder")}
                       required
                       value={form.code}
                       error={errors.code}
                       onChange={setField}
                     />
                     <InputField
-                      label="Institution Name"
+                      label={t("institutionName")}
                       fieldKey="name"
-                      placeholder="New Bank Ltd"
+                      placeholder={t("institutionNamePlaceholder")}
                       required
                       value={form.name}
                       error={errors.name}
                       onChange={setField}
                     />
                     <label className="block text-sm font-medium text-slate-700">
-                      <span className="mb-1.5 block">Type</span>
+                      <span className="mb-1.5 block">{t("typeLabel")}</span>
                       <select
                         value={form.type}
                         onChange={(e) => setField("type", e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                       >
-                        <option value="">Select institution type</option>
+                        <option value="">{t("selectInstitutionType")}</option>
                         {institutionTypes.map((type) => {
                           const value = type.id ?? type.type ?? type.code;
                           const label = type.name ?? type.type_name ?? type.code ?? value;
@@ -404,9 +408,9 @@ export function AddInstitutionProfile() {
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <InputField
-                        label="Timezone"
+                        label={t("timezoneLabel")}
                         fieldKey="timezone"
-                        placeholder="Asia/Kolkata"
+                        placeholder={t("timezonePlaceholder")}
                         value={form.timezone}
                         onChange={setField}
                       />
@@ -416,7 +420,7 @@ export function AddInstitutionProfile() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <label className="block text-sm font-medium text-slate-700">Default language</label>
+                      <label className="block text-sm font-medium text-slate-700">{t("defaultLanguage")}</label>
                       <select
                         value={form.languageDefault}
                         onChange={(e) => setField("languageDefault", e.target.value)}
@@ -427,7 +431,7 @@ export function AddInstitutionProfile() {
                           return <option key={value} value={value}>{typeof language === "string" ? language : language.name ?? language.language_name ?? value}</option>;
                         })}
                       </select>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Supported languages</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("supportedLanguages")}</p>
                       <div className="flex flex-wrap gap-4">
                         {languages.map((language) => {
                           const value = typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;
@@ -442,21 +446,21 @@ export function AddInstitutionProfile() {
                                   ? [...new Set([...form.languageSupported, value])]
                                   : form.languageSupported.filter((item) => item !== value))}
                               />
-                              {label}{form.languageDefault === value ? " (default)" : ""}
+                              {label}{form.languageDefault === value ? ` ${t("defaultSuffix")}` : ""}
                             </label>
                           );
                         })}
                       </div>
                     </div>
                     <ToggleField
-                      label="Has Branch"
+                      label={t("hasBranch")}
                       fieldKey="has_branch"
                       value={form.has_branch}
                       onChange={setField}
                     />
                     {form.has_branch && (
                       <NumberField
-                        label="Max Branches Allowed"
+                        label={t("maxBranchesAllowed")}
                         fieldKey="max_branches_allowed"
                         value={form.max_branches_allowed}
                         onChange={setField}
@@ -467,9 +471,9 @@ export function AddInstitutionProfile() {
 
                 {step === 1 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">KYC Policy</h2>
+                    <h2 className="text-sm font-semibold text-slate-800">{t("stepKycPolicy")}</h2>
                     <ToggleField
-                      label="KYC Enabled"
+                      label={t("kycEnabled")}
                       fieldKey="kyc_enabled"
                       value={form.kyc_enabled}
                       onChange={setField}
@@ -477,19 +481,19 @@ export function AddInstitutionProfile() {
                     {form.kyc_enabled && (
                       <>
                         <NumberField
-                          label="Total KYC Levels"
+                          label={t("totalKycLevels")}
                           fieldKey="total_kyc_levels"
                           value={form.total_kyc_levels}
                           onChange={setField}
                         />
                         <ToggleField
-                          label="Auto Approve KYC Level"
+                          label={t("autoApproveKycLevel")}
                           fieldKey="auto_approve_kyc_level"
                           value={form.auto_approve_kyc_level}
                           onChange={setField}
                         />
                         <ToggleField
-                          label="Allow Downgrade KYC"
+                          label={t("allowDowngradeKyc")}
                           fieldKey="allow_downgrade_kyc"
                           value={form.allow_downgrade_kyc}
                           onChange={setField}
@@ -501,23 +505,23 @@ export function AddInstitutionProfile() {
 
                 {step === 2 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">Login & PIN Policy</h2>
+                    <h2 className="text-sm font-semibold text-slate-800">{t("stepLoginPinPolicy")}</h2>
                     <InputField
-                      label="Allowed Login Identifiers (comma separated)"
+                      label={t("allowedLoginIdentifiers")}
                       fieldKey="allowed_login_identifiers"
-                      placeholder="USERNAME,EMAIL,MOBILE"
+                      placeholder={t("allowedLoginIdentifiersPlaceholder")}
                       value={form.allowed_login_identifiers}
                       onChange={setField}
                     />
                     <InputField
-                      label="Primary Login Identifier"
+                      label={t("primaryLoginIdentifier")}
                       fieldKey="primary_login_identifier"
-                      placeholder="USERNAME"
+                      placeholder={t("primaryLoginIdentifierPlaceholder")}
                       value={form.primary_login_identifier}
                       onChange={setField}
                     />
                     <ToggleField
-                      label="Login PIN Enabled"
+                      label={t("loginPinEnabled")}
                       fieldKey="is_login_pin_enabled"
                       value={form.is_login_pin_enabled}
                       onChange={setField}
@@ -525,28 +529,28 @@ export function AddInstitutionProfile() {
                     {form.is_login_pin_enabled && (
                       <div className="grid grid-cols-2 gap-4">
                         <NumberField
-                          label="Login PIN Length"
+                          label={t("loginPinLength")}
                           fieldKey="login_pin_length"
                           value={form.login_pin_length}
                           onChange={setField}
                         />
                         <InputField
-                          label="Login PIN Type"
+                          label={t("loginPinType")}
                           fieldKey="login_pin_type"
-                          placeholder="NUMERIC"
+                          placeholder={t("loginPinTypePlaceholder")}
                           value={form.login_pin_type}
                           onChange={setField}
                         />
                       </div>
                     )}
                     <ToggleField
-                      label="Allow Biometric Login"
+                      label={t("allowBiometricLogin")}
                       fieldKey="allow_biometric_login"
                       value={form.allow_biometric_login}
                       onChange={setField}
                     />
                     <ToggleField
-                      label="Transaction PIN Enabled"
+                      label={t("transactionPinEnabled")}
                       fieldKey="is_txn_pin_enabled"
                       value={form.is_txn_pin_enabled}
                       onChange={setField}
@@ -554,13 +558,13 @@ export function AddInstitutionProfile() {
                     {form.is_txn_pin_enabled && (
                       <>
                         <NumberField
-                          label="Transaction PIN Length"
+                          label={t("transactionPinLength")}
                           fieldKey="txn_pin_length"
                           value={form.txn_pin_length}
                           onChange={setField}
                         />
                         <ToggleField
-                          label="Same Login/Transaction PIN Allowed"
+                          label={t("sameLoginTxnPinAllowed")}
                           fieldKey="is_same_login_txn_pin_allowed"
                           value={form.is_same_login_txn_pin_allowed}
                           onChange={setField}
@@ -572,42 +576,42 @@ export function AddInstitutionProfile() {
 
                 {step === 3 && (
                   <div className="space-y-5">
-                    <h2 className="text-sm font-semibold text-slate-800">Review & Submit</h2>
+                    <h2 className="text-sm font-semibold text-slate-800">{t("stepReviewSubmit")}</h2>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                        Institution
+                        {t("institutionSectionLabel")}
                       </p>
                       <div className="rounded-xl border border-slate-100 px-4">
-                        <ReviewRow label="Code" value={form.code} />
-                        <ReviewRow label="Name" value={form.name} />
-                        <ReviewRow label="Type" value={form.type} />
-                        <ReviewRow label="Timezone" value={form.timezone} />
-                        <ReviewRow label="Date Format" value={form.date_format} />
-                        <ReviewRow label="Has Branch" value={form.has_branch} />
+                        <ReviewRow label={t("reviewCode")} value={form.code} />
+                        <ReviewRow label={t("reviewName")} value={form.name} />
+                        <ReviewRow label={t("reviewType")} value={form.type} />
+                        <ReviewRow label={t("reviewTimezone")} value={form.timezone} />
+                        <ReviewRow label={t("reviewDateFormat")} value={form.date_format} />
+                        <ReviewRow label={t("reviewHasBranch")} value={form.has_branch} />
                       </div>
                     </div>
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                        KYC & Login Policy
+                        {t("kycLoginPolicySectionLabel")}
                       </p>
                       <div className="rounded-xl border border-slate-100 px-4">
-                        <ReviewRow label="KYC Enabled" value={form.kyc_enabled} />
+                        <ReviewRow label={t("kycEnabled")} value={form.kyc_enabled} />
                         <ReviewRow
-                          label="Login Identifiers"
+                          label={t("reviewLoginIdentifiers")}
                           value={form.allowed_login_identifiers}
                         />
-                        <ReviewRow label="Login PIN Enabled" value={form.is_login_pin_enabled} />
-                        <ReviewRow label="Txn PIN Enabled" value={form.is_txn_pin_enabled} />
+                        <ReviewRow label={t("loginPinEnabled")} value={form.is_login_pin_enabled} />
+                        <ReviewRow label={t("reviewTxnPinEnabled")} value={form.is_txn_pin_enabled} />
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                        Narration (optional)
+                        {t("narrationOptional")}
                       </label>
                       <textarea
                         value={form.narration}
                         onChange={(e) => setField("narration", e.target.value)}
-                        placeholder="Reason for this request"
+                        placeholder={t("reasonForRequestPlaceholder")}
                         className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                       />
                     </div>
@@ -615,12 +619,11 @@ export function AddInstitutionProfile() {
                       <AlertCircle size={15} className="text-amber-600 mt-0.5 shrink-0" />
                       <div>
                         <p className="text-xs font-semibold text-amber-800">
-                          Maker-Checker Required
+                          {t("makerCheckerRequired")}
                         </p>
                         <p className="text-xs text-amber-700 mt-0.5">
-                          Institution will be created with status <strong>Pending Add</strong>. A
-                          different authorized user must approve it — you cannot approve your own
-                          submission.
+                          {t("makerCheckerCreatedWithStatus")} <strong>{t("statusPendingAdd")}</strong>.{" "}
+                          {t("makerCheckerDifferentUserMustApprove")}
                         </p>
                       </div>
                     </div>
@@ -637,7 +640,7 @@ export function AddInstitutionProfile() {
               onClick={() => setStep((s) => s - 1)}
               className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              Back
+              {t("common:back")}
             </button>
           )}
           {step === STEPS.length - 1 && (
@@ -646,7 +649,7 @@ export function AddInstitutionProfile() {
               disabled={isLoading}
               className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
             >
-              Save as Draft
+              {t("saveAsDraft")}
             </button>
           )}
           <button
@@ -654,7 +657,7 @@ export function AddInstitutionProfile() {
             disabled={isLoading}
             className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >
-            {step === STEPS.length - 1 ? "Submit for Approval" : "Continue"}
+            {step === STEPS.length - 1 ? t("submitForApproval") : t("continueButton")}
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
@@ -9,6 +10,7 @@ import { institutionId } from "./InstitutionProfileForm";
 // /institution/profile/pending) before they authorize it. narration is
 // optional per the confirmed spec (unlike deauth, where it's required).
 export function AuthInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("institutions");
   const open = !!institution;
   const { data, isLoading, error } = usePendingChanges(
     institutionsApi.pending,
@@ -19,11 +21,11 @@ export function AuthInstitutionProfile({ institution, narration, setNarration, p
     <ConfirmDialog
       open={open}
       onClose={onClose}
-      title="Confirm institution action"
+      title={t("confirmInstitutionActionTitle")}
       description={
         institution && (
           <>
-            auth institution <strong>{institution?.name ?? institution?.code}</strong>?
+            {t("authConfirmDescription")} <strong>{institution?.name ?? institution?.code}</strong>?
           </>
         )
       }
@@ -34,7 +36,7 @@ export function AuthInstitutionProfile({ institution, narration, setNarration, p
       <textarea
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
-        placeholder="Narration (optional)"
+        placeholder={t("narrationOptionalPlaceholder")}
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

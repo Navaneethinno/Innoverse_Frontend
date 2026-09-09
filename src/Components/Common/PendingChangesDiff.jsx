@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 
@@ -60,11 +61,12 @@ function displayValue(value) {
 }
 
 export function PendingChangesDiff({ data, isLoading, error }) {
+  const { t } = useTranslation("common");
   if (isLoading) {
-    return <p className="mt-3 text-xs text-slate-400">Loading requested changes…</p>;
+    return <p className="mt-3 text-xs text-slate-400">{t("loadingRequestedChanges")}</p>;
   }
   if (error) {
-    return <p className="mt-3 text-xs text-red-500">Could not load requested changes: {error}</p>;
+    return <p className="mt-3 text-xs text-red-500">{t("couldNotLoadRequestedChanges")}: {error}</p>;
   }
   if (!data || data.pending_action == null || data.pending_action === "NONE") return null;
 
@@ -76,29 +78,29 @@ export function PendingChangesDiff({ data, isLoading, error }) {
     <div className="mt-3 rounded-xl border border-slate-200 overflow-hidden">
       <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
         <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-          {isAdd ? "New record requested" : isDelete ? "Delete requested" : "Requested changes"}
+          {isAdd ? t("newRecordRequested") : isDelete ? t("deleteRequested") : t("requestedChanges")}
         </span>
         {data.requested_by && (
-          <span className="text-[11px] text-slate-400">by {data.requested_by}</span>
+          <span className="text-[11px] text-slate-400">{t("by")} {data.requested_by}</span>
         )}
       </div>
 
       {isDelete && (
         <div className="flex items-center gap-2 border-b border-amber-100 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
           <AlertTriangle size={13} className="shrink-0" />
-          This record will be deleted if you authorize.
+          {t("recordWillBeDeletedIfAuthorize")}
         </div>
       )}
 
       {changes.length === 0 ? (
-        <p className="px-3 py-3 text-xs text-slate-400">No field-level changes reported.</p>
+        <p className="px-3 py-3 text-xs text-slate-400">{t("noFieldLevelChanges")}</p>
       ) : (
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              <th className="px-3 py-1.5 text-left">Field</th>
-              {!isAdd && <th className="px-3 py-1.5 text-left">{isDelete ? "Current Value" : "Current"}</th>}
-              {!isDelete && <th className="px-3 py-1.5 text-left">{isAdd ? "Value" : "Proposed"}</th>}
+              <th className="px-3 py-1.5 text-left">{t("field")}</th>
+              {!isAdd && <th className="px-3 py-1.5 text-left">{isDelete ? t("currentValue") : t("current")}</th>}
+              {!isDelete && <th className="px-3 py-1.5 text-left">{isAdd ? t("value") : t("proposed")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -156,6 +158,7 @@ function formatMetaTime(value) {
  * ADD there is no currentRecord yet, so the toggle simply doesn't appear.
  */
 export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
+  const { t } = useTranslation("common");
   const [showAll, setShowAll] = useState(false);
 
   const changes = useMemo(() => (Array.isArray(data?.changes) ? data.changes : []), [data]);
@@ -179,10 +182,10 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
   const totalFieldCount = changes.length + unchangedRows.length;
 
   if (isLoading) {
-    return <p className="text-xs text-slate-400">Loading requested changes…</p>;
+    return <p className="text-xs text-slate-400">{t("loadingRequestedChanges")}</p>;
   }
   if (error) {
-    return <p className="text-xs text-red-500">Could not load requested changes: {error}</p>;
+    return <p className="text-xs text-red-500">{t("couldNotLoadRequestedChanges")}: {error}</p>;
   }
   if (!data || data.pending_action == null || data.pending_action === "NONE") return null;
 
@@ -193,14 +196,14 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
       <div className="rounded-xl border border-slate-200 overflow-hidden">
         <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
           <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-            Lifecycle Metadata
+            {t("lifecycleMetadata")}
           </span>
         </div>
         <dl className="space-y-2.5 px-3 py-3">
           {[
-            ["Pending Action", data.pending_action],
-            ["Requested By", data.requested_by],
-            ["Requested Time", formatMetaTime(data.requested_time)],
+            [t("pendingAction"), data.pending_action],
+            [t("requestedBy"), data.requested_by],
+            [t("requestedTime"), formatMetaTime(data.requested_time)],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-2">
               <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</dt>
@@ -215,7 +218,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
       <div className="rounded-xl border border-slate-200 overflow-hidden">
         <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
           <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
-            Data Changes
+            {t("dataChanges")}
           </span>
           {canShowAll && (
             <button
@@ -223,7 +226,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
               onClick={() => setShowAll((v) => !v)}
               className="text-[11px] font-bold text-blue-600 hover:underline"
             >
-              {showAll ? "Show changed only" : `Show all fields (${totalFieldCount})`}
+              {showAll ? t("showChangedOnly") : t("showAllFields", { count: totalFieldCount })}
             </button>
           )}
         </div>
@@ -231,20 +234,20 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         {isDelete && (
           <div className="flex items-center gap-2 border-b border-amber-100 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
             <AlertTriangle size={13} className="shrink-0" />
-            This record will be deleted if authorized.
+            {t("recordWillBeDeletedIfAuthorized")}
           </div>
         )}
 
         {rows.length === 0 ? (
-          <p className="px-3 py-3 text-xs text-slate-400">No field-level changes reported.</p>
+          <p className="px-3 py-3 text-xs text-slate-400">{t("noFieldLevelChanges")}</p>
         ) : (
           <div className="thin-scrollbar max-h-64 overflow-y-auto overflow-x-auto">
           <table className="w-full min-w-[360px] text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">Field</th>
-                {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">Before</th>}
-                {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">After</th>}
+                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("field")}</th>
+                {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("before")}</th>}
+                {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("after")}</th>}
               </tr>
             </thead>
             <tbody>

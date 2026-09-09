@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
@@ -8,17 +9,18 @@ import { profileId } from "./ProfileForm";
 // exactly what the maker asked to change (via /user/profile/pending)
 // before they reject it.
 export function DeauthProfile({ profile, narration, setNarration, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("profiles");
   const open = !!profile;
   const { data, isLoading, error } = usePendingChanges(profilesApi.pending, open ? profileId(profile) : null, open);
   return (
     <ConfirmDialog
       open={open}
       onClose={onClose}
-      title="Confirm profile action"
+      title={t("confirmProfileAction")}
       description={
         profile && (
           <>
-            deauth profile <strong>{profile?.profile_name}</strong>?
+            {t("deauthProfileConfirm")} <strong>{profile?.profile_name}</strong>?
           </>
         )
       }
@@ -30,7 +32,7 @@ export function DeauthProfile({ profile, narration, setNarration, pending, onClo
       <textarea
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
-        placeholder="Reason (required)"
+        placeholder={t("reasonRequired")}
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

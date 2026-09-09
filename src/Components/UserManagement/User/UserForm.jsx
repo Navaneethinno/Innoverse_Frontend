@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronDown, Check, Eye, EyeOff } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cn } from "@/Utils/Lib/cn";
@@ -19,6 +20,9 @@ export const EMPTY_FORM = {
   password_policy_id: "",
 };
 
+// Field labels are looked up via t() inside UserForm at render time (see
+// FIELD_LABEL_KEYS below); this array's second element stays as the
+// English fallback/key source for any other non-i18n consumer of `fields`.
 export const fields = [
   ["user_name", "Username"],
   ["user_fname", "First name"],
@@ -32,6 +36,20 @@ export const fields = [
   ["gender", "Gender"],
   ["address", "Address"],
 ];
+
+const FIELD_LABEL_KEYS = {
+  user_name: "fieldUsername",
+  user_fname: "fieldFirstName",
+  user_lname: "fieldLastName",
+  user_pwd: "fieldPassword",
+  inst_id: "fieldInstitution",
+  profile_id: "fieldProfileId",
+  employee_id: "fieldEmployeeId",
+  email: "fieldEmail",
+  mobile: "fieldMobile",
+  gender: "fieldGender",
+  address: "fieldAddress",
+};
 
 export function fieldValue(user, key) {
   const aliases = {
@@ -56,14 +74,15 @@ export function nameOf(user) {
 }
 
 function PasswordPolicyField({ policies, policy, selectedId, onSelect, requirements }) {
+  const { t } = useTranslation("users");
   const [expanded, setExpanded] = useState(false);
   const options = policies.length > 0
     ? policies.map((p) => ({ value: p.id, label: p.name }))
-    : [{ value: "", label: "No policies available" }];
+    : [{ value: "", label: t("noPoliciesAvailable") }];
 
   return (
     <div className="md:col-span-2">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">Password policy</span>
+      <span className="mb-1.5 block text-sm font-medium text-slate-700">{t("passwordPolicy")}</span>
       <FilterSelect value={selectedId} onChange={onSelect} options={options} className="w-full" />
       {policy && (
         <div className="mt-1.5">
@@ -72,13 +91,13 @@ function PasswordPolicyField({ policies, policy, selectedId, onSelect, requireme
             onClick={() => setExpanded((v) => !v)}
             className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700"
           >
-            View Password Policy
+            {t("viewPasswordPolicy")}
             <ChevronDown size={13} className={cn("transition-transform", expanded && "rotate-180")} />
           </button>
           {expanded && (
             <ul className="mt-2 space-y-1 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
               {requirements.length === 0 ? (
-                <li className="text-xs text-slate-400">No specific requirements for this policy.</li>
+                <li className="text-xs text-slate-400">{t("noSpecificRequirements")}</li>
               ) : (
                 requirements.map((req) => (
                   <li key={req.key} className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -106,6 +125,7 @@ export function UserForm({
   selectedPolicy,
   readOnly = false,
 }) {
+  const { t } = useTranslation("users");
   const [showPassword, setShowPassword] = useState(false);
   const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
   const policyRequirements = checkPasswordRequirements("", selectedPolicy);
@@ -114,9 +134,9 @@ export function UserForm({
     <form onSubmit={onSubmit} id="user-form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {fields
         .filter(([key]) => !(readOnly && key === "user_pwd"))
-        .map(([key, label]) => (
+        .map(([key]) => (
         <label key={key} className="text-sm text-slate-700">
-          <span className="mb-1.5 block font-medium">{label}</span>
+          <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key])}</span>
           <div className="relative">
             {key === "inst_id" || key === "profile_id" ? (
               <select
@@ -126,7 +146,7 @@ export function UserForm({
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
                 className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
               >
-                <option value="">Select {key === "inst_id" ? "institution" : "profile"}</option>
+                <option value="">{key === "inst_id" ? t("selectInstitution") : t("selectProfile")}</option>
                 {(key === "inst_id" ? institutions : profiles).map((option) => {
                   const id =
                     option.inst_profile_id ??
@@ -169,7 +189,7 @@ export function UserForm({
               <button
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

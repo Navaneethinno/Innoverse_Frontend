@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { usersApi } from "@/Services/Users/users.api";
@@ -7,17 +8,18 @@ import { nameOf, userId } from "./UserForm";
 // instance in UsersPage.jsx. Shows the checker exactly what the maker is
 // asking to change (via /user/pending) so authorization isn't blind.
 export function AuthUser({ user, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("users");
   const open = !!user;
   const { data, isLoading, error } = usePendingChanges(usersApi.pending, open ? userId(user) : null, open);
   return (
     <ConfirmDialog
       open={open}
       onClose={onClose}
-      title="Confirm user action"
+      title={t("confirmUserAction")}
       description={
         user && (
           <>
-            auth user <strong>{nameOf(user)}</strong>?
+            {t("authUserConfirm")} <strong>{nameOf(user)}</strong>?
           </>
         )
       }

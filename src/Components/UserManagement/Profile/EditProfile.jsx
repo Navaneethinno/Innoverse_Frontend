@@ -1,14 +1,16 @@
+import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { ProfileForm } from "./ProfileForm";
 
 // Edit-profile modal — split out of the old monolithic ProfilesPage.jsx.
 export function EditProfile({ open, onClose, form, setForm, institutions, onSubmit, submitting }) {
+  const { t } = useTranslation("profiles");
   if (!open) return null;
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Edit profile"
+      title={t("editProfile")}
       size="lg"
       footer={
         <>
@@ -17,7 +19,7 @@ export function EditProfile({ open, onClose, form, setForm, institutions, onSubm
             onClick={onClose}
             className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
-            Cancel
+            {t("common:cancel")}
           </button>
           <button
             type="submit"
@@ -25,7 +27,7 @@ export function EditProfile({ open, onClose, form, setForm, institutions, onSubm
             disabled={submitting}
             className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
           >
-            {submitting ? "Saving..." : "Save changes"}
+            {submitting ? t("saving") : t("saveChanges")}
           </button>
         </>
       }

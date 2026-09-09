@@ -1,6 +1,8 @@
 import { AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 export function ErrorState({ title, description, onRetry }) {
+  const { t } = useTranslation("common");
   return (
     <Alert variant="destructive">
       <AlertCircle className="h-4 w-4" />
@@ -9,7 +11,7 @@ export function ErrorState({ title, description, onRetry }) {
         <span>{description}</span>
         {onRetry ? (
           <button className="text-sm font-medium underline" onClick={onRetry}>
-            Retry
+            {t("retry")}
           </button>
         ) : null}
       </AlertDescription>

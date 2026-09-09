@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 
 // Delete-institution confirmation — split out of the old shared inline
@@ -5,15 +6,16 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 // narration is optional per the confirmed spec (unlike deauth, where it's
 // required) but still accepted, so it's offered here rather than dropped.
 export function DeleteInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("institutions");
   return (
     <ConfirmDialog
       open={!!institution}
       onClose={onClose}
-      title="Confirm institution action"
+      title={t("confirmInstitutionActionTitle")}
       description={
         institution && (
           <>
-            delete institution <strong>{institution?.name ?? institution?.code}</strong>?
+            {t("deleteConfirmDescription")} <strong>{institution?.name ?? institution?.code}</strong>?
           </>
         )
       }
@@ -24,7 +26,7 @@ export function DeleteInstitutionProfile({ institution, narration, setNarration,
       <textarea
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
-        placeholder="Narration (optional)"
+        placeholder={t("narrationOptionalPlaceholder")}
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

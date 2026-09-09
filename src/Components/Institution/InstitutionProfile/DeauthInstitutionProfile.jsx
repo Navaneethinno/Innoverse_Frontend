@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
@@ -9,6 +10,7 @@ import { institutionId } from "./InstitutionProfileForm";
 // InstitutionDetailPage.jsx. Shows the checker exactly what the maker asked
 // to change (via /institution/profile/pending) before they reject it.
 export function DeauthInstitutionProfile({ institution, narration, setNarration, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("institutions");
   const open = !!institution;
   const { data, isLoading, error } = usePendingChanges(
     institutionsApi.pending,
@@ -19,11 +21,11 @@ export function DeauthInstitutionProfile({ institution, narration, setNarration,
     <ConfirmDialog
       open={open}
       onClose={onClose}
-      title="Confirm institution action"
+      title={t("confirmInstitutionActionTitle")}
       description={
         institution && (
           <>
-            deauth institution <strong>{institution?.name ?? institution?.code}</strong>?
+            {t("deauthConfirmDescription")} <strong>{institution?.name ?? institution?.code}</strong>?
           </>
         )
       }
@@ -35,7 +37,7 @@ export function DeauthInstitutionProfile({ institution, narration, setNarration,
       <textarea
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
-        placeholder="Narration (required)"
+        placeholder={t("narrationRequiredPlaceholder")}
         className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
       />
     </ConfirmDialog>

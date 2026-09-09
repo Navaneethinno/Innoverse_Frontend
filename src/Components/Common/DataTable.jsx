@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Search } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Modal } from "@/Components/Common/Modal";
@@ -73,7 +74,7 @@ function TableHead({ columns, sort, onSort }) {
   );
 }
 
-function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey }) {
+function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey, t }) {
   if (isLoading) {
     return (
       <tbody>
@@ -94,7 +95,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
       <tbody>
         <tr>
           <td colSpan={columns.length} className="px-4 py-12 text-center">
-            <p className="text-sm font-bold text-slate-600">{emptyTitle ?? "No records found"}</p>
+            <p className="text-sm font-bold text-slate-600">{emptyTitle ?? t("noRecordsFound")}</p>
             {emptyDescription && <p className="mt-1 text-xs text-slate-400">{emptyDescription}</p>}
           </td>
         </tr>
@@ -165,6 +166,7 @@ export function DataTable({
   fetchMore = null,
   infiniteScrollLimit = 50,
 }) {
+  const { t } = useTranslation("common");
   const [sort, setSort] = useState({ key: null, direction: null });
   const [page, setPage] = useState(1);
   const [viewAllOpen, setViewAllOpen] = useState(false);
@@ -188,7 +190,7 @@ export function DataTable({
       setInfinitePage(nextPage);
       setInfiniteHasMore(nextPage < (result?.totalPages ?? nextPage));
     } catch (error) {
-      setInfiniteError(error instanceof Error ? error.message : "Failed to load more records");
+      setInfiniteError(error instanceof Error ? error.message : t("failedToLoadMoreRecords"));
     } finally {
       setInfiniteLoading(false);
     }
@@ -263,7 +265,7 @@ export function DataTable({
           onClick={() => setViewAllOpen(true)}
           className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
         >
-          <Maximize2 size={12} /> View all
+          <Maximize2 size={12} /> {t("viewAll")}
         </button>
       </div>
 
@@ -286,6 +288,7 @@ export function DataTable({
               emptyTitle={emptyTitle}
               emptyDescription={emptyDescription}
               rowKey={rowKey}
+              t={t}
             />
           </table>
         </div>
@@ -293,7 +296,7 @@ export function DataTable({
         {!isLoading && totalRecords > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
             <span>
-              Page {currentPage} of {totalPages} · {totalRecords} total
+              {t("pageOf", { page: currentPage, total: totalPages })} · {totalRecords} {t("total")}
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -302,7 +305,7 @@ export function DataTable({
                 onClick={() => goToPage(currentPage - 1)}
                 className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 font-semibold disabled:opacity-40"
               >
-                <ChevronLeft size={13} /> Prev
+                <ChevronLeft size={13} /> {t("prev")}
               </button>
               <button
                 type="button"
@@ -310,7 +313,7 @@ export function DataTable({
                 onClick={() => goToPage(currentPage + 1)}
                 className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 font-semibold disabled:opacity-40"
               >
-                Next <ChevronRight size={13} />
+                {t("next")} <ChevronRight size={13} />
               </button>
             </div>
           </div>
@@ -323,8 +326,8 @@ export function DataTable({
         title={title}
         subtitle={
           fetchMore
-            ? `${modalRows.length} loaded${infiniteHasMore ? " · scroll for more" : " · all loaded"}`
-            : `${modalRows.length} of ${sortedRows.length} records`
+            ? `${modalRows.length} ${t("loaded")}${infiniteHasMore ? " · " + t("scrollForMore") : " · " + t("allLoaded")}`
+            : `${modalRows.length} ${t("of")} ${sortedRows.length} ${t("recordsWord")}`
         }
         size="xl"
         bodyClassName="px-0 py-0"
@@ -336,13 +339,13 @@ export function DataTable({
               <input
                 value={viewAllSearch}
                 onChange={(e) => setViewAllSearch(e.target.value)}
-                placeholder="Search…"
+                placeholder={t("searchPlaceholder")}
                 className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
               />
             </div>
             {fetchMore && viewAllSearch.trim() !== "" && (
               <p className="mt-1.5 text-[11px] text-amber-600">
-                Only searches records already loaded — scroll down first to load more, then search.
+                {t("searchLoadedOnlyHint")}
               </p>
             )}
           </div>
@@ -357,20 +360,21 @@ export function DataTable({
               emptyTitle={emptyTitle}
               emptyDescription={emptyDescription}
               rowKey={rowKey}
+              t={t}
             />
           </table>
           {fetchMore && infiniteRows.length > 0 && (
             <div className="py-3 text-center text-xs text-slate-400">
               {infiniteError ? (
                 <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-blue-600 underline">
-                  Failed to load more — retry
+                  {t("failedLoadMoreRetry")}
                 </button>
               ) : infiniteLoading ? (
-                "Loading more…"
+                t("loadingMore")
               ) : infiniteHasMore ? (
-                "Scroll for more"
+                t("scrollForMore")
               ) : (
-                "All records loaded"
+                t("allRecordsLoaded")
               )}
             </div>
           )}

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 export function institutionId(inst) {
   return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
 }
@@ -6,13 +8,14 @@ export function institutionId(inst) {
 // ViewInstitutionProfile and EditInstitutionProfile — extracted out of the
 // old monolithic InstitutionDetailPage.jsx.
 export function Field({ label, value }) {
+  const { t } = useTranslation();
   return (
     <div>
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
         {label}
       </p>
       <p className="text-sm text-slate-700 font-medium">
-        {typeof value === "boolean" ? (value ? "Yes" : "No") : (value ?? "—")}
+        {typeof value === "boolean" ? (value ? t("common:yes") : t("common:no")) : (value ?? "—")}
       </p>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
@@ -7,17 +8,18 @@ import { profileId } from "./ProfileForm";
 // instance in ProfilesPage.jsx. Shows the checker exactly what the maker
 // asked to change (via /user/profile/pending) before they authorize it.
 export function AuthProfile({ profile, pending, onClose, onConfirm }) {
+  const { t } = useTranslation("profiles");
   const open = !!profile;
   const { data, isLoading, error } = usePendingChanges(profilesApi.pending, open ? profileId(profile) : null, open);
   return (
     <ConfirmDialog
       open={open}
       onClose={onClose}
-      title="Confirm profile action"
+      title={t("confirmProfileAction")}
       description={
         profile && (
           <>
-            auth profile <strong>{profile?.profile_name}</strong>?
+            {t("authProfileConfirm")} <strong>{profile?.profile_name}</strong>?
           </>
         )
       }
