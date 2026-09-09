@@ -1,6 +1,7 @@
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
 import { getAccessToken, getRefreshToken } from "@/Services/api/authStorage";
+import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 import {
   API_BASE_URL,
   API_ENDPOINTS,
@@ -85,6 +86,7 @@ export async function loginRequest(username, password) {
       "Content-Type": "application/json",
       Deviceinfo: JSON.stringify(DEVICE_INFO),
       Authorization: getBasicAuthorization(),
+      ...apiLanguageHeader(),
     },
     body: JSON.stringify({ user_name: username, password }),
   });
@@ -100,6 +102,7 @@ export async function refreshTokenRequest() {
       "Content-Type": "application/json",
       Deviceinfo: JSON.stringify(DEVICE_INFO),
       Authorization: "Bearer " + refreshToken,
+      ...apiLanguageHeader(),
     },
     body: JSON.stringify({}),
   });
@@ -113,6 +116,7 @@ export async function changePassword(oldPassword, newPassword) {
       "Content-Type": "application/json",
       Deviceinfo: JSON.stringify(DEVICE_INFO),
       Authorization: "Bearer " + (getAccessToken() || ""),
+      ...apiLanguageHeader(),
     },
     body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
   });

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { Logo } from "@/Components/Common/Logo";
+import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
@@ -86,6 +87,8 @@ export function TopBar() {
             <Command size={12} strokeWidth={1.8} />
             <span>K</span>
           </button>
+
+          <LanguageDropdown className="hidden sm:block" />
 
           <button
             type="button"

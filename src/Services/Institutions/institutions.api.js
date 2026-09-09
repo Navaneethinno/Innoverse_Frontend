@@ -23,6 +23,7 @@ import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErr
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
+import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
 const REQUEST_TIMEOUT = 10000;
 
@@ -37,6 +38,7 @@ async function request(path, body) {
         "Content-Type": "application/json",
         Deviceinfo: JSON.stringify(DEVICE_INFO),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...apiLanguageHeader(),
       },
       body: JSON.stringify(body ?? {}),
       signal: controller.signal,

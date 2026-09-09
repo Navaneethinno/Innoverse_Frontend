@@ -16,6 +16,7 @@ import { useAuth } from "../../Hooks/useAuth";
 import { notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { Logo } from "@/Components/Common/Logo";
+import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import loginIllustrationLight from "@/assets/login-illustration.png";
 import loginIllustrationDark from "@/assets/login-illustration-dark.png";
 function GradientMesh() {
@@ -67,25 +68,28 @@ export function LoginPage() {
       className="login-theme-transition min-h-screen flex relative"
       style={{ background: "var(--background)" }}
     >
-      <button
-        type="button"
-        onClick={toggleMode}
-        title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        className="absolute top-4 right-4 z-20 p-2.5 rounded-xl text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid var(--glass-border)",
-        }}
-      >
-        {mode === "dark" ? (
-          <Sun size={16} strokeWidth={1.8} />
-        ) : (
-          <Moon size={16} strokeWidth={1.8} />
-        )}
-      </button>
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <LanguageDropdown />
+        <button
+          type="button"
+          onClick={toggleMode}
+          title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="p-2.5 rounded-xl text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{
+            background: "var(--glass-bg)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            border: "1px solid var(--glass-border)",
+          }}
+        >
+          {mode === "dark" ? (
+            <Sun size={16} strokeWidth={1.8} />
+          ) : (
+            <Moon size={16} strokeWidth={1.8} />
+          )}
+        </button>
+      </div>
       <div
         className="hidden lg:block lg:w-[70%] relative overflow-hidden"
         style={{ background: mode === "dark" ? "#0b1220" : "#eef2fb" }}

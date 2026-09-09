@@ -15,6 +15,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
+import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
 // The real Innoverse backend wraps responses as { code, message, data },
 // matching what src/Services/Auth/auth.service.js observes in practice
@@ -43,6 +44,7 @@ async function masterPost(path, body) {
         "Content-Type": "application/json",
         Deviceinfo: JSON.stringify(DEVICE_INFO),
         ...(token ? { Authorization: "Bearer " + token } : {}),
+        ...apiLanguageHeader(),
       },
       body: JSON.stringify(body ?? {}),
       signal: controller.signal,
