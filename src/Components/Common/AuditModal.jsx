@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -224,6 +225,7 @@ export function AuditModal({
   fetchAudit,
   auditLimit = 10,
 }) {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -336,8 +338,8 @@ export function AuditModal({
         >
           <AlertCircle size={14} className="shrink-0" />
           <span className="flex-1">{error.message ?? String(error)}</span>
-          <button onClick={() => setRetryToken((t) => t + 1)} className="shrink-0 text-xs font-bold underline">
-            Retry
+          <button onClick={() => setRetryToken((count) => count + 1)} className="shrink-0 text-xs font-bold underline">
+            {t("common:retry")}
           </button>
         </div>
       ) : entries.length === 0 ? (

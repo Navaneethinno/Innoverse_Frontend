@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguages } from "@/Hooks/Master/masterHooks";
 import { getApiLanguage, onApiLanguageChange, setApiLanguage } from "@/Utils/Lib/apiLanguage";
+import { i18n } from "@/Utils/I18n/i18n";
 import { cn } from "@/Utils/Lib/cn";
 
 // Same tolerant field-name fallback already used for /master/language
@@ -88,6 +89,11 @@ export function LanguageDropdown({ className }) {
                   type="button"
                   onClick={() => {
                     setApiLanguage(code);
+                    // Safe even for a language with no translation file yet
+                    // (i18next falls back to fallbackLng's strings for any
+                    // missing key rather than erroring) — the master list
+                    // may include languages beyond what's been translated.
+                    void i18n.changeLanguage(code);
                     setSelected(code);
                     setOpen(false);
                   }}

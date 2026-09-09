@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 
 // Generic confirm-action dialog built on the shared Modal shell (gradient
@@ -11,7 +12,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  cancelLabel,
   pending = false,
   confirmDisabled = false,
   destructive = false,
@@ -19,6 +20,7 @@ export function ConfirmDialog({
   onClose,
   children,
 }) {
+  const { t } = useTranslation();
   return (
     <Modal
       open={open}
@@ -33,7 +35,7 @@ export function ConfirmDialog({
             onClick={onClose}
             className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
           >
-            {cancelLabel}
+            {cancelLabel ?? t("common:cancel")}
           </button>
           <button
             type="button"

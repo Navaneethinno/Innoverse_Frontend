@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Bell, ChevronRight, Command, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
@@ -11,6 +12,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";
 export function TopBar() {
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -153,7 +155,7 @@ export function TopBar() {
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary-light transition-colors"
                   >
-                    <Settings size={13} /> Settings
+                    <Settings size={13} /> {t("common:settings")}
                   </button>
                   <button
                     onClick={() => {
@@ -162,7 +164,7 @@ export function TopBar() {
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-destructive hover:bg-[var(--destructive-soft)] transition-colors border-t border-border"
                   >
-                    <LogOut size={13} /> Sign out
+                    <LogOut size={13} /> {t("common:signOut")}
                   </button>
                 </motion.div>
               )}
