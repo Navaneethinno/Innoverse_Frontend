@@ -185,7 +185,8 @@
     background-image:
       radial-gradient(ellipse 80% 50% at 10% -10%, rgba(34, 102, 238, 0.12) 0%, transparent 60%),
       radial-gradient(ellipse 60% 40% at 90% 100%, rgba(184, 240, 224, 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(38, 255, 255, 0.08) 0%, transparent 70%);
+      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(38, 255, 255, 0.08) 0%, transparent 70%),
+      linear-gradient(135deg, var(--mesh-1) 0%, var(--background) 46%, var(--mesh-2) 100%);
     background-attachment: fixed;
     transition: background-color 250ms ease, color 250ms ease;
   }
