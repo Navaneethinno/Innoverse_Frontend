@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Search } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
+import { NoDataAnimation } from "@/Components/Common/NoDataAnimation";
 import { Modal } from "@/Components/Common/Modal";
 import { cn } from "@/Utils/Lib/cn";
 
@@ -95,6 +96,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
       <tbody>
         <tr>
           <td colSpan={columns.length} className="px-4 py-12 text-center">
+            <NoDataAnimation className="mx-auto h-24 w-32" />
             <p className="text-sm font-bold text-slate-600">{emptyTitle ?? t("noRecordsFound")}</p>
             {emptyDescription && <p className="mt-1 text-xs text-slate-400">{emptyDescription}</p>}
           </td>
