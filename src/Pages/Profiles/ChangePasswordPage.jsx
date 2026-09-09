@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Check, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
-import { notifications } from "@/Utils/Lib/notifications";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usePasswordPolicyQuery } from "@/Hooks/Users/userHooks";
 import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/password-policy";
 
@@ -37,8 +37,8 @@ export function ChangePasswordPage() {
     }
     setLoading(true);
     try {
-      await changePassword(oldPassword, newPassword);
-      notifications.success("Password changed successfully");
+      const result = await changePassword(oldPassword, newPassword);
+      notifications.success(apiMessage(result, "Password changed successfully"));
       navigate("/dashboard");
     } catch (error) {
       notifications.error(error instanceof Error ? error.message : "Unable to change password");

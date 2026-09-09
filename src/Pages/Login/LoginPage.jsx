@@ -13,7 +13,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
-import { notifications } from "../../Utils/Lib/notifications";
+import { apiMessage, notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { Logo } from "@/Components/Common/Logo";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
@@ -52,13 +52,13 @@ export function LoginPage() {
     }
     setError("");
     setLoading(true);
-    const ok = await login({ username, password });
+    const result = await login({ username, password });
     setLoading(false);
-    if (ok) {
-      notifications.success("Signed in successfully");
+    if (result.success) {
+      notifications.success(apiMessage(result, "Signed in successfully"));
       navigate("/dashboard");
     } else {
-      const msg = "Invalid credentials. Please try again.";
+      const msg = result.message || "Invalid credentials. Please try again.";
       setError(msg);
       notifications.error(msg);
     }

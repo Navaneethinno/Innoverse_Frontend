@@ -44,6 +44,11 @@ function parseSessionResponse(payload) {
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
     // Kept separate from Master reference data per Phase 24C spec.
     menu_array: Array.isArray(data?.menu_array) ? data.menu_array : [],
+    // The backend's own description of the outcome (e.g. "Login
+    // Successful") — carried through so the UI can show it in a toast
+    // instead of a hardcoded string; parseSessionResponse otherwise
+    // discards everything except the session/menu fields it needs.
+    message: payload?.message,
   };
 }
 

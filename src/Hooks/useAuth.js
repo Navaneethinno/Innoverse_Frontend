@@ -24,7 +24,10 @@ export function useAuth(selector) {
       // The authenticated user's permission/navigation dataset, persisted
       // separately from Master reference data (see Redux/MenuSlice.js).
       dispatch(setMenuArray(response.menu_array));
-      return true;
+      // Returns the backend's own message (e.g. "Login Successful") rather
+      // than a bare boolean, so the UI can show it instead of a hardcoded
+      // string — see LoginPage.jsx's use of apiMessage().
+      return { success: true, message: response.message };
     } catch (error) {
       // Previously this swallowed every failure into a bare `false`, so the
       // UI always showed "Invalid credentials" — even for a config error
@@ -34,7 +37,7 @@ export function useAuth(selector) {
       // visible in the console instead of being indistinguishable from a
       // genuine wrong-password rejection.
       console.error("Login failed:", error);
-      return false;
+      return { success: false, message: error instanceof Error ? error.message : undefined };
     }
   };
   const refresh = async () => {
