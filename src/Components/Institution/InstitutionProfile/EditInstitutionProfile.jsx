@@ -14,6 +14,14 @@ export function EditInstitutionProfile({ institution, form, setField }) {
     const value = timezone.name ?? timezone.id;
     return { value, label: value };
   });
+  // Records created before this dropdown existed (or via the old free-text
+  // field) can hold a value — an IANA zone like "Asia/Kolkata", or anything
+  // else someone typed — that isn't one of the master list's descriptive
+  // names. Keep it selectable/visible instead of silently blanking the
+  // field out from under an edit that never touches this value.
+  if (form.timezone && !timezoneOptions.some((option) => option.value === form.timezone)) {
+    timezoneOptions.unshift({ value: form.timezone, label: form.timezone });
+  }
   return (
     <>
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
