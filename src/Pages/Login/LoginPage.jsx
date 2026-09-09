@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AlertCircle,
@@ -34,6 +35,7 @@ function GradientMesh() {
   );
 }
 export function LoginPage() {
+  const { t } = useTranslation("login");
   const [username, setUsername] = useState(
     import.meta.env.VITE_DEFAULT_LOGIN_USERNAME || "ServiceProvider1",
   );
@@ -47,7 +49,7 @@ export function LoginPage() {
   const submit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
-      setError("Please enter your username and password");
+      setError(t("enterCredentials"));
       return;
     }
     setError("");
@@ -58,7 +60,7 @@ export function LoginPage() {
       notifications.success(apiMessage(result, "Signed in successfully"));
       navigate("/dashboard");
     } else {
-      const msg = result.message || "Invalid credentials. Please try again.";
+      const msg = result.message || t("invalidCredentials");
       setError(msg);
       notifications.error(msg);
     }
@@ -121,7 +123,7 @@ export function LoginPage() {
           <div className="text-center mb-8">
             <Logo size="lg" className="mx-auto mb-4" />
             <h1 className="text-xl font-semibold text-slate-800 tracking-tight">Innoverse</h1>
-            <p className="text-sm text-slate-500 mt-1">Fintech Administration Platform</p>
+            <p className="text-sm text-slate-500 mt-1">{t("tagline")}</p>
           </div>
           <div
             className="rounded-3xl border p-8"
@@ -133,10 +135,10 @@ export function LoginPage() {
               boxShadow: "0 20px 60px rgba(124,140,255,0.12), 0 4px 16px rgba(0,0,0,0.04)",
             }}
           >
-            <h2 className="text-base font-semibold text-slate-800 mb-6">Welcome back</h2>
+            <h2 className="text-base font-semibold text-slate-800 mb-6">{t("welcomeBack")}</h2>
             <form onSubmit={submit} noValidate className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("username")}</label>
                 <div className="relative">
                   <Mail
                     size={14}
@@ -151,7 +153,7 @@ export function LoginPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("password")}</label>
                 <div className="relative">
                   <Lock
                     size={14}
@@ -166,7 +168,7 @@ export function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((visible) => !visible)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -179,7 +181,7 @@ export function LoginPage() {
                   onClick={() => navigate("/forgot-password")}
                   className="text-xs font-medium text-blue-600 hover:text-blue-700"
                 >
-                  Forgot Password?
+                  {t("forgotPassword")}
                 </button>
               </div>
               <AnimatePresence>
@@ -197,11 +199,11 @@ export function LoginPage() {
               >
                 {loading ? (
                   <>
-                    <RefreshCw size={14} className="animate-spin" /> Authenticating…
+                    <RefreshCw size={14} className="animate-spin" /> {t("authenticating")}
                   </>
                 ) : (
                   <>
-                    <Fingerprint size={14} /> Sign in securely
+                    <Fingerprint size={14} /> {t("signInSecurely")}
                   </>
                 )}
               </button>

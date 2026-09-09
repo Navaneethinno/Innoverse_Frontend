@@ -14,4 +14,18 @@ export const auth = {
   setup: "Configuração",
 };
 
-export default { common, auth };
+export const login = {
+  tagline: "Plataforma de Administração Fintech",
+  welcomeBack: "Bem-vindo de volta",
+  username: "Usuário",
+  password: "Senha",
+  forgotPassword: "Esqueceu a senha?",
+  signInSecurely: "Entrar com segurança",
+  authenticating: "Autenticando…",
+  showPassword: "Mostrar senha",
+  hidePassword: "Ocultar senha",
+  enterCredentials: "Por favor, insira seu usuário e senha",
+  invalidCredentials: "Credenciais inválidas. Tente novamente.",
+};
+
+export default { common, auth, login };

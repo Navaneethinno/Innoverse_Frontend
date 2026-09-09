@@ -23,7 +23,7 @@ void i18n
     resources,
     fallbackLng: "en",
     defaultNS: "common",
-    ns: ["common", "auth"],
+    ns: ["common", "auth", "login"],
     interpolation: { escapeValue: false },
     detection: {
       // Same localStorage key the language dropdown's own apiLanguage.js

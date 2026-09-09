@@ -16,4 +16,21 @@ export const auth = {
   setup: "Setup",
 };
 
-export default { common, auth };
+// The Login page's own visible strings — separate from `auth` above
+// (which is a nav/route-label namespace, not this page's actual copy) so
+// adding "Welcome back" etc. doesn't collide with those existing keys.
+export const login = {
+  tagline: "Fintech Administration Platform",
+  welcomeBack: "Welcome back",
+  username: "Username",
+  password: "Password",
+  forgotPassword: "Forgot Password?",
+  signInSecurely: "Sign in securely",
+  authenticating: "Authenticating…",
+  showPassword: "Show password",
+  hidePassword: "Hide password",
+  enterCredentials: "Please enter your username and password",
+  invalidCredentials: "Invalid credentials. Please try again.",
+};
+
+export default { common, auth, login };
