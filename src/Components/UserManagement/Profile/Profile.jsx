@@ -6,6 +6,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 import {
   mapProfileListResponse,
   useHasProfileAction,
@@ -276,34 +277,46 @@ export function Profile() {
         return (
           <div className="flex items-center justify-center gap-1">
             {canEditProfile && canEdit && (
-              <button title={t("common:edit")} onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-                <Pencil size={14} />
-              </button>
+              <UiTooltip label="Edit">
+                <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+                  <Pencil size={14} />
+                </button>
+              </UiTooltip>
             )}
             {canViewProfile && (
-              <button title={t("common:view")} onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-                <Eye size={14} />
-              </button>
+              <UiTooltip label="View">
+                <button onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+                  <Eye size={14} />
+                </button>
+              </UiTooltip>
             )}
             {canViewProfile && (
-              <button title={t("common:audit")} onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-                <History size={14} />
-              </button>
+              <UiTooltip label="Audit">
+                <button onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+                  <History size={14} />
+                </button>
+              </UiTooltip>
             )}
             {canAuthorizeProfile && canAuthorize && (
               <>
-                <button title={t("common:authorize")} onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                  <ShieldCheck size={14} />
-                </button>
-                <button title={t("common:deauthorize")} onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                  <ShieldOff size={14} />
-                </button>
+                <UiTooltip label="Authorize">
+                  <button onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                    <ShieldCheck size={14} />
+                  </button>
+                </UiTooltip>
+                <UiTooltip label="Deauthorize">
+                  <button onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                    <ShieldOff size={14} />
+                  </button>
+                </UiTooltip>
               </>
             )}
             {canDeleteProfile && canDelete && (
-              <button title={t("common:delete")} onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-                <Trash2 size={14} />
-              </button>
+              <UiTooltip label="Delete">
+                <button onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+                  <Trash2 size={14} />
+                </button>
+              </UiTooltip>
             )}
           </div>
         );

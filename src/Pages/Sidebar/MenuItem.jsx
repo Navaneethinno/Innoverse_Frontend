@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPath } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -54,10 +54,10 @@ export function MenuItem({
 
   return (
     <div className="flex flex-col gap-1">
+      <UiTooltip label={item?.menu_name}>
       <button
         type="button"
         onClick={handleClick}
-        title={getUiTooltipText(item?.menu_name)}
         className={cn(
           "flex items-center justify-between gap-2 rounded-lg truncate text-left outline-none transition-colors",
           isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-9 px-2.5 text-xs font-medium",
@@ -82,6 +82,7 @@ export function MenuItem({
           {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
         </span>
       </button>
+      </UiTooltip>
 
       {hasChildren && !isCollapsed && (
         <div

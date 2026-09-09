@@ -61,6 +61,10 @@ export const API_ENDPOINTS = {
     COUNTRY_LIST: "/master/country",
     CURRENCY_LIST: "/master/currency",
     LANGUAGE_LIST: "/master/language",
+    // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",
+    // same as every other Master endpoint above), paginated — {page, limit}
+    // in the body, {id, name, status, status_name} per record.
+    TIMEZONE_LIST: "/master/timezone",
   },
 
   // Grouped Module -> Menu, matching the sidebar's own grouping and the

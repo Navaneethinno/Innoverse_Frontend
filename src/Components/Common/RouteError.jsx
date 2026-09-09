@@ -1,5 +1,5 @@
 import { Link, useRouteError } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useTranslation } from "react-i18next";
 
 export function RouteError() {
@@ -14,18 +14,28 @@ export function RouteError() {
     console.error("RouteError boundary caught:", error);
   }
   return (
-    <div className="flex flex-col items-center justify-center h-screen text-center gap-3">
-      <AlertTriangle className="h-16 w-16 text-red-500" />
-      <h1 className="text-2xl font-bold">{t("lostTitle")}</h1>
-      <p className="text-sm font-medium text-slate-500 mb-2">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 text-center">
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-teal-200/30 blur-3xl dark:bg-teal-900/20" />
+      <div className="relative flex w-full max-w-xl flex-col items-center gap-3 rounded-[2rem] border border-white/70 bg-card/60 px-8 py-10 shadow-xl backdrop-blur-xl dark:border-white/10">
+      <DotLottieReact
+        className="h-64 w-64 mix-blend-multiply dark:mix-blend-screen"
+        src="/assets/animations/404-warning-green.lottie"
+        loop
+        autoplay
+        aria-label="Page not found"
+      />
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("lostTitle")}</h1>
+      <p className="mb-2 text-sm font-medium text-muted-foreground">
         {t("pageNotFound")}
       </p>
       <Link
         to="/dashboard"
-        className="bg-red-500 text-white px-4 py-2 rounded outline-none font-medium hover:bg-red-600 transition-colors"
+        className="rounded-xl bg-brand-gradient px-5 py-2.5 font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"
       >
         {t("backToHome")}
       </Link>
+      </div>
     </div>
   );
 }

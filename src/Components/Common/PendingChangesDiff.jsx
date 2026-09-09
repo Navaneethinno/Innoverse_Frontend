@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
-import { cn } from "@/Utils/Lib/cn";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Fetches and renders the /{entity}/pending {id} diff inside an Auth/Deauth
 // confirm dialog, so the checker sees exactly what a maker is asking to
@@ -207,9 +207,11 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-2">
               <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</dt>
-              <dd className="truncate text-xs font-semibold text-slate-700" title={String(value ?? "")}>
-                {formatMetaValue(value)}
-              </dd>
+              <UiTooltip label={String(value ?? "")}>
+                <dd className="truncate text-xs font-semibold text-slate-700">
+                  {formatMetaValue(value)}
+                </dd>
+              </UiTooltip>
             </div>
           ))}
         </dl>

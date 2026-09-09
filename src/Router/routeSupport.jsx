@@ -3,7 +3,7 @@ import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 export const pageFallback = (
   <div className="min-h-screen pt-20 pb-12 px-4 bg-[#F9FAFB]">
     <div className="mx-auto flex max-w-6xl justify-center py-24">
-      <LoadingAnimation className="h-28 w-28" />
+      <LoadingAnimation className="h-40 w-40" />
     </div>
   </div>
 );

@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   typography: {
-    fontFamily: '"Roboto Condensed", sans-serif',
+    fontFamily: "var(--font-sans)",
   },
   components: {
     MuiCssBaseline: {

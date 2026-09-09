@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { getModuleIcon } from "./moduleIcons";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders
 // only the modules the caller passes in (already filtered to the user's
@@ -66,10 +67,9 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
             const Icon = getModuleIcon(moduleItem.module_name);
             const isActive = selectedModule?.module_id === moduleItem.module_id;
             return (
+              <UiTooltip key={moduleItem.module_id} label={moduleItem.module_name}>
               <button
-                key={moduleItem.module_id}
                 type="button"
-                title={moduleItem.module_name}
                 onClick={() => {
                   onSelectModule(moduleItem);
                   setIsOpen(false);
@@ -92,6 +92,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
                 />
                 {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
               </button>
+              </UiTooltip>
             );
           })}
           {(modules || []).length === 0 && !isCollapsed && (

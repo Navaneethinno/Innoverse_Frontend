@@ -123,6 +123,7 @@ export const institutions = {
   institutionType: "Institution Type",
   typeLabel: "Type",
   selectInstitutionType: "Select institution type",
+  selectTimezone: "Select timezone",
   timezoneLabel: "Timezone",
   timezonePlaceholder: "Asia/Kolkata",
   defaultLanguage: "Default language",

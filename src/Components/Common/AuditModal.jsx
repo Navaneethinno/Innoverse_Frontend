@@ -5,6 +5,7 @@ import { Skeleton } from "@/Components/UI/skeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Modal } from "@/Components/Common/Modal";
 import { CopyButton } from "@/Components/Common/CopyButton";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -118,12 +119,11 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
         <StatusBadge status={status} />
         {!isEmptyPlaceholder(entry.audit_key) && (
           <span className="ml-auto flex max-w-full basis-full items-center gap-1 sm:basis-auto">
-            <p
-              className="min-w-0 truncate font-mono text-[10px] text-[var(--muted-foreground-soft)]"
-              title={entry.audit_key}
-            >
-              #{entry.audit_key}
-            </p>
+            <UiTooltip label={entry.audit_key}>
+              <p className="min-w-0 truncate font-mono text-[10px] text-[var(--muted-foreground-soft)]">
+                #{entry.audit_key}
+              </p>
+            </UiTooltip>
             <CopyButton value={entry.audit_key} />
           </span>
         )}

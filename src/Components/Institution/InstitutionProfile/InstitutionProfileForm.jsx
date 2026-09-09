@@ -36,6 +36,26 @@ export function EditField({ label, value, onChange, type = "text", disabled = fa
     </div>
   );
 }
+export function EditSelect({ label, value, onChange, options, placeholder, disabled = false }) {
+  return (
+    <div>
+      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+        disabled={disabled}
+        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
 export function EditToggle({ label, value, onChange }) {
   return (
     <label className="flex h-10 items-center justify-between rounded-xl border border-slate-200 px-3 py-2">

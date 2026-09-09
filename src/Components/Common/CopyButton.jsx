@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Tiny icon-only copy-to-clipboard button — briefly swaps to a checkmark on
 // success instead of a toast, since it's meant to sit inline next to short
@@ -23,10 +23,10 @@ export function CopyButton({ value, className, size = 11 }) {
   };
 
   return (
+    <UiTooltip label={copied ? "Copied!" : "Copy to clipboard"}>
     <button
       type="button"
       onClick={handleCopy}
-      title={getUiTooltipText(copied ? "Copied!" : "Copy to clipboard")}
       aria-label="Copy to clipboard"
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600",
@@ -35,5 +35,6 @@ export function CopyButton({ value, className, size = 11 }) {
     >
       {copied ? <Check size={size} className="text-emerald-500" /> : <Copy size={size} />}
     </button>
+    </UiTooltip>
   );
 }

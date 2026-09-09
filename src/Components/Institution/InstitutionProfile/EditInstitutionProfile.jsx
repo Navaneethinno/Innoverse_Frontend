@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { EditField, EditToggle } from "./InstitutionProfileForm";
+import { EditField, EditSelect, EditToggle } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
+import { useTimezones } from "@/Hooks/Master/masterHooks";
 
 // Edit-institution form fields — split out of the old monolithic
 // InstitutionDetailPage.jsx's inline editMode branch. ViewInstitutionProfile
@@ -8,6 +9,11 @@ import { DateFormatField } from "./DateFormatField";
 // owns the field markup, matching payse's EditInstitutions.jsx convention.
 export function EditInstitutionProfile({ institution, form, setField }) {
   const { t } = useTranslation("institutions");
+  const { timezones } = useTimezones();
+  const timezoneOptions = timezones.map((timezone) => {
+    const value = timezone.name ?? timezone.id;
+    return { value, label: value };
+  });
   return (
     <>
       <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
@@ -16,7 +22,13 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           <EditField label={t("institutionCode")} value={form.code} onChange={setField("code")} />
           <EditField label={t("institutionName")} value={form.name} onChange={setField("name")} />
           <EditField label={t("institutionType")} value={institution.type_name ?? institution.type} disabled />
-          <EditField label={t("timezoneLabel")} value={form.timezone} onChange={setField("timezone")} />
+          <EditSelect
+            label={t("timezoneLabel")}
+            value={form.timezone}
+            onChange={setField("timezone")}
+            options={timezoneOptions}
+            placeholder={t("selectTimezone")}
+          />
           <DateFormatField value={form.date_format} onChange={setField("date_format")} />
           <EditToggle label={t("hasBranch")} value={form.has_branch} onChange={setField("has_branch")} />
         </div>

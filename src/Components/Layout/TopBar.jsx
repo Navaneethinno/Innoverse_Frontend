@@ -9,7 +9,7 @@ import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,22 +63,23 @@ export function TopBar() {
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
+          <UiTooltip label={t("layout:keyboardShortcutsHint")}>
           <button
             type="button"
-            title={getUiTooltipText(t("layout:keyboardShortcutsHint"))}
             aria-label={t("layout:keyboardShortcuts")}
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[10px] font-mono font-semibold"
           >
             <Command size={12} strokeWidth={1.8} />
             <span>K</span>
           </button>
+          </UiTooltip>
 
           <LanguageDropdown className="hidden sm:block" />
 
+          <UiTooltip label={mode === "dark" ? t("layout:switchToLightMode") : t("layout:switchToDarkMode")}>
           <button
             type="button"
             onClick={toggleMode}
-            title={getUiTooltipText(mode === "dark" ? t("layout:switchToLightMode") : t("layout:switchToDarkMode"))}
             aria-label={mode === "dark" ? t("layout:switchToLightMode") : t("layout:switchToDarkMode")}
             className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
@@ -88,14 +89,19 @@ export function TopBar() {
               <Moon size={15} strokeWidth={1.8} />
             )}
           </button>
+          </UiTooltip>
 
+          <UiTooltip label="Notifications">
           <button
-            onClick={() => navigate("/institutions")}
+            type="button"
+            onClick={() => navigate("/notifications")}
+            aria-label="Notifications"
             className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors"
           >
             <Bell size={15} strokeWidth={1.8} />
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-gradient" />
           </button>
+          </UiTooltip>
 
           <div className="relative" ref={menuRef}>
             <button

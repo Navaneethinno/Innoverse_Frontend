@@ -34,3 +34,22 @@ export function useLanguages() {
   useEffect(() => { void load(); }, [load]);
   return { languages, error };
 }
+
+export function useTimezones() {
+  const [timezones, setTimezones] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setTimezones(await masterApi.timezoneList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load timezones"));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  return { timezones, loading, error };
+}

@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 function pathForCrumb(crumb) {
   const paths = {
@@ -32,9 +32,9 @@ export function PageBreadcrumbs() {
           {index > 0 && (
             <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />
           )}
+          <UiTooltip label={crumb}>
           <button
             type="button"
-            title={getUiTooltipText(crumb)}
             onClick={() => navigate(pathForCrumb(crumb))}
             className={
               index === crumbs.length - 1
@@ -44,6 +44,7 @@ export function PageBreadcrumbs() {
           >
             {crumb}
           </button>
+          </UiTooltip>
         </span>
       ))}
     </nav>

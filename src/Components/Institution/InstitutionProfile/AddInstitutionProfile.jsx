@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
-import { useInstitutionTypes, useLanguages } from "@/Hooks/Master/masterHooks";
+import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
@@ -35,7 +35,7 @@ const EMPTY = {
   code: "",
   name: "",
   type: "PLATFORM_USER",
-  timezone: "Asia/Kolkata",
+  timezone: "",
   languageDefault: "en",
   languageSupported: ["en"],
   date_format: "DD-MM-YYYY",
@@ -169,6 +169,67 @@ function ReviewRow({ label, value }) {
   );
 }
 
+function LivePreview({ form, step, steps, t }) {
+  const value = (item) => item || t("previewNotSet");
+  return (
+    <aside className="lg:sticky lg:top-24 lg:self-start">
+      <div className="overflow-hidden rounded-[1.75rem] border border-white/70 bg-card/80 shadow-xl shadow-blue-900/10 backdrop-blur-xl dark:border-white/10">
+        <div className="border-b border-border/60 bg-gradient-to-br from-primary/10 via-transparent to-teal-100/20 px-6 py-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Live preview</p>
+              <h2 className="mt-1 text-lg font-bold tracking-tight text-foreground">{value(form.name)}</h2>
+            </div>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold text-primary">
+              {t("stepOfTotal", { step: step + 1, total: steps.length })}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-brand-gradient transition-all duration-300" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
+          </div>
+        </div>
+        <div className="space-y-5 p-6">
+          <PreviewSection title={t("institutionSectionLabel")}>
+            <PreviewItem label={t("reviewCode")} value={form.code} />
+            <PreviewItem label={t("reviewName")} value={form.name} />
+            <PreviewItem label={t("reviewType")} value={form.type} />
+            <PreviewItem label={t("reviewTimezone")} value={form.timezone} />
+            <PreviewItem label={t("reviewDateFormat")} value={form.date_format} />
+          </PreviewSection>
+          <PreviewSection title="Configuration">
+            <PreviewItem label={t("defaultLanguage")} value={form.languageDefault} />
+            <PreviewItem label={t("supportedLanguages")} value={form.languageSupported.join(", ")} />
+            <PreviewItem label={t("hasBranch")} value={form.has_branch ? t("common:yes") : t("common:no")} />
+          </PreviewSection>
+          <PreviewSection title={t("kycLoginPolicySectionLabel")}>
+            <PreviewItem label={t("kycEnabled")} value={form.kyc_enabled ? t("common:yes") : t("common:no")} />
+            <PreviewItem label={t("loginPinEnabled")} value={form.is_login_pin_enabled ? t("common:yes") : t("common:no")} />
+            <PreviewItem label={t("transactionPinEnabled")} value={form.is_txn_pin_enabled ? t("common:yes") : t("common:no")} />
+          </PreviewSection>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function PreviewSection({ title, children }) {
+  return (
+    <section>
+      <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{title}</h3>
+      <div className="divide-y divide-border/60 rounded-xl border border-border/60 px-3">{children}</div>
+    </section>
+  );
+}
+
+function PreviewItem({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="max-w-[60%] truncate text-right text-xs font-semibold text-foreground">{value || "Not set"}</span>
+    </div>
+  );
+}
+
 export function AddInstitutionProfile() {
   const { t } = useTranslation("institutions");
   const navigate = useNavigate();
@@ -186,6 +247,7 @@ export function AddInstitutionProfile() {
   const [createdId, setCreatedId] = useState(null);
   const { types: institutionTypes } = useInstitutionTypes();
   const { languages } = useLanguages();
+  const { timezones } = useTimezones();
   const STEPS = STEP_DEFS.map((step) => ({ ...step, label: t(step.key) }));
 
   if (submitted) {
@@ -280,7 +342,7 @@ export function AddInstitutionProfile() {
   };
   return (
     <div className="pt-4 pb-8">
-      <div className="max-w-xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         <button
           onClick={() => navigate("/institutions")}
           className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -345,6 +407,8 @@ export function AddInstitutionProfile() {
           })}
         </div>
 
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
+          <div>
         {mutationError && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -407,13 +471,20 @@ export function AddInstitutionProfile() {
                       </select>
                     </label>
                     <div className="grid grid-cols-2 gap-4">
-                      <InputField
-                        label={t("timezoneLabel")}
-                        fieldKey="timezone"
-                        placeholder={t("timezonePlaceholder")}
-                        value={form.timezone}
-                        onChange={setField}
-                      />
+                      <label className="block text-sm font-medium text-slate-700">
+                        <span className="mb-1.5 block">{t("timezoneLabel")}</span>
+                        <select
+                          value={form.timezone}
+                          onChange={(e) => setField("timezone", e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="">{t("selectTimezone")}</option>
+                          {timezones.map((timezone) => {
+                            const value = timezone.name ?? timezone.id;
+                            return <option key={timezone.id ?? value} value={value}>{value}</option>;
+                          })}
+                        </select>
+                      </label>
                       <DateFormatField
                         value={form.date_format}
                         onChange={(value) => setField("date_format", value)}
@@ -659,6 +730,9 @@ export function AddInstitutionProfile() {
           >
             {step === STEPS.length - 1 ? t("submitForApproval") : t("continueButton")}
           </button>
+        </div>
+          </div>
+          <LivePreview form={form} step={step} steps={STEPS} t={t} />
         </div>
       </div>
     </div>

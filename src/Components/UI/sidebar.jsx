@@ -11,7 +11,6 @@ import { Separator } from "./separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./sheet";
 import { Skeleton } from "./skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
-import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
@@ -221,24 +220,30 @@ function SidebarTrigger({ className, onClick, ...props }) {
 function SidebarRail({ className, ...props }) {
   const { toggleSidebar } = useSidebar();
   return (
-    <button
-      data-sidebar="rail"
-      data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
-      tabIndex={-1}
-      onClick={toggleSidebar}
-      title={getUiTooltipText("Toggle Sidebar")}
-      className={cn(
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          data-sidebar="rail"
+          data-slot="sidebar-rail"
+          aria-label="Toggle Sidebar"
+          tabIndex={-1}
+          onClick={toggleSidebar}
+          className={cn(
         "hover:after:bg-sidebar-border absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] sm:flex",
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
         "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
         "hover:group-data-[collapsible=offcanvas]:bg-sidebar group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
-        className,
-      )}
-      {...props}
-    />
+            className,
+          )}
+          {...props}
+        />
+      </TooltipTrigger>
+      <TooltipContent side="right" sideOffset={6}>
+        Toggle Sidebar
+      </TooltipContent>
+    </Tooltip>
   );
 }
 function SidebarInset({ className, ...props }) {

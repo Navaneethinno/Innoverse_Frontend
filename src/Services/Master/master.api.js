@@ -123,6 +123,14 @@ export const masterApi = {
       await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {}, { basicAuthFallback: true }),
       "language",
     ),
+  // Paginated (10/page by default) unlike the other Master endpoints above —
+  // a large limit is passed so callers get the full 36-record reference
+  // list in one call instead of having to page through it for a dropdown.
+  timezoneList: async () =>
+    toArray(
+      await masterPost(API_ENDPOINTS.MASTER.TIMEZONE_LIST, { page: 1, limit: 100 }),
+      "timezone",
+    ),
 
   // The remaining /master/*/list endpoints confirmed in the Postman
   // collection but with no consumer in the app yet — exposed here so a
