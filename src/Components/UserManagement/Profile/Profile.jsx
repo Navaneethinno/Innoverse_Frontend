@@ -20,6 +20,7 @@ import {
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { cn } from "@/Utils/Lib/cn";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
 import { AddProfile } from "./AddProfile";
@@ -269,32 +270,32 @@ export function Profile() {
         return (
           <div className="flex items-center justify-center gap-1">
             {canEditProfile && canEdit && (
-              <button title="Edit" onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button title={getUiTooltipText("Edit")} onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Pencil size={14} />
               </button>
             )}
             {canViewProfile && (
-              <button title="View" onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <button title={getUiTooltipText("View")} onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <Eye size={14} />
               </button>
             )}
             {canViewProfile && (
-              <button title="Audit" onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <button title={getUiTooltipText("Audit")} onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <History size={14} />
               </button>
             )}
             {canAuthorizeProfile && canAuthorize && (
               <>
-                <button title="Authorize" onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <button title={getUiTooltipText("Authorize")} onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                   <ShieldCheck size={14} />
                 </button>
-                <button title="Deauthorize" onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <button title={getUiTooltipText("Deauthorize")} onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
                   <ShieldOff size={14} />
                 </button>
               </>
             )}
             {canDeleteProfile && canDelete && (
-              <button title="Delete" onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+              <button title={getUiTooltipText("Delete")} onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
                 <Trash2 size={14} />
               </button>
             )}

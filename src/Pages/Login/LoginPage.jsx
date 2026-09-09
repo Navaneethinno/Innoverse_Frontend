@@ -18,6 +18,7 @@ import { apiMessage, notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { Logo } from "@/Components/Common/Logo";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 import loginIllustrationLight from "@/assets/login-illustration.png";
 import loginIllustrationDark from "@/assets/login-illustration-dark.png";
 function GradientMesh() {
@@ -75,7 +76,7 @@ export function LoginPage() {
         <button
           type="button"
           onClick={toggleMode}
-          title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={getUiTooltipText(mode === "dark" ? "Switch to light mode" : "Switch to dark mode")}
           aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           className="p-2.5 rounded-xl text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           style={{

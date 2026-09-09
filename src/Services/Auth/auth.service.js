@@ -20,7 +20,7 @@ export const DEVICE_INFO = {
   device_name: "Store-1-POS",
 };
 
-function getBasicAuthorization() {
+export function getBasicAuthorization() {
   if (!AUTH_BASIC_PASSWORD) {
     throw new Error("Basic authentication is not configured");
   }

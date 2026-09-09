@@ -31,6 +31,7 @@ import {
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { cn } from "@/Utils/Lib/cn";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
@@ -240,44 +241,44 @@ export function InstitutionProfile() {
         const isPending = String(inst.process_status_name ?? "").toLowerCase().includes("pending");
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
-            <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+            <button title={getUiTooltipText("View")} onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Eye size={14} />
             </button>
             {canEdit && (
-              <button title="Edit" onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button title={getUiTooltipText("Edit")} onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Pencil size={14} />
               </button>
             )}
-            <button title="Audit" onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+              <button title={getUiTooltipText("Audit")} onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
               <History size={14} />
             </button>
             {draft && canAdd && (
-              <button title="Submit Draft" onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button title={getUiTooltipText("Submit Draft")} onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Send size={14} />
               </button>
             )}
             {canAuthorise && isPending && (
               <>
-                <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <button title={getUiTooltipText("Authorize")} onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                   <ShieldCheck size={14} />
                 </button>
-                <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <button title={getUiTooltipText("Deauthorize")} onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
                   <ShieldOff size={14} />
                 </button>
               </>
             )}
             {canChangeStatus && active && (
-              <button title="Deactivate" onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
+                <button title={getUiTooltipText("Deactivate")} onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />
               </button>
             )}
             {canChangeStatus && inactive && (
-              <button title="Reactivate" onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <button title={getUiTooltipText("Reactivate")} onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                 <Power size={14} />
               </button>
             )}
             {canDelete && (
-              <button title="Delete" onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+                <button title={getUiTooltipText("Delete")} onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
                 <Trash2 size={14} />
               </button>
             )}

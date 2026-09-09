@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPath } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -56,7 +57,7 @@ export function MenuItem({
       <button
         type="button"
         onClick={handleClick}
-        title={item?.menu_name}
+        title={getUiTooltipText(item?.menu_name)}
         className={cn(
           "flex items-center justify-between gap-2 rounded-lg truncate text-left outline-none transition-colors",
           isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-9 px-2.5 text-xs font-medium",

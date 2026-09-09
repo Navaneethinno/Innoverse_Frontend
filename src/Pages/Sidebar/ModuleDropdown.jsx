@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { getModuleIcon } from "./moduleIcons";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders
 // only the modules the caller passes in (already filtered to the user's
@@ -39,6 +40,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
+        title={getUiTooltipText("Select module")}
         className={cn(
           "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-[#2266EE] shadow-md shadow-blue-200/50",
           isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full justify-between",
@@ -67,7 +69,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
               <button
                 key={moduleItem.module_id}
                 type="button"
-                title={moduleItem.module_name}
+                title={getUiTooltipText(moduleItem.module_name)}
                 onClick={() => {
                   onSelectModule(moduleItem);
                   setIsOpen(false);

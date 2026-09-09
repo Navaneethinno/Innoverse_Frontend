@@ -14,7 +14,7 @@
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
-import { DEVICE_INFO } from "@/Services/Auth/auth.service";
+import { DEVICE_INFO, getBasicAuthorization } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
 // The real Innoverse backend wraps responses as { code, message, data },
@@ -33,17 +33,22 @@ function extractData(payload, fallback) {
 
 const REQUEST_TIMEOUT = 10000;
 
-async function masterPost(path, body) {
+async function masterPost(path, body, { basicAuthFallback = false } = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
+  const authorization = token
+    ? "Bearer " + token
+    : basicAuthFallback
+      ? getBasicAuthorization()
+      : undefined;
   try {
     const response = await fetch(API_BASE_URL + path, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Deviceinfo: JSON.stringify(DEVICE_INFO),
-        ...(token ? { Authorization: "Bearer " + token } : {}),
+        ...(authorization ? { Authorization: authorization } : {}),
         ...apiLanguageHeader(),
       },
       body: JSON.stringify(body ?? {}),
@@ -114,7 +119,10 @@ export const masterApi = {
   institutionTypeList: async () =>
     toArray(await masterPost(API_ENDPOINTS.MASTER.INSTITUTION_TYPE_LIST, {}), "institution_type"),
   languageList: async () =>
-    toArray(await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {}), "language"),
+    toArray(
+      await masterPost(API_ENDPOINTS.MASTER.LANGUAGE_LIST, {}, { basicAuthFallback: true }),
+      "language",
+    ),
 
   // The remaining /master/*/list endpoints confirmed in the Postman
   // collection but with no consumer in the app yet — exposed here so a

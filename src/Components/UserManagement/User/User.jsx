@@ -28,6 +28,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { DataTable } from "@/Components/Common/DataTable";
 import { cn } from "@/Utils/Lib/cn";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
@@ -259,29 +260,29 @@ export function User() {
       sortable: false,
       render: (user) => (
         <div className="flex flex-wrap items-center justify-center gap-1">
-          <button title="View" onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+          <button title={getUiTooltipText("View")} onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
             <Eye size={14} />
           </button>
           {canEdit && (
-            <button title="Edit" onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+          <button title={getUiTooltipText("Edit")} onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Pencil size={14} />
             </button>
           )}
-          <button title="Audit" onClick={() => openAudit(user)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+          <button title={getUiTooltipText("Audit")} onClick={() => openAudit(user)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
             <History size={14} />
           </button>
           {canAuthorize && (
-            <button title="Authorize" onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+          <button title={getUiTooltipText("Authorize")} onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
               <ShieldCheck size={14} />
             </button>
           )}
           {canDeauthorize && (
-            <button title="Deauthorize" onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+          <button title={getUiTooltipText("Deauthorize")} onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
               <ShieldOff size={14} />
             </button>
           )}
           {canDelete && (
-            <button title="Delete" onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
+          <button title={getUiTooltipText("Delete")} onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
               <Trash2 size={14} />
             </button>
           )}

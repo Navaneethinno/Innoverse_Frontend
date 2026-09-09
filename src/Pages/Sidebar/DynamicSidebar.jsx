@@ -11,6 +11,7 @@ import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 
 const SIDEBAR_EXPANDED_W = 220;
 const SIDEBAR_COLLAPSED_W = 56;
@@ -185,6 +186,7 @@ export function DynamicSidebar() {
             return (
               <div className="px-2">
                 <div
+                  title={getUiTooltipText(selectedModule.module_name)}
                   className={cn(
                     "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary",
                     collapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full",
@@ -215,6 +217,7 @@ export function DynamicSidebar() {
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={getUiTooltipText(collapsed ? "Expand sidebar" : "Collapse sidebar")}
           className={cn(
             "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
             collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",

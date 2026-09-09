@@ -11,6 +11,7 @@ import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";
+import { getUiTooltipText } from "@/Utils/Lib/tooltips";
 export function TopBar() {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,7 +83,7 @@ export function TopBar() {
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
-            title="Keyboard shortcuts (Ctrl/Cmd + K)"
+            title={getUiTooltipText("Keyboard shortcuts (Ctrl/Cmd + K)")}
             aria-label="Keyboard shortcuts"
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[10px] font-mono font-semibold"
           >
@@ -95,7 +96,7 @@ export function TopBar() {
           <button
             type="button"
             onClick={toggleMode}
-            title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={getUiTooltipText(mode === "dark" ? "Switch to light mode" : "Switch to dark mode")}
             aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
