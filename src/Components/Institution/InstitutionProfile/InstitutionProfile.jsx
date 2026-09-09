@@ -94,13 +94,16 @@ export function InstitutionProfile() {
   // View is the one exception: it's not consistently granted via login's
   // menu_array actions[] the way the others are, so it's always shown
   // rather than gated — a user should always be able to look at a record.
+  // Per the confirmed action-UI mapping: Authorise is ONE grant controlling
+  // BOTH the Authorise and Deauthorise buttons as a pair (not two separate
+  // permissions), and Change Status is likewise ONE grant controlling BOTH
+  // Deactivate and Reactivate as a pair — which one of the pair actually
+  // shows depends on the record's own state, not on separate permissions.
   const canEdit = useHasInstitutionAction("Edit");
   const canAdd = useHasInstitutionAction("Add");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDeauthorize = useHasInstitutionAction("Deauthorize");
+  const canAuthorise = useHasInstitutionAction("Authorize");
+  const canChangeStatus = useHasInstitutionAction("Change Status");
   const canDelete = useHasInstitutionAction("Delete");
-  const canDeactivate = useHasInstitutionAction("Deactivate");
-  const canReactivate = useHasInstitutionAction("Reactivate");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
@@ -229,6 +232,11 @@ export function InstitutionProfile() {
         const draft = isInstitutionDraft(inst);
         const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
+        // Per the confirmed action-UI mapping: Authorise/Deauthorise show as
+        // a pair whenever process_status_name contains "Pending" (Pending
+        // Add/Edit/Delete/Deactivate/Reactivate, etc.) — not derived from
+        // "not a draft" the way this used to be approximated.
+        const isPending = String(inst.process_status_name ?? "").toLowerCase().includes("pending");
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
             <button title="View" onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
@@ -247,22 +255,22 @@ export function InstitutionProfile() {
                 <Send size={14} />
               </button>
             )}
-            {!draft && canAuthorize && (
-              <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                <ShieldCheck size={14} />
-              </button>
+            {canAuthorise && isPending && (
+              <>
+                <button title="Authorize" onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                  <ShieldCheck size={14} />
+                </button>
+                <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                  <ShieldOff size={14} />
+                </button>
+              </>
             )}
-            {!draft && canDeauthorize && (
-              <button title="Deauthorize" onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                <ShieldOff size={14} />
-              </button>
-            )}
-            {active && canDeactivate && (
+            {canChangeStatus && active && (
               <button title="Deactivate" onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />
               </button>
             )}
-            {inactive && canReactivate && (
+            {canChangeStatus && inactive && (
               <button title="Reactivate" onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                 <Power size={14} />
               </button>
