@@ -126,26 +126,6 @@ export function useInstitutionsQuery(params) {
   return { ...query, data: mapped.institutions, pagination: mapped.pagination };
 }
 
-// A read call, deliberately NOT built on useInstitutionMutation: that
-// wrapper calls notifyInstitutionChange() after every successful call so
-// list views refetch after a real data-changing action. Audit is read-only
-// (POST /institution/profile/audit, {id, page, limit}) — routing it through
-// the mutation wrapper made every audit-modal open also re-trigger every
-// open list query on the page, which is what caused the request storm seen
-// in the network tab (list -> audit -> list -> audit ...). Modeled as a
-// query instead, keyed on id, matching useInstitutionAsyncQuery's own
-// fetch-on-mount/id-change behavior with no change-broadcast side effect.
-export function useInstitutionAuditQuery(id) {
-  const query = useInstitutionAsyncQuery(
-    useCallback(
-      () => (id != null ? institutionsApi.audit({ id, page: 1, limit: 10 }) : Promise.resolve(null)),
-      [id],
-    ),
-  );
-  const mapped = mapInstitutionListResponse(query.data);
-  return { ...query, data: mapped.institutions };
-}
-
 export function useActiveInstitutionsQuery() {
   const query = useInstitutionAsyncQuery(useCallback(() => institutionsApi.getActive(), []));
   const mapped = mapInstitutionListResponse(query.data);

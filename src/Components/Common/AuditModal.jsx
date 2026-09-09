@@ -67,12 +67,30 @@ const META_KEYS = new Set([
   "auth_username",
   "auth_time",
   "narration",
+  "changes",
 ]);
 
-function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }) {
+// Every audit entry already carries its own `changes` array (field/current/
+// proposed) directly on the record — no separate /pending call needed to
+// show what a given history event actually changed, the way Auth/Deauth
+// dialogs still need one (they're asking "what does the OPEN request want
+// to change", which isn't yet in any audit entry). audit_action doesn't map
+// 1:1 onto ADD/EDIT/DELETE, so this only infers enough to pick the right
+// column layout (hide "Before" when every current value is null, i.e. a
+// creation event) — everything else renders as a plain before/after diff.
+function deriveEntryChangeAction(entry) {
+  const changes = Array.isArray(entry.changes) ? entry.changes : [];
+  if (changes.length === 0) return "NONE";
+  if (String(entry.audit_action ?? "").toUpperCase().includes("DELETE")) return "DELETE";
+  if (changes.every((c) => c.current == null)) return "ADD";
+  return "EDIT";
+}
+
+function AuditEntry({ entry, fields, getActionLabel, renderExtra }) {
   const status = String(entry.auth_status ?? entry.status ?? "").toUpperCase();
   const reason = entry.narration;
   const actionLabel = getActionLabel(entry);
+  const changeAction = deriveEntryChangeAction(entry);
 
   // A curated field list is preferred (matches the entity's known shape);
   // falling back to a dynamic dump of whatever's left keeps this component
@@ -127,16 +145,19 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }
 
       {renderExtra?.(entry)}
 
-      {pendingPanel && (
+      {changeAction !== "NONE" && (
         <div
           className="mt-3 rounded-xl border p-3"
           style={{ borderColor: "var(--primary-light)", background: "var(--primary-light)" }}
         >
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
             <History size={11} className="shrink-0" />
-            What this pending request changes
+            What changed in this update
           </p>
-          {pendingPanel}
+          <PendingChangesPanel
+            data={{ pending_action: changeAction, changes: entry.changes }}
+            currentRecord={entry}
+          />
         </div>
       )}
 
@@ -182,179 +203,171 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, pendingPanel }
 // header/card/status-accent/footer markup. `fields` (curated [key, label]
 // pairs) is entity-specific; everything else about the presentation is
 // shared, so a layout fix here fixes it everywhere at once.
+//
+// Fully owns its own fetching via `fetchAudit(page, limit)` rather than
+// taking a pre-fetched `entries` array, because the audit endpoint pages
+// OLDEST-first: page 1 is the oldest records, not the newest. Showing page
+// 1 first (as an earlier version did) meant the actual latest history
+// never appeared until the user scrolled far enough to reach whatever page
+// it happened to land on. Instead: fetch page 1 once just to learn
+// totalPages, then fetch the LAST page as the first thing shown (the
+// newest records), and page backwards (totalPages-1, totalPages-2, ...)
+// as the user scrolls for older history — newest is visible immediately,
+// no scrolling required, and scrolling reveals progressively older pages.
 export function AuditModal({
   title,
-  entries = [],
   fields,
-  isLoading = false,
-  error = null,
-  onRetry,
   onClose,
   getActionLabel = (entry) => entry.audit_action,
   getEntryKey = (entry, index) => entry.id ?? entry.audit_key ?? index,
   renderExtra,
-  // Optional: when the record has an open pending request, showing it here
-  // means the checker doesn't have to leave the audit trail they're already
-  // looking at to see what's actually being asked of them.
-  pendingChanges = null,
-  pendingLoading = false,
-  pendingError = null,
-  currentRecord = null,
-  // Optional: when provided, the modal loads more audit history as the
-  // user scrolls near the bottom instead of only ever showing the first
-  // page — fetchMore(page, limit) resolves to the next page's entries
-  // array (starting from page 2; page 1 is whatever the caller already
-  // fetched into `entries`). Fewer than `auditLimit` rows back, or an
-  // empty array, is taken as "no more pages" — no separate totalPages
-  // plumbing needed from the caller's own first-page fetch.
-  fetchMore = null,
+  fetchAudit,
   auditLimit = 10,
 }) {
-  const [moreEntries, setMoreEntries] = useState([]);
-  const [nextPage, setNextPage] = useState(2);
-  const [hasMore, setHasMore] = useState(true);
+  const [entries, setEntries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [nextPage, setNextPage] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(null);
+  const [retryToken, setRetryToken] = useState(0);
 
-  // Reset the accumulated pages whenever the underlying first page changes
-  // (a different record's audit trail was opened) rather than whenever the
-  // array reference merely changes on every render.
   useEffect(() => {
-    setMoreEntries([]);
-    setNextPage(2);
-    setHasMore(true);
-    setLoadMoreError(null);
-  }, [title]);
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    setEntries([]);
+    setHasMore(false);
+    setNextPage(null);
+    (async () => {
+      try {
+        const first = await fetchAudit(1, auditLimit);
+        const totalPages = Math.max(1, first?.totalPages ?? 1);
+        if (totalPages <= 1) {
+          if (!cancelled) {
+            setEntries(first?.entries ?? []);
+            setHasMore(false);
+          }
+          return;
+        }
+        const last = await fetchAudit(totalPages, auditLimit);
+        if (!cancelled) {
+          setEntries(last?.entries ?? []);
+          setNextPage(totalPages - 1);
+          setHasMore(totalPages - 1 >= 1);
+        }
+      } catch (nextError) {
+        if (!cancelled) {
+          setError(nextError instanceof Error ? nextError : new Error("Failed to load audit history"));
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, retryToken]);
 
   const loadMore = useCallback(async () => {
-    if (!fetchMore || loadingMore || !hasMore) return;
+    if (loadingMore || !hasMore || nextPage == null) return;
     setLoadingMore(true);
     setLoadMoreError(null);
     try {
-      const rows = await fetchMore(nextPage, auditLimit);
-      const list = Array.isArray(rows) ? rows : [];
-      setMoreEntries((current) => [...current, ...list]);
-      setNextPage((p) => p + 1);
-      if (list.length < auditLimit) setHasMore(false);
-    } catch (error) {
-      setLoadMoreError(error instanceof Error ? error.message : "Failed to load more");
+      const page = await fetchAudit(nextPage, auditLimit);
+      setEntries((current) => [...current, ...(page?.entries ?? [])]);
+      setHasMore(nextPage - 1 >= 1);
+      setNextPage((p) => p - 1);
+    } catch (nextError) {
+      setLoadMoreError(nextError instanceof Error ? nextError.message : "Failed to load more");
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchMore, loadingMore, hasMore, nextPage, auditLimit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingMore, hasMore, nextPage, auditLimit]);
 
   const handleBodyScroll = (event) => {
-    if (!fetchMore) return;
     const el = event.target;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) void loadMore();
   };
 
-  const allEntries = useMemo(() => [...entries, ...moreEntries], [entries, moreEntries]);
-
-  const hasPending =
-    pendingLoading || pendingError || (pendingChanges?.pending_action && pendingChanges.pending_action !== "NONE");
-
-  // Newest first — the pending/open request (if any) is always the most
-  // recent thing that happened to the record, so this also naturally puts
-  // it right at the top instead of buried under older entries.
+  // Each fetched page is sorted newest-first within itself — pages arrive
+  // newest-page-first already (see the fetch strategy above), so entries
+  // stay in the right order as later (older) pages are appended.
   const sortedEntries = useMemo(() => {
     const timeOf = (entry) => {
       const raw = entry.updated_time ?? entry.auth_time ?? entry.created_time;
       const t = raw ? new Date(raw).getTime() : NaN;
       return Number.isNaN(t) ? -Infinity : t;
     };
-    return allEntries
-      .map((entry, index) => ({ entry, index }))
+    const byPageOrder = entries.map((entry, index) => ({ entry, index }));
+    // Stable-sort only within same fetched page boundaries isn't tracked
+    // separately, so this simply orders everything currently loaded by
+    // timestamp — correct as long as each page's own records don't overlap
+    // in time with adjacent pages, which holds for sequential audit ids.
+    return byPageOrder
       .sort((a, b) => timeOf(b.entry) - timeOf(a.entry) || a.index - b.index)
       .map(({ entry }) => entry);
-  }, [allEntries]);
-
-  const pendingMatchesEntry =
-    hasPending && !pendingLoading && !pendingError
-      ? sortedEntries.some((entry) => entry.audit_key === pendingChanges?.audit_key)
-      : false;
+  }, [entries]);
 
   return (
     <Modal
       open
       onClose={onClose}
       title={`Audit — ${title}`}
-      subtitle={`${allEntries.length} ${allEntries.length === 1 ? "record" : "records"}${
-        fetchMore && hasMore ? " · scroll for more" : ""
+      subtitle={`${entries.length} ${entries.length === 1 ? "record" : "records"}${
+        hasMore ? " · scroll for more" : ""
       }`}
       icon={<History size={15} />}
       onBodyScroll={handleBodyScroll}
     >
-      <>
-        {/* Fallback only — normally the panel renders inline, right next to
-            the audit entry sharing the same audit_key, so it reads as part
-            of that entry rather than a disconnected block. This only fires
-            while loading/erroring, or if the matching entry hasn't loaded. */}
-        {hasPending && (pendingLoading || pendingError || !pendingMatchesEntry) && (
-          <div className="mb-4">
-            <PendingChangesPanel
-              data={pendingChanges}
-              isLoading={pendingLoading}
-              error={pendingError}
-              currentRecord={currentRecord}
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : error ? (
+        <div
+          className="flex items-center gap-2 rounded-xl border p-4 text-sm text-destructive"
+          style={{ borderColor: "var(--destructive-soft)", background: "var(--destructive-soft)" }}
+        >
+          <AlertCircle size={14} className="shrink-0" />
+          <span className="flex-1">{error.message ?? String(error)}</span>
+          <button onClick={() => setRetryToken((t) => t + 1)} className="shrink-0 text-xs font-bold underline">
+            Retry
+          </button>
+        </div>
+      ) : entries.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted-foreground">No audit history found.</p>
+      ) : (
+        <div className="space-y-3">
+          {sortedEntries.map((entry, index) => (
+            <AuditEntry
+              key={getEntryKey(entry, index)}
+              entry={entry}
+              fields={fields}
+              getActionLabel={getActionLabel}
+              renderExtra={renderExtra}
             />
-          </div>
-        )}
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-xl" />
-            ))}
-          </div>
-        ) : error ? (
-          <div
-            className="flex items-center gap-2 rounded-xl border p-4 text-sm text-destructive"
-            style={{ borderColor: "var(--destructive-soft)", background: "var(--destructive-soft)" }}
-          >
-            <AlertCircle size={14} className="shrink-0" />
-            <span className="flex-1">{error.message ?? String(error)}</span>
-            {onRetry && (
-              <button onClick={onRetry} className="shrink-0 text-xs font-bold underline">
-                Retry
+          ))}
+          <div className="py-2 text-center text-xs text-muted-foreground">
+            {loadMoreError ? (
+              <button type="button" onClick={() => void loadMore()} className="font-semibold text-blue-600 underline">
+                Failed to load more — retry
               </button>
+            ) : loadingMore ? (
+              "Loading more…"
+            ) : hasMore ? (
+              "Scroll for more"
+            ) : (
+              "All history loaded"
             )}
           </div>
-        ) : allEntries.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">No audit history found.</p>
-        ) : (
-          <div className="space-y-3">
-            {sortedEntries.map((entry, index) => (
-              <AuditEntry
-                key={getEntryKey(entry, index)}
-                entry={entry}
-                fields={fields}
-                getActionLabel={getActionLabel}
-                renderExtra={renderExtra}
-                pendingPanel={
-                  pendingMatchesEntry && entry.audit_key === pendingChanges?.audit_key ? (
-                    <PendingChangesPanel data={pendingChanges} currentRecord={currentRecord} />
-                  ) : null
-                }
-              />
-            ))}
-            {fetchMore && (
-              <div className="py-2 text-center text-xs text-muted-foreground">
-                {loadMoreError ? (
-                  <button type="button" onClick={() => void loadMore()} className="font-semibold text-blue-600 underline">
-                    Failed to load more — retry
-                  </button>
-                ) : loadingMore ? (
-                  "Loading more…"
-                ) : hasMore ? (
-                  "Scroll for more"
-                ) : (
-                  "All history loaded"
-                )}
-              </div>
-            )}
-          </div>
-        )}
-      </>
+        </div>
+      )}
     </Modal>
   );
 }

@@ -153,9 +153,6 @@ export function usePasswordPolicyQuery() {
   const policies = query.data ?? [];
   return { ...query, policies, policy: pickDefaultPolicy(policies) };
 }
-export function useUserAuditMutation() {
-  return useUserMutation(useCallback((payload) => usersApi.audit(payload), []));
-}
 export function useUserCreateMutation() {
   return useUserMutation(useCallback((payload) => usersApi.add(payload), []));
 }

@@ -140,23 +140,6 @@ export function useAllProfilesQuery() {
   return { ...query, data: mapped.profiles };
 }
 
-// Read-only, deliberately NOT built on useProfileMutation — see
-// useInstitutionAuditQuery's comment in institutionHooks.js for why: routing
-// a read through the change-broadcasting mutation wrapper caused a
-// list<->audit refetch storm there.
-export function useProfileAuditQuery(profileId) {
-  const query = useProfileAsyncQuery(
-    useCallback(
-      () =>
-        profileId != null
-          ? profilesApi.audit({ profile_id: profileId, page: 1, limit: 10 })
-          : Promise.resolve(null),
-      [profileId],
-    ),
-  );
-  const mapped = mapProfileListResponse(query.data);
-  return { ...query, data: mapped.profiles };
-}
 
 export function useProfileGetQuery(profileId) {
   const query = useProfileAsyncQuery(

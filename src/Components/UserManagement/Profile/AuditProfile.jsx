@@ -1,6 +1,5 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { mapProfileListResponse, useProfileAuditQuery } from "@/Hooks/Profiles/profileHooks";
+import { mapProfileListResponse } from "@/Hooks/Profiles/profileHooks";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { profileId } from "./ProfileForm";
 
@@ -39,30 +38,24 @@ function renderMenuGrants(entry) {
   );
 }
 
+// No /pending call here — each audit entry already carries its own
+// `changes` array (see AuditModal.jsx). /pending stays in use for
+// AuthProfile/DeauthProfile, which are asking about a currently-open
+// request, not history.
 export function AuditProfile({ profile, onClose }) {
-  const auditQuery = useProfileAuditQuery(profileId(profile));
-  const { data, isLoading, error } = usePendingChanges(profilesApi.pending, profileId(profile), true);
-
   return (
     <AuditModal
       title={profile?.profile_name ?? `#${profileId(profile)}`}
-      entries={auditQuery.data ?? []}
       fields={AUDIT_FIELDS}
-      isLoading={auditQuery.isLoading}
-      error={auditQuery.error}
-      onRetry={() => void auditQuery.refetch()}
       onClose={onClose}
       getActionLabel={(entry) => entry.audit_action ?? entry.profile_name ?? null}
       getEntryKey={(entry, index) => entry.audit_id ?? entry.audit_key ?? index}
       renderExtra={renderMenuGrants}
-      pendingChanges={data}
-      pendingLoading={isLoading}
-      pendingError={error}
-      currentRecord={profile}
-      fetchMore={(page, limit) =>
-        profilesApi
-          .audit({ profile_id: profileId(profile), page, limit })
-          .then((response) => mapProfileListResponse(response).profiles)
+      fetchAudit={(page, limit) =>
+        profilesApi.audit({ profile_id: profileId(profile), page, limit }).then((response) => {
+          const mapped = mapProfileListResponse(response);
+          return { entries: mapped.profiles, totalPages: mapped.pagination?.totalPages ?? 1 };
+        })
       }
     />
   );

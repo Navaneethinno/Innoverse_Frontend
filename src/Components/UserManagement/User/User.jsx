@@ -15,7 +15,6 @@ import {
   mapUserListResponse,
   useHasUserAction,
   useUserAuthMutation,
-  useUserAuditMutation,
   useUserCreateMutation,
   useUserDeauthMutation,
   useUserDeleteAuthMutation,
@@ -93,7 +92,6 @@ export function User() {
   const deauthMutation = useUserDeauthMutation();
   const deleteMutation = useUserDeleteMutation();
   const deleteAuthMutation = useUserDeleteAuthMutation();
-  const auditMutation = useUserAuditMutation();
 
   const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
   const visibleUsers = useMemo(() => {
@@ -202,21 +200,10 @@ export function User() {
       notifications.error(error.message);
     }
   };
-  const openAudit = async (user) => {
-    try {
-      const response = await auditMutation.mutateAsync({
-        user_id: userId(user),
-        page: 1,
-        limit: 10,
-      });
-      const entries = Array.isArray(response)
-        ? response
-        : (response?.data?.user_audit_array ?? response?.data?.audit_array ?? response?.data ?? []);
-      setAudit({ user, entries });
-    } catch (error) {
-      notifications.error(error.message);
-    }
-  };
+  // AuditUser/AuditModal now own fetching the actual history pages
+  // themselves (see AuditModal.jsx) — this just opens the dialog for a
+  // given user, no pre-fetch needed.
+  const openAudit = (user) => setAudit({ user });
   const closeAction = () => {
     setAction(null);
     setNarration("");

@@ -1,6 +1,5 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { mapInstitutionListResponse, useInstitutionAuditQuery } from "@/Hooks/Institutions/institutionHooks";
+import { mapInstitutionListResponse } from "@/Hooks/Institutions/institutionHooks";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 
 // Relocated verbatim from Components/Institutions/InstitutionAuditModal.jsx
@@ -22,27 +21,22 @@ const AUDIT_FIELDS = [
   ["total_kyc_levels", "Total KYC Levels"],
 ];
 
+// No /pending call here — each audit entry already carries its own
+// `changes` array (see AuditModal.jsx), so the diff comes straight from
+// the audit history itself instead of a second request. /pending stays in
+// use for AuthInstitutionProfile/DeauthInstitutionProfile, which are
+// asking about a currently-open request, not history.
 export function AuditInstitutionProfile({ institution, institutionId, onClose }) {
-  const auditQuery = useInstitutionAuditQuery(institutionId);
-  const { data, isLoading, error } = usePendingChanges(institutionsApi.pending, institutionId, true);
-
   return (
     <AuditModal
       title={institution?.name ?? institution?.code ?? `#${institutionId}`}
-      entries={auditQuery.data ?? []}
       fields={AUDIT_FIELDS}
-      isLoading={auditQuery.isLoading}
-      error={auditQuery.error}
-      onRetry={() => void auditQuery.refetch()}
       onClose={onClose}
-      pendingChanges={data}
-      pendingLoading={isLoading}
-      pendingError={error}
-      currentRecord={institution}
-      fetchMore={(page, limit) =>
-        institutionsApi
-          .audit({ id: institutionId, page, limit })
-          .then((response) => mapInstitutionListResponse(response).institutions)
+      fetchAudit={(page, limit) =>
+        institutionsApi.audit({ id: institutionId, page, limit }).then((response) => {
+          const mapped = mapInstitutionListResponse(response);
+          return { entries: mapped.institutions, totalPages: mapped.pagination?.totalPages ?? 1 };
+        })
       }
     />
   );
