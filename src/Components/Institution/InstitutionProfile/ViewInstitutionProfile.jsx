@@ -55,7 +55,10 @@ export function ViewInstitutionProfile() {
   // response shape does send it as text.
   const isDraft = Number(institution?.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "DRAFT";
 
-  const [editMode, setEditMode] = useState(searchParams.get("edit") === "1");
+  // Starts false regardless of the URL param — entering edit mode is
+  // decided by the effect below, which actually checks canEdit, so a
+  // hand-typed ?edit=1 without the grant never enables it.
+  const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -74,7 +77,14 @@ export function ViewInstitutionProfile() {
   }, [searchParams, canEdit]);
 
   useEffect(() => {
-    if (institution && !editMode) {
+    // !editMode: normal case, keep the read-mode form silently fresh in the
+    // background. !form: landing directly in edit mode via ?edit=1 from the
+    // list's pencil icon — editMode is already true on the very first
+    // render then, so without this the form would never populate at all
+    // (permanently stuck on the loading skeleton, since that only clears
+    // once `form` is set) and would never fire once form exists, so an
+    // in-progress edit is never clobbered by a background list refetch.
+    if (institution && (!editMode || !form)) {
       setForm({
         code: institution.code ?? "",
         name: institution.name ?? "",
@@ -98,6 +108,7 @@ export function ViewInstitutionProfile() {
         narration: "",
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [institution, editMode]);
 
   const setField = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
