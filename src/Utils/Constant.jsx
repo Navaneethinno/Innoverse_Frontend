@@ -67,6 +67,86 @@ export const API_ENDPOINTS = {
     // in the body, {id, name, status, status_name} per record.
     TIMEZONE_LIST: "/master/timezone",
   },
+  MASTER_CONFIG: {
+    DISTRICT: {
+      ADD: "/master_config/district/add", SUBMIT: "/master_config/district/submit", LIST: "/master_config/district/list",
+      GET_ACTIVE: "/master_config/district/get_active", AUDIT: "/master_config/district/audit", AUTH: "/master_config/district/auth",
+      DEAUTH: "/master_config/district/deauth", EDIT: "/master_config/district/edit", DELETE: "/master_config/district/delete",
+      DELETE_AUTH: "/master_config/district/delete_auth",
+    },
+    PROVINCE: {
+      ADD: "/master_config/province/add", SUBMIT: "/master_config/province/submit", LIST: "/master_config/province/list",
+      GET_ACTIVE: "/master_config/province/get_active", AUDIT: "/master_config/province/audit", AUTH: "/master_config/province/auth",
+      DEAUTH: "/master_config/province/deauth", EDIT: "/master_config/province/edit", DELETE: "/master_config/province/delete",
+      DELETE_AUTH: "/master_config/province/delete_auth",
+    },
+    VILLAGE: {
+      ADD: "/master_config/village/add", SUBMIT: "/master_config/village/submit", LIST: "/master_config/village/list",
+      GET_ACTIVE: "/master_config/village/get_active", AUDIT: "/master_config/village/audit", AUTH: "/master_config/village/auth",
+      DEAUTH: "/master_config/village/deauth", EDIT: "/master_config/village/edit", DELETE: "/master_config/village/delete",
+      DELETE_AUTH: "/master_config/village/delete_auth",
+    },
+    ACCOUNT_PURPOSE: {
+      ADD: "/master_config/account_purpose/add", SUBMIT: "/master_config/account_purpose/submit", LIST: "/master_config/account_purpose/list",
+      GET_ACTIVE: "/master_config/account_purpose/get_active", AUDIT: "/master_config/account_purpose/audit", AUTH: "/master_config/account_purpose/auth",
+      DEAUTH: "/master_config/account_purpose/deauth", EDIT: "/master_config/account_purpose/edit", DELETE: "/master_config/account_purpose/delete",
+      DELETE_AUTH: "/master_config/account_purpose/delete_auth",
+    },
+    CATEGORY: {
+      ADD: "/master_config/category/add", SUBMIT: "/master_config/category/submit", LIST: "/master_config/category/list",
+      GET_ACTIVE: "/master_config/category/get_active", AUDIT: "/master_config/category/audit", AUTH: "/master_config/category/auth",
+      DEAUTH: "/master_config/category/deauth", EDIT: "/master_config/category/edit", DELETE: "/master_config/category/delete",
+      DELETE_AUTH: "/master_config/category/delete_auth",
+    },
+    CITIZENSHIP: {
+      ADD: "/master_config/citizenship/add", SUBMIT: "/master_config/citizenship/submit", LIST: "/master_config/citizenship/list",
+      GET_ACTIVE: "/master_config/citizenship/get_active", AUDIT: "/master_config/citizenship/audit", AUTH: "/master_config/citizenship/auth",
+      DEAUTH: "/master_config/citizenship/deauth", EDIT: "/master_config/citizenship/edit", DELETE: "/master_config/citizenship/delete",
+      DELETE_AUTH: "/master_config/citizenship/delete_auth",
+    },
+    DESIGNATION: {
+      ADD: "/master_config/designation/add", SUBMIT: "/master_config/designation/submit", LIST: "/master_config/designation/list",
+      GET_ACTIVE: "/master_config/designation/get_active", AUDIT: "/master_config/designation/audit", AUTH: "/master_config/designation/auth",
+      DEAUTH: "/master_config/designation/deauth", EDIT: "/master_config/designation/edit", DELETE: "/master_config/designation/delete",
+      DELETE_AUTH: "/master_config/designation/delete_auth",
+    },
+    DISABILITY: {
+      ADD: "/master_config/disability/add", SUBMIT: "/master_config/disability/submit", LIST: "/master_config/disability/list",
+      GET_ACTIVE: "/master_config/disability/get_active", AUDIT: "/master_config/disability/audit", AUTH: "/master_config/disability/auth",
+      DEAUTH: "/master_config/disability/deauth", EDIT: "/master_config/disability/edit", DELETE: "/master_config/disability/delete",
+      DELETE_AUTH: "/master_config/disability/delete_auth",
+    },
+    EMPLOYMENT: {
+      ADD: "/master_config/employment/add", SUBMIT: "/master_config/employment/submit", LIST: "/master_config/employment/list",
+      GET_ACTIVE: "/master_config/employment/get_active", AUDIT: "/master_config/employment/audit", AUTH: "/master_config/employment/auth",
+      DEAUTH: "/master_config/employment/deauth", EDIT: "/master_config/employment/edit", DELETE: "/master_config/employment/delete",
+      DELETE_AUTH: "/master_config/employment/delete_auth",
+    },
+    OCCUPATION: {
+      ADD: "/master_config/occupation/add", SUBMIT: "/master_config/occupation/submit", LIST: "/master_config/occupation/list",
+      GET_ACTIVE: "/master_config/occupation/get_active", AUDIT: "/master_config/occupation/audit", AUTH: "/master_config/occupation/auth",
+      DEAUTH: "/master_config/occupation/deauth", EDIT: "/master_config/occupation/edit", DELETE: "/master_config/occupation/delete",
+      DELETE_AUTH: "/master_config/occupation/delete_auth",
+    },
+    QUALIFICATION: {
+      ADD: "/master_config/qualification/add", SUBMIT: "/master_config/qualification/submit", LIST: "/master_config/qualification/list",
+      GET_ACTIVE: "/master_config/qualification/get_active", AUDIT: "/master_config/qualification/audit", AUTH: "/master_config/qualification/auth",
+      DEAUTH: "/master_config/qualification/deauth", EDIT: "/master_config/qualification/edit", DELETE: "/master_config/qualification/delete",
+      DELETE_AUTH: "/master_config/qualification/delete_auth",
+    },
+    RELIGION: {
+      ADD: "/master_config/religion/add", SUBMIT: "/master_config/religion/submit", LIST: "/master_config/religion/list",
+      GET_ACTIVE: "/master_config/religion/get_active", AUDIT: "/master_config/religion/audit", AUTH: "/master_config/religion/auth",
+      DEAUTH: "/master_config/religion/deauth", EDIT: "/master_config/religion/edit", DELETE: "/master_config/religion/delete",
+      DELETE_AUTH: "/master_config/religion/delete_auth",
+    },
+    TURNOVER: {
+      ADD: "/master_config/turnover/add", SUBMIT: "/master_config/turnover/submit", LIST: "/master_config/turnover/list",
+      GET_ACTIVE: "/master_config/turnover/get_active", AUDIT: "/master_config/turnover/audit", AUTH: "/master_config/turnover/auth",
+      DEAUTH: "/master_config/turnover/deauth", EDIT: "/master_config/turnover/edit", DELETE: "/master_config/turnover/delete",
+      DELETE_AUTH: "/master_config/turnover/delete_auth",
+    },
+  },
 
   // Grouped Module -> Menu, matching the sidebar's own grouping and the
   // exact endpoint list given by the backend (2026-09). Anything not in
