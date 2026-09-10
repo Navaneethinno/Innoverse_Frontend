@@ -257,13 +257,16 @@
 .dark .login-theme-transition input:-webkit-autofill,
 .dark .login-theme-transition input:-webkit-autofill:hover,
 .dark .login-theme-transition input:-webkit-autofill:focus {
+  background-color: var(--input-background) !important;
   color: var(--foreground) !important;
-  -webkit-text-fill-color: var(--foreground);
-  caret-color: var(--foreground);
-  box-shadow: 0 0 0 1000px var(--input-background) inset;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--input-background) inset !important;
+  box-shadow: 0 0 0 1000px var(--input-background) inset !important;
 }
 
 .dark .login-theme-transition input {
+  background-color: var(--input-background) !important;
   color: var(--foreground) !important;
   -webkit-text-fill-color: var(--foreground);
   caret-color: var(--foreground);
