@@ -58,6 +58,7 @@ export function fieldValue(user, key) {
     user_lname: ["user_lname", "last_name", "lastname", "lname", "user_last_name"],
     inst_id: ["inst_id", "institution_id"],
     profile_id: ["profile_id"],
+    password_policy_id: ["password_policy_id", "pwd_policy"],
     employee_id: ["employee_id", "employeeId"],
   };
   return (
@@ -136,7 +137,7 @@ export function UserForm({
         .filter(([key]) => !(readOnly && key === "user_pwd"))
         .map(([key]) => (
         <label key={key} className="text-sm text-slate-700">
-          <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key])}</span>
+          <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key], fields.find(([field]) => field === key)?.[1] ?? key)}</span>
           <div className="relative">
             {key === "inst_id" || key === "profile_id" ? (
               <select

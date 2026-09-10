@@ -349,7 +349,6 @@ export function InstitutionModulePage() {
                   module_id: values.module_id,
                   effective_from: values.effective_from,
                   effective_to: values.effective_to,
-                  configuration_status: values.configuration_status,
                   narration: values.narration,
                   is_draft: values.is_draft,
                   ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
@@ -362,7 +361,6 @@ export function InstitutionModulePage() {
                       module_id: values.module_id,
                       effective_from: values.effective_from,
                       effective_to: values.effective_to,
-                      configuration_status: values.configuration_status,
                     },
                   ],
                   narration: values.narration,
@@ -394,7 +392,6 @@ function ModuleForm({
     module_id: editing?.module_id ?? "",
     effective_from: editing?.effective_from ?? "",
     effective_to: editing?.effective_to ?? "",
-    configuration_status: editing?.configuration_status ?? "ENABLED",
     narration: "",
     is_draft: false,
   });
@@ -468,17 +465,6 @@ function ModuleForm({
           />
         </label>
       </div>
-      <label className="block text-sm font-medium">
-        Configuration
-        <select
-          value={form.configuration_status}
-          onChange={set("configuration_status")}
-          className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-        >
-          <option>ENABLED</option>
-          <option>DISABLED</option>
-        </select>
-      </label>
       <label className="block text-sm font-medium">
         Narration
         <textarea

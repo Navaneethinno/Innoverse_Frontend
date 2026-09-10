@@ -1,17 +1,21 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Eye, History, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { AlertCircle, Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import {
   mapProfileListResponse,
   useHasProfileAction,
   useProfileAuthMutation,
   useProfileCreateMutation,
+  useProfileSubmitMutation,
   useProfileDeauthMutation,
   useProfileDeleteAuthMutation,
   useProfileDeleteMutation,
@@ -21,7 +25,6 @@ import {
 } from "@/Hooks/Profiles/profileHooks";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
-import { cn } from "@/Utils/Lib/cn";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
 import { AddProfile } from "./AddProfile";
@@ -43,7 +46,6 @@ const DEAUTHORIZE_ACTION_ID = 4;
 // real specific value still shows per-row via StatusBadge.
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
-const TABS = ["all", "active", "pending", "inactive"];
 
 function statusOf(p) {
   return String(p.auth_status ?? p.status ?? "").toUpperCase();
@@ -60,6 +62,26 @@ function timestampOf(p) {
   return Number.isNaN(time) ? 0 : time;
 }
 
+// Native select values are always strings. The Profile API expects numeric
+// identifiers, so normalize them before building any request payload.
+function numericId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function isDraft(profile) {
+  return Number(profile?.status) === 9 || String(profile?.auth_status ?? "").toUpperCase() === "DRAFT";
+}
+
+function isPending(profile) {
+  return String(profile?.process_status_name ?? profile?.status_name ?? "").toLowerCase().includes("pending") ||
+    String(profile?.auth_status ?? "").toUpperCase() === "AUTH WAIT";
+}
+
+function isPendingDelete(profile) {
+  return String(profile?.process_status_name ?? "").toLowerCase().includes("pending delete");
+}
+
 function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
@@ -67,20 +89,8 @@ function renderProfileValue(profile, key) {
   return value == null || value === "" ? "—" : String(value);
 }
 
-function profileHasAction(profile, actionId) {
-  return (profile.menu_actions ?? []).some((menu) =>
-    Array.isArray(menu.actions) && menu.actions.some((action) => Number(action) === actionId),
-  );
-}
-
 export function Profile() {
   const { t } = useTranslation("profiles");
-  const TAB_LABEL = {
-    all: t("tabAll"),
-    active: t("tabActive"),
-    pending: t("tabPending"),
-    inactive: t("tabInactive"),
-  };
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [action, setAction] = useState(null);
@@ -95,6 +105,7 @@ export function Profile() {
   const canEdit = useHasProfileAction("Edit");
   const canDelete = useHasProfileAction("Delete");
   const canAuthorize = useHasProfileAction("Authorize");
+  const canSubmit = useHasProfileAction("Submit");
 
   const [page, setPage] = useState(1);
 
@@ -111,6 +122,7 @@ export function Profile() {
 
   const createMutation = useProfileCreateMutation();
   const updateMutation = useProfileUpdateMutation();
+  const submitMutation = useProfileSubmitMutation();
   const authMutation = useProfileAuthMutation();
   const deauthMutation = useProfileDeauthMutation();
   const deleteMutation = useProfileDeleteMutation();
@@ -157,14 +169,24 @@ export function Profile() {
 
   const submitForm = async (event) => {
     event.preventDefault();
+    const institutionId = numericId(form.inst_profile_id);
+    if (!institutionId) {
+      notifications.error("Please select a valid institution");
+      return;
+    }
+    if (!Array.isArray(form.menu_info) || form.menu_info.length === 0) {
+      notifications.error("Select at least one valid menu action");
+      return;
+    }
     try {
       const payload = {
         profile_info: {
-          profile_id: editing ? profileId(editing) : 0,
+          profile_id: editing ? numericId(profileId(editing)) : 0,
           profile_name: form.profile_name,
-          inst_profile_id: form.inst_profile_id,
+          inst_profile_id: institutionId,
         },
         menu_info: form.menu_info,
+        is_draft: event.nativeEvent.submitter?.dataset?.mode === "draft",
       };
       const result = editing
         ? await updateMutation.mutateAsync(payload)
@@ -188,10 +210,16 @@ export function Profile() {
 
   const runAction = async () => {
     if (!action) return;
-    const id = profileId(action.profile);
-    const instProfileId = action.profile?.inst_profile_id;
+    const id = numericId(profileId(action.profile));
+    const instProfileId = numericId(action.profile?.inst_profile_id);
+    if (!id || !instProfileId) {
+      notifications.error("The selected profile has an invalid identifier");
+      return;
+    }
     try {
       let result;
+      if (action.type === "submit")
+        result = await submitMutation.mutateAsync({ profile_id: id, narration });
       if (action.type === "auth")
         result = await authMutation.mutateAsync({
           profile_id: id,
@@ -224,6 +252,7 @@ export function Profile() {
   };
 
   const actionPending =
+    submitMutation.isPending ||
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
@@ -270,54 +299,41 @@ export function Profile() {
       label: t("common:actions"),
       sortable: false,
       render: (p) => {
-        const canViewProfile = profileHasAction(p, 2);
-        const canEditProfile = profileHasAction(p, 3);
-        const canDeleteProfile = profileHasAction(p, 4);
-        const canAuthorizeProfile = profileHasAction(p, 5);
+        const draft = isDraft(p);
+        const pending = isPending(p);
+        const pendingDelete = isPendingDelete(p);
+        const actions = [
+          ...(canSubmit && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"], ["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+          ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
+          ...(canDelete && !pending && !draft ? [["delete", "Delete", Trash2, "delete"]] : []),
+        ];
         return (
           <div className="flex items-center justify-center gap-1">
-            {canEditProfile && canEdit && (
+            {canEdit && (!pending || draft) && (
               <UiTooltip label="Edit">
-                <button onClick={() => openEdit(p)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+                <button type="button" onClick={() => openEdit(p)} className={actionButtonClass("edit")}>
                   <Pencil size={14} />
                 </button>
               </UiTooltip>
             )}
-            {canViewProfile && (
-              <UiTooltip label="View">
-                <button onClick={() => setViewProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-                  <Eye size={14} />
+            <UiTooltip label="View">
+              <button type="button" onClick={() => setViewProfile(p)} className={actionButtonClass("view")}>
+                <Eye size={14} />
+              </button>
+            </UiTooltip>
+            <UiTooltip label="Audit">
+              <button type="button" onClick={() => setAuditProfile(p)} className={actionButtonClass("view")}>
+                <History size={14} />
+              </button>
+            </UiTooltip>
+            {actions.map(([type, label, Icon, style]) => (
+              <UiTooltip key={type} label={label}>
+                <button type="button" onClick={() => setAction({ type, profile: p, label, style })} className={actionButtonClass(style)}>
+                  <Icon size={14} />
                 </button>
               </UiTooltip>
-            )}
-            {canViewProfile && (
-              <UiTooltip label="Audit">
-                <button onClick={() => setAuditProfile(p)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-                  <History size={14} />
-                </button>
-              </UiTooltip>
-            )}
-            {canAuthorizeProfile && canAuthorize && (
-              <>
-                <UiTooltip label="Authorize">
-                  <button onClick={() => setAction({ type: "auth", profile: p })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                    <ShieldCheck size={14} />
-                  </button>
-                </UiTooltip>
-                <UiTooltip label="Deauthorize">
-                  <button onClick={() => setAction({ type: "deauth", profile: p })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                    <ShieldOff size={14} />
-                  </button>
-                </UiTooltip>
-              </>
-            )}
-            {canDeleteProfile && canDelete && (
-              <UiTooltip label="Delete">
-                <button onClick={() => setAction({ type: "delete", profile: p })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-                  <Trash2 size={14} />
-                </button>
-              </UiTooltip>
-            )}
+            ))}
           </div>
         );
       },
@@ -347,45 +363,21 @@ export function Profile() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative w-full max-w-xs">
-          <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            type="text"
-            placeholder={t("searchProfilesPlaceholder")}
-            className="w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-            style={{ background: "var(--glass-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {TABS.map((value) => (
-            <button
-              key={value}
-              onClick={() => {
-                setActiveTab(value);
-                setPage(1);
-              }}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
-                activeTab === value
-                  ? "border-transparent text-white shadow-md shadow-blue-200/50"
-                  : "text-slate-500 hover:border-blue-200 hover:text-blue-600",
-              )}
-              style={
-                activeTab === value
-                  ? { background: "#2266EE", border: "none" }
-                  : { background: "var(--glass-bg)", backdropFilter: "blur(12px)", borderColor: "var(--glass-border)" }
-              }
-            >
-              {TAB_LABEL[value]} ({counts[value]})
-            </button>
-          ))}
-        </div>
+      <div className="mb-4">
+        <StatusFilterTabs
+          rows={profiles}
+          value={activeTab}
+          onChange={(value) => {
+            setActiveTab(value);
+            setPage(1);
+          }}
+          search={search}
+          onSearch={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          searchPlaceholder={t("searchProfilesPlaceholder")}
+        />
       </div>
 
       {profilesQuery.error && (
@@ -431,7 +423,7 @@ export function Profile() {
             setForm={setForm}
             institutions={institutions}
             onSubmit={submitForm}
-            submitting={createMutation.isPending}
+            submitting={createMutation.isPending || submitMutation.isPending}
           />
         )}
         {showForm && editing && (
@@ -442,7 +434,7 @@ export function Profile() {
             setForm={setForm}
             institutions={institutions}
             onSubmit={submitForm}
-            submitting={updateMutation.isPending}
+            submitting={updateMutation.isPending || submitMutation.isPending}
           />
         )}
       </AnimatePresence>
@@ -469,6 +461,27 @@ export function Profile() {
         onClose={closeAction}
         onConfirm={() => void runAction()}
       />
+
+      <ConfirmDialog
+        open={["submit", "deleteAuth"].includes(action?.type)}
+        title={`${action?.label ?? "Confirm action"} profile`}
+        confirmLabel={action?.label ?? "Confirm"}
+        destructive={action?.type === "deleteAuth"}
+        pending={actionPending}
+        onClose={closeAction}
+        onConfirm={() => void runAction()}
+      >
+        {action?.type === "submit" && (
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+            Narration
+            <textarea
+              value={narration}
+              onChange={(event) => setNarration(event.target.value)}
+              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+            />
+          </label>
+        )}
+      </ConfirmDialog>
 
       {auditProfile && <AuditProfile profile={auditProfile} onClose={() => setAuditProfile(null)} />}
 

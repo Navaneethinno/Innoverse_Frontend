@@ -77,6 +77,7 @@ export const profilesApi = {
   // inst_profile_id}, menu_info: [{menu_id, actions: [action_id...],
   // is_configuration_only}]} — creates a pending-add.
   add: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.ADD, payload),
+  submit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.SUBMIT, payload),
   // POST /profile/edit — same shape as add, profile_info.profile_id is the
   // real id being edited; creates a pending-edit.
   edit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.EDIT, payload),

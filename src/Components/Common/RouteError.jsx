@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 export function RouteError() {
   const { t } = useTranslation("common");
   const error = useRouteError();
+  const isDev = import.meta.env.DEV;
   // Previously only logged in DEV, so a genuine production error (as
   // opposed to an actual unmatched route) was invisible — this screen looks
   // identical either way, and there was no way to tell them apart from a
@@ -30,6 +31,11 @@ export function RouteError() {
       <p className="mb-2 text-sm font-medium text-muted-foreground">
         {t("pageNotFound")}
       </p>
+      {isDev && error && (
+        <pre className="mb-2 max-h-32 w-full overflow-auto rounded-xl border border-red-200 bg-red-50 p-3 text-left text-[11px] font-semibold text-red-700">
+          {String(error?.stack ?? error?.message ?? error)}
+        </pre>
+      )}
       <Link
         to="/dashboard"
         className="rounded-xl bg-brand-gradient px-5 py-2.5 font-semibold text-white shadow-lg transition-transform hover:-translate-y-0.5 hover:shadow-xl"

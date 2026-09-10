@@ -257,6 +257,17 @@ export const users = {
   selectProfile: "Select profile",
   showPassword: "Show password",
   hidePassword: "Hide password",
+  fieldUsername: "Username",
+  fieldFirstName: "First name",
+  fieldLastName: "Last name",
+  fieldPassword: "Password",
+  fieldInstitution: "Institution",
+  fieldProfileId: "Profile",
+  fieldEmployeeId: "Employee ID",
+  fieldEmail: "Email",
+  fieldMobile: "Mobile",
+  fieldGender: "Gender",
+  fieldAddress: "Address",
 };
 
 export const dashboard = {
