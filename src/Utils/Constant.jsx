@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
     RESIDENCY_TYPE_LIST: "/master/residency_type",
     COUNTRY_LIST: "/master/country",
     CURRENCY_LIST: "/master/currency",
+    GENDER_LIST: "/master/gender",
     LANGUAGE_LIST: "/master/language",
     // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",
     // same as every other Master endpoint above), paginated — {page, limit}

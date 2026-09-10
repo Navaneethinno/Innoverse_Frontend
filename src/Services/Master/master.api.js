@@ -169,4 +169,5 @@ export const masterApi = {
   countryList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.COUNTRY_LIST, {}), "country"),
   currencyList: async () =>
     toArray(await masterPost(API_ENDPOINTS.MASTER.CURRENCY_LIST, {}), "currency"),
+  genderList: async () => toArray(await masterPost(API_ENDPOINTS.MASTER.GENDER_LIST, {}), "gender"),
 };

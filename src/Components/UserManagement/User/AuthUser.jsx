@@ -10,7 +10,11 @@ import { nameOf, userId } from "./UserForm";
 export function AuthUser({ user, pending, onClose, onConfirm }) {
   const { t } = useTranslation("users");
   const open = !!user;
-  const { data, isLoading, error } = usePendingChanges(usersApi.pending, open ? userId(user) : null, open);
+  const { data, isLoading, error } = usePendingChanges(
+    ({ id }) => usersApi.pending({ user_id: id }),
+    open ? userId(user) : null,
+    open,
+  );
   return (
     <ConfirmDialog
       open={open}

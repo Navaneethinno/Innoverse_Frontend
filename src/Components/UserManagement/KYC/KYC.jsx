@@ -11,7 +11,6 @@ import {
   ShieldOff,
   Trash2,
 } from "lucide-react";
-import { AuditModal } from "@/Components/Common/AuditModal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
@@ -20,9 +19,10 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { Modal } from "@/Components/Common/Modal";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/Users/kycHooks";
+import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/Users/kycHooks";
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { AuditKyc } from "./AuditKyc";
 
 const EMPTY = {
   user_id: "",
@@ -39,7 +39,7 @@ const EMPTY = {
 };
 
 const FORM_FIELDS = [
-  ["user_id", "User ID"],
+  ["user_id", "User"],
   ["user_fname", "First name"],
   ["user_mname", "Middle name"],
   ["user_lname", "Last name"],
@@ -50,17 +50,6 @@ const FORM_FIELDS = [
   ["address", "Address"],
   ["alternate_mob", "Alternate mobile"],
   ["alternate_email", "Alternate email"],
-];
-
-const AUDIT_FIELDS = [
-  ["user_id", "User ID"],
-  ["user_name", "Username"],
-  ["first_name", "First name"],
-  ["last_name", "Last name"],
-  ["employee_id", "Employee ID"],
-  ["email", "Email"],
-  ["mobile", "Mobile"],
-  ["gender", "Gender"],
 ];
 
 const idOf = (row) => row?.user_id ?? row?.id;
@@ -85,7 +74,7 @@ function normalizeForm(row) {
   };
 }
 
-function KycForm({ open, form, setForm, editing, onSave, onClose, pending }) {
+function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users, usersLoading, usersError, genders, gendersLoading, gendersError }) {
   return (
     <Modal
       open={open}
@@ -110,7 +99,36 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending }) {
         {FORM_FIELDS.map(([key, label]) => (
           <label key={key} className={key === "address" ? "text-sm font-medium text-slate-700 md:col-span-2" : "text-sm font-medium text-slate-700"}>
             <span className="mb-1.5 block">{label}</span>
-            {key === "address" ? (
+            {key === "user_id" ? (
+              <select
+                required
+                disabled={Boolean(editing) || usersLoading}
+                value={form.user_id ?? ""}
+                onChange={(event) => setForm({ ...form, user_id: event.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
+              >
+                <option value="">{usersLoading ? "Loading users..." : "Select user"}</option>
+                {users.map((user) => {
+                  const id = user?.user_id ?? user?.id;
+                  const label = user?.user_name ?? user?.username ?? user?.name ?? `User #${id}`;
+                  return <option key={id} value={id}>{label}</option>;
+                })}
+              </select>
+            ) : key === "gender" ? (
+              <select
+                value={form.gender ?? ""}
+                disabled={gendersLoading}
+                onChange={(event) => setForm({ ...form, gender: event.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
+              >
+                <option value="">{gendersLoading ? "Loading genders..." : "Select gender"}</option>
+                {genders.map((gender) => {
+                  const value = gender?.gender_code ?? gender?.code ?? gender?.id ?? gender?.gender_id;
+                  const label = gender?.gender_name ?? gender?.name ?? gender?.description ?? value;
+                  return <option key={value} value={value}>{label}</option>;
+                })}
+              </select>
+            ) : key === "address" ? (
               <textarea
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
@@ -126,6 +144,12 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending }) {
                 className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
               />
             )}
+            {key === "user_id" && usersError && (
+              <p className="mt-1 text-xs font-medium text-red-600">{usersError.message}</p>
+            )}
+            {key === "gender" && gendersError && (
+              <p className="mt-1 text-xs font-medium text-red-600">{gendersError.message}</p>
+            )}
           </label>
         ))}
       </div>
@@ -134,6 +158,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending }) {
 }
 
 function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const canAdd = useHasKycAction("Add");
   const canEdit = useHasKycAction("Edit");
   const canAuthorize = useHasKycAction("Authorize");
   const canDelete = useHasKycAction("Delete");
@@ -154,7 +179,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const locked = pending && !draft;
   const inactive = isInactive(row);
   const actions = [
-    ...(canSubmit && draft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
+    ...((canSubmit || canAdd) && draft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
     ...(canAuthorize && locked && !pendingDelete ? [["kycAuth", "Authorize", ShieldCheck, "auth"], ["kycDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
     ...(canDelete && !pending ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
     ...(canAuthorize && pendingDelete ? [["kycDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
@@ -242,6 +267,8 @@ export function KYC() {
   const [auditRow, setAuditRow] = useState(null);
 
   const query = useKycQuery({ page, limit: 10 });
+  const activeUsersQuery = useActiveUsersForKycQuery();
+  const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
   const edit = useKycMutation("kycEdit");
   const canAdd = useHasKycAction("Add");
@@ -362,6 +389,12 @@ export function KYC() {
         setForm={setForm}
         editing={editing}
         pending={add.isPending || edit.isPending}
+        users={activeUsersQuery.users}
+        usersLoading={activeUsersQuery.isLoading}
+        usersError={activeUsersQuery.error}
+        genders={gendersQuery.genders}
+        gendersLoading={gendersQuery.isLoading}
+        gendersError={gendersQuery.error}
         onSave={save}
         onClose={() => {
           setEditing(null);
@@ -386,20 +419,7 @@ export function KYC() {
         </Modal>
       )}
 
-      {auditRow && (
-        <AuditModal
-          title={displayName(auditRow) || `KYC #${idOf(auditRow)}`}
-          fields={AUDIT_FIELDS}
-          onClose={() => setAuditRow(null)}
-          fetchAudit={async (auditPage, limit) => {
-            const result = await usersApi.kycAudit({ user_id: idOf(auditRow), page: auditPage, limit });
-            return {
-              entries: Array.isArray(result?.data) ? result.data : [],
-              totalPages: result?.pagination?.totalPages ?? 1,
-            };
-          }}
-        />
-      )}
+      <AuditKyc kyc={auditRow} onClose={() => setAuditRow(null)} />
     </div>
   );
 }

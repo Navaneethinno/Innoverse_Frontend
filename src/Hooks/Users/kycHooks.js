@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
+import { masterApi } from "@/Services/Master/master.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -45,6 +46,24 @@ export function useKycQuery(params = {}) {
   useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, notify);
   const rows = Array.isArray(query.data?.data) ? query.data.data : [];
   return { ...query, data: rows, pagination: query.data?.pagination };
+}
+
+function activeUserRows(payload) {
+  const data = payload?.data;
+  if (Array.isArray(data)) return data;
+  return data?.user_array ?? data?.users ?? data?.list ?? [];
+}
+
+// KYC belongs to an existing login account. The backend provides the compact
+// picker data through /user/get_active with { view: "dropdown" }.
+export function useActiveUsersForKycQuery() {
+  const query = useQuery(useCallback(() => usersApi.getActive({ view: "dropdown" }), []));
+  return { ...query, users: activeUserRows(query.data) || [] };
+}
+
+export function useGenderOptionsQuery() {
+  const query = useQuery(useCallback(() => masterApi.genderList(), []));
+  return { ...query, genders: Array.isArray(query.data) ? query.data : [] };
 }
 
 export function useKycMutation(method, success = "KYC action completed") {

@@ -1,5 +1,5 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { mapProfileListResponse } from "@/Hooks/Profiles/profileHooks";
+import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { profileId } from "./ProfileForm";
 
@@ -52,10 +52,7 @@ export function AuditProfile({ profile, onClose }) {
       getEntryKey={(entry, index) => entry.audit_id ?? entry.audit_key ?? index}
       renderExtra={renderMenuGrants}
       fetchAudit={(page, limit) =>
-        profilesApi.audit({ profile_id: profileId(profile), page, limit }).then((response) => {
-          const mapped = mapProfileListResponse(response);
-          return { entries: mapped.profiles, totalPages: mapped.pagination?.totalPages ?? 1 };
-        })
+        profilesApi.audit({ profile_id: profileId(profile), page, limit }).then(mapAuditResponse)
       }
     />
   );

@@ -11,7 +11,6 @@ import {
   ShieldOff,
   Trash2,
 } from "lucide-react";
-import { AuditModal } from "@/Components/Common/AuditModal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
@@ -24,6 +23,7 @@ import { Switch } from "@/Components/UI/switch";
 import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicyActions } from "@/Hooks/Users/passwordPolicyHooks";
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { AuditPasswordPolicy } from "./AuditPasswordPolicy";
 
 const TEXT_FIELDS = [
   "policy_name",
@@ -158,16 +158,6 @@ const FORM_SECTIONS = [
   },
 ];
 
-const AUDIT_FIELDS = [
-  ["policy_id", "Policy ID"],
-  ["policy_name", "Policy name"],
-  ["min_length", "Minimum length"],
-  ["max_length", "Maximum length"],
-  ["max_retry_count", "Maximum retry count"],
-  ["session_timeout_minutes", "Session timeout"],
-  ["max_sessions_allowed", "Max sessions"],
-];
-
 const empty = () => Object.fromEntries(ALL_FIELDS.map((field) => [field, BOOLEAN_FIELDS.includes(field) ? false : ""]));
 const idOf = (row) => row?.policy_id ?? row?.id;
 const isPending = (row) =>
@@ -191,11 +181,19 @@ function toForm(row) {
   return next;
 }
 
+function numericPolicyValue(value) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) && numericValue >= 0 ? numericValue : 0;
+}
+
 function toPayload(form) {
   return Object.fromEntries(
     Object.entries(form).map(([key, value]) => [
       key,
-      NUMBER_FIELDS.includes(key) && value !== "" ? Number(value) : value,
+      // The backend's PasswordPolicyFields uses Go integers. Empty HTML
+      // number inputs are strings, so send the documented zero/default
+      // rather than an invalid JSON string such as "min_numbers": "".
+      NUMBER_FIELDS.includes(key) ? numericPolicyValue(value) : value,
     ]),
   );
 }
@@ -297,6 +295,7 @@ function PolicyView({ row, onClose }) {
 }
 
 function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const canAdd = useHasPasswordPolicyAction("Add");
   const canEdit = useHasPasswordPolicyAction("Edit");
   const canAuthorize = useHasPasswordPolicyAction("Authorize");
   const canDelete = useHasPasswordPolicyAction("Delete");
@@ -316,7 +315,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const locked = pending && !draft;
   const inactive = isInactive(row);
   const actions = [
-    ...(canSubmit && draft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
+    ...((canSubmit || canAdd) && draft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
     ...(canAuthorize && locked && !pendingDelete ? [["passwordPolicyAuth", "Authorize", ShieldCheck, "auth"], ["passwordPolicyDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
     ...(canDelete && !pending ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
     ...(canAuthorize && pendingDelete ? [["passwordPolicyDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
@@ -530,20 +529,7 @@ export function PasswordPolicy() {
 
       {viewRow && <PolicyView row={viewRow} onClose={() => setViewRow(null)} />}
 
-      {auditRow && (
-        <AuditModal
-          title={auditRow.policy_name ?? `Policy #${idOf(auditRow)}`}
-          fields={AUDIT_FIELDS}
-          onClose={() => setAuditRow(null)}
-          fetchAudit={async (auditPage, limit) => {
-            const result = await usersApi.passwordPolicyAudit({ policy_id: idOf(auditRow), page: auditPage, limit });
-            return {
-              entries: Array.isArray(result?.data) ? result.data : [],
-              totalPages: result?.pagination?.totalPages ?? 1,
-            };
-          }}
-        />
-      )}
+      <AuditPasswordPolicy policy={auditRow} onClose={() => setAuditRow(null)} />
     </div>
   );
 }

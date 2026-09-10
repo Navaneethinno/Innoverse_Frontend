@@ -286,7 +286,7 @@ export function User() {
         const pendingDelete = isPendingDelete(user);
         const inactive = isInactive(user);
         const actions = [
-          ...(canSubmit && Number(user?.status) === 9 ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...((canSubmit || canAdd) && Number(user?.status) === 9 ? [["submit", "Submit draft", Send, "submit"]] : []),
           ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"]] : []),
           ...(canDeauthorize && pending && !pendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
           ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),

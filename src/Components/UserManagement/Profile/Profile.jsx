@@ -303,7 +303,7 @@ export function Profile() {
         const pending = isPending(p);
         const pendingDelete = isPendingDelete(p);
         const actions = [
-          ...(canSubmit && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
           ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"], ["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
           ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
           ...(canDelete && !pending && !draft ? [["delete", "Delete", Trash2, "delete"]] : []),
