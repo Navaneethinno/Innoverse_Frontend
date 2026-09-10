@@ -352,7 +352,7 @@ export function DataTable({
             )}
           </div>
         )}
-        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="max-h-[65vh] overflow-y-auto px-5 py-3">
+        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto px-5 py-3">
           <table className="w-full">
             <TableHead columns={columns} sort={sort} onSort={onSort} />
             <TableBody

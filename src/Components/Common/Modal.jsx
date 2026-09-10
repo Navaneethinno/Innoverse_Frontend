@@ -73,7 +73,7 @@ export function Modal({
         </div>
 
         <div
-          className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-4", bodyClassName)}
+          className={cn("thin-scrollbar min-h-0 flex-1 overflow-y-auto px-5 py-4", bodyClassName)}
           onScroll={onBodyScroll}
         >
           {children}
