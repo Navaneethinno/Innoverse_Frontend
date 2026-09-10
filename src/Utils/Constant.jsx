@@ -140,6 +140,18 @@ export const API_ENDPOINTS = {
       DEAUTH: "/master_config/religion/deauth", EDIT: "/master_config/religion/edit", DELETE: "/master_config/religion/delete",
       DELETE_AUTH: "/master_config/religion/delete_auth",
     },
+    GENDER: {
+      ADD: "/master_config/gender/add", SUBMIT: "/master_config/gender/submit", LIST: "/master_config/gender/list",
+      GET_ACTIVE: "/master_config/gender/get_active", AUDIT: "/master_config/gender/audit", AUTH: "/master_config/gender/auth",
+      DEAUTH: "/master_config/gender/deauth", EDIT: "/master_config/gender/edit", DELETE: "/master_config/gender/delete",
+      DELETE_AUTH: "/master_config/gender/delete_auth",
+    },
+    SOURCE_OF_FUND: {
+      ADD: "/master_config/source_of_fund/add", SUBMIT: "/master_config/source_of_fund/submit", LIST: "/master_config/source_of_fund/list",
+      GET_ACTIVE: "/master_config/source_of_fund/get_active", AUDIT: "/master_config/source_of_fund/audit", AUTH: "/master_config/source_of_fund/auth",
+      DEAUTH: "/master_config/source_of_fund/deauth", EDIT: "/master_config/source_of_fund/edit", DELETE: "/master_config/source_of_fund/delete",
+      DELETE_AUTH: "/master_config/source_of_fund/delete_auth",
+    },
     TURNOVER: {
       ADD: "/master_config/turnover/add", SUBMIT: "/master_config/turnover/submit", LIST: "/master_config/turnover/list",
       GET_ACTIVE: "/master_config/turnover/get_active", AUDIT: "/master_config/turnover/audit", AUTH: "/master_config/turnover/auth",

@@ -35,6 +35,8 @@ const EMPLOYMENT = API_ENDPOINTS.MASTER_CONFIG.EMPLOYMENT;
 const OCCUPATION = API_ENDPOINTS.MASTER_CONFIG.OCCUPATION;
 const QUALIFICATION = API_ENDPOINTS.MASTER_CONFIG.QUALIFICATION;
 const RELIGION = API_ENDPOINTS.MASTER_CONFIG.RELIGION;
+const GENDER = API_ENDPOINTS.MASTER_CONFIG.GENDER;
+const SOURCE_OF_FUND = API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND;
 const TURNOVER = API_ENDPOINTS.MASTER_CONFIG.TURNOVER;
 const lifecycleApi = (endpoints) => ({
   add: (payload) => request(endpoints.ADD, payload), submit: (payload) => request(endpoints.SUBMIT, payload),
@@ -74,4 +76,6 @@ export const employmentApi = lifecycleApi(EMPLOYMENT);
 export const occupationApi = lifecycleApi(OCCUPATION);
 export const qualificationApi = lifecycleApi(QUALIFICATION);
 export const religionApi = lifecycleApi(RELIGION);
+export const genderApi = lifecycleApi(GENDER);
+export const sourceOfFundApi = lifecycleApi(SOURCE_OF_FUND);
 export const turnoverApi = lifecycleApi(TURNOVER);
