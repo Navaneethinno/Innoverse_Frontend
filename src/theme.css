@@ -257,9 +257,16 @@
 .dark .login-theme-transition input:-webkit-autofill,
 .dark .login-theme-transition input:-webkit-autofill:hover,
 .dark .login-theme-transition input:-webkit-autofill:focus {
+  color: var(--foreground) !important;
   -webkit-text-fill-color: var(--foreground);
   caret-color: var(--foreground);
   box-shadow: 0 0 0 1000px var(--input-background) inset;
+}
+
+.dark .login-theme-transition input {
+  color: var(--foreground) !important;
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
 }
 
 /* Illustration crossfade — kept on its own opacity transition (same 300ms
