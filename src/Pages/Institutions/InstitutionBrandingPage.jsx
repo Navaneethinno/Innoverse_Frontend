@@ -45,6 +45,28 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+const COLOR_NAMES = {
+  "#d82222": "Red",
+  "#b90e0e": "Dark red",
+  "#2563eb": "Blue",
+  "#dbeafe": "Light blue",
+  "#ffffff": "White",
+  "#000000": "Black",
+};
+const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "Custom color";
+function ColorValue({ color }) {
+  if (!color) return <span>—</span>;
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className="h-5 w-5 shrink-0 rounded-md border border-slate-300 shadow-sm"
+        style={{ backgroundColor: color }}
+      />
+      <span>{color}</span>
+      <span className="text-xs font-medium text-muted-foreground">({colorName(color)})</span>
+    </span>
+  );
+}
 function BrandingActions({ row, onRefresh, onEdit }) {
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -163,7 +185,11 @@ function BrandingActions({ row, onRefresh, onEdit }) {
             <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
               <p className="mt-1 break-words text-sm font-semibold text-foreground">
-                {value(details, key)}
+                {key.includes("color") ? (
+                  <ColorValue color={details?.[key]} />
+                ) : (
+                  value(details, key)
+                )}
               </p>
             </div>
           ))}
@@ -216,20 +242,12 @@ export function InstitutionBrandingPage() {
     {
       key: "primary_color",
       label: "Primary Color",
-      render: (r) => (
-        <span className="flex items-center gap-2">
-          <span
-            className="h-4 w-4 rounded-full border"
-            style={{ backgroundColor: r.primary_color }}
-          />
-          {value(r, "primary_color")}
-        </span>
-      ),
+      render: (r) => <ColorValue color={r.primary_color} />,
     },
     {
       key: "secondary_color",
       label: "Secondary Color",
-      render: (r) => value(r, "secondary_color"),
+      render: (r) => <ColorValue color={r.secondary_color} />,
     },
     {
       key: "status",
