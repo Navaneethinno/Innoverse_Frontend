@@ -253,6 +253,15 @@
     box-shadow 300ms ease-in-out !important;
 }
 
+/* Keep browser-managed credentials readable when the login theme is dark. */
+.dark .login-theme-transition input:-webkit-autofill,
+.dark .login-theme-transition input:-webkit-autofill:hover,
+.dark .login-theme-transition input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  caret-color: var(--foreground);
+  box-shadow: 0 0 0 1000px var(--input-background) inset;
+}
+
 /* Illustration crossfade — kept on its own opacity transition (same 300ms
    duration) rather than the blanket rule above, so it never fights the
    framer-motion-driven entrance animations elsewhere on the page. */
