@@ -33,7 +33,7 @@ export function RouteError() {
       </p>
       {isDev && error && (
         <pre className="mb-2 max-h-32 w-full overflow-auto rounded-xl border border-red-200 bg-red-50 p-3 text-left text-[11px] font-semibold text-red-700">
-          {String(error?.stack ?? error?.message ?? error)}
+          {error?.stack ?? error?.message ?? (typeof error === "string" ? error : JSON.stringify(error))}
         </pre>
       )}
       <Link
