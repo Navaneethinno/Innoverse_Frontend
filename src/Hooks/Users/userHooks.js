@@ -4,6 +4,7 @@ import { usersApi } from "@/Services/Users/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 // Real permission source: the user's own menu_array (from login) — the
 // exact same data the sidebar itself uses to decide what to show, matching
@@ -16,13 +17,19 @@ export function useHasUserAction(actionName) {
     () =>
       (menuArray || []).some(
         (item) =>
-          String(item?.menu_name ?? "").trim().toLowerCase() === "user" &&
+          String(item?.menu_name ?? "")
+            .trim()
+            .toLowerCase() === "user" &&
           (item?.actions || []).some((a) => {
-            const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
+            const grantedAction = String(a?.action_name ?? a?.name ?? "")
+              .trim()
+              .toLowerCase();
             const requestedAction = String(actionName).trim().toLowerCase();
-            return grantedAction === requestedAction ||
+            return (
+              grantedAction === requestedAction ||
               (requestedAction === "add" && grantedAction === "create") ||
-              (requestedAction === "authorize" && grantedAction === "authorise");
+              (requestedAction === "authorize" && grantedAction === "authorise")
+            );
           }),
       ),
     [menuArray, actionName],
@@ -68,10 +75,12 @@ function useUserMutation(mutationFn) {
       try {
         const result = await mutationFn(payload);
         notifyUserChange();
+        notifications.success(apiMessage(result, "User action completed"));
         return result;
       } catch (nextError) {
         const normalized = nextError instanceof Error ? nextError : new Error("Request failed");
         setError(normalized);
+        notifications.error(normalized.message);
         throw normalized;
       } finally {
         setIsPending(false);
@@ -85,19 +94,16 @@ function useUserMutation(mutationFn) {
 export function mapUserListResponse(payload) {
   const data = payload?.data;
   const users =
-    (Array.isArray(data) && data) ||
-    data?.user_array ||
-    data?.user_data ||
-    data?.list ||
-    [];
+    (Array.isArray(data) && data) || data?.user_array || data?.user_data || data?.list || [];
   return {
     users: Array.isArray(users) ? users : [],
-    pagination: payload?.pagination ?? data?.pagination ?? {
-      totalRecords: Array.isArray(users) ? users.length : 0,
-      totalPages: 1,
-      currentPage: 1,
-      limit: 10,
-    },
+    pagination: payload?.pagination ??
+      data?.pagination ?? {
+        totalRecords: Array.isArray(users) ? users.length : 0,
+        totalPages: 1,
+        currentPage: 1,
+        limit: 10,
+      },
   };
 }
 
@@ -107,7 +113,10 @@ export function useUsersQuery(params) {
   const search = params?.search ?? "";
   const status = params?.status ?? 0;
   const query = useUserAsyncQuery(
-    useCallback(() => usersApi.list({ page, limit, search, status }), [page, limit, search, status]),
+    useCallback(
+      () => usersApi.list({ page, limit, search, status }),
+      [page, limit, search, status],
+    ),
   );
   // Live push from the backend (any user/tab/device authorizing, editing,
   // deleting, ... a user) triggers the same refetch a local mutation
@@ -165,6 +174,9 @@ export function useUserCreateMutation() {
 export function useUserUpdateMutation() {
   return useUserMutation(useCallback((payload) => usersApi.edit(payload), []));
 }
+export function useUserSubmitMutation() {
+  return useUserMutation(useCallback((payload) => usersApi.submit(payload), []));
+}
 export function useUserAuthMutation() {
   return useUserMutation(useCallback((payload) => usersApi.auth(payload), []));
 }
@@ -176,4 +188,10 @@ export function useUserDeleteMutation() {
 }
 export function useUserDeleteAuthMutation() {
   return useUserMutation(useCallback((payload) => usersApi.deleteAuth(payload), []));
+}
+export function useUserDeactivateMutation() {
+  return useUserMutation(useCallback((payload) => usersApi.deactivate(payload), []));
+}
+export function useUserReactivateMutation() {
+  return useUserMutation(useCallback((payload) => usersApi.reactivate(payload), []));
 }

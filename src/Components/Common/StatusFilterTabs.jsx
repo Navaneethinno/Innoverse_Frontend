@@ -17,7 +17,7 @@ export const statusBucket = (row) => {
   return "inactive";
 };
 
-export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch }) {
+export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder = "Search institutions..." }) {
   const counts = rows.reduce(
     (result, row) => {
       result.all += 1;
@@ -43,7 +43,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
           <input
             value={search}
             onChange={(event) => onSearch(event.target.value)}
-            placeholder="Search institutions..."
+            placeholder={searchPlaceholder}
             className="h-12 w-full rounded-full border border-slate-200 bg-white/70 pl-11 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
         </div>

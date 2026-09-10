@@ -160,6 +160,9 @@ export function useProfileGetQuery(profileId) {
 export function useProfileCreateMutation() {
   return useProfileMutation(useCallback((payload) => profilesApi.add(payload), []));
 }
+export function useProfileSubmitMutation() {
+  return useProfileMutation(useCallback((payload) => profilesApi.submit(payload), []));
+}
 export function useProfileUpdateMutation() {
   return useProfileMutation(useCallback((payload) => profilesApi.edit(payload), []));
 }

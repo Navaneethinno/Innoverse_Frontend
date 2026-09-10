@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
+import { masterApi } from "@/Services/Master/master.api";
 
 // Base data source deliberately reused rather than inventing a new master
 // endpoint: the Postman collection has no confirmed /master/menu/list or
@@ -15,31 +15,103 @@ import { cn } from "@/Utils/Lib/cn";
 // collection — flagged here rather than silently guessing a URL. In
 // practice an admin who can manage Profiles already has a menu_array
 // covering the full grantable surface, so this is a reasonable stand-in.
+const numericId = (value) => {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+};
+
+// Profile grants must be built from master menu/action relations, not from
+// the current user's sidebar permissions. A sidebar action can be permitted
+// for the current user while still being invalid for a different menu.
 export function useMenuTreeSource() {
-  const menuArray = useSelector((store) => store.menu.menuArray);
-  const masterModules = useSelector((store) => store.menu.masterModules);
-  return useMemo(() => {
-    const moduleNameById = new Map(
-      (masterModules || []).map((m) => [Number(m.module_id), m.module_name]),
-    );
-    const byModule = new Map();
-    for (const item of menuArray || []) {
-      const moduleId = Number(item?.module_id);
-      if (!byModule.has(moduleId)) byModule.set(moduleId, []);
-      byModule.get(moduleId).push(item);
+  const [source, setSource] = useState({ modules: [], isLoading: true, error: null });
+  const load = useCallback(async () => {
+    setSource((current) => ({ ...current, isLoading: true, error: null }));
+    try {
+      const [rawModules, rawMenus, rawRelations, rawActions] = await Promise.all([
+        masterApi.moduleList(),
+        masterApi.menuList(),
+        masterApi.menuActionList(),
+        masterApi.actionList(),
+      ]);
+      const actionNames = new Map(
+        rawActions
+          .map((action) => [numericId(action?.action_id ?? action?.id), action?.action_name ?? action?.name])
+          .filter(([id]) => id != null),
+      );
+      const actionsByMenu = new Map();
+      rawRelations.forEach((relation) => {
+        const menuId = numericId(relation?.menu_id ?? relation?.menu?.id);
+        // The relation's `id` identifies the menu_action row, not an action.
+        const actionId = numericId(relation?.action_id ?? relation?.action?.id);
+        if (!menuId || !actionId) return;
+        const current = actionsByMenu.get(menuId) ?? [];
+        if (!current.some((action) => action.action_id === actionId)) {
+          current.push({
+            action_id: actionId,
+            action_name: relation?.action_name ?? relation?.action?.name ?? actionNames.get(actionId) ?? `Action #${actionId}`,
+          });
+        }
+        actionsByMenu.set(menuId, current);
+      });
+      const moduleNames = new Map(
+        rawModules.map((module) => [numericId(module?.module_id ?? module?.id), module?.module_name ?? module?.name]),
+      );
+      const menusByModule = new Map();
+      rawMenus.forEach((menu) => {
+        const menuId = numericId(menu?.menu_id ?? menu?.id);
+        const moduleId = numericId(menu?.module_id);
+        const actions = actionsByMenu.get(menuId) ?? [];
+        if (!menuId || !moduleId || actions.length === 0) return;
+        if (!menusByModule.has(moduleId)) menusByModule.set(moduleId, []);
+        menusByModule.get(moduleId).push({
+          menu_id: menuId,
+          menu_name: menu?.menu_name ?? menu?.name ?? `Menu #${menuId}`,
+          priority: Number(menu?.priority ?? 0),
+          actions,
+        });
+      });
+      const modules = Array.from(menusByModule.entries())
+        .map(([moduleId, menus]) => ({
+          moduleId,
+          moduleName: moduleNames.get(moduleId) ?? `Module #${moduleId}`,
+          menus: menus.sort((a, b) => a.priority - b.priority),
+        }))
+        .sort((a, b) => a.moduleName.localeCompare(b.moduleName));
+      setSource({ modules, isLoading: false, error: null });
+    } catch (error) {
+      setSource({
+        modules: [],
+        isLoading: false,
+        error: error instanceof Error ? error : new Error("Failed to load menu permissions"),
+      });
     }
-    return Array.from(byModule.entries())
-      .map(([moduleId, menus]) => ({
-        moduleId,
-        moduleName: moduleNameById.get(moduleId) ?? `Module #${moduleId}`,
-        menus: menus.slice().sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0)),
-      }))
-      .sort((a, b) => a.moduleName.localeCompare(b.moduleName));
-  }, [menuArray, masterModules]);
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  return { ...source, refetch: load };
 }
 
 function allActionIds(menu) {
   return (menu.actions || []).map((a) => a.action_id);
+}
+
+function normalizeGrants(grants, modules) {
+  const validActionsByMenu = new Map(
+    modules.flatMap((module) =>
+      module.menus.map((menu) => [menu.menu_id, new Set(allActionIds(menu))]),
+    ),
+  );
+  return (Array.isArray(grants) ? grants : []).flatMap((grant) => {
+    const menuId = numericId(grant?.menu_id);
+    const validActions = validActionsByMenu.get(menuId);
+    if (!menuId || !validActions) return [];
+    const actions = [...new Set((grant?.actions ?? []).map(numericId).filter((id) => id && validActions.has(id)))];
+    return actions.length > 0
+      ? [{ menu_id: menuId, actions, is_configuration_only: grant?.is_configuration_only ? 1 : 0 }]
+      : [];
+  });
 }
 
 /**
@@ -61,11 +133,19 @@ function allActionIds(menu) {
  * Profiles "View" action) instead of a second, duplicated read-only tree.
  */
 export function ProfilePermissionTree({ selected, onChange, readOnly = false }) {
-  const modules = useMenuTreeSource();
+  const { modules, isLoading, error, refetch } = useMenuTreeSource();
   const [query, setQuery] = useState("");
   const [openModuleIds, setOpenModuleIds] = useState(() => new Set());
+  const grants = useMemo(() => normalizeGrants(selected, modules), [selected, modules]);
+  const selectedKey = JSON.stringify(selected ?? []);
+  const grantsKey = JSON.stringify(grants);
+  const commit = (nextGrants) => onChange(normalizeGrants(nextGrants, modules));
 
-  const grantFor = (menuId) => selected.find((g) => g.menu_id === menuId);
+  useEffect(() => {
+    if (!isLoading && selectedKey !== grantsKey) onChange(grants);
+  }, [isLoading, selectedKey, grantsKey, grants, onChange]);
+
+  const grantFor = (menuId) => grants.find((grant) => grant.menu_id === menuId);
   const isMenuGranted = (menuId) => (grantFor(menuId)?.actions?.length ?? 0) > 0;
 
   const toggleModuleOpen = (moduleId) => {
@@ -79,18 +159,18 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
 
   const setMenuGrant = (menu, actionIds) => {
     if (actionIds.length === 0) {
-      onChange(selected.filter((g) => g.menu_id !== menu.menu_id));
+      commit(grants.filter((grant) => grant.menu_id !== menu.menu_id));
       return;
     }
     const existing = grantFor(menu.menu_id);
     if (!existing) {
-      onChange([
-        ...selected,
+      commit([
+        ...grants,
         { menu_id: menu.menu_id, actions: actionIds, is_configuration_only: 0 },
       ]);
     } else {
-      onChange(
-        selected.map((g) => (g.menu_id === menu.menu_id ? { ...g, actions: actionIds } : g)),
+      commit(
+        grants.map((grant) => (grant.menu_id === menu.menu_id ? { ...grant, actions: actionIds } : grant)),
       );
     }
   };
@@ -113,10 +193,10 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
       const grant = grantFor(menu.menu_id);
       return (grant?.actions?.length ?? 0) === allActionIds(menu).length;
     });
-    const withoutModule = selected.filter(
+    const withoutModule = grants.filter(
       (g) => !module.menus.some((menu) => menu.menu_id === g.menu_id),
     );
-    onChange(
+    commit(
       allGranted
         ? withoutModule
         : [
@@ -141,7 +221,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
       ),
     );
   const toggleSelectAllModules = () => {
-    onChange(
+    commit(
       allModulesGranted
         ? []
         : modules.flatMap((module) =>
@@ -176,8 +256,21 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         .filter((module) => module.menus.length > 0)
     : filteredModules;
 
+  if (isLoading) {
+    return <p className="text-sm text-slate-400">Loading available menu actions...</p>;
+  }
+  if (error) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+        <span>{error.message}</span>
+        <button type="button" onClick={() => void refetch()} className="text-xs font-bold underline">
+          Retry
+        </button>
+      </div>
+    );
+  }
   if (modules.length === 0) {
-    return <p className="text-sm text-slate-400">No menu/action data available to grant.</p>;
+    return <p className="text-sm text-slate-400">No valid menu/action data is available to grant.</p>;
   }
   if (readOnly && visibleModules.length === 0) {
     return <p className="text-sm text-slate-400">No permissions granted.</p>;
@@ -322,11 +415,11 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                   type="checkbox"
                                   checked={!!grant?.is_configuration_only}
                                   onChange={() =>
-                                    onChange(
-                                      selected.map((g) =>
-                                        g.menu_id === menu.menu_id
-                                          ? { ...g, is_configuration_only: g.is_configuration_only ? 0 : 1 }
-                                          : g,
+                                    commit(
+                                      grants.map((grant) =>
+                                        grant.menu_id === menu.menu_id
+                                          ? { ...grant, is_configuration_only: grant.is_configuration_only ? 0 : 1 }
+                                          : grant,
                                       ),
                                     )
                                   }

@@ -15,7 +15,7 @@ import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
-const SIDEBAR_EXPANDED_W = 220;
+const SIDEBAR_EXPANDED_W = 256;
 const SIDEBAR_COLLAPSED_W = 56;
 
 // Replicates the senior payseFrontend sidebar data flow (see
@@ -183,7 +183,7 @@ export function DynamicSidebar() {
         />
       </div>
 
-      <div className="flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto overflow-x-hidden mt-3">
+      <div className="scrollbar-hidden mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto">
         {selectedModule &&
           (() => {
             const SelectedIcon = getModuleIcon(selectedModule.module_name);

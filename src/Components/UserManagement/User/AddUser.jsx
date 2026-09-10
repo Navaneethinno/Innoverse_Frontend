@@ -37,6 +37,16 @@ export function AddUser({
           <button
             type="submit"
             form="user-form"
+            data-mode="draft"
+            disabled={submitting}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
+          >
+            {t("saveAsDraft", "Save as draft")}
+          </button>
+          <button
+            type="submit"
+            form="user-form"
+            data-mode="submit"
             disabled={submitting}
             className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
           >

@@ -10,7 +10,11 @@ import { profileId } from "./ProfileForm";
 export function AuthProfile({ profile, pending, onClose, onConfirm }) {
   const { t } = useTranslation("profiles");
   const open = !!profile;
-  const { data, isLoading, error } = usePendingChanges(profilesApi.pending, open ? profileId(profile) : null, open);
+  const { data, isLoading, error } = usePendingChanges(
+    ({ id }) => profilesApi.pending({ profile_id: id }),
+    open ? profileId(profile) : null,
+    open,
+  );
   return (
     <ConfirmDialog
       open={open}

@@ -60,6 +60,7 @@ export const API_ENDPOINTS = {
     RESIDENCY_TYPE_LIST: "/master/residency_type",
     COUNTRY_LIST: "/master/country",
     CURRENCY_LIST: "/master/currency",
+    GENDER_LIST: "/master/gender",
     LANGUAGE_LIST: "/master/language",
     // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",
     // same as every other Master endpoint above), paginated — {page, limit}
@@ -75,6 +76,7 @@ export const API_ENDPOINTS = {
   USER_MANAGEMENT: {
     USER: {
       LIST: "/user/list",
+      SUBMIT: "/user/submit",
       GET: "/user/get",
       GET_ACTIVE: "/user/get_active",
       ADD: "/user/add",
@@ -97,6 +99,7 @@ export const API_ENDPOINTS = {
       GET: "/user/kyc/get",
       GET_ACTIVE: "/user/kyc/get_active",
       ADD: "/user/kyc/add",
+      SUBMIT: "/user/kyc/submit",
       AUDIT: "/user/kyc/audit",
       PENDING: "/user/kyc/pending",
       AUTH: "/user/kyc/auth",
@@ -111,6 +114,7 @@ export const API_ENDPOINTS = {
     // grants), NOT the Institution Profile entity under INSTITUTION below.
     PROFILE: {
       LIST: "/user/profile/list",
+      SUBMIT: "/user/profile/submit",
       GET: "/user/profile/get",
       GET_ACTIVE: "/user/profile/get_active",
       ADD: "/user/profile/add",
@@ -121,6 +125,22 @@ export const API_ENDPOINTS = {
       EDIT: "/user/profile/edit",
       DELETE: "/user/profile/delete",
       DELETE_AUTH: "/user/profile/delete_auth",
+    },
+    PASSWORD_POLICY: {
+      LIST: "/user/password_policy/list",
+      GET: "/user/password_policy/get",
+      GET_ACTIVE: "/user/password_policy/get_active",
+      ADD: "/user/password_policy/add",
+      SUBMIT: "/user/password_policy/submit",
+      EDIT: "/user/password_policy/edit",
+      AUTH: "/user/password_policy/auth",
+      DEAUTH: "/user/password_policy/deauth",
+      DELETE: "/user/password_policy/delete",
+      DELETE_AUTH: "/user/password_policy/delete_auth",
+      DEACTIVATE: "/user/password_policy/deactivate",
+      REACTIVATE: "/user/password_policy/reactivate",
+      AUDIT: "/user/password_policy/audit",
+      PENDING: "/user/password_policy/pending",
     },
   },
 

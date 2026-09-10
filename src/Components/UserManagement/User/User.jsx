@@ -6,10 +6,12 @@ import {
   History,
   Plus,
   Pencil,
-  Search,
   ShieldCheck,
   ShieldOff,
   Trash2,
+  PowerOff,
+  Power,
+  Send,
 } from "lucide-react";
 import {
   mapUserListResponse,
@@ -19,23 +21,26 @@ import {
   useUserDeauthMutation,
   useUserDeleteAuthMutation,
   useUserDeleteMutation,
+  useUserDeactivateMutation,
+  useUserReactivateMutation,
   useUserLookupsQuery,
+  useUserSubmitMutation,
   useUserUpdateMutation,
   useUsersQuery,
 } from "@/Hooks/Users/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { notifications } from "@/Utils/Lib/notifications";
 import { usersApi } from "@/Services/Users/users.api";
 import { DataTable } from "@/Components/Common/DataTable";
-import { cn } from "@/Utils/Lib/cn";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
 import { EditUser } from "./EditUser";
-import { AuthUser } from "./AuthUser";
-import { DeauthUser } from "./DeauthUser";
-import { DeleteUser } from "./DeleteUser";
 import { AuditUser } from "./AuditUser";
 
 // The users list endpoint only supports status 0/1/2 (all/active/inactive)
@@ -46,22 +51,18 @@ import { AuditUser } from "./AuditUser";
 // client-side by auth_status — a best-effort match limited to what's on the
 // current page (documented in the report as a follow-up once/if the
 // backend exposes a real pending filter).
-const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
-const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED"];
-const TABS = ["all", "active", "pending", "inactive"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
-
-function userTabOf(user) {
-  const status = String(user.auth_status ?? (user.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase();
-  if (ACTIVE_STATUSES.includes(status)) return "active";
-  if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
-  return "pending";
-}
-function userTimestamp(user) {
-  const raw = user.updated_time ?? user.created_time;
-  const time = raw ? new Date(raw).getTime() : NaN;
-  return Number.isNaN(time) ? 0 : time;
-}
+const isPending = (user) =>
+  String(user?.process_status_name ?? user?.status_name ?? "").toLowerCase().includes("pending") ||
+  String(user?.auth_status ?? "").toUpperCase() === "AUTH WAIT" ||
+  Number(user?.status) === 9;
+const isPendingDelete = (user) =>
+  String(user?.process_status_name ?? "").toLowerCase().includes("pending delete");
+const isInactive = (user) =>
+  String(user?.status_name ?? "").toLowerCase().includes("inactive") || Number(user?.status) === 13;
+const numericId = (value) => {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+};
 
 export function User() {
   // Real permission source — same menu_array the sidebar itself reads.
@@ -71,8 +72,11 @@ export function User() {
   const canAdd = useHasUserAction("Add");
   const canEdit = useHasUserAction("Edit");
   const canAuthorize = useHasUserAction("Authorize");
-  const canDeauthorize = useHasUserAction("Deauthorize");
+  const hasDeauthorizePermission = useHasUserAction("Deauthorize");
+  const canDeauthorize = hasDeauthorizePermission || canAuthorize;
   const canDelete = useHasUserAction("Delete");
+  const canChangeStatus = useHasUserAction("Change Status");
+  const canSubmit = useHasUserAction("Submit");
 
   const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0 });
   const [activeTab, setActiveTab] = useState("all");
@@ -91,29 +95,21 @@ export function User() {
     defaultPolicy;
   const createMutation = useUserCreateMutation();
   const updateMutation = useUserUpdateMutation();
+  const submitMutation = useUserSubmitMutation();
   const authMutation = useUserAuthMutation();
   const deauthMutation = useUserDeauthMutation();
   const deleteMutation = useUserDeleteMutation();
   const deleteAuthMutation = useUserDeleteAuthMutation();
+  const deactivateMutation = useUserDeactivateMutation();
+  const reactivateMutation = useUserReactivateMutation();
 
   const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
-  const visibleUsers = useMemo(() => {
-    if (activeTab === "all") return rawUsers;
-    const rows = rawUsers.filter((u) => userTabOf(u) === activeTab);
-    return activeTab === "pending" ? [...rows].sort((a, b) => userTimestamp(b) - userTimestamp(a)) : rows;
-  }, [rawUsers, activeTab]);
-  const counts = useMemo(() => {
-    const result = { all: rawUsers.length, active: 0, pending: 0, inactive: 0 };
-    rawUsers.forEach((u) => {
-      result[userTabOf(u)] += 1;
-    });
-    return result;
-  }, [rawUsers]);
-
-  const selectTab = (tab) => {
-    setActiveTab(tab);
-    setParams((p) => ({ ...p, page: 1, status: tab === "active" ? 1 : 0 }));
-  };
+  const visibleUsers = useMemo(() => rawUsers.filter((user) => activeTab === "all" || statusBucket(user) === activeTab), [rawUsers, activeTab]);
+  const pendingInfo = usePendingChanges(
+    ({ id }) => usersApi.pending({ user_id: id }),
+    numericId(action?.user ? userId(action.user) : null),
+    ["auth", "deauth"].includes(action?.type),
+  );
 
   const openCreate = () => {
     setEditing(null);
@@ -140,13 +136,16 @@ export function User() {
         }));
       }
     } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Failed to load user KYC details");
+      notifications.error(
+        error instanceof Error ? error.message : "Failed to load user KYC details",
+      );
     }
   };
   const submit = async (event) => {
     event.preventDefault();
     if (viewingOnly) return;
-    if (!editing) {
+    const draft = event.nativeEvent.submitter?.dataset?.mode === "draft";
+    if (!editing && !draft) {
       const issues = validatePassword(form.user_pwd, selectedPolicy);
       if (issues.length > 0) {
         notifications.error(`Password does not meet policy: ${issues.join(", ")}`);
@@ -154,57 +153,63 @@ export function User() {
       }
     }
     try {
-      const institutionId = Number(form.inst_id);
-      const profileId = Number(form.profile_id);
+      const institutionId = numericId(form.inst_id);
+      const profileId = numericId(form.profile_id);
+      if (!institutionId || !profileId) {
+        notifications.error("Please select a valid institution and profile");
+        return;
+      }
       let result;
       if (editing)
         result = await updateMutation.mutateAsync({
-          user_id: userId(editing),
+          user_id: numericId(userId(editing)),
           user_name: form.user_name,
-          user_pwd: "",
-          inst_id: Number.isInteger(institutionId) ? institutionId : 0,
-          profile_id: Number.isInteger(profileId) ? profileId : 0,
-          user_fname: form.user_fname,
-          user_lname: form.user_lname,
-          email: form.email,
-          mobile: form.mobile,
-          gender: form.gender,
-          address: form.address,
-          employee_id: form.employee_id,
+          inst_id: institutionId,
+          profile_id: profileId,
+          pwd_policy: numericId(form.password_policy_id) ?? undefined,
+          is_draft: draft,
+          expected_updated_time: editing.updated_time,
         });
       else {
         const { password_policy_id, ...userPayload } = form;
-        void password_policy_id;
         result = await createMutation.mutateAsync({
           ...userPayload,
-          inst_id: Number.isInteger(institutionId) ? institutionId : 0,
-          profile_id: Number.isInteger(profileId) ? profileId : 0,
+          inst_id: institutionId,
+          profile_id: profileId,
+          password_policy_id: numericId(password_policy_id),
+          is_draft: draft,
         });
       }
-      notifications.success(
-        apiMessage(result, editing ? "User updated successfully" : "User added successfully"),
-      );
       setShowForm(false);
     } catch (error) {
-      notifications.error(error.message);
+      // Mutation hooks already show the API error toast.
     }
   };
   const runAction = async () => {
     if (!action) return;
     try {
-      const payload = { user_id: userId(action.user) };
+      const id = numericId(userId(action.user));
+      if (!id) {
+        notifications.error("The selected user has an invalid identifier");
+        return;
+      }
+      const payload = { user_id: id };
       let result;
+      if (action.type === "submit") result = await submitMutation.mutateAsync({ ...payload, narration });
       if (action.type === "auth") result = await authMutation.mutateAsync(payload);
       if (action.type === "deauth")
         result = await deauthMutation.mutateAsync({ ...payload, narration: narration });
       if (action.type === "delete")
-        result = await deleteMutation.mutateAsync({ ...payload, del_narration: narration });
+        result = await deleteMutation.mutateAsync({ ...payload, narration });
       if (action.type === "deleteAuth") result = await deleteAuthMutation.mutateAsync(payload);
-      notifications.success(apiMessage(result, "User action completed"));
+      if (action.type === "deactivate")
+        result = await deactivateMutation.mutateAsync({ id, narration });
+      if (action.type === "reactivate")
+        result = await reactivateMutation.mutateAsync({ id, narration });
       setAction(null);
       setNarration("");
     } catch (error) {
-      notifications.error(error.message);
+      // Mutation hooks already show the API error toast.
     }
   };
   // AuditUser/AuditModal now own fetching the actual history pages
@@ -216,13 +221,22 @@ export function User() {
     setNarration("");
   };
   const actionPending =
+    submitMutation.isPending ||
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
-    deleteAuthMutation.isPending;
+    deleteAuthMutation.isPending ||
+    deactivateMutation.isPending ||
+    reactivateMutation.isPending;
 
   const columns = [
-    { key: "user", label: "User", align: "left", sortValue: nameOf, render: (u) => <span className="font-semibold text-slate-800">{nameOf(u)}</span> },
+    {
+      key: "user",
+      label: "User",
+      align: "left",
+      sortValue: nameOf,
+      render: (u) => <span className="font-semibold text-slate-800">{nameOf(u)}</span>,
+    },
     {
       key: "profile",
       label: "Profile",
@@ -233,9 +247,16 @@ export function User() {
       key: "institution",
       label: "Institution",
       sortValue: (u) =>
-        u.inst_profile_name ?? u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id"),
+        u.inst_profile_name ??
+        u.institution_name ??
+        u.institution?.name ??
+        fieldValue(u, "inst_id"),
       render: (u) =>
-        u.inst_profile_name ?? u.institution_name ?? u.institution?.name ?? fieldValue(u, "inst_id") ?? "-",
+        u.inst_profile_name ??
+        u.institution_name ??
+        u.institution?.name ??
+        fieldValue(u, "inst_id") ??
+        "-",
     },
     {
       key: "status_name",
@@ -245,7 +266,9 @@ export function User() {
         u.status == null && !u.status_name ? (
           "—"
         ) : (
-          <StatusBadge status={String(u.status_name ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
+          <StatusBadge
+            status={String(u.status_name ?? (u.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()}
+          />
         ),
     },
     {
@@ -258,48 +281,58 @@ export function User() {
       key: "actions",
       label: "Actions",
       sortable: false,
-      render: (user) => (
-        <div className="flex flex-wrap items-center justify-center gap-1">
+      render: (user) => {
+        const pending = isPending(user);
+        const pendingDelete = isPendingDelete(user);
+        const inactive = isInactive(user);
+        const actions = [
+          ...((canSubmit || canAdd) && Number(user?.status) === 9 ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"]] : []),
+          ...(canDeauthorize && pending && !pendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+          ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
+          ...(canDelete && !pending ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(canChangeStatus && !pending && !inactive ? [["deactivate", "Deactivate", PowerOff, "deactivate"]] : []),
+          ...(canChangeStatus && !pending && inactive ? [["reactivate", "Reactivate", Power, "reactivate"]] : []),
+        ];
+        return <div className="flex flex-wrap items-center justify-center gap-1">
           <UiTooltip label="View">
-            <button onClick={() => openEdit(user, { readOnly: true })} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+            <button
+              type="button"
+              onClick={() => openEdit(user, { readOnly: true })}
+              className={actionButtonClass("view")}
+            >
               <Eye size={14} />
             </button>
           </UiTooltip>
-          {canEdit && (
+          {canEdit && !pending && (
             <UiTooltip label="Edit">
-              <button onClick={() => openEdit(user)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
+              <button
+                type="button"
+                onClick={() => openEdit(user)}
+                className={actionButtonClass("edit")}
+              >
                 <Pencil size={14} />
               </button>
             </UiTooltip>
           )}
           <UiTooltip label="Audit">
-            <button onClick={() => openAudit(user)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
+            <button
+              type="button"
+              onClick={() => openAudit(user)}
+              className={actionButtonClass("view")}
+            >
               <History size={14} />
             </button>
           </UiTooltip>
-          {canAuthorize && (
-            <UiTooltip label="Authorize">
-              <button onClick={() => setAction({ type: "auth", user })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                <ShieldCheck size={14} />
+          {actions.map(([type, label, Icon, style]) => (
+            <UiTooltip key={type} label={label}>
+              <button type="button" onClick={() => setAction({ type, user, label, style })} className={actionButtonClass(style)}>
+                <Icon size={14} />
               </button>
             </UiTooltip>
-          )}
-          {canDeauthorize && (
-            <UiTooltip label="Deauthorize">
-              <button onClick={() => setAction({ type: "deauth", user })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                <ShieldOff size={14} />
-              </button>
-            </UiTooltip>
-          )}
-          {canDelete && (
-            <UiTooltip label="Delete">
-              <button onClick={() => setAction({ type: "delete", user })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-                <Trash2 size={14} />
-              </button>
-            </UiTooltip>
-          )}
-        </div>
-      ),
+          ))}
+        </div>;
+      },
     },
   ];
 
@@ -307,9 +340,13 @@ export function User() {
     <div className="pt-3 pb-6">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">User Management</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
+            User Management
+          </p>
           <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">Manage application users and access.</p>
+          <p className="mt-1 text-xs font-medium text-slate-400">
+            Manage application users and access.
+          </p>
         </div>
         {canAdd && (
           <motion.button
@@ -324,38 +361,18 @@ export function User() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative w-full max-w-xs">
-          <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={params.search}
-            onChange={(event) => setParams({ ...params, page: 1, search: event.target.value })}
-            placeholder="Search users"
-            className="w-full rounded-xl py-2 pl-9 pr-4 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
-            style={{ background: "var(--glass-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {TABS.map((value) => (
-            <button
-              key={value}
-              onClick={() => selectTab(value)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
-                activeTab === value
-                  ? "border-transparent text-white shadow-md shadow-blue-200/50"
-                  : "text-slate-500 hover:border-blue-200 hover:text-blue-600",
-              )}
-              style={
-                activeTab === value
-                  ? { background: "#2266EE", border: "none" }
-                  : { background: "var(--glass-bg)", backdropFilter: "blur(12px)", borderColor: "var(--glass-border)" }
-              }
-            >
-              {TAB_LABEL[value]} ({counts[value]})
-            </button>
-          ))}
-        </div>
+      <div className="mb-4">
+        <StatusFilterTabs
+          rows={rawUsers}
+          value={activeTab}
+          onChange={(tab) => {
+            setActiveTab(tab);
+            setParams((current) => ({ ...current, page: 1, status: tab === "active" ? 1 : 0 }));
+          }}
+          search={params.search}
+          onSearch={(search) => setParams((current) => ({ ...current, page: 1, search }))}
+          searchPlaceholder="Search users..."
+        />
       </div>
 
       {usersQuery.error && (
@@ -403,7 +420,7 @@ export function User() {
             profiles={lookupsQuery.profiles}
             passwordPolicies={lookupsQuery.passwordPolicies}
             selectedPolicy={selectedPolicy}
-            submitting={createMutation.isPending}
+            submitting={createMutation.isPending || submitMutation.isPending}
           />
         )}
         {showForm && editing && (
@@ -419,33 +436,32 @@ export function User() {
             profiles={lookupsQuery.profiles}
             passwordPolicies={lookupsQuery.passwordPolicies}
             selectedPolicy={selectedPolicy}
-            submitting={updateMutation.isPending}
+            submitting={updateMutation.isPending || submitMutation.isPending}
           />
         )}
       </AnimatePresence>
 
-      <AuthUser
-        user={action?.type === "auth" ? action.user : null}
+      <ConfirmDialog
+        open={!!action}
+        title={`${action?.label ?? "Confirm action"} user`}
+        confirmLabel={action?.label ?? "Confirm"}
+        destructive={["delete", "deleteAuth"].includes(action?.style)}
         pending={actionPending}
+        confirmDisabled={["deauth", "delete"].includes(action?.type) && !narration.trim()}
         onClose={closeAction}
-        onConfirm={runAction}
-      />
-      <DeauthUser
-        user={action?.type === "deauth" ? action.user : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={runAction}
-      />
-      <DeleteUser
-        user={action?.type === "delete" ? action.user : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={runAction}
-      />
+        onConfirm={() => void runAction()}
+      >
+        {["auth", "deauth"].includes(action?.type) && <PendingChangesDiff {...pendingInfo} />}
+        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-slate-500">
+          Narration{["deauth", "delete"].includes(action?.type) ? " *" : ""}
+          <textarea
+            value={narration}
+            onChange={(event) => setNarration(event.target.value)}
+            placeholder={["deauth", "delete"].includes(action?.type) ? "Narration is required" : "Narration"}
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+          />
+        </label>
+      </ConfirmDialog>
 
       <AuditUser audit={audit} onClose={() => setAudit(null)} />
     </div>

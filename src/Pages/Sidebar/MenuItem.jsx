@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+import { createElement, useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPath } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { getMenuIcon } from "./moduleIcons";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -59,26 +60,29 @@ export function MenuItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "flex items-center justify-between gap-2 rounded-lg truncate text-left outline-none transition-colors",
+          "flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-colors",
           isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-9 px-2.5 text-xs font-medium",
-          depth > 0 ? "ml-3" : "",
-          isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
+          isCollapsed
+            ? "justify-center px-0 w-9 mx-auto"
+            : depth > 0
+              ? "ml-3 w-[calc(100%-0.75rem)]"
+              : "w-full",
           isExpanded || isActiveLeaf
             ? "bg-[#2266EE] text-white shadow-sm"
             : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
         )}
       >
-        <span className="flex items-center gap-1.5 min-w-0">
+        <span className="flex min-w-0 items-center gap-1.5">
           {!isCollapsed && hasChildren && (
             <span className="shrink-0">
               {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
             </span>
           )}
-          {!isCollapsed && hasChildren && (
-            <span className="shrink-0">
-              {isExpanded ? <FolderOpen size={14} /> : <Folder size={14} />}
-            </span>
-          )}
+          {createElement(getMenuIcon(item?.menu_name), {
+            size: 14,
+            strokeWidth: 1.8,
+            className: "shrink-0",
+          })}
           {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
         </span>
       </button>
