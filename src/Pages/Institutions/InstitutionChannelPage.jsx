@@ -20,6 +20,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { institutionChannelApi } from "@/Services/Institutions/institutionChannel.api";
 import {
   useInstitutionChannelMutation,
@@ -184,6 +185,8 @@ function ChannelActions({ row, onRefresh, onEdit }) {
 export function InstitutionChannelPage() {
   const canAdd = useHasInstitutionAction("Add");
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const query = useInstitutionChannelsQuery({ page, limit: 10 });
@@ -191,6 +194,14 @@ export function InstitutionChannelPage() {
   const { channels } = useMasterChannels();
   const add = useInstitutionChannelMutation("add");
   const edit = useInstitutionChannelMutation("edit");
+  const filteredRows =
+    !search.trim() && statusFilter === "all"
+      ? query.data
+      : query.data.filter(
+          (row) =>
+            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
+            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
+        );
   const columns = [
     {
       key: "channel_name",
@@ -272,9 +283,19 @@ export function InstitutionChannelPage() {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
+      <StatusFilterTabs
+        rows={query.data}
+        value={statusFilter}
+        search={search}
+        onSearch={setSearch}
+        onChange={(value) => {
+          setStatusFilter(value);
+          setPage(1);
+        }}
+      />
       <DataTable
         columns={columns}
-        rows={query.data}
+        rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title="Institution Channel"

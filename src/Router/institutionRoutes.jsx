@@ -43,6 +43,8 @@ export const institutionRoutes = [
   { path: "/institutionlegal/:id", element: pageElement(InstitutionLegalPage) },
   { path: "/institutionbranding", element: pageElement(InstitutionBrandingPage) },
   { path: "/institutionbranding/:id", element: pageElement(InstitutionBrandingPage) },
+  { path: "/institution/branding", element: pageElement(InstitutionBrandingPage) },
+  { path: "/institution/branding/:id", element: pageElement(InstitutionBrandingPage) },
   { path: "/institutionchannel", element: pageElement(InstitutionChannelPage) },
   { path: "/institutionchannel/:id", element: pageElement(InstitutionChannelPage) },
   { path: "/institutioncurrency", element: pageElement(InstitutionCurrencyPage) },

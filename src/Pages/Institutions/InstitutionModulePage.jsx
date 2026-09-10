@@ -19,6 +19,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import {
   useInstitutionModuleMutation,
   useInstitutionModulesQuery,
@@ -196,6 +197,8 @@ function ModuleActions({ row, onRefresh, onEdit }) {
 export function InstitutionModulePage() {
   const canAdd = useHasInstitutionAction("Add");
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const query = useInstitutionModulesQuery({ page, limit: 10 });
@@ -203,6 +206,14 @@ export function InstitutionModulePage() {
   const { masterModules } = useMasterModules();
   const addMutation = useInstitutionModuleMutation("add");
   const editMutation = useInstitutionModuleMutation("edit");
+  const filteredRows =
+    !search.trim() && statusFilter === "all"
+      ? query.data
+      : query.data.filter(
+          (row) =>
+            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
+            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
+        );
   const columns = [
     {
       key: "module_name",
@@ -292,9 +303,19 @@ export function InstitutionModulePage() {
           </button>
         </div>
       )}
+      <StatusFilterTabs
+        rows={query.data}
+        value={statusFilter}
+        search={search}
+        onSearch={setSearch}
+        onChange={(value) => {
+          setStatusFilter(value);
+          setPage(1);
+        }}
+      />
       <DataTable
         columns={columns}
-        rows={query.data}
+        rows={filteredRows}
         rowKey={(row) => row.id}
         isLoading={query.isLoading}
         title="Institution Module"
