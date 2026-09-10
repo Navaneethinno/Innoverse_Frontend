@@ -1,14 +1,25 @@
 export function getApiErrorMessage(payload, fallback) {
-  if (typeof payload === "object" && payload !== null && "detail" in payload) {
-    return String(payload.detail);
-  }
-  if (typeof payload === "object" && payload !== null && "message" in payload) {
-    return String(payload.message);
-  }
-  if (typeof payload === "string" && payload.length > 0) {
-    return payload;
-  }
-  return fallback;
+  const readable = (value) => {
+    if (typeof value === "string" && value.trim()) return value;
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+    if (Array.isArray(value)) {
+      const messages = value.map(readable).filter(Boolean);
+      return messages.length ? messages.join(", ") : null;
+    }
+    if (value && typeof value === "object") {
+      for (const key of ["detail", "message", "remark", "error", "errors"]) {
+        const message = readable(value[key]);
+        if (message) return message;
+      }
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+  return readable(payload) || fallback;
 }
 export function getStatusErrorMessage(status) {
   if (status === 403) {
