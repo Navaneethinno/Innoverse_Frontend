@@ -183,7 +183,7 @@ export function DynamicSidebar() {
         />
       </div>
 
-      <div className="scrollbar-hidden mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto">
+      <div className="thin-scrollbar mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto">
         {selectedModule &&
           (() => {
             const SelectedIcon = getModuleIcon(selectedModule.module_name);

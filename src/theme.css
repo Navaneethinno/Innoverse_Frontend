@@ -399,7 +399,7 @@
   background-color: var(--muted-foreground);
 }
 
-/* Keep navigation scrollable without exposing a browser-specific track. */
+/* Legacy utility retained for consumers that intentionally need no chrome. */
 .scrollbar-hidden {
   -ms-overflow-style: none;
   scrollbar-width: none;
