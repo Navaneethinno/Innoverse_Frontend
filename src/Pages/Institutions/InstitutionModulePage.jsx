@@ -66,7 +66,6 @@ function ModuleActions({ row, onRefresh, onEdit }) {
   const rejectedDelete =
     processStatus.includes("rejected delete") || status.includes("rejected delete");
   const buttons = [
-    ...(pending && canAuthorize ? [["pending", "Pending", History]] : []),
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
       ? [

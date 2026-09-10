@@ -58,7 +58,6 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
       ? [
-          ["pending", "Pending", History],
           ["auth", "Authorize", ShieldCheck],
           ["deauth", "Reject", ShieldOff],
         ]

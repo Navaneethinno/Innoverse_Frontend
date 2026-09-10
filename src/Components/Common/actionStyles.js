@@ -3,7 +3,6 @@ export const actionButtonClass = (method) => {
     view: "text-blue-600 hover:bg-blue-50",
     edit: "text-blue-600 hover:bg-blue-50",
     submit: "text-blue-600 hover:bg-blue-50",
-    pending: "text-slate-600 hover:bg-slate-100",
     auth: "text-emerald-600 hover:bg-emerald-50",
     deauth: "text-amber-600 hover:bg-amber-50",
     delete: "text-red-600 hover:bg-red-50",
