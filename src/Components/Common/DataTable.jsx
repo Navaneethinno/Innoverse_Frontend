@@ -34,7 +34,8 @@ function useSortedRows(rows, columns, sort) {
   return useMemo(() => {
     if (!sort.key) return rows;
     const column = columns.find((c) => c.key === sort.key);
-    const getValue = column?.sortValue ?? ((row) => row[sort.key]);
+    const getValue = column?.sortValue ?? ((row) =>
+      sort.key === "updated_time" ? row.updated_time ?? row.created_time : row[sort.key]);
     const sorted = [...rows].sort((a, b) => compareValues(getValue(a), getValue(b)));
     return sort.direction === "desc" ? sorted.reverse() : sorted;
   }, [rows, columns, sort]);
@@ -169,7 +170,9 @@ export function DataTable({
   infiniteScrollLimit = 50,
 }) {
   const { t } = useTranslation("common");
-  const [sort, setSort] = useState({ key: null, direction: null });
+  // Keep the newest record visible first on every table. Users can still
+  // click any sortable header to override this default for the current view.
+  const [sort, setSort] = useState({ key: "updated_time", direction: "desc" });
   const [page, setPage] = useState(1);
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [viewAllSearch, setViewAllSearch] = useState("");
