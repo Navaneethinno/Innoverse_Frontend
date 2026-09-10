@@ -361,7 +361,11 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             required
             value={form.inst_profile_id}
             onChange={set("inst_profile_id")}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+            className={
+              key.includes("color")
+                ? "mt-1.5 h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                : "mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+            }
           >
             <option value="">Select institution</option>
             {institutions.map((i) => (
@@ -378,7 +382,13 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           <input
             required={key === "display_name"}
             type={key.includes("color") ? "color" : key.includes("email") ? "email" : "text"}
-            value={form[key]}
+            value={
+              key.includes("color") && !form[key]
+                ? key === "primary_color"
+                  ? "#2563eb"
+                  : "#dbeafe"
+                : form[key]
+            }
             onChange={set(key)}
             className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
           />
