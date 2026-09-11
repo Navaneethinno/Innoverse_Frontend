@@ -13,12 +13,7 @@ async function request(path, body = {}) {
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Deviceinfo: JSON.stringify(DEVICE_INFO),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...apiLanguageHeader(),
-      },
+      headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -32,6 +27,7 @@ async function request(path, body = {}) {
     const statusError = getStatusErrorMessage(response.status);
     if (statusError) throw new Error(statusError);
     if (!response.ok) throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));
+    if (String(payload?.status).toLowerCase() === "fail") throw new Error(getApiErrorMessage(payload, "Request failed"));
     return payload;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw new Error("Request timed out");
@@ -44,17 +40,7 @@ async function request(path, body = {}) {
 export const digitalProductApi = (entity) => {
   const base = `/digital_product/${entity}`;
   return {
-    add: (payload) => request(`${base}/add`, payload),
-    submit: (payload) => request(`${base}/submit`, payload),
-    edit: (payload) => request(`${base}/edit`, payload),
-    auth: (payload) => request(`${base}/auth`, payload),
-    deauth: (payload) => request(`${base}/deauth`, payload),
-    delete: (payload) => request(`${base}/delete`, payload),
-    deleteAuth: (payload) => request(`${base}/delete_auth`, payload),
-    list: (payload = { page: 1, limit: 10 }) => request(`${base}/list`, payload),
-    getActive: (payload = { view: "dropdown" }) => request(`${base}/get_active`, payload),
-    audit: (payload) => request(`${base}/audit`, payload),
-    deactivate: (payload) => request(`${base}/deactivate`, payload),
-    reactivate: (payload) => request(`${base}/reactivate`, payload),
+    add: (p) => request(`${base}/add`, p), submit: (p) => request(`${base}/submit`, p), edit: (p) => request(`${base}/edit`, p), auth: (p) => request(`${base}/auth`, p), deauth: (p) => request(`${base}/deauth`, p), delete: (p) => request(`${base}/delete`, p), deleteAuth: (p) => request(`${base}/delete_auth`, p),
+    list: (p = { page: 1, limit: 10 }) => request(`${base}/list`, p), getActive: (p = { view: "dropdown" }) => request(`${base}/get_active`, p), audit: (p) => request(`${base}/audit`, p), deactivate: (p) => request(`${base}/deactivate`, p), reactivate: (p) => request(`${base}/reactivate`, p),
   };
 };
