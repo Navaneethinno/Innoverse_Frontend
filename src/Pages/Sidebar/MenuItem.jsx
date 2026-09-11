@@ -48,7 +48,22 @@ export function MenuItem({
     // navigate there via React Router, regardless of whether a page is
     // registered for it. Unmatched slugs surface the app's errorElement
     // (RouteError), same as payse's own "/body" errorElement does for it.
-    navigate(buildMenuPath(item?.menu_name));
+    //
+    // payse's own handleNavigation slugifies the leaf name only, with no
+    // parent context at all — fine for payse's flatter menus, but Innoverse
+    // has real 2+-level-deep menus (e.g. Epurse > Configuration > KYC >
+    // Profile) whose leaf name can collide with an unrelated top-level menu
+    // (User Management > Profile). Both slugified to the same bare "profile"
+    // and silently landed on whichever route got registered for it first —
+    // clicking the KYC one rendered the User Management Profile page. From
+    // depth 2 down, the immediate parent's name is folded into the slug
+    // (e.g. "KYC" + "Profile" -> "kycprofile") so a nested menu can never
+    // collide with a top-level one by name alone. Depths 0-1 are untouched
+    // (all existing working routes are that shallow).
+    const parent =
+      depth >= 2 ? menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id)) : null;
+    const qualifiedName = parent?.menu_name ? `${parent.menu_name} ${item?.menu_name}` : item?.menu_name;
+    navigate(buildMenuPath(qualifiedName));
   };
 
   const isRoot = depth === 0;
