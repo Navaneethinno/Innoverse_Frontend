@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
-import { masterApi } from "@/Services/Master/master.api";
+import { genderApi } from "@/Services/MasterConfig/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -61,9 +61,19 @@ export function useActiveUsersForKycQuery() {
   return { ...query, users: activeUserRows(query.data) || [] };
 }
 
+// Was pointed at masterApi.genderList() -> /master/gender, a Master
+// (Reference Data) endpoint that 404s in production; the real, working
+// gender list lives under Master Config's own lifecycle API instead
+// (/master_config/gender/get_active, same endpoint the Gender master-data
+// page already uses), so this now goes through genderApi like every other
+// "active options for a dropdown" fetch in the app.
+function activeGenderRows(payload) {
+  return Array.isArray(payload?.data) ? payload.data : payload?.data?.data ?? [];
+}
+
 export function useGenderOptionsQuery() {
-  const query = useQuery(useCallback(() => masterApi.genderList(), []));
-  return { ...query, genders: Array.isArray(query.data) ? query.data : [] };
+  const query = useQuery(useCallback(() => genderApi.getActive(), []));
+  return { ...query, genders: activeGenderRows(query.data) };
 }
 
 export function useKycMutation(method, success = "KYC action completed") {
