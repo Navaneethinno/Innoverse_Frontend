@@ -70,6 +70,7 @@ function normalizeForm(row) {
 }
 
 function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users, usersLoading, usersError, genders, gendersLoading, gendersError }) {
+  const isValid = Number.isInteger(Number(form.user_id)) && Number(form.user_id) > 0 && form.user_fname.trim() && form.user_lname.trim();
   return (
     <Modal
       open={open}
@@ -81,10 +82,10 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
           <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100">
             Cancel
           </button>
-          <button type="button" disabled={pending} onClick={() => onSave(true)} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
+          <button type="button" disabled={pending || !isValid} onClick={() => onSave(true)} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
             Save as draft
           </button>
-          <button type="button" disabled={pending} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+          <button type="button" disabled={pending || !isValid} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
             {editing ? "Submit changes" : "Submit"}
           </button>
         </>
