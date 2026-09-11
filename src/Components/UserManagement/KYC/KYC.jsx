@@ -256,6 +256,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
 export function KYC() {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [form, setForm] = useState(EMPTY);
@@ -264,7 +265,7 @@ export function KYC() {
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = useKycQuery({ page, limit: 10 });
+  const query = useKycQuery({ page, limit });
   const activeUsersQuery = useActiveUsersForKycQuery();
   const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
@@ -310,7 +311,7 @@ export function KYC() {
     { key: "employee_id", label: "Employee ID", render: (row) => row.employee_id ?? "-" },
     { key: "email", label: "Email", render: (row) => row.email ?? "-" },
     { key: "mobile", label: "Mobile", render: (row) => row.mobile ?? "-" },
-    { key: "status", label: "Status", render: (row) => <StatusBadge status={String(row.status_name ?? row.auth_status ?? row.status ?? "")} /> },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
       label: "Actions",
@@ -371,6 +372,11 @@ export function KYC() {
           totalPages: query.pagination?.totalPages ?? 1,
           totalRecords: query.pagination?.totalRecords ?? rows.length,
           onPageChange: setPage,
+          limit,
+          onLimitChange: (next) => {
+            setLimit(next);
+            setPage(1);
+          },
         }}
         fetchMore={async (nextPage, limit) => {
           const result = await usersApi.kycList({ page: nextPage, limit });

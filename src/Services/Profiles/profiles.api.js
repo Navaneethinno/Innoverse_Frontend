@@ -108,7 +108,7 @@ export const profilesApi = {
   // for one profile, matching the pattern already built for Institutions.
   audit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.AUDIT, payload),
   // Confirmed endpoints not yet consumed by any page — wired for future use.
-  getActive: (payload = {}) =>
+  getActive: (payload = { view: "dropdown" }) =>
     request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET_ACTIVE, payload),
   pending: (payload = {}) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.PENDING, payload),
 };

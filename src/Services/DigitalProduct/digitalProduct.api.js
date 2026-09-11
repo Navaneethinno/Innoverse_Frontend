@@ -52,7 +52,7 @@ export const digitalProductApi = (entity) => {
     delete: (payload) => request(`${base}/delete`, payload),
     deleteAuth: (payload) => request(`${base}/delete_auth`, payload),
     list: (payload = { page: 1, limit: 10 }) => request(`${base}/list`, payload),
-    getActive: (payload = {}) => request(`${base}/get_active`, payload),
+    getActive: (payload = { view: "dropdown" }) => request(`${base}/get_active`, payload),
     audit: (payload) => request(`${base}/audit`, payload),
     deactivate: (payload) => request(`${base}/deactivate`, payload),
     reactivate: (payload) => request(`${base}/reactivate`, payload),

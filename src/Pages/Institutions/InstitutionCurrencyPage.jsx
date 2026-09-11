@@ -216,9 +216,25 @@ export function InstitutionCurrencyPage() {
     {
       key: "status",
       label: "Status",
-      render: (r) => (
-        <StatusBadge status={String(r.status_name ?? r.auth_status ?? r.status ?? "")} />
-      ),
+      sortValue: (r) => r.status_name ?? r.status ?? "",
+      render: (r) =>
+        r.status_name != null || r.status != null ? (
+          <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE"))} />
+        ) : (
+          "—"
+        ),
+    },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (r) => r.process_status_name ?? "",
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      sortValue: (r) => r.auth_status ?? "",
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",

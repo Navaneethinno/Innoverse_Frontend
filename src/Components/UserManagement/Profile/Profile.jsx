@@ -85,7 +85,8 @@ function isPendingDelete(profile) {
 function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (key === "auth_status") return value == null ? "—" : <StatusBadge status={String(value)} />;
+  if (key === "auth_status" || key === "process_status_name")
+    return value == null ? "—" : <StatusBadge status={String(value)} />;
   return value == null || value === "" ? "—" : String(value);
 }
 
@@ -108,6 +109,7 @@ export function Profile() {
   const canSubmit = useHasProfileAction("Submit");
 
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   // Same reasoning as InstitutionProfile.jsx: /profile/list has no
   // status-filter or search param (confirmed via Postman), so real
@@ -116,7 +118,7 @@ export function Profile() {
   // from the server (scales to any record count); a tab or search
   // switches to a larger single fetch, filtered client-side.
   const needsFullBatch = activeTab !== "all" || search.trim() !== "";
-  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 });
+  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -293,6 +295,12 @@ export function Profile() {
           <StatusBadge status={String(p.status_name ?? (p.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
         ),
     },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (p) => p.process_status_name ?? "",
+      render: (p) => renderProfileValue(p, "process_status_name"),
+    },
     { key: "auth_status", label: t("authorizationStatus"), sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
     {
       key: "actions",
@@ -410,6 +418,11 @@ export function Profile() {
                 totalPages: profilesQuery.pagination?.totalPages ?? 1,
                 totalRecords: profilesQuery.pagination?.totalRecords ?? filtered.length,
                 onPageChange: setPage,
+                limit,
+                onLimitChange: (next) => {
+                  setLimit(next);
+                  setPage(1);
+                },
               }
         }
       />

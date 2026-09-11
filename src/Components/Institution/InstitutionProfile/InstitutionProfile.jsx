@@ -124,6 +124,7 @@ export function InstitutionProfile() {
   const [auditInstitution, setAuditInstitution] = useState(null);
 
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   // /institution/profile/list has no status-filter or search param
   // (confirmed via Postman) — unlike /user/list, which does and so can
@@ -141,7 +142,7 @@ export function InstitutionProfile() {
   // everything the UI exposes.
   const needsFullBatch = activeTab !== "all" || search.trim() !== "";
   const institutionsQuery = useInstitutionsQuery(
-    needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 },
+    needsFullBatch ? { page: 1, limit: 500 } : { page, limit },
   );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
@@ -231,6 +232,12 @@ export function InstitutionProfile() {
             ).toUpperCase()}
           />
         ),
+    },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (r) => r.process_status_name ?? "",
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
@@ -402,6 +409,11 @@ export function InstitutionProfile() {
                 totalPages: institutionsQuery.pagination?.totalPages ?? 1,
                 totalRecords: institutionsQuery.pagination?.totalRecords ?? filtered.length,
                 onPageChange: setPage,
+                limit,
+                onLimitChange: (nextLimit) => {
+                  setLimit(nextLimit);
+                  setPage(1);
+                },
               }
         }
       />

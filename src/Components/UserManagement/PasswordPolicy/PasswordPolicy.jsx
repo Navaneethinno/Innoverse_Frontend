@@ -392,6 +392,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
 export function PasswordPolicy() {
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [form, setForm] = useState(empty);
@@ -400,7 +401,7 @@ export function PasswordPolicy() {
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = usePasswordPoliciesQuery({ page, limit: 10 });
+  const query = usePasswordPoliciesQuery({ page, limit });
   const rows = Array.isArray(query.data) ? query.data : [];
   const canAdd = useHasPasswordPolicyAction("Add");
   const methods = usePasswordPolicyActions();
@@ -439,7 +440,7 @@ export function PasswordPolicy() {
     { key: "min_length", label: "Min Length", render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: "Max Retries", render: (row) => row.max_retry_count ?? "-" },
     { key: "session_timeout_minutes", label: "Session Timeout", render: (row) => row.session_timeout_minutes ?? "-" },
-    { key: "status", label: "Status", render: (row) => <StatusBadge status={String(row.status_name ?? row.auth_status ?? row.status ?? "")} /> },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
       label: "Actions",
@@ -500,6 +501,11 @@ export function PasswordPolicy() {
           totalPages: query.pagination?.totalPages ?? 1,
           totalRecords: query.pagination?.totalRecords ?? rows.length,
           onPageChange: setPage,
+          limit,
+          onLimitChange: (next) => {
+            setLimit(next);
+            setPage(1);
+          },
         }}
         fetchMore={async (nextPage, limit) => {
           const result = await usersApi.passwordPolicyList({ page: nextPage, limit });

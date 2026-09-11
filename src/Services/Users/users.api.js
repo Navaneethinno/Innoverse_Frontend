@@ -70,7 +70,7 @@ function userPayload(payload = {}) {
 export const usersApi = {
   list: (payload = { page: 1, limit: 10, search: "", status: 0 }) => request(USER.LIST, payload),
   get: (payload) => request(USER.GET, payload),
-  getActive: (payload = {}) => request(USER.GET_ACTIVE, payload),
+  getActive: (payload = { view: "dropdown" }) => request(USER.GET_ACTIVE, payload),
   audit: (payload) => request(USER.AUDIT, payload),
   pending: (payload = {}) => request(USER.PENDING, payload),
   add: (payload) => request(USER.ADD, userPayload(payload)),

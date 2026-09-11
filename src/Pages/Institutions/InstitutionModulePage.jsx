@@ -229,10 +229,25 @@ export function InstitutionModulePage() {
     {
       key: "status",
       label: "Status",
-      sortValue: (row) => row.status_name ?? row.auth_status ?? row.status ?? "",
-      render: (row) => (
-        <StatusBadge status={String(row.status_name ?? row.auth_status ?? row.status ?? "")} />
-      ),
+      sortValue: (row) => row.status_name ?? row.status ?? "",
+      render: (row) =>
+        row.status_name != null || row.status != null ? (
+          <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} />
+        ) : (
+          "—"
+        ),
+    },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (row) => row.process_status_name ?? "",
+      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—"),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      sortValue: (row) => row.auth_status ?? "",
+      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—"),
     },
     {
       key: "actions",

@@ -268,6 +268,12 @@ export function User() {
         ),
     },
     {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (u) => String(u.process_status_name ?? ""),
+      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} /> : "—"),
+    },
+    {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (u) => String(u.auth_status ?? ""),
@@ -400,6 +406,8 @@ export function User() {
                 totalPages: usersQuery.pagination?.totalPages ?? 1,
                 totalRecords: usersQuery.pagination?.totalRecords ?? visibleUsers.length,
                 onPageChange: (page) => setParams((p) => ({ ...p, page })),
+                limit: params.limit,
+                onLimitChange: (limit) => setParams((p) => ({ ...p, limit, page: 1 })),
               }
             : null
         }
