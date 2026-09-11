@@ -53,3 +53,19 @@ export function useTimezones() {
   useEffect(() => { void load(); }, [load]);
   return { timezones, loading, error };
 }
+
+export function useKycDataFields(enabled = true) {
+  const [dataFields, setDataFields] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setDataFields(await masterApi.kycDataFieldList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC data fields"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { dataFields, error };
+}

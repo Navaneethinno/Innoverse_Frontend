@@ -1,6 +1,6 @@
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { API_BASE_URL } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
@@ -39,9 +39,12 @@ async function request(path, body = {}) {
 
 export const configKycApi = (entity) => {
   const base = `/config/${entity}`;
+  const constantKey = entity.toUpperCase();
+  const configuredEndpoints = API_ENDPOINTS.CONFIG_KYC?.[constantKey] ?? {};
   const methods = ["add", "submit", "edit", "auth", "deauth", "delete", "deleteAuth", "list", "getActive", "audit"];
   return Object.fromEntries(methods.map((method) => [method, (payload = method === "getActive" ? { view: "dropdown" } : undefined) => {
-    const path = method === "deleteAuth" ? "delete_auth" : method === "getActive" ? "get_active" : method;
-    return request(`${base}/${path}`, payload);
+    const path = configuredEndpoints[method === "getActive" ? "GET_ACTIVE" : method.toUpperCase()] ??
+      `${base}/${method === "deleteAuth" ? "delete_auth" : method === "getActive" ? "get_active" : method}`;
+    return request(path.startsWith("/") ? path : `${base}/${path}`, payload);
   }]));
 };

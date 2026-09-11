@@ -67,6 +67,11 @@ export const API_ENDPOINTS = {
     // in the body, {id, name, status, status_name} per record.
     TIMEZONE_LIST: "/master/timezone",
   },
+  CONFIG_KYC: {
+    KYC_GROUP_LEVEL: {
+      GET_ACTIVE: "/config/kyc_group_level/get_active",
+    },
+  },
   MASTER_CONFIG: {
     DISTRICT: {
       ADD: "/master_config/district/add", SUBMIT: "/master_config/district/submit", LIST: "/master_config/district/list",
