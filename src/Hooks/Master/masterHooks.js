@@ -69,3 +69,35 @@ export function useKycDataFields(enabled = true) {
   useEffect(() => { void load(); }, [load]);
   return { dataFields, error };
 }
+
+export function useKycProcesses(enabled = true) {
+  const [processes, setProcesses] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setProcesses(await masterApi.kycProcessList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC processes"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { processes, error };
+}
+
+export function useKycDocumentTypes(enabled = true) {
+  const [documentTypes, setDocumentTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setDocumentTypes(await masterApi.kycDocumentTypeList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC document types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { documentTypes, error };
+}

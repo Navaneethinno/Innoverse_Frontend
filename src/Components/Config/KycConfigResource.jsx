@@ -16,7 +16,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
-import { useKycDataFields } from "@/Hooks/Master/masterHooks";
+import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
 
 const CONFIGS = {
   kyc_group: {
@@ -97,6 +97,8 @@ export function KycConfigResource({ entity }) {
   const service = useMemo(() => api(entity), [entity]);
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const { dataFields = [] } = useKycDataFields(entity === "kyc_group_level_data");
+  const { processes = [] } = useKycProcesses(entity === "kyc_group_level_process");
+  const { documentTypes = [] } = useKycDocumentTypes(entity === "kyc_group_level_document");
   const [kycGroups, setKycGroups] = useState([]);
   const [kycGroupLevels, setKycGroupLevels] = useState([]);
   useEffect(() => {
@@ -106,7 +108,7 @@ export function KycConfigResource({ entity }) {
         .then((response) => setKycGroups(rowsOf(response)))
         .catch((error) => notifications.error(error.message));
     }
-    if (entity === "kyc_group_level_data") {
+    if (entity === "kyc_group_level_data" || entity === "kyc_group_level_process" || entity === "kyc_group_level_document") {
       configKycApi("kyc_group_level")
         .getActive()
         .then((response) => setKycGroupLevels(rowsOf(response)))
@@ -385,6 +387,32 @@ export function KycConfigResource({ entity }) {
                       })),
                     ]}
                   />
+                ) : key === "kyc_document_type_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    options={[
+                      { value: "", label: "Select document type" },
+                      ...documentTypes.map((documentType) => ({
+                        value: idOf(documentType),
+                        label: documentType.name ?? documentType.code ?? String(idOf(documentType)),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_process_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    options={[
+                      { value: "", label: "Select process" },
+                      ...processes.map((process) => ({
+                        value: idOf(process),
+                        label: process.name ?? process.code ?? String(idOf(process)),
+                      })),
+                    ]}
+                  />
                 ) : key === "kyc_data_field_id" ? (
                   <FilterSelect
                     className="mt-1.5"
@@ -480,6 +508,14 @@ export function KycConfigResource({ entity }) {
                   {key === "inst_profile_id"
                     ? (institutions.find((inst) => String(inst.id) === String(view[key]))?.name ??
                       String(view[key] ?? "-"))
+                    : key === "kyc_document_type_id"
+                      ? (documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.name ??
+                        documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.code ??
+                        String(view[key] ?? "-"))
+                    : key === "kyc_process_id"
+                      ? (processes.find((process) => String(idOf(process)) === String(view[key]))?.name ??
+                        processes.find((process) => String(idOf(process)) === String(view[key]))?.code ??
+                        String(view[key] ?? "-"))
                     : key === "kyc_data_field_id"
                       ? (dataFields.find((field) => String(idOf(field)) === String(view[key]))?.name ??
                         dataFields.find((field) => String(idOf(field)) === String(view[key]))?.code ??
