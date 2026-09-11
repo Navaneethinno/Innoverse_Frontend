@@ -37,7 +37,7 @@ const CONFIGS = {
     title: "Product Map",
     readOnlyOnEdit: ["product_id"],
     fields: [
-      ["product_id", "Product ID", "number"],
+      ["product_id", "Products", "number"],
       ["acct_product_id", "Account product ID", "number"],
       ["allowed", "Allowed", "boolean"],
       ["primary_account_product", "Primary account product", "boolean"],
@@ -132,7 +132,7 @@ const allowed = (menus, action, title) =>
         (a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase(),
       ),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products }) {
   if (!open) return null;
   return (
     <Modal
@@ -176,7 +176,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "inst_profile_id" ? (
+            {key === "product_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select product" },
+                  ...products.map((product) => ({
+                    value: product.id,
+                    label: product.name ?? product.code ?? String(product.id),
+                  })),
+                ]}
+              />
+            ) : key === "inst_profile_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -227,6 +240,14 @@ export function DigitalProductResource({ entity }) {
   const menus = useSelector((s) => s.menu.menuArray);
   const api = useMemo(() => digitalProductApi(entity), [entity]);
   const { data: institutions = [] } = useActiveInstitutionsQuery();
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    if (entity !== "product_map") return;
+    digitalProductApi("product")
+      .getActive({ view: "dropdown" })
+      .then((response) => setProducts(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
   const [rows, setRows] = useState([]),
     [pagination, setPagination] = useState({}),
     [page, setPage] = useState(1),
@@ -484,6 +505,7 @@ export function DigitalProductResource({ entity }) {
         editing={editing}
         saving={saving}
         institutions={institutions}
+        products={products}
         onSave={save}
         onClose={() => setOpen(false)}
       />
