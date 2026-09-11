@@ -7,13 +7,13 @@ import { cn } from "@/Utils/Lib/utils";
 // blue highlight) regardless of any className applied to the <select>
 // itself — no CSS reaches that native list. This renders the options as a
 // themed floating panel instead, matching ModuleDropdown's popover style.
-export function FilterSelect({ value, onChange, options, className, panelClassName }) {
+export function FilterSelect({ value, onChange, options, className, panelClassName, disabled }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isOpen || disabled) return undefined;
     function handleClick(e) {
       if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
     }
@@ -32,8 +32,12 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
     <div className={cn("relative", className)} ref={containerRef}>
       <button
         type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((open) => !open)}
+        className={cn(
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          disabled && "cursor-not-allowed opacity-60 hover:border-border",
+        )}
       >
         <span className="truncate">{selected?.label}</span>
         <ChevronDown
@@ -45,7 +49,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div
           className={cn(
             "absolute right-0 z-50 mt-1.5 min-w-full max-h-56 overflow-y-auto rounded-xl border p-1.5",
