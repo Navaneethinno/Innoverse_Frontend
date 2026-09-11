@@ -267,12 +267,6 @@ export function Profile() {
         ),
     },
     {
-      key: "code",
-      label: t("institutionCode"),
-      sortValue: (p) => institutionsById.get(String(p.inst_profile_id))?.code ?? "",
-      render: (p) => renderProfileValue(institutionsById.get(String(p.inst_profile_id)) ?? {}, "code"),
-    },
-    {
       key: "status_name",
       label: t("common:status"),
       sortValue: (p) => p.status_name ?? p.status ?? "",
