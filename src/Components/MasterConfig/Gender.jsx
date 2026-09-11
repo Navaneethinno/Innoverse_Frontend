@@ -1,3 +1,4 @@
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -16,9 +17,9 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 const empty = () => ({ name: "", description: "" });
 const idOf = (row) => row?.id ?? row?.gender_id;
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.gender_array ?? [];
-const isDraft = (row) => Number(row?.status) === 9 || /draft/i.test(`${row?.status_name ?? ""} ${row?.auth_status ?? ""}`);
-const isPending = (row) => /pending|auth wait/i.test(`${row?.process_status_name ?? ""} ${row?.auth_status ?? ""}`);
-const isPendingDelete = (row) => /pending delete/i.test(String(row?.process_status_name ?? ""));
+const isDraft = (row) => deriveStatusFlags(row).draft;
+const isPending = (row) => deriveStatusFlags(row).pending;
+const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const canAction = (menus, action) => (menus ?? []).some((menu) => /gender/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => { const name = String(item?.action_name ?? item?.name ?? "").toLowerCase(); return name === action.toLowerCase() || action === "Add" && name === "create" || action === "Authorize" && name === "authorise"; }));
 
 function GenderForm({ open, value, setValue, editing, saving, onClose, onSave }) {

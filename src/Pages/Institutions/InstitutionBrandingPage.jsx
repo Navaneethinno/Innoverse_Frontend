@@ -30,7 +30,7 @@ import {
   useActiveInstitutionsQuery,
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
-import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const FIELDS = [
   ["display_name", "Display Name"],
@@ -84,13 +84,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
     row.id,
     !!action && ["auth", "deauth"].includes(action.method),
   );
-  const status = String(row.status_name ?? row.auth_status ?? "").toLowerCase();
-  const process = String(row.process_status_name ?? "").toLowerCase();
-  const draft = Number(row.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "draft" || process === "draft";
-  const pending = process.includes("pending");
-  const pendingDelete = process.includes("pending delete");
-  const active = row.status === 1 || status === "active";
-  const inactive = row.status === 0 || status === "inactive";
+  const { draft, pending, pendingDelete, active, inactive } = deriveStatusFlags(row);
   const actions = [
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize

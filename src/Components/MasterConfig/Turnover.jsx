@@ -1,3 +1,4 @@
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -16,9 +17,9 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 const empty = () => ({ name: "", min_value: "", max_value: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.Turnover_array ?? [];
 const idOf = (r) => r?.id ?? r?.Turnover_id;
-const draft = (r) => Number(r?.status) === 9 || /draft/i.test(`${r?.status_name ?? ""} ${r?.auth_status ?? ""}`);
-const pending = (r) => /pending|auth wait/i.test(`${r?.process_status_name ?? ""} ${r?.auth_status ?? ""}`);
-const pendingDelete = (r) => /pending delete/i.test(String(r?.process_status_name ?? ""));
+const draft = (r) => deriveStatusFlags(r).draft;
+const pending = (r) => deriveStatusFlags(r).pending;
+const pendingDelete = (r) => deriveStatusFlags(r).pendingDelete;
 const allowed = (menus, action) => (menus ?? []).some((m) => /Turnover/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => { const n = String(a?.action_name ?? a?.name ?? "").toLowerCase(); return n === action.toLowerCase() || action === "Add" && n === "create" || action === "Authorize" && n === "authorise"; }));
 function TurnoverForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit Turnover" : "Add Turnover"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Cancel</button><button type="submit" form="Turnover-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="Turnover-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{saving ? "Saving..." : editing ? "Save changes" : "Add Turnover"}</button></>}><form id="Turnover-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Turnover name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Min value<input type="number" value={value.min_value} onChange={(e) => setValue({ ...value, min_value: e.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Max value<input type="number" value={value.max_value} onChange={(e) => setValue({ ...value, max_value: e.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label></form></Modal>; }
 export function Turnover() {

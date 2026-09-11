@@ -1,3 +1,4 @@
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
@@ -16,9 +17,9 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 const empty = () => ({ name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.province_array ?? [];
 const idOf = (r) => r?.id ?? r?.province_id;
-const draft = (r) => Number(r?.status) === 9 || /draft/i.test(`${r?.status_name ?? ""} ${r?.auth_status ?? ""}`);
-const pending = (r) => /pending|auth wait/i.test(`${r?.process_status_name ?? ""} ${r?.auth_status ?? ""}`);
-const pendingDelete = (r) => /pending delete/i.test(String(r?.process_status_name ?? ""));
+const draft = (r) => deriveStatusFlags(r).draft;
+const pending = (r) => deriveStatusFlags(r).pending;
+const pendingDelete = (r) => deriveStatusFlags(r).pendingDelete;
 
 function usePermission(action) { const menus = useSelector((s) => s.menu.menuArray); return useMemo(() => (menus ?? []).some((m) => /province/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => { const name = String(a?.action_name ?? a?.name ?? "").toLowerCase(); return name === action.toLowerCase() || (action === "Add" && name === "create") || (action === "Authorize" && name === "authorise"); })), [menus, action]); }
 

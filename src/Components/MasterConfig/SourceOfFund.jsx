@@ -1,3 +1,4 @@
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -16,9 +17,9 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 const empty = () => ({ name: "", description: "", has_employer: false });
 const idOf = (row) => row?.id ?? row?.source_of_fund_id;
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.source_of_fund_array ?? [];
-const draft = (row) => Number(row?.status) === 9 || /draft/i.test(`${row?.status_name ?? ""} ${row?.auth_status ?? ""}`);
-const pending = (row) => /pending|auth wait/i.test(`${row?.process_status_name ?? ""} ${row?.auth_status ?? ""}`);
-const pendingDelete = (row) => /pending delete/i.test(String(row?.process_status_name ?? ""));
+const draft = (row) => deriveStatusFlags(row).draft;
+const pending = (row) => deriveStatusFlags(row).pending;
+const pendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const allowed = (menus, action) => (menus ?? []).some((menu) => /source.?of.?fund/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => { const name = String(item?.action_name ?? item?.name ?? "").toLowerCase(); return name === action.toLowerCase() || action === "Add" && name === "create" || action === "Authorize" && name === "authorise"; }));
 function FundForm({ open, value, setValue, editing, saving, onClose, onSave }) { if (!open) return null; return <Modal open onClose={onClose} title={editing ? "Edit Source of Fund" : "Add Source of Fund"} footer={<><button type="button" onClick={onClose} disabled={saving} className="px-3 py-2 text-sm font-bold text-slate-500">Cancel</button><button type="submit" form="fund-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="fund-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{editing ? "Save changes" : "Add source"}</button></>}><form id="fund-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Source of fund<input required value={value.name} onChange={(event) => setValue({ ...value, name: event.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(event) => setValue({ ...value, description: event.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-primary" /></label><label className="flex items-center gap-2 text-sm font-semibold text-slate-700"><input type="checkbox" checked={Boolean(value.has_employer)} onChange={(event) => setValue({ ...value, has_employer: event.target.checked })} /> Has employer</label></form></Modal>; }
 export function SourceOfFund() {

@@ -24,6 +24,7 @@ import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicy
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditPasswordPolicy } from "./AuditPasswordPolicy";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const TEXT_FIELDS = [
   "policy_name",
@@ -160,13 +161,9 @@ const FORM_SECTIONS = [
 
 const empty = () => Object.fromEntries(ALL_FIELDS.map((field) => [field, BOOLEAN_FIELDS.includes(field) ? false : ""]));
 const idOf = (row) => row?.policy_id ?? row?.id;
-const isPending = (row) =>
-  String(row?.process_status_name ?? row?.status_name ?? "").toLowerCase().includes("pending") ||
-  String(row?.auth_status ?? "").toUpperCase() === "AUTH WAIT" ||
-  Number(row?.status) === 9;
-const isInactive = (row) => String(row?.status_name ?? "").toLowerCase().includes("inactive");
-const isPendingDelete = (row) =>
-  String(row?.process_status_name ?? "").toLowerCase().includes("pending delete");
+const isPending = (row) => deriveStatusFlags(row).pending;
+const isInactive = (row) => deriveStatusFlags(row).inactive;
+const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const searchText = (row) =>
   `${row?.policy_name ?? ""} ${row?.description ?? ""} ${row?.status_name ?? ""} ${row?.auth_status ?? ""}`;
 
@@ -310,7 +307,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
     ["passwordPolicyAuth", "passwordPolicyDeauth"].includes(action?.method),
   );
   const pending = isPending(row);
-  const draft = Number(row?.status) === 9;
+  const draft = deriveStatusFlags(row).draft;
   const pendingDelete = isPendingDelete(row);
   const locked = pending && !draft;
   const inactive = isInactive(row);

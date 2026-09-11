@@ -42,6 +42,7 @@ import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
 import { EditUser } from "./EditUser";
 import { AuditUser } from "./AuditUser";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 // The users list endpoint only supports status 0/1/2 (all/active/inactive)
 // server-side — there is no dedicated "pending" auth_status filter param
@@ -51,14 +52,9 @@ import { AuditUser } from "./AuditUser";
 // client-side by auth_status — a best-effort match limited to what's on the
 // current page (documented in the report as a follow-up once/if the
 // backend exposes a real pending filter).
-const isPending = (user) =>
-  String(user?.process_status_name ?? user?.status_name ?? "").toLowerCase().includes("pending") ||
-  String(user?.auth_status ?? "").toUpperCase() === "AUTH WAIT" ||
-  Number(user?.status) === 9;
-const isPendingDelete = (user) =>
-  String(user?.process_status_name ?? "").toLowerCase().includes("pending delete");
-const isInactive = (user) =>
-  String(user?.status_name ?? "").toLowerCase().includes("inactive") || Number(user?.status) === 13;
+const isPending = (user) => deriveStatusFlags(user).pending;
+const isPendingDelete = (user) => deriveStatusFlags(user).pendingDelete;
+const isInactive = (user) => deriveStatusFlags(user).inactive;
 const numericId = (value) => {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -285,8 +281,9 @@ export function User() {
         const pending = isPending(user);
         const pendingDelete = isPendingDelete(user);
         const inactive = isInactive(user);
+        const draft = deriveStatusFlags(user).draft;
         const actions = [
-          ...((canSubmit || canAdd) && Number(user?.status) === 9 ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
           ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"]] : []),
           ...(canDeauthorize && pending && !pendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
           ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),

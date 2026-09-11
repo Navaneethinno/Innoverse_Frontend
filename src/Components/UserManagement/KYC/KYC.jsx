@@ -23,6 +23,7 @@ import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useK
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const EMPTY = {
   user_id: "",
@@ -55,12 +56,9 @@ const FORM_FIELDS = [
 const idOf = (row) => row?.user_id ?? row?.id;
 const textOf = (row) =>
   `${row?.user_name ?? ""} ${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""} ${row?.employee_id ?? ""} ${row?.email ?? ""} ${row?.mobile ?? ""}`;
-const isPending = (row) => String(row?.process_status_name ?? row?.status_name ?? "").toLowerCase().includes("pending") ||
-  String(row?.auth_status ?? "").toUpperCase() === "AUTH WAIT" ||
-  Number(row?.status) === 9;
-const isInactive = (row) => String(row?.status_name ?? "").toLowerCase().includes("inactive");
-const isPendingDelete = (row) =>
-  String(row?.process_status_name ?? "").toLowerCase().includes("pending delete");
+const isPending = (row) => deriveStatusFlags(row).pending;
+const isInactive = (row) => deriveStatusFlags(row).inactive;
+const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const displayName = (row) =>
   row?.user_name || `${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""}`.trim();
 
@@ -174,7 +172,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
   );
 
   const pending = isPending(row);
-  const draft = Number(row?.status) === 9;
+  const draft = deriveStatusFlags(row).draft;
   const pendingDelete = isPendingDelete(row);
   const locked = pending && !draft;
   const inactive = isInactive(row);

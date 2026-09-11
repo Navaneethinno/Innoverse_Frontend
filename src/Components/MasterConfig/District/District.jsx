@@ -1,3 +1,4 @@
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
@@ -16,9 +17,9 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 const EMPTY = { province_id: "", name: "", description: "" };
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.district_array ?? [];
 const idOf = (row) => row?.id ?? row?.district_id;
-const isDraft = (row) => Number(row?.status) === 9 || /draft/i.test(String(row?.status_name ?? row?.auth_status));
-const isPending = (row) => /pending|auth wait/i.test(`${row?.process_status_name ?? ""} ${row?.auth_status ?? ""}`);
-const isPendingDelete = (row) => /pending delete/i.test(String(row?.process_status_name ?? ""));
+const isDraft = (row) => deriveStatusFlags(row).draft;
+const isPending = (row) => deriveStatusFlags(row).pending;
+const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 
 function useDistrictPermission(action) {
   const menus = useSelector((state) => state.menu.menuArray);

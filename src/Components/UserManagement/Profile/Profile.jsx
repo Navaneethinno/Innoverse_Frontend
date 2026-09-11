@@ -33,6 +33,7 @@ import { AuthProfile } from "./AuthProfile";
 import { DeauthProfile } from "./DeauthProfile";
 import { DeleteProfile } from "./DeleteProfile";
 import { AuditProfile } from "./AuditProfile";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 // Fixed action ids for the checker's own Authorize/Deauthorize buttons, per
 // payse's AuthProfile.jsx (action_id: 5 for authorize, 4 for deauthorize) —
@@ -70,16 +71,15 @@ function numericId(value) {
 }
 
 function isDraft(profile) {
-  return Number(profile?.status) === 9 || String(profile?.auth_status ?? "").toUpperCase() === "DRAFT";
+  return deriveStatusFlags(profile).draft;
 }
 
 function isPending(profile) {
-  return String(profile?.process_status_name ?? profile?.status_name ?? "").toLowerCase().includes("pending") ||
-    String(profile?.auth_status ?? "").toUpperCase() === "AUTH WAIT";
+  return deriveStatusFlags(profile).pending;
 }
 
 function isPendingDelete(profile) {
-  return String(profile?.process_status_name ?? "").toLowerCase().includes("pending delete");
+  return deriveStatusFlags(profile).pendingDelete;
 }
 
 function renderProfileValue(profile, key) {

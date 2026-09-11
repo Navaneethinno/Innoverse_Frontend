@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
   mapInstitutionListResponse,
@@ -68,8 +69,12 @@ function isInstitutionDraft(inst) {
 // Distinguishes a pending DELETE from a pending add/edit/deactivate/
 // reactivate — approving the former must call the dedicated /delete_auth
 // endpoint, not the generic /auth endpoint (see useInstitutionDeleteAuthMutation).
+// Delegates to the shared deriveStatusFlags rather than checking
+// process_status_name alone — some responses only populate auth_status with
+// the human-readable state ("Pending Delete"), which a process_status_name-
+// only check silently misses (confirmed live in UserManagement/Profile).
 function isPendingDelete(inst) {
-  return String(inst.process_status_name ?? "").toLowerCase().includes("pending delete");
+  return deriveStatusFlags(inst).pendingDelete;
 }
 function tabOf(inst) {
   const status = statusOf(inst);
@@ -247,10 +252,11 @@ export function InstitutionProfile() {
         const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
         const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
         // Per the confirmed action-UI mapping: Authorise/Deauthorise show as
-        // a pair whenever process_status_name contains "Pending" (Pending
-        // Add/Edit/Delete/Deactivate/Reactivate, etc.) — not derived from
-        // "not a draft" the way this used to be approximated.
-        const isPending = String(inst.process_status_name ?? "").toLowerCase().includes("pending");
+        // a pair whenever the row is pending (Pending Add/Edit/Delete/
+        // Deactivate/Reactivate, etc.) — checks both process_status_name and
+        // auth_status via deriveStatusFlags, since some responses only
+        // populate one or the other.
+        const isPending = deriveStatusFlags(inst).pending;
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
             <UiTooltip label="View"><button onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">

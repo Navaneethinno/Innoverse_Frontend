@@ -30,7 +30,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
-import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const displayValue = (value) => value ?? "—";
 
@@ -58,13 +58,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
       /* mutation hook already shows the error toast */
     }
   };
-  const status = String(row.status_name ?? row.auth_status ?? "").toLowerCase();
-  const processStatus = String(row.process_status_name ?? "").toLowerCase();
-  const draft = status === "draft" || processStatus === "draft" || Number(row.status) === INSTITUTION_DRAFT_STATUS_CODE;
-  const pending = processStatus.includes("pending");
-  const pendingDelete = processStatus.includes("pending delete");
-  const active = status === "active" || row.status === 1;
-  const inactive = status === "inactive" || row.status === 0;
+  const { draft, pending, pendingDelete, active, inactive } = deriveStatusFlags(row);
   const buttons = [
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
@@ -155,7 +149,6 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             ["Institution", details?.inst_profile_name ?? details?.inst_profile_id],
             ["Effective from", details?.effective_from],
             ["Effective to", details?.effective_to],
-            ["Configuration", details?.configuration_status],
           ].map(([label, value]) => (
             <label key={label} className="block text-sm font-medium text-slate-700">
               {label}
@@ -179,7 +172,6 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             ["inst_profile_name", "Institution"],
             ["effective_from", "Effective From"],
             ["effective_to", "Effective To"],
-            ["configuration_status", "Configuration"],
           ]}
           onClose={() => setAuditOpen(false)}
           fetchAudit={(page, limit) =>
@@ -234,11 +226,6 @@ export function InstitutionModulePage() {
       render: (row) => displayValue(row.effective_from),
     },
     { key: "effective_to", label: "Effective To", render: (row) => displayValue(row.effective_to) },
-    {
-      key: "configuration_status",
-      label: "Configuration",
-      render: (row) => displayValue(row.configuration_status),
-    },
     {
       key: "status",
       label: "Status",
@@ -315,7 +302,7 @@ export function InstitutionModulePage() {
         rowKey={(row) => row.id}
         isLoading={query.isLoading}
         title="Institution Module"
-        searchableKeys={["module_name", "inst_profile_name", "configuration_status"]}
+        searchableKeys={["module_name", "inst_profile_name"]}
         emptyTitle="No institution modules found"
         emptyDescription="Module assignments will appear here when available."
       />
