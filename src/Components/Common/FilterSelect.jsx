@@ -48,7 +48,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       {isOpen && (
         <div
           className={cn(
-            "absolute right-0 z-50 mt-1.5 min-w-full overflow-hidden rounded-xl border p-1.5",
+            "absolute right-0 z-50 mt-1.5 min-w-full max-h-56 overflow-y-auto rounded-xl border p-1.5",
             panelClassName,
           )}
           style={{
