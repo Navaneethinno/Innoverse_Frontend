@@ -17,6 +17,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { configKycApi } from "@/Services/Config/config.api";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const CONFIGS = {
   product: {
@@ -125,24 +126,12 @@ const CONFIGS = {
 };
 const idOf = (r) => r?.id;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
-// The backend's real action name is the British spelling "Authorise"
-// (confirmed live, same as kycHooks.js's useHasKycAction), but every call
-// site here asks for "Authorize" — an exact-match check after lowercasing
-// never matches, so canAuthorize was always false and the Authorize/
-// Deauthorize buttons never appeared anywhere in this component regardless
-// of the row's status or the user's actual permissions.
-const ACTION_ALIASES = { authorize: "authorise" };
-const allowed = (menus, action, title) => {
-  const requested = action.toLowerCase();
-  return (menus ?? []).some(
+const allowed = (menus, action, title) =>
+  (menus ?? []).some(
     (m) =>
       new RegExp(title, "i").test(String(m?.menu_name)) &&
-      (m.actions ?? []).some((a) => {
-        const granted = String(a?.action_name ?? a?.name).toLowerCase();
-        return granted === requested || granted === ACTION_ALIASES[requested];
-      }),
+      (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
-};
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups }) {
   if (!open) return null;
   return (

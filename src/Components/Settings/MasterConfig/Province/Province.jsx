@@ -1,4 +1,5 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
@@ -18,7 +19,7 @@ const empty = () => ({ name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.province_array ?? [];
 const idOf = (r) => r?.id ?? r?.province_id;
 
-function usePermission(action) { const menus = useSelector((s) => s.menu.menuArray); return useMemo(() => (menus ?? []).some((m) => /province/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => { const name = String(a?.action_name ?? a?.name ?? "").toLowerCase(); return name === action.toLowerCase() || (action === "Add" && name === "create") || (action === "Authorize" && name === "authorise"); })), [menus, action]); }
+function usePermission(action) { const menus = useSelector((s) => s.menu.menuArray); return useMemo(() => (menus ?? []).some((m) => /province/i.test(String(m?.menu_name)) && (m.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action))), [menus, action]); }
 
 function ProvinceForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit province" : "Add province"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500 disabled:opacity-50">Cancel</button><button type="submit" form="province-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">Save as draft</button><button type="submit" form="province-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : editing ? "Save changes" : "Add province"}</button></>}><form id="province-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Province name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 

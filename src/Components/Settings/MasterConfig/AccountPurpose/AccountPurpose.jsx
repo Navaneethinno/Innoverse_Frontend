@@ -1,4 +1,5 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -18,7 +19,7 @@ const empty = () => ({ name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.account_purpose_array ?? [];
 const idOf = (r) => r?.id ?? r?.account_purpose_id;
 
-function hasPermission(menus, action) { return (menus ?? []).some((m) => /account.?purpose/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => { const n = String(a?.action_name ?? a?.name ?? "").toLowerCase(); return n === action.toLowerCase() || action === "Add" && n === "create" || action === "Authorize" && n === "authorise"; })); }
+function hasPermission(menus, action) { return (menus ?? []).some((m) => /account.?purpose/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action))); }
 function PurposeForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit account purpose" : "Add account purpose"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Cancel</button><button type="submit" form="account-purpose-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="account-purpose-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{saving ? "Saving..." : editing ? "Save changes" : "Add purpose"}</button></>}><form id="account-purpose-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Account purpose name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 
 export function AccountPurpose() {

@@ -13,6 +13,7 @@ import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { districtApi } from "@/Services/MasterConfig/district.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const EMPTY = { province_id: "", name: "", description: "" };
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.district_array ?? [];
@@ -20,10 +21,8 @@ const idOf = (row) => row?.id ?? row?.district_id;
 
 function useDistrictPermission(action) {
   const menus = useSelector((state) => state.menu.menuArray);
-  return useMemo(() => (menus ?? []).some((menu) => /district/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => {
-    const name = String(item?.action_name ?? item?.name ?? "").toLowerCase();
-    return name === action.toLowerCase() || (action === "Add" && name === "create") || (action === "Authorize" && name === "authorise");
-  })), [menus, action]);
+  return useMemo(() => (menus ?? []).some((menu) => /district/i.test(String(menu?.menu_name)) &&
+    (menu.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action))), [menus, action]);
 }
 
 function DistrictForm({ open, form, setForm, provinces, editing, saving, onClose, onSave }) {

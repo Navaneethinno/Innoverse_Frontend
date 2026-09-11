@@ -4,6 +4,7 @@ import { usersApi } from "@/Services/Users/users.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const CHANGED = "user-password-policy:data-changed";
 const notify = () => window.dispatchEvent(new Event(CHANGED));
@@ -11,11 +12,8 @@ const notify = () => window.dispatchEvent(new Event(CHANGED));
 export function useHasPasswordPolicyAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(() => (menuArray ?? []).some((item) =>
-    /password.?policy/i.test(String(item?.menu_name ?? "")) && (item.actions ?? []).some((action) => {
-      const granted = String(action?.action_name ?? action?.name ?? "").toLowerCase();
-      const requested = String(actionName).toLowerCase();
-      return granted === requested || (requested === "authorize" && granted === "authorise") || (requested === "add" && granted === "create");
-    }),
+    /password.?policy/i.test(String(item?.menu_name ?? "")) &&
+    (item.actions ?? []).some((action) => matchesAction(action?.action_name ?? action?.name, actionName)),
   ), [menuArray, actionName]);
 }
 

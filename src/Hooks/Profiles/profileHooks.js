@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login), following
 // useHasInstitutionAction's exact pattern (src/Hooks/Institutions/institutionHooks.js).
@@ -20,12 +21,7 @@ export function useHasProfileAction(actionName) {
       (menuArray || []).some(
         (item) =>
           /profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => {
-            const granted = String(a?.action_name ?? a?.name ?? "").toLowerCase();
-            const requested = String(actionName).toLowerCase();
-            return granted === requested ||
-              (requested === "authorize" && granted === "authorise");
-          }),
+          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
       ),
     [menuArray, actionName],
   );

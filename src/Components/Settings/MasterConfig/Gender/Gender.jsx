@@ -13,6 +13,7 @@ import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { genderApi } from "@/Services/MasterConfig/district.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const empty = () => ({ name: "", description: "" });
 const idOf = (row) => row?.id ?? row?.gender_id;
@@ -20,7 +21,7 @@ const rowsOf = (response) => Array.isArray(response?.data) ? response.data : res
 const isDraft = (row) => deriveStatusFlags(row).draft;
 const isPending = (row) => deriveStatusFlags(row).pending;
 const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
-const canAction = (menus, action) => (menus ?? []).some((menu) => /gender/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => { const name = String(item?.action_name ?? item?.name ?? "").toLowerCase(); return name === action.toLowerCase() || action === "Add" && name === "create" || action === "Authorize" && name === "authorise"; }));
+const canAction = (menus, action) => (menus ?? []).some((menu) => /gender/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action)));
 
 function GenderForm({ open, value, setValue, editing, saving, onClose, onSave }) {
   if (!open) return null;

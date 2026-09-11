@@ -6,6 +6,7 @@ import { genderApi } from "@/Services/MasterConfig/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const KYC_CHANGED = "user-kyc:data-changed";
 const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
@@ -13,12 +14,8 @@ const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
 export function useHasKycAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(() => (menuArray ?? []).some((item) =>
-    /kyc/i.test(String(item?.menu_name ?? "")) && (item.actions ?? []).some((action) => {
-      const granted = String(action?.action_name ?? action?.name ?? "").toLowerCase();
-      const requested = String(actionName).toLowerCase();
-      return granted === requested || (requested === "authorize" && granted === "authorise") ||
-        (requested === "add" && granted === "create");
-    }),
+    /kyc/i.test(String(item?.menu_name ?? "")) &&
+    (item.actions ?? []).some((action) => matchesAction(action?.action_name ?? action?.name, actionName)),
   ), [menuArray, actionName]);
 }
 

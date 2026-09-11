@@ -5,6 +5,7 @@ import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/pass
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login) — the
 // exact same data the sidebar itself uses to decide what to show, matching
@@ -20,17 +21,7 @@ export function useHasUserAction(actionName) {
           String(item?.menu_name ?? "")
             .trim()
             .toLowerCase() === "user" &&
-          (item?.actions || []).some((a) => {
-            const grantedAction = String(a?.action_name ?? a?.name ?? "")
-              .trim()
-              .toLowerCase();
-            const requestedAction = String(actionName).trim().toLowerCase();
-            return (
-              grantedAction === requestedAction ||
-              (requestedAction === "add" && grantedAction === "create") ||
-              (requestedAction === "authorize" && grantedAction === "authorise")
-            );
-          }),
+          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
       ),
     [menuArray, actionName],
   );

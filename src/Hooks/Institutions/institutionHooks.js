@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login), NOT a
 // fabricated `user.institution.type` field — nothing in the auth flow ever
@@ -17,13 +18,7 @@ export function useHasInstitutionAction(actionName) {
       (menuArray || []).some(
         (item) =>
           /institution\s*profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => {
-            const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
-            const requestedAction = String(actionName).trim().toLowerCase();
-            return grantedAction === requestedAction ||
-              (requestedAction === "add" && grantedAction === "create") ||
-              (requestedAction === "authorize" && grantedAction === "authorise");
-          }),
+          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
       ),
     [menuArray, actionName],
   );
