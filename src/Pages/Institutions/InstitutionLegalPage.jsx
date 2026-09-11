@@ -30,6 +30,7 @@ import {
   useActiveInstitutionsQuery,
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
 const FIELDS = [
   ["legal_name", "Legal Name"],
@@ -69,12 +70,11 @@ function LegalActions({ row, onRefresh, onEdit }) {
   );
   const status = String(row.status_name ?? row.auth_status ?? "").toLowerCase();
   const process = String(row.process_status_name ?? "").toLowerCase();
-  const draft = row.status === 9 || status === "draft" || process === "draft";
+  const draft = Number(row.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "draft" || process === "draft";
   const pending = process.includes("pending");
   const pendingDelete = process.includes("pending delete");
   const active = row.status === 1 || status === "active";
-  const inactive = row.status === 13 || status === "inactive";
-  const rejectedDelete = process.includes("rejected delete") || status.includes("rejected delete");
+  const inactive = row.status === 0 || status === "inactive";
   const actions = [
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
@@ -83,14 +83,14 @@ function LegalActions({ row, onRefresh, onEdit }) {
           ["deauth", "Reject", ShieldOff],
         ]
       : []),
-    ...((active || rejectedDelete) && !pending && canDelete ? [["delete", "Delete", Trash2]] : []),
+    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
+    ...(active && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
     ...(pendingDelete && canAuthorize ? [["deleteAuth", "Delete Auth", Trash2]] : []),
-    ...(active && !pending && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(inactive && !pending && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
+    ...(inactive && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
   ];
   const execute = async () => {
     try {
-      await mutation.mutateAsync({ id: row.id, narration });
+      await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
       await onRefresh();
       setAction(null);
       setNarration("");
@@ -110,7 +110,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && !pending && !pendingDelete && !rejectedDelete && (
+        {canEdit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
@@ -197,12 +197,11 @@ function LegalActions({ row, onRefresh, onEdit }) {
 
 export function InstitutionLegalPage() {
   const canAdd = useHasInstitutionAction("Add");
-  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionLegalsQuery({ page, limit: 10 });
+  const query = useInstitutionLegalsQuery();
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionLegalMutation("add");
   const edit = useInstitutionLegalMutation("edit");
@@ -307,10 +306,7 @@ export function InstitutionLegalPage() {
         value={statusFilter}
         search={search}
         onSearch={setSearch}
-        onChange={(value) => {
-          setStatusFilter(value);
-          setPage(1);
-        }}
+        onChange={setStatusFilter}
       />
       <DataTable
         columns={columns}
@@ -321,12 +317,6 @@ export function InstitutionLegalPage() {
         searchableKeys={["legal_name", "inst_profile_name", "registration_number"]}
         emptyTitle="No legal profiles found"
         emptyDescription="Legal profiles will appear here when available."
-        serverPagination={{
-          page: query.pagination.currentPage ?? page,
-          totalPages: query.pagination.totalPages ?? 1,
-          totalRecords: query.pagination.totalRecords ?? query.data.length,
-          onPageChange: setPage,
-        }}
       />
       <Modal
         open={formOpen}

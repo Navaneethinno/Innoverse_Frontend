@@ -137,10 +137,14 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  *   (server-paginated — pass serverPagination in that case)
  * - rowKey(row, index)
  * - isLoading
- * - pageSize: default 10 (client-side pagination only)
- * - serverPagination: { page, totalPages, totalRecords, onPageChange }
- *   — when provided, `rows` is treated as already-paginated and DataTable
- *   only renders Prev/Next + "Page X of Y" from these values.
+ * - pageSize: default 10 (client-side pagination only; ignored once the
+ *   user picks a different page size from the built-in selector, which
+ *   then drives client-side pagination directly)
+ * - serverPagination: { page, totalPages, totalRecords, onPageChange,
+ *   limit, onLimitChange } — when provided, `rows` is treated as
+ *   already-paginated and DataTable renders Prev/Next + "Page X of Y" plus
+ *   a page-size selector (only shown when `onLimitChange` is passed) and a
+ *   "Go to page" input, all driven off these values.
  * - title: used as the "View all" modal heading
  * - searchableKeys: fields to search against inside the "View all" modal
  * - emptyTitle / emptyDescription
@@ -174,6 +178,8 @@ export function DataTable({
   // click any sortable header to override this default for the current view.
   const [sort, setSort] = useState({ key: "updated_time", direction: "desc" });
   const [page, setPage] = useState(1);
+  const [clientPageSize, setClientPageSize] = useState(pageSize);
+  const [goToPageInput, setGoToPageInput] = useState("");
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [viewAllSearch, setViewAllSearch] = useState("");
 
@@ -237,18 +243,36 @@ export function DataTable({
 
   const sortedRows = useSortedRows(rows, columns, sort);
   const isServer = !!serverPagination;
+  const effectivePageSize = isServer ? serverPagination.limit ?? pageSize : clientPageSize;
 
   const totalPages = isServer
     ? Math.max(1, serverPagination.totalPages || 1)
-    : Math.max(1, Math.ceil(sortedRows.length / pageSize));
+    : Math.max(1, Math.ceil(sortedRows.length / effectivePageSize));
   const currentPage = isServer ? serverPagination.page : page;
-  const pageRows = isServer ? sortedRows : sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageRows = isServer ? sortedRows : sortedRows.slice((page - 1) * effectivePageSize, page * effectivePageSize);
   const totalRecords = isServer ? (serverPagination.totalRecords ?? sortedRows.length) : sortedRows.length;
 
   const goToPage = (next) => {
     const clamped = Math.min(Math.max(1, next), totalPages);
     if (isServer) serverPagination.onPageChange(clamped);
     else setPage(clamped);
+  };
+
+  const handlePageSizeChange = (next) => {
+    const nextSize = Number(next) || effectivePageSize;
+    if (isServer) {
+      if (serverPagination.onLimitChange) serverPagination.onLimitChange(nextSize);
+    } else {
+      setClientPageSize(nextSize);
+      setPage(1);
+    }
+  };
+
+  const handleGoToPageSubmit = (e) => {
+    e.preventDefault();
+    const next = Number(goToPageInput);
+    if (Number.isFinite(next) && next > 0) goToPage(next);
+    setGoToPageInput("");
   };
 
   const sortedInfiniteRows = useSortedRows(infiniteRows, columns, sort);
@@ -300,9 +324,26 @@ export function DataTable({
 
         {!isLoading && totalRecords > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
-            <span>
-              {t("pageOf", { page: currentPage, total: totalPages })} · {totalRecords} {t("total")}
-            </span>
+            <div className="flex items-center gap-2">
+              <span>
+                {t("pageOf", { page: currentPage, total: totalPages })} · {totalRecords} {t("total")}
+              </span>
+              {(!isServer || serverPagination.onLimitChange) && (
+                <label className="flex items-center gap-1">
+                  <select
+                    value={effectivePageSize}
+                    onChange={(e) => handlePageSizeChange(e.target.value)}
+                    className="rounded-lg border border-slate-200 bg-white px-1.5 py-1 text-xs font-semibold text-slate-600 outline-none"
+                  >
+                    {[10, 20, 50, 100].map((size) => (
+                      <option key={size} value={size}>
+                        {size} / {t("page")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -320,6 +361,20 @@ export function DataTable({
               >
                 {t("next")} <ChevronRight size={13} />
               </button>
+              {totalPages > 1 && (
+                <form onSubmit={handleGoToPageSubmit} className="flex items-center gap-1">
+                  <span>{t("goTo")}</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={goToPageInput}
+                    onChange={(e) => setGoToPageInput(e.target.value)}
+                    placeholder={String(currentPage)}
+                    className="w-12 rounded-lg border border-slate-200 px-1.5 py-1 text-xs outline-none"
+                  />
+                </form>
+              )}
             </div>
           </div>
         )}

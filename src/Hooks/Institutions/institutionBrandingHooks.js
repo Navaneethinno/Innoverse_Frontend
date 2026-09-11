@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { institutionBrandingApi } from "@/Services/Institutions/institutionBranding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useEntityListQuery } from "@/Hooks/Institutions/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-export function useInstitutionBrandingsQuery({ page = 1, limit = 10 } = {}) { const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null }); const refetch = useCallback(async () => { setState((s) => ({ ...s, isLoading: true, error: null })); try { const r = await institutionBrandingApi.list({ page, limit }); setState({ data: Array.isArray(r?.data) ? r.data : [], pagination: r?.pagination ?? {}, isLoading: false, error: null }); } catch (error) { setState((s) => ({ ...s, isLoading: false, error })); } }, [page, limit]); useEffect(() => { void refetch(); }, [refetch]); useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_BRANDING.LIST, () => void refetch()); return { ...state, refetch }; }
+export function useInstitutionBrandingsQuery() {
+  const query = useEntityListQuery(institutionBrandingApi.list);
+  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_BRANDING.LIST, () => void query.refetch());
+  return query;
+}
 export function useInstitutionBrandingMutation(method) { const [state, setState] = useState({ isPending: false, error: null }); const mutateAsync = useCallback(async (payload) => { setState({ isPending: true, error: null }); try { const result = await institutionBrandingApi[method](payload); setState({ isPending: false, error: null }); notifications.success(apiMessage(result, "Institution branding action completed")); return result; } catch (error) { setState({ isPending: false, error }); notifications.error(error instanceof Error ? error.message : "Institution branding action failed"); throw error; } }, [method]); return { ...state, mutateAsync }; }

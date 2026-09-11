@@ -40,6 +40,8 @@ export const common = {
   failedToLoadMoreRecords: "Falha ao carregar mais registros",
   viewAll: "Ver todos",
   pageOf: "Página {{page}} de {{total}}",
+  page: "página",
+  goTo: "Ir para",
   total: "total",
   loaded: "carregados",
   scrollForMore: "Role para ver mais",

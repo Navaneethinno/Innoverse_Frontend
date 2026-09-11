@@ -1,6 +1,11 @@
 import { cn } from "@/Utils/Lib/cn";
 import { Search } from "lucide-react";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
+// INSTITUTION_DRAFT_STATUS_CODE is env-overridable (defaults to 9) rather
+// than a bare literal, since this component is shared across every
+// maker-checker list in the app (Institution sub-entities, MasterConfig,
+// UserManagement, ...) and all of them use the same numeric draft code.
 export const statusBucket = (row) => {
   const status = String(row?.status_name ?? row?.auth_status ?? "").toLowerCase();
   const process = String(row?.process_status_name ?? "").toLowerCase();
@@ -11,7 +16,7 @@ export const statusBucket = (row) => {
     process.includes("pending") ||
     status.includes("draft") ||
     process.includes("draft") ||
-    row?.status === 9
+    Number(row?.status) === INSTITUTION_DRAFT_STATUS_CODE
   )
     return "pending";
   return "inactive";

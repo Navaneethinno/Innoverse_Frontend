@@ -23,6 +23,7 @@ import {
   useInstitutionAuthMutation,
   useInstitutionDeactivateMutation,
   useInstitutionDeauthMutation,
+  useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
   useInstitutionReactivateMutation,
   useInstitutionSubmitMutation,
@@ -63,6 +64,12 @@ function statusOf(inst) {
 // shape sends it as text instead.
 function isInstitutionDraft(inst) {
   return Number(inst.status) === INSTITUTION_DRAFT_STATUS_CODE || statusOf(inst) === "DRAFT";
+}
+// Distinguishes a pending DELETE from a pending add/edit/deactivate/
+// reactivate — approving the former must call the dedicated /delete_auth
+// endpoint, not the generic /auth endpoint (see useInstitutionDeleteAuthMutation).
+function isPendingDelete(inst) {
+  return String(inst.process_status_name ?? "").toLowerCase().includes("pending delete");
 }
 function tabOf(inst) {
   const status = statusOf(inst);
@@ -134,6 +141,7 @@ export function InstitutionProfile() {
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
+  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
   const deactivateMutation = useInstitutionDeactivateMutation();
   const reactivateMutation = useInstitutionReactivateMutation();
   const submitMutation = useInstitutionSubmitMutation();
@@ -175,7 +183,10 @@ export function InstitutionProfile() {
       const id = institutionId(action.inst);
       const trimmed = narration.trim();
       let result;
-      if (action.type === "auth") result = await authMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "auth")
+        result = isPendingDelete(action.inst)
+          ? await deleteAuthMutation.mutateAsync({ id, narration: trimmed })
+          : await authMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deauth") result = await deauthMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "delete") result = await deleteMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration: trimmed });
@@ -192,6 +203,7 @@ export function InstitutionProfile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
+    deleteAuthMutation.isPending ||
     deactivateMutation.isPending ||
     reactivateMutation.isPending ||
     submitMutation.isPending;

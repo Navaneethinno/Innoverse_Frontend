@@ -30,6 +30,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
 const displayValue = (value) => value ?? "—";
 
@@ -48,7 +49,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
       if (action?.method === "pending") {
         setDetails(await mutation.mutateAsync({ id: row.id }));
       } else {
-        await mutation.mutateAsync({ id: row.id, narration });
+        await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
         await onRefresh();
         setAction(null);
         setNarration("");
@@ -59,13 +60,11 @@ function ModuleActions({ row, onRefresh, onEdit }) {
   };
   const status = String(row.status_name ?? row.auth_status ?? "").toLowerCase();
   const processStatus = String(row.process_status_name ?? "").toLowerCase();
-  const draft = status === "draft" || processStatus === "draft" || row.status === 9;
+  const draft = status === "draft" || processStatus === "draft" || Number(row.status) === INSTITUTION_DRAFT_STATUS_CODE;
   const pending = processStatus.includes("pending");
   const pendingDelete = processStatus.includes("pending delete");
   const active = status === "active" || row.status === 1;
-  const inactive = status === "inactive" || row.status === 13;
-  const rejectedDelete =
-    processStatus.includes("rejected delete") || status.includes("rejected delete");
+  const inactive = status === "inactive" || row.status === 0;
   const buttons = [
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
@@ -74,10 +73,10 @@ function ModuleActions({ row, onRefresh, onEdit }) {
           ["deauth", "Reject", ShieldOff],
         ]
       : []),
-    ...((active || rejectedDelete) && !pending && canDelete ? [["delete", "Delete", Trash2]] : []),
+    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
+    ...(active && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
     ...(pendingDelete && canAuthorize ? [["deleteAuth", "Delete Auth", Trash2]] : []),
-    ...(active && !pending && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(inactive && !pending && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
+    ...(inactive && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
   ];
   return (
     <>
@@ -94,7 +93,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && !pending && !pendingDelete && !rejectedDelete && (
+        {canEdit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
@@ -128,6 +127,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
         confirmLabel={action?.label ?? "Confirm"}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={mutation.isPending}
+        confirmDisabled={action?.method === "deauth" && !narration.trim()}
         onClose={() => setAction(null)}
         onConfirm={() => void execute()}
       >
@@ -196,12 +196,11 @@ function ModuleActions({ row, onRefresh, onEdit }) {
 
 export function InstitutionModulePage() {
   const canAdd = useHasInstitutionAction("Add");
-  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionModulesQuery({ page, limit: 10 });
+  const query = useInstitutionModulesQuery();
   const institutions = useActiveInstitutionsQuery();
   const { masterModules } = useMasterModules();
   const addMutation = useInstitutionModuleMutation("add");
@@ -308,10 +307,7 @@ export function InstitutionModulePage() {
         value={statusFilter}
         search={search}
         onSearch={setSearch}
-        onChange={(value) => {
-          setStatusFilter(value);
-          setPage(1);
-        }}
+        onChange={setStatusFilter}
       />
       <DataTable
         columns={columns}
@@ -322,12 +318,6 @@ export function InstitutionModulePage() {
         searchableKeys={["module_name", "inst_profile_name", "configuration_status"]}
         emptyTitle="No institution modules found"
         emptyDescription="Module assignments will appear here when available."
-        serverPagination={{
-          page: query.pagination.currentPage ?? page,
-          totalPages: query.pagination.totalPages ?? 1,
-          totalRecords: query.pagination.totalRecords ?? query.data.length,
-          onPageChange: setPage,
-        }}
       />
       <Modal
         open={formOpen}

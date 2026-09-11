@@ -153,6 +153,13 @@ export function useInstitutionDeauthMutation() {
 export function useInstitutionDeleteMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.delete(payload), []));
 }
+// Approving a pending delete is a distinct backend endpoint (/delete_auth)
+// from approving a pending add/edit (/auth) — institutions.api.js's own
+// comments confirm `auth` only ever covers add/edit/deactivate/reactivate.
+// Calling `auth` on a pending-delete record would hit the wrong endpoint.
+export function useInstitutionDeleteAuthMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.deleteAuth(payload), []));
+}
 export function useInstitutionSubmitMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.submit(payload), []));
 }

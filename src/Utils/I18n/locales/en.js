@@ -42,6 +42,8 @@ export const common = {
   failedToLoadMoreRecords: "Failed to load more records",
   viewAll: "View all",
   pageOf: "Page {{page}} of {{total}}",
+  page: "page",
+  goTo: "Go to",
   total: "total",
   loaded: "loaded",
   scrollForMore: "Scroll for more",

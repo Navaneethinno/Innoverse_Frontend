@@ -31,6 +31,7 @@ import {
   useActiveInstitutionsQuery,
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
+import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 const display = (row, key) => row?.[key] ?? "—";
 function CurrencyActions({ row, onRefresh, onEdit }) {
   const canEdit = useHasInstitutionAction("Edit");
@@ -49,12 +50,11 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
   );
   const status = String(row.status_name ?? row.auth_status ?? "").toLowerCase();
   const process = String(row.process_status_name ?? "").toLowerCase();
-  const draft = row.status === 9 || status === "draft" || process === "draft";
+  const draft = Number(row.status) === INSTITUTION_DRAFT_STATUS_CODE || status === "draft" || process === "draft";
   const pending = process.includes("pending");
   const pendingDelete = process.includes("pending delete");
   const active = row.status === 1 || status === "active";
-  const inactive = row.status === 13 || status === "inactive";
-  const rejectedDelete = process.includes("rejected delete") || status.includes("rejected delete");
+  const inactive = row.status === 0 || status === "inactive";
   const actions = [
     ...(draft ? [["submit", "Submit", Send]] : []),
     ...(pending && canAuthorize
@@ -63,14 +63,14 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
           ["deauth", "Reject", ShieldOff],
         ]
       : []),
-    ...((active || rejectedDelete) && !pending && canDelete ? [["delete", "Delete", Trash2]] : []),
-    ...(active && !pending && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
+    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
+    ...(active && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
     ...(pendingDelete && canAuthorize ? [["deleteAuth", "Delete Auth", Trash2]] : []),
-    ...(inactive && !pending && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
+    ...(inactive && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
   ];
   const execute = async () => {
     try {
-      await mutation.mutateAsync({ id: row.id, narration });
+      await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
       await onRefresh();
       setAction(null);
       setNarration("");
@@ -90,7 +90,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && !pending && !pendingDelete && !rejectedDelete && (
+        {canEdit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
@@ -184,12 +184,11 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
 }
 export function InstitutionCurrencyPage() {
   const canAdd = useHasInstitutionAction("Add");
-  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionCurrenciesQuery({ page, limit: 10 });
+  const query = useInstitutionCurrenciesQuery();
   const institutions = useActiveInstitutionsQuery();
   const { currencies } = useMasterCurrencies();
   const add = useInstitutionCurrencyMutation("add");
@@ -295,10 +294,7 @@ export function InstitutionCurrencyPage() {
         value={statusFilter}
         search={search}
         onSearch={setSearch}
-        onChange={(value) => {
-          setStatusFilter(value);
-          setPage(1);
-        }}
+        onChange={setStatusFilter}
       />
       <DataTable
         columns={columns}
@@ -309,12 +305,6 @@ export function InstitutionCurrencyPage() {
         searchableKeys={["currency_name", "inst_profile_name"]}
         emptyTitle="No currencies found"
         emptyDescription="Currency assignments will appear here when available."
-        serverPagination={{
-          page: query.pagination.currentPage ?? page,
-          totalPages: query.pagination.totalPages ?? 1,
-          totalRecords: query.pagination.totalRecords ?? query.data.length,
-          onPageChange: setPage,
-        }}
       />
       <Modal
         open={formOpen}
