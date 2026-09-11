@@ -81,14 +81,24 @@ const CONFIGS = {
 const idOf = (row) => row?.id;
 const rowsOf = (response) =>
   Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []);
-const allowed = (menus, action, menuName) =>
-  (menus ?? []).some(
+// The backend's real action name is the British spelling "Authorise"
+// (confirmed live, same as kycHooks.js's useHasKycAction), but every call
+// site here asks for "Authorize" — an exact-match check after lowercasing
+// never matches, so canAuthorize was always false and the Authorize/
+// Deauthorize buttons never appeared anywhere in this component regardless
+// of the row's status or the user's actual permissions.
+const ACTION_ALIASES = { authorize: "authorise" };
+const allowed = (menus, action, menuName) => {
+  const requested = action.toLowerCase();
+  return (menus ?? []).some(
     (m) =>
       new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) &&
-      (m.actions ?? []).some(
-        (a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase(),
-      ),
+      (m.actions ?? []).some((a) => {
+        const granted = String(a?.action_name ?? a?.name).toLowerCase();
+        return granted === requested || granted === ACTION_ALIASES[requested];
+      }),
   );
+};
 const api = (entity) => configKycApi(entity);
 
 export function KycConfigResource({ entity }) {
