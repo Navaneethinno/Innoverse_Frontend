@@ -143,6 +143,36 @@ const STATUS_CONFIG = {
     dot: "bg-orange-500",
     pill: "bg-orange-50 text-orange-700 border-orange-200",
   },
+  // Rejected-* process states (buttonVisibility.js's STATUS_VISIBILITY keys)
+  // had no matching entry here, so they silently fell through to the
+  // near-invisible default slate-50 pill — indistinguishable from the card
+  // background in most themes. Red family since these are all "checker
+  // rejected this" outcomes.
+  "REJECTED ADD": {
+    label: "Rejected Add",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  "REJECTED EDIT": {
+    label: "Rejected Edit",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  "REJECTED DELETE": {
+    label: "Rejected Delete",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  "REJECTED DEACTIVATE": {
+    label: "Rejected Deactivate",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  "REJECTED REACTIVATE": {
+    label: "Rejected Reactivate",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
 };
 // Maps each pill's background/border classes to the equivalent bare text
 // color, for the "subtle" variant below — same color language, no filled
