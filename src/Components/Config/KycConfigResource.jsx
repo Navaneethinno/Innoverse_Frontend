@@ -363,8 +363,15 @@ export function KycConfigResource({ entity }) {
         >
           <div className="grid gap-3">
             {config.fields.map(([key, label, type]) => (
-              <label key={key} className="text-sm font-semibold">
-                {label}
+              <label
+                key={key}
+                className={
+                  type === "boolean"
+                    ? "flex items-center gap-2 text-sm font-semibold"
+                    : "text-sm font-semibold"
+                }
+              >
+                {type === "boolean" ? <span>{label}</span> : label}
                 {key === "inst_profile_id" ? (
                   <FilterSelect
                     className="mt-1.5"
@@ -441,7 +448,7 @@ export function KycConfigResource({ entity }) {
                     }
                     className={
                       type === "boolean"
-                        ? "mt-1.5 h-4 w-4 rounded border"
+                        ? "h-4 w-4 rounded border"
                         : "mt-1.5 w-full rounded-xl border px-3 py-2.5"
                     }
                   />
