@@ -424,6 +424,32 @@
   background-color: #fbbf24;
 }
 
+/* Native <input>/<select>/<textarea> elements across many forms (e.g.
+   InstitutionModulePage's "Add institution module" form) are styled with
+   only a border/radius/padding className and no background utility at all
+   — relying on the browser's own default white form-control background.
+   That default never changes with the app's theme, so every such field
+   stayed a plain white box with barely-readable text against a dark modal.
+   Rather than touch every one of those className strings, give every
+   native form control an explicit dark background/text/border by default
+   in dark mode; anything that already sets its own bg-* utility (already
+   remapped above) simply keeps winning via normal cascade order below. */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: var(--input-background);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-foreground);
+}
+.dark select option {
+  background-color: var(--input-background);
+  color: var(--foreground);
+}
+
 /* react-toastify: restyle the default white/boxed toast to match the
    app's card + border + shadow tokens instead of the library defaults. */
 .Toastify__toast {
