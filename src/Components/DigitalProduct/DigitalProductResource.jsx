@@ -18,6 +18,7 @@ import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHook
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { configKycApi } from "@/Services/Config/config.api";
 import { useChannels } from "@/Hooks/Master/masterHooks";
+import { useTransactions } from "@/Hooks/Master/masterHooks";
 
 const CONFIGS = {
   product: {
@@ -97,7 +98,7 @@ const CONFIGS = {
     readOnlyOnEdit: ["channel_config_id"],
     fields: [
       ["channel_config_id", "Channel config", "number"],
-      ["transaction_type_id", "Transaction type ID", "number"],
+      ["transaction_type_id", "Transaction type", "number"],
       ["allowed", "Allowed", "boolean"],
       ["authentication_required", "Authentication required", "boolean"],
       ["transaction_pin_required", "Transaction PIN required", "boolean"],
@@ -144,7 +145,7 @@ const allowed = (menus, action, title) => {
       }),
   );
 };
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions }) {
   if (!open) return null;
   return (
     <Modal
@@ -188,7 +189,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "channel_config_id" ? (
+            {key === "transaction_type_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select transaction type" },
+                  ...transactions.map((transaction) => ({
+                    value: transaction.id,
+                    label: transaction.name ?? transaction.code ?? String(transaction.id),
+                  })),
+                ]}
+              />
+            ) : key === "channel_config_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -308,6 +322,7 @@ export function DigitalProductResource({ entity }) {
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
   const { channels = [] } = useChannels(entity === "channel_config");
+  const { transactions = [] } = useTransactions(entity === "channel_transaction");
   const [channelConfigs, setChannelConfigs] = useState([]);
   useEffect(() => {
     if (entity !== "product_map") return;
@@ -616,6 +631,7 @@ export function DigitalProductResource({ entity }) {
         kycGroups={kycGroups}
         channels={channels}
         channelConfigs={channelConfigs}
+        transactions={transactions}
         onSave={save}
         onClose={() => setOpen(false)}
       />
