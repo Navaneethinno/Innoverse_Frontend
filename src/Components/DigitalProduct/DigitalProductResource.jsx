@@ -96,7 +96,7 @@ const CONFIGS = {
     title: "Channel Transaction",
     readOnlyOnEdit: ["channel_config_id"],
     fields: [
-      ["channel_config_id", "Channel config ID", "number"],
+      ["channel_config_id", "Channel config", "number"],
       ["transaction_type_id", "Transaction type ID", "number"],
       ["allowed", "Allowed", "boolean"],
       ["authentication_required", "Authentication required", "boolean"],
@@ -144,7 +144,7 @@ const allowed = (menus, action, title) => {
       }),
   );
 };
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs }) {
   if (!open) return null;
   return (
     <Modal
@@ -188,7 +188,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "channel_id" ? (
+            {key === "channel_config_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select channel config" },
+                  ...channelConfigs.map((channelConfig) => ({
+                    value: channelConfig.id,
+                    label: channelConfig.name ?? channelConfig.code ?? String(channelConfig.id),
+                  })),
+                ]}
+              />
+            ) : key === "channel_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -295,11 +308,19 @@ export function DigitalProductResource({ entity }) {
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
   const { channels = [] } = useChannels(entity === "channel_config");
+  const [channelConfigs, setChannelConfigs] = useState([]);
   useEffect(() => {
     if (entity !== "product_map") return;
     digitalProductApi("product")
       .getActive({ view: "dropdown" })
       .then((response) => setProducts(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
+  useEffect(() => {
+    if (entity !== "channel_transaction") return;
+    digitalProductApi("channel_config")
+      .getActive({ view: "dropdown" })
+      .then((response) => setChannelConfigs(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   useEffect(() => {
@@ -594,6 +615,7 @@ export function DigitalProductResource({ entity }) {
         accountProducts={accountProducts}
         kycGroups={kycGroups}
         channels={channels}
+        channelConfigs={channelConfigs}
         onSave={save}
         onClose={() => setOpen(false)}
       />
