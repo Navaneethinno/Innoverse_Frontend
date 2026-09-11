@@ -101,3 +101,35 @@ export function useKycDocumentTypes(enabled = true) {
   useEffect(() => { void load(); }, [load]);
   return { documentTypes, error };
 }
+
+export function useChannels(enabled = true) {
+  const [channels, setChannels] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setChannels(await masterApi.channelList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load channels"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { channels, error };
+}
+
+export function useTransactions(enabled = true) {
+  const [transactions, setTransactions] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setTransactions(await masterApi.transactionList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load transaction types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { transactions, error };
+}
