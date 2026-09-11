@@ -154,6 +154,21 @@ export function KycConfigResource({ entity }) {
     [rows, tab, search],
   );
   const save = async (draft) => {
+    // Same fix as DigitalProductResource.jsx: "_id" fields rendered via
+    // FilterSelect (inst_profile_id, kyc_document_type_id, kyc_process_id,
+    // kyc_data_field_id, kyc_group_level_id, kyc_group_id) have no native
+    // form control, so nothing stops a submit while one is still empty
+    // (""). The backend then rejects the malformed number field with a
+    // misleading "request body is not valid JSON" 400 instead of a clear
+    // validation message — caught here before it reaches the API.
+    const missingField = config.fields.find(
+      ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
+    );
+    if (missingField) {
+      const label = missingField[1].toLowerCase();
+      notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
+      return;
+    }
     setSaving(true);
     try {
       const payload = {

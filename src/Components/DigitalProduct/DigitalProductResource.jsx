@@ -331,6 +331,23 @@ export function DigitalProductResource({ entity }) {
     [rows, tab, search],
   );
   const save = async (is_draft) => {
+    // "_id" fields rendered as a plain <input required> get real HTML5
+    // required-field validation for free from the <form>. The ones rendered
+    // as FilterSelect (product_id, inst_profile_id, kyc_group_id,
+    // acct_product_id) are a custom component with no underlying native
+    // control, so that validation never applied to them — a user could
+    // submit with one still empty ("") and the backend would reject the
+    // resulting number field with a misleading "request body is not valid
+    // JSON" 400, instead of a clear "select an institution" message. Catch
+    // it here before it ever reaches the API.
+    const missingField = config.fields.find(
+      ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
+    );
+    if (missingField) {
+      const label = missingField[1].toLowerCase();
+      notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
