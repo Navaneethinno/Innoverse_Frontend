@@ -317,7 +317,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const actions = [
     ...((canSubmit || canAdd) && draft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
     ...(canAuthorize && locked && !pendingDelete ? [["passwordPolicyAuth", "Authorize", ShieldCheck, "auth"], ["passwordPolicyDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(canDelete && !pending ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
+    ...(canDelete ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
     ...(canAuthorize && pendingDelete ? [["passwordPolicyDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
     ...(canChangeStatus && !pending && !inactive ? [["passwordPolicyDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
     ...(canChangeStatus && !pending && inactive ? [["passwordPolicyReactivate", "Reactivate", Power, "reactivate"]] : []),
@@ -344,7 +344,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && !locked && (
+        {canEdit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
               <Pencil size={14} />

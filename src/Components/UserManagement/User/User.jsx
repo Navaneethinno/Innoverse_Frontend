@@ -290,7 +290,7 @@ export function User() {
           ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"]] : []),
           ...(canDeauthorize && pending && !pendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
           ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
-          ...(canDelete && !pending ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(canDelete ? [["delete", "Delete", Trash2, "delete"]] : []),
           ...(canChangeStatus && !pending && !inactive ? [["deactivate", "Deactivate", PowerOff, "deactivate"]] : []),
           ...(canChangeStatus && !pending && inactive ? [["reactivate", "Reactivate", Power, "reactivate"]] : []),
         ];
@@ -304,7 +304,7 @@ export function User() {
               <Eye size={14} />
             </button>
           </UiTooltip>
-          {canEdit && !pending && (
+          {canEdit && (
             <UiTooltip label="Edit">
               <button
                 type="button"

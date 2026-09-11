@@ -181,7 +181,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const actions = [
     ...((canSubmit || canAdd) && draft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
     ...(canAuthorize && locked && !pendingDelete ? [["kycAuth", "Authorize", ShieldCheck, "auth"], ["kycDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(canDelete && !pending ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
+    ...(canDelete ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
     ...(canAuthorize && pendingDelete ? [["kycDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
     ...(canChangeStatus && !pending && !inactive ? [["kycDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
     ...(canChangeStatus && !pending && inactive ? [["kycReactivate", "Reactivate", Power, "reactivate"]] : []),
@@ -207,7 +207,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && !locked && (
+        {canEdit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
               <Pencil size={14} />

@@ -306,11 +306,11 @@ export function Profile() {
           ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
           ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"], ["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
           ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
-          ...(canDelete && !pending && !draft ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(canDelete ? [["delete", "Delete", Trash2, "delete"]] : []),
         ];
         return (
           <div className="flex items-center justify-center gap-1">
-            {canEdit && (!pending || draft) && (
+            {canEdit && (
               <UiTooltip label="Edit">
                 <button type="button" onClick={() => openEdit(p)} className={actionButtonClass("edit")}>
                   <Pencil size={14} />
