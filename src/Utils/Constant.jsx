@@ -68,6 +68,9 @@ export const API_ENDPOINTS = {
     TIMEZONE_LIST: "/master/timezone",
   },
   CONFIG_KYC: {
+    KYC_GROUP: {
+      GET_ACTIVE: "/config/kyc_group/get_active",
+    },
     KYC_GROUP_LEVEL: {
       GET_ACTIVE: "/config/kyc_group_level/get_active",
     },

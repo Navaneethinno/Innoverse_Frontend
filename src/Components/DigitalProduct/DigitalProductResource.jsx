@@ -67,7 +67,7 @@ const CONFIGS = {
     readOnlyOnEdit: ["product_id"],
     fields: [
       ["product_id", "Product ID", "number"],
-      ["kyc_group_id", "KYC group ID", "number"],
+      ["kyc_group_id", "KYC group", "number"],
       ["minimum_kyc_level", "Minimum KYC level", "number"],
     ],
   },
@@ -133,7 +133,7 @@ const allowed = (menus, action, title) =>
         (a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase(),
       ),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups }) {
   if (!open) return null;
   return (
     <Modal
@@ -177,7 +177,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "acct_product_id" ? (
+            {key === "kyc_group_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select KYC group" },
+                  ...kycGroups.map((group) => ({
+                    value: group.id,
+                    label: group.name ?? group.code ?? String(group.id),
+                  })),
+                ]}
+              />
+            ) : key === "acct_product_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -256,11 +269,19 @@ export function DigitalProductResource({ entity }) {
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const [products, setProducts] = useState([]);
   const [accountProducts, setAccountProducts] = useState([]);
+  const [kycGroups, setKycGroups] = useState([]);
   useEffect(() => {
     if (entity !== "product_map") return;
     digitalProductApi("product")
       .getActive({ view: "dropdown" })
       .then((response) => setProducts(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
+  useEffect(() => {
+    if (entity !== "kyc_config") return;
+    configKycApi("kyc_group")
+      .getActive({ view: "dropdown" })
+      .then((response) => setKycGroups(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   useEffect(() => {
@@ -529,6 +550,7 @@ export function DigitalProductResource({ entity }) {
         institutions={institutions}
         products={products}
         accountProducts={accountProducts}
+        kycGroups={kycGroups}
         onSave={save}
         onClose={() => setOpen(false)}
       />
