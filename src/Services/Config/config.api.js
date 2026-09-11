@@ -40,7 +40,8 @@ async function request(path, body = {}) {
 export const configKycApi = (entity) => {
   const base = `/config/${entity}`;
   const constantKey = entity.toUpperCase();
-  const configuredEndpoints = API_ENDPOINTS.CONFIG_KYC?.[constantKey] ?? {};
+  const configuredEndpoints =
+    API_ENDPOINTS.CONFIG_KYC?.[constantKey] ?? API_ENDPOINTS.CONFIG_ACCT?.[constantKey] ?? {};
   const methods = ["add", "submit", "edit", "auth", "deauth", "delete", "deleteAuth", "list", "getActive", "audit"];
   return Object.fromEntries(methods.map((method) => [method, (payload = method === "getActive" ? { view: "dropdown" } : undefined) => {
     const path = configuredEndpoints[method === "getActive" ? "GET_ACTIVE" : method.toUpperCase()] ??

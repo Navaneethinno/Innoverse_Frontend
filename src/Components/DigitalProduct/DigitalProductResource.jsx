@@ -16,6 +16,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { configKycApi } from "@/Services/Config/config.api";
 
 const CONFIGS = {
   product: {
@@ -38,7 +39,7 @@ const CONFIGS = {
     readOnlyOnEdit: ["product_id"],
     fields: [
       ["product_id", "Products", "number"],
-      ["acct_product_id", "Account product ID", "number"],
+      ["acct_product_id", "Account product", "number"],
       ["allowed", "Allowed", "boolean"],
       ["primary_account_product", "Primary account product", "boolean"],
       ["priority", "Priority", "number"],
@@ -132,7 +133,7 @@ const allowed = (menus, action, title) =>
         (a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase(),
       ),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts }) {
   if (!open) return null;
   return (
     <Modal
@@ -176,7 +177,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "product_id" ? (
+            {key === "acct_product_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select account product" },
+                  ...accountProducts.map((product) => ({
+                    value: product.id,
+                    label: product.name ?? product.code ?? String(product.id),
+                  })),
+                ]}
+              />
+            ) : key === "product_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -241,11 +255,19 @@ export function DigitalProductResource({ entity }) {
   const api = useMemo(() => digitalProductApi(entity), [entity]);
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const [products, setProducts] = useState([]);
+  const [accountProducts, setAccountProducts] = useState([]);
   useEffect(() => {
     if (entity !== "product_map") return;
     digitalProductApi("product")
       .getActive({ view: "dropdown" })
       .then((response) => setProducts(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
+  useEffect(() => {
+    if (entity !== "product_map") return;
+    configKycApi("acct_product")
+      .getActive({ view: "dropdown" })
+      .then((response) => setAccountProducts(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   const [rows, setRows] = useState([]),
@@ -506,6 +528,7 @@ export function DigitalProductResource({ entity }) {
         saving={saving}
         institutions={institutions}
         products={products}
+        accountProducts={accountProducts}
         onSave={save}
         onClose={() => setOpen(false)}
       />

@@ -72,6 +72,11 @@ export const API_ENDPOINTS = {
       GET_ACTIVE: "/config/kyc_group_level/get_active",
     },
   },
+  CONFIG_ACCT: {
+    ACCT_PRODUCT: {
+      GET_ACTIVE: "/config/acct_product/get_active",
+    },
+  },
   MASTER_CONFIG: {
     DISTRICT: {
       ADD: "/master_config/district/add", SUBMIT: "/master_config/district/submit", LIST: "/master_config/district/list",
