@@ -17,6 +17,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { configKycApi } from "@/Services/Config/config.api";
+import { useChannels } from "@/Hooks/Master/masterHooks";
 
 const CONFIGS = {
   product: {
@@ -85,7 +86,7 @@ const CONFIGS = {
     readOnlyOnEdit: ["product_id"],
     fields: [
       ["product_id", "Product ID", "number"],
-      ["channel_id", "Channel ID", "number"],
+      ["channel_id", "Channel", "number"],
       ["enabled", "Enabled", "boolean"],
       ["session_timeout_seconds", "Session timeout seconds", "number"],
       ["user_activity_timeout_seconds", "User activity timeout seconds", "number"],
@@ -143,7 +144,7 @@ const allowed = (menus, action, title) => {
       }),
   );
 };
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels }) {
   if (!open) return null;
   return (
     <Modal
@@ -187,7 +188,20 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "kyc_group_id" ? (
+            {key === "channel_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select channel" },
+                  ...channels.map((channel) => ({
+                    value: channel.id,
+                    label: channel.name ?? channel.code ?? String(channel.id),
+                  })),
+                ]}
+              />
+            ) : key === "kyc_group_id" ? (
               <FilterSelect
                 className="mt-1.5"
                 value={value[key] ?? ""}
@@ -280,6 +294,7 @@ export function DigitalProductResource({ entity }) {
   const [products, setProducts] = useState([]);
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
+  const { channels = [] } = useChannels(entity === "channel_config");
   useEffect(() => {
     if (entity !== "product_map") return;
     digitalProductApi("product")
@@ -578,6 +593,7 @@ export function DigitalProductResource({ entity }) {
         products={products}
         accountProducts={accountProducts}
         kycGroups={kycGroups}
+        channels={channels}
         onSave={save}
         onClose={() => setOpen(false)}
       />
