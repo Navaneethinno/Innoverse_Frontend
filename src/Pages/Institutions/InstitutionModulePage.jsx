@@ -11,6 +11,7 @@ import {
   Power,
   PowerOff,
   Send,
+  X,
 } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -30,11 +31,12 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 
 const displayValue = (value) => value ?? "—";
 
 function ModuleActions({ row, onRefresh, onEdit }) {
+  const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
   const canDelete = useHasInstitutionAction("Delete");
@@ -58,19 +60,18 @@ function ModuleActions({ row, onRefresh, onEdit }) {
       /* mutation hook already shows the error toast */
     }
   };
-  const { draft, pending, pendingDelete, active, inactive } = deriveStatusFlags(row);
+  // Single shared status-based visibility engine — see buttonVisibility.js
+  // for the full status_name/process_status_name matrix this is built from.
+  const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
   const buttons = [
-    ...(draft ? [["submit", "Submit", Send]] : []),
-    ...(pending && canAuthorize
-      ? [
-          ["auth", "Authorize", ShieldCheck],
-          ["deauth", "Reject", ShieldOff],
-        ]
+    ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
+    ...(visibility.authorize
+      ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
       : []),
-    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
-    ...(active && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(pendingDelete && canAuthorize ? [["deleteAuth", "Delete Auth", Trash2]] : []),
-    ...(inactive && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
+    ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
+    ...(visibility.delete ? [["delete", "Delete", Trash2]] : []),
+    ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
+    ...(visibility.activate ? [["reactivate", "Activate", Power]] : []),
   ];
   return (
     <>
@@ -87,7 +88,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && (
+        {visibility.edit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
@@ -241,13 +242,13 @@ export function InstitutionModulePage() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (row) => row.process_status_name ?? "",
-      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—"),
+      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (row) => row.auth_status ?? "",
-      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—"),
+      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",
@@ -348,13 +349,7 @@ export function InstitutionModulePage() {
               } else {
                 await addMutation.mutateAsync({
                   inst_profile_id: values.inst_profile_id,
-                  modules: [
-                    {
-                      module_id: values.module_id,
-                      effective_from: values.effective_from,
-                      effective_to: values.effective_to,
-                    },
-                  ],
+                  modules: values.modules,
                   narration: values.narration,
                   is_draft: values.is_draft,
                 });
@@ -370,6 +365,8 @@ export function InstitutionModulePage() {
     </div>
   );
 }
+
+const emptyModuleRow = () => ({ module_id: "", effective_from: "", effective_to: "" });
 
 function ModuleForm({
   editing,
@@ -387,18 +384,42 @@ function ModuleForm({
     narration: "",
     is_draft: false,
   });
+  // Only the Add flow supports assigning several modules in one request
+  // (the backend's /add accepts a `modules` array) — Edit still targets one
+  // existing row, so it keeps the single module_id/effective_* fields above.
+  const [moduleRows, setModuleRows] = useState([emptyModuleRow()]);
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+  const setModuleRow = (index, key) => (event) =>
+    setModuleRows((rows) => rows.map((row, i) => (i === index ? { ...row, [key]: event.target.value } : row)));
+  const addModuleRow = () => setModuleRows((rows) => [...rows, emptyModuleRow()]);
+  const removeModuleRow = (index) => setModuleRows((rows) => rows.filter((_, i) => i !== index));
+
+  const buildPayload = (isDraft) =>
+    editing
+      ? {
+          ...form,
+          module_id: Number(form.module_id),
+          inst_profile_id: Number(form.inst_profile_id),
+          is_draft: isDraft,
+          id: editing.id,
+        }
+      : {
+          inst_profile_id: Number(form.inst_profile_id),
+          modules: moduleRows.map((row) => ({
+            module_id: Number(row.module_id),
+            effective_from: row.effective_from,
+            effective_to: row.effective_to,
+          })),
+          narration: form.narration,
+          is_draft: isDraft,
+        };
+
   return (
     <form
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        void onSubmit({
-          ...form,
-          module_id: Number(form.module_id),
-          inst_profile_id: Number(form.inst_profile_id),
-          ...(editing ? { id: editing.id } : {}),
-        });
+        void onSubmit(buildPayload(form.is_draft));
       }}
     >
       {!editing && (
@@ -410,7 +431,6 @@ function ModuleForm({
             onChange={set("inst_profile_id")}
             className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
           >
-            {" "}
             <option value="">Select institution</option>
             {institutions.map((item) => (
               <option key={item.id ?? item.inst_profile_id} value={item.id ?? item.inst_profile_id}>
@@ -420,43 +440,112 @@ function ModuleForm({
           </select>
         </label>
       )}
-      <label className="block text-sm font-medium">
-        Module
-        <select
-          required
-          value={form.module_id}
-          onChange={set("module_id")}
-          className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-        >
-          <option value="">Select module</option>
-          {masterModules.map((item) => (
-            <option key={item.module_id ?? item.id} value={item.module_id ?? item.id}>
-              {item.module_name ?? item.name}
-            </option>
+      {editing ? (
+        <>
+          <label className="block text-sm font-medium">
+            Module
+            <select
+              required
+              value={form.module_id}
+              onChange={set("module_id")}
+              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+            >
+              <option value="">Select module</option>
+              {masterModules.map((item) => (
+                <option key={item.module_id ?? item.id} value={item.module_id ?? item.id}>
+                  {item.module_name ?? item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-sm font-medium">
+              Effective from
+              <input
+                required
+                type="date"
+                value={form.effective_from}
+                onChange={set("effective_from")}
+                className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+              />
+            </label>
+            <label className="text-sm font-medium">
+              Effective to
+              <input
+                type="date"
+                value={form.effective_to}
+                onChange={set("effective_to")}
+                className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+              />
+            </label>
+          </div>
+        </>
+      ) : (
+        <div className="space-y-3">
+          {moduleRows.map((row, index) => (
+            <div key={index} className="relative rounded-xl border border-slate-200 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Module {index + 1}
+                </p>
+                {moduleRows.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeModuleRow(index)}
+                    className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <label className="block text-sm font-medium">
+                Module
+                <select
+                  required
+                  value={row.module_id}
+                  onChange={setModuleRow(index, "module_id")}
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                >
+                  <option value="">Select module</option>
+                  {masterModules.map((item) => (
+                    <option key={item.module_id ?? item.id} value={item.module_id ?? item.id}>
+                      {item.module_name ?? item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <label className="text-sm font-medium">
+                  Effective from
+                  <input
+                    required
+                    type="date"
+                    value={row.effective_from}
+                    onChange={setModuleRow(index, "effective_from")}
+                    className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                  />
+                </label>
+                <label className="text-sm font-medium">
+                  Effective to
+                  <input
+                    type="date"
+                    value={row.effective_to}
+                    onChange={setModuleRow(index, "effective_to")}
+                    className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                  />
+                </label>
+              </div>
+            </div>
           ))}
-        </select>
-      </label>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="text-sm font-medium">
-          Effective from
-          <input
-            required
-            type="date"
-            value={form.effective_from}
-            onChange={set("effective_from")}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-          />
-        </label>
-        <label className="text-sm font-medium">
-          Effective to
-          <input
-            type="date"
-            value={form.effective_to}
-            onChange={set("effective_to")}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-          />
-        </label>
-      </div>
+          <button
+            type="button"
+            onClick={addModuleRow}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            + Add another module
+          </button>
+        </div>
+      )}
       <label className="block text-sm font-medium">
         Narration
         <textarea
@@ -472,15 +561,7 @@ function ModuleForm({
         <button
           type="button"
           disabled={pending}
-          onClick={() =>
-            void onSubmit({
-              ...form,
-              module_id: Number(form.module_id),
-              inst_profile_id: Number(form.inst_profile_id),
-              is_draft: true,
-              ...(editing ? { id: editing.id } : {}),
-            })
-          }
+          onClick={() => void onSubmit(buildPayload(true))}
           className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${form.is_draft ? "border-primary bg-primary/10 text-primary" : "border-slate-200 text-slate-600 hover:border-primary/40 hover:bg-primary/5"}`}
         >
           {editing ? "Save as draft" : form.is_draft ? "Draft selected" : "Save as draft"}
@@ -489,7 +570,7 @@ function ModuleForm({
           disabled={pending}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
-          {pending ? "Saving..." : editing ? "Save changes" : "Add module"}
+          {pending ? "Saving..." : editing ? "Save changes" : "Assign Module"}
         </button>
       </div>
     </form>

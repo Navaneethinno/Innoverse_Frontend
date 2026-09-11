@@ -12,7 +12,7 @@ import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 
 const CONFIGS = {
   product: { title: "Product", readOnlyOnEdit: ["inst_profile_id"], fields: [["inst_profile_id", "Institution profile", "number"], ["code", "Code", "text"], ["name", "Name", "text"], ["description", "Description", "textarea"], ["multiple_accounts_allowed", "Multiple accounts allowed", "boolean"], ["max_accounts", "Maximum accounts", "number"], ["multiple_cards_allowed", "Multiple cards allowed", "boolean"], ["max_cards", "Maximum cards", "number"]], deactivate: true },
@@ -25,7 +25,7 @@ const CONFIGS = {
   eligibility_config: { title: "Eligibility Config", readOnlyOnEdit: ["product_id"], fields: [["product_id", "Product ID", "number"], ["age_restriction_inherit", "Age restriction inherit", "boolean"], ["minimum_age", "Minimum age", "number"], ["maximum_age", "Maximum age", "number"], ["residency_restriction_inherit", "Residency restriction inherit", "boolean"]] },
   residency: { title: "Residency", readOnlyOnEdit: ["eligibility_config_id"], fields: [["eligibility_config_id", "Eligibility config ID", "number"], ["residency_type_id", "Residency type ID", "number"], ["allowed", "Allowed", "boolean"]] },
 };
-const idOf = (r) => r?.id; const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? []; const isDraft = (r) => deriveStatusFlags(r).draft; const isPending = (r) => deriveStatusFlags(r).pending; const isPendingDelete = (r) => deriveStatusFlags(r).pendingDelete; const allowed = (menus, action, title) => (menus ?? []).some((m) => new RegExp(title, "i").test(String(m?.menu_name)) && (m.actions ?? []).some((a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase()));
+const idOf = (r) => r?.id; const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? []; const allowed = (menus, action, title) => (menus ?? []).some((m) => new RegExp(title, "i").test(String(m?.menu_name)) && (m.actions ?? []).some((a) => String(a?.action_name ?? a?.name).toLowerCase() === action.toLowerCase()));
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave }) { if (!open) return null; return <Modal open onClose={onClose} title={`${editing ? "Edit" : "Add"} ${config.title}`} footer={<><button onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Cancel</button><button type="submit" form="digital-product-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold">Save as draft</button><button type="submit" form="digital-product-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{editing ? "Save changes" : `Add ${config.title}`}</button></>}><form id="digital-product-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4">{config.fields.map(([key, label, type]) => <label key={key} className="text-sm font-semibold text-slate-700">{label}{type === "textarea" ? <textarea value={value[key] ?? ""} onChange={(e) => setValue({ ...value, [key]: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border p-3" /> : type === "boolean" ? <input type="checkbox" checked={Boolean(value[key])} onChange={(e) => setValue({ ...value, [key]: e.target.checked })} className="ml-3" /> : <input required={key.endsWith("_id") || ["code", "name"].includes(key)} type={type} value={value[key] ?? ""} onChange={(e) => setValue({ ...value, [key]: type === "number" ? Number(e.target.value) : e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5" />}</label>)}</form></Modal>; }
 export function DigitalProductResource({ entity }) { const config = CONFIGS[entity]; const menus = useSelector((s) => s.menu.menuArray); const api = useMemo(() => digitalProductApi(entity), [entity]); const [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [page, setPage] = useState(1), [limit, setLimit] = useState(10), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [form, setForm] = useState({}), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false);
  const load = useCallback(async () => { setLoading(true); try { const r = await api.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [api, page, limit]); useEffect(() => { void load(); }, [load]); const visible = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && JSON.stringify(r).toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
@@ -33,24 +33,31 @@ const save = async (is_draft) => { setSaving(true); try { const payload = { ...O
  const columns = [
    ...config.fields.slice(0, 3).map(([key, label, type]) => ({ key, label, render: (r) => type === "boolean" ? (r[key] ? "Yes" : "No") : String(r[key] ?? "—") })),
    { key: "status", label: "Status", render: (r) => r.status_name != null || r.status != null ? <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—" },
-   { key: "process_status_name", label: "Process Status", render: (r) => r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—" },
-   { key: "auth_status", label: "Authorization Status", render: (r) => r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—" },
+   { key: "process_status_name", label: "Process Status", render: (r) => r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—" },
+   { key: "auth_status", label: "Authorization Status", render: (r) => r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—" },
    { key: "actions", label: "Actions", sortable: false, render: (r) => {
      // Same button flow as InstitutionProfile/MasterConfig everywhere else:
      // Edit/Delete show whenever the permission is granted, regardless of
      // status; Authorize/Deauthorize show only while pending AND it isn't
      // a pending-delete (that goes through the dedicated Delete Auth
      // endpoint instead, since /auth never covers delete per the API docs).
-     const draft = isDraft(r); const pending = isPending(r); const pendingDelete = isPendingDelete(r);
+     const visibility = getMakerCheckerButtons(r, {
+       canAdd: allowed(menus, "Add", config.title),
+       canEdit: allowed(menus, "Edit", config.title),
+       canAuthorize: allowed(menus, "Authorize", config.title),
+       canDelete: allowed(menus, "Delete", config.title),
+     });
      const acts = [
-       ...(draft ? [["submit", "Submit", Send]] : []),
-       ...(pending && !pendingDelete && allowed(menus, "Authorize", config.title) ? [["auth", "Authorize", ShieldCheck], ["deauth", "Reject", ShieldOff]] : []),
-       ...(allowed(menus, "Delete", config.title) ? [["delete", "Delete", Trash2]] : []),
-       ...(pendingDelete && allowed(menus, "Authorize", config.title) ? [["deleteAuth", "Delete Auth", Trash2]] : []),
+       ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
+       ...(visibility.authorize
+         ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
+         : []),
+       ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
+       ...(visibility.delete ? [["delete", "Delete", Trash2]] : []),
      ];
      return <div className="flex flex-wrap justify-center gap-1">
        <UiTooltip label="View"><button type="button" onClick={() => setView(r)} className={actionButtonClass("view")}><Eye size={14} /></button></UiTooltip>
-       {allowed(menus, "Edit", config.title) && <UiTooltip label="Edit"><button type="button" onClick={() => { setForm(Object.fromEntries(config.fields.map(([k]) => [k, r[k] ?? ""]))); setEditing(r); setOpen(true); }} className={actionButtonClass("edit")}><Pencil size={14} /></button></UiTooltip>}
+       {visibility.edit && <UiTooltip label="Edit"><button type="button" onClick={() => { setForm(Object.fromEntries(config.fields.map(([k]) => [k, r[k] ?? ""]))); setEditing(r); setOpen(true); }} className={actionButtonClass("edit")}><Pencil size={14} /></button></UiTooltip>}
        <UiTooltip label="Audit"><button type="button" onClick={() => setAudit(r)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"><History size={14} /></button></UiTooltip>
        {acts.map(([type, label, Icon]) => <UiTooltip key={type} label={label}><button type="button" onClick={() => setAction({ type, row: r, label, reason: "" })} className={actionButtonClass(type)}><Icon size={14} /></button></UiTooltip>)}
      </div>;

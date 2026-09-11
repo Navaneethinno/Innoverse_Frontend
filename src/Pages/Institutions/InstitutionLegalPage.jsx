@@ -30,7 +30,7 @@ import {
   useActiveInstitutionsQuery,
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 
 const FIELDS = [
   ["legal_name", "Legal Name"],
@@ -54,6 +54,7 @@ const FIELDS = [
 const value = (row, key) => row?.[key] ?? "—";
 
 function LegalActions({ row, onRefresh, onEdit }) {
+  const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
   const canDelete = useHasInstitutionAction("Delete");
@@ -66,22 +67,11 @@ function LegalActions({ row, onRefresh, onEdit }) {
   const pendingInfo = usePendingChanges(
     institutionLegalApi.pending,
     row.id,
-    !!action && ["auth", "deauth"].includes(action.method),
+    !!action && ["auth", "deauth", "deleteAuth"].includes(action.method),
   );
-  const { draft, pending, pendingDelete, active, inactive } = deriveStatusFlags(row);
-  const actions = [
-    ...(draft ? [["submit", "Submit", Send]] : []),
-    ...(pending && canAuthorize
-      ? [
-          ["auth", "Authorize", ShieldCheck],
-          ["deauth", "Reject", ShieldOff],
-        ]
-      : []),
-    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
-    ...(active && canChangeStatus ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(pendingDelete && canAuthorize ? [["deleteAuth", "Delete Auth", Trash2]] : []),
-    ...(inactive && canChangeStatus ? [["reactivate", "Reactivate", Power]] : []),
-  ];
+  // Single shared status-based visibility engine — see buttonVisibility.js
+  // for the full status_name/process_status_name matrix this is built from.
+  const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
   const execute = async () => {
     try {
       await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
@@ -104,7 +94,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && (
+        {buttons.edit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
               <Edit3 size={14} />
@@ -120,7 +110,16 @@ function LegalActions({ row, onRefresh, onEdit }) {
             <History size={14} />
           </button>
         </UiTooltip>
-        {actions.map(([method, label, Icon]) => (
+        {[
+          ...(buttons.submitDraft ? [["submit", "Submit", Send]] : []),
+          ...(buttons.authorize
+            ? [[buttons.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
+            : []),
+          ...(buttons.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
+          ...(buttons.delete ? [["delete", "Delete", Trash2]] : []),
+          ...(buttons.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
+          ...(buttons.activate ? [["reactivate", "Activate", Power]] : []),
+        ].map(([method, label, Icon]) => (
           <UiTooltip key={method} label={label}>
             <button
               type="button"
@@ -142,7 +141,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
         onClose={() => setAction(null)}
         onConfirm={() => void execute()}
       >
-        {["auth", "deauth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
         {action?.method !== "pending" && (
           <textarea
             value={narration}
@@ -241,13 +240,13 @@ export function InstitutionLegalPage() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",

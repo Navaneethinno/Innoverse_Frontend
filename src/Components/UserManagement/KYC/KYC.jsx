@@ -1,3 +1,4 @@
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import {
   Eye,
@@ -23,7 +24,6 @@ import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useK
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const EMPTY = {
   user_id: "",
@@ -56,9 +56,6 @@ const FORM_FIELDS = [
 const idOf = (row) => row?.user_id ?? row?.id;
 const textOf = (row) =>
   `${row?.user_name ?? ""} ${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""} ${row?.employee_id ?? ""} ${row?.email ?? ""} ${row?.mobile ?? ""}`;
-const isPending = (row) => deriveStatusFlags(row).pending;
-const isInactive = (row) => deriveStatusFlags(row).inactive;
-const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const displayName = (row) =>
   row?.user_name || `${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""}`.trim();
 
@@ -168,21 +165,19 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const pendingInfo = usePendingChanges(
     ({ id }) => usersApi.kycPending({ user_id: id }),
     idOf(row),
-    ["kycAuth", "kycDeauth"].includes(action?.method),
+    ["kycAuth", "kycDeauth", "kycDeleteAuth"].includes(action?.method),
   );
 
-  const pending = isPending(row);
-  const draft = deriveStatusFlags(row).draft;
-  const pendingDelete = isPendingDelete(row);
-  const locked = pending && !draft;
-  const inactive = isInactive(row);
+  const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
   const actions = [
-    ...((canSubmit || canAdd) && draft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
-    ...(canAuthorize && locked && !pendingDelete ? [["kycAuth", "Authorize", ShieldCheck, "auth"], ["kycDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(canDelete ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
-    ...(canAuthorize && pendingDelete ? [["kycDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
-    ...(canChangeStatus && !pending && !inactive ? [["kycDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-    ...(canChangeStatus && !pending && inactive ? [["kycReactivate", "Reactivate", Power, "reactivate"]] : []),
+    ...(visibility.submitDraft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
+    ...(visibility.authorize
+      ? [[visibility.isPendingDelete ? "kycDeleteAuth" : "kycAuth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
+      : []),
+    ...(visibility.deauthorize ? [["kycDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+    ...(visibility.delete ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
+    ...(visibility.deactivate ? [["kycDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
+    ...(visibility.activate ? [["kycReactivate", "Activate", Power, "reactivate"]] : []),
   ];
 
   const execute = async () => {
@@ -205,7 +200,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && (
+        {visibility.edit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
               <Pencil size={14} />
@@ -311,7 +306,7 @@ export function KYC() {
     { key: "employee_id", label: "Employee ID", render: (row) => row.employee_id ?? "-" },
     { key: "email", label: "Email", render: (row) => row.email ?? "-" },
     { key: "mobile", label: "Mobile", render: (row) => row.mobile ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
     {
       key: "actions",
       label: "Actions",

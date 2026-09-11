@@ -42,7 +42,7 @@ import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
 import { EditUser } from "./EditUser";
 import { AuditUser } from "./AuditUser";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { deriveButtonVisibility, getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 
 // The users list endpoint only supports status 0/1/2 (all/active/inactive)
 // server-side — there is no dedicated "pending" auth_status filter param
@@ -52,9 +52,6 @@ import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 // client-side by auth_status — a best-effort match limited to what's on the
 // current page (documented in the report as a follow-up once/if the
 // backend exposes a real pending filter).
-const isPending = (user) => deriveStatusFlags(user).pending;
-const isPendingDelete = (user) => deriveStatusFlags(user).pendingDelete;
-const isInactive = (user) => deriveStatusFlags(user).inactive;
 const numericId = (value) => {
   const id = Number(value);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -271,31 +268,34 @@ export function User() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (u) => String(u.process_status_name ?? ""),
-      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} /> : "—"),
+      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (u) => String(u.auth_status ?? ""),
-      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} /> : "—"),
+      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",
       label: "Actions",
       sortable: false,
       render: (user) => {
-        const pending = isPending(user);
-        const pendingDelete = isPendingDelete(user);
-        const inactive = isInactive(user);
-        const draft = deriveStatusFlags(user).draft;
+        // canDeauthorize is intentionally broader than canAuthorize (see its
+        // definition above), so Reject visibility is computed against it
+        // directly rather than through getMakerCheckerButtons's single
+        // canAuthorize gate, which governs both Authorize and Deauthorize.
+        const visibility = getMakerCheckerButtons(user, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
+        const rawDeauthorize = deriveButtonVisibility(user).deauthorize;
         const actions = [
-          ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
-          ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"]] : []),
-          ...(canDeauthorize && pending && !pendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-          ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
-          ...(canDelete ? [["delete", "Delete", Trash2, "delete"]] : []),
-          ...(canChangeStatus && !pending && !inactive ? [["deactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-          ...(canChangeStatus && !pending && inactive ? [["reactivate", "Reactivate", Power, "reactivate"]] : []),
+          ...(visibility.submitDraft ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...(visibility.authorize
+            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
+            : []),
+          ...(canDeauthorize && rawDeauthorize && !visibility.isPendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+          ...(visibility.delete ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff, "deactivate"]] : []),
+          ...(visibility.activate ? [["reactivate", "Activate", Power, "reactivate"]] : []),
         ];
         return <div className="flex flex-wrap items-center justify-center gap-1">
           <UiTooltip label="View">
@@ -307,7 +307,7 @@ export function User() {
               <Eye size={14} />
             </button>
           </UiTooltip>
-          {canEdit && (
+          {visibility.edit && (
             <UiTooltip label="Edit">
               <button
                 type="button"

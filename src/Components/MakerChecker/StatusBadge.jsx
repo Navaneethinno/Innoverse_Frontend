@@ -144,13 +144,45 @@ const STATUS_CONFIG = {
     pill: "bg-orange-50 text-orange-700 border-orange-200",
   },
 };
-export function StatusBadge({ status }) {
+// Maps each pill's background/border classes to the equivalent bare text
+// color, for the "subtle" variant below — same color language, no filled
+// pill/border. Falls back to the neutral slate text color for any pill not
+// listed (keeps this a lookup, not a per-status duplicate palette).
+const TEXT_COLOR_BY_PILL = {
+  "bg-emerald-50 text-emerald-700 border-emerald-200": "text-emerald-700",
+  "bg-amber-50 text-amber-700 border-amber-200": "text-amber-700",
+  "bg-amber-50 text-amber-900 border-amber-300": "text-amber-900",
+  "bg-blue-50 text-blue-700 border-blue-200": "text-blue-700",
+  "bg-orange-50 text-orange-700 border-orange-200": "text-orange-700",
+  "bg-red-50 text-red-700 border-red-200": "text-red-700",
+  "bg-slate-50 text-slate-500 border-slate-200": "text-slate-500",
+};
+
+// `variant="subtle"` renders a dot + plain colored text instead of a filled
+// pill — for secondary status columns (Process Status, Authorization
+// Status) shown alongside the primary Status column, so three badges that
+// often carry the same value in a row don't read as three loud, identical
+// pills. Same color language as the solid pill, just lighter-weight.
+export function StatusBadge({ status, variant = "solid" }) {
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
   const cfg = STATUS_CONFIG[normalizedStatus] ?? {
     label: status,
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
   };
+  if (variant === "subtle") {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-xs font-medium",
+          TEXT_COLOR_BY_PILL[cfg.pill] ?? "text-slate-500",
+        )}
+      >
+        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
+        {cfg.label}
+      </span>
+    );
+  }
   return (
     <span
       className={cn(

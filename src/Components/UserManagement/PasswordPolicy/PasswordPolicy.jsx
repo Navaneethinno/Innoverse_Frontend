@@ -1,3 +1,4 @@
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import {
   Eye,
@@ -24,7 +25,6 @@ import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicy
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditPasswordPolicy } from "./AuditPasswordPolicy";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 const TEXT_FIELDS = [
   "policy_name",
@@ -161,9 +161,6 @@ const FORM_SECTIONS = [
 
 const empty = () => Object.fromEntries(ALL_FIELDS.map((field) => [field, BOOLEAN_FIELDS.includes(field) ? false : ""]));
 const idOf = (row) => row?.policy_id ?? row?.id;
-const isPending = (row) => deriveStatusFlags(row).pending;
-const isInactive = (row) => deriveStatusFlags(row).inactive;
-const isPendingDelete = (row) => deriveStatusFlags(row).pendingDelete;
 const searchText = (row) =>
   `${row?.policy_name ?? ""} ${row?.description ?? ""} ${row?.status_name ?? ""} ${row?.auth_status ?? ""}`;
 
@@ -304,20 +301,18 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
   const pendingInfo = usePendingChanges(
     ({ id }) => usersApi.passwordPolicyPending({ policy_id: id }),
     idOf(row),
-    ["passwordPolicyAuth", "passwordPolicyDeauth"].includes(action?.method),
+    ["passwordPolicyAuth", "passwordPolicyDeauth", "passwordPolicyDeleteAuth"].includes(action?.method),
   );
-  const pending = isPending(row);
-  const draft = deriveStatusFlags(row).draft;
-  const pendingDelete = isPendingDelete(row);
-  const locked = pending && !draft;
-  const inactive = isInactive(row);
+  const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
   const actions = [
-    ...((canSubmit || canAdd) && draft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
-    ...(canAuthorize && locked && !pendingDelete ? [["passwordPolicyAuth", "Authorize", ShieldCheck, "auth"], ["passwordPolicyDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(canDelete ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
-    ...(canAuthorize && pendingDelete ? [["passwordPolicyDeleteAuth", "Authorize Delete", ShieldCheck, "deleteAuth"]] : []),
-    ...(canChangeStatus && !pending && !inactive ? [["passwordPolicyDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-    ...(canChangeStatus && !pending && inactive ? [["passwordPolicyReactivate", "Reactivate", Power, "reactivate"]] : []),
+    ...(visibility.submitDraft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
+    ...(visibility.authorize
+      ? [[visibility.isPendingDelete ? "passwordPolicyDeleteAuth" : "passwordPolicyAuth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
+      : []),
+    ...(visibility.deauthorize ? [["passwordPolicyDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+    ...(visibility.delete ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
+    ...(visibility.deactivate ? [["passwordPolicyDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
+    ...(visibility.activate ? [["passwordPolicyReactivate", "Activate", Power, "reactivate"]] : []),
   ];
   const mutation = action ? methods[action.method] : null;
 
@@ -341,7 +336,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
             <Eye size={14} />
           </button>
         </UiTooltip>
-        {canEdit && (
+        {visibility.edit && (
           <UiTooltip label="Edit">
             <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
               <Pencil size={14} />
@@ -440,7 +435,7 @@ export function PasswordPolicy() {
     { key: "min_length", label: "Min Length", render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: "Max Retries", render: (row) => row.max_retry_count ?? "-" },
     { key: "session_timeout_minutes", label: "Session Timeout", render: (row) => row.session_timeout_minutes ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
     {
       key: "actions",
       label: "Actions",

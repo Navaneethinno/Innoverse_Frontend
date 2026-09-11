@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
   mapInstitutionListResponse,
@@ -237,13 +238,13 @@ export function InstitutionProfile() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: statusOf,
-      render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",
@@ -251,25 +252,22 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
-        // status 9 = Draft (not yet submitted, per the confirmed 2026-09
-        // spec) — only the maker who owns it can act on it further via
-        // /submit, so a Submit action only makes sense for rows actually
-        // in that state.
-        const draft = isInstitutionDraft(inst);
-        const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
-        const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
-        // Per the confirmed action-UI mapping: Authorise/Deauthorise show as
-        // a pair whenever the row is pending (Pending Add/Edit/Delete/
-        // Deactivate/Reactivate, etc.) — checks both process_status_name and
-        // auth_status via deriveStatusFlags, since some responses only
-        // populate one or the other.
-        const isPending = deriveStatusFlags(inst).pending;
+        // Single shared status-based visibility engine — see
+        // buttonVisibility.js for the full status_name/process_status_name
+        // matrix this is built from.
+        const buttons = getMakerCheckerButtons(inst, {
+          canEdit,
+          canAdd,
+          canAuthorize: canAuthorise,
+          canChangeStatus,
+          canDelete,
+        });
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
             <UiTooltip label="View"><button onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Eye size={14} />
             </button></UiTooltip>
-            {canEdit && (
+            {buttons.edit && (
               <UiTooltip label="Edit"><button onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Pencil size={14} />
               </button></UiTooltip>
@@ -277,32 +275,32 @@ export function InstitutionProfile() {
               <UiTooltip label="Audit"><button onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <History size={14} />
             </button></UiTooltip>
-            {draft && canAdd && (
+            {buttons.submitDraft && (
               <UiTooltip label="Submit Draft"><button onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Send size={14} />
               </button></UiTooltip>
             )}
-            {canAuthorise && isPending && (
-              <>
-                <UiTooltip label="Authorize"><button onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                  <ShieldCheck size={14} />
-                </button></UiTooltip>
-                <UiTooltip label="Deauthorize"><button onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                  <ShieldOff size={14} />
-                </button></UiTooltip>
-              </>
+            {buttons.authorize && (
+              <UiTooltip label="Authorize"><button onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <ShieldCheck size={14} />
+              </button></UiTooltip>
             )}
-            {canChangeStatus && active && (
+            {buttons.deauthorize && (
+              <UiTooltip label="Deauthorize"><button onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <ShieldOff size={14} />
+              </button></UiTooltip>
+            )}
+            {buttons.deactivate && (
                 <UiTooltip label="Deactivate"><button onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />
               </button></UiTooltip>
             )}
-            {canChangeStatus && inactive && (
-                <UiTooltip label="Reactivate"><button onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+            {buttons.activate && (
+                <UiTooltip label="Activate"><button onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                 <Power size={14} />
               </button></UiTooltip>
             )}
-            {canDelete && (
+            {buttons.delete && (
                 <UiTooltip label="Delete"><button onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
                 <Trash2 size={14} />
               </button></UiTooltip>

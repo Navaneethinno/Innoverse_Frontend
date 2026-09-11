@@ -1,3 +1,4 @@
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
@@ -33,7 +34,6 @@ import { AuthProfile } from "./AuthProfile";
 import { DeauthProfile } from "./DeauthProfile";
 import { DeleteProfile } from "./DeleteProfile";
 import { AuditProfile } from "./AuditProfile";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 
 // Fixed action ids for the checker's own Authorize/Deauthorize buttons, per
 // payse's AuthProfile.jsx (action_id: 5 for authorize, 4 for deauthorize) —
@@ -70,23 +70,11 @@ function numericId(value) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function isDraft(profile) {
-  return deriveStatusFlags(profile).draft;
-}
-
-function isPending(profile) {
-  return deriveStatusFlags(profile).pending;
-}
-
-function isPendingDelete(profile) {
-  return deriveStatusFlags(profile).pendingDelete;
-}
-
 function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (key === "auth_status" || key === "process_status_name")
-    return value == null ? "—" : <StatusBadge status={String(value)} />;
+    return value == null ? "—" : <StatusBadge status={String(value)} variant="subtle" />;
   return value == null || value === "" ? "—" : String(value);
 }
 
@@ -307,18 +295,18 @@ export function Profile() {
       label: t("common:actions"),
       sortable: false,
       render: (p) => {
-        const draft = isDraft(p);
-        const pending = isPending(p);
-        const pendingDelete = isPendingDelete(p);
+        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit });
         const actions = [
-          ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
-          ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"], ["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-          ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
-          ...(canDelete ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(visibility.submitDraft ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...(visibility.authorize
+            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
+            : []),
+          ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+          ...(visibility.delete ? [["delete", "Delete", Trash2, "delete"]] : []),
         ];
         return (
           <div className="flex items-center justify-center gap-1">
-            {canEdit && (
+            {visibility.edit && (
               <UiTooltip label="Edit">
                 <button type="button" onClick={() => openEdit(p)} className={actionButtonClass("edit")}>
                   <Pencil size={14} />
