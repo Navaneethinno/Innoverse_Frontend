@@ -42,12 +42,12 @@ async function request(path, body = {}) {
 // time. `entity` maps to the matching UPPER_SNAKE_CASE key in whichever of
 // those two groups defines it: kyc_group, kyc_group_level,
 // kyc_group_level_data, kyc_group_level_process, kyc_group_level_document
-// live under CONFIG_KYC (10-route lifecycle, no deactivate/reactivate/
-// pending); acct_product and its 16 sub-configs live under CONFIG_ACCT
-// (full 13-route lifecycle). The method set below is a superset of both —
-// only methods whose KEY actually exists on the resolved endpoints object
-// are exposed, so calling e.g. .pending() on a CONFIG_KYC entity throws
-// instead of silently hitting a guessed URL.
+// live under CONFIG_KYC; acct_product and its 16 sub-configs live under
+// CONFIG_ACCT. Both now carry the full 13-route lifecycle. The method set
+// below is a superset just in case a future entity is missing one — only
+// methods whose KEY actually exists on the resolved endpoints object are
+// exposed, so calling an undefined one throws instead of silently hitting
+// a guessed URL.
 const METHOD_TO_KEY = {
   add: "ADD", submit: "SUBMIT", edit: "EDIT", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
   list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", pending: "PENDING", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",

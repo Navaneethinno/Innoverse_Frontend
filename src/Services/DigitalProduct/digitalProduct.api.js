@@ -45,7 +45,7 @@ async function request(path, body = {}) {
 // matching UPPER_SNAKE_CASE key in that constant.
 const METHOD_TO_KEY = {
   add: "ADD", submit: "SUBMIT", edit: "EDIT", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
-  list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
+  list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", pending: "PENDING", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
 };
 export const digitalProductApi = (entity) => {
   const endpoints = API_ENDPOINTS.DIGITAL_PRODUCT[entity.toUpperCase()];

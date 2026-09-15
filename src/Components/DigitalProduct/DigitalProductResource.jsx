@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Eye, History, Pencil, Plus, Power, PowerOff, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
@@ -393,6 +394,15 @@ export function DigitalProductResource({ entity }) {
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
     [saving, setSaving] = useState(false);
+  // Shows the maker's proposed changes inside the Authorize/Reject confirm
+  // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
+  // while that dialog is actually open, via the entity's own /pending
+  // endpoint (payload {id}).
+  const pendingInfo = usePendingChanges(
+    api.pending,
+    action ? idOf(action.row) : null,
+    Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
+  );
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -468,16 +478,25 @@ export function DigitalProductResource({ entity }) {
   const run = async () => {
     try {
       const id = idOf(action.row);
+      // Every action in this lifecycle takes {id, narration} per the API
+      // reference — narration was previously only sent for deauth (and
+      // hardcoded for submit), silently dropping it everywhere else.
+      const narration = action.reason || "";
+      const payload = { id, narration };
       const r =
         action.type === "submit"
-          ? await api.submit({ id, narration: "Submitted for review" })
+          ? await api.submit(payload)
           : action.type === "auth"
-            ? await api.auth({ id })
+            ? await api.auth(payload)
             : action.type === "deauth"
-              ? await api.deauth({ id, description: action.reason || "UNDEFINED" })
+              ? await api.deauth({ id, description: narration || "UNDEFINED" })
               : action.type === "delete"
-                ? await api.delete({ id })
-                : await api.deleteAuth({ id });
+                ? await api.delete(payload)
+                : action.type === "deactivate"
+                  ? await api.deactivate(payload)
+                  : action.type === "reactivate"
+                    ? await api.reactivate(payload)
+                    : await api.deleteAuth(payload);
       notifications.success(apiMessage(r, `${config.title} action completed`));
       setAction(null);
       void load();
@@ -534,6 +553,9 @@ export function DigitalProductResource({ entity }) {
           canEdit: allowed(menus, "Edit", config.menuName ?? config.title),
           canAuthorize: allowed(menus, "Authorize", config.menuName ?? config.title),
           canDelete: allowed(menus, "Delete", config.menuName ?? config.title),
+          canChangeStatus:
+            allowed(menus, "Deactivate", config.menuName ?? config.title) ||
+            allowed(menus, "Reactivate", config.menuName ?? config.title),
         });
         const acts = [
           ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
@@ -541,6 +563,8 @@ export function DigitalProductResource({ entity }) {
             ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
             : []),
           ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
+          ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
+          ...(visibility.activate ? [["reactivate", "Reactivate", Power]] : []),
           ...(visibility.delete ? [["delete", "Delete", Trash2]] : []),
         ];
         return (
@@ -701,14 +725,13 @@ export function DigitalProductResource({ entity }) {
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >
-          {action.type === "deauth" && (
-            <textarea
-              className="mt-3 min-h-20 w-full rounded-xl border p-3"
-              value={action.reason}
-              onChange={(e) => setAction({ ...action, reason: e.target.value })}
-              placeholder="Rejection reason"
-            />
-          )}
+          {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
+          <textarea
+            className="mt-3 min-h-20 w-full rounded-xl border p-3"
+            value={action.reason ?? ""}
+            onChange={(e) => setAction({ ...action, reason: e.target.value })}
+            placeholder="Narration"
+          />
         </ConfirmDialog>
       )}
     </div>

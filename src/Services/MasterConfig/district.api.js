@@ -48,6 +48,8 @@ const lifecycleApi = (endpoints) => ({
   audit: (payload) => request(endpoints.AUDIT, payload), auth: (payload) => request(endpoints.AUTH, payload),
   deauth: (payload) => request(endpoints.DEAUTH, deauthPayload(payload)), edit: (payload) => request(endpoints.EDIT, payload),
   delete: (payload) => request(endpoints.DELETE, payload), deleteAuth: (payload) => request(endpoints.DELETE_AUTH, payload),
+  pending: (payload) => request(endpoints.PENDING, payload),
+  deactivate: (payload) => request(endpoints.DEACTIVATE, payload), reactivate: (payload) => request(endpoints.REACTIVATE, payload),
 });
 export const districtApi = {
   add: (payload) => request(DISTRICT.ADD, payload), submit: (payload) => request(DISTRICT.SUBMIT, payload),
@@ -55,6 +57,8 @@ export const districtApi = {
   audit: (payload) => request(DISTRICT.AUDIT, payload), auth: (payload) => request(DISTRICT.AUTH, payload),
   deauth: (payload) => request(DISTRICT.DEAUTH, deauthPayload(payload)), edit: (payload) => request(DISTRICT.EDIT, payload),
   delete: (payload) => request(DISTRICT.DELETE, payload), deleteAuth: (payload) => request(DISTRICT.DELETE_AUTH, payload),
+  pending: (payload) => request(DISTRICT.PENDING, payload),
+  deactivate: (payload) => request(DISTRICT.DEACTIVATE, payload), reactivate: (payload) => request(DISTRICT.REACTIVATE, payload),
   activeProvinces: (payload = { view: "dropdown" }) => request(PROVINCE.GET_ACTIVE, payload),
 };
 export const provinceApi = {
@@ -63,6 +67,8 @@ export const provinceApi = {
   audit: (payload) => request(PROVINCE.AUDIT, payload), auth: (payload) => request(PROVINCE.AUTH, payload),
   deauth: (payload) => request(PROVINCE.DEAUTH, deauthPayload(payload)), edit: (payload) => request(PROVINCE.EDIT, payload),
   delete: (payload) => request(PROVINCE.DELETE, payload), deleteAuth: (payload) => request(PROVINCE.DELETE_AUTH, payload),
+  pending: (payload) => request(PROVINCE.PENDING, payload),
+  deactivate: (payload) => request(PROVINCE.DEACTIVATE, payload), reactivate: (payload) => request(PROVINCE.REACTIVATE, payload),
 };
 export const villageApi = {
   add: (payload) => request(VILLAGE.ADD, payload), submit: (payload) => request(VILLAGE.SUBMIT, payload),
@@ -70,6 +76,8 @@ export const villageApi = {
   audit: (payload) => request(VILLAGE.AUDIT, payload), auth: (payload) => request(VILLAGE.AUTH, payload),
   deauth: (payload) => request(VILLAGE.DEAUTH, deauthPayload(payload)), edit: (payload) => request(VILLAGE.EDIT, payload),
   delete: (payload) => request(VILLAGE.DELETE, payload), deleteAuth: (payload) => request(VILLAGE.DELETE_AUTH, payload),
+  pending: (payload) => request(VILLAGE.PENDING, payload),
+  deactivate: (payload) => request(VILLAGE.DEACTIVATE, payload), reactivate: (payload) => request(VILLAGE.REACTIVATE, payload),
 };
 export const accountPurposeApi = lifecycleApi(ACCOUNT_PURPOSE);
 export const categoryApi = lifecycleApi(CATEGORY);

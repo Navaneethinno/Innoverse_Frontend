@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Eye, History, Pencil, Plus, Power, PowerOff, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -129,6 +130,15 @@ export function KycConfigResource({ entity }) {
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
     [saving, setSaving] = useState(false);
+  // Shows the maker's proposed changes inside the Authorize/Reject confirm
+  // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
+  // while that dialog is actually open, via the entity's own /pending
+  // endpoint (payload {id}).
+  const pendingInfo = usePendingChanges(
+    service.pending,
+    action ? idOf(action.row) : null,
+    Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
+  );
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -201,16 +211,25 @@ export function KycConfigResource({ entity }) {
   const run = async () => {
     try {
       const { row, type } = action;
+      // Every action in this lifecycle takes {id, narration} per the API
+      // reference — narration was previously only sent for deauth,
+      // silently dropping it everywhere else.
+      const narration = action.reason || "";
+      const payload = { id: idOf(row), narration };
       const response =
         type === "submit"
-          ? await service.submit({ id: idOf(row) })
+          ? await service.submit(payload)
           : type === "auth"
-            ? await service.auth({ id: idOf(row) })
+            ? await service.auth(payload)
             : type === "deleteAuth"
-              ? await service.deleteAuth({ id: idOf(row) })
+              ? await service.deleteAuth(payload)
               : type === "deauth"
-                ? await service.deauth({ id: idOf(row), description: action.reason || "UNDEFINED" })
-                : await service.delete({ id: idOf(row) });
+                ? await service.deauth({ id: idOf(row), description: narration || "UNDEFINED" })
+                : type === "deactivate"
+                  ? await service.deactivate(payload)
+                  : type === "reactivate"
+                    ? await service.reactivate(payload)
+                    : await service.delete(payload);
       notifications.success(apiMessage(response, `${config.title} action completed`));
       setAction(null);
       void load();
@@ -250,6 +269,7 @@ export function KycConfigResource({ entity }) {
           canEdit: allowed(menus, "Edit", config.menuName),
           canAuthorize: allowed(menus, "Authorize", config.menuName),
           canDelete: allowed(menus, "Delete", config.menuName),
+          canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
         return (
@@ -309,6 +329,24 @@ export function KycConfigResource({ entity }) {
                 onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
               >
                 <ShieldOff size={14} />
+              </button>
+            )}
+            {buttons.deactivate && (
+              <button
+                type="button"
+                className={actionButtonClass("deauth")}
+                onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
+              >
+                <PowerOff size={14} />
+              </button>
+            )}
+            {buttons.activate && (
+              <button
+                type="button"
+                className={actionButtonClass("auth")}
+                onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
+              >
+                <Power size={14} />
               </button>
             )}
             {buttons.delete && (
@@ -570,15 +608,18 @@ export function KycConfigResource({ entity }) {
           title={`${action.label} ${config.title}`}
           description={String(idOf(action.row))}
           confirmLabel={action.label}
+          destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
+          confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >
-          {action.type === "deauth" && (
-            <textarea
-              value={action.reason}
-              onChange={(event) => setAction({ ...action, reason: event.target.value })}
-            />
-          )}
+          {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
+          <textarea
+            value={action.reason ?? ""}
+            onChange={(event) => setAction({ ...action, reason: event.target.value })}
+            placeholder="Narration"
+            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+          />
         </ConfirmDialog>
       )}
     </div>
