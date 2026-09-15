@@ -45,6 +45,8 @@ export const common = {
   page: "page",
   goTo: "Go to",
   total: "total",
+  showingEntries: "Showing {{from}} to {{to}} of {{total}} entries",
+  showEntries: "Show entries",
   loaded: "loaded",
   scrollForMore: "Scroll for more",
   allLoaded: "all loaded",
@@ -332,6 +334,7 @@ export const changePassword = {
 
 export const sidebar = {
   collapse: "Collapse",
+  pinOpen: "Pin open",
   collapseSidebar: "Collapse sidebar",
   expandSidebar: "Expand sidebar",
   moduleFallbackName: "Module {{id}}",

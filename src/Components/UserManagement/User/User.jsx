@@ -268,13 +268,13 @@ export function User() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (u) => String(u.process_status_name ?? ""),
-      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} variant="subtle" /> : "—"),
+      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (u) => String(u.auth_status ?? ""),
-      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} variant="subtle" /> : "—"),
+      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} /> : "—"),
     },
     {
       key: "actions",
@@ -340,32 +340,26 @@ export function User() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-400">
-            User Management
-          </p>
-          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">
-            Manage application users and access.
-          </p>
-        </div>
-        {canAdd && (
-          <motion.button
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={openCreate}
-            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "var(--primary)" }}
-          >
-            <Plus size={14} /> Add user
-          </motion.button>
-        )}
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
+        <p className="mt-1 text-xs font-medium text-slate-400">
+          Manage application users and access.
+        </p>
       </div>
 
-      <div className="mb-4">
-        <StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+          actions={canAdd && (
+            <motion.button
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={openCreate}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+              style={{ background: "var(--primary)" }}
+            >
+              <Plus size={14} /> Add user
+            </motion.button>
+          )}
           rows={rawUsers}
           value={activeTab}
           onChange={(tab) => {
@@ -375,11 +369,8 @@ export function User() {
           search={params.search}
           onSearch={(search) => setParams((current) => ({ ...current, page: 1, search }))}
           searchPlaceholder="Search users..."
-        />
-      </div>
-
-      {usersQuery.error && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        bare />{usersQuery.error && (
+        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle size={16} />
           {usersQuery.error.message}
         </div>
@@ -411,7 +402,7 @@ export function User() {
               }
             : null
         }
-      />
+      bare /></div>
 
       <AnimatePresence>
         {showForm && !editing && (

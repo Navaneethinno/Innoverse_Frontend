@@ -18,6 +18,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/Users/kycHooks";
@@ -96,34 +97,35 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
           <label key={key} className={key === "address" ? "text-sm font-medium text-slate-700 md:col-span-2" : "text-sm font-medium text-slate-700"}>
             <span className="mb-1.5 block">{label}</span>
             {key === "user_id" ? (
-              <select
-                required
+              <FilterSelect
+                className="w-full"
                 disabled={Boolean(editing) || usersLoading}
                 value={form.user_id ?? ""}
-                onChange={(event) => setForm({ ...form, user_id: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
-              >
-                <option value="">{usersLoading ? "Loading users..." : "Select user"}</option>
-                {users.map((user) => {
-                  const id = user?.user_id ?? user?.id;
-                  const label = user?.user_name ?? user?.username ?? user?.name ?? `User #${id}`;
-                  return <option key={id} value={id}>{label}</option>;
-                })}
-              </select>
+                onChange={(next) => setForm({ ...form, user_id: next })}
+                options={[
+                  { value: "", label: usersLoading ? "Loading users..." : "Select user" },
+                  ...users.map((user) => {
+                    const id = user?.user_id ?? user?.id;
+                    const label = user?.user_name ?? user?.username ?? user?.name ?? `User #${id}`;
+                    return { value: id, label };
+                  }),
+                ]}
+              />
             ) : key === "gender" ? (
-              <select
+              <FilterSelect
+                className="w-full"
                 value={form.gender ?? ""}
                 disabled={gendersLoading}
-                onChange={(event) => setForm({ ...form, gender: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
-              >
-                <option value="">{gendersLoading ? "Loading genders..." : "Select gender"}</option>
-                {genders.map((gender) => {
-                  const value = gender?.gender_code ?? gender?.code ?? gender?.id ?? gender?.gender_id;
-                  const label = gender?.gender_name ?? gender?.name ?? gender?.description ?? value;
-                  return <option key={value} value={value}>{label}</option>;
-                })}
-              </select>
+                onChange={(next) => setForm({ ...form, gender: next })}
+                options={[
+                  { value: "", label: gendersLoading ? "Loading genders..." : "Select gender" },
+                  ...genders.map((gender) => {
+                    const value = gender?.gender_code ?? gender?.code ?? gender?.id ?? gender?.gender_id;
+                    const label = gender?.gender_name ?? gender?.name ?? gender?.description ?? value;
+                    return { value, label };
+                  }),
+                ]}
+              />
             ) : key === "address" ? (
               <textarea
                 value={form[key] ?? ""}
@@ -307,7 +309,7 @@ export function KYC() {
     { key: "employee_id", label: "Employee ID", render: (row) => row.employee_id ?? "-" },
     { key: "email", label: "Email", render: (row) => row.email ?? "-" },
     { key: "mobile", label: "Mobile", render: (row) => row.mobile ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
       label: "Actions",
@@ -329,14 +331,13 @@ export function KYC() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-500">User Management</p>
-          <h1 className="text-xl font-black text-slate-800">User KYC</h1>
-          <p className="mt-1 text-xs font-medium text-slate-500">Manage user KYC and personal details.</p>
-        </div>
-        {canAdd && (
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">User KYC</h1>
+        <p className="mt-1 text-xs font-medium text-slate-500">Manage user KYC and personal details.</p>
+      </div>
+
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search KYC records..." actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -344,18 +345,11 @@ export function KYC() {
               setForm(EMPTY);
               setShowForm(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
             <Plus size={14} /> Add KYC
           </button>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search KYC records..." />
-      </div>
-
-      <DataTable
+        )} bare /><DataTable
         columns={columns}
         rows={visibleRows}
         isLoading={query.isLoading}
@@ -381,7 +375,7 @@ export function KYC() {
             totalPages: result?.pagination?.totalPages ?? 1,
           };
         }}
-      />
+      bare /></div>
 
       <KycForm
         open={showForm}

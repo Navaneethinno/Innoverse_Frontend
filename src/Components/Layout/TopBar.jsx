@@ -23,11 +23,16 @@ export function TopBar() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
-  const { collapsed } = useSidebar();
+  const { collapsed, hovering } = useSidebar();
   const { mode, toggleMode } = useColorMode();
   const logout = useAuth((s) => s.logout);
   const user = useAuth((s) => s.user);
-  const sidebarW = collapsed ? SIDEBAR_WIDTHS.collapsed : SIDEBAR_WIDTHS.expanded;
+  // Was keyed off `collapsed` alone, so it never reacted while the sidebar
+  // was only hover-expanded (not pinned open) — the header stayed put at
+  // the collapsed offset while the sidebar rail grew past it underneath,
+  // visually colliding with it. Same isExpanded fix as AppLayout.jsx.
+  const isExpanded = !collapsed || hovering;
+  const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;
   const leftOffset = sidebarW + 12 + 8;
   if (pathname === "/login" || pathname === "/setup") return null;
   return (
@@ -39,9 +44,13 @@ export function TopBar() {
       <div
         className="flex items-center gap-3 h-12 px-3 rounded-2xl pointer-events-auto"
         style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          // Layered backgrounds: the brand-color gradient sits on top,
+          // tinting the frosted blur underneath instead of a flat
+          // translucent panel — same "glass with color bleeding through
+          // it" treatment as the sidebar.
+          background: "var(--glass-gradient), var(--glass-bg)",
+          backdropFilter: "var(--glass-blur)",
+          WebkitBackdropFilter: "var(--glass-blur)",
           border: "1px solid var(--glass-border)",
           boxShadow: "var(--glass-shadow)",
         }}

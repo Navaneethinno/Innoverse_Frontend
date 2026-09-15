@@ -20,6 +20,7 @@ import { configKycApi } from "@/Services/Config/config.api";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useChannels } from "@/Hooks/Master/masterHooks";
 import { useTransactions } from "@/Hooks/Master/masterHooks";
+import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
 
 const CONFIGS = {
   product: {
@@ -120,8 +121,8 @@ const CONFIGS = {
     title: "Residency",
     readOnlyOnEdit: ["eligibility_config_id"],
     fields: [
-      ["eligibility_config_id", "Eligibility config ID", "number"],
-      ["residency_type_id", "Residency type ID", "number"],
+      ["eligibility_config_id", "Eligibility config", "number"],
+      ["residency_type_id", "Residency type", "number"],
       ["allowed", "Allowed", "boolean"],
     ],
   },
@@ -134,7 +135,7 @@ const allowed = (menus, action, title) =>
       new RegExp(title, "i").test(String(m?.menu_name)) &&
       (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes }) {
   if (!open) return null;
   return (
     <Modal
@@ -256,6 +257,32 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
                   })),
                 ]}
               />
+            ) : key === "eligibility_config_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select eligibility config" },
+                  ...eligibilityConfigs.map((config) => ({
+                    value: config.id,
+                    label: config.name ?? config.code ?? String(config.id),
+                  })),
+                ]}
+              />
+            ) : key === "residency_type_id" ? (
+              <FilterSelect
+                className="mt-1.5"
+                value={value[key] ?? ""}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                options={[
+                  { value: "", label: "Select residency type" },
+                  ...residencyTypes.map((type) => ({
+                    value: type.id,
+                    label: type.name ?? type.code ?? String(type.id),
+                  })),
+                ]}
+              />
             ) : key === "inst_profile_id" ? (
               <FilterSelect
                 className="mt-1.5"
@@ -312,7 +339,9 @@ export function DigitalProductResource({ entity }) {
   const [kycGroups, setKycGroups] = useState([]);
   const { channels = [] } = useChannels(entity === "channel_config");
   const { transactions = [] } = useTransactions(entity === "channel_transaction");
+  const { residencyTypes = [] } = useResidencyTypes(entity === "residency");
   const [channelConfigs, setChannelConfigs] = useState([]);
+  const [eligibilityConfigs, setEligibilityConfigs] = useState([]);
   useEffect(() => {
     if (entity !== "product_map") return;
     digitalProductApi("product")
@@ -325,6 +354,13 @@ export function DigitalProductResource({ entity }) {
     digitalProductApi("channel_config")
       .getActive({ view: "dropdown" })
       .then((response) => setChannelConfigs(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
+  useEffect(() => {
+    if (entity !== "residency") return;
+    digitalProductApi("eligibility_config")
+      .getActive({ view: "dropdown" })
+      .then((response) => setEligibilityConfigs(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   useEffect(() => {
@@ -464,7 +500,7 @@ export function DigitalProductResource({ entity }) {
       label: "Process Status",
       render: (r) =>
         r.process_status_name ? (
-          <StatusBadge status={String(r.process_status_name)} variant="subtle" />
+          <StatusBadge status={String(r.process_status_name)} />
         ) : (
           "—"
         ),
@@ -473,7 +509,7 @@ export function DigitalProductResource({ entity }) {
       key: "auth_status",
       label: "Authorization Status",
       render: (r) =>
-        r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—",
+        r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—",
     },
     {
       key: "actions",
@@ -550,45 +586,42 @@ export function DigitalProductResource({ entity }) {
       },
     },
   ];
+  const addAction = allowed(menus, "Add", config.title) ? (
+    <button
+      onClick={() => {
+        setForm(
+          Object.fromEntries(
+            config.fields.map(([k, , type]) => [k, type === "boolean" ? false : ""]),
+          ),
+        );
+        setEditing(null);
+        setOpen(true);
+      }}
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+    >
+      <Plus size={14} /> Add {config.title}
+    </button>
+  ) : null;
+
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex items-start justify-between">
+    <div className="pt-1 pb-6">
+      <div className="mb-3 flex items-start justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-500">
-            Digital Product
-          </p>
           <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
           <p className="mt-1 text-xs text-slate-500">
             Manage {config.title.toLowerCase()} configuration.
           </p>
         </div>
-        {allowed(menus, "Add", config.title) && (
-          <button
-            onClick={() => {
-              setForm(
-                Object.fromEntries(
-                  config.fields.map(([k, , type]) => [k, type === "boolean" ? false : ""]),
-                ),
-              );
-              setEditing(null);
-              setOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
-          >
-            <Plus size={14} /> Add {config.title}
-          </button>
-        )}
       </div>
-      <StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
         rows={rows}
         value={tab}
         onChange={setTab}
         search={search}
         onSearch={setSearch}
         searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
-      />
-      <div className="mt-4">
-        <DataTable
+        actions={addAction}
+      bare /><DataTable
           columns={columns}
           rows={visible}
           rowKey={idOf}
@@ -605,8 +638,9 @@ export function DigitalProductResource({ entity }) {
               setPage(1);
             },
           }}
-        />
-      </div>
+        bare
+        compact
+      /></div>
       <Editor
         open={open}
         config={config}
@@ -621,6 +655,8 @@ export function DigitalProductResource({ entity }) {
         channels={channels}
         channelConfigs={channelConfigs}
         transactions={transactions}
+        eligibilityConfigs={eligibilityConfigs}
+        residencyTypes={residencyTypes}
         onSave={save}
         onClose={() => setOpen(false)}
       />

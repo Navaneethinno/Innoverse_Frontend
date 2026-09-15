@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, CheckCircle, ChevronRight, Settings } from "lucide-react";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -122,12 +123,11 @@ export function SetupPage() {
               )}
               {step === 2 && (
                 <div className="space-y-4">
-                  <select
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                  <FilterSelect
+                    className="w-full"
                     value={data.timezone}
-                    onChange={(e) => setData({ ...data, timezone: e.target.value })}
-                  >
-                    {[
+                    onChange={(next) => setData({ ...data, timezone: next })}
+                    options={[
                       "UTC-8 (Pacific Time)",
                       "UTC-7 (Mountain Time)",
                       "UTC-6 (Central Time)",
@@ -135,19 +135,14 @@ export function SetupPage() {
                       "UTC+0 (GMT)",
                       "UTC+1 (CET)",
                       "UTC+8 (SGT)",
-                    ].map((t) => (
-                      <option key={t}>{t}</option>
-                    ))}
-                  </select>
-                  <select
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    ].map((t) => ({ value: t, label: t }))}
+                  />
+                  <FilterSelect
+                    className="w-full"
                     value={data.currency}
-                    onChange={(e) => setData({ ...data, currency: e.target.value })}
-                  >
-                    {["USD", "EUR", "GBP", "CAD", "AUD", "SGD"].map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                    onChange={(next) => setData({ ...data, currency: next })}
+                    options={["USD", "EUR", "GBP", "CAD", "AUD", "SGD"].map((c) => ({ value: c, label: c }))}
+                  />
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
                     <CheckCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
                     <div>

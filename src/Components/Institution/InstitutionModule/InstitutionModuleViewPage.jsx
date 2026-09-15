@@ -53,7 +53,6 @@ export function InstitutionModuleViewPage() {
         <ArrowLeft size={15} /> Institution Module
       </button>
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-primary">Institution</p>
         <h1 className="text-xl font-black tracking-tight text-foreground">
           {row.module_name ?? `Module #${row.module_id}`}
         </h1>

@@ -1,6 +1,6 @@
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { API_BASE_URL } from "@/Utils/Constant";
+import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
@@ -37,10 +37,27 @@ async function request(path, body = {}) {
   }
 }
 
+// Every path here comes from API_ENDPOINTS.DIGITAL_PRODUCT (Constant.jsx) —
+// no path is ever built from a template string at request time. `entity` is
+// one of the keys digitalProductRoutes.jsx passes (product, product_map,
+// security_config, kyc_config, kyc_level, channel_config,
+// channel_transaction, eligibility_config, residency); it maps to the
+// matching UPPER_SNAKE_CASE key in that constant.
+const METHOD_TO_KEY = {
+  add: "ADD", submit: "SUBMIT", edit: "EDIT", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
+  list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
+};
 export const digitalProductApi = (entity) => {
-  const base = `/digital_product/${entity}`;
-  return {
-    add: (p) => request(`${base}/add`, p), submit: (p) => request(`${base}/submit`, p), edit: (p) => request(`${base}/edit`, p), auth: (p) => request(`${base}/auth`, p), deauth: (p) => request(`${base}/deauth`, p), delete: (p) => request(`${base}/delete`, p), deleteAuth: (p) => request(`${base}/delete_auth`, p),
-    list: (p = { page: 1, limit: 10 }) => request(`${base}/list`, p), getActive: (p = { view: "dropdown" }) => request(`${base}/get_active`, p), audit: (p) => request(`${base}/audit`, p), deactivate: (p) => request(`${base}/deactivate`, p), reactivate: (p) => request(`${base}/reactivate`, p),
-  };
+  const endpoints = API_ENDPOINTS.DIGITAL_PRODUCT[entity.toUpperCase()];
+  if (!endpoints) throw new Error(`No API_ENDPOINTS.DIGITAL_PRODUCT entry for entity "${entity}"`);
+  return Object.fromEntries(
+    Object.entries(METHOD_TO_KEY).map(([method, key]) => [
+      method,
+      (p = method === "list" ? { page: 1, limit: 10 } : method === "getActive" ? { view: "dropdown" } : undefined) => {
+        const path = endpoints[key];
+        if (!path) throw new Error(`No API_ENDPOINTS.DIGITAL_PRODUCT.${entity.toUpperCase()}.${key} defined`);
+        return request(path, p);
+      },
+    ]),
+  );
 };

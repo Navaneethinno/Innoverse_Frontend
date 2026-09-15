@@ -94,7 +94,21 @@
   /* Glass */
   --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-border: rgba(255, 255, 255, 0.8);
-  --glass-shadow: 0 8px 32px rgba(34, 102, 238, 0.1), 0 1.5px 4px rgba(34, 102, 238, 0.06);
+  --glass-shadow: 0 8px 32px rgba(34, 102, 238, 0.1), 0 1.5px 4px rgba(34, 102, 238, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+  --glass-blur: blur(24px) saturate(180%);
+  /* Soft brand-color bleed diffusing across the glass surface — the detail
+     that reads as "frosted glass with light passing through it" rather
+     than a plain translucent panel. Layered as an extra background on top
+     of --glass-bg (see TopBar.jsx / DynamicSidebar.jsx), so it never
+     changes the opacity/blur those already relied on, just what's tinting
+     it. */
+  --glass-gradient: linear-gradient(
+    135deg,
+    rgba(34, 102, 238, 0.16) 0%,
+    rgba(38, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 
   /* Gradient mesh stops */
   --mesh-1: #d6e4fd;
@@ -167,7 +181,14 @@
 
   --glass-bg: rgba(22, 32, 51, 0.65);
   --glass-border: rgba(36, 50, 71, 0.8);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1.5px 4px rgba(0, 0, 0, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 1.5px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  --glass-gradient: linear-gradient(
+    135deg,
+    rgba(76, 134, 244, 0.22) 0%,
+    rgba(38, 255, 255, 0.06) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
 
   --mesh-1: #16233d;
   --mesh-2: #103a3a;
@@ -451,15 +472,40 @@
 }
 
 /* react-toastify: restyle the default white/boxed toast to match the
-   app's card + border + shadow tokens instead of the library defaults. */
+   app's card + border + shadow tokens instead of the library defaults.
+   Previously every type (success/error/warning/info) looked identical
+   apart from a thin 3px progress bar at the very bottom — easy to miss at
+   a glance which kind of toast just appeared. Each type now gets its own
+   soft tinted background and a colored left accent bar (using the same
+   --success-soft/--warning-soft/--destructive-soft tokens already defined
+   for status badges elsewhere), so the color itself communicates the
+   outcome before the text is even read. */
 .Toastify__toast {
-  padding: 14px 12px;
+  padding: 14px 12px 14px 16px;
   border-radius: var(--radius);
   background: var(--card) !important;
   color: var(--foreground);
   border: 1px solid var(--border);
+  border-left: 4px solid var(--muted-foreground);
   box-shadow: var(--glass-shadow);
   font-family: var(--font-sans);
+}
+.Toastify__toast--success {
+  background: var(--success-soft) !important;
+  border-left-color: var(--success);
+}
+.Toastify__toast--error {
+  background: var(--destructive-soft) !important;
+  border-left-color: var(--destructive);
+}
+.Toastify__toast--warning {
+  background: var(--warning-soft) !important;
+  border-left-color: var(--warning);
+}
+.Toastify__toast--info,
+.Toastify__toast--default {
+  background: var(--primary-light) !important;
+  border-left-color: var(--primary);
 }
 .Toastify__toast-body {
   padding: 0;
@@ -512,6 +558,15 @@
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: var(--muted-foreground);
 }
+/* Without this, Windows Chromium still draws its own up/down (or
+   left/right) arrow buttons at each end of the track alongside the
+   rounded pill thumb above — the two looked like one broken, misshapen
+   control (most visible in the narrow collapsed sidebar rail). */
+.thin-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
 
 /* Legacy utility retained for consumers that intentionally need no chrome. */
 .scrollbar-hidden {
@@ -521,3 +576,5 @@
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
 }
+
+

@@ -37,15 +37,31 @@ async function request(path, body = {}) {
   }
 }
 
+// Every path here comes from API_ENDPOINTS.CONFIG_KYC or .CONFIG_ACCT
+// (Constant.jsx) — no path is ever built from a template string at request
+// time. `entity` maps to the matching UPPER_SNAKE_CASE key in whichever of
+// those two groups defines it: kyc_group, kyc_group_level,
+// kyc_group_level_data, kyc_group_level_process, kyc_group_level_document
+// live under CONFIG_KYC (10-route lifecycle, no deactivate/reactivate/
+// pending); acct_product and its 16 sub-configs live under CONFIG_ACCT
+// (full 13-route lifecycle). The method set below is a superset of both —
+// only methods whose KEY actually exists on the resolved endpoints object
+// are exposed, so calling e.g. .pending() on a CONFIG_KYC entity throws
+// instead of silently hitting a guessed URL.
+const METHOD_TO_KEY = {
+  add: "ADD", submit: "SUBMIT", edit: "EDIT", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
+  list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", pending: "PENDING", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
+};
 export const configKycApi = (entity) => {
-  const base = `/config/${entity}`;
   const constantKey = entity.toUpperCase();
-  const configuredEndpoints =
-    API_ENDPOINTS.CONFIG_KYC?.[constantKey] ?? API_ENDPOINTS.CONFIG_ACCT?.[constantKey] ?? {};
-  const methods = ["add", "submit", "edit", "auth", "deauth", "delete", "deleteAuth", "list", "getActive", "audit"];
-  return Object.fromEntries(methods.map((method) => [method, (payload = method === "getActive" ? { view: "dropdown" } : undefined) => {
-    const path = configuredEndpoints[method === "getActive" ? "GET_ACTIVE" : method.toUpperCase()] ??
-      `${base}/${method === "deleteAuth" ? "delete_auth" : method === "getActive" ? "get_active" : method}`;
-    return request(path.startsWith("/") ? path : `${base}/${path}`, payload);
-  }]));
+  const endpoints = API_ENDPOINTS.CONFIG_KYC?.[constantKey] ?? API_ENDPOINTS.CONFIG_ACCT?.[constantKey];
+  if (!endpoints) throw new Error(`No API_ENDPOINTS.CONFIG_KYC/CONFIG_ACCT entry for entity "${entity}"`);
+  return Object.fromEntries(
+    Object.entries(METHOD_TO_KEY)
+      .filter(([, key]) => endpoints[key])
+      .map(([method, key]) => [
+        method,
+        (payload = method === "getActive" ? { view: "dropdown" } : undefined) => request(endpoints[key], payload),
+      ]),
+  );
 };

@@ -1,8 +1,11 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import {
+  Clock,
   Eye,
+  FileText,
   History,
+  KeyRound,
   Pencil,
   Plus,
   Power,
@@ -21,6 +24,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Switch } from "@/Components/UI/switch";
+import { cn } from "@/Utils/Lib/cn";
 import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicyActions } from "@/Hooks/Users/passwordPolicyHooks";
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -109,10 +113,12 @@ const FIELD_LABELS = {
 const FORM_SECTIONS = [
   {
     title: "Basic details",
+    icon: FileText,
     fields: ["policy_name", "description"],
   },
   {
     title: "Password composition",
+    icon: KeyRound,
     fields: [
       "min_length",
       "max_length",
@@ -129,6 +135,7 @@ const FORM_SECTIONS = [
   },
   {
     title: "Expiry and lockout",
+    icon: Clock,
     fields: [
       "password_expiry_days",
       "min_password_age_days",
@@ -141,6 +148,7 @@ const FORM_SECTIONS = [
   },
   {
     title: "Security controls",
+    icon: ShieldCheck,
     fields: [
       "ip_restriction_required",
       "allowed_ip_ranges",
@@ -198,13 +206,21 @@ function PolicyField({ field, form, setForm }) {
   const isNumber = NUMBER_FIELDS.includes(field);
 
   if (isBoolean) {
+    const enabled = Boolean(form[field]);
     return (
-      <div className="flex min-h-[74px] items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+      <div
+        className={cn(
+          "flex min-h-[68px] items-center justify-between gap-3 rounded-lg border px-4 py-3 transition-colors",
+          enabled ? "border-primary/20 bg-primary/5" : "border-slate-200 bg-slate-50/60",
+        )}
+      >
         <div>
-          <p className="text-sm font-bold text-slate-700">{label}</p>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-400">{form[field] ? "Enabled" : "Disabled"}</p>
+          <p className="text-sm font-semibold text-slate-700">{label}</p>
+          <p className={cn("mt-0.5 text-[11px] font-semibold", enabled ? "text-primary" : "text-slate-400")}>
+            {enabled ? "Enabled" : "Disabled"}
+          </p>
         </div>
-        <Switch checked={Boolean(form[field])} onCheckedChange={(checked) => setForm({ ...form, [field]: checked })} />
+        <Switch checked={enabled} onCheckedChange={(checked) => setForm({ ...form, [field]: checked })} />
       </div>
     );
   }
@@ -218,7 +234,7 @@ function PolicyField({ field, form, setForm }) {
         min={isNumber ? 0 : undefined}
         value={form[field] ?? ""}
         onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-        className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+        className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
       />
     </label>
   );
@@ -239,16 +255,21 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
           <button type="button" disabled={pending} onClick={() => onSave(true)} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
             Save as draft
           </button>
-          <button type="button" disabled={pending} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
+          <button type="button" disabled={pending} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
             {editing ? "Submit changes" : "Add policy"}
           </button>
         </>
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
-          <section key={section.title}>
-            <h3 className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-400">{section.title}</h3>
+          <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <section.icon size={14} strokeWidth={2} />
+              </span>
+              <h3 className="text-sm font-bold text-slate-800">{section.title}</h3>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {section.fields.map((field) => (
                 <PolicyField key={field} field={field} form={form} setForm={setForm} />
@@ -264,14 +285,19 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
 function PolicyView({ row, onClose }) {
   return (
     <Modal open title="View password policy" onClose={onClose} size="xl">
-      <div className="space-y-5">
+      <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
-          <section key={section.title}>
-            <h3 className="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-400">{section.title}</h3>
+          <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <section.icon size={14} strokeWidth={2} />
+              </span>
+              <h3 className="text-sm font-bold text-slate-800">{section.title}</h3>
+            </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {section.fields.map((field) => (
-                <div key={field} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{FIELD_LABELS[field]}</p>
+                <div key={field} className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{FIELD_LABELS[field]}</p>
                   <p className="mt-1 text-sm font-semibold text-slate-800">
                     {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : row?.[field] || "-"}
                   </p>
@@ -435,7 +461,7 @@ export function PasswordPolicy() {
     { key: "min_length", label: "Min Length", render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: "Max Retries", render: (row) => row.max_retry_count ?? "-" },
     { key: "session_timeout_minutes", label: "Session Timeout", render: (row) => row.session_timeout_minutes ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
+    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
       label: "Actions",
@@ -457,14 +483,13 @@ export function PasswordPolicy() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-500">User Management</p>
-          <h1 className="text-xl font-black text-slate-800">Password Policy</h1>
-          <p className="mt-1 text-xs font-medium text-slate-500">Manage password rules, lockout, and session security.</p>
-        </div>
-        {canAdd && (
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">Password Policy</h1>
+        <p className="mt-1 text-xs font-medium text-slate-500">Manage password rules, lockout, and session security.</p>
+      </div>
+
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -472,18 +497,11 @@ export function PasswordPolicy() {
               setEditing(null);
               setShowForm(true);
             }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
             <Plus size={14} /> Add policy
           </button>
-        )}
-      </div>
-
-      <div className="mb-4">
-        <StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." />
-      </div>
-
-      <DataTable
+        )} bare /><DataTable
         columns={columns}
         rows={visibleRows}
         isLoading={query.isLoading}
@@ -509,7 +527,7 @@ export function PasswordPolicy() {
             totalPages: result?.pagination?.totalPages ?? 1,
           };
         }}
-      />
+      bare /></div>
 
       <PolicyForm
         open={showForm}

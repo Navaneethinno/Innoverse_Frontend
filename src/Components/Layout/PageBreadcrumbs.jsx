@@ -26,7 +26,7 @@ export function PageBreadcrumbs() {
   const crumbs = getRouteMetadata(pathname)?.breadcrumb ?? ["Dashboard"];
 
   return (
-    <nav className="mb-4 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
+    <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
       {crumbs.map((crumb, index) => (
         <span key={`${crumb}-${index}`} className="flex min-w-0 items-center gap-1">
           {index > 0 && (

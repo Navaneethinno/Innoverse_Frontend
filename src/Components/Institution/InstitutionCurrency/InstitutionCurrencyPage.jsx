@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { notifications } from "@/Utils/Lib/notifications";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
@@ -227,13 +229,13 @@ export function InstitutionCurrencyPage() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
@@ -270,9 +272,6 @@ export function InstitutionCurrencyPage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-            Institution
-          </p>
           <h1 className="text-xl font-black tracking-tight text-foreground">
             Institution Currency
           </h1>
@@ -280,32 +279,32 @@ export function InstitutionCurrencyPage() {
             Manage institution currency assignments.
           </p>
         </div>
-        {canAdd && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground"
-          >
-            <Plus size={14} /> Add currency
-          </button>
-        )}
+        
       </div>
       {query.error && (
         <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
         rows={query.data}
         value={statusFilter}
         search={search}
         onSearch={setSearch}
         onChange={setStatusFilter}
-      />
-      <DataTable
+        actions={canAdd && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+          >
+            <Plus size={14} /> Add currency
+          </button>
+        )}
+      bare /><DataTable
         columns={columns}
         rows={filteredRows}
         rowKey={(r) => r.id}
@@ -314,8 +313,7 @@ export function InstitutionCurrencyPage() {
         searchableKeys={["currency_name", "inst_profile_name"]}
         emptyTitle="No currencies found"
         emptyDescription="Currency assignments will appear here when available."
-      />
-      <Modal
+      bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? "Edit institution currency" : "Add institution currency"}
@@ -358,6 +356,16 @@ function CurrencyForm({
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
+        // FilterSelect has no native form control, so re-check "required"
+        // (previously free from the bare <select>s these replaced) by hand.
+        if (!editing && !form.inst_profile_id) {
+          notifications.error("Please select an institution");
+          return;
+        }
+        if (!form.currency_code) {
+          notifications.error("Please select a currency");
+          return;
+        }
         const { inst_profile_id, ...rest } = form;
         void onSubmit(
           editing
@@ -374,37 +382,35 @@ function CurrencyForm({
         {!editing && (
           <>
             Institution
-            <select
-              required
+            <FilterSelect
+              className="mt-1.5"
               value={form.inst_profile_id}
-              onChange={set("inst_profile_id")}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-            >
-              <option value="">Select institution</option>
-              {institutions.map((i) => (
-                <option key={i.id ?? i.inst_profile_id} value={i.id ?? i.inst_profile_id}>
-                  {i.name ?? i.inst_profile_name ?? i.code}
-                </option>
-              ))}
-            </select>
+              onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
+              options={[
+                { value: "", label: "Select institution" },
+                ...institutions.map((i) => ({
+                  value: i.id ?? i.inst_profile_id,
+                  label: i.name ?? i.inst_profile_name ?? i.code,
+                })),
+              ]}
+            />
           </>
         )}
       </label>
       <label className="block text-sm font-medium">
         Currency
-        <select
-          required
+        <FilterSelect
+          className="mt-1.5"
           value={form.currency_code}
-          onChange={set("currency_code")}
-          className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-        >
-          <option value="">Select currency</option>
-          {currencies.map((c) => (
-            <option key={c.currency_code ?? c.id} value={c.currency_code ?? c.id}>
-              {c.currency_name ?? c.name ?? c.currency_code}
-            </option>
-          ))}
-        </select>
+          onChange={(next) => set("currency_code")({ target: { value: next } })}
+          options={[
+            { value: "", label: "Select currency" },
+            ...currencies.map((c) => ({
+              value: c.currency_code ?? c.id,
+              label: c.currency_name ?? c.name ?? c.currency_code,
+            })),
+          ]}
+        />
       </label>
       <label className="flex items-center gap-2 text-sm font-medium">
         <input type="checkbox" checked={form.is_base_currency} onChange={set("is_base_currency")} />{" "}

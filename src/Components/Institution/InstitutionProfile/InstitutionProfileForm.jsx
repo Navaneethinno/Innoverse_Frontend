@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 
 export function institutionId(inst) {
   return inst?.id ?? inst?.inst_id ?? inst?.institution_id;
@@ -42,17 +43,12 @@ export function EditSelect({ label, value, onChange, options, placeholder, disab
       <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
         {label}
       </label>
-      <select
+      <FilterSelect
         value={value}
-        onChange={(e) => onChange?.(e.target.value)}
+        onChange={(next) => onChange?.(next)}
         disabled={disabled}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
-        ))}
-      </select>
+        options={[{ value: "", label: placeholder }, ...options]}
+      />
     </div>
   );
 }

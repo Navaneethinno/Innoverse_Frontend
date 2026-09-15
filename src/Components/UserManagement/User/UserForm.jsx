@@ -140,34 +140,30 @@ export function UserForm({
           <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key], fields.find(([field]) => field === key)?.[1] ?? key)}</span>
           <div className="relative">
             {key === "inst_id" || key === "profile_id" ? (
-              <select
-                required={!editing}
+              <FilterSelect
+                className="w-full"
                 disabled={readOnly}
                 value={form[key]}
-                onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
-              >
-                <option value="">{key === "inst_id" ? t("selectInstitution") : t("selectProfile")}</option>
-                {(key === "inst_id" ? institutions : profiles).map((option) => {
-                  const id =
-                    option.inst_profile_id ??
-                    option.institution_id ??
-                    option.inst_id ??
-                    option.profile_id ??
-                    option.id;
-                  const label =
-                    option.institution_name ??
-                    option.inst_name ??
-                    option.profile_name ??
-                    option.name ??
-                    id;
-                  return (
-                    <option key={id} value={id}>
-                      {label}
-                    </option>
-                  );
-                })}
-              </select>
+                onChange={(next) => setForm({ ...form, [key]: next })}
+                options={[
+                  { value: "", label: key === "inst_id" ? t("selectInstitution") : t("selectProfile") },
+                  ...(key === "inst_id" ? institutions : profiles).map((option) => {
+                    const id =
+                      option.inst_profile_id ??
+                      option.institution_id ??
+                      option.inst_id ??
+                      option.profile_id ??
+                      option.id;
+                    const label =
+                      option.institution_name ??
+                      option.inst_name ??
+                      option.profile_name ??
+                      option.name ??
+                      id;
+                    return { value: id, label };
+                  }),
+                ]}
+              />
             ) : (
               <input
                 required={!readOnly && !editing && ["user_name", "user_pwd"].includes(key)}

@@ -31,9 +31,14 @@ const SIDEBAR_COLLAPSED_W = 56;
 export function DynamicSidebar() {
   const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
-  const { collapsed, toggle } = useSidebar();
+  const { collapsed, hovering, setHovering, toggle } = useSidebar();
   const logout = useAuth((state) => state.logout);
-  const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_W : SIDEBAR_EXPANDED_W;
+  // `hovering` lives in SidebarContext (not local state) so AppLayout can
+  // reflow the page's reserved margin in sync with the same "is it visually
+  // expanded" value — see SidebarContext.jsx for why an overlay-only
+  // approach looked broken.
+  const isExpanded = !collapsed || hovering;
+  const sidebarWidth = isExpanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W;
 
   const menuArray = useSelector((store) => store.menu.menuArray);
   const { masterModules } = useMasterModules();
@@ -152,13 +157,18 @@ export function DynamicSidebar() {
 
   return (
     <motion.aside
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       animate={{ width: sidebarWidth }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       className="fixed left-3 top-3 bottom-3 z-30 flex flex-col py-3 rounded-2xl overflow-hidden"
       style={{
-        background: "var(--glass-bg)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        // Same "frosted glass with color bleeding through it" treatment as
+        // TopBar.jsx: a soft brand-color gradient layered on top of the
+        // existing translucent panel, richer blur+saturation underneath.
+        background: "var(--glass-gradient), var(--glass-bg)",
+        backdropFilter: "var(--glass-blur)",
+        WebkitBackdropFilter: "var(--glass-blur)",
         border: "1px solid var(--glass-border)",
         boxShadow: "var(--glass-shadow)",
       }}
@@ -173,13 +183,13 @@ export function DynamicSidebar() {
           value={menuSearch}
           onChange={setMenuSearch}
           onClear={clearSearch}
-          isCollapsed={collapsed}
+          isCollapsed={!isExpanded}
         />
         <ModuleDropdown
           modules={filteredModules}
           selectedModule={selectedModule}
           onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
-          isCollapsed={collapsed}
+          isCollapsed={!isExpanded}
         />
       </div>
 
@@ -192,11 +202,11 @@ export function DynamicSidebar() {
                 <div
                   className={cn(
                     "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary",
-                    collapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full",
+                    isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
                   )}
                 >
                   <SelectedIcon size={15} strokeWidth={1.8} className="shrink-0 text-primary" />
-                  {!collapsed && <span className="truncate">{selectedModule.module_name}</span>}
+                  {isExpanded && <span className="truncate">{selectedModule.module_name}</span>}
                 </div>
               </div>
             );
@@ -205,7 +215,7 @@ export function DynamicSidebar() {
           <MenuList
             menuItems={filteredMenuItems}
             navigate={navigate}
-            isCollapsed={collapsed}
+            isCollapsed={!isExpanded}
             searchQuery={trimmedSearch}
             autoExpandedMenuIds={searchExpandedMenuIds}
             isSearching={isSearching}
@@ -226,12 +236,12 @@ export function DynamicSidebar() {
             aria-label={t("common:signOut")}
             className={cn(
               "mb-2 flex items-center gap-2.5 rounded-xl h-9 text-red-500 hover:text-red-600 hover:bg-red-50/80 transition-colors",
-              collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",
+              isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
             )}
           >
             <LogOut size={15} strokeWidth={1.8} />
             <AnimatePresence initial={false}>
-              {!collapsed && (
+              {isExpanded && (
                 <motion.span
                   initial={{ opacity: 0, width: 0 }}
                   animate={{ opacity: 1, width: "auto" }}
@@ -252,7 +262,7 @@ export function DynamicSidebar() {
           aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
           className={cn(
             "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
-            collapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full",
+            isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
           )}
         >
           {collapsed ? (
@@ -261,7 +271,7 @@ export function DynamicSidebar() {
             <PanelLeftClose size={15} strokeWidth={1.8} />
           )}
           <AnimatePresence initial={false}>
-            {!collapsed && (
+            {isExpanded && (
               <motion.span
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: "auto" }}
@@ -269,7 +279,7 @@ export function DynamicSidebar() {
                 transition={{ duration: 0.2 }}
                 className="text-xs font-semibold whitespace-nowrap overflow-hidden"
               >
-                {t("collapse")}
+                {collapsed ? t("pinOpen") : t("collapse")}
               </motion.span>
             )}
           </AnimatePresence>

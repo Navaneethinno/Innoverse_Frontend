@@ -133,3 +133,131 @@ export function useTransactions(enabled = true) {
   useEffect(() => { void load(); }, [load]);
   return { transactions, error };
 }
+
+export function useOwnershipTypes(enabled = true) {
+  const [ownershipTypes, setOwnershipTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setOwnershipTypes(await masterApi.ownershipList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load ownership types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { ownershipTypes, error };
+}
+
+export function usePartyTypes(enabled = true) {
+  const [partyTypes, setPartyTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setPartyTypes(await masterApi.partyTypeList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load party types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { partyTypes, error };
+}
+
+export function useAcctProdTypes(enabled = true) {
+  const [acctProdTypes, setAcctProdTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setAcctProdTypes(await masterApi.acctProdTypeList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load account product types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { acctProdTypes, error };
+}
+
+export function useAcctOperationModes(enabled = true) {
+  const [operationModes, setOperationModes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setOperationModes(await masterApi.acctOperationModeList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load operation modes"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { operationModes, error };
+}
+
+export function useAcctDormancyActions(enabled = true) {
+  const [dormancyActions, setDormancyActions] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setDormancyActions(await masterApi.acctDormancyActionList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load dormancy actions"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { dormancyActions, error };
+}
+
+export function useAcctSequenceTypes(enabled = true) {
+  const [sequenceTypes, setSequenceTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setSequenceTypes(await masterApi.acctSequenceList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load account sequence types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { sequenceTypes, error };
+}
+
+export function useCurrencies(enabled = true) {
+  const [currencies, setCurrencies] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setCurrencies(await masterApi.currencyList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load currencies"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { currencies, error };
+}
+
+export function useResidencyTypes(enabled = true) {
+  const [residencyTypes, setResidencyTypes] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setResidencyTypes(await masterApi.residencyTypeList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load residency types"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { residencyTypes, error };
+}

@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { notifications } from "@/Utils/Lib/notifications";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
@@ -266,13 +268,13 @@ export function InstitutionBrandingPage() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
@@ -309,9 +311,6 @@ export function InstitutionBrandingPage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-            Institution
-          </p>
           <h1 className="text-xl font-black tracking-tight text-foreground">
             Institution Branding
           </h1>
@@ -319,32 +318,32 @@ export function InstitutionBrandingPage() {
             Manage institution branding and white-label configuration.
           </p>
         </div>
-        {canAdd && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground"
-          >
-            <Plus size={14} /> Add branding
-          </button>
-        )}
+        
       </div>
       {query.error && (
         <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
         rows={query.data}
         value={statusFilter}
         search={search}
         onSearch={setSearch}
         onChange={setStatusFilter}
-      />
-      <DataTable
+        actions={canAdd && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+          >
+            <Plus size={14} /> Add branding
+          </button>
+        )}
+      bare /><DataTable
         columns={columns}
         rows={filteredRows}
         rowKey={(r) => r.id}
@@ -353,8 +352,7 @@ export function InstitutionBrandingPage() {
         searchableKeys={["display_name", "inst_profile_name", "primary_color"]}
         emptyTitle="No branding profiles found"
         emptyDescription="Branding profiles will appear here when available."
-      />
-      <Modal
+      bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? "Edit institution branding" : "Add institution branding"}
@@ -385,6 +383,12 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       className="grid gap-4 sm:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
+        // FilterSelect has no native form control, so re-check "required"
+        // (previously free from the bare <select> it replaced) by hand.
+        if (!editing && !form.inst_profile_id) {
+          notifications.error("Please select an institution");
+          return;
+        }
         const { inst_profile_id, ...branding } = form;
         void onSubmit(
           editing ? branding : { inst_profile_id: Number(inst_profile_id), ...branding },
@@ -394,19 +398,18 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       {!editing && (
         <label className="text-sm font-medium sm:col-span-2">
           Institution
-          <select
-            required
+          <FilterSelect
+            className="mt-1.5"
             value={form.inst_profile_id}
-            onChange={set("inst_profile_id")}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-          >
-            <option value="">Select institution</option>
-            {institutions.map((i) => (
-              <option key={i.id ?? i.inst_profile_id} value={i.id ?? i.inst_profile_id}>
-                {i.name ?? i.inst_profile_name ?? i.code}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
+            options={[
+              { value: "", label: "Select institution" },
+              ...institutions.map((i) => ({
+                value: i.id ?? i.inst_profile_id,
+                label: i.name ?? i.inst_profile_name ?? i.code,
+              })),
+            ]}
+          />
         </label>
       )}
       {FIELDS.map(([key, label]) => (

@@ -1,8 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
 
 :root {
-  /* Single application-wide font source. */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  /* Single application-wide font source. Plus Jakarta Sans reads noticeably
+     more compact/tighter than Inter (the previous choice) at the same size —
+     less "expanded" feeling, especially in dense data tables — while staying
+     just as clean and legible. */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-sans);
 }
 

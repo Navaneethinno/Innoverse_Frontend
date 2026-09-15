@@ -1,0 +1,62 @@
+import { lazy } from "react";
+import { pageElement } from "./routeSupport";
+
+const Resource = lazy(() => import("@/Components/Config/AcctConfigResource.jsx").then((module) => ({ default: module.AcctConfigResource })));
+// Slugs confirmed against the actual sidebar (Configuration > Account,
+// expanded): Account is a non-clickable group header — its children are
+// Product, Product Ownership, Product Party Type, Product Transaction,
+// Product Channel, Product Balance Configuration, Product Group
+// Configuration, Interest Configuration, Joint Configuration, Lifecycle
+// Configuration, Dormancy Configuration, Minor Configuration, Alert
+// Configuration, Nominee Configuration, Numbering Configuration, Opening
+// Configuration, Statement Configuration — each slugified per
+// MenuItem.jsx's slugifyMenuName (strip whitespace, lowercase, no other
+// transform), so every "* Configuration" item keeps "configuration" in
+// full rather than being abbreviated to "config".
+//
+// "Product" (the acct_product entity) collides with Digital Product's own
+// "Product" leaf (both bare-slugify to "product") — see MenuItem.jsx's
+// DISAMBIGUATE_BY_PARENT. This one gets its parent name folded in to
+// "Account Product" -> "accountproduct".
+const paths = [
+  "accountproduct",
+  "productownership",
+  "productpartytype",
+  "producttransaction",
+  "productchannel",
+  "productbalanceconfiguration",
+  "productgroupconfiguration",
+  "interestconfiguration",
+  "jointconfiguration",
+  "lifecycleconfiguration",
+  "dormancyconfiguration",
+  "minorconfiguration",
+  "nomineeconfiguration",
+  "numberingconfiguration",
+  "openingconfiguration",
+  "statementconfiguration",
+  "alertconfiguration",
+];
+const entities = [
+  "acct_product",
+  "acct_product_ownership",
+  "acct_product_party_type",
+  "acct_product_transaction",
+  "acct_product_channel",
+  "acct_product_balance_config",
+  "acct_product_group_config",
+  "acct_product_interest_config",
+  "acct_product_joint_config",
+  "acct_product_lifecycle_config",
+  "acct_product_dormancy_config",
+  "acct_product_minor_config",
+  "acct_product_nominee_config",
+  "acct_product_numbering_config",
+  "acct_product_opening_config",
+  "acct_product_statement_config",
+  "acct_product_alert_config",
+];
+export const acctConfigRoutes = paths.flatMap((path, index) => [
+  { path, element: pageElement(Resource, { entity: entities[index] }) },
+  { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },
+]);

@@ -98,6 +98,37 @@ const STATUS_CONFIG = {
     dot: "bg-amber-800",
     pill: "bg-amber-50 text-amber-900 border-amber-300",
   },
+  // Checker-rejected outcomes, as seen in the Authorization Status column
+  // (auth_status) — a different, more granular field than status_name's
+  // own "REJECTED ADD"/etc. above, but the same underlying event. Without
+  // these, DEACT_DEAUTH/DEL_DEAUTH/etc. fell through to the raw-string
+  // fallback and showed the backend's own SCREAMING_SNAKE_CASE code
+  // verbatim instead of a readable label.
+  ADD_DEAUTH: {
+    label: "Rejected Add",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  EDIT_DEAUTH: {
+    label: "Rejected Edit",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  DEL_DEAUTH: {
+    label: "Rejected Delete",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  DEACT_DEAUTH: {
+    label: "Rejected Deactivate",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
+  REACT_DEAUTH: {
+    label: "Rejected Reactivate",
+    dot: "bg-red-500",
+    pill: "bg-red-50 text-red-700 border-red-200",
+  },
   MOD_AUTH: {
     label: "Pending Mod",
     dot: "bg-amber-500",
@@ -188,7 +219,7 @@ const TEXT_COLOR_BY_PILL = {
   "bg-slate-50 text-slate-500 border-slate-200": "text-slate-500",
 };
 
-// `variant="subtle"` renders a dot + plain colored text instead of a filled
+// `` renders a dot + plain colored text instead of a filled
 // pill — for secondary status columns (Process Status, Authorization
 // Status) shown alongside the primary Status column, so three badges that
 // often carry the same value in a row don't read as three loud, identical

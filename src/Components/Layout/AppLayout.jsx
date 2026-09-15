@@ -12,8 +12,14 @@ import { SidebarStateProvider, useSidebar } from "./SidebarContext";
 import { DynamicSidebar, SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { PageBreadcrumbs } from "./PageBreadcrumbs";
 function Layout() {
-  const { collapsed } = useSidebar();
-  const sidebarW = collapsed ? SIDEBAR_WIDTHS.collapsed : SIDEBAR_WIDTHS.expanded;
+  // Reflow the page in sync with the sidebar's actual visual state
+  // (pinned-open OR currently hovered) rather than the pinned preference
+  // alone — an overlay-while-hovering approach looked broken (see
+  // SidebarContext.jsx), so the content now shifts over exactly as the
+  // rail widens/narrows.
+  const { collapsed, hovering } = useSidebar();
+  const isExpanded = !collapsed || hovering;
+  const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;
   return (
     <div className="min-h-screen flex w-full">
       <DynamicSidebar />

@@ -225,13 +225,13 @@ export function KycConfigResource({ entity }) {
       key: "process_status_name",
       label: "Process Status",
       render: (row) => (
-        <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" />
+        <StatusBadge status={String(row.process_status_name ?? "-")} />
       ),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
-      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" />,
+      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
     },
     {
       key: "actions",
@@ -318,17 +318,14 @@ export function KycConfigResource({ entity }) {
     },
   ];
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex items-start justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-blue-500">
-            Configuration / KYC
-          </p>
-          <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
-        </div>
-        {allowed(menus, "Add", config.menuName) && (
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
+      </div>
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+        actions={allowed(menus, "Add", config.menuName) && (
           <button
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
             onClick={() => {
               setForm(
                 Object.fromEntries(
@@ -341,16 +338,13 @@ export function KycConfigResource({ entity }) {
             <Plus size={14} /> Add {config.title}
           </button>
         )}
-      </div>
-      <StatusFilterTabs
         rows={rows}
         value={tab}
         onChange={setTab}
         search={search}
         onSearch={setSearch}
         searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
-      />
-      <DataTable
+      bare /><DataTable
         columns={columns}
         rows={visible}
         rowKey={idOf}
@@ -367,8 +361,7 @@ export function KycConfigResource({ entity }) {
             setPage(1);
           },
         }}
-      />
-      {(editing || form) && (
+      bare /></div>{(editing || form) && (
         <Modal
           open={Boolean(editing || Object.keys(form).length)}
           title={`${editing ? "Edit" : "Add"} ${config.title}`}

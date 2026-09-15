@@ -26,6 +26,20 @@ export const INSTITUTION_DRAFT_STATUS_CODE = Number(
 // behind NON_LOGIN_APIS_ENABLED so they never actually fired, along with
 // their consuming services/hooks/pages/routes — deleted entirely rather
 // than left as dead code pointing at endpoints that don't exist.
+// ---------------------------------------------------------------------------
+// Below is grouped to mirror the sidebar's own parent -> child order exactly
+// (top-level module, then its menu items, in the order they appear in the
+// nav), not alphabetically and not by when each group was added. When the
+// sidebar gains/reorders a menu item, mirror that change here so this file
+// stays a reliable map of "where do I find this page's API" by nav position.
+//
+// NOTE — there are THREE separate things named "KYC" in this app, each its
+// own backend entity with its own routes. Do not merge or alias between
+// them:
+//   1. USER_MANAGEMENT.KYC       -> /user/kyc/*             (a user's own KYC record)
+//   2. CONFIG_KYC (under EPURSE > Configuration > KYC) -> /config/kyc_group*, /config/kyc_group_level*, /config/kyc_group_level_data*, /config/kyc_group_level_process*, /config/kyc_group_level_document* (KYC group/level config used by Config - Acct)
+//   3. DIGITAL_PRODUCT's "KYC Config" / "KYC Level" menu items -> /digital_product/kyc_config/*, /digital_product/kyc_level/* (per-product KYC requirement, via digitalProductApi("kyc_config") / ("kyc_level"))
+// ---------------------------------------------------------------------------
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/user/login",
@@ -35,220 +49,9 @@ export const API_ENDPOINTS = {
 
   HEALTH: "/health",
 
-  // Backend dropped the trailing "/list" segment from every Master
-  // (Reference Data) endpoint (2026-09 update) — paths below match exactly
-  // what was given, no "/list" suffix. All are POST with body {}.
-  MASTER: {
-    ACTION_LIST: "/master/action",
-    STATUS_LIST: "/master/status",
-    MODULE_LIST: "/master/module",
-    MENU_LIST: "/master/menu",
-    MENU_ACTION_LIST: "/master/menu_action",
-    CHANNEL_LIST: "/master/channel",
-    ACCT_PROD_TYPE_LIST: "/master/acct_prod_type",
-    ACCT_OPERATION_MODE_LIST: "/master/acct_operation_mode",
-    ACCT_DORMANCY_ACTION_LIST: "/master/acct_dormancy_action",
-    ACCT_SEQUENCE_LIST: "/master/acct_sequence",
-    TRANSACTION_LIST: "/master/transaction",
-    FREQUENCY_LIST: "/master/frequency",
-    KYC_PROCESS_LIST: "/master/kyc_process",
-    KYC_DATA_FIELD_LIST: "/master/kyc_data_field",
-    KYC_DOCUMENT_TYPE_LIST: "/master/kyc_document_type",
-    PARTY_TYPE_LIST: "/master/party_type",
-    INSTITUTION_TYPE_LIST: "/master/institution_type",
-    OWNERSHIP_LIST: "/master/ownership",
-    RESIDENCY_TYPE_LIST: "/master/residency_type",
-    COUNTRY_LIST: "/master/country",
-    CURRENCY_LIST: "/master/currency",
-    GENDER_LIST: "/master/gender",
-    LANGUAGE_LIST: "/master/language",
-    // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",
-    // same as every other Master endpoint above), paginated — {page, limit}
-    // in the body, {id, name, status, status_name} per record.
-    TIMEZONE_LIST: "/master/timezone",
-  },
-  CONFIG_KYC: {
-    KYC_GROUP: {
-      GET_ACTIVE: "/config/kyc_group/get_active",
-    },
-    KYC_GROUP_LEVEL: {
-      GET_ACTIVE: "/config/kyc_group_level/get_active",
-    },
-  },
-  CONFIG_ACCT: {
-    ACCT_PRODUCT: {
-      GET_ACTIVE: "/config/acct_product/get_active",
-    },
-  },
-  MASTER_CONFIG: {
-    DISTRICT: {
-      ADD: "/master_config/district/add", SUBMIT: "/master_config/district/submit", LIST: "/master_config/district/list",
-      GET_ACTIVE: "/master_config/district/get_active", AUDIT: "/master_config/district/audit", AUTH: "/master_config/district/auth",
-      DEAUTH: "/master_config/district/deauth", EDIT: "/master_config/district/edit", DELETE: "/master_config/district/delete",
-      DELETE_AUTH: "/master_config/district/delete_auth",
-    },
-    PROVINCE: {
-      ADD: "/master_config/province/add", SUBMIT: "/master_config/province/submit", LIST: "/master_config/province/list",
-      GET_ACTIVE: "/master_config/province/get_active", AUDIT: "/master_config/province/audit", AUTH: "/master_config/province/auth",
-      DEAUTH: "/master_config/province/deauth", EDIT: "/master_config/province/edit", DELETE: "/master_config/province/delete",
-      DELETE_AUTH: "/master_config/province/delete_auth",
-    },
-    VILLAGE: {
-      ADD: "/master_config/village/add", SUBMIT: "/master_config/village/submit", LIST: "/master_config/village/list",
-      GET_ACTIVE: "/master_config/village/get_active", AUDIT: "/master_config/village/audit", AUTH: "/master_config/village/auth",
-      DEAUTH: "/master_config/village/deauth", EDIT: "/master_config/village/edit", DELETE: "/master_config/village/delete",
-      DELETE_AUTH: "/master_config/village/delete_auth",
-    },
-    ACCOUNT_PURPOSE: {
-      ADD: "/master_config/account_purpose/add", SUBMIT: "/master_config/account_purpose/submit", LIST: "/master_config/account_purpose/list",
-      GET_ACTIVE: "/master_config/account_purpose/get_active", AUDIT: "/master_config/account_purpose/audit", AUTH: "/master_config/account_purpose/auth",
-      DEAUTH: "/master_config/account_purpose/deauth", EDIT: "/master_config/account_purpose/edit", DELETE: "/master_config/account_purpose/delete",
-      DELETE_AUTH: "/master_config/account_purpose/delete_auth",
-    },
-    CATEGORY: {
-      ADD: "/master_config/category/add", SUBMIT: "/master_config/category/submit", LIST: "/master_config/category/list",
-      GET_ACTIVE: "/master_config/category/get_active", AUDIT: "/master_config/category/audit", AUTH: "/master_config/category/auth",
-      DEAUTH: "/master_config/category/deauth", EDIT: "/master_config/category/edit", DELETE: "/master_config/category/delete",
-      DELETE_AUTH: "/master_config/category/delete_auth",
-    },
-    CITIZENSHIP: {
-      ADD: "/master_config/citizenship/add", SUBMIT: "/master_config/citizenship/submit", LIST: "/master_config/citizenship/list",
-      GET_ACTIVE: "/master_config/citizenship/get_active", AUDIT: "/master_config/citizenship/audit", AUTH: "/master_config/citizenship/auth",
-      DEAUTH: "/master_config/citizenship/deauth", EDIT: "/master_config/citizenship/edit", DELETE: "/master_config/citizenship/delete",
-      DELETE_AUTH: "/master_config/citizenship/delete_auth",
-    },
-    DESIGNATION: {
-      ADD: "/master_config/designation/add", SUBMIT: "/master_config/designation/submit", LIST: "/master_config/designation/list",
-      GET_ACTIVE: "/master_config/designation/get_active", AUDIT: "/master_config/designation/audit", AUTH: "/master_config/designation/auth",
-      DEAUTH: "/master_config/designation/deauth", EDIT: "/master_config/designation/edit", DELETE: "/master_config/designation/delete",
-      DELETE_AUTH: "/master_config/designation/delete_auth",
-    },
-    DISABILITY: {
-      ADD: "/master_config/disability/add", SUBMIT: "/master_config/disability/submit", LIST: "/master_config/disability/list",
-      GET_ACTIVE: "/master_config/disability/get_active", AUDIT: "/master_config/disability/audit", AUTH: "/master_config/disability/auth",
-      DEAUTH: "/master_config/disability/deauth", EDIT: "/master_config/disability/edit", DELETE: "/master_config/disability/delete",
-      DELETE_AUTH: "/master_config/disability/delete_auth",
-    },
-    EMPLOYMENT: {
-      ADD: "/master_config/employment/add", SUBMIT: "/master_config/employment/submit", LIST: "/master_config/employment/list",
-      GET_ACTIVE: "/master_config/employment/get_active", AUDIT: "/master_config/employment/audit", AUTH: "/master_config/employment/auth",
-      DEAUTH: "/master_config/employment/deauth", EDIT: "/master_config/employment/edit", DELETE: "/master_config/employment/delete",
-      DELETE_AUTH: "/master_config/employment/delete_auth",
-    },
-    OCCUPATION: {
-      ADD: "/master_config/occupation/add", SUBMIT: "/master_config/occupation/submit", LIST: "/master_config/occupation/list",
-      GET_ACTIVE: "/master_config/occupation/get_active", AUDIT: "/master_config/occupation/audit", AUTH: "/master_config/occupation/auth",
-      DEAUTH: "/master_config/occupation/deauth", EDIT: "/master_config/occupation/edit", DELETE: "/master_config/occupation/delete",
-      DELETE_AUTH: "/master_config/occupation/delete_auth",
-    },
-    QUALIFICATION: {
-      ADD: "/master_config/qualification/add", SUBMIT: "/master_config/qualification/submit", LIST: "/master_config/qualification/list",
-      GET_ACTIVE: "/master_config/qualification/get_active", AUDIT: "/master_config/qualification/audit", AUTH: "/master_config/qualification/auth",
-      DEAUTH: "/master_config/qualification/deauth", EDIT: "/master_config/qualification/edit", DELETE: "/master_config/qualification/delete",
-      DELETE_AUTH: "/master_config/qualification/delete_auth",
-    },
-    RELIGION: {
-      ADD: "/master_config/religion/add", SUBMIT: "/master_config/religion/submit", LIST: "/master_config/religion/list",
-      GET_ACTIVE: "/master_config/religion/get_active", AUDIT: "/master_config/religion/audit", AUTH: "/master_config/religion/auth",
-      DEAUTH: "/master_config/religion/deauth", EDIT: "/master_config/religion/edit", DELETE: "/master_config/religion/delete",
-      DELETE_AUTH: "/master_config/religion/delete_auth",
-    },
-    GENDER: {
-      ADD: "/master_config/gender/add", SUBMIT: "/master_config/gender/submit", LIST: "/master_config/gender/list",
-      GET_ACTIVE: "/master_config/gender/get_active", AUDIT: "/master_config/gender/audit", AUTH: "/master_config/gender/auth",
-      DEAUTH: "/master_config/gender/deauth", EDIT: "/master_config/gender/edit", DELETE: "/master_config/gender/delete",
-      DELETE_AUTH: "/master_config/gender/delete_auth",
-    },
-    SOURCE_OF_FUND: {
-      ADD: "/master_config/source_of_fund/add", SUBMIT: "/master_config/source_of_fund/submit", LIST: "/master_config/source_of_fund/list",
-      GET_ACTIVE: "/master_config/source_of_fund/get_active", AUDIT: "/master_config/source_of_fund/audit", AUTH: "/master_config/source_of_fund/auth",
-      DEAUTH: "/master_config/source_of_fund/deauth", EDIT: "/master_config/source_of_fund/edit", DELETE: "/master_config/source_of_fund/delete",
-      DELETE_AUTH: "/master_config/source_of_fund/delete_auth",
-    },
-    TURNOVER: {
-      ADD: "/master_config/turnover/add", SUBMIT: "/master_config/turnover/submit", LIST: "/master_config/turnover/list",
-      GET_ACTIVE: "/master_config/turnover/get_active", AUDIT: "/master_config/turnover/audit", AUTH: "/master_config/turnover/auth",
-      DEAUTH: "/master_config/turnover/deauth", EDIT: "/master_config/turnover/edit", DELETE: "/master_config/turnover/delete",
-      DELETE_AUTH: "/master_config/turnover/delete_auth",
-    },
-  },
-
-  // Grouped Module -> Menu, matching the sidebar's own grouping and the
-  // exact endpoint list given by the backend (2026-09). Anything not in
-  // that list (the old /user/audit_list, /user/profile/audit_list,
-  // /profile/getall, singular /user/kyc/get) has been removed rather than
-  // kept as a dead alias.
-  USER_MANAGEMENT: {
-    USER: {
-      LIST: "/user/list",
-      SUBMIT: "/user/submit",
-      GET: "/user/get",
-      GET_ACTIVE: "/user/get_active",
-      ADD: "/user/add",
-      AUDIT: "/user/audit",
-      PENDING: "/user/pending",
-      AUTH: "/user/auth",
-      DEAUTH: "/user/deauth",
-      EDIT: "/user/edit",
-      DELETE: "/user/delete",
-      DELETE_AUTH: "/user/delete_auth",
-      DEACTIVATE: "/user/deactivate",
-      REACTIVATE: "/user/reactivate",
-      PASSWORD_POLICY_LIST: "/user/password_policy/list",
-    },
-    // KYC is its own sub-entity under /user/kyc/* — confirmed live but not
-    // consumed by any page yet (only the old singular /user/kyc/get was
-    // wired, as usersApi.getKyc; kept working here under its new home).
-    KYC: {
-      LIST: "/user/kyc/list",
-      GET: "/user/kyc/get",
-      GET_ACTIVE: "/user/kyc/get_active",
-      ADD: "/user/kyc/add",
-      SUBMIT: "/user/kyc/submit",
-      AUDIT: "/user/kyc/audit",
-      PENDING: "/user/kyc/pending",
-      AUTH: "/user/kyc/auth",
-      DEAUTH: "/user/kyc/deauth",
-      EDIT: "/user/kyc/edit",
-      DELETE: "/user/kyc/delete",
-      DELETE_AUTH: "/user/kyc/delete_auth",
-      DEACTIVATE: "/user/kyc/deactivate",
-      REACTIVATE: "/user/kyc/reactivate",
-    },
-    // "Profile" here is a role/permission profile (menu_id/action_id
-    // grants), NOT the Institution Profile entity under INSTITUTION below.
-    PROFILE: {
-      LIST: "/user/profile/list",
-      SUBMIT: "/user/profile/submit",
-      GET: "/user/profile/get",
-      GET_ACTIVE: "/user/profile/get_active",
-      ADD: "/user/profile/add",
-      AUDIT: "/user/profile/audit",
-      PENDING: "/user/profile/pending",
-      AUTH: "/user/profile/auth",
-      DEAUTH: "/user/profile/deauth",
-      EDIT: "/user/profile/edit",
-      DELETE: "/user/profile/delete",
-      DELETE_AUTH: "/user/profile/delete_auth",
-    },
-    PASSWORD_POLICY: {
-      LIST: "/user/password_policy/list",
-      GET: "/user/password_policy/get",
-      GET_ACTIVE: "/user/password_policy/get_active",
-      ADD: "/user/password_policy/add",
-      SUBMIT: "/user/password_policy/submit",
-      EDIT: "/user/password_policy/edit",
-      AUTH: "/user/password_policy/auth",
-      DEAUTH: "/user/password_policy/deauth",
-      DELETE: "/user/password_policy/delete",
-      DELETE_AUTH: "/user/password_policy/delete_auth",
-      DEACTIVATE: "/user/password_policy/deactivate",
-      REACTIVATE: "/user/password_policy/reactivate",
-      AUDIT: "/user/password_policy/audit",
-      PENDING: "/user/password_policy/pending",
-    },
-  },
-
+  // --- Institutions (top-level sidebar item) -------------------------------
+  // Sub-menu order: Institution Profile, Institution Module, Institution
+  // Legal, Institution Branding, Institution Channel, Institution Currency.
   INSTITUTION: {
     INSTITUTION_PROFILE: {
       LIST: "/institution/profile/list",
@@ -303,6 +106,599 @@ export const API_ENDPOINTS = {
     },
     INSTITUTION_CURRENCY: {
       ADD: "/institution/currency/add", SUBMIT: "/institution/currency/submit", EDIT: "/institution/currency/edit", AUTH: "/institution/currency/auth", DEAUTH: "/institution/currency/deauth", DELETE: "/institution/currency/delete", DELETE_AUTH: "/institution/currency/delete_auth", DEACTIVATE: "/institution/currency/deactivate", REACTIVATE: "/institution/currency/reactivate", LIST: "/institution/currency/list", GET_ACTIVE: "/institution/currency/get_active", AUDIT: "/institution/currency/audit", PENDING: "/institution/currency/pending",
+    },
+  },
+
+  // --- User Management (top-level sidebar item) ----------------------------
+  // Sub-menu order: Profile, User, KYC (#1 of the three KYCs — see note
+  // above), Password Policy. Anything not in this list (the old
+  // /user/audit_list, /user/profile/audit_list, /profile/getall, singular
+  // /user/kyc/get) was removed rather than kept as a dead alias.
+  USER_MANAGEMENT: {
+    // "Profile" here is a role/permission profile (menu_id/action_id
+    // grants), NOT the Institution Profile entity under INSTITUTION above.
+    PROFILE: {
+      LIST: "/user/profile/list",
+      SUBMIT: "/user/profile/submit",
+      GET: "/user/profile/get",
+      GET_ACTIVE: "/user/profile/get_active",
+      ADD: "/user/profile/add",
+      AUDIT: "/user/profile/audit",
+      PENDING: "/user/profile/pending",
+      AUTH: "/user/profile/auth",
+      DEAUTH: "/user/profile/deauth",
+      EDIT: "/user/profile/edit",
+      DELETE: "/user/profile/delete",
+      DELETE_AUTH: "/user/profile/delete_auth",
+    },
+    USER: {
+      LIST: "/user/list",
+      SUBMIT: "/user/submit",
+      GET: "/user/get",
+      GET_ACTIVE: "/user/get_active",
+      ADD: "/user/add",
+      AUDIT: "/user/audit",
+      PENDING: "/user/pending",
+      AUTH: "/user/auth",
+      DEAUTH: "/user/deauth",
+      EDIT: "/user/edit",
+      DELETE: "/user/delete",
+      DELETE_AUTH: "/user/delete_auth",
+      DEACTIVATE: "/user/deactivate",
+      REACTIVATE: "/user/reactivate",
+      PASSWORD_POLICY_LIST: "/user/password_policy/list",
+    },
+    // KYC (#1 of the three KYCs — see note at top of file): a user's own KYC
+    // record, under /user/kyc/*. Confirmed live but not consumed by any page
+    // yet (only the old singular /user/kyc/get was wired, as
+    // usersApi.getKyc; kept working here under its new home).
+    KYC: {
+      LIST: "/user/kyc/list",
+      GET: "/user/kyc/get",
+      GET_ACTIVE: "/user/kyc/get_active",
+      ADD: "/user/kyc/add",
+      SUBMIT: "/user/kyc/submit",
+      AUDIT: "/user/kyc/audit",
+      PENDING: "/user/kyc/pending",
+      AUTH: "/user/kyc/auth",
+      DEAUTH: "/user/kyc/deauth",
+      EDIT: "/user/kyc/edit",
+      DELETE: "/user/kyc/delete",
+      DELETE_AUTH: "/user/kyc/delete_auth",
+      DEACTIVATE: "/user/kyc/deactivate",
+      REACTIVATE: "/user/kyc/reactivate",
+    },
+    PASSWORD_POLICY: {
+      LIST: "/user/password_policy/list",
+      GET: "/user/password_policy/get",
+      GET_ACTIVE: "/user/password_policy/get_active",
+      ADD: "/user/password_policy/add",
+      SUBMIT: "/user/password_policy/submit",
+      EDIT: "/user/password_policy/edit",
+      AUTH: "/user/password_policy/auth",
+      DEAUTH: "/user/password_policy/deauth",
+      DELETE: "/user/password_policy/delete",
+      DELETE_AUTH: "/user/password_policy/delete_auth",
+      DEACTIVATE: "/user/password_policy/deactivate",
+      REACTIVATE: "/user/password_policy/reactivate",
+      AUDIT: "/user/password_policy/audit",
+      PENDING: "/user/password_policy/pending",
+    },
+  },
+
+  // --- Reference-data lookups (no sidebar page of their own) ---------------
+  // Backend dropped the trailing "/list" segment from every Master
+  // (Reference Data) endpoint (2026-09 update) — paths below match exactly
+  // what was given, no "/list" suffix. All are POST with body {}. These are
+  // read-only dropdown sources consumed by other pages' forms, not entities
+  // with their own sidebar entry or maker-checker CRUD (that's
+  // MASTER_CONFIG below, for the Settings > Master pages).
+  MASTER: {
+    ACTION_LIST: "/master/action",
+    STATUS_LIST: "/master/status",
+    MODULE_LIST: "/master/module",
+    MENU_LIST: "/master/menu",
+    MENU_ACTION_LIST: "/master/menu_action",
+    CHANNEL_LIST: "/master/channel",
+    ACCT_PROD_TYPE_LIST: "/master/acct_prod_type",
+    ACCT_OPERATION_MODE_LIST: "/master/acct_operation_mode",
+    ACCT_DORMANCY_ACTION_LIST: "/master/acct_dormancy_action",
+    ACCT_SEQUENCE_LIST: "/master/acct_sequence",
+    TRANSACTION_LIST: "/master/transaction",
+    FREQUENCY_LIST: "/master/frequency",
+    KYC_PROCESS_LIST: "/master/kyc_process",
+    KYC_DATA_FIELD_LIST: "/master/kyc_data_field",
+    KYC_DOCUMENT_TYPE_LIST: "/master/kyc_document_type",
+    PARTY_TYPE_LIST: "/master/party_type",
+    INSTITUTION_TYPE_LIST: "/master/institution_type",
+    OWNERSHIP_LIST: "/master/ownership",
+    RESIDENCY_TYPE_LIST: "/master/residency_type",
+    COUNTRY_LIST: "/master/country",
+    CURRENCY_LIST: "/master/currency",
+    LANGUAGE_LIST: "/master/language",
+    // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",
+    // same as every other Master endpoint above), paginated — {page, limit}
+    // in the body, {id, name, status, status_name} per record.
+    TIMEZONE_LIST: "/master/timezone",
+  },
+
+  // Settings > Master pages above (District, Province, ...) are full
+  // maker-checker CRUD entities served under /master_config/*, distinct
+  // from the read-only /master/* reference lookups above — the sidebar
+  // lists them under the same "Master" group but they hit a different base
+  // path. Order matches the sidebar.
+  MASTER_CONFIG: {
+    PROVINCE: {
+      ADD: "/master_config/province/add", SUBMIT: "/master_config/province/submit", LIST: "/master_config/province/list",
+      GET_ACTIVE: "/master_config/province/get_active", AUDIT: "/master_config/province/audit", AUTH: "/master_config/province/auth",
+      DEAUTH: "/master_config/province/deauth", EDIT: "/master_config/province/edit", DELETE: "/master_config/province/delete",
+      DELETE_AUTH: "/master_config/province/delete_auth",
+    },
+    DISTRICT: {
+      ADD: "/master_config/district/add", SUBMIT: "/master_config/district/submit", LIST: "/master_config/district/list",
+      GET_ACTIVE: "/master_config/district/get_active", AUDIT: "/master_config/district/audit", AUTH: "/master_config/district/auth",
+      DEAUTH: "/master_config/district/deauth", EDIT: "/master_config/district/edit", DELETE: "/master_config/district/delete",
+      DELETE_AUTH: "/master_config/district/delete_auth",
+    },
+    VILLAGE: {
+      ADD: "/master_config/village/add", SUBMIT: "/master_config/village/submit", LIST: "/master_config/village/list",
+      GET_ACTIVE: "/master_config/village/get_active", AUDIT: "/master_config/village/audit", AUTH: "/master_config/village/auth",
+      DEAUTH: "/master_config/village/deauth", EDIT: "/master_config/village/edit", DELETE: "/master_config/village/delete",
+      DELETE_AUTH: "/master_config/village/delete_auth",
+    },
+    GENDER: {
+      ADD: "/master_config/gender/add", SUBMIT: "/master_config/gender/submit", LIST: "/master_config/gender/list",
+      GET_ACTIVE: "/master_config/gender/get_active", AUDIT: "/master_config/gender/audit", AUTH: "/master_config/gender/auth",
+      DEAUTH: "/master_config/gender/deauth", EDIT: "/master_config/gender/edit", DELETE: "/master_config/gender/delete",
+      DELETE_AUTH: "/master_config/gender/delete_auth",
+    },
+    RELIGION: {
+      ADD: "/master_config/religion/add", SUBMIT: "/master_config/religion/submit", LIST: "/master_config/religion/list",
+      GET_ACTIVE: "/master_config/religion/get_active", AUDIT: "/master_config/religion/audit", AUTH: "/master_config/religion/auth",
+      DEAUTH: "/master_config/religion/deauth", EDIT: "/master_config/religion/edit", DELETE: "/master_config/religion/delete",
+      DELETE_AUTH: "/master_config/religion/delete_auth",
+    },
+    QUALIFICATION: {
+      ADD: "/master_config/qualification/add", SUBMIT: "/master_config/qualification/submit", LIST: "/master_config/qualification/list",
+      GET_ACTIVE: "/master_config/qualification/get_active", AUDIT: "/master_config/qualification/audit", AUTH: "/master_config/qualification/auth",
+      DEAUTH: "/master_config/qualification/deauth", EDIT: "/master_config/qualification/edit", DELETE: "/master_config/qualification/delete",
+      DELETE_AUTH: "/master_config/qualification/delete_auth",
+    },
+    DISABILITY: {
+      ADD: "/master_config/disability/add", SUBMIT: "/master_config/disability/submit", LIST: "/master_config/disability/list",
+      GET_ACTIVE: "/master_config/disability/get_active", AUDIT: "/master_config/disability/audit", AUTH: "/master_config/disability/auth",
+      DEAUTH: "/master_config/disability/deauth", EDIT: "/master_config/disability/edit", DELETE: "/master_config/disability/delete",
+      DELETE_AUTH: "/master_config/disability/delete_auth",
+    },
+    CATEGORY: {
+      ADD: "/master_config/category/add", SUBMIT: "/master_config/category/submit", LIST: "/master_config/category/list",
+      GET_ACTIVE: "/master_config/category/get_active", AUDIT: "/master_config/category/audit", AUTH: "/master_config/category/auth",
+      DEAUTH: "/master_config/category/deauth", EDIT: "/master_config/category/edit", DELETE: "/master_config/category/delete",
+      DELETE_AUTH: "/master_config/category/delete_auth",
+    },
+    CITIZENSHIP: {
+      ADD: "/master_config/citizenship/add", SUBMIT: "/master_config/citizenship/submit", LIST: "/master_config/citizenship/list",
+      GET_ACTIVE: "/master_config/citizenship/get_active", AUDIT: "/master_config/citizenship/audit", AUTH: "/master_config/citizenship/auth",
+      DEAUTH: "/master_config/citizenship/deauth", EDIT: "/master_config/citizenship/edit", DELETE: "/master_config/citizenship/delete",
+      DELETE_AUTH: "/master_config/citizenship/delete_auth",
+    },
+    EMPLOYMENT: {
+      ADD: "/master_config/employment/add", SUBMIT: "/master_config/employment/submit", LIST: "/master_config/employment/list",
+      GET_ACTIVE: "/master_config/employment/get_active", AUDIT: "/master_config/employment/audit", AUTH: "/master_config/employment/auth",
+      DEAUTH: "/master_config/employment/deauth", EDIT: "/master_config/employment/edit", DELETE: "/master_config/employment/delete",
+      DELETE_AUTH: "/master_config/employment/delete_auth",
+    },
+    OCCUPATION: {
+      ADD: "/master_config/occupation/add", SUBMIT: "/master_config/occupation/submit", LIST: "/master_config/occupation/list",
+      GET_ACTIVE: "/master_config/occupation/get_active", AUDIT: "/master_config/occupation/audit", AUTH: "/master_config/occupation/auth",
+      DEAUTH: "/master_config/occupation/deauth", EDIT: "/master_config/occupation/edit", DELETE: "/master_config/occupation/delete",
+      DELETE_AUTH: "/master_config/occupation/delete_auth",
+    },
+    SOURCE_OF_FUND: {
+      ADD: "/master_config/source_of_fund/add", SUBMIT: "/master_config/source_of_fund/submit", LIST: "/master_config/source_of_fund/list",
+      GET_ACTIVE: "/master_config/source_of_fund/get_active", AUDIT: "/master_config/source_of_fund/audit", AUTH: "/master_config/source_of_fund/auth",
+      DEAUTH: "/master_config/source_of_fund/deauth", EDIT: "/master_config/source_of_fund/edit", DELETE: "/master_config/source_of_fund/delete",
+      DELETE_AUTH: "/master_config/source_of_fund/delete_auth",
+    },
+    ACCOUNT_PURPOSE: {
+      ADD: "/master_config/account_purpose/add", SUBMIT: "/master_config/account_purpose/submit", LIST: "/master_config/account_purpose/list",
+      GET_ACTIVE: "/master_config/account_purpose/get_active", AUDIT: "/master_config/account_purpose/audit", AUTH: "/master_config/account_purpose/auth",
+      DEAUTH: "/master_config/account_purpose/deauth", EDIT: "/master_config/account_purpose/edit", DELETE: "/master_config/account_purpose/delete",
+      DELETE_AUTH: "/master_config/account_purpose/delete_auth",
+    },
+    TURNOVER: {
+      ADD: "/master_config/turnover/add", SUBMIT: "/master_config/turnover/submit", LIST: "/master_config/turnover/list",
+      GET_ACTIVE: "/master_config/turnover/get_active", AUDIT: "/master_config/turnover/audit", AUTH: "/master_config/turnover/auth",
+      DEAUTH: "/master_config/turnover/deauth", EDIT: "/master_config/turnover/edit", DELETE: "/master_config/turnover/delete",
+      DELETE_AUTH: "/master_config/turnover/delete_auth",
+    },
+    DESIGNATION: {
+      ADD: "/master_config/designation/add", SUBMIT: "/master_config/designation/submit", LIST: "/master_config/designation/list",
+      GET_ACTIVE: "/master_config/designation/get_active", AUDIT: "/master_config/designation/audit", AUTH: "/master_config/designation/auth",
+      DEAUTH: "/master_config/designation/deauth", EDIT: "/master_config/designation/edit", DELETE: "/master_config/designation/delete",
+      DELETE_AUTH: "/master_config/designation/delete_auth",
+    },
+  },
+
+  // --- EPURSE > Settings > Configuration > Account -------------------------
+  // "Account" (acct_product) plus its 16 sub-configs, every one of them
+  // scoped to a parent acct_product_id. Every path configKycApi(entity)
+  // calls, spelled out — nothing built from a template string at request
+  // time. Full 13-route maker-checker lifecycle per entity, per the backend
+  // reference (2026-09).
+  CONFIG_ACCT: {
+    ACCT_PRODUCT: {
+      ADD: "/config/acct_product/add",
+      SUBMIT: "/config/acct_product/submit",
+      EDIT: "/config/acct_product/edit",
+      AUTH: "/config/acct_product/auth",
+      DEAUTH: "/config/acct_product/deauth",
+      DELETE: "/config/acct_product/delete",
+      DELETE_AUTH: "/config/acct_product/delete_auth",
+      LIST: "/config/acct_product/list",
+      GET_ACTIVE: "/config/acct_product/get_active",
+      AUDIT: "/config/acct_product/audit",
+      PENDING: "/config/acct_product/pending",
+      DEACTIVATE: "/config/acct_product/deactivate",
+      REACTIVATE: "/config/acct_product/reactivate",
+    },
+    ACCT_PRODUCT_OWNERSHIP: {
+      ADD: "/config/acct_product_ownership/add",
+      SUBMIT: "/config/acct_product_ownership/submit",
+      EDIT: "/config/acct_product_ownership/edit",
+      AUTH: "/config/acct_product_ownership/auth",
+      DEAUTH: "/config/acct_product_ownership/deauth",
+      DELETE: "/config/acct_product_ownership/delete",
+      DELETE_AUTH: "/config/acct_product_ownership/delete_auth",
+      LIST: "/config/acct_product_ownership/list",
+      GET_ACTIVE: "/config/acct_product_ownership/get_active",
+      AUDIT: "/config/acct_product_ownership/audit",
+      PENDING: "/config/acct_product_ownership/pending",
+      DEACTIVATE: "/config/acct_product_ownership/deactivate",
+      REACTIVATE: "/config/acct_product_ownership/reactivate",
+    },
+    ACCT_PRODUCT_PARTY_TYPE: {
+      ADD: "/config/acct_product_party_type/add",
+      SUBMIT: "/config/acct_product_party_type/submit",
+      EDIT: "/config/acct_product_party_type/edit",
+      AUTH: "/config/acct_product_party_type/auth",
+      DEAUTH: "/config/acct_product_party_type/deauth",
+      DELETE: "/config/acct_product_party_type/delete",
+      DELETE_AUTH: "/config/acct_product_party_type/delete_auth",
+      LIST: "/config/acct_product_party_type/list",
+      GET_ACTIVE: "/config/acct_product_party_type/get_active",
+      AUDIT: "/config/acct_product_party_type/audit",
+      PENDING: "/config/acct_product_party_type/pending",
+      DEACTIVATE: "/config/acct_product_party_type/deactivate",
+      REACTIVATE: "/config/acct_product_party_type/reactivate",
+    },
+    ACCT_PRODUCT_TRANSACTION: {
+      ADD: "/config/acct_product_transaction/add",
+      SUBMIT: "/config/acct_product_transaction/submit",
+      EDIT: "/config/acct_product_transaction/edit",
+      AUTH: "/config/acct_product_transaction/auth",
+      DEAUTH: "/config/acct_product_transaction/deauth",
+      DELETE: "/config/acct_product_transaction/delete",
+      DELETE_AUTH: "/config/acct_product_transaction/delete_auth",
+      LIST: "/config/acct_product_transaction/list",
+      GET_ACTIVE: "/config/acct_product_transaction/get_active",
+      AUDIT: "/config/acct_product_transaction/audit",
+      PENDING: "/config/acct_product_transaction/pending",
+      DEACTIVATE: "/config/acct_product_transaction/deactivate",
+      REACTIVATE: "/config/acct_product_transaction/reactivate",
+    },
+    ACCT_PRODUCT_CHANNEL: {
+      ADD: "/config/acct_product_channel/add",
+      SUBMIT: "/config/acct_product_channel/submit",
+      EDIT: "/config/acct_product_channel/edit",
+      AUTH: "/config/acct_product_channel/auth",
+      DEAUTH: "/config/acct_product_channel/deauth",
+      DELETE: "/config/acct_product_channel/delete",
+      DELETE_AUTH: "/config/acct_product_channel/delete_auth",
+      LIST: "/config/acct_product_channel/list",
+      GET_ACTIVE: "/config/acct_product_channel/get_active",
+      AUDIT: "/config/acct_product_channel/audit",
+      PENDING: "/config/acct_product_channel/pending",
+      DEACTIVATE: "/config/acct_product_channel/deactivate",
+      REACTIVATE: "/config/acct_product_channel/reactivate",
+    },
+    ACCT_PRODUCT_BALANCE_CONFIG: {
+      ADD: "/config/acct_product_balance_config/add",
+      SUBMIT: "/config/acct_product_balance_config/submit",
+      EDIT: "/config/acct_product_balance_config/edit",
+      AUTH: "/config/acct_product_balance_config/auth",
+      DEAUTH: "/config/acct_product_balance_config/deauth",
+      DELETE: "/config/acct_product_balance_config/delete",
+      DELETE_AUTH: "/config/acct_product_balance_config/delete_auth",
+      LIST: "/config/acct_product_balance_config/list",
+      GET_ACTIVE: "/config/acct_product_balance_config/get_active",
+      AUDIT: "/config/acct_product_balance_config/audit",
+      PENDING: "/config/acct_product_balance_config/pending",
+      DEACTIVATE: "/config/acct_product_balance_config/deactivate",
+      REACTIVATE: "/config/acct_product_balance_config/reactivate",
+    },
+    ACCT_PRODUCT_GROUP_CONFIG: {
+      ADD: "/config/acct_product_group_config/add",
+      SUBMIT: "/config/acct_product_group_config/submit",
+      EDIT: "/config/acct_product_group_config/edit",
+      AUTH: "/config/acct_product_group_config/auth",
+      DEAUTH: "/config/acct_product_group_config/deauth",
+      DELETE: "/config/acct_product_group_config/delete",
+      DELETE_AUTH: "/config/acct_product_group_config/delete_auth",
+      LIST: "/config/acct_product_group_config/list",
+      GET_ACTIVE: "/config/acct_product_group_config/get_active",
+      AUDIT: "/config/acct_product_group_config/audit",
+      PENDING: "/config/acct_product_group_config/pending",
+      DEACTIVATE: "/config/acct_product_group_config/deactivate",
+      REACTIVATE: "/config/acct_product_group_config/reactivate",
+    },
+    ACCT_PRODUCT_INTEREST_CONFIG: {
+      ADD: "/config/acct_product_interest_config/add",
+      SUBMIT: "/config/acct_product_interest_config/submit",
+      EDIT: "/config/acct_product_interest_config/edit",
+      AUTH: "/config/acct_product_interest_config/auth",
+      DEAUTH: "/config/acct_product_interest_config/deauth",
+      DELETE: "/config/acct_product_interest_config/delete",
+      DELETE_AUTH: "/config/acct_product_interest_config/delete_auth",
+      LIST: "/config/acct_product_interest_config/list",
+      GET_ACTIVE: "/config/acct_product_interest_config/get_active",
+      AUDIT: "/config/acct_product_interest_config/audit",
+      PENDING: "/config/acct_product_interest_config/pending",
+      DEACTIVATE: "/config/acct_product_interest_config/deactivate",
+      REACTIVATE: "/config/acct_product_interest_config/reactivate",
+    },
+    ACCT_PRODUCT_JOINT_CONFIG: {
+      ADD: "/config/acct_product_joint_config/add",
+      SUBMIT: "/config/acct_product_joint_config/submit",
+      EDIT: "/config/acct_product_joint_config/edit",
+      AUTH: "/config/acct_product_joint_config/auth",
+      DEAUTH: "/config/acct_product_joint_config/deauth",
+      DELETE: "/config/acct_product_joint_config/delete",
+      DELETE_AUTH: "/config/acct_product_joint_config/delete_auth",
+      LIST: "/config/acct_product_joint_config/list",
+      GET_ACTIVE: "/config/acct_product_joint_config/get_active",
+      AUDIT: "/config/acct_product_joint_config/audit",
+      PENDING: "/config/acct_product_joint_config/pending",
+      DEACTIVATE: "/config/acct_product_joint_config/deactivate",
+      REACTIVATE: "/config/acct_product_joint_config/reactivate",
+    },
+    ACCT_PRODUCT_LIFECYCLE_CONFIG: {
+      ADD: "/config/acct_product_lifecycle_config/add",
+      SUBMIT: "/config/acct_product_lifecycle_config/submit",
+      EDIT: "/config/acct_product_lifecycle_config/edit",
+      AUTH: "/config/acct_product_lifecycle_config/auth",
+      DEAUTH: "/config/acct_product_lifecycle_config/deauth",
+      DELETE: "/config/acct_product_lifecycle_config/delete",
+      DELETE_AUTH: "/config/acct_product_lifecycle_config/delete_auth",
+      LIST: "/config/acct_product_lifecycle_config/list",
+      GET_ACTIVE: "/config/acct_product_lifecycle_config/get_active",
+      AUDIT: "/config/acct_product_lifecycle_config/audit",
+      PENDING: "/config/acct_product_lifecycle_config/pending",
+      DEACTIVATE: "/config/acct_product_lifecycle_config/deactivate",
+      REACTIVATE: "/config/acct_product_lifecycle_config/reactivate",
+    },
+    ACCT_PRODUCT_DORMANCY_CONFIG: {
+      ADD: "/config/acct_product_dormancy_config/add",
+      SUBMIT: "/config/acct_product_dormancy_config/submit",
+      EDIT: "/config/acct_product_dormancy_config/edit",
+      AUTH: "/config/acct_product_dormancy_config/auth",
+      DEAUTH: "/config/acct_product_dormancy_config/deauth",
+      DELETE: "/config/acct_product_dormancy_config/delete",
+      DELETE_AUTH: "/config/acct_product_dormancy_config/delete_auth",
+      LIST: "/config/acct_product_dormancy_config/list",
+      GET_ACTIVE: "/config/acct_product_dormancy_config/get_active",
+      AUDIT: "/config/acct_product_dormancy_config/audit",
+      PENDING: "/config/acct_product_dormancy_config/pending",
+      DEACTIVATE: "/config/acct_product_dormancy_config/deactivate",
+      REACTIVATE: "/config/acct_product_dormancy_config/reactivate",
+    },
+    ACCT_PRODUCT_MINOR_CONFIG: {
+      ADD: "/config/acct_product_minor_config/add",
+      SUBMIT: "/config/acct_product_minor_config/submit",
+      EDIT: "/config/acct_product_minor_config/edit",
+      AUTH: "/config/acct_product_minor_config/auth",
+      DEAUTH: "/config/acct_product_minor_config/deauth",
+      DELETE: "/config/acct_product_minor_config/delete",
+      DELETE_AUTH: "/config/acct_product_minor_config/delete_auth",
+      LIST: "/config/acct_product_minor_config/list",
+      GET_ACTIVE: "/config/acct_product_minor_config/get_active",
+      AUDIT: "/config/acct_product_minor_config/audit",
+      PENDING: "/config/acct_product_minor_config/pending",
+      DEACTIVATE: "/config/acct_product_minor_config/deactivate",
+      REACTIVATE: "/config/acct_product_minor_config/reactivate",
+    },
+    ACCT_PRODUCT_NOMINEE_CONFIG: {
+      ADD: "/config/acct_product_nominee_config/add",
+      SUBMIT: "/config/acct_product_nominee_config/submit",
+      EDIT: "/config/acct_product_nominee_config/edit",
+      AUTH: "/config/acct_product_nominee_config/auth",
+      DEAUTH: "/config/acct_product_nominee_config/deauth",
+      DELETE: "/config/acct_product_nominee_config/delete",
+      DELETE_AUTH: "/config/acct_product_nominee_config/delete_auth",
+      LIST: "/config/acct_product_nominee_config/list",
+      GET_ACTIVE: "/config/acct_product_nominee_config/get_active",
+      AUDIT: "/config/acct_product_nominee_config/audit",
+      PENDING: "/config/acct_product_nominee_config/pending",
+      DEACTIVATE: "/config/acct_product_nominee_config/deactivate",
+      REACTIVATE: "/config/acct_product_nominee_config/reactivate",
+    },
+    ACCT_PRODUCT_NUMBERING_CONFIG: {
+      ADD: "/config/acct_product_numbering_config/add",
+      SUBMIT: "/config/acct_product_numbering_config/submit",
+      EDIT: "/config/acct_product_numbering_config/edit",
+      AUTH: "/config/acct_product_numbering_config/auth",
+      DEAUTH: "/config/acct_product_numbering_config/deauth",
+      DELETE: "/config/acct_product_numbering_config/delete",
+      DELETE_AUTH: "/config/acct_product_numbering_config/delete_auth",
+      LIST: "/config/acct_product_numbering_config/list",
+      GET_ACTIVE: "/config/acct_product_numbering_config/get_active",
+      AUDIT: "/config/acct_product_numbering_config/audit",
+      PENDING: "/config/acct_product_numbering_config/pending",
+      DEACTIVATE: "/config/acct_product_numbering_config/deactivate",
+      REACTIVATE: "/config/acct_product_numbering_config/reactivate",
+    },
+    ACCT_PRODUCT_OPENING_CONFIG: {
+      ADD: "/config/acct_product_opening_config/add",
+      SUBMIT: "/config/acct_product_opening_config/submit",
+      EDIT: "/config/acct_product_opening_config/edit",
+      AUTH: "/config/acct_product_opening_config/auth",
+      DEAUTH: "/config/acct_product_opening_config/deauth",
+      DELETE: "/config/acct_product_opening_config/delete",
+      DELETE_AUTH: "/config/acct_product_opening_config/delete_auth",
+      LIST: "/config/acct_product_opening_config/list",
+      GET_ACTIVE: "/config/acct_product_opening_config/get_active",
+      AUDIT: "/config/acct_product_opening_config/audit",
+      PENDING: "/config/acct_product_opening_config/pending",
+      DEACTIVATE: "/config/acct_product_opening_config/deactivate",
+      REACTIVATE: "/config/acct_product_opening_config/reactivate",
+    },
+    ACCT_PRODUCT_STATEMENT_CONFIG: {
+      ADD: "/config/acct_product_statement_config/add",
+      SUBMIT: "/config/acct_product_statement_config/submit",
+      EDIT: "/config/acct_product_statement_config/edit",
+      AUTH: "/config/acct_product_statement_config/auth",
+      DEAUTH: "/config/acct_product_statement_config/deauth",
+      DELETE: "/config/acct_product_statement_config/delete",
+      DELETE_AUTH: "/config/acct_product_statement_config/delete_auth",
+      LIST: "/config/acct_product_statement_config/list",
+      GET_ACTIVE: "/config/acct_product_statement_config/get_active",
+      AUDIT: "/config/acct_product_statement_config/audit",
+      PENDING: "/config/acct_product_statement_config/pending",
+      DEACTIVATE: "/config/acct_product_statement_config/deactivate",
+      REACTIVATE: "/config/acct_product_statement_config/reactivate",
+    },
+    ACCT_PRODUCT_ALERT_CONFIG: {
+      ADD: "/config/acct_product_alert_config/add",
+      SUBMIT: "/config/acct_product_alert_config/submit",
+      EDIT: "/config/acct_product_alert_config/edit",
+      AUTH: "/config/acct_product_alert_config/auth",
+      DEAUTH: "/config/acct_product_alert_config/deauth",
+      DELETE: "/config/acct_product_alert_config/delete",
+      DELETE_AUTH: "/config/acct_product_alert_config/delete_auth",
+      LIST: "/config/acct_product_alert_config/list",
+      GET_ACTIVE: "/config/acct_product_alert_config/get_active",
+      AUDIT: "/config/acct_product_alert_config/audit",
+      PENDING: "/config/acct_product_alert_config/pending",
+      DEACTIVATE: "/config/acct_product_alert_config/deactivate",
+      REACTIVATE: "/config/acct_product_alert_config/reactivate",
+    },
+  },
+
+  // --- EPURSE > Settings > Configuration > KYC -----------------------------
+  // KYC (#2 of the three KYCs — see note at top of file): KYC group/level
+  // config consumed by Config - Acct, under /config/kyc_group*. Every path
+  // configKycApi(entity) calls for these 5 entities, spelled out.
+  CONFIG_KYC: {
+    KYC_GROUP: {
+      ADD: "/config/kyc_group/add", SUBMIT: "/config/kyc_group/submit", EDIT: "/config/kyc_group/edit",
+      AUTH: "/config/kyc_group/auth", DEAUTH: "/config/kyc_group/deauth", DELETE: "/config/kyc_group/delete",
+      DELETE_AUTH: "/config/kyc_group/delete_auth", LIST: "/config/kyc_group/list",
+      GET_ACTIVE: "/config/kyc_group/get_active", AUDIT: "/config/kyc_group/audit",
+    },
+    KYC_GROUP_LEVEL: {
+      ADD: "/config/kyc_group_level/add", SUBMIT: "/config/kyc_group_level/submit", EDIT: "/config/kyc_group_level/edit",
+      AUTH: "/config/kyc_group_level/auth", DEAUTH: "/config/kyc_group_level/deauth", DELETE: "/config/kyc_group_level/delete",
+      DELETE_AUTH: "/config/kyc_group_level/delete_auth", LIST: "/config/kyc_group_level/list",
+      GET_ACTIVE: "/config/kyc_group_level/get_active", AUDIT: "/config/kyc_group_level/audit",
+    },
+    KYC_GROUP_LEVEL_DATA: {
+      ADD: "/config/kyc_group_level_data/add", SUBMIT: "/config/kyc_group_level_data/submit", EDIT: "/config/kyc_group_level_data/edit",
+      AUTH: "/config/kyc_group_level_data/auth", DEAUTH: "/config/kyc_group_level_data/deauth", DELETE: "/config/kyc_group_level_data/delete",
+      DELETE_AUTH: "/config/kyc_group_level_data/delete_auth", LIST: "/config/kyc_group_level_data/list",
+      GET_ACTIVE: "/config/kyc_group_level_data/get_active", AUDIT: "/config/kyc_group_level_data/audit",
+    },
+    KYC_GROUP_LEVEL_PROCESS: {
+      ADD: "/config/kyc_group_level_process/add", SUBMIT: "/config/kyc_group_level_process/submit", EDIT: "/config/kyc_group_level_process/edit",
+      AUTH: "/config/kyc_group_level_process/auth", DEAUTH: "/config/kyc_group_level_process/deauth", DELETE: "/config/kyc_group_level_process/delete",
+      DELETE_AUTH: "/config/kyc_group_level_process/delete_auth", LIST: "/config/kyc_group_level_process/list",
+      GET_ACTIVE: "/config/kyc_group_level_process/get_active", AUDIT: "/config/kyc_group_level_process/audit",
+    },
+    KYC_GROUP_LEVEL_DOCUMENT: {
+      ADD: "/config/kyc_group_level_document/add", SUBMIT: "/config/kyc_group_level_document/submit", EDIT: "/config/kyc_group_level_document/edit",
+      AUTH: "/config/kyc_group_level_document/auth", DEAUTH: "/config/kyc_group_level_document/deauth", DELETE: "/config/kyc_group_level_document/delete",
+      DELETE_AUTH: "/config/kyc_group_level_document/delete_auth", LIST: "/config/kyc_group_level_document/list",
+      GET_ACTIVE: "/config/kyc_group_level_document/get_active", AUDIT: "/config/kyc_group_level_document/audit",
+    },
+  },
+
+  // --- EPURSE > Digital Product ---------------------------------------------
+  // Sub-menu order (as wired today): Product, Security Config, KYC Config
+  // (#3 of the three KYCs — see note at top of file), KYC Level, Channel
+  // Config, Channel Transaction, Eligibility Config, Residency.
+  //
+  // The sidebar shows additional items under Product (Product Ownership,
+  // Product Party Type, Product Channel, Product Balance Configuration,
+  // Product Group Configuration, Interest/Joint/Lifecycle/Dormancy/Minor/
+  // Alert/Nominee/Numbering/Opening/Statement Configuration) — none of
+  // those have a wired page or confirmed endpoint yet, so no path is listed
+  // for them here; add it under this comment, following the same shape,
+  // once a real endpoint exists.
+  //
+  // Every path digitalProductApi(entity) calls for these 9 entities,
+  // spelled out — nothing built from a template string at request time.
+  DIGITAL_PRODUCT: {
+    PRODUCT: {
+      ADD: "/digital_product/product/add", SUBMIT: "/digital_product/product/submit", EDIT: "/digital_product/product/edit",
+      AUTH: "/digital_product/product/auth", DEAUTH: "/digital_product/product/deauth", DELETE: "/digital_product/product/delete",
+      DELETE_AUTH: "/digital_product/product/delete_auth", LIST: "/digital_product/product/list",
+      GET_ACTIVE: "/digital_product/product/get_active", AUDIT: "/digital_product/product/audit",
+      DEACTIVATE: "/digital_product/product/deactivate", REACTIVATE: "/digital_product/product/reactivate",
+    },
+    PRODUCT_MAP: {
+      ADD: "/digital_product/product_map/add", SUBMIT: "/digital_product/product_map/submit", EDIT: "/digital_product/product_map/edit",
+      AUTH: "/digital_product/product_map/auth", DEAUTH: "/digital_product/product_map/deauth", DELETE: "/digital_product/product_map/delete",
+      DELETE_AUTH: "/digital_product/product_map/delete_auth", LIST: "/digital_product/product_map/list",
+      GET_ACTIVE: "/digital_product/product_map/get_active", AUDIT: "/digital_product/product_map/audit",
+      DEACTIVATE: "/digital_product/product_map/deactivate", REACTIVATE: "/digital_product/product_map/reactivate",
+    },
+    SECURITY_CONFIG: {
+      ADD: "/digital_product/security_config/add", SUBMIT: "/digital_product/security_config/submit", EDIT: "/digital_product/security_config/edit",
+      AUTH: "/digital_product/security_config/auth", DEAUTH: "/digital_product/security_config/deauth", DELETE: "/digital_product/security_config/delete",
+      DELETE_AUTH: "/digital_product/security_config/delete_auth", LIST: "/digital_product/security_config/list",
+      GET_ACTIVE: "/digital_product/security_config/get_active", AUDIT: "/digital_product/security_config/audit",
+      DEACTIVATE: "/digital_product/security_config/deactivate", REACTIVATE: "/digital_product/security_config/reactivate",
+    },
+    KYC_CONFIG: {
+      ADD: "/digital_product/kyc_config/add", SUBMIT: "/digital_product/kyc_config/submit", EDIT: "/digital_product/kyc_config/edit",
+      AUTH: "/digital_product/kyc_config/auth", DEAUTH: "/digital_product/kyc_config/deauth", DELETE: "/digital_product/kyc_config/delete",
+      DELETE_AUTH: "/digital_product/kyc_config/delete_auth", LIST: "/digital_product/kyc_config/list",
+      GET_ACTIVE: "/digital_product/kyc_config/get_active", AUDIT: "/digital_product/kyc_config/audit",
+      DEACTIVATE: "/digital_product/kyc_config/deactivate", REACTIVATE: "/digital_product/kyc_config/reactivate",
+    },
+    KYC_LEVEL: {
+      ADD: "/digital_product/kyc_level/add", SUBMIT: "/digital_product/kyc_level/submit", EDIT: "/digital_product/kyc_level/edit",
+      AUTH: "/digital_product/kyc_level/auth", DEAUTH: "/digital_product/kyc_level/deauth", DELETE: "/digital_product/kyc_level/delete",
+      DELETE_AUTH: "/digital_product/kyc_level/delete_auth", LIST: "/digital_product/kyc_level/list",
+      GET_ACTIVE: "/digital_product/kyc_level/get_active", AUDIT: "/digital_product/kyc_level/audit",
+      DEACTIVATE: "/digital_product/kyc_level/deactivate", REACTIVATE: "/digital_product/kyc_level/reactivate",
+    },
+    CHANNEL_CONFIG: {
+      ADD: "/digital_product/channel_config/add", SUBMIT: "/digital_product/channel_config/submit", EDIT: "/digital_product/channel_config/edit",
+      AUTH: "/digital_product/channel_config/auth", DEAUTH: "/digital_product/channel_config/deauth", DELETE: "/digital_product/channel_config/delete",
+      DELETE_AUTH: "/digital_product/channel_config/delete_auth", LIST: "/digital_product/channel_config/list",
+      GET_ACTIVE: "/digital_product/channel_config/get_active", AUDIT: "/digital_product/channel_config/audit",
+      DEACTIVATE: "/digital_product/channel_config/deactivate", REACTIVATE: "/digital_product/channel_config/reactivate",
+    },
+    CHANNEL_TRANSACTION: {
+      ADD: "/digital_product/channel_transaction/add", SUBMIT: "/digital_product/channel_transaction/submit", EDIT: "/digital_product/channel_transaction/edit",
+      AUTH: "/digital_product/channel_transaction/auth", DEAUTH: "/digital_product/channel_transaction/deauth", DELETE: "/digital_product/channel_transaction/delete",
+      DELETE_AUTH: "/digital_product/channel_transaction/delete_auth", LIST: "/digital_product/channel_transaction/list",
+      GET_ACTIVE: "/digital_product/channel_transaction/get_active", AUDIT: "/digital_product/channel_transaction/audit",
+      DEACTIVATE: "/digital_product/channel_transaction/deactivate", REACTIVATE: "/digital_product/channel_transaction/reactivate",
+    },
+    ELIGIBILITY_CONFIG: {
+      ADD: "/digital_product/eligibility_config/add", SUBMIT: "/digital_product/eligibility_config/submit", EDIT: "/digital_product/eligibility_config/edit",
+      AUTH: "/digital_product/eligibility_config/auth", DEAUTH: "/digital_product/eligibility_config/deauth", DELETE: "/digital_product/eligibility_config/delete",
+      DELETE_AUTH: "/digital_product/eligibility_config/delete_auth", LIST: "/digital_product/eligibility_config/list",
+      GET_ACTIVE: "/digital_product/eligibility_config/get_active", AUDIT: "/digital_product/eligibility_config/audit",
+      DEACTIVATE: "/digital_product/eligibility_config/deactivate", REACTIVATE: "/digital_product/eligibility_config/reactivate",
+    },
+    RESIDENCY: {
+      ADD: "/digital_product/residency/add", SUBMIT: "/digital_product/residency/submit", EDIT: "/digital_product/residency/edit",
+      AUTH: "/digital_product/residency/auth", DEAUTH: "/digital_product/residency/deauth", DELETE: "/digital_product/residency/delete",
+      DELETE_AUTH: "/digital_product/residency/delete_auth", LIST: "/digital_product/residency/list",
+      GET_ACTIVE: "/digital_product/residency/get_active", AUDIT: "/digital_product/residency/audit",
+      DEACTIVATE: "/digital_product/residency/deactivate", REACTIVATE: "/digital_product/residency/reactivate",
     },
   },
 };

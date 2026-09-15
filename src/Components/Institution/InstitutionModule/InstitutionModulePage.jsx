@@ -17,6 +17,8 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { notifications } from "@/Utils/Lib/notifications";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
@@ -242,13 +244,13 @@ export function InstitutionModulePage() {
       key: "process_status_name",
       label: "Process Status",
       sortValue: (row) => row.process_status_name ?? "",
-      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—"),
+      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: (row) => row.auth_status ?? "",
-      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—"),
+      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—"),
     },
     {
       key: "actions",
@@ -270,9 +272,6 @@ export function InstitutionModulePage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-primary">
-            Institution
-          </p>
           <h1 className="text-xl font-black leading-tight tracking-tight text-foreground">
             Institution Module
           </h1>
@@ -280,18 +279,7 @@ export function InstitutionModulePage() {
             Manage institution module assignments.
           </p>
         </div>
-        {canAdd && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-bold text-primary-foreground"
-          >
-            <Plus size={14} /> Add module
-          </button>
-        )}
+        
       </div>
       {query.error && (
         <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
@@ -305,14 +293,25 @@ export function InstitutionModulePage() {
           </button>
         </div>
       )}
-      <StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
         rows={query.data}
         value={statusFilter}
         search={search}
         onSearch={setSearch}
         onChange={setStatusFilter}
-      />
-      <DataTable
+        actions={canAdd && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
+          >
+            <Plus size={14} /> Add module
+          </button>
+        )}
+      bare /><DataTable
         columns={columns}
         rows={filteredRows}
         rowKey={(row) => row.id}
@@ -321,8 +320,7 @@ export function InstitutionModulePage() {
         searchableKeys={["module_name", "inst_profile_name"]}
         emptyTitle="No institution modules found"
         emptyDescription="Module assignments will appear here when available."
-      />
-      <Modal
+      bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? "Edit institution module" : "Add institution module"}
@@ -419,44 +417,57 @@ function ModuleForm({
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
+        // FilterSelect has no native form control, so the "required"
+        // native validation these fields used to get for free (back when
+        // they were bare <select>s) has to be re-checked by hand here.
+        if (!editing && !form.inst_profile_id) {
+          notifications.error("Please select an institution");
+          return;
+        }
+        if (editing && !form.module_id) {
+          notifications.error("Please select a module");
+          return;
+        }
+        if (!editing && moduleRows.some((row) => !row.module_id)) {
+          notifications.error("Please select a module for every row");
+          return;
+        }
         void onSubmit(buildPayload(form.is_draft));
       }}
     >
       {!editing && (
         <label className="block text-sm font-medium">
           Institution
-          <select
-            required
+          <FilterSelect
+            className="mt-1.5"
             value={form.inst_profile_id}
-            onChange={set("inst_profile_id")}
-            className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-          >
-            <option value="">Select institution</option>
-            {institutions.map((item) => (
-              <option key={item.id ?? item.inst_profile_id} value={item.id ?? item.inst_profile_id}>
-                {item.name ?? item.inst_profile_name ?? item.code}
-              </option>
-            ))}
-          </select>
+            onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
+            options={[
+              { value: "", label: "Select institution" },
+              ...institutions.map((item) => ({
+                value: item.id ?? item.inst_profile_id,
+                label: item.name ?? item.inst_profile_name ?? item.code,
+              })),
+            ]}
+          />
         </label>
       )}
       {editing ? (
         <>
           <label className="block text-sm font-medium">
             Module
-            <select
-              required
+            <FilterSelect
+              className="mt-1.5"
               value={form.module_id}
-              onChange={set("module_id")}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-            >
-              <option value="">Select module</option>
-              {masterModules.map((item) => (
-                <option key={item.module_id ?? item.id} value={item.module_id ?? item.id}>
-                  {item.module_name ?? item.name}
-                </option>
-              ))}
-            </select>
+              onChange={(next) => set("module_id")({ target: { value: next } })}
+              options={[
+                { value: "", label: "Select module" },
+                ...masterModules.map((item) => ({
+                  value: item.module_id ?? item.id,
+                  label: item.module_name ?? item.name,
+                })),
+              ]}
+            />
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm font-medium">
@@ -500,19 +511,18 @@ function ModuleForm({
               </div>
               <label className="block text-sm font-medium">
                 Module
-                <select
-                  required
+                <FilterSelect
+                  className="mt-1.5"
                   value={row.module_id}
-                  onChange={setModuleRow(index, "module_id")}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-                >
-                  <option value="">Select module</option>
-                  {masterModules.map((item) => (
-                    <option key={item.module_id ?? item.id} value={item.module_id ?? item.id}>
-                      {item.module_name ?? item.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(next) => setModuleRow(index, "module_id")({ target: { value: next } })}
+                  options={[
+                    { value: "", label: "Select module" },
+                    ...masterModules.map((item) => ({
+                      value: item.module_id ?? item.id,
+                      label: item.module_name ?? item.name,
+                    })),
+                  ]}
+                />
               </label>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="text-sm font-medium">

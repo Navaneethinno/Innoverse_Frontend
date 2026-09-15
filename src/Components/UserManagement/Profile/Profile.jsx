@@ -74,7 +74,7 @@ function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (key === "auth_status" || key === "process_status_name")
-    return value == null ? "—" : <StatusBadge status={String(value)} variant="subtle" />;
+    return value == null ? "—" : <StatusBadge status={String(value)} />;
   return value == null || value === "" ? "—" : String(value);
 }
 
@@ -331,30 +331,26 @@ export function Profile() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-400">{t("userManagement")}</p>
-          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">
-            {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
-          </p>
-        </div>
-        {canAdd && (
-          <motion.button
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={openCreate}
-            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "#2266EE" }}
-          >
-            <Plus size={14} /> {t("newProfile")}
-          </motion.button>
-        )}
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
+        <p className="mt-1 text-xs font-medium text-slate-400">
+          {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
+        </p>
       </div>
 
-      <div className="mb-4">
-        <StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+          actions={canAdd && (
+            <motion.button
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={openCreate}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+              style={{ background: "#2266EE" }}
+            >
+              <Plus size={14} /> {t("newProfile")}
+            </motion.button>
+          )}
           rows={profiles}
           value={activeTab}
           onChange={(value) => {
@@ -367,11 +363,8 @@ export function Profile() {
             setPage(1);
           }}
           searchPlaceholder={t("searchProfilesPlaceholder")}
-        />
-      </div>
-
-      {profilesQuery.error && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+        bare />{profilesQuery.error && (
+        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {profilesQuery.error.message}
           <button onClick={() => void profilesQuery.refetch()} className="ml-auto text-xs font-bold underline">
             {t("common:retry")}
@@ -407,7 +400,7 @@ export function Profile() {
                 },
               }
         }
-      />
+      bare /></div>
 
       <AnimatePresence>
         {showForm && !editing && (

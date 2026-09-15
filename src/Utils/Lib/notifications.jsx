@@ -4,6 +4,13 @@ import { Toast } from "@/Components/Common/Toast";
 function show(type, message, options) {
   return toast(<Toast type={type} message={message} title={options?.title} />, {
     icon: false,
+    // Without this, react-toastify never adds its own
+    // Toastify__toast--success/--error/--warning/--info modifier class to
+    // the outer container, so theme.css's per-type background/left-border
+    // styling (see .Toastify__toast--success etc.) silently never applied —
+    // every toast rendered as the same neutral card regardless of type,
+    // with only the inner <Toast> icon's color hinting at which one it was.
+    type,
     ...options,
   });
 }
