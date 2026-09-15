@@ -23,6 +23,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
   const containerRef = useRef(null);
+  const panelRef = useRef(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
 
   useLayoutEffect(() => {
@@ -54,7 +55,14 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   useEffect(() => {
     if (!isOpen || disabled) return undefined;
     function handleClick(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+      // The panel is portaled to document.body, so it's a DOM sibling of
+      // containerRef, not a descendant — checking only containerRef here
+      // meant every click on an option registered as "outside" and closed
+      // the panel on mousedown, before the option's own onClick could ever
+      // fire. Selecting anything silently did nothing.
+      const insideTrigger = containerRef.current?.contains(e.target) ?? false;
+      const insidePanel = panelRef.current?.contains(e.target) ?? false;
+      if (!insideTrigger && !insidePanel) setIsOpen(false);
     }
     function handleKey(e) {
       if (e.key === "Escape") setIsOpen(false);
@@ -91,6 +99,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       {isOpen && !disabled && placement &&
         createPortal(
           <div
+            ref={panelRef}
             className={cn(
               "fixed z-50 overflow-y-auto rounded-xl border p-1.5",
               panelClassName,
