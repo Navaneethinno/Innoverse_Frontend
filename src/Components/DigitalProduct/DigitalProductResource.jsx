@@ -24,7 +24,8 @@ import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
 
 const CONFIGS = {
   product: {
-    title: "Product",
+    title: "Digital Product",
+    menuName: "Digital Product",
     readOnlyOnEdit: ["inst_profile_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number"],
@@ -522,10 +523,10 @@ export function DigitalProductResource({ entity }) {
         // a pending-delete (that goes through the dedicated Delete Auth
         // endpoint instead, since /auth never covers delete per the API docs).
         const visibility = getMakerCheckerButtons(r, {
-          canAdd: allowed(menus, "Add", config.title),
-          canEdit: allowed(menus, "Edit", config.title),
-          canAuthorize: allowed(menus, "Authorize", config.title),
-          canDelete: allowed(menus, "Delete", config.title),
+          canAdd: allowed(menus, "Add", config.menuName ?? config.title),
+          canEdit: allowed(menus, "Edit", config.menuName ?? config.title),
+          canAuthorize: allowed(menus, "Authorize", config.menuName ?? config.title),
+          canDelete: allowed(menus, "Delete", config.menuName ?? config.title),
         });
         const acts = [
           ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
@@ -586,7 +587,7 @@ export function DigitalProductResource({ entity }) {
       },
     },
   ];
-  const addAction = allowed(menus, "Add", config.title) ? (
+  const addAction = allowed(menus, "Add", config.menuName ?? config.title) ? (
     <button
       onClick={() => {
         setForm(

@@ -64,7 +64,7 @@ const SEGMENT_LABELS = {
   // "digitalproductproduct": qualified slug for the Digital Product >
   // Product leaf, disambiguated from Account > Product — see
   // MenuItem.jsx's DISAMBIGUATE_BY_PARENT.
-  digitalproductproduct: { title: "Product", breadcrumb: ["Digital Product", "Product"] },
+  digitalproduct: { title: "Digital Product", breadcrumb: ["Digital Product", "Digital Product"] },
   productmap: { title: "Product Map", breadcrumb: ["Digital Product", "Product Map"] },
   securityconfig: { title: "Security Config", breadcrumb: ["Digital Product", "Security Config"] },
   kycconfig: { title: "KYC Config", breadcrumb: ["Digital Product", "KYC Config"] },

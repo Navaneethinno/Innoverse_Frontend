@@ -31,11 +31,11 @@ const paths = [
   "lifecycleconfiguration",
   "dormancyconfiguration",
   "minorconfiguration",
+  "alertconfiguration",
   "nomineeconfiguration",
   "numberingconfiguration",
   "openingconfiguration",
   "statementconfiguration",
-  "alertconfiguration",
 ];
 const entities = [
   "acct_product",
@@ -50,11 +50,11 @@ const entities = [
   "acct_product_lifecycle_config",
   "acct_product_dormancy_config",
   "acct_product_minor_config",
+  "acct_product_alert_config",
   "acct_product_nominee_config",
   "acct_product_numbering_config",
   "acct_product_opening_config",
   "acct_product_statement_config",
-  "acct_product_alert_config",
 ];
 export const acctConfigRoutes = paths.flatMap((path, index) => [
   { path, element: pageElement(Resource, { entity: entities[index] }) },

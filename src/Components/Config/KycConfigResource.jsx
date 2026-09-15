@@ -14,6 +14,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
@@ -142,7 +143,7 @@ export function KycConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(`/config/${entity}/list`, () => void load());
+  useLiveChannel(API_ENDPOINTS.CONFIG_KYC[entity.toUpperCase()].LIST, () => void load());
   const visible = useMemo(
     () =>
       rows.filter(

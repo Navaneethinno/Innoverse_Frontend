@@ -14,6 +14,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import {
@@ -52,7 +53,7 @@ const CONFIGS = {
     // (Add/Edit/Authorize/Delete) stays hidden regardless of the user's
     // actual grants.
     title: "Product",
-    menuName: "Product",
+    menuName: "Account Product",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -405,7 +406,7 @@ export function AcctConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(`/config/${entity}/list`, () => void load());
+  useLiveChannel(API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST, () => void load());
   const visible = useMemo(
     () =>
       rows.filter(
@@ -596,7 +597,7 @@ export function AcctConfigResource({ entity }) {
         <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
       </div>
       <div
-        className="overflow-hidden rounded-2xl"
+        className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
         <StatusFilterTabs
