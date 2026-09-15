@@ -13,6 +13,21 @@ const PENDING_PROCESS_STATES = new Set([
   "PENDING REACTIVATE",
 ]);
 
+// Deliberately NOT in the set above: a live record's own process_status
+// can be "DRAFT" too (Draft Deletion's "Edit-side draft" case — an
+// authorized record with a staged-but-unsubmitted edit proposal, started
+// via /edit with is_draft: true). That's not a pending-checker-approval
+// state at all — the live row's business values were never touched, so
+// there's nothing to authorize/reject. It's intentionally left to fall
+// through to whatever the record's own status_name row below says
+// (typically ACTIVE, but per the backend spec it can just as well be
+// EDIT_DEAUTH if the draft edit was started on top of a rejected edit) —
+// e.g. "Rejected Edit" if the draft edit was started on top of a
+// rejected-edit record). That row's existing `delete: true` already covers
+// discarding the draft, since /delete's backend behavior branches on
+// status/process_status, not on anything the frontend has to choose
+// between.
+
 // One row per non-pending status_name value from the spec's Button
 // Visibility Matrix. Pending rows aren't listed here — they're handled by
 // PENDING_VISIBILITY below, keyed off process_status_name instead, since
@@ -25,7 +40,11 @@ const STATUS_VISIBILITY = {
   "REJECTED EDIT": { edit: true, submitDraft: false, activate: false, deactivate: true, delete: true },
   "REJECTED DELETE": { edit: true, submitDraft: false, activate: false, deactivate: true, delete: true },
   DELETED: { edit: false, submitDraft: false, activate: false, deactivate: false, delete: false },
-  DRAFT: { edit: true, submitDraft: true, activate: false, deactivate: false, delete: false },
+  // Draft Deletion: an Add-side draft (status DRAFT, never submitted) can
+  // be deleted outright by its own maker — no checker step, since nobody
+  // but the maker has ever seen it. Backend hard-deletes the row (not a
+  // soft pending-delete) and returns "<Entity> Draft Deleted Successfully".
+  DRAFT: { edit: true, submitDraft: true, activate: false, deactivate: false, delete: true },
   UNDEFINED: { edit: false, submitDraft: false, activate: false, deactivate: false, delete: false },
   "REJECTED DEACTIVATE": { edit: true, submitDraft: false, activate: false, deactivate: true, delete: true },
   INACTIVE: { edit: true, submitDraft: false, activate: true, deactivate: false, delete: true },
