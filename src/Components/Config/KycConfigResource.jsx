@@ -21,6 +21,7 @@ import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
 const CONFIGS = {
   kyc_group: {
@@ -513,9 +514,12 @@ export function KycConfigResource({ entity }) {
                 ) : (
                   <input
                     type={type === "number" ? "number" : type === "boolean" ? "checkbox" : "text"}
+                    min={type === "number" ? 0 : undefined}
                     checked={type === "boolean" ? Boolean(form[key]) : undefined}
                     value={type !== "boolean" ? (form[key] ?? "") : undefined}
                     disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                    onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
+                    onWheel={type === "number" ? blurOnWheel : undefined}
                     onChange={(event) =>
                       setForm({
                         ...form,
@@ -523,7 +527,7 @@ export function KycConfigResource({ entity }) {
                           type === "boolean"
                             ? event.target.checked
                             : type === "number"
-                              ? Number(event.target.value)
+                              ? clampNonNegative(event.target.value)
                               : event.target.value,
                       })
                     }

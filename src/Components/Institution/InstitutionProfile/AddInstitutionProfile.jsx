@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
@@ -138,8 +139,11 @@ function NumberField({ label, fieldKey, value, onChange }) {
       <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
       <input
         type="number"
+        min={0}
         value={value}
-        onChange={(e) => onChange(fieldKey, e.target.value)}
+        onKeyDown={blockNegativeKeyDown}
+        onWheel={blurOnWheel}
+        onChange={(e) => onChange(fieldKey, clampNonNegative(e.target.value))}
         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
       />
     </div>

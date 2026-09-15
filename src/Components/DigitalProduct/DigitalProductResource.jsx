@@ -23,6 +23,7 @@ import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useChannels } from "@/Hooks/Master/masterHooks";
 import { useTransactions } from "@/Hooks/Master/masterHooks";
 import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
 const CONFIGS = {
   product: {
@@ -316,11 +317,14 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
               <input
                 required={key.endsWith("_id") || ["code", "name"].includes(key)}
                 type={type}
+                min={type === "number" ? 0 : undefined}
                 value={value[key] ?? ""}
+                onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
+                onWheel={type === "number" ? blurOnWheel : undefined}
                 onChange={(e) =>
                   setValue({
                     ...value,
-                    [key]: type === "number" ? Number(e.target.value) : e.target.value,
+                    [key]: type === "number" ? clampNonNegative(e.target.value) : e.target.value,
                   })
                 }
                 className="mt-1.5 w-full rounded-xl border px-3 py-2.5"

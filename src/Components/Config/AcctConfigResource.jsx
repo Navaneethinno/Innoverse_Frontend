@@ -18,6 +18,7 @@ import { configKycApi } from "@/Services/Config/config.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import {
   useAcctDormancyActions,
@@ -391,8 +392,13 @@ export function AcctConfigResource({ entity }) {
   const [acctProducts, setAcctProducts] = useState([]);
   useEffect(() => {
     if (!needsAcctProducts) return;
+    // acct_product's get_active only returns bare {id} records (no name),
+    // unlike every other lookup's get_active — confirmed live. Use list
+    // with a large limit instead, same "full batch" tradeoff profilesApi
+    // uses for its own removed getall endpoint, so the dropdown can show
+    // product_name instead of the raw id.
     configKycApi("acct_product")
-      .getActive()
+      .list({ page: 1, limit: 500 })
       .then((response) => setAcctProducts(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [needsAcctProducts]);
@@ -762,13 +768,16 @@ export function AcctConfigResource({ entity }) {
                   ) : (
                     <input
                       type={type === "number" ? "number" : type === "boolean" ? "checkbox" : type === "date" ? "date" : "text"}
+                      min={type === "number" ? 0 : undefined}
                       checked={type === "boolean" ? Boolean(form[key]) : undefined}
                       value={type !== "boolean" ? (form[key] ?? "") : undefined}
                       disabled={isReadOnly}
+                      onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
+                      onWheel={type === "number" ? blurOnWheel : undefined}
                       onChange={(event) =>
                         setForm({
                           ...form,
-                          [key]: type === "boolean" ? event.target.checked : type === "number" ? Number(event.target.value) : event.target.value,
+                          [key]: type === "boolean" ? event.target.checked : type === "number" ? clampNonNegative(event.target.value) : event.target.value,
                         })
                       }
                       className={type === "boolean" ? "h-4 w-4 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
