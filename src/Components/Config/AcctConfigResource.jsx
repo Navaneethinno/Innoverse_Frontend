@@ -433,12 +433,17 @@ export function AcctConfigResource({ entity }) {
     [rows, tab, search],
   );
   const save = async (draft) => {
-    // Same fix as DigitalProductResource.jsx/KycConfigResource.jsx: "_id"
-    // fields rendered via FilterSelect have no native form control, so
-    // nothing stops a submit while one is still empty ("") — caught here
-    // before it reaches the API as a malformed number field.
+    // Same fix as DigitalProductResource.jsx/KycConfigResource.jsx, widened
+    // to cover every FilterSelect-driven field, not just "_id"-suffixed
+    // ones — acct_product also has *_code/*_type lookups (currency_code,
+    // product_type, ...) with the same problem: FilterSelect has no native
+    // form control, so nothing stops a submit while one is still blank.
+    // Left unguarded, a blank *_id/number field reaches the API as an
+    // empty string where a number is expected, and this backend reports
+    // that as a flatly misleading "request body is not valid JSON" 400
+    // instead of a real validation message.
     const missingField = config.fields.find(
-      ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
+      ([key, , , lookupKey]) => lookupKey && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
       const label = missingField[1].toLowerCase();
@@ -451,7 +456,15 @@ export function AcctConfigResource({ entity }) {
         ...Object.fromEntries(
           config.fields
             .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
-            .map(([key]) => [key, form[key]]),
+            // Plain (non-lookup) "number" fields left untouched keep their
+            // initial "" from the Add-button's reset (see the
+            // "Add {config.title}" button below) — send 0 instead of "",
+            // since a blank string in a numeric field is exactly the kind
+            // of thing this backend rejects as "not valid JSON".
+            .map(([key, , type, lookupKey]) => [
+              key,
+              !lookupKey && type === "number" && (form[key] === "" || form[key] == null) ? 0 : form[key],
+            ]),
         ),
         is_draft: draft,
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),

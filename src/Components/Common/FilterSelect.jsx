@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
@@ -7,10 +8,48 @@ import { cn } from "@/Utils/Lib/utils";
 // blue highlight) regardless of any className applied to the <select>
 // itself — no CSS reaches that native list. This renders the options as a
 // themed floating panel instead, matching ModuleDropdown's popover style.
+//
+// The panel is portaled to document.body and positioned with fixed
+// coordinates computed from the trigger button's own bounding rect, rather
+// than living inside this component's DOM position with `position:
+// absolute`. A FilterSelect this close to the bottom of a scrollable card
+// (e.g. DataTable's "Show entries" control, which sits inside the glass
+// wrapper's own `overflow-hidden`) would otherwise have its dropdown
+// silently clipped by that ancestor — same reason a native <select>'s
+// popup never had this problem: it renders in the browser's own top-level
+// layer, not inside any element's box. Flips to open upward when there
+// isn't enough room below in the viewport.
 export function FilterSelect({ value, onChange, options, className, panelClassName, disabled }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [placement, setPlacement] = useState(null);
   const containerRef = useRef(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+    const PANEL_MAX_HEIGHT = 224; // matches max-h-56 below
+    const GAP = 6;
+    function updatePosition() {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUpward = spaceBelow < PANEL_MAX_HEIGHT && rect.top > spaceBelow;
+      setPlacement({
+        left: rect.left,
+        width: rect.width,
+        top: openUpward ? undefined : rect.bottom + GAP,
+        bottom: openUpward ? window.innerHeight - rect.top + GAP : undefined,
+        maxHeight: Math.min(PANEL_MAX_HEIGHT, (openUpward ? rect.top : spaceBelow) - GAP * 2),
+      });
+    }
+    updatePosition();
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen || disabled) return undefined;
@@ -49,42 +88,49 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         />
       </button>
 
-      {isOpen && !disabled && (
-        <div
-          className={cn(
-            "absolute right-0 z-50 mt-1.5 min-w-full max-h-56 overflow-y-auto rounded-xl border p-1.5",
-            panelClassName,
-          )}
-          style={{
-            background: "var(--popover)",
-            borderColor: "var(--border)",
-            boxShadow: "var(--glass-shadow)",
-          }}
-        >
-          {options.map((option) => {
-            const isActive = option.value === value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                className={cn(
-                  "flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary-light text-primary"
-                    : "text-muted-foreground hover:bg-primary-light hover:text-primary",
-                )}
-              >
-                {option.label}
-                {isActive && <Check size={14} className="shrink-0" />}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {isOpen && !disabled && placement &&
+        createPortal(
+          <div
+            className={cn(
+              "fixed z-50 overflow-y-auto rounded-xl border p-1.5",
+              panelClassName,
+            )}
+            style={{
+              left: placement.left,
+              width: placement.width,
+              top: placement.top,
+              bottom: placement.bottom,
+              maxHeight: placement.maxHeight,
+              background: "var(--popover)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--glass-shadow)",
+            }}
+          >
+            {options.map((option) => {
+              const isActive = option.value === value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary-light text-primary"
+                      : "text-muted-foreground hover:bg-primary-light hover:text-primary",
+                  )}
+                >
+                  {option.label}
+                  {isActive && <Check size={14} className="shrink-0" />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
