@@ -2,22 +2,21 @@ import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
 const Resource = lazy(() => import("@/Components/Config/AcctConfigResource.jsx").then((module) => ({ default: module.AcctConfigResource })));
-// Slugs confirmed against the actual sidebar (Configuration > Account,
-// expanded): Account is a non-clickable group header — its children are
-// Product, Product Ownership, Product Party Type, Product Transaction,
-// Product Channel, Product Balance Configuration, Product Group
-// Configuration, Interest Configuration, Joint Configuration, Lifecycle
-// Configuration, Dormancy Configuration, Minor Configuration, Alert
-// Configuration, Nominee Configuration, Numbering Configuration, Opening
-// Configuration, Statement Configuration — each slugified per
+// Slugs confirmed against a real /user/login menu_array: "Account"
+// (menu_id 48) is a non-clickable group header — its children are Account
+// Product (the acct_product entity itself, menu_id 49 -> slug
+// "accountproduct"), Product Ownership, Product Party Type, Product
+// Transaction, Product Channel, Product Balance Configuration, Product
+// Group Configuration, Interest Configuration, Joint Configuration,
+// Lifecycle Configuration, Dormancy Configuration, Minor Configuration,
+// Alert Configuration, Nominee Configuration, Numbering Configuration,
+// Opening Configuration, Statement Configuration — each slugified per
 // MenuItem.jsx's slugifyMenuName (strip whitespace, lowercase, no other
 // transform), so every "* Configuration" item keeps "configuration" in
-// full rather than being abbreviated to "config".
-//
-// "Product" (the acct_product entity) collides with Digital Product's own
-// "Product" leaf (both bare-slugify to "product") — see MenuItem.jsx's
-// DISAMBIGUATE_BY_PARENT. This one gets its parent name folded in to
-// "Account Product" -> "accountproduct".
+// full rather than being abbreviated to "config". (Earlier assumed this
+// entity was named bare "Product", colliding with Digital Product's own
+// child of the same name — it isn't: that one's real name is "Account
+// Product", already unique.)
 const paths = [
   "accountproduct",
   "productownership",

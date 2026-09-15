@@ -45,23 +45,38 @@ import { matchesAction } from "@/Utils/Lib/actionAliases";
 // list.
 const CONFIGS = {
   acct_product: {
-    // The real sidebar leaf for this entity is named "Product" (under the
-    // "Account" group header, which is itself not a clickable menu item —
-    // see acctConfigRoutes.jsx). menuName MUST match the backend's real
-    // menu_name exactly, or every allowed(menus, ..., menuName) permission
-    // check below silently evaluates false and every action button
-    // (Add/Edit/Authorize/Delete) stays hidden regardless of the user's
-    // actual grants.
+    // Confirmed straight from a real /user/login menu_array: this entity's
+    // menu_name is literally "Account Product" (menu_id 49, parent_menu_id
+    // 48 = "Account", the non-clickable group header — see
+    // acctConfigRoutes.jsx). menuName MUST match that exactly, or every
+    // allowed(menus, ..., menuName) permission check below silently
+    // evaluates false and every action button (Add/Edit/Authorize/Delete)
+    // stays hidden regardless of the user's actual grants — this is NOT
+    // the same as Digital Product's own child, which really is named just
+    // "Digital Product" (menu_id 31); the two only look alike in a
+    // truncated sidebar label.
     title: "Product",
     menuName: "Account Product",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
+    // Confirmed live: the backend has a NOT-NULL DB constraint on
+    // effective_from — submitting without it doesn't even get a clean
+    // validation message, it 500s ("null value in column effective_from
+    // ... violates not-null constraint"). Guarded client-side same as the
+    // lookup fields below, so a user gets one clear toast instead of that.
+    required: ["effective_from", "effective_to"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
       ["product_code", "Product code", "text"],
       ["product_name", "Product name", "text"],
       ["description", "Description", "textarea"],
       ["product_type", "Product type", "text", "acctProdTypes"],
-      ["version", "Version", "text"],
+      // Confirmed live against the real API: "version" must be a NUMBER.
+      // Sending it as a string (even "1") makes the backend's strict JSON
+      // decoder fail entirely — reported back as a flatly misleading
+      // "Invalid Request / request body is not valid JSON" 400, with no
+      // hint it's this field. This was the actual root cause of that
+      // error on this form, not a validation/required-field problem.
+      ["version", "Version", "number"],
       ["effective_from", "Effective from", "date"],
       ["effective_to", "Effective to", "date"],
       ["currency_code", "Currency", "text", "currencies"],
@@ -341,8 +356,18 @@ function firstMatchingKey(item, patterns) {
 }
 const optionOf = (item, idBased) => {
   const codeValue = firstMatchingKey(item, [/^code$/i, /_code$/i]);
-  const value = idBased ? idOf(item) : (codeValue ?? idOf(item));
-  const label = firstMatchingKey(item, [/^name$/i, /_name$/i]) ?? codeValue ?? String(idOf(item));
+  const nameValue = firstMatchingKey(item, [/^name$/i, /_name$/i]);
+  // For non-id-based lookups (every *_code/*_type field on acct_product),
+  // the backend expects a string enum/code, never the record's own numeric
+  // id — confirmed live: product_type's real options are the enum strings
+  // "SAVING"/"WALLET"/"CURRENT" (the acct_prod_type master list's own
+  // `name`, since it has no separate `code` field), and submitting the
+  // numeric id there instead ("product_type": 1) got a flatly misleading
+  // "Invalid Request / request body is not valid JSON" 400 back — the body
+  // WAS valid JSON, the enum value just wasn't one the backend recognized.
+  // So the value fallback chain must end at `name`, never at id.
+  const value = idBased ? idOf(item) : (codeValue ?? nameValue ?? idOf(item));
+  const label = nameValue ?? codeValue ?? String(idOf(item));
   return { value, label };
 };
 
@@ -378,7 +403,14 @@ export function AcctConfigResource({ entity }) {
       channels: { idBased: false, items: channels },
       transactions: { idBased: false, items: transactions },
       acctProdTypes: { idBased: false, items: acctProdTypes },
-      currencies: { idBased: false, items: currencies },
+      // Despite the payload field being named "currency_code", confirmed
+      // live that the backend actually wants the master currency record's
+      // numeric id, not its ISO string (e.g. "AED") — sending the string
+      // decodes fine syntactically but the backend can't map it to a
+      // currency and reports that as the same misleading "not valid JSON"
+      // 400 as every other type-mismatch case here. idBased so the value
+      // submitted is the id while the dropdown/label still shows the name.
+      currencies: { idBased: true, items: currencies },
       operationModes: { idBased: false, items: operationModes },
       dormancyActions: { idBased: false, items: dormancyActions },
       sequenceTypes: { idBased: false, items: sequenceTypes },
@@ -443,11 +475,13 @@ export function AcctConfigResource({ entity }) {
     // that as a flatly misleading "request body is not valid JSON" 400
     // instead of a real validation message.
     const missingField = config.fields.find(
-      ([key, , , lookupKey]) => lookupKey && (form[key] === "" || form[key] == null),
+      ([key, , , lookupKey]) =>
+        (lookupKey || config.required?.includes(key)) && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
       const label = missingField[1].toLowerCase();
-      notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
+      const verb = missingField[3] ? "select" : "enter";
+      notifications.error(`Please ${verb} ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
       return;
     }
     setSaving(true);

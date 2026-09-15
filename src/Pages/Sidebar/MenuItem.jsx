@@ -24,13 +24,7 @@ function sortedChildrenOf(menuItems, parentId) {
 // collide — never speculatively — since qualifying an otherwise-unique
 // name would just as easily break its existing working route.
 //
-// "Product" collides between Epurse > Configuration > Account > Product
-// (the acct_product entity) and Epurse > Digital Product > Product (the
-// digital_product entity) — both slugify to bare "product", so whichever
-// route happened to be registered first in Router.jsx silently won for
-// both menu items. Qualifying folds each in as "accountproduct" /
-// "digitalproductproduct" (see acctConfigRoutes.jsx / digitalProductRoutes.jsx).
-const DISAMBIGUATE_BY_PARENT = new Set(["Profile", "Product"]);
+const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
 
 export function MenuItem({
   item,
