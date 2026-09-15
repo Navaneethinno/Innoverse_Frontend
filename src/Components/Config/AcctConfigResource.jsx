@@ -16,6 +16,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import {
   useAcctDormancyActions,
@@ -454,7 +455,14 @@ export function AcctConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST, () => void load());
+  // Reconcile in place instead of refetching (Live Updates guide §3) — the
+  // list is server-paginated, so a brand-new record can't be correctly
+  // slotted into "this page" without asking the server; only updates to
+  // rows already visible on the current page apply instantly.
+  useLiveChannel(
+    API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST,
+    reconcileSetter(setRows, { insertNew: false }),
+  );
   const visible = useMemo(
     () =>
       rows.filter(

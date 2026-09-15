@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
+import { profileId } from "@/Components/UserManagement/Profile/ProfileForm";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 
@@ -68,7 +70,7 @@ function useProfileAsyncQuery(queryFn) {
     window.addEventListener(PROFILES_CHANGED_EVENT, onProfileChange);
     return () => window.removeEventListener(PROFILES_CHANGED_EVENT, onProfileChange);
   }, [refetch]);
-  return { data, error, isLoading, refetch };
+  return { data, error, isLoading, refetch, setData };
 }
 
 function useProfileMutation(mutationFn) {
@@ -128,10 +130,18 @@ export function useProfilesQuery(params) {
   const query = useProfileAsyncQuery(
     useCallback(() => profilesApi.list({ page, limit }), [page, limit]),
   );
-  // Live push from the backend (any user/tab/device authorizing, editing,
-  // deleting, ... a profile) triggers the same refetch a local mutation
-  // already does — see notifyProfileChange() above.
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, notifyProfileChange);
+  // Reconciled in place instead of refetching (Live Updates guide §3) —
+  // insertNew: false since this list is server-paginated (see
+  // AcctConfigResource.jsx's identical reasoning).
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, (_action, records) => {
+    query.setData((current) => {
+      const mappedCurrent = mapProfileListResponse(current);
+      return {
+        data: reconcileRecords(mappedCurrent.profiles, records, { insertNew: false, rowKey: profileId }),
+        pagination: mappedCurrent.pagination,
+      };
+    });
+  });
   const mapped = mapProfileListResponse(query.data);
   return { ...query, data: mapped.profiles, pagination: mapped.pagination };
 }

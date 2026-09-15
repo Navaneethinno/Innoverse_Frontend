@@ -16,6 +16,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -143,7 +144,13 @@ export function KycConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(API_ENDPOINTS.CONFIG_KYC[entity.toUpperCase()].LIST, () => void load());
+  // Reconcile in place instead of refetching (Live Updates guide §3) — see
+  // AcctConfigResource.jsx's identical comment for why inserts are skipped
+  // on this server-paginated list.
+  useLiveChannel(
+    API_ENDPOINTS.CONFIG_KYC[entity.toUpperCase()].LIST,
+    reconcileSetter(setRows, { insertNew: false }),
+  );
   const visible = useMemo(
     () =>
       rows.filter(

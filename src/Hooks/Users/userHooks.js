@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
+import { userId } from "@/Components/UserManagement/User/UserForm";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -53,7 +55,7 @@ function useUserAsyncQuery(queryFn) {
     window.addEventListener(USERS_CHANGED_EVENT, onUserChange);
     return () => window.removeEventListener(USERS_CHANGED_EVENT, onUserChange);
   }, [refetch]);
-  return { data, error, isLoading, refetch };
+  return { data, error, isLoading, refetch, setData };
 }
 
 function useUserMutation(mutationFn) {
@@ -109,10 +111,18 @@ export function useUsersQuery(params) {
       [page, limit, search, status],
     ),
   );
-  // Live push from the backend (any user/tab/device authorizing, editing,
-  // deleting, ... a user) triggers the same refetch a local mutation
-  // already does — see notifyUserChange() above.
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, notifyUserChange);
+  // Reconciled in place instead of refetching (Live Updates guide §3) —
+  // insertNew: false since this list is server-paginated/filtered (see
+  // AcctConfigResource.jsx's identical reasoning).
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, (_action, records) => {
+    query.setData((current) => {
+      const mappedCurrent = mapUserListResponse(current);
+      return {
+        data: reconcileRecords(mappedCurrent.users, records, { insertNew: false, rowKey: userId }),
+        pagination: mappedCurrent.pagination,
+      };
+    });
+  });
   const mapped = mapUserListResponse(query.data);
   return { ...query, data: mapped.users, pagination: mapped.pagination };
 }

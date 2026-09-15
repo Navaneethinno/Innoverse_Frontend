@@ -1,14 +1,15 @@
 import { useCallback, useState } from "react";
 import { institutionModuleApi } from "@/Services/Institutions/institutionModule.api";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useEntityListQuery } from "@/Hooks/Institutions/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 export function useInstitutionModulesQuery() {
-  const query = useEntityListQuery(institutionModuleApi.list);
-  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE.LIST, () => void query.refetch());
-  return query;
+  // Live-reconciled in place (Live Updates guide §3) — see
+  // useEntityListQuery.js's `livePath` option.
+  return useEntityListQuery(institutionModuleApi.list, {
+    livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE.LIST,
+  });
 }
 
 export function useInstitutionModuleMutation(method) {

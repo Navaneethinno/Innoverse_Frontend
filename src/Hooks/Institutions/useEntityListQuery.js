@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 
 // Tolerant response-envelope mapper — mirrors mapInstitutionListResponse in
 // institutionHooks.js (data as a plain array, or nested under data.list /
@@ -26,7 +28,16 @@ function mapPage(payload) {
 // and let DataTable's client-side sort (default: updated_time desc) put the
 // latest add/edit on page 1 reliably, regardless of which backend page it
 // physically landed on.
-export function useEntityListQuery(listFn, { limit = 100, maxPages = 10 } = {}) {
+// `livePath` (optional): the entity's own /list REST path (e.g.
+// API_ENDPOINTS.INSTITUTION.INSTITUTION_BRANDING.LIST) to subscribe to its
+// live-push WebSocket channel (see the "Live Updates (WebSocket)
+// Integration Guide"). Reconciles pushed records straight into `data`
+// instead of refetching (§3) — safe to insert brand-new records here,
+// unlike the paginated Digital Product/Config resources, because this hook
+// already loads every page up to maxPages into memory rather than one
+// server page at a time, so there's no "which page does this belong on"
+// ambiguity.
+export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePath } = {}) {
   const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null });
   const refetch = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
@@ -50,5 +61,8 @@ export function useEntityListQuery(listFn, { limit = 100, maxPages = 10 } = {}) 
   useEffect(() => {
     void refetch();
   }, [refetch]);
+  useLiveChannel(livePath, (_action, records) =>
+    setState((current) => ({ ...current, data: reconcileRecords(current.data, records) })),
+  );
   return { ...state, refetch };
 }

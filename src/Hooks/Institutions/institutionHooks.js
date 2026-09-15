@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { institutionId } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 
@@ -50,7 +52,7 @@ function useInstitutionAsyncQuery(queryFn) {
     window.addEventListener(INSTITUTIONS_CHANGED_EVENT, onInstitutionChange);
     return () => window.removeEventListener(INSTITUTIONS_CHANGED_EVENT, onInstitutionChange);
   }, [refetch]);
-  return { data, error, isLoading, refetch };
+  return { data, error, isLoading, refetch, setData };
 }
 
 function useInstitutionMutation(mutationFn) {
@@ -119,10 +121,22 @@ export function useInstitutionsQuery(params) {
   const query = useInstitutionAsyncQuery(
     useCallback(() => institutionsApi.list({ page, limit }), [page, limit]),
   );
-  // Live push from the backend (any user/tab/device authorizing, editing,
-  // deleting, ... an institution) triggers the same refetch a local mutation
-  // already does — see notifyInstitutionChange() above.
-  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, notifyInstitutionChange);
+  // Reconciled in place instead of refetching (Live Updates guide §3). The
+  // list is server-paginated, so a brand-new record can't be correctly
+  // slotted into "this page" without asking the server (insertNew: false)
+  // — same reasoning as AcctConfigResource.jsx. Written back through
+  // mapInstitutionListResponse's own top-priority shape ({ data: [...] })
+  // regardless of how the original payload nested it, so next render's
+  // unwrap sees the reconciled array either way.
+  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, (_action, records) => {
+    query.setData((current) => {
+      const mappedCurrent = mapInstitutionListResponse(current);
+      return {
+        data: reconcileRecords(mappedCurrent.institutions, records, { insertNew: false, rowKey: institutionId }),
+        pagination: mappedCurrent.pagination,
+      };
+    });
+  });
   const mapped = mapInstitutionListResponse(query.data);
   return { ...query, data: mapped.institutions, pagination: mapped.pagination };
 }
