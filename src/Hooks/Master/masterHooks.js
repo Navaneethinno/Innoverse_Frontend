@@ -134,6 +134,22 @@ export function useTransactions(enabled = true) {
   return { transactions, error };
 }
 
+export function useFrequencies(enabled = true) {
+  const [frequencies, setFrequencies] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setFrequencies(await masterApi.frequencyList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load frequencies"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { frequencies, error };
+}
+
 export function useOwnershipTypes(enabled = true) {
   const [ownershipTypes, setOwnershipTypes] = useState([]);
   const [error, setError] = useState(null);

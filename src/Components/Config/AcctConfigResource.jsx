@@ -27,6 +27,7 @@ import {
   useAcctSequenceTypes,
   useChannels,
   useCurrencies,
+  useFrequencies,
   useOwnershipTypes,
   usePartyTypes,
   useTransactions,
@@ -308,7 +309,7 @@ const CONFIGS = {
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
       ["statement_enabled", "Statement enabled", "boolean"],
-      ["frequency", "Frequency", "text"],
+      ["frequency", "Frequency", "text", "frequencies"],
       ["transaction_history_enabled", "Transaction history enabled", "boolean"],
       ["monthly_statement", "Monthly statement", "boolean"],
       ["email_delivery", "Email delivery", "boolean"],
@@ -389,6 +390,7 @@ export function AcctConfigResource({ entity }) {
   const { operationModes = [] } = useAcctOperationModes(entity === "acct_product_joint_config");
   const { dormancyActions = [] } = useAcctDormancyActions(entity === "acct_product_dormancy_config");
   const { sequenceTypes = [] } = useAcctSequenceTypes(entity === "acct_product_numbering_config");
+  const { frequencies = [] } = useFrequencies(entity === "acct_product_statement_config");
   const [acctProducts, setAcctProducts] = useState([]);
   useEffect(() => {
     if (!needsAcctProducts) return;
@@ -406,29 +408,33 @@ export function AcctConfigResource({ entity }) {
     () => ({
       institutions: { idBased: true, items: institutions },
       acctProducts: { idBased: true, items: acctProducts },
-      // Confirmed live (2026-09) against the real add endpoints: every
-      // field literally suffixed "_code" (ownership_type_code,
-      // party_type_code, channel_code, transaction_type_code, plus
-      // currency_code below) wants the master record's numeric id, not its
-      // name string — sending the name decodes as valid JSON but the
-      // backend can't map it and reports the same misleading "Invalid
-      // Request / request body is not valid JSON" 400 as every other
-      // type-mismatch case here. Fields WITHOUT a "_code" suffix
-      // (product_type, operation_mode, dormancy_action, sequence_type)
-      // are the opposite: real enum strings, confirmed for product_type —
-      // see acctProdTypes below. idBased so the value submitted is the id
-      // while the dropdown/label still shows the name.
+      // Confirmed live (2026-09) against the real add endpoints, one field
+      // at a time: ownership_type_code, party_type_code, channel_code,
+      // transaction_type_code, currency_code, frequency, dormancy_action,
+      // sequence_type, and operation_mode ALL want the master record's
+      // numeric id, not its name string — sending the name decodes as
+      // valid JSON but the backend can't map it and reports the same
+      // misleading "Invalid Request / request body is not valid JSON" 400
+      // as every other type-mismatch case here (frequency/dormancy_action
+      // additionally 500 as a bare Postgres FK-constraint violation when
+      // left out entirely, confirming these are real foreign keys, not
+      // free-text enum columns). A "_code" suffix on the field name is NOT
+      // a reliable signal either way — only acctProdTypes (product_type on
+      // acct_product itself) is confirmed to want the literal enum string.
+      // idBased so the value submitted is the id while the dropdown/label
+      // still shows the name.
       ownershipTypes: { idBased: true, items: ownershipTypes },
       partyTypes: { idBased: true, items: partyTypes },
       channels: { idBased: true, items: channels },
       transactions: { idBased: true, items: transactions },
       acctProdTypes: { idBased: false, items: acctProdTypes },
       currencies: { idBased: true, items: currencies },
-      operationModes: { idBased: false, items: operationModes },
-      dormancyActions: { idBased: false, items: dormancyActions },
-      sequenceTypes: { idBased: false, items: sequenceTypes },
+      operationModes: { idBased: true, items: operationModes },
+      dormancyActions: { idBased: true, items: dormancyActions },
+      sequenceTypes: { idBased: true, items: sequenceTypes },
+      frequencies: { idBased: true, items: frequencies },
     }),
-    [institutions, acctProducts, ownershipTypes, partyTypes, channels, transactions, acctProdTypes, currencies, operationModes, dormancyActions, sequenceTypes],
+    [institutions, acctProducts, ownershipTypes, partyTypes, channels, transactions, acctProdTypes, currencies, operationModes, dormancyActions, sequenceTypes, frequencies],
   );
   const optionsFor = (lookupKey) => {
     const { idBased, items } = lookups[lookupKey] ?? { idBased: false, items: [] };
