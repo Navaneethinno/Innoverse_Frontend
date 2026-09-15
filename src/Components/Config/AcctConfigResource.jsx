@@ -321,14 +321,30 @@ const allowed = (menus, action, menuName) =>
       new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) &&
       (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
-// value/label extractor shared by every lookup source below: master
-// (reference data) records key off `code` (acct_product's own foreign-key
-// fields are literally named *_code), while acct_product itself (used as a
-// parent/self reference by every sub-config) has no code and keys off `id`.
-const optionOf = (item, idBased) => ({
-  value: idBased ? idOf(item) : (item.code ?? idOf(item)),
-  label: item.name ?? item.code ?? String(idOf(item)),
-});
+// Master (reference data) endpoints don't share one consistent field naming
+// convention — confirmed live shapes include plain {code, name} for some
+// entities but {currency_code, currency_name} / {channel_id, channel_name}
+// for others (see InstitutionCurrencyPage.jsx / InstitutionChannelPage.jsx,
+// the only two of these lists with a previously-confirmed shape). Rather
+// than guess a single field name per lookup and silently fall back to the
+// numeric id when it's wrong (which is exactly what showed plain
+// "1"/"2"/"3" instead of currency names in the Currency dropdown), scan
+// each record's own keys for anything ending in "_code"/"_name" as well as
+// the bare "code"/"name".
+function firstMatchingKey(item, patterns) {
+  const keys = Object.keys(item ?? {});
+  for (const pattern of patterns) {
+    const key = keys.find((k) => pattern.test(k));
+    if (key && item[key] != null && item[key] !== "") return item[key];
+  }
+  return undefined;
+}
+const optionOf = (item, idBased) => {
+  const codeValue = firstMatchingKey(item, [/^code$/i, /_code$/i]);
+  const value = idBased ? idOf(item) : (codeValue ?? idOf(item));
+  const label = firstMatchingKey(item, [/^name$/i, /_name$/i]) ?? codeValue ?? String(idOf(item));
+  return { value, label };
+};
 
 export function AcctConfigResource({ entity }) {
   const config = CONFIGS[entity];
@@ -375,7 +391,7 @@ export function AcctConfigResource({ entity }) {
   };
   const labelFor = (lookupKey, value) => {
     const { idBased, items } = lookups[lookupKey] ?? { idBased: false, items: [] };
-    const match = items.find((item) => String(idBased ? idOf(item) : (item.code ?? idOf(item))) === String(value));
+    const match = items.find((item) => String(optionOf(item, idBased).value) === String(value));
     return match ? optionOf(match, idBased).label : String(value ?? "-");
   };
   const [rows, setRows] = useState([]),
