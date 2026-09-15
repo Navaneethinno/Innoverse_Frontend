@@ -9,8 +9,14 @@ import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 export const statusBucket = (row) => {
   const status = String(row?.status_name ?? row?.auth_status ?? "").toLowerCase();
   const process = String(row?.process_status_name ?? "").toLowerCase();
-  if (status.includes("inactive") || process.includes("inactive")) return "inactive";
-  if (status.includes("active") || status === "authorized" || row?.status === 1) return "active";
+  // Pending must be checked BEFORE active/inactive: a record awaiting
+  // checker approval keeps its live status_name (e.g. "Active") while
+  // process_status_name/auth_status carries the actual pending workflow
+  // state (e.g. "Pending Delete") — confirmed live via
+  // /config/acct_product/list, which returns exactly that combination
+  // while a delete is pending. Checking status first made every pending
+  // row on an otherwise-active record bucket into "Active" instead of
+  // "Pending", silently zeroing out the Pending tab's count.
   if (
     status.includes("pending") ||
     process.includes("pending") ||
@@ -19,6 +25,8 @@ export const statusBucket = (row) => {
     Number(row?.status) === INSTITUTION_DRAFT_STATUS_CODE
   )
     return "pending";
+  if (status.includes("inactive") || process.includes("inactive")) return "inactive";
+  if (status.includes("active") || status === "authorized" || row?.status === 1) return "active";
   return "inactive";
 };
 

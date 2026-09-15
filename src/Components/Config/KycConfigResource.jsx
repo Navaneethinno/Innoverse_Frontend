@@ -246,7 +246,7 @@ export function KycConfigResource({ entity }) {
       key: "status",
       label: "Status",
       render: (row) => (
-        <StatusBadge status={String(row.status_name ?? row.status ?? "-")} variant="solid" />
+        <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />
       ),
     },
     {
