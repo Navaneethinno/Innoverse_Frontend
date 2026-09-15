@@ -406,18 +406,23 @@ export function AcctConfigResource({ entity }) {
     () => ({
       institutions: { idBased: true, items: institutions },
       acctProducts: { idBased: true, items: acctProducts },
-      ownershipTypes: { idBased: false, items: ownershipTypes },
-      partyTypes: { idBased: false, items: partyTypes },
-      channels: { idBased: false, items: channels },
-      transactions: { idBased: false, items: transactions },
+      // Confirmed live (2026-09) against the real add endpoints: every
+      // field literally suffixed "_code" (ownership_type_code,
+      // party_type_code, channel_code, transaction_type_code, plus
+      // currency_code below) wants the master record's numeric id, not its
+      // name string — sending the name decodes as valid JSON but the
+      // backend can't map it and reports the same misleading "Invalid
+      // Request / request body is not valid JSON" 400 as every other
+      // type-mismatch case here. Fields WITHOUT a "_code" suffix
+      // (product_type, operation_mode, dormancy_action, sequence_type)
+      // are the opposite: real enum strings, confirmed for product_type —
+      // see acctProdTypes below. idBased so the value submitted is the id
+      // while the dropdown/label still shows the name.
+      ownershipTypes: { idBased: true, items: ownershipTypes },
+      partyTypes: { idBased: true, items: partyTypes },
+      channels: { idBased: true, items: channels },
+      transactions: { idBased: true, items: transactions },
       acctProdTypes: { idBased: false, items: acctProdTypes },
-      // Despite the payload field being named "currency_code", confirmed
-      // live that the backend actually wants the master currency record's
-      // numeric id, not its ISO string (e.g. "AED") — sending the string
-      // decodes fine syntactically but the backend can't map it to a
-      // currency and reports that as the same misleading "not valid JSON"
-      // 400 as every other type-mismatch case here. idBased so the value
-      // submitted is the id while the dropdown/label still shows the name.
       currencies: { idBased: true, items: currencies },
       operationModes: { idBased: false, items: operationModes },
       dormancyActions: { idBased: false, items: dormancyActions },
