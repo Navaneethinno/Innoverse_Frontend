@@ -1,0 +1,1 @@
+export { Religion } from "./Religion";

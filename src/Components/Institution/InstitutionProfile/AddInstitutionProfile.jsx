@@ -20,6 +20,8 @@ import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
 // Field set matches POST /institution/profile/add's confirmed body exactly
 // (Postman collection, "Institution/Profile" folder) — no KYC/legal/address
@@ -137,8 +139,11 @@ function NumberField({ label, fieldKey, value, onChange }) {
       <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
       <input
         type="number"
+        min={0}
         value={value}
-        onChange={(e) => onChange(fieldKey, e.target.value)}
+        onKeyDown={blockNegativeKeyDown}
+        onWheel={blurOnWheel}
+        onChange={(e) => onChange(fieldKey, clampNonNegative(e.target.value))}
         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
       />
     </div>
@@ -467,33 +472,35 @@ export function AddInstitutionProfile() {
                     />
                     <label className="block text-sm font-medium text-slate-700">
                       <span className="mb-1.5 block">{t("typeLabel")}</span>
-                      <select
+                      <FilterSelect
+                        className="w-full"
                         value={form.type}
-                        onChange={(e) => setField("type", e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                      >
-                        <option value="">{t("selectInstitutionType")}</option>
-                        {institutionTypes.map((type) => {
-                          const value = type.id ?? type.type ?? type.code;
-                          const label = type.name ?? type.type_name ?? type.code ?? value;
-                          return <option key={value} value={value}>{label}</option>;
-                        })}
-                      </select>
+                        onChange={(next) => setField("type", next)}
+                        options={[
+                          { value: "", label: t("selectInstitutionType") },
+                          ...institutionTypes.map((type) => {
+                            const value = type.id ?? type.type ?? type.code;
+                            const label = type.name ?? type.type_name ?? type.code ?? value;
+                            return { value, label };
+                          }),
+                        ]}
+                      />
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <label className="block text-sm font-medium text-slate-700">
                         <span className="mb-1.5 block">{t("timezoneLabel")}</span>
-                        <select
+                        <FilterSelect
+                          className="w-full"
                           value={form.timezone}
-                          onChange={(e) => setField("timezone", e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
-                        >
-                          <option value="">{t("selectTimezone")}</option>
-                          {timezones.map((timezone) => {
-                            const value = timezone.name ?? timezone.id;
-                            return <option key={timezone.id ?? value} value={value}>{value}</option>;
-                          })}
-                        </select>
+                          onChange={(next) => setField("timezone", next)}
+                          options={[
+                            { value: "", label: t("selectTimezone") },
+                            ...timezones.map((timezone) => {
+                              const value = timezone.name ?? timezone.id;
+                              return { value, label: value };
+                            }),
+                          ]}
+                        />
                       </label>
                       <DateFormatField
                         value={form.date_format}
@@ -502,16 +509,16 @@ export function AddInstitutionProfile() {
                     </div>
                     <div className="space-y-3">
                       <label className="block text-sm font-medium text-slate-700">{t("defaultLanguage")}</label>
-                      <select
+                      <FilterSelect
+                        className="w-full"
                         value={form.languageDefault}
-                        onChange={(e) => setField("languageDefault", e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
-                      >
-                        {languages.map((language) => {
+                        onChange={(next) => setField("languageDefault", next)}
+                        options={languages.map((language) => {
                           const value = typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;
-                          return <option key={value} value={value}>{typeof language === "string" ? language : language.name ?? language.language_name ?? value}</option>;
+                          const label = typeof language === "string" ? language : language.name ?? language.language_name ?? value;
+                          return { value, label };
                         })}
-                      </select>
+                      />
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("supportedLanguages")}</p>
                       <div className="flex flex-wrap gap-4">
                         {languages.map((language) => {

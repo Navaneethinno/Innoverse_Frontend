@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { institutionId } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login), NOT a
 // fabricated `user.institution.type` field — nothing in the auth flow ever
@@ -17,13 +20,7 @@ export function useHasInstitutionAction(actionName) {
       (menuArray || []).some(
         (item) =>
           /institution\s*profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => {
-            const grantedAction = String(a?.action_name ?? a?.name ?? "").trim().toLowerCase();
-            const requestedAction = String(actionName).trim().toLowerCase();
-            return grantedAction === requestedAction ||
-              (requestedAction === "add" && grantedAction === "create") ||
-              (requestedAction === "authorize" && grantedAction === "authorise");
-          }),
+          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
       ),
     [menuArray, actionName],
   );
@@ -55,7 +52,7 @@ function useInstitutionAsyncQuery(queryFn) {
     window.addEventListener(INSTITUTIONS_CHANGED_EVENT, onInstitutionChange);
     return () => window.removeEventListener(INSTITUTIONS_CHANGED_EVENT, onInstitutionChange);
   }, [refetch]);
-  return { data, error, isLoading, refetch };
+  return { data, error, isLoading, refetch, setData };
 }
 
 function useInstitutionMutation(mutationFn) {
@@ -124,10 +121,22 @@ export function useInstitutionsQuery(params) {
   const query = useInstitutionAsyncQuery(
     useCallback(() => institutionsApi.list({ page, limit }), [page, limit]),
   );
-  // Live push from the backend (any user/tab/device authorizing, editing,
-  // deleting, ... an institution) triggers the same refetch a local mutation
-  // already does — see notifyInstitutionChange() above.
-  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, notifyInstitutionChange);
+  // Reconciled in place instead of refetching (Live Updates guide §3). The
+  // list is server-paginated, so a brand-new record can't be correctly
+  // slotted into "this page" without asking the server (insertNew: false)
+  // — same reasoning as AcctConfigResource.jsx. Written back through
+  // mapInstitutionListResponse's own top-priority shape ({ data: [...] })
+  // regardless of how the original payload nested it, so next render's
+  // unwrap sees the reconciled array either way.
+  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, (_action, records) => {
+    query.setData((current) => {
+      const mappedCurrent = mapInstitutionListResponse(current);
+      return {
+        data: reconcileRecords(mappedCurrent.institutions, records, { insertNew: false, rowKey: institutionId }),
+        pagination: mappedCurrent.pagination,
+      };
+    });
+  });
   const mapped = mapInstitutionListResponse(query.data);
   return { ...query, data: mapped.institutions, pagination: mapped.pagination };
 }
@@ -152,6 +161,13 @@ export function useInstitutionDeauthMutation() {
 }
 export function useInstitutionDeleteMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.delete(payload), []));
+}
+// Approving a pending delete is a distinct backend endpoint (/delete_auth)
+// from approving a pending add/edit (/auth) — institutions.api.js's own
+// comments confirm `auth` only ever covers add/edit/deactivate/reactivate.
+// Calling `auth` on a pending-delete record would hit the wrong endpoint.
+export function useInstitutionDeleteAuthMutation() {
+  return useInstitutionMutation(useCallback((payload) => institutionsApi.deleteAuth(payload), []));
 }
 export function useInstitutionSubmitMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.submit(payload), []));

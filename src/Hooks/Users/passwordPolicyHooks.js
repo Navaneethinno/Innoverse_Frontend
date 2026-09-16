@@ -3,19 +3,21 @@ import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const CHANGED = "user-password-policy:data-changed";
 const notify = () => window.dispatchEvent(new Event(CHANGED));
+// Matches PasswordPolicy.jsx's own (unexported, to avoid a circular import
+// back into this file) row-identity resolver.
+const policyRowId = (row) => row?.policy_id ?? row?.id;
 
 export function useHasPasswordPolicyAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(() => (menuArray ?? []).some((item) =>
-    /password.?policy/i.test(String(item?.menu_name ?? "")) && (item.actions ?? []).some((action) => {
-      const granted = String(action?.action_name ?? action?.name ?? "").toLowerCase();
-      const requested = String(actionName).toLowerCase();
-      return granted === requested || (requested === "authorize" && granted === "authorise") || (requested === "add" && granted === "create");
-    }),
+    /password.?policy/i.test(String(item?.menu_name ?? "")) &&
+    (item.actions ?? []).some((action) => matchesAction(action?.action_name ?? action?.name, actionName)),
   ), [menuArray, actionName]);
 }
 
@@ -27,7 +29,12 @@ export function usePasswordPoliciesQuery(params = {}) {
     catch (error) { setState((old) => ({ ...old, error: error instanceof Error ? error : new Error("Request failed"), isLoading: false })); }
   }, [params.page, params.limit]);
   useEffect(() => { void refetch(); window.addEventListener(CHANGED, refetch); return () => window.removeEventListener(CHANGED, refetch); }, [refetch]);
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PASSWORD_POLICY.LIST, notify);
+  // Reconciled in place instead of refetching (Live Updates guide §3) —
+  // insertNew: false since this list is server-paginated (see
+  // AcctConfigResource.jsx's identical reasoning).
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PASSWORD_POLICY.LIST, (_action, records) => {
+    setState((current) => ({ ...current, data: reconcileRecords(current.data, records, { insertNew: false, rowKey: policyRowId }) }));
+  });
   return { ...state, refetch };
 }
 

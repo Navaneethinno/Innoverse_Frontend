@@ -1,0 +1,1 @@
+export { InstitutionBrandingPage } from "./InstitutionBrandingPage";

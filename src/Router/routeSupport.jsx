@@ -58,11 +58,11 @@ class ChunkErrorBoundary extends Component {
   }
 }
 
-export function pageElement(Page) {
+export function pageElement(Page, pageProps = {}) {
   return (
     <ChunkErrorBoundary fallback={pageFallback}>
       <Suspense fallback={pageFallback}>
-        <Page />
+        <Page {...pageProps} />
       </Suspense>
     </ChunkErrorBoundary>
   );

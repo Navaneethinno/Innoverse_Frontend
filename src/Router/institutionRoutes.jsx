@@ -16,12 +16,12 @@ const InstitutionDetailPage = lazy(() =>
     default: m.ViewInstitutionProfile,
   })),
 );
-const InstitutionModulePage = lazy(() => import("@/Pages/Institutions/InstitutionModulePage").then((m) => ({ default: m.InstitutionModulePage })));
-const InstitutionModuleViewPage = lazy(() => import("@/Pages/Institutions/InstitutionModuleViewPage").then((m) => ({ default: m.InstitutionModuleViewPage })));
-const InstitutionLegalPage = lazy(() => import("@/Pages/Institutions/InstitutionLegalPage").then((m) => ({ default: m.InstitutionLegalPage })));
-const InstitutionBrandingPage = lazy(() => import("@/Pages/Institutions/InstitutionBrandingPage").then((m) => ({ default: m.InstitutionBrandingPage })));
-const InstitutionChannelPage = lazy(() => import("@/Pages/Institutions/InstitutionChannelPage").then((m) => ({ default: m.InstitutionChannelPage })));
-const InstitutionCurrencyPage = lazy(() => import("@/Pages/Institutions/InstitutionCurrencyPage").then((m) => ({ default: m.InstitutionCurrencyPage })));
+const InstitutionModulePage = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModulePage })));
+const InstitutionModuleViewPage = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModuleViewPage })));
+const InstitutionLegalPage = lazy(() => import("@/Components/Institution/InstitutionLegal").then((m) => ({ default: m.InstitutionLegalPage })));
+const InstitutionBrandingPage = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBrandingPage })));
+const InstitutionChannelPage = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannelPage })));
+const InstitutionCurrencyPage = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrencyPage })));
 export const institutionRoutes = [
   { path: "/institutions", element: pageElement(InstitutionListPage) },
   { path: "/institutions/pending", element: <Navigate to="/institutions" replace /> },

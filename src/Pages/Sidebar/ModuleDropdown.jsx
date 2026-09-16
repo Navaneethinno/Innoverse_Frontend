@@ -56,7 +56,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
 
       {isOpen && (
         <div
-          className="absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
+          className="thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
           style={{
             background: "var(--popover)",
             borderColor: "var(--border)",

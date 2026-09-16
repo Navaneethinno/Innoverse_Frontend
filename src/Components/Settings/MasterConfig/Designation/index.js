@@ -1,0 +1,1 @@
+export { Designation } from "./Designation";

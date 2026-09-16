@@ -38,34 +38,46 @@ const RELIGION = API_ENDPOINTS.MASTER_CONFIG.RELIGION;
 const GENDER = API_ENDPOINTS.MASTER_CONFIG.GENDER;
 const SOURCE_OF_FUND = API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND;
 const TURNOVER = API_ENDPOINTS.MASTER_CONFIG.TURNOVER;
+const deauthPayload = (payload = {}) => ({
+  id: payload.id,
+  narration: payload.narration ?? payload.description ?? "UNDEFINED",
+});
 const lifecycleApi = (endpoints) => ({
   add: (payload) => request(endpoints.ADD, payload), submit: (payload) => request(endpoints.SUBMIT, payload),
-  list: (payload = { page: 1, limit: 10 }) => request(endpoints.LIST, payload), getActive: () => request(endpoints.GET_ACTIVE),
+  list: (payload = { page: 1, limit: 10 }) => request(endpoints.LIST, payload), getActive: (payload = { view: "dropdown" }) => request(endpoints.GET_ACTIVE, payload),
   audit: (payload) => request(endpoints.AUDIT, payload), auth: (payload) => request(endpoints.AUTH, payload),
-  deauth: (payload) => request(endpoints.DEAUTH, payload), edit: (payload) => request(endpoints.EDIT, payload),
+  deauth: (payload) => request(endpoints.DEAUTH, deauthPayload(payload)), edit: (payload) => request(endpoints.EDIT, payload),
   delete: (payload) => request(endpoints.DELETE, payload), deleteAuth: (payload) => request(endpoints.DELETE_AUTH, payload),
+  pending: (payload) => request(endpoints.PENDING, payload),
+  deactivate: (payload) => request(endpoints.DEACTIVATE, payload), reactivate: (payload) => request(endpoints.REACTIVATE, payload),
 });
 export const districtApi = {
   add: (payload) => request(DISTRICT.ADD, payload), submit: (payload) => request(DISTRICT.SUBMIT, payload),
-  list: (payload = { page: 1, limit: 10 }) => request(DISTRICT.LIST, payload), getActive: () => request(DISTRICT.GET_ACTIVE),
+  list: (payload = { page: 1, limit: 10 }) => request(DISTRICT.LIST, payload), getActive: (payload = { view: "dropdown" }) => request(DISTRICT.GET_ACTIVE, payload),
   audit: (payload) => request(DISTRICT.AUDIT, payload), auth: (payload) => request(DISTRICT.AUTH, payload),
-  deauth: (payload) => request(DISTRICT.DEAUTH, payload), edit: (payload) => request(DISTRICT.EDIT, payload),
+  deauth: (payload) => request(DISTRICT.DEAUTH, deauthPayload(payload)), edit: (payload) => request(DISTRICT.EDIT, payload),
   delete: (payload) => request(DISTRICT.DELETE, payload), deleteAuth: (payload) => request(DISTRICT.DELETE_AUTH, payload),
-  activeProvinces: () => request(PROVINCE.GET_ACTIVE),
+  pending: (payload) => request(DISTRICT.PENDING, payload),
+  deactivate: (payload) => request(DISTRICT.DEACTIVATE, payload), reactivate: (payload) => request(DISTRICT.REACTIVATE, payload),
+  activeProvinces: (payload = { view: "dropdown" }) => request(PROVINCE.GET_ACTIVE, payload),
 };
 export const provinceApi = {
   add: (payload) => request(PROVINCE.ADD, payload), submit: (payload) => request(PROVINCE.SUBMIT, payload),
-  list: (payload = { page: 1, limit: 10 }) => request(PROVINCE.LIST, payload), getActive: () => request(PROVINCE.GET_ACTIVE),
+  list: (payload = { page: 1, limit: 10 }) => request(PROVINCE.LIST, payload), getActive: (payload = { view: "dropdown" }) => request(PROVINCE.GET_ACTIVE, payload),
   audit: (payload) => request(PROVINCE.AUDIT, payload), auth: (payload) => request(PROVINCE.AUTH, payload),
-  deauth: (payload) => request(PROVINCE.DEAUTH, payload), edit: (payload) => request(PROVINCE.EDIT, payload),
+  deauth: (payload) => request(PROVINCE.DEAUTH, deauthPayload(payload)), edit: (payload) => request(PROVINCE.EDIT, payload),
   delete: (payload) => request(PROVINCE.DELETE, payload), deleteAuth: (payload) => request(PROVINCE.DELETE_AUTH, payload),
+  pending: (payload) => request(PROVINCE.PENDING, payload),
+  deactivate: (payload) => request(PROVINCE.DEACTIVATE, payload), reactivate: (payload) => request(PROVINCE.REACTIVATE, payload),
 };
 export const villageApi = {
   add: (payload) => request(VILLAGE.ADD, payload), submit: (payload) => request(VILLAGE.SUBMIT, payload),
-  list: (payload = { page: 1, limit: 10 }) => request(VILLAGE.LIST, payload), getActive: () => request(VILLAGE.GET_ACTIVE),
+  list: (payload = { page: 1, limit: 10 }) => request(VILLAGE.LIST, payload), getActive: (payload = { view: "dropdown" }) => request(VILLAGE.GET_ACTIVE, payload),
   audit: (payload) => request(VILLAGE.AUDIT, payload), auth: (payload) => request(VILLAGE.AUTH, payload),
-  deauth: (payload) => request(VILLAGE.DEAUTH, payload), edit: (payload) => request(VILLAGE.EDIT, payload),
+  deauth: (payload) => request(VILLAGE.DEAUTH, deauthPayload(payload)), edit: (payload) => request(VILLAGE.EDIT, payload),
   delete: (payload) => request(VILLAGE.DELETE, payload), deleteAuth: (payload) => request(VILLAGE.DELETE_AUTH, payload),
+  pending: (payload) => request(VILLAGE.PENDING, payload),
+  deactivate: (payload) => request(VILLAGE.DEACTIVATE, payload), reactivate: (payload) => request(VILLAGE.REACTIVATE, payload),
 };
 export const accountPurposeApi = lifecycleApi(ACCOUNT_PURPOSE);
 export const categoryApi = lifecycleApi(CATEGORY);

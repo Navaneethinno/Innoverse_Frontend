@@ -1,3 +1,4 @@
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
@@ -69,23 +70,11 @@ function numericId(value) {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-function isDraft(profile) {
-  return Number(profile?.status) === 9 || String(profile?.auth_status ?? "").toUpperCase() === "DRAFT";
-}
-
-function isPending(profile) {
-  return String(profile?.process_status_name ?? profile?.status_name ?? "").toLowerCase().includes("pending") ||
-    String(profile?.auth_status ?? "").toUpperCase() === "AUTH WAIT";
-}
-
-function isPendingDelete(profile) {
-  return String(profile?.process_status_name ?? "").toLowerCase().includes("pending delete");
-}
-
 function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (key === "auth_status") return value == null ? "—" : <StatusBadge status={String(value)} />;
+  if (key === "auth_status" || key === "process_status_name")
+    return value == null ? "—" : <StatusBadge status={String(value)} />;
   return value == null || value === "" ? "—" : String(value);
 }
 
@@ -108,6 +97,7 @@ export function Profile() {
   const canSubmit = useHasProfileAction("Submit");
 
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   // Same reasoning as InstitutionProfile.jsx: /profile/list has no
   // status-filter or search param (confirmed via Postman), so real
@@ -116,7 +106,7 @@ export function Profile() {
   // from the server (scales to any record count); a tab or search
   // switches to a larger single fetch, filtered client-side.
   const needsFullBatch = activeTab !== "all" || search.trim() !== "";
-  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 });
+  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -277,12 +267,6 @@ export function Profile() {
         ),
     },
     {
-      key: "code",
-      label: t("institutionCode"),
-      sortValue: (p) => institutionsById.get(String(p.inst_profile_id))?.code ?? "",
-      render: (p) => renderProfileValue(institutionsById.get(String(p.inst_profile_id)) ?? {}, "code"),
-    },
-    {
       key: "status_name",
       label: t("common:status"),
       sortValue: (p) => p.status_name ?? p.status ?? "",
@@ -293,24 +277,30 @@ export function Profile() {
           <StatusBadge status={String(p.status_name ?? (p.status === 1 ? "ACTIVE" : "INACTIVE")).toUpperCase()} />
         ),
     },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (p) => p.process_status_name ?? "",
+      render: (p) => renderProfileValue(p, "process_status_name"),
+    },
     { key: "auth_status", label: t("authorizationStatus"), sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
     {
       key: "actions",
       label: t("common:actions"),
       sortable: false,
       render: (p) => {
-        const draft = isDraft(p);
-        const pending = isPending(p);
-        const pendingDelete = isPendingDelete(p);
+        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit });
         const actions = [
-          ...((canSubmit || canAdd) && draft ? [["submit", "Submit draft", Send, "submit"]] : []),
-          ...(canAuthorize && pending && !pendingDelete ? [["auth", "Authorize", ShieldCheck, "auth"], ["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-          ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck, "deleteAuth"]] : []),
-          ...(canDelete && !pending && !draft ? [["delete", "Delete", Trash2, "delete"]] : []),
+          ...(visibility.submitDraft ? [["submit", "Submit draft", Send, "submit"]] : []),
+          ...(visibility.authorize
+            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
+            : []),
+          ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
+          ...(visibility.delete ? [["delete", "Delete", Trash2, "delete"]] : []),
         ];
         return (
           <div className="flex items-center justify-center gap-1">
-            {canEdit && (!pending || draft) && (
+            {visibility.edit && (
               <UiTooltip label="Edit">
                 <button type="button" onClick={() => openEdit(p)} className={actionButtonClass("edit")}>
                   <Pencil size={14} />
@@ -341,30 +331,26 @@ export function Profile() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-400">{t("userManagement")}</p>
-          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">
-            {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
-          </p>
-        </div>
-        {canAdd && (
-          <motion.button
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={openCreate}
-            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
-            style={{ background: "#2266EE" }}
-          >
-            <Plus size={14} /> {t("newProfile")}
-          </motion.button>
-        )}
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
+        <p className="mt-1 text-xs font-medium text-slate-400">
+          {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
+        </p>
       </div>
 
-      <div className="mb-4">
-        <StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+          actions={canAdd && (
+            <motion.button
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={openCreate}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+              style={{ background: "#2266EE" }}
+            >
+              <Plus size={14} /> {t("newProfile")}
+            </motion.button>
+          )}
           rows={profiles}
           value={activeTab}
           onChange={(value) => {
@@ -377,11 +363,8 @@ export function Profile() {
             setPage(1);
           }}
           searchPlaceholder={t("searchProfilesPlaceholder")}
-        />
-      </div>
-
-      {profilesQuery.error && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+        bare />{profilesQuery.error && (
+        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {profilesQuery.error.message}
           <button onClick={() => void profilesQuery.refetch()} className="ml-auto text-xs font-bold underline">
             {t("common:retry")}
@@ -410,9 +393,14 @@ export function Profile() {
                 totalPages: profilesQuery.pagination?.totalPages ?? 1,
                 totalRecords: profilesQuery.pagination?.totalRecords ?? filtered.length,
                 onPageChange: setPage,
+                limit,
+                onLimitChange: (next) => {
+                  setLimit(next);
+                  setPage(1);
+                },
               }
         }
-      />
+      bare /></div>
 
       <AnimatePresence>
         {showForm && !editing && (

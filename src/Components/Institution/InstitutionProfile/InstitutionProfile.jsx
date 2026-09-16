@@ -3,19 +3,25 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   AlertCircle,
+  CheckCircle2,
+  Clock3,
   Eye,
+  Filter,
   History,
+  ListChecks,
+  PauseCircle,
   Pencil,
   Plus,
   PowerOff,
   Power,
-  Search,
   Send,
   ShieldCheck,
   ShieldOff,
   Trash2,
 } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
 import {
   mapInstitutionListResponse,
@@ -23,6 +29,7 @@ import {
   useInstitutionAuthMutation,
   useInstitutionDeactivateMutation,
   useInstitutionDeauthMutation,
+  useInstitutionDeleteAuthMutation,
   useInstitutionDeleteMutation,
   useInstitutionReactivateMutation,
   useInstitutionSubmitMutation,
@@ -49,6 +56,7 @@ const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED", "DEAUTH", "DELETED"];
 const TABS = ["all", "active", "pending", "inactive"];
 const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
+const TAB_ICON = { all: ListChecks, active: CheckCircle2, pending: Clock3, inactive: PauseCircle };
 
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
@@ -63,6 +71,16 @@ function statusOf(inst) {
 // shape sends it as text instead.
 function isInstitutionDraft(inst) {
   return Number(inst.status) === INSTITUTION_DRAFT_STATUS_CODE || statusOf(inst) === "DRAFT";
+}
+// Distinguishes a pending DELETE from a pending add/edit/deactivate/
+// reactivate — approving the former must call the dedicated /delete_auth
+// endpoint, not the generic /auth endpoint (see useInstitutionDeleteAuthMutation).
+// Delegates to the shared deriveStatusFlags rather than checking
+// process_status_name alone — some responses only populate auth_status with
+// the human-readable state ("Pending Delete"), which a process_status_name-
+// only check silently misses (confirmed live in UserManagement/Profile).
+function isPendingDelete(inst) {
+  return deriveStatusFlags(inst).pendingDelete;
 }
 function tabOf(inst) {
   const status = statusOf(inst);
@@ -112,6 +130,7 @@ export function InstitutionProfile() {
   const [auditInstitution, setAuditInstitution] = useState(null);
 
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   // /institution/profile/list has no status-filter or search param
   // (confirmed via Postman) — unlike /user/list, which does and so can
@@ -129,11 +148,12 @@ export function InstitutionProfile() {
   // everything the UI exposes.
   const needsFullBatch = activeTab !== "all" || search.trim() !== "";
   const institutionsQuery = useInstitutionsQuery(
-    needsFullBatch ? { page: 1, limit: 500 } : { page, limit: 10 },
+    needsFullBatch ? { page: 1, limit: 500 } : { page, limit },
   );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
   const deleteMutation = useInstitutionDeleteMutation();
+  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
   const deactivateMutation = useInstitutionDeactivateMutation();
   const reactivateMutation = useInstitutionReactivateMutation();
   const submitMutation = useInstitutionSubmitMutation();
@@ -175,7 +195,10 @@ export function InstitutionProfile() {
       const id = institutionId(action.inst);
       const trimmed = narration.trim();
       let result;
-      if (action.type === "auth") result = await authMutation.mutateAsync({ id, narration: trimmed });
+      if (action.type === "auth")
+        result = isPendingDelete(action.inst)
+          ? await deleteAuthMutation.mutateAsync({ id, narration: trimmed })
+          : await authMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deauth") result = await deauthMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "delete") result = await deleteMutation.mutateAsync({ id, narration: trimmed });
       if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration: trimmed });
@@ -192,6 +215,7 @@ export function InstitutionProfile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
+    deleteAuthMutation.isPending ||
     deactivateMutation.isPending ||
     reactivateMutation.isPending ||
     submitMutation.isPending;
@@ -216,6 +240,12 @@ export function InstitutionProfile() {
         ),
     },
     {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (r) => r.process_status_name ?? "",
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+    },
+    {
       key: "auth_status",
       label: "Authorization Status",
       sortValue: statusOf,
@@ -227,24 +257,22 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
-        // status 9 = Draft (not yet submitted, per the confirmed 2026-09
-        // spec) — only the maker who owns it can act on it further via
-        // /submit, so a Submit action only makes sense for rows actually
-        // in that state.
-        const draft = isInstitutionDraft(inst);
-        const active = inst.status === 1 || String(inst.status_name ?? "").toUpperCase() === "ACTIVE";
-        const inactive = inst.status === 0 || String(inst.status_name ?? "").toUpperCase() === "INACTIVE";
-        // Per the confirmed action-UI mapping: Authorise/Deauthorise show as
-        // a pair whenever process_status_name contains "Pending" (Pending
-        // Add/Edit/Delete/Deactivate/Reactivate, etc.) — not derived from
-        // "not a draft" the way this used to be approximated.
-        const isPending = String(inst.process_status_name ?? "").toLowerCase().includes("pending");
+        // Single shared status-based visibility engine — see
+        // buttonVisibility.js for the full status_name/process_status_name
+        // matrix this is built from.
+        const buttons = getMakerCheckerButtons(inst, {
+          canEdit,
+          canAdd,
+          canAuthorize: canAuthorise,
+          canChangeStatus,
+          canDelete,
+        });
         return (
           <div className="flex flex-wrap items-center justify-center gap-1">
             <UiTooltip label="View"><button onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
               <Eye size={14} />
             </button></UiTooltip>
-            {canEdit && (
+            {buttons.edit && (
               <UiTooltip label="Edit"><button onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Pencil size={14} />
               </button></UiTooltip>
@@ -252,32 +280,32 @@ export function InstitutionProfile() {
               <UiTooltip label="Audit"><button onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
                 <History size={14} />
             </button></UiTooltip>
-            {draft && canAdd && (
+            {buttons.submitDraft && (
               <UiTooltip label="Submit Draft"><button onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
                 <Send size={14} />
               </button></UiTooltip>
             )}
-            {canAuthorise && isPending && (
-              <>
-                <UiTooltip label="Authorize"><button onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                  <ShieldCheck size={14} />
-                </button></UiTooltip>
-                <UiTooltip label="Deauthorize"><button onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                  <ShieldOff size={14} />
-                </button></UiTooltip>
-              </>
+            {buttons.authorize && (
+              <UiTooltip label="Authorize"><button onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+                <ShieldCheck size={14} />
+              </button></UiTooltip>
             )}
-            {canChangeStatus && active && (
+            {buttons.deauthorize && (
+              <UiTooltip label="Deauthorize"><button onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
+                <ShieldOff size={14} />
+              </button></UiTooltip>
+            )}
+            {buttons.deactivate && (
                 <UiTooltip label="Deactivate"><button onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
                 <PowerOff size={14} />
               </button></UiTooltip>
             )}
-            {canChangeStatus && inactive && (
-                <UiTooltip label="Reactivate"><button onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
+            {buttons.activate && (
+                <UiTooltip label="Activate"><button onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
                 <Power size={14} />
               </button></UiTooltip>
             )}
-            {canDelete && (
+            {buttons.delete && (
                 <UiTooltip label="Delete"><button onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
                 <Trash2 size={14} />
               </button></UiTooltip>
@@ -289,21 +317,61 @@ export function InstitutionProfile() {
   ];
 
   return (
-    <div className="pt-3 pb-6">
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-widest text-blue-400">Registry</p>
-          <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Institutions</h1>
-          <p className="mt-1 text-xs font-medium text-slate-400">
-            {institutions.length} registered · {counts.active} active
-          </p>
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Institutions</h1>
+        <p className="mt-1 text-xs font-medium text-slate-400">
+          {institutions.length} registered · {counts.active} active
+        </p>
+      </div>
+
+      <div
+        className="mb-4 overflow-hidden rounded-2xl"
+        style={{
+          background: "var(--glass-bg)",
+          backdropFilter: "blur(16px)",
+          border: "1px solid var(--glass-border)",
+          boxShadow: "var(--glass-shadow)",
+        }}
+      >
+      <div className="flex flex-col gap-2 border-b border-slate-100 p-3">
+        <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
+          {TABS.map((value) => {
+            const Icon = TAB_ICON[value];
+            const isActive = activeTab === value;
+            return (
+              <button
+                key={value}
+                onClick={() => {
+                  setActiveTab(value);
+                  setPage(1);
+                }}
+                className={cn(
+                  "flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors",
+                  isActive ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
+                )}
+              >
+                <Icon size={14} strokeWidth={2} className={isActive ? "text-blue-600" : "text-slate-400"} />
+                {TAB_LABEL[value]}
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                    isActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500",
+                  )}
+                >
+                  {counts[value]}
+                </span>
+              </button>
+            );
+          })}
         </div>
         {canAdd && (
           <motion.button
             whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/institutions/create")}
-            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-white shadow-lg shadow-blue-200/50"
+            className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white"
             style={{ background: "#2266EE" }}
           >
             <Plus size={14} />
@@ -311,11 +379,9 @@ export function InstitutionProfile() {
             <span className="sm:hidden">New</span>
           </motion.button>
         )}
-      </div>
-
-      <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="relative w-full max-w-xs">
-          <Search size={13} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        </div>
+        <div className="relative w-full max-w-sm sm:max-w-none">
+          <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={(e) => {
@@ -324,38 +390,13 @@ export function InstitutionProfile() {
             }}
             type="text"
             placeholder="Search institutions…"
-            className="w-full rounded-xl py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-            style={{ background: "var(--glass-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)" }}
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {TABS.map((value) => (
-            <button
-              key={value}
-              onClick={() => {
-                setActiveTab(value);
-                setPage(1);
-              }}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-bold transition-all",
-                activeTab === value
-                  ? "border-transparent text-white shadow-md shadow-blue-200/50"
-                  : "text-slate-500 hover:border-blue-200 hover:text-blue-600",
-              )}
-              style={
-                activeTab === value
-                  ? { background: "#2266EE", border: "none" }
-                  : { background: "var(--glass-bg)", backdropFilter: "blur(12px)", borderColor: "var(--glass-border)" }
-              }
-            >
-              {TAB_LABEL[value]} ({counts[value]})
-            </button>
-          ))}
         </div>
       </div>
 
       {institutionsQuery.error && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {institutionsQuery.error.message}
           <button onClick={() => void institutionsQuery.refetch()} className="ml-auto text-xs font-bold underline">
             Retry
@@ -364,6 +405,7 @@ export function InstitutionProfile() {
       )}
 
       <DataTable
+        bare
         columns={columns}
         rows={filtered}
         rowKey={(inst) => institutionId(inst)}
@@ -384,9 +426,15 @@ export function InstitutionProfile() {
                 totalPages: institutionsQuery.pagination?.totalPages ?? 1,
                 totalRecords: institutionsQuery.pagination?.totalRecords ?? filtered.length,
                 onPageChange: setPage,
+                limit,
+                onLimitChange: (nextLimit) => {
+                  setLimit(nextLimit);
+                  setPage(1);
+                },
               }
         }
       />
+      </div>
 
       <AuthInstitutionProfile
         institution={action?.type === "auth" ? action.inst : null}

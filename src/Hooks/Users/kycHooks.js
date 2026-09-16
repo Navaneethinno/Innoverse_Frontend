@@ -2,23 +2,24 @@ import { useCallback, useEffect, useState } from "react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
-import { masterApi } from "@/Services/Master/master.api";
+import { genderApi } from "@/Services/MasterConfig/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const KYC_CHANGED = "user-kyc:data-changed";
 const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
+// Matches KYC.jsx's own (unexported, to avoid a circular import back into
+// this file) row-identity resolver.
+const kycRowId = (row) => row?.user_id ?? row?.id;
 
 export function useHasKycAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(() => (menuArray ?? []).some((item) =>
-    /kyc/i.test(String(item?.menu_name ?? "")) && (item.actions ?? []).some((action) => {
-      const granted = String(action?.action_name ?? action?.name ?? "").toLowerCase();
-      const requested = String(actionName).toLowerCase();
-      return granted === requested || (requested === "authorize" && granted === "authorise") ||
-        (requested === "add" && granted === "create");
-    }),
+    /kyc/i.test(String(item?.menu_name ?? "")) &&
+    (item.actions ?? []).some((action) => matchesAction(action?.action_name ?? action?.name, actionName)),
   ), [menuArray, actionName]);
 }
 
@@ -38,12 +39,20 @@ function useQuery(queryFn) {
     window.addEventListener(KYC_CHANGED, refetch);
     return () => window.removeEventListener(KYC_CHANGED, refetch);
   }, [refetch]);
-  return { data, error, isLoading, refetch };
+  return { data, error, isLoading, refetch, setData };
 }
 
 export function useKycQuery(params = {}) {
   const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10 }), [params.page, params.limit]));
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, notify);
+  // Reconciled in place instead of refetching (Live Updates guide §3) —
+  // insertNew: false since this list is server-paginated (see
+  // AcctConfigResource.jsx's identical reasoning).
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, (_action, records) => {
+    query.setData((current) => {
+      const rows = Array.isArray(current?.data) ? current.data : [];
+      return { ...current, data: reconcileRecords(rows, records, { insertNew: false, rowKey: kycRowId }) };
+    });
+  });
   const rows = Array.isArray(query.data?.data) ? query.data.data : [];
   return { ...query, data: rows, pagination: query.data?.pagination };
 }
@@ -61,9 +70,19 @@ export function useActiveUsersForKycQuery() {
   return { ...query, users: activeUserRows(query.data) || [] };
 }
 
+// Was pointed at masterApi.genderList() -> /master/gender, a Master
+// (Reference Data) endpoint that 404s in production; the real, working
+// gender list lives under Master Config's own lifecycle API instead
+// (/master_config/gender/get_active, same endpoint the Gender master-data
+// page already uses), so this now goes through genderApi like every other
+// "active options for a dropdown" fetch in the app.
+function activeGenderRows(payload) {
+  return Array.isArray(payload?.data) ? payload.data : payload?.data?.data ?? [];
+}
+
 export function useGenderOptionsQuery() {
-  const query = useQuery(useCallback(() => masterApi.genderList(), []));
-  return { ...query, genders: Array.isArray(query.data) ? query.data : [] };
+  const query = useQuery(useCallback(() => genderApi.getActive(), []));
+  return { ...query, genders: activeGenderRows(query.data) };
 }
 
 export function useKycMutation(method, success = "KYC action completed") {

@@ -53,7 +53,7 @@ export const institutionModuleApi = {
   deactivate: (payload) => request(ENDPOINTS.DEACTIVATE, payload),
   reactivate: (payload) => request(ENDPOINTS.REACTIVATE, payload),
   list: (payload = { page: 1, limit: 10 }) => request(ENDPOINTS.LIST, payload),
-  getActive: (payload = {}) => request(ENDPOINTS.GET_ACTIVE, payload),
+  getActive: (payload = { view: "dropdown" }) => request(ENDPOINTS.GET_ACTIVE, payload),
   audit: (payload) => request(ENDPOINTS.AUDIT, payload),
   pending: (payload) => request(ENDPOINTS.PENDING, payload),
 };

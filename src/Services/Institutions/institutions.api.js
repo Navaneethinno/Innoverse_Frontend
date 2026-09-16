@@ -75,7 +75,7 @@ export const institutionsApi = {
   // (see InstitutionProfile.jsx).
   list: (payload = { page: 1, limit: 10 }) => request(INSTITUTION_PROFILE.LIST, payload),
   // POST /institution/profile/get_active, body {} — authorized/active records only.
-  getActive: () => request(INSTITUTION_PROFILE.GET_ACTIVE, {}),
+  getActive: (payload = { view: "dropdown" }) => request(INSTITUTION_PROFILE.GET_ACTIVE, payload),
   // POST /institution/profile/add, body: full profile shape + {narration, is_draft}.
   // is_draft:true starts a Draft (no checker yet); omitted/false submits
   // immediately to Pending Add in this one call (confirmed 2026-09 spec).

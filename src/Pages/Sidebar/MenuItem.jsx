@@ -19,6 +19,13 @@ function sortedChildrenOf(menuItems, parentId) {
   return getChildMenuItems(menuItems, parentId);
 }
 
+// Leaf menu names confirmed to appear more than once in the tree under
+// different parents. Add to this set only for a name actually seen to
+// collide — never speculatively — since qualifying an otherwise-unique
+// name would just as easily break its existing working route.
+//
+const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
+
 export function MenuItem({
   item,
   menuItems,
@@ -48,7 +55,26 @@ export function MenuItem({
     // navigate there via React Router, regardless of whether a page is
     // registered for it. Unmatched slugs surface the app's errorElement
     // (RouteError), same as payse's own "/body" errorElement does for it.
-    navigate(buildMenuPath(item?.menu_name));
+    //
+    // payse's own handleNavigation slugifies the leaf name only, with no
+    // parent context at all — fine for payse's flatter menus. Innoverse has
+    // several real 2+-level-deep menus now (Epurse > Configuration > KYC >
+    // *, Epurse > Settings > Master Config > *), and going by depth alone
+    // to decide when to fold the parent name in was wrong: most of those
+    // deep menus (Province, District, Gender, ...) have unique names and
+    // already work fine unprefixed, so qualifying them would have broken
+    // their existing routes instead of fixing anything. Only fold the
+    // parent name in for a menu name actually known to collide with an
+    // unrelated menu elsewhere in the tree (see DISAMBIGUATE_BY_PARENT) —
+    // e.g. Epurse > Configuration > KYC > "Profile" collides with the
+    // top-level User Management > "Profile" (both slugify to "profile"),
+    // and only that one needs "KYC" folded in to become "kycprofile".
+    const needsParentQualification = DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim());
+    const parent = needsParentQualification
+      ? menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id))
+      : null;
+    const qualifiedName = parent?.menu_name ? `${parent.menu_name} ${item?.menu_name}` : item?.menu_name;
+    navigate(buildMenuPath(qualifiedName));
   };
 
   const isRoot = depth === 0;

@@ -1,30 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { institutionModuleApi } from "@/Services/Institutions/institutionModule.api";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useEntityListQuery } from "@/Hooks/Institutions/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
-function mapList(payload) {
-  const records = Array.isArray(payload?.data) ? payload.data : [];
-  return { records, pagination: payload?.pagination ?? {} };
-}
-
-export function useInstitutionModulesQuery(params = {}) {
-  const page = params.page ?? 1;
-  const limit = params.limit ?? 10;
-  const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null });
-  const refetch = useCallback(async () => {
-    setState((current) => ({ ...current, isLoading: true, error: null }));
-    try {
-      const result = mapList(await institutionModuleApi.list({ page, limit }));
-      setState({ data: result.records, pagination: result.pagination, isLoading: false, error: null });
-    } catch (error) {
-      setState((current) => ({ ...current, isLoading: false, error }));
-    }
-  }, [page, limit]);
-  useEffect(() => { void refetch(); }, [refetch]);
-  useLiveChannel(API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE.LIST, () => void refetch());
-  return { ...state, refetch };
+export function useInstitutionModulesQuery() {
+  // Live-reconciled in place (Live Updates guide §3) — see
+  // useEntityListQuery.js's `livePath` option.
+  return useEntityListQuery(institutionModuleApi.list, {
+    livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE.LIST,
+  });
 }
 
 export function useInstitutionModuleMutation(method) {

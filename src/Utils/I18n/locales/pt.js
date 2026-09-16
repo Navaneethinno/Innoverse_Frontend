@@ -40,7 +40,11 @@ export const common = {
   failedToLoadMoreRecords: "Falha ao carregar mais registros",
   viewAll: "Ver todos",
   pageOf: "Página {{page}} de {{total}}",
+  page: "página",
+  goTo: "Ir para",
   total: "total",
+  showingEntries: "Mostrando {{from}} a {{to}} de {{total}} registros",
+  showEntries: "Mostrar registros",
   loaded: "carregados",
   scrollForMore: "Role para ver mais",
   allLoaded: "todos carregados",
@@ -314,6 +318,7 @@ export const changePassword = {
 
 export const sidebar = {
   collapse: "Recolher",
+  pinOpen: "Fixar aberto",
   collapseSidebar: "Recolher barra lateral",
   expandSidebar: "Expandir barra lateral",
   moduleFallbackName: "Módulo {{id}}",

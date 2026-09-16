@@ -6,10 +6,11 @@ import { profileId } from "./ProfileForm";
 // Audit-trail modal wrapper for a single profile — relocated from
 // Components/Profiles/ProfileAuditModal.jsx to live alongside the rest of
 // the Profile feature files, matching payse's AuditProfile.jsx convention.
-const AUDIT_FIELDS = [
-  ["profile_name", "Profile Name"],
-  ["audit_note", "Audit Note"],
-];
+// "audit_note" was never a confirmed real field (no other entity's audit
+// modal — User, KYC — has an equivalent), so it always rendered "—" and
+// looked like the audit modal wasn't loading data at all. Removed rather
+// than guess at a replacement field name without a real payload to check.
+const AUDIT_FIELDS = [["profile_name", "Profile Name"]];
 
 function renderMenuGrants(entry) {
   const grants = Array.isArray(entry.menu_info)

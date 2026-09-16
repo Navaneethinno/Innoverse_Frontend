@@ -4,6 +4,7 @@ import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximiz
 import { Skeleton } from "@/Components/UI/skeleton";
 import { NoDataAnimation } from "@/Components/Common/NoDataAnimation";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cn } from "@/Utils/Lib/cn";
 
 // Shared sort-arrow: stacked/dim ChevronUp+ChevronDown when a column isn't
@@ -17,6 +18,24 @@ function SortIcon({ direction }) {
   ) : (
     <ChevronDown size={13} className="text-blue-600" />
   );
+}
+
+// Numbered page pills with an ellipsis for far-away pages, instead of a
+// bare "Page X of Y" + manual go-to-page input — always shows the first
+// and last page, plus a window around the current one, so a table with
+// many pages doesn't turn into an unusable wall of buttons.
+function getPageNumbers(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const window = new Set([1, 2, total - 1, total, current - 1, current, current + 1]);
+  const pages = [...window].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const withEllipsis = [];
+  let prev = null;
+  for (const p of pages) {
+    if (prev !== null && p - prev > 1) withEllipsis.push("…");
+    withEllipsis.push(p);
+    prev = p;
+  }
+  return withEllipsis;
 }
 
 function compareValues(a, b) {
@@ -41,16 +60,17 @@ function useSortedRows(rows, columns, sort) {
   }, [rows, columns, sort]);
 }
 
-function TableHead({ columns, sort, onSort }) {
+function TableHead({ columns, sort, onSort, selectable = false, allSelected = false, onToggleAll }) {
   return (
     <thead>
-      <tr className="border-b border-slate-100/80">
+      <tr className="border-b-2 border-slate-200">
+        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></th>}
         {columns.map((col) => (
           <th
             key={col.key}
             scope="col"
             className={cn(
-              "whitespace-nowrap px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-400",
+              "whitespace-nowrap px-4 py-3 text-xs font-semibold text-slate-600",
               col.align === "left" ? "text-left" : "text-center",
             )}
           >
@@ -61,7 +81,15 @@ function TableHead({ columns, sort, onSort }) {
                 type="button"
                 onClick={() => onSort(col.key)}
                 className={cn(
-                  "inline-flex items-center gap-1 hover:text-slate-600",
+                  // Buttons don't inherit font-size from an ancestor by
+                  // default — the parent <th>'s text-xs silently did
+                  // nothing for every sortable column (most of them), so
+                  // they fell back to theme.css's global `button {
+                  // font-size: var(--text-sm) }` base rule (14px) instead
+                  // of the intended size, visibly larger than the one
+                  // non-sortable "Actions" header's plain (correctly-sized)
+                  // text.
+                  "inline-flex items-center gap-1 text-xs hover:text-slate-800",
                   sort.key === col.key && "text-blue-600",
                 )}
               >
@@ -76,14 +104,14 @@ function TableHead({ columns, sort, onSort }) {
   );
 }
 
-function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey, t }) {
+function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey, t, selectable = false, selectedKeys = new Set(), onToggleRow, compact = false }) {
   if (isLoading) {
     return (
       <tbody>
         {Array.from({ length: 5 }).map((_, i) => (
           <tr key={i} className="border-b border-slate-50">
             {columns.map((col) => (
-              <td key={col.key} className="px-4 py-2.5">
+            <td key={col.key} className="px-3 py-2">
                 <Skeleton className="mx-auto h-3.5 w-16" />
               </td>
             ))}
@@ -96,8 +124,8 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
     return (
       <tbody>
         <tr>
-          <td colSpan={columns.length} className="px-4 py-12 text-center">
-            <NoDataAnimation className="mx-auto h-24 w-32" />
+          <td colSpan={columns.length + Number(selectable)} className={cn("px-4 text-center", compact ? "py-6" : "py-12")}>
+            <NoDataAnimation className={cn("mx-auto", compact ? "h-16 w-24" : "h-24 w-32")} />
             <p className="text-sm font-bold text-slate-600">{emptyTitle ?? t("noRecordsFound")}</p>
             {emptyDescription && <p className="mt-1 text-xs text-slate-400">{emptyDescription}</p>}
           </td>
@@ -108,12 +136,13 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
   return (
     <tbody>
       {rows.map((row, i) => (
-        <tr key={rowKey(row, i)} className="border-b border-slate-50 transition-colors hover:bg-slate-50/70">
+        <tr key={rowKey(row, i)} className={cn("border-b border-slate-100 transition-colors hover:bg-blue-50/50", selectedKeys.has(String(rowKey(row, i))) && "bg-blue-50/80")}>
+          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></td>}
           {columns.map((col) => (
             <td
               key={col.key}
               className={cn(
-                "whitespace-nowrap px-4 py-2.5 text-xs text-slate-700",
+                "whitespace-nowrap px-3 py-2.5 text-xs text-slate-700",
                 col.align === "left" ? "text-left" : "text-center",
               )}
             >
@@ -137,10 +166,14 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  *   (server-paginated — pass serverPagination in that case)
  * - rowKey(row, index)
  * - isLoading
- * - pageSize: default 10 (client-side pagination only)
- * - serverPagination: { page, totalPages, totalRecords, onPageChange }
- *   — when provided, `rows` is treated as already-paginated and DataTable
- *   only renders Prev/Next + "Page X of Y" from these values.
+ * - pageSize: default 10 (client-side pagination only; ignored once the
+ *   user picks a different page size from the built-in selector, which
+ *   then drives client-side pagination directly)
+ * - serverPagination: { page, totalPages, totalRecords, onPageChange,
+ *   limit, onLimitChange } — when provided, `rows` is treated as
+ *   already-paginated and DataTable renders Prev/Next + "Page X of Y" plus
+ *   a page-size selector (only shown when `onLimitChange` is passed) and a
+ *   "Go to page" input, all driven off these values.
  * - title: used as the "View all" modal heading
  * - searchableKeys: fields to search against inside the "View all" modal
  * - emptyTitle / emptyDescription
@@ -168,14 +201,29 @@ export function DataTable({
   className,
   fetchMore = null,
   infiniteScrollLimit = 50,
+  // Skip the top rounding/border on this table's own card so it can sit
+  // directly beneath a StatusFilterTabs rendered with its own `bare` prop,
+  // reading as one continuous panel instead of two stacked cards with a
+  // gap between them. See StatusFilterTabs.jsx / InstitutionProfile.jsx.
+  bare = false,
+  // Off by default: row checkboxes imply a bulk action to apply to the
+  // selection, and no page in this app has one wired to a real bulk API
+  // yet — showing them everywhere was a checkbox with nothing behind it.
+  // A page can still opt in explicitly once it has something real to do
+  // with a selection.
+  selectable = false,
+  onSelectionChange,
+  compact = false,
 }) {
   const { t } = useTranslation("common");
   // Keep the newest record visible first on every table. Users can still
   // click any sortable header to override this default for the current view.
   const [sort, setSort] = useState({ key: "updated_time", direction: "desc" });
   const [page, setPage] = useState(1);
+  const [clientPageSize, setClientPageSize] = useState(pageSize);
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [viewAllSearch, setViewAllSearch] = useState("");
+  const [selectedKeys, setSelectedKeys] = useState(() => new Set());
 
   const [infiniteRows, setInfiniteRows] = useState([]);
   const [infinitePage, setInfinitePage] = useState(0);
@@ -237,18 +285,47 @@ export function DataTable({
 
   const sortedRows = useSortedRows(rows, columns, sort);
   const isServer = !!serverPagination;
+  const effectivePageSize = isServer ? serverPagination.limit ?? pageSize : clientPageSize;
 
   const totalPages = isServer
     ? Math.max(1, serverPagination.totalPages || 1)
-    : Math.max(1, Math.ceil(sortedRows.length / pageSize));
+    : Math.max(1, Math.ceil(sortedRows.length / effectivePageSize));
   const currentPage = isServer ? serverPagination.page : page;
-  const pageRows = isServer ? sortedRows : sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const pageRows = isServer ? sortedRows : sortedRows.slice((page - 1) * effectivePageSize, page * effectivePageSize);
   const totalRecords = isServer ? (serverPagination.totalRecords ?? sortedRows.length) : sortedRows.length;
+  const visibleKeys = pageRows.map((row, index) => String(rowKey(row, (currentPage - 1) * effectivePageSize + index)));
+  const allVisibleSelected = visibleKeys.length > 0 && visibleKeys.every((key) => selectedKeys.has(key));
+  const notifySelection = (next) => {
+    setSelectedKeys(next);
+    onSelectionChange?.(rows.filter((row, index) => next.has(String(rowKey(row, index)))));
+  };
+  const toggleAllVisible = () => {
+    const next = new Set(selectedKeys);
+    if (allVisibleSelected) visibleKeys.forEach((key) => next.delete(key));
+    else visibleKeys.forEach((key) => next.add(key));
+    notifySelection(next);
+  };
+  const toggleRow = (row, index) => {
+    const key = String(rowKey(row, (currentPage - 1) * effectivePageSize + index));
+    const next = new Set(selectedKeys);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    notifySelection(next);
+  };
 
   const goToPage = (next) => {
     const clamped = Math.min(Math.max(1, next), totalPages);
     if (isServer) serverPagination.onPageChange(clamped);
     else setPage(clamped);
+  };
+
+  const handlePageSizeChange = (next) => {
+    const nextSize = Number(next) || effectivePageSize;
+    if (isServer) {
+      if (serverPagination.onLimitChange) serverPagination.onLimitChange(nextSize);
+    } else {
+      setClientPageSize(nextSize);
+      setPage(1);
+    }
   };
 
   const sortedInfiniteRows = useSortedRows(infiniteRows, columns, sort);
@@ -262,30 +339,46 @@ export function DataTable({
     );
   }, [modalSourceRows, viewAllSearch, searchableKeys]);
 
+  const viewAllButton = (
+    <button
+      type="button"
+      onClick={() => setViewAllOpen(true)}
+      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+    >
+      <Maximize2 size={12} /> {t("viewAll")}
+    </button>
+  );
+
   return (
     <div className={className}>
-      <div className="mb-2 flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => setViewAllOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
-        >
-          <Maximize2 size={12} /> {t("viewAll")}
-        </button>
-      </div>
+      {/* Standalone mode: "View all" floats above the table's own card, its
+          own margin creating a deliberate gap. Bare/merged mode (nested
+          inside a page's shared panel alongside StatusFilterTabs, see
+          InstitutionProfile.jsx): that same gap read as a second visual
+          seam splitting one intended panel into two, so it moves inside the
+          table's own border instead, flush against the header row. */}
+      {!bare && <div className="mb-2 flex items-center justify-end">{viewAllButton}</div>}
 
       <div
-        className="overflow-hidden rounded-2xl"
-        style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid var(--glass-border)",
-          boxShadow: "var(--glass-shadow)",
-        }}
+        className={cn("overflow-hidden", bare ? "rounded-b-2xl" : "rounded-2xl")}
+        style={
+          bare
+            ? undefined
+            : {
+                background: "var(--glass-bg)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid var(--glass-border)",
+                boxShadow: "var(--glass-shadow)",
+              }
+        }
       >
+        {!compact && <div className="flex min-h-10 items-center justify-between border-b border-slate-100 px-3.5">
+          <span className="text-xs font-medium text-slate-500">{selectable && selectedKeys.size > 0 ? `${selectedKeys.size} selected` : `${totalRecords} records`}</span>
+          {viewAllButton}
+        </div>}
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <TableHead columns={columns} sort={sort} onSort={onSort} />
+          <table className="w-full min-w-max">
+            <TableHead columns={columns} sort={sort} onSort={onSort} selectable={selectable} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} />
             <TableBody
               columns={columns}
               rows={pageRows}
@@ -294,33 +387,76 @@ export function DataTable({
               emptyDescription={emptyDescription}
               rowKey={rowKey}
               t={t}
+              selectable={selectable}
+              selectedKeys={selectedKeys}
+              onToggleRow={toggleRow}
+              compact={compact}
             />
           </table>
         </div>
 
         {!isLoading && totalRecords > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-4 py-2.5 text-xs text-slate-500">
-            <span>
-              {t("pageOf", { page: currentPage, total: totalPages })} · {totalRecords} {t("total")}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/40 px-3.5 py-2.5 text-xs text-slate-500">
+            <span className="whitespace-nowrap">
+              {t("showingEntries", {
+                from: (currentPage - 1) * effectivePageSize + 1,
+                to: Math.min(currentPage * effectivePageSize, totalRecords),
+                total: totalRecords,
+              })}
             </span>
-            <div className="flex items-center gap-1.5">
+
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 disabled={currentPage <= 1}
                 onClick={() => goToPage(currentPage - 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 font-semibold disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 <ChevronLeft size={13} /> {t("prev")}
               </button>
+              {getPageNumbers(currentPage, totalPages).map((p, i) =>
+                p === "…" ? (
+                  <span key={`ellipsis-${i}`} className="px-1.5 text-slate-400">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => goToPage(p)}
+                    aria-current={p === currentPage ? "page" : undefined}
+                    className={cn(
+                      "min-w-[28px] rounded-lg px-2 py-1.5 font-semibold transition-colors",
+                      p === currentPage
+                        ? "bg-primary text-primary-foreground"
+                        : "text-slate-600 hover:bg-slate-50",
+                    )}
+                  >
+                    {p}
+                  </button>
+                ),
+              )}
               <button
                 type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() => goToPage(currentPage + 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 font-semibold disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 {t("next")} <ChevronRight size={13} />
               </button>
             </div>
+
+            {(!isServer || serverPagination.onLimitChange) && (
+              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                <span>{t("showEntries")}</span>
+                <FilterSelect
+                  className="w-24"
+                  value={effectivePageSize}
+                  onChange={(next) => handlePageSizeChange(next)}
+                  options={[10, 20, 25, 50, 100].map((size) => ({ value: size, label: String(size) }))}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -355,8 +491,8 @@ export function DataTable({
             )}
           </div>
         )}
-        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto px-5 py-3">
-          <table className="w-full">
+        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto overflow-x-auto px-5 py-3">
+          <table className="w-full min-w-max">
             <TableHead columns={columns} sort={sort} onSort={onSort} />
             <TableBody
               columns={columns}

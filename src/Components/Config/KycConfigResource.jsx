@@ -1,0 +1,631 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Eye, History, Pencil, Plus, Power, PowerOff, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { DataTable } from "@/Components/Common/DataTable";
+import { Modal } from "@/Components/Common/Modal";
+import { AuditModal } from "@/Components/Common/AuditModal";
+import { mapAuditResponse } from "@/Components/Common/auditResponse";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { configKycApi } from "@/Services/Config/config.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
+import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
+import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
+import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
+
+const CONFIGS = {
+  kyc_group: {
+    title: "KYC Group",
+    menuName: "Group",
+    fields: [
+      ["code", "Code", "text"],
+      ["name", "Name", "text"],
+      ["description", "Description", "textarea"],
+      ["maximum_level", "Maximum level", "number"],
+      ["inst_profile_id", "Institution profile", "number"],
+    ],
+  },
+  kyc_group_level: {
+    title: "Group Level",
+    menuName: "Group Level",
+    readOnlyOnEdit: ["kyc_group_id"],
+    fields: [
+      ["kyc_group_id", "KYC group ID", "number"],
+      ["level_no", "Level number", "number"],
+      ["level_name", "Level name", "text"],
+      ["description", "Description", "textarea"],
+    ],
+  },
+  kyc_group_level_data: {
+    title: "Group Level Data",
+    menuName: "Group Level Data",
+    readOnlyOnEdit: ["kyc_group_level_id"],
+    fields: [
+      ["kyc_group_level_id", "Group level ID", "number"],
+      ["kyc_data_field_id", "Data field ID", "number"],
+      ["mandatory", "Mandatory", "boolean"],
+      ["sequence_no", "Sequence", "number"],
+    ],
+  },
+  kyc_group_level_process: {
+    title: "Group Level Process",
+    menuName: "Group Level Process",
+    readOnlyOnEdit: ["kyc_group_level_id"],
+    fields: [
+      ["kyc_group_level_id", "Group level ID", "number"],
+      ["kyc_process_id", "Process ID", "number"],
+      ["mandatory", "Mandatory", "boolean"],
+      ["sequence_no", "Sequence", "number"],
+    ],
+  },
+  kyc_group_level_document: {
+    title: "Group Level Document",
+    menuName: "Group Level Document",
+    readOnlyOnEdit: ["kyc_group_level_id"],
+    fields: [
+      ["kyc_group_level_id", "Group level ID", "number"],
+      ["kyc_document_type_id", "Document type ID", "number"],
+      ["mandatory", "Mandatory", "boolean"],
+      ["sequence_no", "Sequence", "number"],
+      ["document_front_required", "Front required", "boolean"],
+      ["document_back_required", "Back required", "boolean"],
+      ["verification_required", "Verification required", "boolean"],
+    ],
+  },
+};
+const idOf = (row) => row?.id;
+const rowsOf = (response) =>
+  Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []);
+const allowed = (menus, action, menuName) =>
+  (menus ?? []).some(
+    (m) =>
+      new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) &&
+      (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
+  );
+const api = (entity) => configKycApi(entity);
+
+export function KycConfigResource({ entity }) {
+  const config = CONFIGS[entity];
+  const menus = useSelector((state) => state.menu.menuArray);
+  const service = useMemo(() => api(entity), [entity]);
+  const { data: institutions = [] } = useActiveInstitutionsQuery();
+  const { dataFields = [] } = useKycDataFields(entity === "kyc_group_level_data");
+  const { processes = [] } = useKycProcesses(entity === "kyc_group_level_process");
+  const { documentTypes = [] } = useKycDocumentTypes(entity === "kyc_group_level_document");
+  const [kycGroups, setKycGroups] = useState([]);
+  const [kycGroupLevels, setKycGroupLevels] = useState([]);
+  useEffect(() => {
+    if (entity === "kyc_group_level") {
+      configKycApi("kyc_group")
+        .getActive()
+        .then((response) => setKycGroups(rowsOf(response)))
+        .catch((error) => notifications.error(error.message));
+    }
+    if (entity === "kyc_group_level_data" || entity === "kyc_group_level_process" || entity === "kyc_group_level_document") {
+      configKycApi("kyc_group_level")
+        .getActive()
+        .then((response) => setKycGroupLevels(rowsOf(response)))
+        .catch((error) => notifications.error(error.message));
+    }
+  }, [entity]);
+  const [rows, setRows] = useState([]),
+    [pagination, setPagination] = useState({}),
+    [page, setPage] = useState(1),
+    [limit, setLimit] = useState(10),
+    [loading, setLoading] = useState(true),
+    [search, setSearch] = useState(""),
+    [tab, setTab] = useState("all"),
+    [form, setForm] = useState({}),
+    [editing, setEditing] = useState(null),
+    [view, setView] = useState(null),
+    [audit, setAudit] = useState(null),
+    [action, setAction] = useState(null),
+    [saving, setSaving] = useState(false);
+  // Shows the maker's proposed changes inside the Authorize/Reject confirm
+  // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
+  // while that dialog is actually open, via the entity's own /pending
+  // endpoint (payload {id}).
+  const pendingInfo = usePendingChanges(
+    service.pending,
+    action ? idOf(action.row) : null,
+    Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
+  );
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await service.list({ page, limit });
+      setRows(rowsOf(response));
+      setPagination(response?.pagination ?? response?.data?.pagination ?? {});
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [service, page, limit]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  // Reconcile in place instead of refetching (Live Updates guide §3) — see
+  // AcctConfigResource.jsx's identical comment for why inserts are skipped
+  // on this server-paginated list.
+  useLiveChannel(
+    API_ENDPOINTS.CONFIG_KYC[entity.toUpperCase()].LIST,
+    reconcileSetter(setRows, { insertNew: false }),
+  );
+  const visible = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          (tab === "all" || statusBucket(row) === tab) &&
+          JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
+      ),
+    [rows, tab, search],
+  );
+  const save = async (draft) => {
+    // Same fix as DigitalProductResource.jsx: "_id" fields rendered via
+    // FilterSelect (inst_profile_id, kyc_document_type_id, kyc_process_id,
+    // kyc_data_field_id, kyc_group_level_id, kyc_group_id) have no native
+    // form control, so nothing stops a submit while one is still empty
+    // (""). The backend then rejects the malformed number field with a
+    // misleading "request body is not valid JSON" 400 instead of a clear
+    // validation message — caught here before it reaches the API.
+    const missingField = config.fields.find(
+      ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
+    );
+    if (missingField) {
+      const label = missingField[1].toLowerCase();
+      notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        ...Object.fromEntries(
+          config.fields
+            .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
+            .map(([key]) => [key, form[key]]),
+        ),
+        is_draft: draft,
+        ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
+      };
+      const response = await (editing ? service.edit(payload) : service.add(payload));
+      notifications.success(apiMessage(response, `${config.title} saved`));
+      setEditing(null);
+      setForm({});
+      void load();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  const run = async () => {
+    try {
+      const { row, type } = action;
+      // Every action in this lifecycle takes {id, narration} per the API
+      // reference — narration was previously only sent for deauth,
+      // silently dropping it everywhere else.
+      const narration = action.reason || "";
+      const payload = { id: idOf(row), narration };
+      const response =
+        type === "submit"
+          ? await service.submit(payload)
+          : type === "auth"
+            ? await service.auth(payload)
+            : type === "deleteAuth"
+              ? await service.deleteAuth(payload)
+              : type === "deauth"
+                ? await service.deauth({ id: idOf(row), description: narration || "UNDEFINED" })
+                : type === "deactivate"
+                  ? await service.deactivate(payload)
+                  : type === "reactivate"
+                    ? await service.reactivate(payload)
+                    : await service.delete(payload);
+      notifications.success(apiMessage(response, `${config.title} action completed`));
+      setAction(null);
+      void load();
+    } catch (error) {
+      notifications.error(error.message);
+    }
+  };
+  const columns = [
+    ...config.fields
+      .slice(0, 4)
+      .map(([key, label]) => ({ key, label, render: (row) => String(row[key] ?? "-") })),
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />
+      ),
+    },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      render: (row) => (
+        <StatusBadge status={String(row.process_status_name ?? "-")} />
+      ),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (row) => {
+        const buttons = getMakerCheckerButtons(row, {
+          canAdd: allowed(menus, "Add", config.menuName),
+          canEdit: allowed(menus, "Edit", config.menuName),
+          canAuthorize: allowed(menus, "Authorize", config.menuName),
+          canDelete: allowed(menus, "Delete", config.menuName),
+          canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
+        });
+        const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
+        return (
+          <div className="flex flex-wrap justify-center gap-1">
+            <UiTooltip label="View">
+              <button
+                type="button"
+                className={actionButtonClass("view")}
+                onClick={() => setView(row)}
+              >
+                <Eye size={14} />
+              </button>
+            </UiTooltip>
+            {buttons.edit && (
+              <button
+                type="button"
+                className={actionButtonClass("edit")}
+                onClick={() => {
+                  setEditing(row);
+                  setForm({ ...row });
+                }}
+              >
+                <Pencil size={14} />
+              </button>
+            )}
+            {buttons.audit && (
+              <button
+                type="button"
+                className={actionButtonClass("audit")}
+                onClick={() => setAudit(row)}
+              >
+                <History size={14} />
+              </button>
+            )}
+            {buttons.submitDraft && (
+              <button
+                type="button"
+                className={actionButtonClass("submit")}
+                onClick={() => setAction({ row, type: "submit", label: "Submit" })}
+              >
+                <Send size={14} />
+              </button>
+            )}
+            {buttons.authorize && (
+              <button
+                type="button"
+                className={actionButtonClass("auth")}
+                onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
+              >
+                <ShieldCheck size={14} />
+              </button>
+            )}
+            {buttons.deauthorize && (
+              <button
+                type="button"
+                className={actionButtonClass("deauth")}
+                onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
+              >
+                <ShieldOff size={14} />
+              </button>
+            )}
+            {buttons.deactivate && (
+              <button
+                type="button"
+                className={actionButtonClass("deauth")}
+                onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
+              >
+                <PowerOff size={14} />
+              </button>
+            )}
+            {buttons.activate && (
+              <button
+                type="button"
+                className={actionButtonClass("auth")}
+                onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
+              >
+                <Power size={14} />
+              </button>
+            )}
+            {buttons.delete && (
+              <button
+                type="button"
+                className={actionButtonClass("delete")}
+                onClick={() => setAction({ row, type: "delete", label: "Delete" })}
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+  return (
+    <div className="pt-1 pb-6">
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
+      </div>
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+        actions={allowed(menus, "Add", config.menuName) && (
+          <button
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+            onClick={() => {
+              setForm(
+                Object.fromEntries(
+                  config.fields.map(([key, , type]) => [key, type === "boolean" ? false : ""]),
+                ),
+              );
+              setEditing(null);
+            }}
+          >
+            <Plus size={14} /> Add {config.title}
+          </button>
+        )}
+        rows={rows}
+        value={tab}
+        onChange={setTab}
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
+      bare /><DataTable
+        columns={columns}
+        rows={visible}
+        rowKey={idOf}
+        isLoading={loading}
+        title={config.title}
+        serverPagination={{
+          page,
+          limit,
+          totalPages: pagination.totalPages ?? 1,
+          totalRecords: pagination.totalRecords ?? rows.length,
+          onPageChange: setPage,
+          onLimitChange: (next) => {
+            setLimit(next);
+            setPage(1);
+          },
+        }}
+      bare /></div>{(editing || form) && (
+        <Modal
+          open={Boolean(editing || Object.keys(form).length)}
+          title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          onClose={() => {
+            setEditing(null);
+            setForm({});
+          }}
+        >
+          <div className="grid gap-3">
+            {config.fields.map(([key, label, type]) => (
+              <label
+                key={key}
+                className={
+                  type === "boolean"
+                    ? "flex items-center gap-2 text-sm font-semibold"
+                    : "text-sm font-semibold"
+                }
+              >
+                {type === "boolean" ? <span>{label}</span> : label}
+                {key === "inst_profile_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    options={[
+                      { value: "", label: "Select institution" },
+                      ...institutions.map((inst) => ({
+                        value: inst.id,
+                        label: inst.name ?? String(inst.id),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_document_type_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    options={[
+                      { value: "", label: "Select document type" },
+                      ...documentTypes.map((documentType) => ({
+                        value: idOf(documentType),
+                        label: documentType.name ?? documentType.code ?? String(idOf(documentType)),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_process_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    options={[
+                      { value: "", label: "Select process" },
+                      ...processes.map((process) => ({
+                        value: idOf(process),
+                        label: process.name ?? process.code ?? String(idOf(process)),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_data_field_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                    options={[
+                      { value: "", label: "Select data field" },
+                      ...dataFields.map((field) => ({
+                        value: idOf(field),
+                        label: field.name ?? field.code ?? String(idOf(field)),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_group_level_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                    options={[
+                      { value: "", label: "Select group level" },
+                      ...kycGroupLevels.map((level) => ({
+                        value: idOf(level),
+                        label: level.level_name
+                          ? `${level.level_no ?? ""} - ${level.level_name}`
+                          : String(idOf(level)),
+                      })),
+                    ]}
+                  />
+                ) : key === "kyc_group_id" ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={form[key] ?? ""}
+                    onChange={(value) => setForm({ ...form, [key]: value })}
+                    disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                    options={[
+                      { value: "", label: "Select KYC group" },
+                      ...kycGroups.map((group) => ({
+                        value: idOf(group),
+                        label: group.name ?? String(idOf(group)),
+                      })),
+                    ]}
+                  />
+                ) : (
+                  <input
+                    type={type === "number" ? "number" : type === "boolean" ? "checkbox" : "text"}
+                    min={type === "number" ? 0 : undefined}
+                    checked={type === "boolean" ? Boolean(form[key]) : undefined}
+                    value={type !== "boolean" ? (form[key] ?? "") : undefined}
+                    disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                    onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
+                    onWheel={type === "number" ? blurOnWheel : undefined}
+                    onChange={(event) =>
+                      setForm({
+                        ...form,
+                        [key]:
+                          type === "boolean"
+                            ? event.target.checked
+                            : type === "number"
+                              ? clampNonNegative(event.target.value)
+                              : event.target.value,
+                      })
+                    }
+                    className={
+                      type === "boolean"
+                        ? "h-4 w-4 rounded border"
+                        : "mt-1.5 w-full rounded-xl border px-3 py-2.5"
+                    }
+                  />
+                )}
+              </label>
+            ))}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => void save(true)} disabled={saving}>
+                Save draft
+              </button>
+              <button
+                onClick={() => void save(false)}
+                disabled={saving}
+                className="rounded-xl bg-primary px-4 py-2 font-bold text-white"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {view && (
+        <Modal open title={`View ${config.title}`} onClose={() => setView(null)}>
+          <dl className="grid gap-3">
+            {config.fields.map(([key, label]) => (
+              <div key={key}>
+                <dt>{label}</dt>
+                <dd>
+                  {key === "inst_profile_id"
+                    ? (institutions.find((inst) => String(inst.id) === String(view[key]))?.name ??
+                      String(view[key] ?? "-"))
+                    : key === "kyc_document_type_id"
+                      ? (documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.name ??
+                        documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.code ??
+                        String(view[key] ?? "-"))
+                    : key === "kyc_process_id"
+                      ? (processes.find((process) => String(idOf(process)) === String(view[key]))?.name ??
+                        processes.find((process) => String(idOf(process)) === String(view[key]))?.code ??
+                        String(view[key] ?? "-"))
+                    : key === "kyc_data_field_id"
+                      ? (dataFields.find((field) => String(idOf(field)) === String(view[key]))?.name ??
+                        dataFields.find((field) => String(idOf(field)) === String(view[key]))?.code ??
+                        String(view[key] ?? "-"))
+                    : key === "kyc_group_level_id"
+                      ? (() => {
+                          const level = kycGroupLevels.find(
+                            (item) => String(idOf(item)) === String(view[key]),
+                          );
+                          return level
+                            ? `${level.level_no ?? ""} - ${level.level_name ?? idOf(level)}`
+                            : String(view[key] ?? "-");
+                        })()
+                      : key === "kyc_group_id"
+                      ? (kycGroups.find((group) => String(idOf(group)) === String(view[key]))
+                          ?.name ?? String(view[key] ?? "-"))
+                      : String(view[key] ?? "-")}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </Modal>
+      )}
+      {audit && (
+        <AuditModal
+          title={config.title}
+          onClose={() => setAudit(null)}
+          fields={config.fields.map(([key, label]) => [key, label])}
+          fetchAudit={(p, value) =>
+            service.audit({ id: idOf(audit), page: p, limit: value }).then(mapAuditResponse)
+          }
+        />
+      )}
+      {action && (
+        <ConfirmDialog
+          open
+          title={`${action.label} ${config.title}`}
+          description={String(idOf(action.row))}
+          confirmLabel={action.label}
+          destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
+          confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
+          onClose={() => setAction(null)}
+          onConfirm={() => void run()}
+        >
+          {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
+          <textarea
+            value={action.reason ?? ""}
+            onChange={(event) => setAction({ ...action, reason: event.target.value })}
+            placeholder="Narration"
+            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+          />
+        </ConfirmDialog>
+      )}
+    </div>
+  );
+}
