@@ -23,6 +23,7 @@ import { useChannels } from "@/Hooks/Master/masterHooks";
 import { useTransactions } from "@/Hooks/Master/masterHooks";
 import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
 import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
+import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 
 const idOf = (r) => r?.id;
@@ -179,7 +180,8 @@ export function DigitalProductResource({ entity }) {
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
     [saving, setSaving] = useState(false),
-    [wizardOpen, setWizardOpen] = useState(false);
+    [wizardOpen, setWizardOpen] = useState(false),
+    [editWizardProduct, setEditWizardProduct] = useState(null);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -369,6 +371,16 @@ export function DigitalProductResource({ entity }) {
                 <button
                   type="button"
                   onClick={() => {
+                    // Digital Product's own Edit opens the 9-step
+                    // EditDigitalProductWizard instead of this file's
+                    // single-entity Editor — see wizardOpen above for the
+                    // matching Add case. Every other entity (reached only
+                    // via its own still-existing route) keeps the original
+                    // single Editor modal + individual API, unchanged.
+                    if (entity === "product") {
+                      setEditWizardProduct(r);
+                      return;
+                    }
                     setForm(Object.fromEntries(config.fields.map(([k]) => [k, r[k] ?? ""])));
                     setEditing(r);
                     setOpen(true);
@@ -472,6 +484,13 @@ export function DigitalProductResource({ entity }) {
             setWizardOpen(false);
             void load();
           }}
+        />
+      )}
+      {entity === "product" && editWizardProduct && (
+        <EditDigitalProductWizard
+          product={editWizardProduct}
+          onClose={() => setEditWizardProduct(null)}
+          onSaved={() => void load()}
         />
       )}
       <Editor
