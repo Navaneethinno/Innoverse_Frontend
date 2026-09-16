@@ -61,7 +61,14 @@ const CONFIGS = {
     // the same as Digital Product's own child, which really is named just
     // "Digital Product" (menu_id 31); the two only look alike in a
     // truncated sidebar label.
-    title: "Product",
+    // Was bare "Product" — inconsistent with Digital Product's own
+    // corresponding entity, which names itself "Digital Product" in full
+    // rather than just "Product" (see DigitalProductResource.jsx's
+    // CONFIGS.product.title). "Account Product" matches that convention and
+    // the page's own real menu_name (menuName below), so the header,
+    // breadcrumb (routeConfig.js), Add button, and Modal titles all read
+    // clearly instead of an ambiguous bare "Product".
+    title: "Account Product",
     menuName: "Account Product",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
     // Confirmed live: the backend has a NOT-NULL DB constraint on
@@ -336,10 +343,22 @@ const CONFIGS = {
 
 const idOf = (row) => row?.id;
 const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
+// Confirmed live (2026-09): the backend now sends ONE umbrella "Account"
+// menu node (menu_id 48) carrying every action (Add/View/Edit/Delete/
+// Authorise/Change Status) directly on itself, with none of the 17
+// per-entity children (Account Product/Product Ownership/.../Statement
+// Configuration) this file was originally built against actually present
+// in a real /user/login menu_array — every allowed(menus, action,
+// config.menuName) check below silently evaluated false for every action
+// on every entity, leaving Add/Edit/Authorize/etc. all invisible. Checking
+// the specific per-entity name first (kept in case the backend ever does
+// split it out again) and falling back to the umbrella "Account" node
+// covers both shapes without guessing which one is live.
 const allowed = (menus, action, menuName) =>
   (menus ?? []).some(
     (m) =>
-      new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) &&
+      (new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) ||
+        String(m?.menu_name).trim().toLowerCase() === "account") &&
       (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
 // Master (reference data) endpoints don't share one consistent field naming
@@ -844,7 +863,7 @@ export function AcctConfigResource({ entity }) {
           fixedHeight
           onClose={() => setConfiguring(null)}
         >
-          <AccountConfigurationCards product={configuring} />
+          <AccountConfigurationCards product={configuring} onNavigate={() => setConfiguring(null)} />
         </Modal>
       )}
       {view && (

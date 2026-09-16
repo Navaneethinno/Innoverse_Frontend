@@ -77,9 +77,15 @@ const SEGMENT_LABELS = {
   // --- EPURSE > Settings > Configuration > Account (config/acct_product*) -
   // "accountproduct": qualified slug for the Account > Product leaf
   // (the acct_product entity itself), disambiguated from Digital Product >
-  // Product — see MenuItem.jsx's DISAMBIGUATE_BY_PARENT. "Account" itself
-  // is a non-clickable group header in the sidebar, not a real route.
-  accountproduct: { title: "Product", breadcrumb: ["Account", "Product"] },
+  // Product — see MenuItem.jsx's DISAMBIGUATE_BY_PARENT. "Account" is
+  // usually a non-clickable group header in the sidebar, not a real route —
+  // except when a session's menu_array has none of Account's children
+  // populated (see acctConfigRoutes.jsx's "account" fallback route), where
+  // MenuItem.jsx treats it as an ordinary leaf and navigates to /account
+  // directly; that needs its own breadcrumb entry too, or it falls through
+  // to the generic "Dashboard" default.
+  account: { title: "Account Product", breadcrumb: ["Account", "Account Product"] },
+  accountproduct: { title: "Account Product", breadcrumb: ["Account", "Account Product"] },
   productownership: { title: "Product Ownership", breadcrumb: ["Account", "Product Ownership"] },
   productpartytype: { title: "Product Party Type", breadcrumb: ["Account", "Product Party Type"] },
   producttransaction: { title: "Product Transaction", breadcrumb: ["Account", "Product Transaction"] },

@@ -20,6 +20,13 @@ const GRANT_ALIASES = {
   deauthorise: ["deauthorize", "authorize", "authorise"],
   add: ["create"],
   create: ["add"],
+  // Confirmed live: the backend never sends separate "Deactivate"/
+  // "Reactivate" actions, only one combined "Change Status" grant covering
+  // both directions (see AcctConfigResource.jsx's canChangeStatus check,
+  // which asks specifically for "Deactivate"/"Reactivate" — those requests
+  // need to match this one granted action or they silently never do).
+  deactivate: ["change status"],
+  reactivate: ["change status"],
 };
 
 // grantedActionName: a single action's action_name/name from the backend's

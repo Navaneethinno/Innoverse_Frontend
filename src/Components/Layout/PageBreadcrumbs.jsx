@@ -1,27 +1,15 @@
 import { ChevronRight } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 
-function pathForCrumb(crumb) {
-  const paths = {
-    Dashboard: "/dashboard",
-    Institution: "/institutions",
-    Institutions: "/institutions",
-    "Institution Profile": "/institutions",
-    "User Management": "/users",
-    User: "/users",
-    Users: "/users",
-    Profile: "/profiles",
-    Profiles: "/profiles",
-    Settings: "/change-password",
-    "Change Password": "/change-password",
-  };
-  return paths[crumb] ?? "/dashboard";
-}
-
+// Plain path display, not a navigation control — each crumb used to be a
+// clickable button routed through a small hardcoded crumb->path map that
+// didn't cover every crumb text routeConfig.js can produce (e.g. "Account"
+// had no entry and silently fell back to /dashboard, so clicking it landed
+// somewhere unrelated to the page you were actually on). Showing it as text
+// avoids promising navigation the map can't reliably deliver.
 export function PageBreadcrumbs() {
-  const navigate = useNavigate();
   const { pathname } = useLocation();
   const crumbs = getRouteMetadata(pathname)?.breadcrumb ?? ["Dashboard"];
 
@@ -33,17 +21,15 @@ export function PageBreadcrumbs() {
             <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />
           )}
           <UiTooltip label={crumb}>
-          <button
-            type="button"
-            onClick={() => navigate(pathForCrumb(crumb))}
-            className={
-              index === crumbs.length - 1
-                ? "truncate font-semibold text-foreground hover:text-primary"
-                : "truncate font-medium text-muted-foreground hover:text-primary"
-            }
-          >
-            {crumb}
-          </button>
+            <span
+              className={
+                index === crumbs.length - 1
+                  ? "truncate font-semibold text-foreground"
+                  : "truncate font-medium text-muted-foreground"
+              }
+            >
+              {crumb}
+            </span>
           </UiTooltip>
         </span>
       ))}

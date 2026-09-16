@@ -8,7 +8,7 @@ import { ACCOUNT_CONFIGURATIONS } from "./acctConfigurations";
 // given product has actually enabled (product[enabledField] === true) are
 // shown, matching the product's own Ownership/Party Type/.../Statement
 // config-enabled checkboxes set on Add/Edit.
-export function AccountConfigurationCards({ product }) {
+export function AccountConfigurationCards({ product, onNavigate }) {
   const navigate = useNavigate();
   const enabled = ACCOUNT_CONFIGURATIONS.filter((item) => Boolean(product?.[item.enabledField]));
 
@@ -29,7 +29,14 @@ export function AccountConfigurationCards({ product }) {
         <button
           key={entity}
           type="button"
-          onClick={() => navigate(`/${route}/${crypto.randomUUID()}`)}
+          onClick={() => {
+            // Close the "Configure" modal before navigating away, or it
+            // stays mounted on top of the page it just linked to — the
+            // modal doesn't unmount itself just because the URL changed
+            // underneath it.
+            onNavigate?.();
+            navigate(`/${route}/${crypto.randomUUID()}`);
+          }}
           className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
         >
           <div className="flex items-start gap-3">
