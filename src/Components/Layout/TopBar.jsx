@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Command, LogOut, Moon, Settings, Sun } from "lucide-react";
+import { Bell, Command, LogOut, Menu, Moon, Settings, Sun } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
@@ -9,6 +9,7 @@ import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
+import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
@@ -23,17 +24,21 @@ export function TopBar() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
-  const { collapsed, hovering } = useSidebar();
+  const { collapsed, hovering, toggleMobile } = useSidebar();
   const { mode, toggleMode } = useColorMode();
   const logout = useAuth((s) => s.logout);
   const user = useAuth((s) => s.user);
+  const isMobile = useIsMobile();
   // Was keyed off `collapsed` alone, so it never reacted while the sidebar
   // was only hover-expanded (not pinned open) — the header stayed put at
   // the collapsed offset while the sidebar rail grew past it underneath,
   // visually colliding with it. Same isExpanded fix as AppLayout.jsx.
   const isExpanded = !collapsed || hovering;
   const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;
-  const leftOffset = sidebarW + 12 + 8;
+  // On mobile the sidebar is an off-canvas drawer, not a rail beside the
+  // content (see AppLayout.jsx), so the header sits at a small fixed
+  // offset instead of tracking the rail's width.
+  const leftOffset = isMobile ? 12 : sidebarW + 12 + 8;
   if (pathname === "/login" || pathname === "/setup") return null;
   return (
     <motion.header
@@ -55,6 +60,17 @@ export function TopBar() {
           boxShadow: "var(--glass-shadow)",
         }}
       >
+        {/* Sidebar drawer toggle — mobile only, the sidebar has no other
+            entry point there since it's off-canvas by default. */}
+        <button
+          type="button"
+          onClick={toggleMobile}
+          aria-label={t("layout:openMenu", "Open menu")}
+          className="flex md:hidden items-center justify-center p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors shrink-0"
+        >
+          <Menu size={17} strokeWidth={1.8} />
+        </button>
+
         {/* Brand */}
         <button
           onClick={() => navigate("/dashboard")}

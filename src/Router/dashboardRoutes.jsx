@@ -3,6 +3,12 @@ import { pageElement } from "./routeSupport";
 const DashboardPage = lazy(() =>
   import("@/Pages/Dashboard/ControlSpacePage").then((m) => ({ default: m.ControlSpacePage })),
 );
+// TopBar.jsx's bell button has always navigated here; no route existed for
+// it, so it 404'd (RouteError). Not sourced from menu_array like Dashboard,
+// for the same reason it was never expected to appear in the sidebar.
+const NotificationsPage = lazy(() =>
+  import("@/Pages/Notifications/NotificationsPage").then((m) => ({ default: m.NotificationsPage })),
+);
 // Matches payseFrontend's Router.jsx structure: Dashboard is the default
 // route of the protected layout (there, `path: ""` under "/body" — payse's
 // own senior-verified adjustment). Here that's the protected group's root
@@ -15,4 +21,5 @@ const DashboardPage = lazy(() =>
 export const dashboardRoutes = [
   { path: "/", element: pageElement(DashboardPage) },
   { path: "/dashboard", element: pageElement(DashboardPage) },
+  { path: "/notifications", element: pageElement(NotificationsPage) },
 ];

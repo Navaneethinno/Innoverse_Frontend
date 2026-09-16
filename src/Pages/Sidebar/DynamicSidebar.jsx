@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { useSidebar } from "@/Components/Layout/SidebarContext";
+import { useIsMobile } from "@/Hooks/useIsMobile";
 import { useAuth } from "@/Hooks/useAuth";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
@@ -31,14 +32,25 @@ const SIDEBAR_COLLAPSED_W = 56;
 export function DynamicSidebar() {
   const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
-  const { collapsed, hovering, setHovering, toggle } = useSidebar();
+  const { collapsed, hovering, setHovering, toggle, mobileOpen, closeMobile } = useSidebar();
   const logout = useAuth((state) => state.logout);
+  const isMobile = useIsMobile();
   // `hovering` lives in SidebarContext (not local state) so AppLayout can
   // reflow the page's reserved margin in sync with the same "is it visually
   // expanded" value — see SidebarContext.jsx for why an overlay-only
-  // approach looked broken.
-  const isExpanded = !collapsed || hovering;
+  // approach looked broken. On mobile the rail is never hover/collapse
+  // driven — it's either fully open (a drawer, always at full width so its
+  // labels are readable) or fully off-canvas.
+  const isExpanded = isMobile || !collapsed || hovering;
   const sidebarWidth = isExpanded ? SIDEBAR_EXPANDED_W : SIDEBAR_COLLAPSED_W;
+  // Closes the mobile drawer after any leaf navigation, without touching
+  // MenuItem.jsx's own navigation logic — it already calls this `navigate`
+  // prop, this just also closes the drawer on mobile so picking a menu item
+  // doesn't leave the overlay covering the page it just navigated to.
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (isMobile) closeMobile();
+  };
 
   const menuArray = useSelector((store) => store.menu.menuArray);
   const { masterModules } = useMasterModules();
@@ -156,23 +168,62 @@ export function DynamicSidebar() {
   }, [focusSearch]);
 
   return (
-    <motion.aside
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-      animate={{ width: sidebarWidth }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed left-3 top-3 bottom-3 z-30 flex flex-col py-3 rounded-2xl overflow-hidden"
-      style={{
-        // Same "frosted glass with color bleeding through it" treatment as
-        // TopBar.jsx: a soft brand-color gradient layered on top of the
-        // existing translucent panel, richer blur+saturation underneath.
-        background: "var(--glass-gradient), var(--glass-bg)",
-        backdropFilter: "var(--glass-blur)",
-        WebkitBackdropFilter: "var(--glass-blur)",
-        border: "1px solid var(--glass-border)",
-        boxShadow: "var(--glass-shadow)",
-      }}
-    >
+    <>
+      {/* Backdrop — mobile only, only while the drawer is open. Click
+          anywhere on it to close, same as tapping outside any other
+          overlay in the app. */}
+      <AnimatePresence>
+        {isMobile && mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={closeMobile}
+            className="fixed inset-0 z-40 bg-slate-900/40 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+      <motion.aside
+        onMouseEnter={() => !isMobile && setHovering(true)}
+        onMouseLeave={() => !isMobile && setHovering(false)}
+        animate={
+          isMobile
+            ? { x: mobileOpen ? 0 : "-110%", width: sidebarWidth }
+            : { x: 0, width: sidebarWidth }
+        }
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className={cn(
+          "flex flex-col py-3 rounded-2xl overflow-hidden",
+          // Desktop: a persistent rail, always in view. Mobile: a
+          // full-height off-canvas drawer above the backdrop, translated
+          // fully off-screen (via the `animate` x above) until opened.
+          isMobile ? "fixed left-3 top-3 bottom-3 z-50" : "fixed left-3 top-3 bottom-3 z-30",
+        )}
+        style={{
+          // Same "frosted glass with color bleeding through it" treatment as
+          // TopBar.jsx: a soft brand-color gradient layered on top of the
+          // existing translucent panel, richer blur+saturation underneath.
+          background: "var(--glass-gradient), var(--glass-bg)",
+          backdropFilter: "var(--glass-blur)",
+          WebkitBackdropFilter: "var(--glass-blur)",
+          border: "1px solid var(--glass-border)",
+          boxShadow: "var(--glass-shadow)",
+        }}
+      >
+      {isMobile && (
+        <div className="mb-1 flex shrink-0 items-center justify-between px-2">
+          <span className="text-xs font-bold text-foreground">{t("common:menu", "Menu")}</span>
+          <button
+            type="button"
+            onClick={closeMobile}
+            aria-label={t("common:close", "Close")}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
       {/* Pinned: the global search bar and the "Select module" control
           never move and never disappear, regardless of whether a module
           is selected, the module list is open, or the menu tree below
@@ -214,7 +265,7 @@ export function DynamicSidebar() {
         <div className="px-2">
           <MenuList
             menuItems={filteredMenuItems}
-            navigate={navigate}
+            navigate={handleNavigate}
             isCollapsed={!isExpanded}
             searchQuery={trimmedSearch}
             autoExpandedMenuIds={searchExpandedMenuIds}
@@ -255,37 +306,43 @@ export function DynamicSidebar() {
             </AnimatePresence>
           </motion.button>
         </UiTooltip>
-        <motion.button
-          onClick={toggle}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
-          className={cn(
-            "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
-            isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
-          )}
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={15} strokeWidth={1.8} />
-          ) : (
-            <PanelLeftClose size={15} strokeWidth={1.8} />
-          )}
-          <AnimatePresence initial={false}>
-            {isExpanded && (
-              <motion.span
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-xs font-semibold whitespace-nowrap overflow-hidden"
-              >
-                {collapsed ? t("pinOpen") : t("collapse")}
-              </motion.span>
+        {/* Collapse/pin-open only makes sense for the desktop rail — the
+            mobile drawer is always full-width while open, closed via the
+            X above or the backdrop otherwise. */}
+        {!isMobile && (
+          <motion.button
+            onClick={toggle}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+            className={cn(
+              "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
+              isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
             )}
-          </AnimatePresence>
-        </motion.button>
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={15} strokeWidth={1.8} />
+            ) : (
+              <PanelLeftClose size={15} strokeWidth={1.8} />
+            )}
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold whitespace-nowrap overflow-hidden"
+                >
+                  {collapsed ? t("pinOpen") : t("collapse")}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        )}
       </div>
-    </motion.aside>
+      </motion.aside>
+    </>
   );
 }
 

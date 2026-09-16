@@ -11,6 +11,7 @@ import { WorkspaceContainer } from "./WorkspaceContainer";
 import { SidebarStateProvider, useSidebar } from "./SidebarContext";
 import { DynamicSidebar, SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { PageBreadcrumbs } from "./PageBreadcrumbs";
+import { useIsMobile } from "@/Hooks/useIsMobile";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
   // (pinned-open OR currently hovered) rather than the pinned preference
@@ -18,17 +19,23 @@ function Layout() {
   // SidebarContext.jsx), so the content now shifts over exactly as the
   // rail widens/narrows.
   const { collapsed, hovering } = useSidebar();
+  const isMobile = useIsMobile();
   const isExpanded = !collapsed || hovering;
   const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;
+  // On mobile the sidebar is an off-canvas drawer (DynamicSidebar.jsx) that
+  // overlays the page instead of sitting beside it, so the content column
+  // reserves no space for it at all — reserving even the collapsed-rail
+  // width on a ~375px-wide phone was eating a real chunk of the viewport
+  // for a sidebar the user couldn't otherwise hide.
   return (
     <div className="min-h-screen flex w-full">
       <DynamicSidebar />
       <div
         style={{
-          paddingLeft: sidebarW + 16,
+          paddingLeft: isMobile ? 0 : sidebarW + 16,
           transition: "padding-left 0.28s cubic-bezier(0.22,1,0.36,1)",
         }}
-        className="flex flex-col flex-1 min-w-0 pr-3"
+        className="flex flex-col flex-1 min-w-0 px-3 md:pl-0 md:pr-3"
       >
         <TopBar />
         <WorkspaceContainer>

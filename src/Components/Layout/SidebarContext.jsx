@@ -4,6 +4,10 @@ const SidebarContext = createContext({
   hovering: false,
   setHovering: () => {},
   toggle: () => {},
+  mobileOpen: false,
+  openMobile: () => {},
+  closeMobile: () => {},
+  toggleMobile: () => {},
 });
 export function SidebarStateProvider({ children }) {
   // Collapsed (icon-only rail) by default — the sidebar auto-expands on
@@ -18,9 +22,23 @@ export function SidebarStateProvider({ children }) {
   // the expanded rail visibly collided with it.
   const [collapsed, setCollapsed] = useState(true);
   const [hovering, setHovering] = useState(false);
+  // Mobile-only: the sidebar renders as an off-canvas drawer there instead
+  // of the desktop hover/pin rail (see DynamicSidebar.jsx/AppLayout.jsx),
+  // closed by default so it never eats screen width until the user opens it
+  // via TopBar's hamburger button.
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <SidebarContext.Provider
-      value={{ collapsed, hovering, setHovering, toggle: () => setCollapsed((c) => !c) }}
+      value={{
+        collapsed,
+        hovering,
+        setHovering,
+        toggle: () => setCollapsed((c) => !c),
+        mobileOpen,
+        openMobile: () => setMobileOpen(true),
+        closeMobile: () => setMobileOpen(false),
+        toggleMobile: () => setMobileOpen((o) => !o),
+      }}
     >
       {children}
     </SidebarContext.Provider>
