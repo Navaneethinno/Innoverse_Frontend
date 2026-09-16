@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -28,7 +29,26 @@ export function Modal({
   children,
   bodyClassName,
   onBodyScroll,
+  // Opt-in only — every existing Modal caller keeps auto-sizing to its
+  // content (a short confirm dialog shouldn't grow to 85vh just because
+  // one caller elsewhere needs a stable height). AddDigitalProductWizard
+  // passes this so its outer size stays identical across all 9 steps
+  // instead of growing/shrinking with each step's field count — only the
+  // content area (already flex-1 + overflow-y-auto below) scrolls.
+  fixedHeight = false,
 }) {
+  // No modal in this codebase locked background scroll before — added here
+  // once, in the shared shell, rather than each caller (or the Digital
+  // Product wizard specifically) rolling its own competing lock.
+  useEffect(() => {
+    if (!open) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
   return createPortal(
     (
@@ -43,7 +63,8 @@ export function Modal({
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.16 }}
         className={cn(
-          "flex max-h-[85vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
+          "flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
+          fixedHeight ? "h-[85vh] max-h-[85vh]" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}

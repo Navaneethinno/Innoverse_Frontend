@@ -76,8 +76,15 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         className="grid gap-4"
       >
         {config.fields.map(([key, label, type]) => (
-          <label key={key} className="text-sm font-semibold text-slate-700">
-            {label}
+          <label
+            key={key}
+            className={
+              type === "boolean"
+                ? "flex items-center gap-2 text-sm font-semibold text-slate-700"
+                : "text-sm font-semibold text-slate-700"
+            }
+          >
+            {type === "boolean" ? <span>{label}</span> : label}
             <DigitalProductFieldInput
               fieldKey={key}
               type={type}

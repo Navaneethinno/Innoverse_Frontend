@@ -59,6 +59,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
     Object.fromEntries(steps.map((step) => [step.entity, emptyValuesFor(step.entity)])),
   );
   const [submitting, setSubmitting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const isLastStep = stepIndex === steps.length - 1;
@@ -151,6 +152,25 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   };
   const goBack = () => setStepIndex((i) => Math.max(0, i - 1));
 
+  // Unlike Next/Submit, a draft is deliberately allowed to be incomplete —
+  // that's the point of saving one — so this skips findMissingField
+  // entirely rather than blocking on whichever fields the current step
+  // hasn't been filled in yet. Goes through the same single isolated
+  // submitDigitalProductWorkflow integration point as the final Submit
+  // (just with is_draft: true), not a new/separate endpoint.
+  const handleSaveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      await submitDigitalProductWorkflow({ ...buildDigitalProductWorkflowPayload(values), is_draft: true });
+      notifications.success("Digital Product draft saved");
+      onSuccess?.();
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
   const handleSubmit = async () => {
     const missing = findMissingField(currentEntity, values[currentEntity]);
     if (missing) {
@@ -180,6 +200,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       onClose={onClose}
       title="Add Digital Product"
       size="full"
+      fixedHeight
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
@@ -194,6 +215,14 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               Back
             </button>
           )}
+          <button
+            type="button"
+            disabled={savingDraft}
+            onClick={() => void handleSaveDraft()}
+            className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
+          >
+            Save as draft
+          </button>
           {!isLastStep ? (
             <button
               type="button"
@@ -223,20 +252,49 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
         />
       </div>
       <h2 className="mb-3 text-sm font-bold text-slate-800">{currentStep.label}</h2>
-      <div className="grid gap-4 md:grid-cols-2">
-        {CONFIGS[currentEntity].fields.map(([key, label, type]) => (
-          <label key={key} className="text-sm font-semibold text-slate-700">
-            {label}
-            <DigitalProductFieldInput
-              fieldKey={key}
-              type={type}
-              value={values[currentEntity][key]}
-              onChange={(next) => setFieldValue(key, next)}
-              lookups={lookups}
-            />
-          </label>
-        ))}
+      <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+        {/* Two independent flex-column stacks, not a single 2-col CSS
+            grid — a real grid pairs left/right cells into shared rows, so a
+            tall field (a dropdown) next to a short one (a checkbox) forces
+            the short cell's row to stretch to the tall one's height,
+            stranding the checkbox with a large gap before the next row.
+            Splitting the field list in half up front lets each column's
+            items stack tightly based on their own content, independent of
+            the other column. */}
+        {[fieldsColumn(CONFIGS[currentEntity].fields, 0), fieldsColumn(CONFIGS[currentEntity].fields, 1)].map(
+          (columnFields, columnIndex) => (
+            <div key={columnIndex} className="flex flex-col gap-4">
+              {columnFields.map(([key, label, type]) => (
+                <label
+                  key={key}
+                  className={
+                    type === "boolean"
+                      ? "flex items-center gap-2 text-sm font-semibold text-slate-700"
+                      : "text-sm font-semibold text-slate-700"
+                  }
+                >
+                  {type === "boolean" ? <span>{label}</span> : label}
+                  <DigitalProductFieldInput
+                    fieldKey={key}
+                    type={type}
+                    value={values[currentEntity][key]}
+                    onChange={(next) => setFieldValue(key, next)}
+                    lookups={lookups}
+                  />
+                </label>
+              ))}
+            </div>
+          ),
+        )}
       </div>
     </Modal>
   );
+}
+
+// First half of the fields in column 0, the rest in column 1 — keeps a
+// step's fields in their existing top-to-bottom order (unlike alternating
+// every other field between columns, which would scatter related fields).
+function fieldsColumn(fields, columnIndex) {
+  const half = Math.ceil(fields.length / 2);
+  return columnIndex === 0 ? fields.slice(0, half) : fields.slice(half);
 }

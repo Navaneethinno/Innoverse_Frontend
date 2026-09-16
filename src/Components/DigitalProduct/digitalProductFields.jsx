@@ -286,12 +286,18 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
     );
   }
   if (type === "boolean") {
+    // Explicit fixed square size + shrink-0 so this never stretches or
+    // shrinks with ambient font-size/grid/flex context — without it a bare
+    // <input type="checkbox"> renders at whatever size the browser derives
+    // from the surrounding layout, which visibly differed between the
+    // standalone Editor's single-column form and the wizard's two-column
+    // grid for the exact same field ("Multiple accounts allowed").
     return (
       <input
         type="checkbox"
         checked={Boolean(value)}
         onChange={(e) => onChange(e.target.checked)}
-        className="ml-3"
+        className="h-4 w-4 shrink-0 rounded border-border accent-primary"
       />
     );
   }

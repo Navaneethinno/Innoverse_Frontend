@@ -38,7 +38,7 @@ function GradientMesh() {
 export function LoginPage() {
   const { t } = useTranslation("login");
   const [username, setUsername] = useState(
-    import.meta.env.VITE_DEFAULT_LOGIN_USERNAME || "ServiceProvider1",
+    import.meta.env.VITE_DEFAULT_LOGIN_USERNAME || "SuperAdmin1",
   );
   const [password, setPassword] = useState(import.meta.env.VITE_DEFAULT_LOGIN_PASSWORD || "");
   const [showPassword, setShowPassword] = useState(false);
