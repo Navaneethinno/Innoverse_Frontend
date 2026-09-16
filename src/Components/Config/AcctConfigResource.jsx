@@ -902,7 +902,14 @@ export function AcctConfigResource({ entity }) {
                   </div>
                 ))}
               </dl>
-              <AccountConfigurationCards product={view} onNavigate={() => setView(null)} />
+              <AccountConfigurationCards
+                product={view}
+                onNavigate={() => setView(null)}
+                onEditProduct={() => {
+                  setEditing(view);
+                  setForm({ ...view });
+                }}
+              />
             </>
           ) : (
             <dl className="grid gap-3">
