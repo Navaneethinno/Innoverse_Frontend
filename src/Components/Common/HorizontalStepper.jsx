@@ -13,13 +13,21 @@ import { cn } from "@/Utils/Lib/utils";
 // step list (Digital Product's 9 steps) scrolls horizontally on narrow
 // screens instead of squeezing labels unreadably thin or wrapping to a
 // second row.
-export function HorizontalStepper({ steps, activeIndex, onStepClick, className }) {
+//
+// `isStepCompleted(step, index)` is optional and defaults to plain
+// `index < activeIndex` (every prior step is "done") — a purely linear
+// wizard like AddInstitutionProfile.jsx's flow never needs it. A caller
+// where "done" means something more specific than "the user scrolled past
+// it" — DigitalProductWorkflow.jsx only marks a step completed once its own
+// real API call actually succeeded — passes this to override that default
+// without the stepper needing to know anything about what "done" means.
+export function HorizontalStepper({ steps, activeIndex, onStepClick, isStepCompleted, className }) {
   const clickable = typeof onStepClick === "function";
   return (
     <div className={cn("overflow-x-auto", className)}>
       <div className="flex min-w-max items-start px-1">
         {steps.map((step, index) => {
-          const isCompleted = index < activeIndex;
+          const isCompleted = isStepCompleted ? isStepCompleted(step, index) : index < activeIndex;
           const isCurrent = index === activeIndex;
           const Icon = step.icon;
           return (
@@ -68,7 +76,7 @@ export function HorizontalStepper({ steps, activeIndex, onStepClick, className }
                 <div
                   className={cn(
                     "mx-2 h-0.5 min-w-[24px] flex-1 rounded-full transition-colors duration-300",
-                    index < activeIndex ? "bg-primary" : "bg-border",
+                    isCompleted ? "bg-primary" : "bg-border",
                   )}
                   style={{ marginTop: "1.25rem" }}
                 />

@@ -17,120 +17,14 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { configKycApi } from "@/Services/Config/config.api";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useChannels } from "@/Hooks/Master/masterHooks";
 import { useTransactions } from "@/Hooks/Master/masterHooks";
 import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
-import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
+import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
+import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 
-const CONFIGS = {
-  product: {
-    title: "Digital Product",
-    menuName: "Digital Product",
-    readOnlyOnEdit: ["inst_profile_id"],
-    fields: [
-      ["inst_profile_id", "Institution profile", "number"],
-      ["code", "Code", "text"],
-      ["name", "Name", "text"],
-      ["description", "Description", "textarea"],
-      ["multiple_accounts_allowed", "Multiple accounts allowed", "boolean"],
-      ["max_accounts", "Maximum accounts", "number"],
-      ["multiple_cards_allowed", "Multiple cards allowed", "boolean"],
-      ["max_cards", "Maximum cards", "number"],
-    ],
-    deactivate: true,
-  },
-  product_map: {
-    title: "Product Map",
-    readOnlyOnEdit: ["product_id"],
-    fields: [
-      ["product_id", "Products", "number"],
-      ["acct_product_id", "Account product", "number"],
-      ["allowed", "Allowed", "boolean"],
-      ["primary_account_product", "Primary account product", "boolean"],
-      ["priority", "Priority", "number"],
-    ],
-  },
-  security_config: {
-    title: "Security Config",
-    readOnlyOnEdit: ["product_id"],
-    fields: [
-      ["product_id", "Product ID", "number"],
-      ["login_pin_inherit", "Login PIN inherit", "boolean"],
-      ["login_pin_required", "Login PIN required", "boolean"],
-      ["login_pin_length", "Login PIN length", "number"],
-      ["login_pin_type", "Login PIN type", "text"],
-      ["transaction_pin_inherit", "Transaction PIN inherit", "boolean"],
-      ["transaction_pin_required", "Transaction PIN required", "boolean"],
-      ["transaction_pin_length", "Transaction PIN length", "number"],
-      ["transaction_pin_type", "Transaction PIN type", "text"],
-      ["login_transaction_pin_same_inherit", "Same PIN inherit", "boolean"],
-      ["login_transaction_pin_same", "Same PIN", "boolean"],
-    ],
-  },
-  kyc_config: {
-    title: "KYC Config",
-    readOnlyOnEdit: ["product_id"],
-    fields: [
-      ["product_id", "Product ID", "number"],
-      ["kyc_group_id", "KYC group", "number"],
-      ["minimum_kyc_level", "Minimum KYC level", "number"],
-    ],
-  },
-  kyc_level: {
-    title: "KYC Level",
-    readOnlyOnEdit: ["kyc_config_id"],
-    fields: [
-      ["kyc_config_id", "KYC config ID", "number"],
-      ["kyc_level", "KYC level", "number"],
-      ["level_name", "Level name", "text"],
-    ],
-  },
-  channel_config: {
-    title: "Channel Config",
-    readOnlyOnEdit: ["product_id"],
-    fields: [
-      ["product_id", "Product ID", "number"],
-      ["channel_id", "Channel", "number"],
-      ["enabled", "Enabled", "boolean"],
-      ["session_timeout_seconds", "Session timeout seconds", "number"],
-      ["user_activity_timeout_seconds", "User activity timeout seconds", "number"],
-    ],
-  },
-  channel_transaction: {
-    title: "Channel Transaction",
-    readOnlyOnEdit: ["channel_config_id"],
-    fields: [
-      ["channel_config_id", "Channel config", "number"],
-      ["transaction_type_id", "Transaction type", "number"],
-      ["allowed", "Allowed", "boolean"],
-      ["authentication_required", "Authentication required", "boolean"],
-      ["transaction_pin_required", "Transaction PIN required", "boolean"],
-    ],
-  },
-  eligibility_config: {
-    title: "Eligibility Config",
-    readOnlyOnEdit: ["product_id"],
-    fields: [
-      ["product_id", "Product ID", "number"],
-      ["age_restriction_inherit", "Age restriction inherit", "boolean"],
-      ["minimum_age", "Minimum age", "number"],
-      ["maximum_age", "Maximum age", "number"],
-      ["residency_restriction_inherit", "Residency restriction inherit", "boolean"],
-    ],
-  },
-  residency: {
-    title: "Residency",
-    readOnlyOnEdit: ["eligibility_config_id"],
-    fields: [
-      ["eligibility_config_id", "Eligibility config", "number"],
-      ["residency_type_id", "Residency type", "number"],
-      ["allowed", "Allowed", "boolean"],
-    ],
-  },
-};
 const idOf = (r) => r?.id;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 const allowed = (menus, action, title) =>
@@ -141,6 +35,7 @@ const allowed = (menus, action, title) =>
   );
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes }) {
   if (!open) return null;
+  const lookups = { institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes };
   return (
     <Modal
       open
@@ -183,153 +78,13 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         {config.fields.map(([key, label, type]) => (
           <label key={key} className="text-sm font-semibold text-slate-700">
             {label}
-            {key === "transaction_type_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select transaction type" },
-                  ...transactions.map((transaction) => ({
-                    value: transaction.id,
-                    label: transaction.name ?? transaction.code ?? String(transaction.id),
-                  })),
-                ]}
-              />
-            ) : key === "channel_config_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select channel config" },
-                  ...channelConfigs.map((channelConfig) => ({
-                    value: channelConfig.id,
-                    label: channelConfig.name ?? channelConfig.code ?? String(channelConfig.id),
-                  })),
-                ]}
-              />
-            ) : key === "channel_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select channel" },
-                  ...channels.map((channel) => ({
-                    value: channel.id,
-                    label: channel.name ?? channel.code ?? String(channel.id),
-                  })),
-                ]}
-              />
-            ) : key === "kyc_group_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select KYC group" },
-                  ...kycGroups.map((group) => ({
-                    value: group.id,
-                    label: group.name ?? group.code ?? String(group.id),
-                  })),
-                ]}
-              />
-            ) : key === "acct_product_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select account product" },
-                  ...accountProducts.map((product) => ({
-                    value: product.id,
-                    label: product.name ?? product.code ?? String(product.id),
-                  })),
-                ]}
-              />
-            ) : key === "product_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select product" },
-                  ...products.map((product) => ({
-                    value: product.id,
-                    label: product.name ?? product.code ?? String(product.id),
-                  })),
-                ]}
-              />
-            ) : key === "eligibility_config_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select eligibility config" },
-                  ...eligibilityConfigs.map((config) => ({
-                    value: config.id,
-                    label: config.name ?? config.code ?? String(config.id),
-                  })),
-                ]}
-              />
-            ) : key === "residency_type_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select residency type" },
-                  ...residencyTypes.map((type) => ({
-                    value: type.id,
-                    label: type.name ?? type.code ?? String(type.id),
-                  })),
-                ]}
-              />
-            ) : key === "inst_profile_id" ? (
-              <FilterSelect
-                className="mt-1.5"
-                value={value[key] ?? ""}
-                onChange={(next) => setValue({ ...value, [key]: next })}
-                options={[
-                  { value: "", label: "Select institution profile" },
-                  ...institutions.map((institution) => ({
-                    value: institution.id,
-                    label: institution.name ?? String(institution.id),
-                  })),
-                ]}
-              />
-            ) : type === "textarea" ? (
-              <textarea
-                value={value[key] ?? ""}
-                onChange={(e) => setValue({ ...value, [key]: e.target.value })}
-                className="mt-1.5 min-h-24 w-full rounded-xl border p-3"
-              />
-            ) : type === "boolean" ? (
-              <input
-                type="checkbox"
-                checked={Boolean(value[key])}
-                onChange={(e) => setValue({ ...value, [key]: e.target.checked })}
-                className="ml-3"
-              />
-            ) : (
-              <input
-                required={key.endsWith("_id") || ["code", "name"].includes(key)}
-                type={type}
-                min={type === "number" ? 0 : undefined}
-                value={value[key] ?? ""}
-                onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
-                onWheel={type === "number" ? blurOnWheel : undefined}
-                onChange={(e) =>
-                  setValue({
-                    ...value,
-                    [key]: type === "number" ? clampNonNegative(e.target.value) : e.target.value,
-                  })
-                }
-                className="mt-1.5 w-full rounded-xl border px-3 py-2.5"
-              />
-            )}
+            <DigitalProductFieldInput
+              fieldKey={key}
+              type={type}
+              value={value[key]}
+              onChange={(next) => setValue({ ...value, [key]: next })}
+              lookups={lookups}
+            />
           </label>
         ))}
       </form>
@@ -340,13 +95,32 @@ export function DigitalProductResource({ entity }) {
   const config = CONFIGS[entity];
   const menus = useSelector((s) => s.menu.menuArray);
   const api = useMemo(() => digitalProductApi(entity), [entity]);
-  const { data: institutions = [] } = useActiveInstitutionsQuery();
+  const { data: institutions = [], error: institutionsError } = useActiveInstitutionsQuery();
   const [products, setProducts] = useState([]);
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
-  const { channels = [] } = useChannels(entity === "channel_config");
-  const { transactions = [] } = useTransactions(entity === "channel_transaction");
-  const { residencyTypes = [] } = useResidencyTypes(entity === "residency");
+  const { channels = [], error: channelsError } = useChannels(entity === "channel_config");
+  const { transactions = [], error: transactionsError } = useTransactions(entity === "channel_transaction");
+  const { residencyTypes = [], error: residencyTypesError } = useResidencyTypes(entity === "residency");
+  // These four dropdown sources use hooks whose error state was previously
+  // never read here — a failed fetch (session hiccup, transient network
+  // error, a permission change) left the dropdown silently empty with zero
+  // feedback, indistinguishable from "the option list is genuinely empty".
+  // Every other dropdown source in this file already surfaces its fetch
+  // error via notifications.error in its own .catch; this brings these four
+  // in line with that instead of swallowing the error.
+  useEffect(() => {
+    if (institutionsError) notifications.error(institutionsError.message);
+  }, [institutionsError]);
+  useEffect(() => {
+    if (channelsError) notifications.error(channelsError.message);
+  }, [channelsError]);
+  useEffect(() => {
+    if (transactionsError) notifications.error(transactionsError.message);
+  }, [transactionsError]);
+  useEffect(() => {
+    if (residencyTypesError) notifications.error(residencyTypesError.message);
+  }, [residencyTypesError]);
   const [channelConfigs, setChannelConfigs] = useState([]);
   const [eligibilityConfigs, setEligibilityConfigs] = useState([]);
   useEffect(() => {
@@ -397,7 +171,8 @@ export function DigitalProductResource({ entity }) {
     [view, setView] = useState(null),
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [wizardOpen, setWizardOpen] = useState(false);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -622,14 +397,20 @@ export function DigitalProductResource({ entity }) {
       },
     },
   ];
+  // Digital Product's own "+ Add Digital Product" launches the 9-step
+  // AddDigitalProductWizard instead of this file's own single-entity Editor
+  // — see AddDigitalProductWizard.jsx. Every other entity (reached only via
+  // its own still-existing route, since the sidebar no longer links to it
+  // directly) keeps the original single Editor modal + individual API,
+  // completely unchanged.
   const addAction = allowed(menus, "Add", config.menuName ?? config.title) ? (
     <button
       onClick={() => {
-        setForm(
-          Object.fromEntries(
-            config.fields.map(([k, , type]) => [k, type === "boolean" ? false : ""]),
-          ),
-        );
+        if (entity === "product") {
+          setWizardOpen(true);
+          return;
+        }
+        setForm(Object.fromEntries(config.fields.map(([k, , type]) => [k, type === "boolean" ? false : ""])));
         setEditing(null);
         setOpen(true);
       }}
@@ -677,6 +458,15 @@ export function DigitalProductResource({ entity }) {
         bare
         compact
       /></div>
+      {entity === "product" && wizardOpen && (
+        <AddDigitalProductWizard
+          onClose={() => setWizardOpen(false)}
+          onSuccess={() => {
+            setWizardOpen(false);
+            void load();
+          }}
+        />
+      )}
       <Editor
         open={open}
         config={config}
