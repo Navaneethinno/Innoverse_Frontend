@@ -59,3 +59,11 @@ export const acctConfigRoutes = paths.flatMap((path, index) => [
   { path, element: pageElement(Resource, { entity: entities[index] }) },
   { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },
 ]);
+
+// Single source of truth for "which existing route serves this entity" —
+// consumed by acctConfigurations.js so the Account Product configuration
+// card grid (AcctConfigResource.jsx) links to these exact routes instead of
+// a second, drifting copy of the path/entity pairing above.
+export const ACCT_CONFIG_ROUTE_BY_ENTITY = Object.fromEntries(
+  entities.map((entity, index) => [entity, paths[index]]),
+);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Eye, History, Pencil, Plus, Send, Settings2, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -33,6 +33,8 @@ import {
   useTransactions,
 } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { splitFieldsIntoColumns } from "@/Utils/Lib/formFieldColumns";
+import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
 // "Account" (acct_product) plus its 16 sub-configs — every sub-config below
 // is scoped to a parent via acct_product_id (see fields), matching the
@@ -457,7 +459,8 @@ export function AcctConfigResource({ entity }) {
     [view, setView] = useState(null),
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [configuring, setConfiguring] = useState(null);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -619,6 +622,13 @@ export function AcctConfigResource({ entity }) {
                 <Eye size={14} />
               </button>
             </UiTooltip>
+            {entity === "acct_product" && (
+              <UiTooltip label="Configure">
+                <button type="button" className={actionButtonClass("view")} onClick={() => setConfiguring(row)}>
+                  <Settings2 size={14} />
+                </button>
+              </UiTooltip>
+            )}
             {buttons.edit && (
               <button
                 type="button"
@@ -750,62 +760,91 @@ export function AcctConfigResource({ entity }) {
         <Modal
           open
           title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          size="lg"
+          fixedHeight
           onClose={() => {
             setEditing(null);
             setForm({});
           }}
-        >
-          <div className="grid gap-3">
-            {config.fields.map(([key, label, type, lookupKey]) => {
-              const isReadOnly = Boolean(editing && config.readOnlyOnEdit?.includes(key));
-              return (
-                <label key={key} className={type === "boolean" ? "flex items-center gap-2 text-sm font-semibold" : "text-sm font-semibold"}>
-                  {type === "boolean" ? <span>{label}</span> : label}
-                  {lookupKey ? (
-                    <FilterSelect
-                      className="mt-1.5"
-                      value={form[key] ?? ""}
-                      onChange={(value) => setForm({ ...form, [key]: value })}
-                      disabled={isReadOnly}
-                      options={[{ value: "", label: `Select ${label.toLowerCase()}` }, ...optionsFor(lookupKey)]}
-                    />
-                  ) : type === "textarea" ? (
-                    <textarea
-                      value={form[key] ?? ""}
-                      disabled={isReadOnly}
-                      onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                      className="mt-1.5 min-h-24 w-full rounded-xl border px-3 py-2.5"
-                    />
-                  ) : (
-                    <input
-                      type={type === "number" ? "number" : type === "boolean" ? "checkbox" : type === "date" ? "date" : "text"}
-                      min={type === "number" ? 0 : undefined}
-                      checked={type === "boolean" ? Boolean(form[key]) : undefined}
-                      value={type !== "boolean" ? (form[key] ?? "") : undefined}
-                      disabled={isReadOnly}
-                      onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
-                      onWheel={type === "number" ? blurOnWheel : undefined}
-                      onChange={(event) =>
-                        setForm({
-                          ...form,
-                          [key]: type === "boolean" ? event.target.checked : type === "number" ? clampNonNegative(event.target.value) : event.target.value,
-                        })
-                      }
-                      className={type === "boolean" ? "h-4 w-4 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
-                    />
-                  )}
-                </label>
-              );
-            })}
-            <div className="flex justify-end gap-2">
-              <button onClick={() => void save(true)} disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold">
+          footer={
+            <>
+              <button onClick={() => void save(true)} disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50">
                 Save draft
               </button>
-              <button onClick={() => void save(false)} disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">
+              <button onClick={() => void save(false)} disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
                 Save
               </button>
-            </div>
+            </>
+          }
+        >
+          {/* Two independent flex-column stacks, not a single 2-col CSS
+              grid — see formFieldColumns.js for why: a real grid pairs
+              left/right cells into shared rows, so a tall field (a
+              dropdown) next to a short one (a checkbox) stretches the short
+              cell's row to match, stranding it with a large gap before the
+              next row. */}
+          <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
+            {splitFieldsIntoColumns(config.fields).map((columnFields, columnIndex) => (
+              <div key={columnIndex} className="flex flex-col gap-3">
+                {columnFields.map(([key, label, type, lookupKey]) => {
+                  const isReadOnly = Boolean(editing && config.readOnlyOnEdit?.includes(key));
+                  return (
+                    <label
+                      key={key}
+                      className={type === "boolean" ? "flex items-center gap-2 text-sm font-semibold" : "text-sm font-semibold"}
+                    >
+                      {type === "boolean" ? <span>{label}</span> : label}
+                      {lookupKey ? (
+                        <FilterSelect
+                          className="mt-1.5"
+                          value={form[key] ?? ""}
+                          onChange={(value) => setForm({ ...form, [key]: value })}
+                          disabled={isReadOnly}
+                          options={[{ value: "", label: `Select ${label.toLowerCase()}` }, ...optionsFor(lookupKey)]}
+                        />
+                      ) : type === "textarea" ? (
+                        <textarea
+                          value={form[key] ?? ""}
+                          disabled={isReadOnly}
+                          onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+                          className="mt-1.5 min-h-24 w-full rounded-xl border px-3 py-2.5"
+                        />
+                      ) : (
+                        <input
+                          type={type === "number" ? "number" : type === "boolean" ? "checkbox" : type === "date" ? "date" : "text"}
+                          min={type === "number" ? 0 : undefined}
+                          checked={type === "boolean" ? Boolean(form[key]) : undefined}
+                          value={type !== "boolean" ? (form[key] ?? "") : undefined}
+                          disabled={isReadOnly}
+                          onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
+                          onWheel={type === "number" ? blurOnWheel : undefined}
+                          onChange={(event) =>
+                            setForm({
+                              ...form,
+                              [key]: type === "boolean" ? event.target.checked : type === "number" ? clampNonNegative(event.target.value) : event.target.value,
+                            })
+                          }
+                          className={type === "boolean" ? "h-4 w-4 shrink-0 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
+                        />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            ))}
           </div>
+        </Modal>
+      )}
+      {configuring && (
+        <Modal
+          open
+          title={`Configure ${configuring.product_name ?? "Account Product"}`}
+          subtitle="Only the configurations enabled for this product are shown"
+          size="xl"
+          fixedHeight
+          onClose={() => setConfiguring(null)}
+        >
+          <AccountConfigurationCards product={configuring} />
         </Modal>
       )}
       {view && (
