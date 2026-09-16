@@ -108,3 +108,25 @@ export function getRouteMetadata(pathname) {
   const firstSegment = pathname.split("/").filter(Boolean)[0] ?? "";
   return SEGMENT_LABELS[firstSegment] ?? SEGMENT_LABELS.dashboard;
 }
+
+// Reverse lookup so PageBreadcrumbs.jsx can make a crumb clickable without
+// its own separate, easy-to-forget-to-update path map (the previous one
+// didn't cover every possible crumb text — e.g. "Account" had no entry and
+// silently fell back to /dashboard). Every SEGMENT_LABELS key IS a real
+// registered route segment, so this only ever points at routes that
+// actually exist.
+//
+// Prefers an exact match on the LEAF label (a crumb's last/most specific
+// segment, e.g. "Account Product") over a MODULE-level match (a crumb's
+// first segment, e.g. "Account") — a leaf route is the more specific page a
+// user would expect that exact word to open; only the module-level crumb
+// itself (which has no more specific route of its own) falls back to
+// whichever segment represents that module's own landing page.
+export function getPathForCrumb(label) {
+  const entries = Object.entries(SEGMENT_LABELS);
+  const leafMatch = entries.find(([, meta]) => meta.breadcrumb[meta.breadcrumb.length - 1] === label);
+  if (leafMatch) return leafMatch[0];
+  const moduleMatch = entries.find(([, meta]) => meta.breadcrumb[0] === label);
+  if (moduleMatch) return moduleMatch[0];
+  return "dashboard";
+}
