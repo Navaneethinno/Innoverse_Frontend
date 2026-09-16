@@ -6,107 +6,54 @@ import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { CONFIGS } from "./digitalProductFields";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { saveDigitalProductWorkflowStep } from "@/Services/DigitalProduct/digitalProductWorkflow.api";
-import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
 import {
   DigitalProductStepFields,
-  emptyValuesFor,
   findMissingField,
   requiredFieldMessage,
   rowsOf,
+  useDigitalProductExistingData,
   useDigitalProductLookups,
 } from "./digitalProductWizardShared";
 import { notifications } from "@/Utils/Lib/notifications";
 
-function pickFields(entity, record) {
-  return Object.fromEntries(
-    CONFIGS[entity].fields.map(([key, , type]) => [key, record?.[key] ?? (type === "boolean" ? false : "")]),
-  );
-}
-
-// Finds the existing record (if any) for `entity` whose `parentField`
-// equals `parentId`, by listing that entity's own existing /list endpoint
-// (the same one DigitalProductResource.jsx's own listing page for that
-// entity already calls) and filtering client-side — there is no dedicated
-// "get by parent id" endpoint, and inventing one isn't in scope here.
-async function findChildRecord(entity, parentField, parentId) {
-  if (parentId == null) return undefined;
-  const response = await digitalProductApi(entity).list({ page: 1, limit: 500 });
-  return rowsOf(response).find((row) => String(row[parentField]) === String(parentId));
-}
-
 // Same 9-step horizontal stepper and field/dropdown plumbing as
-// AddDigitalProductWizard.jsx (both share digitalProductWizardShared.jsx),
-// but a fundamentally different mode: EDIT loads whatever configuration
-// already exists for this Digital Product across all 9 steps up front, so
-// the stepper can show real "already configured" checkmarks (not just
-// "visited this session"), lets the user jump to ANY step directly, and
-// saves ONE step at a time through that step's own existing edit/add API
-// (see saveDigitalProductWorkflowStep) rather than collecting everything
-// for one final call the way Add does. No CREATE call ever fires for a
-// step that already has an existing record — its real id is always sent.
+// AddDigitalProductWizard.jsx/ViewDigitalProductWizard.jsx (all three share
+// digitalProductWizardShared.jsx), but a fundamentally different mode: EDIT
+// loads whatever configuration already exists for this Digital Product
+// across all 9 steps up front (useDigitalProductExistingData), so the
+// stepper can show real "already configured" checkmarks (not just "visited
+// this session"), lets the user jump to ANY step directly, and saves ONE
+// step at a time through that step's own existing edit/add API (see
+// saveDigitalProductWorkflowStep) rather than collecting everything for one
+// final call the way Add does. No CREATE call ever fires for a step that
+// already has an existing record — its real id is always sent.
 export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [values, setValues] = useState(() =>
-    Object.fromEntries(steps.map((step) => [step.entity, emptyValuesFor(step.entity)])),
-  );
-  const [savedValues, setSavedValues] = useState(values);
-  const [recordIds, setRecordIds] = useState(() => Object.fromEntries(steps.map((step) => [step.entity, null])));
+  const {
+    values: loadedValues,
+    recordIds,
+    setRecordIds,
+    loading: initialLoading,
+  } = useDigitalProductExistingData(product);
+  const [values, setValues] = useState(loadedValues);
+  const [savedValues, setSavedValues] = useState(loadedValues);
+  useEffect(() => {
+    if (!initialLoading) {
+      setValues(loadedValues);
+      setSavedValues(loadedValues);
+    }
+    // Only re-sync once loading finishes, not on every loadedValues object
+    // identity change (there is none after that point) or `values` changing
+    // as the user types — this must not clobber in-progress edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLoading]);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [pendingNav, setPendingNav] = useState(null);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const lookups = useDigitalProductLookups(currentEntity);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const nextValues = { product: pickFields("product", product) };
-      const nextRecordIds = { product: product.id };
-
-      await Promise.all(
-        steps
-          .filter((step) => step.parentEntity === "product")
-          .map(async (step) => {
-            const record = await findChildRecord(step.entity, step.parentIdField, product.id).catch(() => undefined);
-            nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
-            nextRecordIds[step.entity] = record?.id ?? null;
-          }),
-      );
-
-      // kyc_level / channel_transaction / residency each depend on a
-      // record resolved in the pass above (kyc_config / channel_config /
-      // eligibility_config respectively) — must run after it, not in
-      // parallel with it.
-      await Promise.all(
-        steps
-          .filter((step) => step.parentEntity && step.parentEntity !== "product")
-          .map(async (step) => {
-            const parentId = nextRecordIds[step.parentEntity];
-            const record = await findChildRecord(step.entity, step.parentIdField, parentId).catch(() => undefined);
-            nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
-            nextRecordIds[step.entity] = record?.id ?? null;
-          }),
-      );
-
-      if (cancelled) return;
-      setValues(nextValues);
-      setSavedValues(nextValues);
-      setRecordIds(nextRecordIds);
-      setInitialLoading(false);
-    }
-    load().catch((e) => {
-      if (cancelled) return;
-      notifications.error(e.message);
-      setInitialLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product.id]);
 
   const isDirty = JSON.stringify(values[currentEntity]) !== JSON.stringify(savedValues[currentEntity]);
   const setFieldValue = (key, next) =>

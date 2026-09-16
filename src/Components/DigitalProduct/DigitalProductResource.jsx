@@ -24,6 +24,7 @@ import { useTransactions } from "@/Hooks/Master/masterHooks";
 import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
 import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
 import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
+import { ViewDigitalProductWizard } from "./ViewDigitalProductWizard";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 
 const idOf = (r) => r?.id;
@@ -181,7 +182,8 @@ export function DigitalProductResource({ entity }) {
     [action, setAction] = useState(null),
     [saving, setSaving] = useState(false),
     [wizardOpen, setWizardOpen] = useState(false),
-    [editWizardProduct, setEditWizardProduct] = useState(null);
+    [editWizardProduct, setEditWizardProduct] = useState(null),
+    [viewWizardProduct, setViewWizardProduct] = useState(null);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -360,7 +362,18 @@ export function DigitalProductResource({ entity }) {
             <UiTooltip label="View">
               <button
                 type="button"
-                onClick={() => setView(r)}
+                onClick={() => {
+                  // Digital Product's own View opens the read-only 9-step
+                  // ViewDigitalProductWizard instead of this file's plain
+                  // single-entity view modal — see viewWizardProduct below.
+                  // Every other entity keeps the original single view modal,
+                  // unchanged.
+                  if (entity === "product") {
+                    setViewWizardProduct(r);
+                    return;
+                  }
+                  setView(r);
+                }}
                 className={actionButtonClass("view")}
               >
                 <Eye size={14} />
@@ -492,6 +505,9 @@ export function DigitalProductResource({ entity }) {
           onClose={() => setEditWizardProduct(null)}
           onSaved={() => void load()}
         />
+      )}
+      {entity === "product" && viewWizardProduct && (
+        <ViewDigitalProductWizard product={viewWizardProduct} onClose={() => setViewWizardProduct(null)} />
       )}
       <Editor
         open={open}

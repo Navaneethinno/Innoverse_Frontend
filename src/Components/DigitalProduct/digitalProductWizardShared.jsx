@@ -1,21 +1,105 @@
 import { useEffect, useState } from "react";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
 import { configKycApi } from "@/Services/Config/config.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { useChannels, useTransactions, useResidencyTypes } from "@/Hooks/Master/masterHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 
-// Shared between AddDigitalProductWizard.jsx and EditDigitalProductWizard.jsx
-// — everything here is pure step/field plumbing with no add-vs-edit
-// opinion, so both wizards behave identically at the field/dropdown level
-// and only differ in how they load initial values and where Next/Save
-// sends the result.
+// Shared between AddDigitalProductWizard.jsx, EditDigitalProductWizard.jsx
+// and ViewDigitalProductWizard.jsx — everything here is pure step/field
+// plumbing with no add-vs-edit-vs-view opinion, so all three wizards behave
+// identically at the field/dropdown level and only differ in how they load
+// initial values and what (if anything) happens on Next/Save.
 
 export const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 
 export function emptyValuesFor(entity) {
   return Object.fromEntries(CONFIGS[entity].fields.map(([key, , type]) => [key, type === "boolean" ? false : ""]));
+}
+
+function pickFields(entity, record) {
+  return Object.fromEntries(
+    CONFIGS[entity].fields.map(([key, , type]) => [key, record?.[key] ?? (type === "boolean" ? false : "")]),
+  );
+}
+
+// Finds the existing record (if any) for `entity` whose `parentField`
+// equals `parentId`, by listing that entity's own existing /list endpoint
+// (the same one DigitalProductResource.jsx's own listing page for that
+// entity already calls) and filtering client-side — there is no dedicated
+// "get by parent id" endpoint, and inventing one isn't in scope here.
+async function findChildRecord(entity, parentField, parentId) {
+  if (parentId == null) return undefined;
+  const response = await digitalProductApi(entity).list({ page: 1, limit: 500 });
+  return rowsOf(response).find((row) => String(row[parentField]) === String(parentId));
+}
+
+// Loads whatever configuration already exists for `product` across all 9
+// steps: `product` itself comes free from the caller (the row it already
+// has), the 5 steps parented directly to it are fetched in parallel, then
+// the 3 steps chained off THOSE (kyc_level off kyc_config's id,
+// channel_transaction off channel_config's id, residency off
+// eligibility_config's id) are resolved once their parent's real id is
+// known. Shared by EditDigitalProductWizard.jsx (which then lets the user
+// mutate the result) and ViewDigitalProductWizard.jsx (which renders it
+// read-only and never mutates it).
+export function useDigitalProductExistingData(product) {
+  const [values, setValues] = useState(() =>
+    Object.fromEntries(DIGITAL_PRODUCT_STEPS.map((step) => [step.entity, emptyValuesFor(step.entity)])),
+  );
+  const [recordIds, setRecordIds] = useState(() =>
+    Object.fromEntries(DIGITAL_PRODUCT_STEPS.map((step) => [step.entity, null])),
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const nextValues = { product: pickFields("product", product) };
+      const nextRecordIds = { product: product.id };
+
+      await Promise.all(
+        DIGITAL_PRODUCT_STEPS.filter((step) => step.parentEntity === "product").map(async (step) => {
+          const record = await findChildRecord(step.entity, step.parentIdField, product.id).catch(() => undefined);
+          nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
+          nextRecordIds[step.entity] = record?.id ?? null;
+        }),
+      );
+
+      // kyc_level / channel_transaction / residency each depend on a
+      // record resolved in the pass above (kyc_config / channel_config /
+      // eligibility_config respectively) — must run after it, not in
+      // parallel with it.
+      await Promise.all(
+        DIGITAL_PRODUCT_STEPS.filter((step) => step.parentEntity && step.parentEntity !== "product").map(
+          async (step) => {
+            const parentId = nextRecordIds[step.parentEntity];
+            const record = await findChildRecord(step.entity, step.parentIdField, parentId).catch(() => undefined);
+            nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
+            nextRecordIds[step.entity] = record?.id ?? null;
+          },
+        ),
+      );
+
+      if (cancelled) return;
+      setValues(nextValues);
+      setRecordIds(nextRecordIds);
+      setLoading(false);
+    }
+    load().catch((e) => {
+      if (cancelled) return;
+      notifications.error(e.message);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
+
+  return { values, setValues, recordIds, setRecordIds, loading };
 }
 
 // Same required-field definition DigitalProductResource.jsx's Editor/save()
@@ -138,7 +222,7 @@ function splitFieldsIntoColumns(fields) {
 // rows, so a tall field (a dropdown) next to a short one (a checkbox)
 // forces the short cell's row to stretch to the tall one's height,
 // stranding the checkbox with a large gap before the next row.
-export function DigitalProductStepFields({ entity, values, onFieldChange, lookups }) {
+export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
       {splitFieldsIntoColumns(CONFIGS[entity].fields).map(
@@ -160,6 +244,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                   value={values[key]}
                   onChange={(next) => onFieldChange(key, next)}
                   lookups={lookups}
+                  disabled={disabled}
                 />
               </label>
             ))}

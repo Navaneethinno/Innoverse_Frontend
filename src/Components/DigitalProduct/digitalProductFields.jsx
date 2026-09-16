@@ -120,7 +120,7 @@ export const CONFIGS = {
 // already fetches (institutions/products/accountProducts/kycGroups/
 // channels/channelConfigs/transactions/eligibilityConfigs/residencyTypes);
 // a caller only needs to pass the ones relevant to the fields it renders.
-export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange, lookups = {} }) {
+export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false }) {
   const {
     institutions = [],
     products = [],
@@ -138,6 +138,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select transaction type" },
           ...transactions.map((transaction) => ({
@@ -154,6 +155,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select channel config" },
           ...channelConfigs.map((channelConfig) => ({
@@ -170,6 +172,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select channel" },
           ...channels.map((channel) => ({
@@ -186,6 +189,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select KYC group" },
           ...kycGroups.map((group) => ({
@@ -202,6 +206,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select account product" },
           ...accountProducts.map((product) => ({
@@ -218,6 +223,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select product" },
           ...products.map((product) => ({
@@ -234,6 +240,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select eligibility config" },
           ...eligibilityConfigs.map((config) => ({
@@ -250,6 +257,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select residency type" },
           ...residencyTypes.map((type) => ({
@@ -266,6 +274,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         className="mt-1.5"
         value={value ?? ""}
         onChange={onChange}
+        disabled={disabled}
         options={[
           { value: "", label: "Select institution profile" },
           ...institutions.map((institution) => ({
@@ -281,7 +290,8 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
       <textarea
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 min-h-24 w-full rounded-xl border p-3"
+        disabled={disabled}
+        className="mt-1.5 min-h-24 w-full rounded-xl border p-3 disabled:bg-slate-50 disabled:text-slate-500"
       />
     );
   }
@@ -297,7 +307,8 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         type="checkbox"
         checked={Boolean(value)}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 shrink-0 rounded border-border accent-primary"
+        disabled={disabled}
+        className="h-4 w-4 shrink-0 rounded border-border accent-primary disabled:opacity-60"
       />
     );
   }
@@ -310,7 +321,8 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
       onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
       onWheel={type === "number" ? blurOnWheel : undefined}
       onChange={(e) => onChange(type === "number" ? clampNonNegative(e.target.value) : e.target.value)}
-      className="mt-1.5 w-full rounded-xl border px-3 py-2.5"
+      disabled={disabled}
+      className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50 disabled:text-slate-500"
     />
   );
 }
