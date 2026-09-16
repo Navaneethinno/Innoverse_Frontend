@@ -314,6 +314,37 @@ export function AuditModal({
       .map(({ entry }) => entry);
   }, [entries]);
 
+  // Some entities' audit endpoints (e.g. /config/acct_product/audit,
+  // confirmed live) never send a `changes` array at all — each entry is
+  // just a flat snapshot of the row at that point, unlike Institution
+  // Profile's audit response which carries a real backend-computed
+  // `changes` array. Rather than silently showing no "what changed" panel
+  // for those entities, synthesize the same [{field, current, proposed}]
+  // shape by diffing each entry against the entry immediately before it in
+  // time — only for entries the backend didn't already annotate, so a
+  // real backend `changes` array (when present) always wins.
+  const entriesWithChanges = useMemo(() => {
+    const chronological = [...sortedEntries].reverse();
+    const keys = fields
+      ? fields.map(([key]) => key)
+      : null;
+    const withChanges = chronological.map((entry, index) => {
+      if (Array.isArray(entry.changes) && entry.changes.length > 0) return entry;
+      const previous = chronological[index - 1] ?? null;
+      const fieldKeys =
+        keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key) && typeof entry[key] !== "object");
+      const changes = fieldKeys
+        .map((key) => ({
+          field: key,
+          current: previous ? previous[key] ?? null : null,
+          proposed: entry[key],
+        }))
+        .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
+      return changes.length > 0 ? { ...entry, changes } : entry;
+    });
+    return withChanges.reverse();
+  }, [sortedEntries, fields]);
+
   return (
     <Modal
       open
@@ -346,7 +377,7 @@ export function AuditModal({
         <p className="py-10 text-center text-sm text-muted-foreground">{t("common:noAuditHistoryFound")}</p>
       ) : (
         <div className="space-y-3">
-          {sortedEntries.map((entry, index) => (
+          {entriesWithChanges.map((entry, index) => (
             <AuditEntry
               key={getEntryKey(entry, index)}
               entry={entry}
