@@ -26,6 +26,14 @@ function sortedChildrenOf(menuItems, parentId) {
 //
 const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
 
+// The Digital Product workflow (DigitalProductWorkflow.jsx) replaces its 9
+// sidebar children with an in-page horizontal stepper, so this one root
+// folder navigates straight to its first child's existing route instead of
+// expanding — the backend menu_array itself is untouched (still has all 9
+// children, still drives every permission check in DigitalProductResource),
+// only the sidebar's own rendering of this one branch changes.
+const FLATTEN_TOP_LEVEL = new Set(["Digital Product"]);
+
 export function MenuItem({
   item,
   menuItems,
@@ -40,12 +48,21 @@ export function MenuItem({
   const [manuallyExpanded, setManuallyExpanded] = useState(false);
 
   const children = sortedChildrenOf(menuItems, item?.menu_id);
-  const hasChildren = children.length > 0;
+  const isFlattened = depth === 0 && FLATTEN_TOP_LEVEL.has(String(item?.menu_name ?? "").trim());
+  const hasChildren = children.length > 0 && !isFlattened;
   const isExpanded =
     manuallyExpanded || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
-  const isActiveLeaf = !hasChildren && activeMenuId === item?.menu_id;
+  const isActiveLeaf =
+    (!hasChildren && activeMenuId === item?.menu_id) ||
+    (isFlattened && children.some((child) => activeMenuId === child?.menu_id));
 
   const handleClick = () => {
+    if (isFlattened) {
+      const target = children[0] ?? item;
+      onNavigate(target?.menu_id);
+      navigate(buildMenuPath(target?.menu_name));
+      return;
+    }
     if (hasChildren) {
       setManuallyExpanded((current) => !current);
       return;
