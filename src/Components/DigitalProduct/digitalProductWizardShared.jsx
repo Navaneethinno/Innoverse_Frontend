@@ -112,12 +112,25 @@ export function useDigitalProductLookups(currentEntity) {
   };
 }
 
-// First half of a step's fields in column 0, the rest in column 1 — keeps
-// fields in their existing top-to-bottom order (unlike alternating every
-// other field between columns, which would scatter related fields).
-function fieldsColumn(fields, columnIndex) {
-  const half = Math.ceil(fields.length / 2);
-  return columnIndex === 0 ? fields.slice(0, half) : fields.slice(half);
+// Splits a step's fields into two columns at roughly the halfway point,
+// keeping each column's fields in their existing top-to-bottom order
+// (unlike alternating every other field between columns, which would
+// scatter related fields). The boundary is nudged so it never lands in the
+// middle of a run of consecutive checkbox fields — e.g. Channel
+// Transaction's 5 fields (2 dropdowns then 3 checkboxes) would otherwise
+// split as [dropdown, dropdown, checkbox] / [checkbox, checkbox], stranding
+// one checkbox away from its two siblings; nudging the boundary back keeps
+// the whole checkbox run together as [dropdown, dropdown] /
+// [checkbox, checkbox, checkbox]. For a step whose checkboxes are already
+// interspersed by design (e.g. Security Config's "X inherit" toggle next to
+// its own length/type fields), no adjacent boolean pair straddles the
+// boundary, so this is a no-op there.
+function splitFieldsIntoColumns(fields) {
+  let boundary = Math.ceil(fields.length / 2);
+  while (boundary > 0 && fields[boundary - 1][2] === "boolean" && fields[boundary]?.[2] === "boolean") {
+    boundary -= 1;
+  }
+  return [fields.slice(0, boundary), fields.slice(boundary)];
 }
 
 // The current step's field grid: two independent flex-column stacks, not a
@@ -128,7 +141,7 @@ function fieldsColumn(fields, columnIndex) {
 export function DigitalProductStepFields({ entity, values, onFieldChange, lookups }) {
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {[fieldsColumn(CONFIGS[entity].fields, 0), fieldsColumn(CONFIGS[entity].fields, 1)].map(
+      {splitFieldsIntoColumns(CONFIGS[entity].fields).map(
         (columnFields, columnIndex) => (
           <div key={columnIndex} className="flex flex-col gap-4">
             {columnFields.map(([key, label, type]) => (
