@@ -633,108 +633,85 @@ export function AcctConfigResource({ entity }) {
           canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
-        // Fixed-width slots (View | Edit | Audit | Submit | status action |
-        // Delete) instead of only rendering whichever buttons apply and
-        // letting flex pack them together — a row missing Edit (say) used
-        // to shift every button after it one position left, so the same
-        // icon (Delete, Authorize, ...) landed in a different horizontal
-        // spot from row to row and the whole column read as jumbled instead
-        // of aligned. An empty slot now just stays blank in its own column.
-        const slot = (content) => (
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center">{content}</span>
-        );
         return (
-          <div className="flex items-center justify-center gap-1">
-            {slot(
-              <UiTooltip label="View">
-                <button type="button" className={actionButtonClass("view")} onClick={() => setView(row)}>
-                  <Eye size={14} />
-                </button>
-              </UiTooltip>,
+          <div className="flex items-center justify-start gap-1">
+            <UiTooltip label="View">
+              <button type="button" className={actionButtonClass("view")} onClick={() => setView(row)}>
+                <Eye size={14} />
+              </button>
+            </UiTooltip>
+            {buttons.edit && (
+              <button
+                type="button"
+                className={actionButtonClass("edit")}
+                onClick={() => {
+                  setEditing(row);
+                  setForm({ ...row });
+                }}
+              >
+                <Pencil size={14} />
+              </button>
             )}
-            {slot(
-              buttons.edit && (
-                <button
-                  type="button"
-                  className={actionButtonClass("edit")}
-                  onClick={() => {
-                    setEditing(row);
-                    setForm({ ...row });
-                  }}
-                >
-                  <Pencil size={14} />
-                </button>
-              ),
+            {buttons.audit && (
+              <button type="button" className={actionButtonClass("audit")} onClick={() => setAudit(row)}>
+                <History size={14} />
+              </button>
             )}
-            {slot(
-              buttons.audit && (
-                <button type="button" className={actionButtonClass("audit")} onClick={() => setAudit(row)}>
-                  <History size={14} />
-                </button>
-              ),
-            )}
-            {slot(
-              buttons.submitDraft && (
-                <button
-                  type="button"
-                  className={actionButtonClass("submit")}
-                  onClick={() => setAction({ row, type: "submit", label: "Submit" })}
-                >
-                  <Send size={14} />
-                </button>
-              ),
+            {buttons.submitDraft && (
+              <button
+                type="button"
+                className={actionButtonClass("submit")}
+                onClick={() => setAction({ row, type: "submit", label: "Submit" })}
+              >
+                <Send size={14} />
+              </button>
             )}
             {/* Only one of these four ever applies to a given row (a record
                 is either pending-authorization, active, or inactive — never
-                more than one of those states at once), so they share a
-                single slot rather than each reserving their own. */}
-            {slot(
-              buttons.authorize ? (
+                more than one of those states at once). */}
+            {buttons.authorize ? (
+              <button
+                type="button"
+                className={actionButtonClass("auth")}
+                onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
+              >
+                <ShieldCheck size={14} />
+              </button>
+            ) : buttons.deauthorize ? (
+              <button
+                type="button"
+                className={actionButtonClass("deauth")}
+                onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
+              >
+                <ShieldOff size={14} />
+              </button>
+            ) : buttons.deactivate ? (
+              <button
+                type="button"
+                className={actionButtonClass("deauth")}
+                onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
+              >
+                <ShieldOff size={14} />
+              </button>
+            ) : (
+              buttons.activate && (
                 <button
                   type="button"
                   className={actionButtonClass("auth")}
-                  onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
+                  onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
                 >
                   <ShieldCheck size={14} />
                 </button>
-              ) : buttons.deauthorize ? (
-                <button
-                  type="button"
-                  className={actionButtonClass("deauth")}
-                  onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
-                >
-                  <ShieldOff size={14} />
-                </button>
-              ) : buttons.deactivate ? (
-                <button
-                  type="button"
-                  className={actionButtonClass("deauth")}
-                  onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
-                >
-                  <ShieldOff size={14} />
-                </button>
-              ) : (
-                buttons.activate && (
-                  <button
-                    type="button"
-                    className={actionButtonClass("auth")}
-                    onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
-                  >
-                    <ShieldCheck size={14} />
-                  </button>
-                )
-              ),
+              )
             )}
-            {slot(
-              buttons.delete && (
-                <button
-                  type="button"
-                  className={actionButtonClass("delete")}
-                  onClick={() => setAction({ row, type: "delete", label: "Delete" })}
-                >
-                  <Trash2 size={14} />
-                </button>
-              ),
+            {buttons.delete && (
+              <button
+                type="button"
+                className={actionButtonClass("delete")}
+                onClick={() => setAction({ row, type: "delete", label: "Delete" })}
+              >
+                <Trash2 size={14} />
+              </button>
             )}
           </div>
         );
