@@ -587,7 +587,7 @@ export function AcctConfigResource({ entity }) {
             : type === "deleteAuth"
               ? await service.deleteAuth(payload)
               : type === "deauth"
-                ? await service.deauth({ id: idOf(row), description: narration || "UNDEFINED" })
+                ? await service.deauth(payload)
                 : type === "deactivate"
                   ? await service.deactivate(payload)
                   : type === "reactivate"

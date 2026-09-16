@@ -279,7 +279,7 @@ export function DigitalProductResource({ entity }) {
           : action.type === "auth"
             ? await api.auth(payload)
             : action.type === "deauth"
-              ? await api.deauth({ id, description: narration || "UNDEFINED" })
+              ? await api.deauth(payload)
               : action.type === "delete"
                 ? await api.delete(payload)
                 : action.type === "deactivate"
