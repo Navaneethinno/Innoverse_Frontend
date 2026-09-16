@@ -55,10 +55,22 @@ const entities = [
   "acct_product_opening_config",
   "acct_product_statement_config",
 ];
-export const acctConfigRoutes = paths.flatMap((path, index) => [
-  { path, element: pageElement(Resource, { entity: entities[index] }) },
-  { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },
-]);
+export const acctConfigRoutes = [
+  ...paths.flatMap((path, index) => [
+    { path, element: pageElement(Resource, { entity: entities[index] }) },
+    { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },
+  ]),
+  // "Account" (menu_id 48) is documented above as a non-clickable group
+  // header, but that only holds when its children are present in this
+  // user's own menu_array — when permissions filter all of them out for a
+  // given session, MenuItem.jsx sees zero children and treats it as an
+  // ordinary leaf, navigating to slugifyMenuName("Account") = "/account"
+  // (confirmed live: hit RouteError, no route ever existed for that slug).
+  // Routing it to the same acct_product listing "Account Product" already
+  // uses is the sane default landing spot rather than leaving it 404.
+  { path: "account", element: pageElement(Resource, { entity: "acct_product" }) },
+  { path: "account/:id", element: pageElement(Resource, { entity: "acct_product" }) },
+];
 
 // Single source of truth for "which existing route serves this entity" —
 // consumed by acctConfigurations.js so the Account Product configuration
