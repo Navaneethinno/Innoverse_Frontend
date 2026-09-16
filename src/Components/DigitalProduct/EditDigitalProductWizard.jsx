@@ -54,6 +54,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const [savedValues, setSavedValues] = useState(values);
   const [recordIds, setRecordIds] = useState(() => Object.fromEntries(steps.map((step) => [step.entity, null])));
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [pendingNav, setPendingNav] = useState(null);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
@@ -136,13 +137,19 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     setPendingNav(null);
   };
 
-  const handleSave = async () => {
-    const missing = findMissingField(currentEntity, values[currentEntity]);
-    if (missing) {
-      notifications.error(requiredFieldMessage(missing));
-      return;
+  // Shared by Save Changes and Save as draft — the only difference is
+  // whether the current step's required fields are enforced first (a draft
+  // is deliberately allowed to be incomplete, same as Add's own Save as
+  // draft) and which is_draft flag reaches the API.
+  const saveCurrentStep = async (isDraft, setBusy) => {
+    if (!isDraft) {
+      const missing = findMissingField(currentEntity, values[currentEntity]);
+      if (missing) {
+        notifications.error(requiredFieldMessage(missing));
+        return;
+      }
     }
-    setSaving(true);
+    setBusy(true);
     try {
       const config = CONFIGS[currentEntity];
       const recordId = recordIds[currentEntity];
@@ -151,8 +158,8 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
           .filter(([key]) => !recordId || !config.readOnlyOnEdit?.includes(key))
           .map(([key]) => [key, values[currentEntity][key]]),
       );
-      const response = await saveDigitalProductWorkflowStep(currentEntity, payload, recordId);
-      notifications.success(`${config.title} saved`);
+      const response = await saveDigitalProductWorkflowStep(currentEntity, payload, recordId, isDraft);
+      notifications.success(`${config.title} ${isDraft ? "draft saved" : "saved"}`);
       const savedRecord = rowsOf(response)[0];
       if (savedRecord?.id != null) {
         setRecordIds((prev) => ({ ...prev, [currentEntity]: savedRecord.id }));
@@ -162,9 +169,11 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     } catch (e) {
       notifications.error(e.message);
     } finally {
-      setSaving(false);
+      setBusy(false);
     }
   };
+  const handleSave = () => saveCurrentStep(false, setSaving);
+  const handleSaveDraft = () => saveCurrentStep(true, setSavingDraft);
 
   return (
     <Modal open onClose={attemptClose} title="Edit Digital Product" size="full" fixedHeight
@@ -184,7 +193,15 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
           )}
           <button
             type="button"
-            disabled={saving || initialLoading}
+            disabled={savingDraft || saving || initialLoading}
+            onClick={() => void handleSaveDraft()}
+            className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
+          >
+            Save as draft
+          </button>
+          <button
+            type="button"
+            disabled={saving || savingDraft || initialLoading}
             onClick={() => void handleSave()}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >

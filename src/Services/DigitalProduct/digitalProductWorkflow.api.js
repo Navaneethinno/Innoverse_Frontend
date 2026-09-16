@@ -30,7 +30,9 @@ export async function submitDigitalProductWorkflow(_payload) {
 // doesn't yet) endpoint, exactly what DigitalProductResource.jsx's own
 // Editor already calls. If the backend later exposes a unified per-step
 // Edit endpoint, only this function's body needs to change.
-export async function saveDigitalProductWorkflowStep(entity, payload, recordId) {
+export async function saveDigitalProductWorkflowStep(entity, payload, recordId, isDraft = false) {
   const api = digitalProductApi(entity);
-  return recordId != null ? api.edit({ ...payload, id: recordId }) : api.add({ ...payload, is_draft: false });
+  return recordId != null
+    ? api.edit({ ...payload, id: recordId, is_draft: isDraft })
+    : api.add({ ...payload, is_draft: isDraft });
 }
