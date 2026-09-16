@@ -37,29 +37,17 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                 onEditProduct?.();
               }
             }}
-            className={
-              isEnabled
-                ? "group flex min-h-[9.5rem] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
-                : "group flex min-h-[9.5rem] flex-col rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-4 text-left transition-colors hover:border-slate-300"
-            }
+            className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
           >
             <div className="flex items-start gap-3">
               {/* Fixed icon box on every card, regardless of which icon it
                   holds, so every title starts at the exact same horizontal
                   position across the whole grid. */}
-              <span
-                className={
-                  isEnabled
-                    ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary"
-                    : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400"
-                }
-              >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-light text-primary">
                 <Icon size={18} strokeWidth={1.8} />
               </span>
               <div className="min-w-0">
-                <p className={isEnabled ? "text-sm font-bold leading-tight text-slate-800" : "text-sm font-bold leading-tight text-slate-500"}>
-                  {label}
-                </p>
+                <p className="text-sm font-bold leading-tight text-slate-800">{label}</p>
                 <p className="mt-1 text-xs leading-snug text-slate-500">{description}</p>
               </div>
             </div>
@@ -72,7 +60,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                   Enabled
                 </span>
               ) : (
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <span className="rounded-full bg-[var(--destructive-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-destructive">
                   Disabled
                 </span>
               )}
@@ -81,7 +69,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                   Configure <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-xs font-bold text-slate-500">
+                <span className="flex items-center gap-1 text-xs font-bold text-primary">
                   <Pencil size={12} /> Enable in Edit
                 </span>
               )}
