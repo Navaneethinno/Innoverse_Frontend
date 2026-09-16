@@ -666,10 +666,14 @@ export function AcctConfigResource({ entity }) {
                 <Send size={14} />
               </button>
             )}
-            {/* Only one of these four ever applies to a given row (a record
-                is either pending-authorization, active, or inactive — never
-                more than one of those states at once). */}
-            {buttons.authorize ? (
+            {/* A pending row (PENDING ADD/EDIT/DELETE/...) grants BOTH
+                authorize and deauthorize at once — approve or reject are
+                both valid next steps on the same row — so these render
+                independently rather than as an if/else chain (which used to
+                show only Authorize and silently drop the Reject button on
+                every pending row). deactivate/activate are mutually
+                exclusive with authorize/deauthorize and with each other. */}
+            {buttons.authorize && (
               <button
                 type="button"
                 className={actionButtonClass("auth")}
@@ -677,7 +681,8 @@ export function AcctConfigResource({ entity }) {
               >
                 <ShieldCheck size={14} />
               </button>
-            ) : buttons.deauthorize ? (
+            )}
+            {buttons.deauthorize && (
               <button
                 type="button"
                 className={actionButtonClass("deauth")}
@@ -685,7 +690,8 @@ export function AcctConfigResource({ entity }) {
               >
                 <ShieldOff size={14} />
               </button>
-            ) : buttons.deactivate ? (
+            )}
+            {buttons.deactivate && (
               <button
                 type="button"
                 className={actionButtonClass("deauth")}
@@ -693,16 +699,15 @@ export function AcctConfigResource({ entity }) {
               >
                 <ShieldOff size={14} />
               </button>
-            ) : (
-              buttons.activate && (
-                <button
-                  type="button"
-                  className={actionButtonClass("auth")}
-                  onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
-                >
-                  <ShieldCheck size={14} />
-                </button>
-              )
+            )}
+            {buttons.activate && (
+              <button
+                type="button"
+                className={actionButtonClass("auth")}
+                onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
+              >
+                <ShieldCheck size={14} />
+              </button>
             )}
             {buttons.delete && (
               <button
