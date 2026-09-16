@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Send, Settings2, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -478,8 +478,7 @@ export function AcctConfigResource({ entity }) {
     [view, setView] = useState(null),
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false),
-    [configuring, setConfiguring] = useState(null);
+    [saving, setSaving] = useState(false);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -634,90 +633,108 @@ export function AcctConfigResource({ entity }) {
           canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
+        // Fixed-width slots (View | Edit | Audit | Submit | status action |
+        // Delete) instead of only rendering whichever buttons apply and
+        // letting flex pack them together — a row missing Edit (say) used
+        // to shift every button after it one position left, so the same
+        // icon (Delete, Authorize, ...) landed in a different horizontal
+        // spot from row to row and the whole column read as jumbled instead
+        // of aligned. An empty slot now just stays blank in its own column.
+        const slot = (content) => (
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center">{content}</span>
+        );
         return (
-          <div className="flex flex-wrap justify-center gap-1">
-            <UiTooltip label="View">
-              <button type="button" className={actionButtonClass("view")} onClick={() => setView(row)}>
-                <Eye size={14} />
-              </button>
-            </UiTooltip>
-            {entity === "acct_product" && (
-              <UiTooltip label="Configure">
-                <button type="button" className={actionButtonClass("view")} onClick={() => setConfiguring(row)}>
-                  <Settings2 size={14} />
+          <div className="flex items-center justify-center gap-1">
+            {slot(
+              <UiTooltip label="View">
+                <button type="button" className={actionButtonClass("view")} onClick={() => setView(row)}>
+                  <Eye size={14} />
                 </button>
-              </UiTooltip>
+              </UiTooltip>,
             )}
-            {buttons.edit && (
-              <button
-                type="button"
-                className={actionButtonClass("edit")}
-                onClick={() => {
-                  setEditing(row);
-                  setForm({ ...row });
-                }}
-              >
-                <Pencil size={14} />
-              </button>
+            {slot(
+              buttons.edit && (
+                <button
+                  type="button"
+                  className={actionButtonClass("edit")}
+                  onClick={() => {
+                    setEditing(row);
+                    setForm({ ...row });
+                  }}
+                >
+                  <Pencil size={14} />
+                </button>
+              ),
             )}
-            {buttons.audit && (
-              <button type="button" className={actionButtonClass("audit")} onClick={() => setAudit(row)}>
-                <History size={14} />
-              </button>
+            {slot(
+              buttons.audit && (
+                <button type="button" className={actionButtonClass("audit")} onClick={() => setAudit(row)}>
+                  <History size={14} />
+                </button>
+              ),
             )}
-            {buttons.submitDraft && (
-              <button
-                type="button"
-                className={actionButtonClass("submit")}
-                onClick={() => setAction({ row, type: "submit", label: "Submit" })}
-              >
-                <Send size={14} />
-              </button>
+            {slot(
+              buttons.submitDraft && (
+                <button
+                  type="button"
+                  className={actionButtonClass("submit")}
+                  onClick={() => setAction({ row, type: "submit", label: "Submit" })}
+                >
+                  <Send size={14} />
+                </button>
+              ),
             )}
-            {buttons.authorize && (
-              <button
-                type="button"
-                className={actionButtonClass("auth")}
-                onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
-              >
-                <ShieldCheck size={14} />
-              </button>
+            {/* Only one of these four ever applies to a given row (a record
+                is either pending-authorization, active, or inactive — never
+                more than one of those states at once), so they share a
+                single slot rather than each reserving their own. */}
+            {slot(
+              buttons.authorize ? (
+                <button
+                  type="button"
+                  className={actionButtonClass("auth")}
+                  onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
+                >
+                  <ShieldCheck size={14} />
+                </button>
+              ) : buttons.deauthorize ? (
+                <button
+                  type="button"
+                  className={actionButtonClass("deauth")}
+                  onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
+                >
+                  <ShieldOff size={14} />
+                </button>
+              ) : buttons.deactivate ? (
+                <button
+                  type="button"
+                  className={actionButtonClass("deauth")}
+                  onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
+                >
+                  <ShieldOff size={14} />
+                </button>
+              ) : (
+                buttons.activate && (
+                  <button
+                    type="button"
+                    className={actionButtonClass("auth")}
+                    onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
+                  >
+                    <ShieldCheck size={14} />
+                  </button>
+                )
+              ),
             )}
-            {buttons.deauthorize && (
-              <button
-                type="button"
-                className={actionButtonClass("deauth")}
-                onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
-              >
-                <ShieldOff size={14} />
-              </button>
-            )}
-            {buttons.deactivate && (
-              <button
-                type="button"
-                className={actionButtonClass("deauth")}
-                onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
-              >
-                <ShieldOff size={14} />
-              </button>
-            )}
-            {buttons.activate && (
-              <button
-                type="button"
-                className={actionButtonClass("auth")}
-                onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
-              >
-                <ShieldCheck size={14} />
-              </button>
-            )}
-            {buttons.delete && (
-              <button
-                type="button"
-                className={actionButtonClass("delete")}
-                onClick={() => setAction({ row, type: "delete", label: "Delete" })}
-              >
-                <Trash2 size={14} />
-              </button>
+            {slot(
+              buttons.delete && (
+                <button
+                  type="button"
+                  className={actionButtonClass("delete")}
+                  onClick={() => setAction({ row, type: "delete", label: "Delete" })}
+                >
+                  <Trash2 size={14} />
+                </button>
+              ),
             )}
           </div>
         );
@@ -854,30 +871,33 @@ export function AcctConfigResource({ entity }) {
           </div>
         </Modal>
       )}
-      {configuring && (
+      {view && (
         <Modal
           open
-          title={`Configure ${configuring.product_name ?? "Account Product"}`}
-          subtitle="Only the configurations enabled for this product are shown"
-          size="xl"
-          fixedHeight
-          onClose={() => setConfiguring(null)}
+          title={entity === "acct_product" ? `${view.product_name ?? config.title} — Configurations` : `View ${config.title}`}
+          subtitle={entity === "acct_product" ? "Only the configurations enabled for this product are shown" : undefined}
+          size={entity === "acct_product" ? "xl" : "md"}
+          fixedHeight={entity === "acct_product"}
+          onClose={() => setView(null)}
         >
-          <AccountConfigurationCards product={configuring} onNavigate={() => setConfiguring(null)} />
-        </Modal>
-      )}
-      {view && (
-        <Modal open title={`View ${config.title}`} onClose={() => setView(null)}>
-          <dl className="grid gap-3">
-            {config.fields.map(([key, label, type, lookupKey]) => (
-              <div key={key} className="rounded-xl border p-3">
-                <dt className="text-xs text-slate-400">{label}</dt>
-                <dd className="text-sm font-semibold">
-                  {lookupKey ? labelFor(lookupKey, view[key]) : type === "boolean" ? (view[key] ? "Yes" : "No") : String(view[key] ?? "-")}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          {/* Account Product's own field-by-field dump (19 boolean flags
+              plus the rest) is noise here — the cards below already convey
+              which configs are enabled, that's what this view is for. Every
+              other entity keeps the plain field list. */}
+          {entity === "acct_product" ? (
+            <AccountConfigurationCards product={view} onNavigate={() => setView(null)} />
+          ) : (
+            <dl className="grid gap-3">
+              {config.fields.map(([key, label, type, lookupKey]) => (
+                <div key={key} className="rounded-xl border p-3">
+                  <dt className="text-xs text-slate-400">{label}</dt>
+                  <dd className="text-sm font-semibold">
+                    {lookupKey ? labelFor(lookupKey, view[key]) : type === "boolean" ? (view[key] ? "Yes" : "No") : String(view[key] ?? "-")}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </Modal>
       )}
       {audit && (
