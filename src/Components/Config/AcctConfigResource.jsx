@@ -882,10 +882,28 @@ export function AcctConfigResource({ entity }) {
         >
           {/* Account Product's own field-by-field dump (19 boolean flags
               plus the rest) is noise here — the cards below already convey
-              which configs are enabled, that's what this view is for. Every
-              other entity keeps the plain field list. */}
+              which configs are enabled, that's what this view is for. A
+              short identifying summary (institution/code/name/description/
+              status) still belongs up top so it's clear which product this
+              is. Every other entity keeps the full plain field list. */}
           {entity === "acct_product" ? (
-            <AccountConfigurationCards product={view} onNavigate={() => setView(null)} />
+            <>
+              <dl className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Institution profile", labelFor("institutions", view.inst_profile_id)],
+                  ["Product code", view.product_code ?? "-"],
+                  ["Product name", view.product_name ?? "-"],
+                  ["Description", view.description || "-"],
+                  ["Status", view.status_name ?? (view.status === 1 ? "ACTIVE" : view.status === 0 ? "INACTIVE" : "-")],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl border p-3">
+                    <dt className="text-xs text-slate-400">{label}</dt>
+                    <dd className="text-sm font-semibold">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <AccountConfigurationCards product={view} onNavigate={() => setView(null)} />
+            </>
           ) : (
             <dl className="grid gap-3">
               {config.fields.map(([key, label, type, lookupKey]) => (
