@@ -89,6 +89,8 @@ const META_KEYS = new Set([
   "auth_time",
   "narration",
   "changes",
+  "payload",
+  "pending_payload",
 ]);
 
 // Every audit entry already carries its own `changes` array (field/current/
@@ -377,16 +379,34 @@ export function AuditModal({
       ? fields.map(([key]) => key)
       : null;
     const withChanges = chronological.map((entry, index) => {
-      if (Array.isArray(entry.changes) && entry.changes.length > 0) return entry;
       const previous = chronological[index - 1] ?? null;
-      const fieldKeys = keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key));
-      const changes = fieldKeys
-        .map((key) => ({
-          field: key,
-          current: previous ? previous[key] ?? null : null,
-          proposed: entry[key],
-        }))
-        .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
+      let changes = Array.isArray(entry.changes) && entry.changes.length > 0 ? entry.changes : null;
+      if (!changes) {
+        const fieldKeys = keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key));
+        changes = fieldKeys
+          .map((key) => ({
+            field: key,
+            current: previous ? previous[key] ?? null : null,
+            proposed: entry[key],
+          }))
+          .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
+      }
+      // Digital Product's own audit rows (confirmed live) carry a "payload"
+      // snapshot of the nested wizard sections (product_map, security_config,
+      // ...) at that revision instead of listing them in `changes` — diff it
+      // separately, one row per section, since the sections aren't part of
+      // the entity's own flat field list `fieldKeys` above ever covers.
+      if (entry.payload && typeof entry.payload === "object") {
+        const payloadKeys = new Set([...Object.keys(entry.payload), ...Object.keys(previous?.payload ?? {})]);
+        const payloadChanges = [...payloadKeys]
+          .map((key) => ({
+            field: key,
+            current: previous?.payload?.[key] ?? null,
+            proposed: entry.payload[key] ?? null,
+          }))
+          .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
+        changes = [...changes, ...payloadChanges];
+      }
       return changes.length > 0 ? { ...entry, changes } : entry;
     });
     return withChanges.reverse();
