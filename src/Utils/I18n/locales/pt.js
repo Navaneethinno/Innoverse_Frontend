@@ -431,35 +431,6 @@ export const routes = {
   crumbVillage: "Vila",
 };
 
-export const statusBadge = {
-  statusLabelActive: "Ativo",
-  statusLabelAuthorized: "Autorizado",
-  statusLabelPendingAdd: "Adição Pendente",
-  statusLabelPendingEdit: "Edição Pendente",
-  statusLabelPendingDelete: "Exclusão Pendente",
-  statusLabelPendingDeactivate: "Desativação Pendente",
-  statusLabelPendingReactivate: "Reativação Pendente",
-  statusLabelInactive: "Inativo",
-  statusLabelDeleted: "Excluído",
-  statusLabelDeauthorized: "Desautorizado",
-  statusLabelDeactivated: "Desativado",
-  statusLabelRejectedAdd: "Adição Rejeitada",
-  statusLabelRejectedEdit: "Edição Rejeitada",
-  statusLabelRejectedDelete: "Exclusão Rejeitada",
-  statusLabelRejectedDeactivate: "Desativação Rejeitada",
-  statusLabelRejectedReactivate: "Reativação Rejeitada",
-  statusLabelPendingMod: "Modificação Pendente",
-  statusLabelApproved: "Aprovado",
-  statusLabelRejected: "Rejeitado",
-  statusLabelPending: "Pendente",
-  statusLabelVerified: "Verificado",
-  statusLabelAdd: "Adicionar",
-  statusLabelEdit: "Editar",
-  statusLabelDelete: "Excluir",
-  statusLabelActivate: "Ativar",
-  statusLabelDeactivate: "Desativar",
-};
-
 export default {
   common,
   auth,
@@ -474,5 +445,4 @@ export default {
   changePassword,
   sidebar,
   routes,
-  statusBadge,
 };

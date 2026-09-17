@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
 const STATUS_CONFIG = {
   // Entity statuses
@@ -234,59 +233,19 @@ const TEXT_COLOR_BY_PILL = {
   "bg-slate-50 text-slate-500 border-slate-200": "text-slate-500",
 };
 
-// Every distinct STATUS_CONFIG label above, keyed for translation — kept as
-// a separate lookup (rather than inlining t() calls into STATUS_CONFIG
-// itself) so multiple raw backend codes that share the same human label
-// (e.g. AUTH WAIT / PENDING ADD / NEW_WAIT_AUTH all -> "Pending Add") share
-// one translation key too, instead of duplicating the same string 3x in the
-// locale files.
-const LABEL_KEY = {
-  Active: "statusLabelActive",
-  Authorized: "statusLabelAuthorized",
-  "Pending Add": "statusLabelPendingAdd",
-  "Pending Edit": "statusLabelPendingEdit",
-  "Pending Delete": "statusLabelPendingDelete",
-  "Pending Deactivate": "statusLabelPendingDeactivate",
-  "Pending Reactivate": "statusLabelPendingReactivate",
-  Inactive: "statusLabelInactive",
-  Deleted: "statusLabelDeleted",
-  Deauthorized: "statusLabelDeauthorized",
-  Deactivated: "statusLabelDeactivated",
-  "Rejected Add": "statusLabelRejectedAdd",
-  "Rejected Edit": "statusLabelRejectedEdit",
-  "Rejected Delete": "statusLabelRejectedDelete",
-  "Rejected Deactivate": "statusLabelRejectedDeactivate",
-  "Rejected Reactivate": "statusLabelRejectedReactivate",
-  "Pending Mod": "statusLabelPendingMod",
-  Approved: "statusLabelApproved",
-  Rejected: "statusLabelRejected",
-  Pending: "statusLabelPending",
-  Verified: "statusLabelVerified",
-  Add: "statusLabelAdd",
-  Edit: "statusLabelEdit",
-  Delete: "statusLabelDelete",
-  Activate: "statusLabelActivate",
-  Deactivate: "statusLabelDeactivate",
-};
-
 // `` renders a dot + plain colored text instead of a filled
 // pill — for secondary status columns (Process Status, Authorization
 // Status) shown alongside the primary Status column, so three badges that
 // often carry the same value in a row don't read as three loud, identical
 // pills. Same color language as the solid pill, just lighter-weight.
 export function StatusBadge({ status, variant = "solid" }) {
-  const { t } = useTranslation("statusBadge");
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
   const cfg = STATUS_CONFIG[normalizedStatus] ?? {
     label: status,
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
   };
-  // An unrecognized status falls back to the raw backend string as-is
-  // (cfg.label === status above) — there's no sensible translation for an
-  // arbitrary enum code we don't have a mapping for, so only a label this
-  // component itself defined above goes through t().
-  const label = LABEL_KEY[cfg.label] ? t(LABEL_KEY[cfg.label]) : cfg.label;
+  const label = cfg.label;
   if (variant === "subtle") {
     return (
       <span

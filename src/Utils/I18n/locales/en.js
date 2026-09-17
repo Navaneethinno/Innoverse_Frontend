@@ -451,38 +451,6 @@ export const routes = {
   crumbVillage: "Village",
 };
 
-// Human-readable labels StatusBadge.jsx derives from raw backend status/
-// process_status/auth_status codes — frontend-owned display text (not
-// backend message strings), so it belongs here like any other UI text.
-export const statusBadge = {
-  statusLabelActive: "Active",
-  statusLabelAuthorized: "Authorized",
-  statusLabelPendingAdd: "Pending Add",
-  statusLabelPendingEdit: "Pending Edit",
-  statusLabelPendingDelete: "Pending Delete",
-  statusLabelPendingDeactivate: "Pending Deactivate",
-  statusLabelPendingReactivate: "Pending Reactivate",
-  statusLabelInactive: "Inactive",
-  statusLabelDeleted: "Deleted",
-  statusLabelDeauthorized: "Deauthorized",
-  statusLabelDeactivated: "Deactivated",
-  statusLabelRejectedAdd: "Rejected Add",
-  statusLabelRejectedEdit: "Rejected Edit",
-  statusLabelRejectedDelete: "Rejected Delete",
-  statusLabelRejectedDeactivate: "Rejected Deactivate",
-  statusLabelRejectedReactivate: "Rejected Reactivate",
-  statusLabelPendingMod: "Pending Mod",
-  statusLabelApproved: "Approved",
-  statusLabelRejected: "Rejected",
-  statusLabelPending: "Pending",
-  statusLabelVerified: "Verified",
-  statusLabelAdd: "Add",
-  statusLabelEdit: "Edit",
-  statusLabelDelete: "Delete",
-  statusLabelActivate: "Activate",
-  statusLabelDeactivate: "Deactivate",
-};
-
 export default {
   common,
   auth,
@@ -497,5 +465,4 @@ export default {
   changePassword,
   sidebar,
   routes,
-  statusBadge,
 };
