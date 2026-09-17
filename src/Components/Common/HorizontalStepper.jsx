@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Generalized out of AddInstitutionProfile.jsx's inline create-flow stepper
 // (same circle/connector/label visual language, same primary/border/muted
@@ -22,6 +23,7 @@ import { cn } from "@/Utils/Lib/utils";
 // real API call actually succeeded — passes this to override that default
 // without the stepper needing to know anything about what "done" means.
 export function HorizontalStepper({ steps, activeIndex, onStepClick, isStepCompleted, className }) {
+  const tr = useConfigLabel();
   const clickable = typeof onStepClick === "function";
   return (
     <div className={cn("overflow-x-auto", className)}>
@@ -69,7 +71,7 @@ export function HorizontalStepper({ steps, activeIndex, onStepClick, isStepCompl
                     isCurrent ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
-                  {step.label}
+                  {tr(step.label)}
                 </p>
               </button>
               {index < steps.length - 1 && (

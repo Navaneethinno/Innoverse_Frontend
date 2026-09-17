@@ -1,6 +1,7 @@
 import { ArrowRight, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ACCOUNT_CONFIGURATIONS } from "./acctConfigurations";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Pure navigation/status UI — every card links to an existing
 // AcctConfigResource.jsx route (see acctConfigurations.js) or, for a
@@ -11,6 +12,7 @@ import { ACCOUNT_CONFIGURATIONS } from "./acctConfigurations";
 // not turned on yet.
 export function AccountConfigurationCards({ product, onNavigate, onEditProduct }) {
   const navigate = useNavigate();
+  const tr = useConfigLabel();
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -47,8 +49,8 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                 <Icon size={18} strokeWidth={1.8} />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-bold leading-tight text-slate-800">{label}</p>
-                <p className="mt-1 text-xs leading-snug text-slate-500">{description}</p>
+                <p className="text-sm font-bold leading-tight text-slate-800">{tr(label)}</p>
+                <p className="mt-1 text-xs leading-snug text-slate-500">{tr(description)}</p>
               </div>
             </div>
             {/* mt-auto pins status + action to the bottom of every card
@@ -57,20 +59,20 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
             <div className="mt-auto flex items-center justify-between pt-3">
               {isEnabled ? (
                 <span className="rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-success">
-                  Enabled
+                  {tr("Enabled")}
                 </span>
               ) : (
                 <span className="rounded-full bg-[var(--destructive-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-destructive">
-                  Disabled
+                  {tr("Disabled")}
                 </span>
               )}
               {isEnabled ? (
                 <span className="flex items-center gap-1 text-xs font-bold text-primary">
-                  Configure <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                  {tr("Configure")} <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-xs font-bold text-primary">
-                  <Pencil size={12} /> Enable in Edit
+                  <Pencil size={12} /> {tr("Enable in Edit")}
                 </span>
               )}
             </div>

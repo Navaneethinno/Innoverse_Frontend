@@ -5,16 +5,20 @@
 // grammatically correct question — this brings those three in line with
 // that same phrasing instead of duplicating it three times.
 const ACTION_VERB = {
-  auth: "authorize",
-  deleteAuth: "authorize",
-  deauth: "deauthorize",
-  delete: "delete",
-  deactivate: "deactivate",
-  reactivate: "reactivate",
-  submit: "submit",
+  auth: "Authorize",
+  deleteAuth: "Authorize",
+  deauth: "Deauthorize",
+  delete: "Delete",
+  deactivate: "Deactivate",
+  reactivate: "Reactivate",
+  submit: "Submit",
 };
 
-export function describeConfirmAction(type, name) {
+// `tr` is the same configFieldLabels.js lookup the caller already uses for
+// its field labels — passing it through here means this one sentence stays
+// in sync with the page's language instead of only the words around it
+// switching to Portuguese.
+export function describeConfirmAction(type, name, tr = (s) => s) {
   const verb = ACTION_VERB[type] ?? type;
-  return `Are you sure you want to ${verb} ${name}?`;
+  return `${tr("Are you sure you want to")} ${tr(verb).toLowerCase()} ${name}?`;
 }

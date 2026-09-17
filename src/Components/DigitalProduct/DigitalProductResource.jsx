@@ -26,6 +26,7 @@ import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
 import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
 import { ViewDigitalProductWizard } from "./ViewDigitalProductWizard";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const idOf = (r) => r?.id;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
@@ -58,7 +59,7 @@ const allowed = (menus, action, title) =>
       new RegExp(title, "i").test(String(m?.menu_name)) &&
       (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes, tr }) {
   if (!open) return null;
   const lookups = { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
   // Same "only right-align when there's another checkbox to align with"
@@ -70,11 +71,11 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
     <Modal
       open
       onClose={onClose}
-      title={`${editing ? "Edit" : "Add"} ${config.title}`}
+      title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
       footer={
         <>
           <button onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
-            Cancel
+            {tr("Cancel")}
           </button>
           <button
             type="submit"
@@ -83,7 +84,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             disabled={saving}
             className="rounded-xl border px-4 py-2 text-sm font-bold"
           >
-            Save as draft
+            {tr("Save as draft")}
           </button>
           <button
             type="submit"
@@ -92,7 +93,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             disabled={saving}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
           >
-            {editing ? "Save changes" : `Add ${config.title}`}
+            {editing ? tr("Save changes") : `${tr("Add")} ${tr(config.title)}`}
           </button>
         </>
       }
@@ -116,7 +117,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
                 : "text-sm font-semibold text-slate-700"
             }
           >
-            {type === "boolean" ? <span>{label}</span> : label}
+            {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
             <DigitalProductFieldInput
               fieldKey={key}
               type={type}
@@ -132,6 +133,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
 }
 export function DigitalProductResource({ entity }) {
   const config = CONFIGS[entity];
+  const tr = useConfigLabel();
   const menus = useSelector((s) => s.menu.menuArray);
   const api = useMemo(() => digitalProductApi(entity), [entity]);
   const { data: institutions = [], error: institutionsError } = useActiveInstitutionsQuery();
@@ -186,7 +188,7 @@ export function DigitalProductResource({ entity }) {
     if (row.name) return row.name;
     const [firstKey, , firstType] = config.fields[0];
     const resolved =
-      firstType === "boolean" ? (row[firstKey] ? "Yes" : "No") : resolveLookupLabel(firstKey, row[firstKey], lookups);
+      firstType === "boolean" ? (row[firstKey] ? tr("Yes") : tr("No")) : resolveLookupLabel(firstKey, row[firstKey], lookups);
     return resolved && resolved !== "-" ? resolved : String(idOf(row));
   };
   const [rows, setRows] = useState([]),
@@ -260,7 +262,7 @@ export function DigitalProductResource({ entity }) {
       ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
-      const label = missingField[1].toLowerCase();
+      const label = tr(missingField[1]).toLowerCase();
       notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
       return;
     }
@@ -276,7 +278,7 @@ export function DigitalProductResource({ entity }) {
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };
       const r = await (editing ? api.edit(payload) : api.add(payload));
-      notifications.success(apiMessage(r, `${config.title} saved`));
+      notifications.success(apiMessage(r, `${tr(config.title)} saved`));
       setOpen(false);
       setEditing(null);
       setForm({});
@@ -309,7 +311,7 @@ export function DigitalProductResource({ entity }) {
                   : action.type === "reactivate"
                     ? await api.reactivate(payload)
                     : await api.deleteAuth(payload);
-      notifications.success(apiMessage(r, `${config.title} action completed`));
+      notifications.success(apiMessage(r, `${tr(config.title)} action completed`));
       setAction(null);
       void load();
     } catch (e) {
@@ -321,12 +323,12 @@ export function DigitalProductResource({ entity }) {
       .slice(0, 3)
       .map(([key, label, type]) => ({
         key,
-        label,
-        render: (r) => (type === "boolean" ? (r[key] ? "Yes" : "No") : resolveLookupLabel(key, r[key], lookups)),
+        label: tr(label),
+        render: (r) => (type === "boolean" ? (r[key] ? tr("Yes") : tr("No")) : resolveLookupLabel(key, r[key], lookups)),
       })),
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       render: (r) =>
         r.status_name != null || r.status != null ? (
           <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE"))} />
@@ -336,7 +338,7 @@ export function DigitalProductResource({ entity }) {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       render: (r) =>
         r.process_status_name ? (
           <StatusBadge status={String(r.process_status_name)} />
@@ -346,13 +348,13 @@ export function DigitalProductResource({ entity }) {
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       render: (r) =>
         r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—",
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => {
         // Same button flow as InstitutionProfile/MasterConfig everywhere else:
@@ -430,7 +432,7 @@ export function DigitalProductResource({ entity }) {
       }}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
     >
-      <Plus size={14} /> Add {config.title}
+      <Plus size={14} /> {tr("Add")} {tr(config.title)}
     </button>
   ) : null;
 
@@ -438,9 +440,9 @@ export function DigitalProductResource({ entity }) {
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
+          <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
           <p className="mt-1 text-xs text-slate-500">
-            Manage {config.title.toLowerCase()} configuration.
+            {tr("Manage")} {tr(config.title).toLowerCase()} {tr("configuration")}.
           </p>
         </div>
       </div>
@@ -450,14 +452,14 @@ export function DigitalProductResource({ entity }) {
         onChange={setTab}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
+        searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
         actions={addAction}
       bare /><DataTable
           columns={columns}
           rows={visible}
           rowKey={idOf}
           isLoading={loading}
-          title={config.title}
+          title={tr(config.title)}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,
@@ -506,13 +508,14 @@ export function DigitalProductResource({ entity }) {
         residencyTypes={residencyTypes}
         onSave={save}
         onClose={() => setOpen(false)}
+        tr={tr}
       />
       {view && (
-        <Modal open title={`View ${config.title}`} onClose={() => setView(null)}>
+        <Modal open title={`${tr("View")} ${tr(config.title)}`} onClose={() => setView(null)}>
           <dl className="grid gap-3">
             {config.fields.map(([key, label]) => (
               <div key={key} className="rounded-xl border p-3">
-                <dt className="text-xs text-slate-400">{label}</dt>
+                <dt className="text-xs text-slate-400">{tr(label)}</dt>
                 <dd className="text-sm font-semibold">{String(view[key] ?? "-")}</dd>
               </div>
             ))}
@@ -521,9 +524,9 @@ export function DigitalProductResource({ entity }) {
       )}
       {audit && (
         <AuditModal
-          title={config.title}
+          title={tr(config.title)}
           onClose={() => setAudit(null)}
-          fields={config.fields.map(([key, label]) => [key, label])}
+          fields={config.fields.map(([key, label]) => [key, tr(label)])}
           fetchAudit={(p, limit) =>
             api.audit({ id: idOf(audit), page: p, limit }).then(mapAuditResponse)
           }
@@ -532,9 +535,9 @@ export function DigitalProductResource({ entity }) {
       {action && (
         <ConfirmDialog
           open
-          title={`${action.label} ${config.title}`}
-          description={describeConfirmAction(action.type, describeActionRow(action.row))}
-          confirmLabel={action.label}
+          title={`${tr(action.label)} ${tr(config.title)}`}
+          description={describeConfirmAction(action.type, describeActionRow(action.row), tr)}
+          confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
           onClose={() => setAction(null)}
@@ -545,7 +548,7 @@ export function DigitalProductResource({ entity }) {
             className="mt-3 min-h-20 w-full rounded-xl border p-3"
             value={action.reason ?? ""}
             onChange={(e) => setAction({ ...action, reason: e.target.value })}
-            placeholder="Narration"
+            placeholder={tr("Narration")}
           />
         </ConfirmDialog>
       )}

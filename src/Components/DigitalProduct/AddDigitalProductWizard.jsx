@@ -12,6 +12,7 @@ import {
   useDigitalProductLookups,
 } from "./digitalProductWizardShared";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // The single Add-flow entry point for Digital Product: a 9-step wizard
 // (Digital Product, Product Map, Security Config, KYC Config, KYC Level,
@@ -25,6 +26,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 // that Product Map + Channel Config were filled in, surfacing the
 // backend's own message if not).
 export function AddDigitalProductWizard({ onClose, onSuccess }) {
+  const tr = useConfigLabel();
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
   const [maxVisited, setMaxVisited] = useState(0);
@@ -79,7 +81,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
     if (currentEntity === "product") {
       const missing = findMissingField(currentEntity, values[currentEntity]);
       if (missing) {
-        notifications.error(requiredFieldMessage(missing));
+        notifications.error(requiredFieldMessage(missing, tr));
         return;
       }
     }
@@ -101,7 +103,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
     setSavingDraft(true);
     try {
       await saveStep(true);
-      notifications.success("Digital Product draft saved");
+      notifications.success(`${tr("Digital Product")} ${tr("draft saved")}`);
       onSuccess?.();
     } catch (e) {
       notifications.error(e.message);
@@ -116,7 +118,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       const id = await saveStep(true);
       if (id == null) throw new Error("Save the Digital Product step before submitting");
       const r = await digitalProductApi("product").submit({ id });
-      notifications.success(r?.message || "Digital Product submitted for authorization");
+      notifications.success(r?.message || `${tr("Digital Product")} ${tr("submitted for authorization")}`);
       onSuccess?.();
     } catch (e) {
       notifications.error(e.message);
@@ -129,13 +131,13 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
     <Modal
       open
       onClose={onClose}
-      title="Add Digital Product"
+      title={tr("Add Digital Product")}
       size="full"
       fixedHeight
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
-            Cancel
+            {tr("Cancel")}
           </button>
           {stepIndex > 0 && (
             <button
@@ -143,7 +145,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               onClick={goBack}
               className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600"
             >
-              Back
+              {tr("Back")}
             </button>
           )}
           <button
@@ -152,7 +154,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
             onClick={() => void handleSaveDraft()}
             className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
           >
-            Save as draft
+            {tr("Save as draft")}
           </button>
           {!isLastStep ? (
             <button
@@ -161,7 +163,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               onClick={() => void goNext()}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
-              Next
+              {tr("Next")}
             </button>
           ) : (
             <button
@@ -170,7 +172,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               onClick={() => void handleSubmit()}
               className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
-              Submit
+              {tr("Submit")}
             </button>
           )}
         </>
@@ -183,7 +185,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
           onStepClick={(index) => index <= maxVisited && setStepIndex(index)}
         />
       </div>
-      <h2 className="mb-3 text-sm font-bold text-slate-800">{currentStep.label}</h2>
+      <h2 className="mb-3 text-sm font-bold text-slate-800">{tr(currentStep.label)}</h2>
       <DigitalProductStepFields
         entity={currentEntity}
         values={values[currentEntity]}

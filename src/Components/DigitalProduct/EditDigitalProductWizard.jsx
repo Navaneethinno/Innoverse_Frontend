@@ -15,6 +15,7 @@ import {
   useDigitalProductLookups,
 } from "./digitalProductWizardShared";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Same 9-step horizontal stepper and field/dropdown plumbing as
 // AddDigitalProductWizard.jsx/ViewDigitalProductWizard.jsx (all three share
@@ -27,6 +28,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 // step's `sections` entry) rather than collecting everything for one final
 // call. No CREATE call ever fires here — the product already exists.
 export function EditDigitalProductWizard({ product, onClose, onSaved }) {
+  const tr = useConfigLabel();
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
   const {
@@ -91,7 +93,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     if (!isDraft) {
       const missing = findMissingField(currentEntity, values[currentEntity]);
       if (missing) {
-        notifications.error(requiredFieldMessage(missing));
+        notifications.error(requiredFieldMessage(missing, tr));
         return;
       }
     }
@@ -99,7 +101,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     try {
       const config = CONFIGS[currentEntity];
       await saveDigitalProductStep({ id: product.id, entity: currentEntity, values, recordIds, isDraft });
-      notifications.success(`${config.title} ${isDraft ? "draft saved" : "saved"}`);
+      notifications.success(`${tr(config.title)} ${isDraft ? tr("draft saved") : tr("saved")}`);
       // The add/edit response doesn't echo back a newly-created section
       // row's id, so re-fetch the whole tree — needed so a later nested
       // step (kyc_level/channel_transaction/residency) links to the right
@@ -117,11 +119,11 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const handleSaveDraft = () => saveCurrentStep(true, setSavingDraft);
 
   return (
-    <Modal open onClose={attemptClose} title="Edit Digital Product" size="full" fixedHeight
+    <Modal open onClose={attemptClose} title={tr("Edit Digital Product")} size="full" fixedHeight
       footer={
         <>
           <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-slate-500">
-            Cancel
+            {tr("Cancel")}
           </button>
           {stepIndex > 0 && (
             <button
@@ -129,7 +131,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
               onClick={() => goToStep(stepIndex - 1)}
               className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600"
             >
-              Back
+              {tr("Back")}
             </button>
           )}
           <button
@@ -138,7 +140,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
             onClick={() => void handleSaveDraft()}
             className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
           >
-            Save as draft
+            {tr("Save as draft")}
           </button>
           <button
             type="button"
@@ -146,7 +148,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
             onClick={() => void handleSave()}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
-            Save Changes
+            {tr("Save Changes")}
           </button>
         </>
       }
@@ -159,7 +161,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
           onStepClick={goToStep}
         />
       </div>
-      <h2 className="mb-3 text-sm font-bold text-slate-800">{currentStep.label}</h2>
+      <h2 className="mb-3 text-sm font-bold text-slate-800">{tr(currentStep.label)}</h2>
       {initialLoading ? (
         <div className="flex justify-center py-12">
           <LoadingAnimation className="h-16 w-48" />
@@ -175,9 +177,9 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
       {pendingNav && (
         <ConfirmDialog
           open
-          title="Discard unsaved changes?"
-          description={`You have unsaved changes to ${currentStep.label} that haven't been saved. Discard them?`}
-          confirmLabel="Discard changes"
+          title={tr("Discard unsaved changes?")}
+          description={`${tr("You have unsaved changes to")} ${tr(currentStep.label)} ${tr("that haven't been saved. Discard them?")}`}
+          confirmLabel={tr("Discard changes")}
           destructive
           onClose={() => setPendingNav(null)}
           onConfirm={() => resolvePendingNav(true)}

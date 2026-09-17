@@ -22,6 +22,7 @@ import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHook
 import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const CONFIGS = {
   kyc_group: {
@@ -96,6 +97,7 @@ const api = (entity) => configKycApi(entity);
 
 export function KycConfigResource({ entity }) {
   const config = CONFIGS[entity];
+  const tr = useConfigLabel();
   const menus = useSelector((state) => state.menu.menuArray);
   const service = useMemo(() => api(entity), [entity]);
   const { data: institutions = [] } = useActiveInstitutionsQuery();
@@ -213,7 +215,7 @@ export function KycConfigResource({ entity }) {
   const describeActionRow = (row) => {
     if (!row) return "";
     const [firstKey, , firstType] = config.fields[0];
-    const resolved = firstType === "boolean" ? (row[firstKey] ? "Yes" : "No") : resolveField(row, firstKey);
+    const resolved = firstType === "boolean" ? (row[firstKey] ? tr("Yes") : tr("No")) : resolveField(row, firstKey);
     return resolved && resolved !== "-" ? resolved : String(idOf(row));
   };
   const visible = useMemo(
@@ -237,7 +239,7 @@ export function KycConfigResource({ entity }) {
       ([key]) => key.endsWith("_id") && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
-      const label = missingField[1].toLowerCase();
+      const label = tr(missingField[1]).toLowerCase();
       notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
       return;
     }
@@ -253,7 +255,7 @@ export function KycConfigResource({ entity }) {
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };
       const response = await (editing ? service.edit(payload) : service.add(payload));
-      notifications.success(apiMessage(response, `${config.title} saved`));
+      notifications.success(apiMessage(response, `${tr(config.title)} saved`));
       setEditing(null);
       setForm({});
       void load();
@@ -285,7 +287,7 @@ export function KycConfigResource({ entity }) {
                   : type === "reactivate"
                     ? await service.reactivate(payload)
                     : await service.delete(payload);
-      notifications.success(apiMessage(response, `${config.title} action completed`));
+      notifications.success(apiMessage(response, `${tr(config.title)} action completed`));
       setAction(null);
       void load();
     } catch (error) {
@@ -297,31 +299,31 @@ export function KycConfigResource({ entity }) {
       .slice(0, 4)
       .map(([key, label, type]) => ({
         key,
-        label,
-        render: (row) => (type === "boolean" ? (row[key] ? "Yes" : "No") : resolveField(row, key)),
+        label: tr(label),
+        render: (row) => (type === "boolean" ? (row[key] ? tr("Yes") : tr("No")) : resolveField(row, key)),
       })),
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       render: (row) => (
         <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />
       ),
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       render: (row) => (
         <StatusBadge status={String(row.process_status_name ?? "-")} />
       ),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
           canAdd: allowed(menus, "Add", config.menuName),
@@ -354,7 +356,7 @@ export function KycConfigResource({ entity }) {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
+        <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
       </div>
       <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
         actions={allowed(menus, "Add", config.menuName) && (
@@ -369,7 +371,7 @@ export function KycConfigResource({ entity }) {
               setEditing(null);
             }}
           >
-            <Plus size={14} /> Add {config.title}
+            <Plus size={14} /> {tr("Add")} {tr(config.title)}
           </button>
         )}
         rows={rows}
@@ -377,13 +379,13 @@ export function KycConfigResource({ entity }) {
         onChange={setTab}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
+        searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
       bare /><DataTable
         columns={columns}
         rows={visible}
         rowKey={idOf}
         isLoading={loading}
-        title={config.title}
+        title={tr(config.title)}
         serverPagination={{
           page,
           limit,
@@ -398,7 +400,7 @@ export function KycConfigResource({ entity }) {
       bare /></div>{(editing || form) && (
         <Modal
           open={Boolean(editing || Object.keys(form).length)}
-          title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
           onClose={() => {
             setEditing(null);
             setForm({});
@@ -414,14 +416,14 @@ export function KycConfigResource({ entity }) {
                     : "text-sm font-semibold"
                 }
               >
-                {type === "boolean" ? <span>{label}</span> : label}
+                {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
                 {key === "inst_profile_id" ? (
                   <FilterSelect
                     className="mt-1.5"
                     value={form[key] ?? ""}
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     options={[
-                      { value: "", label: "Select institution" },
+                      { value: "", label: tr("Select institution") },
                       ...institutions.map((inst) => ({
                         value: inst.id,
                         label: inst.name ?? String(inst.id),
@@ -434,7 +436,7 @@ export function KycConfigResource({ entity }) {
                     value={form[key] ?? ""}
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     options={[
-                      { value: "", label: "Select document type" },
+                      { value: "", label: tr("Select document type") },
                       ...documentTypes.map((documentType) => ({
                         value: idOf(documentType),
                         label: documentType.name ?? documentType.code ?? String(idOf(documentType)),
@@ -447,7 +449,7 @@ export function KycConfigResource({ entity }) {
                     value={form[key] ?? ""}
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     options={[
-                      { value: "", label: "Select process" },
+                      { value: "", label: tr("Select process") },
                       ...processes.map((process) => ({
                         value: idOf(process),
                         label: process.name ?? process.code ?? String(idOf(process)),
@@ -461,7 +463,7 @@ export function KycConfigResource({ entity }) {
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
                     options={[
-                      { value: "", label: "Select data field" },
+                      { value: "", label: tr("Select data field") },
                       ...dataFields.map((field) => ({
                         value: idOf(field),
                         label: field.name ?? field.code ?? String(idOf(field)),
@@ -475,7 +477,7 @@ export function KycConfigResource({ entity }) {
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
                     options={[
-                      { value: "", label: "Select group level" },
+                      { value: "", label: tr("Select group level") },
                       ...kycGroupLevels.map((level) => ({
                         value: idOf(level),
                         label: level.level_name
@@ -491,7 +493,7 @@ export function KycConfigResource({ entity }) {
                     onChange={(value) => setForm({ ...form, [key]: value })}
                     disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
                     options={[
-                      { value: "", label: "Select KYC group" },
+                      { value: "", label: tr("Select KYC group") },
                       ...kycGroups.map((group) => ({
                         value: idOf(group),
                         label: group.name ?? String(idOf(group)),
@@ -529,27 +531,27 @@ export function KycConfigResource({ entity }) {
             ))}
             <div className="flex justify-end gap-2">
               <button onClick={() => void save(true)} disabled={saving}>
-                Save draft
+                {tr("Save draft")}
               </button>
               <button
                 onClick={() => void save(false)}
                 disabled={saving}
                 className="rounded-xl bg-primary px-4 py-2 font-bold text-white"
               >
-                Save
+                {tr("Save")}
               </button>
             </div>
           </div>
         </Modal>
       )}
       {view && (
-        <Modal open title={`View ${config.title}`} onClose={() => setView(null)} size="md">
+        <Modal open title={`${tr("View")} ${tr(config.title)}`} onClose={() => setView(null)} size="md">
           <dl className="grid gap-3">
             {config.fields.map(([key, label, type]) => (
               <div key={key} className="rounded-xl border p-3">
-                <dt className="text-xs text-slate-400">{label}</dt>
+                <dt className="text-xs text-slate-400">{tr(label)}</dt>
                 <dd className="text-sm font-semibold">
-                  {type === "boolean" ? (view[key] ? "Yes" : "No") : resolveField(view, key)}
+                  {type === "boolean" ? (view[key] ? tr("Yes") : tr("No")) : resolveField(view, key)}
                 </dd>
               </div>
             ))}
@@ -558,9 +560,9 @@ export function KycConfigResource({ entity }) {
       )}
       {audit && (
         <AuditModal
-          title={config.title}
+          title={tr(config.title)}
           onClose={() => setAudit(null)}
-          fields={config.fields.map(([key, label]) => [key, label])}
+          fields={config.fields.map(([key, label]) => [key, tr(label)])}
           fetchAudit={(p, value) =>
             service.audit({ id: idOf(audit), page: p, limit: value }).then(mapAuditResponse)
           }
@@ -569,9 +571,9 @@ export function KycConfigResource({ entity }) {
       {action && (
         <ConfirmDialog
           open
-          title={`${action.label} ${config.title}`}
-          description={describeConfirmAction(action.type, describeActionRow(action.row))}
-          confirmLabel={action.label}
+          title={`${tr(action.label)} ${tr(config.title)}`}
+          description={describeConfirmAction(action.type, describeActionRow(action.row), tr)}
+          confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
           onClose={() => setAction(null)}
@@ -581,7 +583,7 @@ export function KycConfigResource({ entity }) {
           <textarea
             value={action.reason ?? ""}
             onChange={(event) => setAction({ ...action, reason: event.target.value })}
-            placeholder="Narration"
+            placeholder={tr("Narration")}
             className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
           />
         </ConfirmDialog>

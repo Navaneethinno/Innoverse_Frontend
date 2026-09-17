@@ -34,6 +34,7 @@ import {
 } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { splitFieldsIntoColumns } from "@/Utils/Lib/formFieldColumns";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
 // "Account" (acct_product) plus its 16 sub-configs — every sub-config below
@@ -398,6 +399,11 @@ const optionOf = (item, idBased) => {
 
 export function AcctConfigResource({ entity }) {
   const config = CONFIGS[entity];
+  // CONFIGS' own titles/field labels are plain hardcoded English (not
+  // t()-driven), so switching the app to Portuguese silently left this
+  // page untranslated — tr() looks each one up in a flat EN->PT table
+  // instead; see configFieldLabels.js for why.
+  const tr = useConfigLabel();
   const menus = useSelector((state) => state.menu.menuArray);
   const service = useMemo(() => configKycApi(entity), [entity]);
   const needsAcctProducts = entity !== "acct_product";
@@ -547,7 +553,7 @@ export function AcctConfigResource({ entity }) {
         (lookupKey || config.required?.includes(key)) && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
-      const label = missingField[1].toLowerCase();
+      const label = tr(missingField[1]).toLowerCase();
       const verb = missingField[3] ? "select" : "enter";
       notifications.error(`Please ${verb} ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
       return;
@@ -572,7 +578,7 @@ export function AcctConfigResource({ entity }) {
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };
       const response = await (editing ? service.edit(payload) : service.add(payload));
-      notifications.success(apiMessage(response, `${config.title} saved`));
+      notifications.success(apiMessage(response, `${tr(config.title)} saved`));
       setEditing(null);
       setForm({});
       void load();
@@ -605,7 +611,7 @@ export function AcctConfigResource({ entity }) {
                   : type === "reactivate"
                     ? await service.reactivate(payload)
                     : await service.delete(payload);
-      notifications.success(apiMessage(response, `${config.title} action completed`));
+      notifications.success(apiMessage(response, `${tr(config.title)} action completed`));
       setAction(null);
       void load();
     } catch (error) {
@@ -615,27 +621,27 @@ export function AcctConfigResource({ entity }) {
   const columns = [
     ...config.fields.slice(0, 4).map(([key, label, type, lookupKey]) => ({
       key,
-      label,
-      render: (row) => (lookupKey ? labelFor(lookupKey, row[key]) : type === "boolean" ? (row[key] ? "Yes" : "No") : String(row[key] ?? "-")),
+      label: tr(label),
+      render: (row) => (lookupKey ? labelFor(lookupKey, row[key]) : type === "boolean" ? (row[key] ? tr("Yes") : tr("No")) : String(row[key] ?? "-")),
     })),
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       render: (row) => <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />,
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} />,
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
           canAdd: allowed(menus, "Add", config.menuName),
@@ -668,7 +674,7 @@ export function AcctConfigResource({ entity }) {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
+        <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
       </div>
       <div
         className="mb-4 overflow-hidden rounded-2xl"
@@ -684,7 +690,7 @@ export function AcctConfigResource({ entity }) {
                   setEditing(null);
                 }}
               >
-                <Plus size={14} /> Add {config.title}
+                <Plus size={14} /> {tr("Add")} {tr(config.title)}
               </button>
             )
           }
@@ -693,7 +699,7 @@ export function AcctConfigResource({ entity }) {
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
+          searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
           bare
         />
         <DataTable
@@ -701,7 +707,7 @@ export function AcctConfigResource({ entity }) {
           rows={visible}
           rowKey={idOf}
           isLoading={loading}
-          title={config.title}
+          title={tr(config.title)}
           serverPagination={{
             page,
             limit,
@@ -719,7 +725,7 @@ export function AcctConfigResource({ entity }) {
       {(editing || Object.keys(form).length > 0) && (
         <Modal
           open
-          title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
           size="lg"
           fixedHeight
           onClose={() => {
@@ -729,10 +735,10 @@ export function AcctConfigResource({ entity }) {
           footer={
             <>
               <button onClick={() => void save(true)} disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50">
-                Save draft
+                {tr("Save draft")}
               </button>
               <button onClick={() => void save(false)} disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                Save
+                {tr("Save")}
               </button>
             </>
           }
@@ -753,14 +759,14 @@ export function AcctConfigResource({ entity }) {
                       key={key}
                       className={type === "boolean" ? "flex items-center gap-2 text-sm font-semibold" : "text-sm font-semibold"}
                     >
-                      {type !== "boolean" && label}
+                      {type !== "boolean" && tr(label)}
                       {lookupKey ? (
                         <FilterSelect
                           className="mt-1.5"
                           value={form[key] ?? ""}
                           onChange={(value) => setForm({ ...form, [key]: value })}
                           disabled={isReadOnly}
-                          options={[{ value: "", label: `Select ${label.toLowerCase()}` }, ...optionsFor(lookupKey)]}
+                          options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...optionsFor(lookupKey)]}
                         />
                       ) : type === "textarea" ? (
                         <textarea
@@ -787,7 +793,7 @@ export function AcctConfigResource({ entity }) {
                           className={type === "boolean" ? "h-4 w-4 shrink-0 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
                         />
                       )}
-                      {type === "boolean" && <span>{label}</span>}
+                      {type === "boolean" && <span>{tr(label)}</span>}
                     </label>
                   );
                 })}
@@ -799,7 +805,7 @@ export function AcctConfigResource({ entity }) {
       {view && (
         <Modal
           open
-          title={entity === "acct_product" ? `${view.product_name ?? config.title} — Configurations` : `View ${config.title}`}
+          title={entity === "acct_product" ? `${view.product_name ?? tr(config.title)} — Configurations` : `${tr("View")} ${tr(config.title)}`}
           subtitle={entity === "acct_product" ? "Only the configurations enabled for this product are shown" : undefined}
           size={entity === "acct_product" ? "xl" : "md"}
           fixedHeight={entity === "acct_product"}
@@ -822,7 +828,7 @@ export function AcctConfigResource({ entity }) {
                   ["Status", view.status_name ?? (view.status === 1 ? "ACTIVE" : view.status === 0 ? "INACTIVE" : "-")],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-xl border p-3">
-                    <dt className="text-xs text-slate-400">{label}</dt>
+                    <dt className="text-xs text-slate-400">{tr(label)}</dt>
                     <dd className="text-sm font-semibold">{value}</dd>
                   </div>
                 ))}
@@ -840,9 +846,9 @@ export function AcctConfigResource({ entity }) {
             <dl className="grid gap-3">
               {config.fields.map(([key, label, type, lookupKey]) => (
                 <div key={key} className="rounded-xl border p-3">
-                  <dt className="text-xs text-slate-400">{label}</dt>
+                  <dt className="text-xs text-slate-400">{tr(label)}</dt>
                   <dd className="text-sm font-semibold">
-                    {lookupKey ? labelFor(lookupKey, view[key]) : type === "boolean" ? (view[key] ? "Yes" : "No") : String(view[key] ?? "-")}
+                    {lookupKey ? labelFor(lookupKey, view[key]) : type === "boolean" ? (view[key] ? tr("Yes") : tr("No")) : String(view[key] ?? "-")}
                   </dd>
                 </div>
               ))}
@@ -852,18 +858,18 @@ export function AcctConfigResource({ entity }) {
       )}
       {audit && (
         <AuditModal
-          title={config.title}
+          title={tr(config.title)}
           onClose={() => setAudit(null)}
-          fields={config.fields.map(([key, label]) => [key, label])}
+          fields={config.fields.map(([key, label]) => [key, tr(label)])}
           fetchAudit={(p, value) => service.audit({ id: idOf(audit), page: p, limit: value }).then(mapAuditResponse)}
         />
       )}
       {action && (
         <ConfirmDialog
           open
-          title={`${action.label} ${config.title}`}
-          description={describeConfirmAction(action.type, describeActionRow(action.row))}
-          confirmLabel={action.label}
+          title={`${tr(action.label)} ${tr(config.title)}`}
+          description={describeConfirmAction(action.type, describeActionRow(action.row), tr)}
+          confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
           onClose={() => setAction(null)}
@@ -873,7 +879,7 @@ export function AcctConfigResource({ entity }) {
           <textarea
             value={action.reason ?? ""}
             onChange={(event) => setAction({ ...action, reason: event.target.value })}
-            placeholder="Narration"
+            placeholder={tr("Narration")}
             className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
           />
         </ConfirmDialog>

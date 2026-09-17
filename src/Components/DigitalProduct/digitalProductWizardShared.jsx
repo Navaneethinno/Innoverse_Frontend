@@ -7,6 +7,7 @@ import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHook
 import { useChannels, useTransactions, useResidencyTypes } from "@/Hooks/Master/masterHooks";
 import { configKycApi } from "@/Services/Config/config.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Shared between AddDigitalProductWizard.jsx, EditDigitalProductWizard.jsx
 // and ViewDigitalProductWizard.jsx — everything here is pure step/field
@@ -195,10 +196,11 @@ export function findMissingField(entity, values) {
   });
 }
 
-export function requiredFieldMessage([key, label]) {
+export function requiredFieldMessage([key, label], tr = (s) => s) {
+  const translated = tr(label);
   const verb = key.endsWith("_id") ? "select" : "enter";
-  const article = /^[aeiou]/i.test(label) ? "an" : "a";
-  return `Please ${verb} ${article} ${label.toLowerCase()}`;
+  const article = /^[aeiou]/i.test(translated) ? "an" : "a";
+  return `Please ${verb} ${article} ${translated.toLowerCase()}`;
 }
 
 // Exactly the dropdown sources DigitalProductResource.jsx's own Add/Edit
@@ -248,6 +250,7 @@ export function useDigitalProductLookups(currentEntity) {
 // forces the short cell's row to stretch to the tall one's height,
 // stranding the checkbox with a large gap before the next row.
 export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
+  const tr = useConfigLabel();
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
       {splitFieldsIntoColumns(CONFIGS[entity].fields).map(
@@ -273,7 +276,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                     : "text-sm font-semibold text-slate-700"
                 }
               >
-                {type === "boolean" ? <span>{label}</span> : label}
+                {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
                 <DigitalProductFieldInput
                   fieldKey={key}
                   type={type}
