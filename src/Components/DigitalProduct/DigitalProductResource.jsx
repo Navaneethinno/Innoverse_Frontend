@@ -109,6 +109,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
               checked={Boolean(value[key])}
               onChange={(next) => setValue({ ...value, [key]: next })}
               label={tr(label)}
+              className="justify-self-start"
             />
           ) : (
             <label key={key} className="text-sm font-semibold text-slate-700">

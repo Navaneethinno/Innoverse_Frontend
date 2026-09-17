@@ -1,18 +1,22 @@
 import { Check } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
-// One pill-shaped checkbox row — a filled circle with a checkmark when
+// One pill-shaped checkbox — a filled circle with a checkmark when
 // selected, an empty ring when not, matching the "Ingredients" style
-// reference (rounded pill, circular indicator on the left, label filling
-// the rest). The indicator is `shrink-0`, and the label wraps inside a
-// `min-w-0 flex-1` cell instead of forcing single-line truncation — a long
-// label pushes the pill taller, never squeezes the circle out of shape or
-// overflows the row.
+// reference (rounded pill, circular indicator on the left, label right
+// after it). Sized to its own content by default (`inline-flex`, no
+// `w-full`) — like the reference image's pills, which hug their text
+// instead of stretching to fill whatever column/row they sit in; a caller
+// that genuinely wants a full-width row (e.g. a fixed-width list) can still
+// pass `className="w-full"`. The indicator stays `shrink-0` and the label
+// wraps inside a `min-w-0` cell rather than truncating, so a long label
+// makes the pill taller/wider instead of squeezing the circle or
+// overflowing.
 export function CheckboxPill({ checked, onChange, label, disabled = false, className }) {
   return (
     <label
       className={cn(
-        "flex w-full cursor-pointer select-none items-center gap-3 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors",
+        "inline-flex max-w-full cursor-pointer select-none items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
         checked ? "border-primary bg-primary-light text-slate-800" : "border-border bg-card text-slate-600 hover:border-slate-300",
         disabled && "cursor-not-allowed opacity-60",
         className,
@@ -34,7 +38,7 @@ export function CheckboxPill({ checked, onChange, label, disabled = false, class
       >
         {checked && <Check size={13} strokeWidth={3.5} />}
       </span>
-      <span className="min-w-0 flex-1 break-words leading-snug">{label}</span>
+      <span className="min-w-0 break-words leading-snug">{label}</span>
     </label>
   );
 }
@@ -53,7 +57,7 @@ export function CheckboxPillGroup({ options, value = [], onChange, disabled = fa
     onChange?.(next);
   };
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex flex-col items-start gap-2", className)}>
       {options.map((option) => {
         const isObject = option != null && typeof option === "object";
         const optionValue = isObject ? option.value : option;

@@ -269,6 +269,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                 onChange={(next) => onFieldChange(key, next)}
                 label={tr(label)}
                 disabled={disabled}
+                className="self-start"
               />
             ) : (
               <label key={key} className="text-sm font-semibold text-slate-700">
