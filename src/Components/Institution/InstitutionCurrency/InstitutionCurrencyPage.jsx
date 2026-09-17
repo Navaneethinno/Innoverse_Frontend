@@ -24,6 +24,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const display = (row, key) => row?.[key] ?? "—";
 function CurrencyActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -90,7 +91,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution currency"
+        title={tr("View institution currency")}
         size="md"
       >
         <div className="space-y-3">
@@ -228,10 +229,10 @@ export function InstitutionCurrencyPage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black tracking-tight text-foreground">
-            Institution Currency
+            {tr("Institution Currency")}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution currency assignments.
+            {tr("Manage institution currency assignments.")}
           </p>
         </div>
         
@@ -264,14 +265,14 @@ export function InstitutionCurrencyPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Currency"
+        title={tr("Institution Currency")}
         searchableKeys={["currency_name", "inst_profile_name"]}
-        emptyTitle="No currencies found"
-        emptyDescription="Currency assignments will appear here when available."
+        emptyTitle={tr("No currencies found")}
+        emptyDescription={tr("Currency assignments will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution currency" : "Add institution currency"}
+        title={editing ? tr("Edit institution currency") : tr("Add institution currency")}
         size="md"
       >
         <CurrencyForm

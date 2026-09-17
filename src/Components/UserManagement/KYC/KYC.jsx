@@ -300,11 +300,11 @@ export function KYC() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">User KYC</h1>
-        <p className="mt-1 text-xs font-medium text-slate-500">Manage user KYC and personal details.</p>
+        <h1 className="text-xl font-black text-slate-800">{tr("User KYC")}</h1>
+        <p className="mt-1 text-xs font-medium text-slate-500">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search KYC records..." actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -321,9 +321,9 @@ export function KYC() {
         rows={visibleRows}
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
-        title="User KYC"
+        title={tr("User KYC")}
         searchableKeys={["user_name", "first_name", "last_name", "employee_id", "email", "mobile"]}
-        emptyTitle="No KYC records found"
+        emptyTitle={tr("No KYC records found")}
         serverPagination={{
           page,
           totalPages: query.pagination?.totalPages ?? 1,
@@ -365,7 +365,7 @@ export function KYC() {
       />
 
       {viewRow && (
-        <Modal open title="View user KYC" onClose={() => setViewRow(null)} size="lg">
+        <Modal open title={tr("View user KYC")} onClose={() => setViewRow(null)} size="lg">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {FORM_FIELDS.map(([key, label]) => (
               <div key={key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">

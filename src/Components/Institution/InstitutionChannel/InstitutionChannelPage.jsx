@@ -25,6 +25,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -91,7 +92,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution channel"
+        title={tr("View institution channel")}
         size="md"
       >
         <div className="space-y-3">
@@ -222,9 +223,9 @@ export function InstitutionChannelPage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-foreground">Institution Channel</h1>
+          <h1 className="text-xl font-black tracking-tight text-foreground">{tr("Institution Channel")}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution channel assignments.
+            {tr("Manage institution channel assignments.")}
           </p>
         </div>
         
@@ -257,14 +258,14 @@ export function InstitutionChannelPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Channel"
+        title={tr("Institution Channel")}
         searchableKeys={["channel_name", "inst_profile_name"]}
-        emptyTitle="No channels found"
-        emptyDescription="Channel assignments will appear here when available."
+        emptyTitle={tr("No channels found")}
+        emptyDescription={tr("Channel assignments will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution channel" : "Add institution channel"}
+        title={editing ? tr("Edit institution channel") : tr("Add institution channel")}
         size="md"
       >
         <ChannelForm

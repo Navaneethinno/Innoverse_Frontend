@@ -269,8 +269,9 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
 }
 
 function PolicyView({ row, onClose }) {
+  const tr = useConfigLabel();
   return (
-    <Modal open title="View password policy" onClose={onClose} size="xl">
+    <Modal open title={tr("View password policy")} onClose={onClose} size="xl">
       <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
           <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">

@@ -25,6 +25,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const displayValue = (value) => value ?? "—";
 
 function ModuleActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -95,7 +96,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
           setDetails(null);
           setAction(null);
         }}
-        title="View institution module"
+        title={tr("View institution module")}
         size="md"
       >
         <div className="space-y-4">
@@ -226,10 +227,10 @@ export function InstitutionModulePage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black leading-tight tracking-tight text-foreground">
-            Institution Module
+            {tr("Institution Module")}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution module assignments.
+            {tr("Manage institution module assignments.")}
           </p>
         </div>
         
@@ -242,7 +243,7 @@ export function InstitutionModulePage() {
             onClick={() => void query.refetch()}
             className="ml-auto text-xs font-bold underline"
           >
-            Retry
+            {tr("Retry")}
           </button>
         </div>
       )}
@@ -269,14 +270,14 @@ export function InstitutionModulePage() {
         rows={filteredRows}
         rowKey={(row) => row.id}
         isLoading={query.isLoading}
-        title="Institution Module"
+        title={tr("Institution Module")}
         searchableKeys={["module_name", "inst_profile_name"]}
-        emptyTitle="No institution modules found"
-        emptyDescription="Module assignments will appear here when available."
+        emptyTitle={tr("No institution modules found")}
+        emptyDescription={tr("Module assignments will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution module" : "Add institution module"}
+        title={editing ? tr("Edit institution module") : tr("Add institution module")}
         size="md"
       >
         <ModuleForm

@@ -44,6 +44,7 @@ const FIELDS = [
 const value = (row, key) => row?.[key] ?? "—";
 
 function LegalActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -110,7 +111,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution legal"
+        title={tr("View institution legal")}
         size="md"
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -240,9 +241,9 @@ export function InstitutionLegalPage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-foreground">Institution Legal</h1>
+          <h1 className="text-xl font-black tracking-tight text-foreground">{tr("Institution Legal")}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution legal and regulatory profiles.
+            {tr("Manage institution legal and regulatory profiles.")}
           </p>
         </div>
         
@@ -275,14 +276,14 @@ export function InstitutionLegalPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Legal"
+        title={tr("Institution Legal")}
         searchableKeys={["legal_name", "inst_profile_name", "registration_number"]}
-        emptyTitle="No legal profiles found"
-        emptyDescription="Legal profiles will appear here when available."
+        emptyTitle={tr("No legal profiles found")}
+        emptyDescription={tr("Legal profiles will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution legal" : "Add institution legal"}
+        title={editing ? tr("Edit institution legal") : tr("Add institution legal")}
         size="lg"
       >
         <LegalForm

@@ -60,6 +60,7 @@ function ColorValue({ color }) {
   );
 }
 function BrandingActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -126,7 +127,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution branding"
+        title={tr("View institution branding")}
         size="lg"
       >
         <div className="grid gap-3 sm:grid-cols-2">
@@ -267,10 +268,10 @@ export function InstitutionBrandingPage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black tracking-tight text-foreground">
-            Institution Branding
+            {tr("Institution Branding")}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution branding and white-label configuration.
+            {tr("Manage institution branding and white-label configuration.")}
           </p>
         </div>
         
@@ -303,14 +304,14 @@ export function InstitutionBrandingPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Branding"
+        title={tr("Institution Branding")}
         searchableKeys={["display_name", "inst_profile_name", "primary_color"]}
-        emptyTitle="No branding profiles found"
-        emptyDescription="Branding profiles will appear here when available."
+        emptyTitle={tr("No branding profiles found")}
+        emptyDescription={tr("Branding profiles will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution branding" : "Add institution branding"}
+        title={editing ? tr("Edit institution branding") : tr("Add institution branding")}
         size="lg"
       >
         <BrandingForm

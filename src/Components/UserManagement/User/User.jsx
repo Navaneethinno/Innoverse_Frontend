@@ -306,9 +306,9 @@ export function User() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Users</h1>
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{tr("Users")}</h1>
         <p className="mt-1 text-xs font-medium text-slate-400">
-          Manage application users and access.
+          {tr("Manage application users and access.")}
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export function User() {
           }}
           search={params.search}
           onSearch={(search) => setParams((current) => ({ ...current, page: 1, search }))}
-          searchPlaceholder="Search users..."
+          searchPlaceholder={tr("Search users...")}
         bare />{usersQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           <AlertCircle size={16} />
@@ -345,9 +345,9 @@ export function User() {
         rows={visibleUsers}
         rowKey={(u) => userId(u)}
         isLoading={usersQuery.isLoading}
-        title="Users"
+        title={tr("Users")}
         searchableKeys={["user_name", "email"]}
-        emptyTitle="No users found"
+        emptyTitle={tr("No users found")}
         fetchMore={async (page, limit) => {
           const mapped = mapUserListResponse(
             await usersApi.list({ page, limit, search: "", status: 0 }),
