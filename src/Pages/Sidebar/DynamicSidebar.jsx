@@ -275,7 +275,10 @@ export function DynamicSidebar() {
       </div>
 
       <div className="px-2 mt-2">
-        <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-transparent mb-3" />
+        <div
+          className="h-px mb-3"
+          style={{ background: "linear-gradient(to right, transparent, var(--primary-light), transparent)" }}
+        />
         <UiTooltip label="Sign out" side="right">
           <motion.button
             onClick={() => {

@@ -191,7 +191,7 @@ export function ViewInstitutionProfile() {
         </p>
         <button
           onClick={() => navigate("/institutions")}
-          className="mt-3 text-xs font-bold text-blue-500 underline"
+          className="mt-3 text-xs font-bold text-[var(--primary)] underline"
         >
           {t("backToInstitutions")}
         </button>
@@ -247,7 +247,7 @@ export function ViewInstitutionProfile() {
                 "linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, transparent) 0%, color-mix(in srgb, var(--secondary) 13%, transparent) 100%)",
             }}
           >
-            <Building2 size={20} className="text-blue-500" />
+            <Building2 size={20} style={{ color: "var(--primary)" }} />
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
@@ -259,11 +259,14 @@ export function ViewInstitutionProfile() {
       </div>
 
       {isDraft && !editMode && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
-          <FileEdit size={15} className="text-blue-600 mt-0.5 shrink-0" />
+        <div
+          className="flex items-start gap-3 p-4 rounded-xl border"
+          style={{ background: "var(--primary-light)", borderColor: "var(--primary-light)" }}
+        >
+          <FileEdit size={15} className="mt-0.5 shrink-0" style={{ color: "var(--primary)" }} />
           <div>
-            <p className="text-xs font-semibold text-blue-800">{t("recordIsDraft")}</p>
-            <p className="text-xs text-blue-700 mt-0.5">
+            <p className="text-xs font-semibold" style={{ color: "var(--primary)" }}>{t("recordIsDraft")}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--primary)" }}>
               {t("recordIsDraftDescription")}
             </p>
           </div>
@@ -322,8 +325,8 @@ export function ViewInstitutionProfile() {
           <button
             onClick={() => void handleSubmitEdit(false)}
             disabled={submitting}
-            className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-            style={{ background: "var(--primary)" }}
+            className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md disabled:opacity-60"
+            style={{ background: "var(--primary)", boxShadow: "0 4px 10px var(--primary-light)" }}
           >
             {submitting ? t("savingEllipsis") : isDraft ? t("saveDraft") : t("submitForApproval")}
           </button>

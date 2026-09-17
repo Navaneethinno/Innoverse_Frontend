@@ -91,7 +91,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           value={form.narration ?? ""}
           onChange={(e) => setField("narration")(e.target.value)}
           placeholder={t("reasonForChangeOptionalPlaceholder")}
-          className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+          className="min-h-20 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
         />
       </div>
     </>

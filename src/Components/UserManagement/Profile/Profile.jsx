@@ -452,7 +452,7 @@ export function Profile() {
             <textarea
               value={narration}
               onChange={(event) => setNarration(event.target.value)}
-              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
             />
           </label>
         )}

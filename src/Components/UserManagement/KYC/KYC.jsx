@@ -119,7 +119,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
               <textarea
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="min-h-24 w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
+                className="min-h-24 w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
               />
             ) : (
               <input
@@ -128,7 +128,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
                 type={key.includes("email") ? "email" : "text"}
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-slate-50 disabled:text-slate-500"
               />
             )}
             {key === "user_id" && usersError && (
@@ -210,7 +210,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={action?.method === "kycDeauth" ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>

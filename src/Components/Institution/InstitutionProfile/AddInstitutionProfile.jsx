@@ -121,7 +121,7 @@ function InputField({ label, fieldKey, placeholder, required = false, value, err
         onChange={(e) => onChange(fieldKey, e.target.value)}
         placeholder={placeholder}
         className={cn(
-          "w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all",
+          "w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-transparent transition-all",
           error ? "border-red-300 bg-red-50" : "border-slate-200",
         )}
       />
@@ -144,7 +144,7 @@ function NumberField({ label, fieldKey, value, onChange }) {
         onKeyDown={blockNegativeKeyDown}
         onWheel={blurOnWheel}
         onChange={(e) => onChange(fieldKey, clampNonNegative(e.target.value))}
-        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 transition-all"
       />
     </div>
   );
@@ -178,7 +178,7 @@ function LivePreview({ form, step, steps, t }) {
   const value = (item) => item || t("previewNotSet");
   return (
     <aside className="lg:sticky lg:top-24 lg:self-start">
-      <div className="overflow-hidden rounded-[1.75rem] border border-white/70 bg-card/80 shadow-xl shadow-blue-900/10 backdrop-blur-xl dark:border-white/10">
+      <div className="overflow-hidden rounded-[1.75rem] border border-white/70 bg-card/80 shadow-xl backdrop-blur-xl dark:border-white/10">
         <div className="border-b border-border/60 bg-gradient-to-br from-primary/10 via-transparent to-teal-100/20 px-6 py-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
@@ -303,8 +303,8 @@ export function AddInstitutionProfile() {
               {savedAsDraft && createdId != null && (
                 <button
                   onClick={() => navigate(`/institutions/${createdId}?edit=1`)}
-                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-blue-200/40"
-                  style={{ background: "var(--primary)" }}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md"
+                  style={{ background: "var(--primary)", boxShadow: "0 4px 10px var(--primary-light)" }}
                 >
                   {t("continueEditingDraft")}
                 </button>
@@ -700,7 +700,7 @@ export function AddInstitutionProfile() {
                         value={form.narration}
                         onChange={(e) => setField("narration", e.target.value)}
                         placeholder={t("reasonForRequestPlaceholder")}
-                        className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                       />
                     </div>
                     <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100">
@@ -743,7 +743,7 @@ export function AddInstitutionProfile() {
           <button
             onClick={() => void handleNext(false)}
             disabled={isLoading}
-            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] shadow-md shadow-blue-200/40 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
+            className="flex-1 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
           >
             {step === STEPS.length - 1 ? t("submitForApproval") : t("continueButton")}
           </button>

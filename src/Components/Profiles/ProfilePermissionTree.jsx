@@ -292,22 +292,26 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search modules or menus…"
-            className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
+            className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
           />
         </div>
       )}
 
       {!readOnly && modules.length > 1 && (
-        <label className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-blue-100 bg-blue-50/50 px-3 py-2">
-          <span className="text-[11px] font-black uppercase tracking-widest text-blue-700">
+        <label
+          className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2"
+          style={{ borderColor: "var(--primary-light)", background: "var(--primary-light)" }}
+        >
+          <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>
             All modules
           </span>
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
             <input
               type="checkbox"
               checked={allModulesGranted}
               onChange={toggleSelectAllModules}
-              className="h-3.5 w-3.5 accent-blue-600"
+              className="h-3.5 w-3.5"
+              style={{ accentColor: "var(--primary)" }}
             />
             Select all
           </span>
@@ -348,12 +352,13 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                   )}
                 </button>
                 {!readOnly && (
-                  <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] font-semibold text-blue-600">
+                  <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
                     <input
                       type="checkbox"
                       checked={allGranted}
                       onChange={() => toggleModuleSelectAll(module)}
-                      className="h-3.5 w-3.5 accent-blue-600"
+                      className="h-3.5 w-3.5"
+                      style={{ accentColor: "var(--primary)" }}
                     />
                     Select all
                   </label>
@@ -368,10 +373,12 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                     return (
                       <div
                         key={menu.menu_id}
-                        className={cn(
-                          "rounded-lg border px-3 py-2 transition-colors",
-                          granted ? "border-blue-200 bg-blue-50/40" : "border-slate-100",
-                        )}
+                        className="rounded-lg border px-3 py-2 transition-colors"
+                        style={
+                          granted
+                            ? { borderColor: "var(--primary-light)", background: "var(--primary-light)" }
+                            : undefined
+                        }
                       >
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -379,7 +386,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                             checked={granted}
                             disabled={readOnly}
                             onChange={() => toggleMenuRow(menu)}
-                            className="h-4 w-4 shrink-0 accent-blue-600"
+                            className="h-4 w-4 shrink-0 accent-[var(--primary)]"
                           />
                           <span className="text-xs font-semibold text-slate-700">
                             {menu.menu_name}
@@ -403,7 +410,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                     checked={active}
                                     disabled={readOnly}
                                     onChange={() => toggleAction(menu, action.action_id)}
-                                    className="h-3.5 w-3.5 accent-blue-600"
+                                    className="h-3.5 w-3.5 accent-[var(--primary)]"
                                   />
                                   {action.action_name}
                                 </label>
@@ -423,7 +430,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                       ),
                                     )
                                   }
-                                  className="h-3.5 w-3.5 accent-blue-600"
+                                  className="h-3.5 w-3.5 accent-[var(--primary)]"
                                 />
                                 Configuration only
                               </label>

@@ -64,7 +64,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
   return (
     <thead>
       <tr className="border-b-2 border-slate-200">
-        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></th>}
+        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
         {columns.map((col) => (
           <th
             key={col.key}
@@ -137,7 +137,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
     <tbody>
       {rows.map((row, i) => (
         <tr key={rowKey(row, i)} className={cn("border-b border-slate-100 transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}>
-          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></td>}
+          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
           {columns.map((col) => (
             <td
               key={col.key}

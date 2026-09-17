@@ -14,14 +14,15 @@ import { cn } from "@/Utils/Lib/cn";
 const SIZES = {
   sm: { box: "w-6 h-6 rounded-lg", icon: 11, shadow: "shadow-sm" },
   md: { box: "w-9 h-9 rounded-xl", icon: 16, shadow: "shadow-md" },
-  lg: { box: "w-14 h-14 rounded-[18px]", icon: 26, shadow: "shadow-xl shadow-blue-300/40" },
+  lg: { box: "w-14 h-14 rounded-[18px]", icon: 26, shadow: "shadow-xl", boxShadow: "0 20px 25px -5px var(--primary-light)" },
 };
 
 export function Logo({ size = "md", className }) {
-  const { box, icon, shadow } = SIZES[size] ?? SIZES.md;
+  const { box, icon, shadow, boxShadow } = SIZES[size] ?? SIZES.md;
   return (
     <div
       className={cn("shrink-0 flex items-center justify-center bg-brand-gradient", box, shadow, className)}
+      style={boxShadow ? { boxShadow } : undefined}
     >
       <Sparkles size={icon} className="text-white" />
     </div>

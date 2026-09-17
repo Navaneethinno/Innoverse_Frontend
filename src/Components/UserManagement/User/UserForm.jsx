@@ -90,7 +90,7 @@ function PasswordPolicyField({ policies, policy, selectedId, onSelect, requireme
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700"
+            className="flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:text-[var(--primary-hover)]"
           >
             {t("viewPasswordPolicy")}
             <ChevronDown size={13} className={cn("transition-transform", expanded && "rotate-180")} />
@@ -179,7 +179,7 @@ export function UserForm({
                 }
                 value={editing && key === "user_pwd" ? "" : form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-slate-50 text-slate-500" : ""}`}
+                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-slate-50 text-slate-500" : ""}`}
               />
             )}
             {key === "user_pwd" && !readOnly && (
