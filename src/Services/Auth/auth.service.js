@@ -36,16 +36,17 @@ function parseSessionResponse(payload) {
   const sessionInfo = data?.user_session_info;
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");
-  // Tenant brand colors: checked in a few plausible spots since the exact
-  // response shape isn't finalized yet — a top-level `theme`/`branding`
-  // object, or the same primary_color/secondary_color fields the
-  // Institution Branding page already uses on user_details. Whichever
-  // fields are missing/invalid are simply left out by deriveBrandThemeVars,
-  // so a partial or absent theme object safely falls back to theme.css.
-  const themeSource = data?.theme ?? data?.branding ?? data?.user_details ?? {};
+  // Tenant brand colors: confirmed live on /user/login as a top-level
+  // `branding: { primary_color, secondary_color }` object (e.g.
+  // {"primary_color":"#ff772e","secondary_color":"#fff838"}). user_details
+  // is kept as a fallback lookup spot only in case some tenant/response
+  // variant nests it there instead; deriveBrandThemeVars drops whichever of
+  // the two colors is missing/invalid, so a partial branding object safely
+  // falls back to theme.css for the rest.
+  const themeSource = data?.branding ?? data?.user_details ?? {};
   const theme = {
-    primary: themeSource?.primary_color ?? themeSource?.primary ?? null,
-    secondary: themeSource?.secondary_color ?? themeSource?.secondary ?? null,
+    primary: themeSource?.primary_color ?? null,
+    secondary: themeSource?.secondary_color ?? null,
   };
   return {
     access_token: accessToken,
