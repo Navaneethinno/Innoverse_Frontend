@@ -246,7 +246,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                 key={key}
                 className={
                   type === "boolean"
-                    ? "flex items-center gap-2 text-sm font-semibold text-slate-700"
+                    ? "flex items-center justify-between gap-2 text-sm font-semibold text-slate-700"
                     : "text-sm font-semibold text-slate-700"
                 }
               >
