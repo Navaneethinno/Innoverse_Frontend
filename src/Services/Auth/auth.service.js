@@ -36,10 +36,22 @@ function parseSessionResponse(payload) {
   const sessionInfo = data?.user_session_info;
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");
+  // Tenant brand colors: checked in a few plausible spots since the exact
+  // response shape isn't finalized yet — a top-level `theme`/`branding`
+  // object, or the same primary_color/secondary_color fields the
+  // Institution Branding page already uses on user_details. Whichever
+  // fields are missing/invalid are simply left out by deriveBrandThemeVars,
+  // so a partial or absent theme object safely falls back to theme.css.
+  const themeSource = data?.theme ?? data?.branding ?? data?.user_details ?? {};
+  const theme = {
+    primary: themeSource?.primary_color ?? themeSource?.primary ?? null,
+    secondary: themeSource?.secondary_color ?? themeSource?.secondary ?? null,
+  };
   return {
     access_token: accessToken,
     refresh_token: sessionInfo?.refresh_token ?? null,
     user: data?.user_details ?? null,
+    theme: theme.primary || theme.secondary ? theme : null,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
     // Kept separate from Master reference data per Phase 24C spec.
