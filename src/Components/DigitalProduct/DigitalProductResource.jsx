@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
@@ -62,11 +63,6 @@ const allowed = (menus, action, title) =>
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes, tr }) {
   if (!open) return null;
   const lookups = { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
-  // Same "only right-align when there's another checkbox to align with"
-  // rule as the wizard's own DigitalProductStepFields — a lone boolean
-  // field stretched across this single-column form strands its checkbox
-  // far from the label it belongs to.
-  const booleanFieldCount = config.fields.filter(([, , t]) => t === "boolean").length;
   return (
     <Modal
       open
@@ -106,27 +102,27 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         }}
         className="grid gap-4"
       >
-        {config.fields.map(([key, label, type]) => (
-          <label
-            key={key}
-            className={
-              type === "boolean"
-                ? booleanFieldCount > 1
-                  ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
-                  : "flex items-center gap-2 text-sm font-semibold text-slate-700"
-                : "text-sm font-semibold text-slate-700"
-            }
-          >
-            {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
-            <DigitalProductFieldInput
-              fieldKey={key}
-              type={type}
-              value={value[key]}
+        {config.fields.map(([key, label, type]) =>
+          type === "boolean" ? (
+            <CheckboxPill
+              key={key}
+              checked={Boolean(value[key])}
               onChange={(next) => setValue({ ...value, [key]: next })}
-              lookups={lookups}
+              label={tr(label)}
             />
-          </label>
-        ))}
+          ) : (
+            <label key={key} className="text-sm font-semibold text-slate-700">
+              {tr(label)}
+              <DigitalProductFieldInput
+                fieldKey={key}
+                type={type}
+                value={value[key]}
+                onChange={(next) => setValue({ ...value, [key]: next })}
+                lookups={lookups}
+              />
+            </label>
+          ),
+        )}
       </form>
     </Modal>
   );

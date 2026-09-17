@@ -225,23 +225,10 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
       />
     );
   }
-  if (type === "boolean") {
-    // Explicit fixed square size + shrink-0 so this never stretches or
-    // shrinks with ambient font-size/grid/flex context — without it a bare
-    // <input type="checkbox"> renders at whatever size the browser derives
-    // from the surrounding layout, which visibly differed between the
-    // standalone Editor's single-column form and the wizard's two-column
-    // grid for the exact same field ("Multiple accounts allowed").
-    return (
-      <input
-        type="checkbox"
-        checked={Boolean(value)}
-        onChange={(e) => onChange(e.target.checked)}
-        disabled={disabled}
-        className="h-4 w-4 shrink-0 rounded border-border accent-primary disabled:opacity-60"
-      />
-    );
-  }
+  // type === "boolean" never reaches here — both callers (the wizard's
+  // DigitalProductStepFields and the standalone Editor in
+  // DigitalProductResource.jsx) render a CheckboxPill directly for it
+  // instead of going through this generic input.
   return (
     <input
       required={key.endsWith("_id") || ["code", "name"].includes(key)}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { splitFieldsIntoColumns } from "@/Utils/Lib/formFieldColumns";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
@@ -248,35 +249,30 @@ export function useDigitalProductLookups(currentEntity) {
 // single 2-col CSS grid — a real grid pairs left/right cells into shared
 // rows, so a tall field (a dropdown) next to a short one (a checkbox)
 // forces the short cell's row to stretch to the tall one's height,
-// stranding the checkbox with a large gap before the next row.
+// stranding the checkbox with a large gap before the next row. Boolean
+// fields render as a CheckboxPill instead of a plain label+checkbox row —
+// see CheckboxPill.jsx — which is a self-contained pill (its own label +
+// circular indicator), so it no longer needs the "only right-align when
+// another checkbox shares this column" workaround the old plain-checkbox
+// layout required.
 export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
   const tr = useConfigLabel();
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {splitFieldsIntoColumns(CONFIGS[entity].fields).map(
-        (columnFields, columnIndex) => {
-          // Right-aligning to the column's edge only reads as "aligned"
-          // when there's another checkbox in the same column to align
-          // WITH — a column with just one lone boolean field (Residency's
-          // "Allowed", Eligibility Config's "Residency restriction
-          // inherit") stretching that same checkbox clear across the
-          // column just strands it far from its own label instead. Only
-          // stretch+right-align when 2+ checkboxes share this column.
-          const booleanCount = columnFields.filter(([, , t]) => t === "boolean").length;
-          return (
-          <div key={columnIndex} className="flex flex-col gap-4">
-            {columnFields.map(([key, label, type]) => (
-              <label
+      {splitFieldsIntoColumns(CONFIGS[entity].fields).map((columnFields, columnIndex) => (
+        <div key={columnIndex} className="flex flex-col gap-4">
+          {columnFields.map(([key, label, type]) =>
+            type === "boolean" ? (
+              <CheckboxPill
                 key={key}
-                className={
-                  type === "boolean"
-                    ? booleanCount > 1
-                      ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
-                      : "flex items-center gap-2 text-sm font-semibold text-slate-700"
-                    : "text-sm font-semibold text-slate-700"
-                }
-              >
-                {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
+                checked={Boolean(values[key])}
+                onChange={(next) => onFieldChange(key, next)}
+                label={tr(label)}
+                disabled={disabled}
+              />
+            ) : (
+              <label key={key} className="text-sm font-semibold text-slate-700">
+                {tr(label)}
                 <DigitalProductFieldInput
                   fieldKey={key}
                   type={type}
@@ -286,11 +282,10 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                   disabled={disabled}
                 />
               </label>
-            ))}
-          </div>
-          );
-        },
-      )}
+            ),
+          )}
+        </div>
+      ))}
     </div>
   );
 }
