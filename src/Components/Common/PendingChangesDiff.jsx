@@ -59,15 +59,18 @@ function fieldLabel(field) {
 // channel_config, ...) as one "field" — recurse into arrays/objects
 // instead of falling through to the default String(value) => "[object
 // Object]" every caller was getting for those.
+// Joined with "\n", not ", " — a nested section can carry a dozen fields,
+// and run-on into one paragraph was unreadable. Callers pair this with a
+// `whitespace-pre-line` cell so each entry actually breaks onto its own line.
 function displayValue(value) {
   if (value == null || value === "") return "—";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (Array.isArray(value)) {
-    return value.length === 0 ? "—" : value.map(displayValue).join("; ");
+    return value.length === 0 ? "—" : value.map(displayValue).join("\n");
   }
   if (typeof value === "object") {
     const entries = Object.entries(value).filter(([, v]) => v !== "" && v != null);
-    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${fieldLabel(k)}: ${displayValue(v)}`).join(", ");
+    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${fieldLabel(k)}: ${displayValue(v)}`).join("\n");
   }
   return String(value);
 }
@@ -120,10 +123,10 @@ export function PendingChangesDiff({ data, isLoading, error }) {
               <tr key={change.field} className="border-b border-slate-50 last:border-0">
                 <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
                 {!isAdd && (
-                  <td className="px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
+                  <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
                 )}
                 {!isDelete && (
-                  <td className="px-3 py-1.5 font-medium text-blue-700">{displayValue(change.proposed)}</td>
+                  <td className="whitespace-pre-line px-3 py-1.5 font-medium text-blue-700">{displayValue(change.proposed)}</td>
                 )}
               </tr>
             ))}
@@ -271,7 +274,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                   <tr key={row.field} className="border-b border-slate-50 last:border-0">
                     <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(row.field)}</td>
                     {!isAdd && (
-                      <td className="px-3 py-1.5">
+                      <td className="whitespace-pre-line px-3 py-1.5">
                         {changed ? (
                           <span className="inline-block rounded-md bg-red-100 px-2 py-0.5 font-medium text-red-700 line-through decoration-red-400 decoration-2">
                             {displayValue(row.current)}
@@ -282,7 +285,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                       </td>
                     )}
                     {!isDelete && (
-                      <td className="px-3 py-1.5">
+                      <td className="whitespace-pre-line px-3 py-1.5">
                         {changed ? (
                           <span className="inline-block rounded-md bg-emerald-100 px-2 py-0.5 font-bold text-emerald-800">
                             {displayValue(row.proposed)}

@@ -32,11 +32,11 @@ function isEmptyPlaceholder(value) {
 function formatValue(value) {
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (Array.isArray(value)) {
-    return value.length === 0 ? "—" : value.map(formatValue).join("; ");
+    return value.length === 0 ? "—" : value.map(formatValue).join("\n");
   }
   if (value != null && typeof value === "object") {
     const entries = Object.entries(value).filter(([, v]) => !isEmptyPlaceholder(v));
-    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${k.replaceAll("_", " ")}: ${formatValue(v)}`).join(", ");
+    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${k.replaceAll("_", " ")}: ${formatValue(v)}`).join("\n");
   }
   return isEmptyPlaceholder(value) ? "—" : String(value);
 }
@@ -157,7 +157,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {label}
               </p>
-              <p className="mt-0.5 text-xs font-semibold text-foreground">
+              <p className="mt-0.5 whitespace-pre-line text-xs font-semibold text-foreground">
                 {formatValue(entry[key])}
               </p>
             </div>
@@ -416,6 +416,7 @@ export function AuditModal({
     <Modal
       open
       onClose={onClose}
+      size="xl"
       title={`${t("common:audit")} — ${title}`}
       subtitle={`${entries.length} ${entries.length === 1 ? t("common:record") : t("common:recordsWord")}${
         hasMore ? " · " + t("common:scrollForMore") : ""
