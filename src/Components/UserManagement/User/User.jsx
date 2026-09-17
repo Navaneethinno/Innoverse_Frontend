@@ -30,6 +30,7 @@ import { AddUser } from "./AddUser";
 import { EditUser } from "./EditUser";
 import { AuditUser } from "./AuditUser";
 import { deriveButtonVisibility, getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // The users list endpoint only supports status 0/1/2 (all/active/inactive)
 // server-side — there is no dedicated "pending" auth_status filter param
@@ -45,6 +46,7 @@ const numericId = (value) => {
 };
 
 export function User() {
+  const tr = useConfigLabel();
   // Real permission source — same menu_array the sidebar itself reads.
   // View is the one exception: it's not consistently granted via login's
   // menu_array actions[] the way the others are, so it's always shown
@@ -212,20 +214,20 @@ export function User() {
   const columns = [
     {
       key: "user",
-      label: "User",
+      label: tr("User"),
       align: "left",
       sortValue: nameOf,
       render: (u) => <span className="font-semibold text-slate-800">{nameOf(u)}</span>,
     },
     {
       key: "profile",
-      label: "Profile",
+      label: tr("Profile"),
       sortValue: (u) => u.profile_name ?? u.profile?.name ?? fieldValue(u, "profile_id"),
       render: (u) => u.profile_name ?? u.profile?.name ?? fieldValue(u, "profile_id") ?? "-",
     },
     {
       key: "institution",
-      label: "Institution",
+      label: tr("Institution"),
       sortValue: (u) =>
         u.inst_profile_name ??
         u.institution_name ??
@@ -240,7 +242,7 @@ export function User() {
     },
     {
       key: "status_name",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (u) => u.status_name ?? (u.status === 1 ? "Active" : "Inactive"),
       render: (u) =>
         u.status == null && !u.status_name ? (
@@ -253,19 +255,19 @@ export function User() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (u) => String(u.process_status_name ?? ""),
       render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (u) => String(u.auth_status ?? ""),
       render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (user) => {
         // canDeauthorize is intentionally broader than canAuthorize (see its
@@ -289,7 +291,7 @@ export function User() {
             onView={() => openEdit(user, { readOnly: true })}
             onEdit={() => openEdit(user)}
             onAudit={() => openAudit(user)}
-            onSubmit={() => setAction({ type: "submit", user, label: "Submit draft" })}
+            onSubmit={() => setAction({ type: "submit", user, label: tr("Submit draft") })}
             onAuthorize={() => setAction({ type: pendingType, user, label: "Authorize" })}
             onDeauthorize={() => setAction({ type: "deauth", user, label: "Deauthorize" })}
             onDeactivate={() => setAction({ type: "deactivate", user, label: "Deactivate" })}
@@ -319,7 +321,7 @@ export function User() {
               className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
               style={{ background: "var(--primary)" }}
             >
-              <Plus size={14} /> Add user
+              <Plus size={14} /> {tr("Add")} {tr("user")}
             </motion.button>
           )}
           rows={rawUsers}

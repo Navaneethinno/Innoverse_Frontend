@@ -21,6 +21,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const display = (row, key) => row?.[key] ?? "—";
 function CurrencyActions({ row, onRefresh, onEdit }) {
   const canAdd = useHasInstitutionAction("Add");
@@ -131,6 +132,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
   );
 }
 export function InstitutionCurrencyPage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -152,24 +154,24 @@ export function InstitutionCurrencyPage() {
   const columns = [
     {
       key: "currency_name",
-      label: "Currency",
+      label: tr("Currency"),
       render: (r) => (
         <span className="font-semibold text-foreground">{display(r, "currency_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => display(r, "inst_profile_name"),
     },
     {
       key: "is_base_currency",
-      label: "Base Currency",
+      label: tr("Base Currency"),
       render: (r) => (r.is_base_currency ? "Yes" : "No"),
     },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -180,19 +182,19 @@ export function InstitutionCurrencyPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <CurrencyActions
@@ -254,7 +256,7 @@ export function InstitutionCurrencyPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add currency
+            <Plus size={14} /> {tr("Add")} {tr("currency")}
           </button>
         )}
       bare /><DataTable
@@ -340,7 +342,7 @@ function CurrencyForm({
               value={form.inst_profile_id}
               onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
               options={[
-                { value: "", label: "Select institution" },
+                { value: "", label: tr("Select institution") },
                 ...institutions.map((i) => ({
                   value: i.id ?? i.inst_profile_id,
                   label: i.name ?? i.inst_profile_name ?? i.code,
@@ -357,7 +359,7 @@ function CurrencyForm({
           value={form.currency_code}
           onChange={(next) => set("currency_code")({ target: { value: next } })}
           options={[
-            { value: "", label: "Select currency" },
+            { value: "", label: tr("Select currency") },
             ...currencies.map((c) => ({
               value: c.currency_code ?? c.id,
               label: c.currency_name ?? c.name ?? c.currency_code,

@@ -324,7 +324,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
             <button
               type="button"
               onClick={() => setShowAll((v) => !v)}
-              className="text-[11px] font-bold text-blue-600 hover:underline"
+              className="text-[11px] font-bold text-[var(--primary)] hover:underline"
             >
               {showAll ? t("showChangedOnly") : t("showAllFields", { count: totalFieldCount })}
             </button>

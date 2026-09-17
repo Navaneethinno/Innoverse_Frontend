@@ -20,6 +20,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const FIELDS = [
   ["display_name", "Display Name"],
@@ -166,6 +167,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionBrandingPage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -186,29 +188,29 @@ export function InstitutionBrandingPage() {
   const columns = [
     {
       key: "display_name",
-      label: "Display Name",
+      label: tr("Display Name"),
       render: (r) => (
         <span className="font-semibold text-foreground">{value(r, "display_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => value(r, "inst_profile_name"),
     },
     {
       key: "primary_color",
-      label: "Primary Color",
+      label: tr("Primary Color"),
       render: (r) => <ColorValue color={r.primary_color} />,
     },
     {
       key: "secondary_color",
-      label: "Secondary Color",
+      label: tr("Secondary Color"),
       render: (r) => <ColorValue color={r.secondary_color} />,
     },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -219,19 +221,19 @@ export function InstitutionBrandingPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <BrandingActions
@@ -293,7 +295,7 @@ export function InstitutionBrandingPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add branding
+            <Plus size={14} /> {tr("Add")} {tr("branding")}
           </button>
         )}
       bare /><DataTable
@@ -356,7 +358,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             value={form.inst_profile_id}
             onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
             options={[
-              { value: "", label: "Select institution" },
+              { value: "", label: tr("Select institution") },
               ...institutions.map((i) => ({
                 value: i.id ?? i.inst_profile_id,
                 label: i.name ?? i.inst_profile_name ?? i.code,

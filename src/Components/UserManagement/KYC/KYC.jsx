@@ -13,6 +13,7 @@ import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useK
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const EMPTY = {
   user_id: "",
@@ -181,7 +182,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
         onView={() => onView(row)}
         onEdit={() => onEdit(row)}
         onAudit={() => onAudit(row)}
-        onSubmit={() => setAction({ method: "kycSubmit", label: "Submit Draft" })}
+        onSubmit={() => setAction({ method: "kycSubmit", label: tr("Submit Draft") })}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
         onDeauthorize={() => setAction({ method: "kycDeauth", label: "Deauthorize" })}
         onDeactivate={() => setAction({ method: "kycDeactivate", label: "Deactivate" })}
@@ -218,6 +219,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
 }
 
 export function KYC() {
+  const tr = useConfigLabel();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -267,17 +269,17 @@ export function KYC() {
   const columns = [
     {
       key: "user",
-      label: "User",
+      label: tr("User"),
       align: "left",
       render: (row) => displayName(row) || "-",
     },
-    { key: "employee_id", label: "Employee ID", render: (row) => row.employee_id ?? "-" },
-    { key: "email", label: "Email", render: (row) => row.email ?? "-" },
-    { key: "mobile", label: "Mobile", render: (row) => row.mobile ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
+    { key: "employee_id", label: tr("Employee ID"), render: (row) => row.employee_id ?? "-" },
+    { key: "email", label: tr("Email"), render: (row) => row.email ?? "-" },
+    { key: "mobile", label: tr("Mobile"), render: (row) => row.mobile ?? "-" },
+    { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: tr("Process Status"), render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: tr("Authorization Status"), render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (row) => (
         <KycActions
@@ -312,7 +314,7 @@ export function KYC() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
-            <Plus size={14} /> Add KYC
+            <Plus size={14} /> {tr("Add")} KYC
           </button>
         )} bare /><DataTable
         columns={columns}

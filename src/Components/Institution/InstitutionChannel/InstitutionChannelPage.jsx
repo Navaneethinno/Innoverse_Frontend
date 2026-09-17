@@ -21,6 +21,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
@@ -131,6 +132,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionChannelPage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -152,19 +154,19 @@ export function InstitutionChannelPage() {
   const columns = [
     {
       key: "channel_name",
-      label: "Channel",
+      label: tr("Channel"),
       render: (r) => (
         <span className="font-semibold text-foreground">{display(r, "channel_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => display(r, "inst_profile_name"),
     },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -175,19 +177,19 @@ export function InstitutionChannelPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <ChannelActions
@@ -247,7 +249,7 @@ export function InstitutionChannelPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add channel
+            <Plus size={14} /> {tr("Add")} {tr("channel")}
           </button>
         )}
       bare /><DataTable
@@ -322,7 +324,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
               value={form.inst_profile_id}
               onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
               options={[
-                { value: "", label: "Select institution" },
+                { value: "", label: tr("Select institution") },
                 ...institutions.map((i) => ({
                   value: i.id ?? i.inst_profile_id,
                   label: i.name ?? i.inst_profile_name ?? i.code,
@@ -339,7 +341,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
           value={form.channel_id}
           onChange={(next) => set("channel_id")({ target: { value: next } })}
           options={[
-            { value: "", label: "Select channel" },
+            { value: "", label: tr("Select channel") },
             ...channels.map((c) => ({
               value: c.channel_id ?? c.id,
               label: c.channel_name ?? c.name,

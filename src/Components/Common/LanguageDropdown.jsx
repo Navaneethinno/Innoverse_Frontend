@@ -99,8 +99,9 @@ export function LanguageDropdown({ className }) {
                   }}
                   className={cn(
                     "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-50",
-                    active ? "text-blue-600" : "text-slate-600",
+                    !active && "text-slate-600",
                   )}
+                  style={active ? { color: "var(--primary)" } : undefined}
                 >
                   {languageLabel(language)}
                   {active && <Check size={13} className="shrink-0" />}

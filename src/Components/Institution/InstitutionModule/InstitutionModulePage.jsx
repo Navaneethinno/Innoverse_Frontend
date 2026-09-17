@@ -20,6 +20,7 @@ import {
 } from "@/Hooks/Institutions/institutionHooks";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const displayValue = (value) => value ?? "—";
 
@@ -141,6 +142,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionModulePage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -162,7 +164,7 @@ export function InstitutionModulePage() {
   const columns = [
     {
       key: "module_name",
-      label: "Module",
+      label: tr("Module"),
       render: (row) => (
         <span className="font-semibold text-foreground">
           {displayValue(row.module_name ?? row.module_id)}
@@ -171,18 +173,18 @@ export function InstitutionModulePage() {
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (row) => displayValue(row.inst_profile_name ?? row.inst_profile_id),
     },
     {
       key: "effective_from",
-      label: "Effective From",
+      label: tr("Effective From"),
       render: (row) => displayValue(row.effective_from),
     },
-    { key: "effective_to", label: "Effective To", render: (row) => displayValue(row.effective_to) },
+    { key: "effective_to", label: tr("Effective To"), render: (row) => displayValue(row.effective_to) },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (row) => row.status_name ?? row.status ?? "",
       render: (row) =>
         row.status_name != null || row.status != null ? (
@@ -193,19 +195,19 @@ export function InstitutionModulePage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (row) => row.process_status_name ?? "",
       render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (row) => row.auth_status ?? "",
       render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (row) => (
         <ModuleActions
@@ -259,7 +261,7 @@ export function InstitutionModulePage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add module
+            <Plus size={14} /> {tr("Add")} {tr("module")}
           </button>
         )}
       bare /><DataTable
@@ -394,7 +396,7 @@ function ModuleForm({
             value={form.inst_profile_id}
             onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
             options={[
-              { value: "", label: "Select institution" },
+              { value: "", label: tr("Select institution") },
               ...institutions.map((item) => ({
                 value: item.id ?? item.inst_profile_id,
                 label: item.name ?? item.inst_profile_name ?? item.code,
@@ -412,7 +414,7 @@ function ModuleForm({
               value={form.module_id}
               onChange={(next) => set("module_id")({ target: { value: next } })}
               options={[
-                { value: "", label: "Select module" },
+                { value: "", label: tr("Select module") },
                 ...masterModules.map((item) => ({
                   value: item.module_id ?? item.id,
                   label: item.module_name ?? item.name,
@@ -467,7 +469,7 @@ function ModuleForm({
                   value={row.module_id}
                   onChange={(next) => setModuleRow(index, "module_id")({ target: { value: next } })}
                   options={[
-                    { value: "", label: "Select module" },
+                    { value: "", label: tr("Select module") },
                     ...masterModules.map((item) => ({
                       value: item.module_id ?? item.id,
                       label: item.module_name ?? item.name,

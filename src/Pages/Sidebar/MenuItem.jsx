@@ -95,7 +95,7 @@ export function MenuItem({
               : "w-full",
           isExpanded || isActiveLeaf
             ? "bg-[var(--primary)] text-white shadow-sm"
-            : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
+            : "text-slate-500 hover:text-[var(--primary)] hover:bg-[var(--primary-light)]",
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">

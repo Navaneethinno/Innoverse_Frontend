@@ -316,7 +316,7 @@ export function DynamicSidebar() {
             whileTap={{ scale: 0.96 }}
             aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
             className={cn(
-              "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
+              "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors",
               isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
             )}
           >

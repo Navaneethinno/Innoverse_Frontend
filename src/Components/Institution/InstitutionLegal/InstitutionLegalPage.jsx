@@ -20,6 +20,7 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const FIELDS = [
   ["legal_name", "Legal Name"],
@@ -144,6 +145,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionLegalPage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -164,25 +166,25 @@ export function InstitutionLegalPage() {
   const columns = [
     {
       key: "legal_name",
-      label: "Legal Name",
+      label: tr("Legal Name"),
       render: (r) => (
         <span className="font-semibold text-foreground">{value(r, "legal_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => value(r, "inst_profile_name"),
     },
     {
       key: "registration_number",
-      label: "Registration",
+      label: tr("Registration"),
       render: (r) => value(r, "registration_number"),
     },
-    { key: "license_number", label: "License", render: (r) => value(r, "license_number") },
+    { key: "license_number", label: tr("License"), render: (r) => value(r, "license_number") },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -193,19 +195,19 @@ export function InstitutionLegalPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <LegalActions
@@ -265,7 +267,7 @@ export function InstitutionLegalPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add legal profile
+            <Plus size={14} /> {tr("Add")} {tr("legal profile")}
           </button>
         )}
       bare /><DataTable
@@ -327,7 +329,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
             value={form.inst_profile_id}
             onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
             options={[
-              { value: "", label: "Select institution" },
+              { value: "", label: tr("Select institution") },
               ...institutions.map((i) => ({
                 value: i.id ?? i.inst_profile_id,
                 label: i.name ?? i.inst_profile_name ?? i.code,

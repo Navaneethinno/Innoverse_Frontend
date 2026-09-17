@@ -115,7 +115,7 @@ export function Modal({
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-2.5">
             {icon && (
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary-light)] text-[var(--primary)]">
                 {icon}
               </span>
             )}
