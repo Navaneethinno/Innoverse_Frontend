@@ -251,14 +251,25 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
       {splitFieldsIntoColumns(CONFIGS[entity].fields).map(
-        (columnFields, columnIndex) => (
+        (columnFields, columnIndex) => {
+          // Right-aligning to the column's edge only reads as "aligned"
+          // when there's another checkbox in the same column to align
+          // WITH — a column with just one lone boolean field (Residency's
+          // "Allowed", Eligibility Config's "Residency restriction
+          // inherit") stretching that same checkbox clear across the
+          // column just strands it far from its own label instead. Only
+          // stretch+right-align when 2+ checkboxes share this column.
+          const booleanCount = columnFields.filter(([, , t]) => t === "boolean").length;
+          return (
           <div key={columnIndex} className="flex flex-col gap-4">
             {columnFields.map(([key, label, type]) => (
               <label
                 key={key}
                 className={
                   type === "boolean"
-                    ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
+                    ? booleanCount > 1
+                      ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
+                      : "flex items-center gap-2 text-sm font-semibold text-slate-700"
                     : "text-sm font-semibold text-slate-700"
                 }
               >
@@ -274,7 +285,8 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
               </label>
             ))}
           </div>
-        ),
+          );
+        },
       )}
     </div>
   );

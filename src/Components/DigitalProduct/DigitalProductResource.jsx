@@ -60,6 +60,11 @@ const allowed = (menus, action, title) =>
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes }) {
   if (!open) return null;
   const lookups = { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
+  // Same "only right-align when there's another checkbox to align with"
+  // rule as the wizard's own DigitalProductStepFields — a lone boolean
+  // field stretched across this single-column form strands its checkbox
+  // far from the label it belongs to.
+  const booleanFieldCount = config.fields.filter(([, , t]) => t === "boolean").length;
   return (
     <Modal
       open
@@ -104,7 +109,9 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             key={key}
             className={
               type === "boolean"
-                ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
+                ? booleanFieldCount > 1
+                  ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
+                  : "flex items-center gap-2 text-sm font-semibold text-slate-700"
                 : "text-sm font-semibold text-slate-700"
             }
           >
