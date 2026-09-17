@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, CalendarClock, History, User } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
@@ -12,6 +12,14 @@ import { cn } from "@/Utils/Lib/utils";
 // Values the backend sends as literal placeholder strings for "no value" —
 // treated the same as null/empty everywhere below.
 const EMPTY_PLACEHOLDERS = new Set(["", "na", "n/a", "undefined", "null"]);
+
+// -Infinity for a missing/invalid timestamp so it always sorts as "oldest"
+// rather than crashing the comparison or floating to the top.
+function recordTime(entry) {
+  const raw = entry?.updated_time ?? entry?.auth_time ?? entry?.created_time;
+  const t = raw ? new Date(raw).getTime() : NaN;
+  return Number.isNaN(t) ? -Infinity : t;
+}
 
 function isEmptyPlaceholder(value) {
   return value == null || EMPTY_PLACEHOLDERS.has(String(value).trim().toLowerCase());
@@ -234,6 +242,19 @@ export function AuditModal({
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadMoreError, setLoadMoreError] = useState(null);
   const [retryToken, setRetryToken] = useState(0);
+  // Which direction "older" is, in terms of page number — confirmed live
+  // that different audit endpoints disagree on this (e.g.
+  // /institution/profile/audit pages page 1 = oldest record, ascending,
+  // while /config/acct_product/audit pages page 1 = newest record,
+  // descending), which previously made this modal always assume the
+  // Institution-style ascending order: it fetched the LAST page first
+  // expecting it to hold the newest records, which for a descending-paged
+  // endpoint like Account's is actually the OLDEST page — showing old
+  // history up front, with genuinely newer entries only appearing (and
+  // reshuffling to the top) once scrolling loaded further pages. Detected
+  // per response from page 1's own record order instead of assumed.
+  const pageStepRef = useRef(-1);
+  const totalPagesRef = useRef(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -246,13 +267,32 @@ export function AuditModal({
       try {
         const first = await fetchAudit(1, auditLimit);
         const totalPages = Math.max(1, first?.totalPages ?? 1);
+        totalPagesRef.current = totalPages;
+        const firstEntries = first?.entries ?? [];
         if (totalPages <= 1) {
           if (!cancelled) {
-            setEntries(first?.entries ?? []);
+            setEntries(firstEntries);
             setHasMore(false);
           }
           return;
         }
+        const pageOneIsNewestFirst =
+          firstEntries.length < 2 || recordTime(firstEntries[0]) >= recordTime(firstEntries[firstEntries.length - 1]);
+        if (pageOneIsNewestFirst) {
+          // Page 1 already holds the newest records — show it immediately,
+          // and step forward (page 2, 3, ...) toward older pages on scroll.
+          pageStepRef.current = 1;
+          if (!cancelled) {
+            setEntries(firstEntries);
+            setNextPage(2);
+            setHasMore(totalPages >= 2);
+          }
+          return;
+        }
+        // Page 1 holds the oldest records — fetch the last page (the
+        // newest) to show up front, stepping backward toward page 1 on
+        // scroll, same as before.
+        pageStepRef.current = -1;
         const last = await fetchAudit(totalPages, auditLimit);
         if (!cancelled) {
           setEntries(last?.entries ?? []);
@@ -280,8 +320,10 @@ export function AuditModal({
     try {
       const page = await fetchAudit(nextPage, auditLimit);
       setEntries((current) => [...current, ...(page?.entries ?? [])]);
-      setHasMore(nextPage - 1 >= 1);
-      setNextPage((p) => p - 1);
+      const step = pageStepRef.current;
+      const following = nextPage + step;
+      setHasMore(step > 0 ? following <= totalPagesRef.current : following >= 1);
+      setNextPage(following);
     } catch (nextError) {
       setLoadMoreError(nextError instanceof Error ? nextError.message : "Failed to load more");
     } finally {
@@ -299,18 +341,13 @@ export function AuditModal({
   // newest-page-first already (see the fetch strategy above), so entries
   // stay in the right order as later (older) pages are appended.
   const sortedEntries = useMemo(() => {
-    const timeOf = (entry) => {
-      const raw = entry.updated_time ?? entry.auth_time ?? entry.created_time;
-      const t = raw ? new Date(raw).getTime() : NaN;
-      return Number.isNaN(t) ? -Infinity : t;
-    };
     const byPageOrder = entries.map((entry, index) => ({ entry, index }));
     // Stable-sort only within same fetched page boundaries isn't tracked
     // separately, so this simply orders everything currently loaded by
     // timestamp — correct as long as each page's own records don't overlap
     // in time with adjacent pages, which holds for sequential audit ids.
     return byPageOrder
-      .sort((a, b) => timeOf(b.entry) - timeOf(a.entry) || a.index - b.index)
+      .sort((a, b) => recordTime(b.entry) - recordTime(a.entry) || a.index - b.index)
       .map(({ entry }) => entry);
   }, [entries]);
 
