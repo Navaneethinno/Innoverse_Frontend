@@ -104,7 +104,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             key={key}
             className={
               type === "boolean"
-                ? "flex items-center justify-between gap-2 text-sm font-semibold text-slate-700"
+                ? "flex w-full items-center justify-between gap-2 text-sm font-semibold text-slate-700"
                 : "text-sm font-semibold text-slate-700"
             }
           >
