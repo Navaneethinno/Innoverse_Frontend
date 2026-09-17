@@ -37,13 +37,10 @@ const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 // rows, so the resolution has to go through these already-fetched lists).
 const LOOKUP_LIST_BY_KEY = {
   inst_profile_id: "institutions",
-  product_id: "products",
   acct_product_id: "accountProducts",
   kyc_group_id: "kycGroups",
   channel_id: "channels",
-  channel_config_id: "channelConfigs",
   transaction_type_id: "transactions",
-  eligibility_config_id: "eligibilityConfigs",
   residency_type_id: "residencyTypes",
 };
 function resolveLookupLabel(key, value, lookups) {
@@ -60,9 +57,9 @@ const allowed = (menus, action, title) =>
       new RegExp(title, "i").test(String(m?.menu_name)) &&
       (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
   );
-function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes }) {
+function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes }) {
   if (!open) return null;
-  const lookups = { institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes };
+  const lookups = { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
   return (
     <Modal
       open
@@ -130,7 +127,6 @@ export function DigitalProductResource({ entity }) {
   const menus = useSelector((s) => s.menu.menuArray);
   const api = useMemo(() => digitalProductApi(entity), [entity]);
   const { data: institutions = [], error: institutionsError } = useActiveInstitutionsQuery();
-  const [products, setProducts] = useState([]);
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
   const { channels = [], error: channelsError } = useChannels(entity === "channel_config");
@@ -155,29 +151,6 @@ export function DigitalProductResource({ entity }) {
   useEffect(() => {
     if (residencyTypesError) notifications.error(residencyTypesError.message);
   }, [residencyTypesError]);
-  const [channelConfigs, setChannelConfigs] = useState([]);
-  const [eligibilityConfigs, setEligibilityConfigs] = useState([]);
-  useEffect(() => {
-    if (entity !== "product_map") return;
-    digitalProductApi("product")
-      .getActive({ view: "dropdown" })
-      .then((response) => setProducts(rowsOf(response)))
-      .catch((error) => notifications.error(error.message));
-  }, [entity]);
-  useEffect(() => {
-    if (entity !== "channel_transaction") return;
-    digitalProductApi("channel_config")
-      .getActive({ view: "dropdown" })
-      .then((response) => setChannelConfigs(rowsOf(response)))
-      .catch((error) => notifications.error(error.message));
-  }, [entity]);
-  useEffect(() => {
-    if (entity !== "residency") return;
-    digitalProductApi("eligibility_config")
-      .getActive({ view: "dropdown" })
-      .then((response) => setEligibilityConfigs(rowsOf(response)))
-      .catch((error) => notifications.error(error.message));
-  }, [entity]);
   useEffect(() => {
     if (entity !== "kyc_config") return;
     configKycApi("kyc_group")
@@ -193,8 +166,8 @@ export function DigitalProductResource({ entity }) {
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   const lookups = useMemo(
-    () => ({ institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes }),
-    [institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes],
+    () => ({ institutions, accountProducts, kycGroups, channels, transactions, residencyTypes }),
+    [institutions, accountProducts, kycGroups, channels, transactions, residencyTypes],
   );
   // Human-readable identity for a row in confirm dialogs — same idea as
   // Institution's own confirm dialogs, which show the institution's name
@@ -518,13 +491,10 @@ export function DigitalProductResource({ entity }) {
         editing={editing}
         saving={saving}
         institutions={institutions}
-        products={products}
         accountProducts={accountProducts}
         kycGroups={kycGroups}
         channels={channels}
-        channelConfigs={channelConfigs}
         transactions={transactions}
-        eligibilityConfigs={eligibilityConfigs}
         residencyTypes={residencyTypes}
         onSave={save}
         onClose={() => setOpen(false)}

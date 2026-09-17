@@ -2,39 +2,40 @@ import { useState } from "react";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
-import { buildDigitalProductWorkflowPayload } from "./digitalProductWorkflowPayload";
-import { submitDigitalProductWorkflow } from "@/Services/DigitalProduct/digitalProductWorkflow.api";
+import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
 import {
   DigitalProductStepFields,
   emptyValuesFor,
   findMissingField,
   requiredFieldMessage,
+  saveDigitalProductStep,
   useDigitalProductLookups,
 } from "./digitalProductWizardShared";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // The single Add-flow entry point for Digital Product: a 9-step wizard
 // (Digital Product, Product Map, Security Config, KYC Config, KYC Level,
-// Channel Config, Channel Transaction, Eligibility Config, Residency) that
-// collects every step's fields into local state and only calls the backend
-// ONCE, on the final Submit — see digitalProductWorkflow.api.js. It reuses
-// DigitalProductResource.jsx's own CONFIGS (field definitions) and
-// DigitalProductFieldInput (the dropdown/input rendering, including every
-// existing dropdown API) via digitalProductWizardShared.jsx — the same
-// shared plumbing EditDigitalProductWizard.jsx uses — so every step's form
-// is identical to that entity's own standalone Add form, just writing into
-// wizard state instead of submitting immediately. Every existing standalone
-// Add/Edit/View/Delete page for these 9 entities is untouched and still
-// reachable at its own route; this wizard doesn't replace them.
+// Channel Config, Channel Transaction, Eligibility Config, Residency).
+// Matches the real `/digital_product/product/*` API's own shape: step 0
+// creates the product as a Draft (`add`, is_draft: true) and every later
+// step immediately saves into that same product via `edit` + a `sections`
+// entry (see saveDigitalProductStep) — there is no single final "create
+// everything at once" call. Save as draft simply stops there; Submit saves
+// whatever step is current, then calls `/submit` (which itself enforces
+// that Product Map + Channel Config were filled in, surfacing the
+// backend's own message if not).
 export function AddDigitalProductWizard({ onClose, onSuccess }) {
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
   const [maxVisited, setMaxVisited] = useState(0);
+  const [productId, setProductId] = useState(null);
+  const [recordIds, setRecordIds] = useState(() => Object.fromEntries(steps.map((step) => [step.entity, null])));
   const [values, setValues] = useState(() =>
     Object.fromEntries(steps.map((step) => [step.entity, emptyValuesFor(step.entity)])),
   );
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [savingStep, setSavingStep] = useState(false);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const isLastStep = stepIndex === steps.length - 1;
@@ -43,28 +44,63 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   const setFieldValue = (key, next) =>
     setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [key]: next } }));
 
-  const goNext = () => {
-    const missing = findMissingField(currentEntity, values[currentEntity]);
-    if (missing) {
-      notifications.error(requiredFieldMessage(missing));
-      return;
+  // Persists whatever the current step holds (creating the product itself
+  // on step 0's first save) and, once a nested step's parent has a real id,
+  // refreshes recordIds from the server so the next nested step (kyc_level,
+  // channel_transaction, residency) can link to it correctly.
+  const saveStep = async (isDraft) => {
+    const id = await saveDigitalProductStep({ id: productId, entity: currentEntity, values, recordIds, isDraft });
+    if (id !== productId) setProductId(id);
+    if (currentEntity !== "product" && id != null) {
+      const response = await digitalProductApi("product").get({ id });
+      const data = response?.data?.[0] ?? {};
+      const productMap = Array.isArray(data.product_map) ? data.product_map[0] : data.product_map;
+      const channelConfig = Array.isArray(data.channel_config) ? data.channel_config[0] : data.channel_config;
+      const eligibilityConfig = data.eligibility_config;
+      const kycConfig = data.kyc_config;
+      setRecordIds((prev) => ({
+        ...prev,
+        product_map: productMap?.id ?? prev.product_map,
+        security_config: data.security_config?.id ?? prev.security_config,
+        kyc_config: kycConfig?.id ?? prev.kyc_config,
+        kyc_level: (Array.isArray(kycConfig?.kyc_level) ? kycConfig.kyc_level[0] : kycConfig?.kyc_level)?.id ?? prev.kyc_level,
+        channel_config: channelConfig?.id ?? prev.channel_config,
+        channel_transaction:
+          (Array.isArray(channelConfig?.channel_transaction) ? channelConfig.channel_transaction[0] : channelConfig?.channel_transaction)?.id ??
+          prev.channel_transaction,
+        eligibility_config: eligibilityConfig?.id ?? prev.eligibility_config,
+        residency: (Array.isArray(eligibilityConfig?.residency) ? eligibilityConfig.residency[0] : eligibilityConfig?.residency)?.id ?? prev.residency,
+      }));
     }
-    const next = Math.min(stepIndex + 1, steps.length - 1);
-    setStepIndex(next);
-    setMaxVisited((m) => Math.max(m, next));
+    return id;
+  };
+
+  const goNext = async () => {
+    if (currentEntity === "product") {
+      const missing = findMissingField(currentEntity, values[currentEntity]);
+      if (missing) {
+        notifications.error(requiredFieldMessage(missing));
+        return;
+      }
+    }
+    setSavingStep(true);
+    try {
+      await saveStep(true);
+      const next = Math.min(stepIndex + 1, steps.length - 1);
+      setStepIndex(next);
+      setMaxVisited((m) => Math.max(m, next));
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setSavingStep(false);
+    }
   };
   const goBack = () => setStepIndex((i) => Math.max(0, i - 1));
 
-  // Unlike Next/Submit, a draft is deliberately allowed to be incomplete —
-  // that's the point of saving one — so this skips findMissingField
-  // entirely rather than blocking on whichever fields the current step
-  // hasn't been filled in yet. Goes through the same single isolated
-  // submitDigitalProductWorkflow integration point as the final Submit
-  // (just with is_draft: true), not a new/separate endpoint.
   const handleSaveDraft = async () => {
     setSavingDraft(true);
     try {
-      await submitDigitalProductWorkflow({ ...buildDigitalProductWorkflowPayload(values), is_draft: true });
+      await saveStep(true);
       notifications.success("Digital Product draft saved");
       onSuccess?.();
     } catch (e) {
@@ -75,20 +111,12 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   };
 
   const handleSubmit = async () => {
-    const missing = findMissingField(currentEntity, values[currentEntity]);
-    if (missing) {
-      notifications.error(requiredFieldMessage(missing));
-      return;
-    }
     setSubmitting(true);
     try {
-      // ONE call, only here — no step before this one ever touches the
-      // network for a create. See digitalProductWorkflow.api.js: the real
-      // endpoint isn't live yet, so this currently rejects with a clear
-      // message instead of silently pretending to succeed; the data stays
-      // in place so the user can retry once it's wired up.
-      await submitDigitalProductWorkflow(buildDigitalProductWorkflowPayload(values));
-      notifications.success("Digital Product created");
+      const id = await saveStep(true);
+      if (id == null) throw new Error("Save the Digital Product step before submitting");
+      const r = await digitalProductApi("product").submit({ id });
+      notifications.success(r?.message || "Digital Product submitted for authorization");
       onSuccess?.();
     } catch (e) {
       notifications.error(e.message);
@@ -129,8 +157,9 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
           {!isLastStep ? (
             <button
               type="button"
-              onClick={goNext}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+              disabled={savingStep}
+              onClick={() => void goNext()}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               Next
             </button>

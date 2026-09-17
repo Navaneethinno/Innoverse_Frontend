@@ -5,12 +5,11 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { CONFIGS } from "./digitalProductFields";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
-import { saveDigitalProductWorkflowStep } from "@/Services/DigitalProduct/digitalProductWorkflow.api";
 import {
   DigitalProductStepFields,
   findMissingField,
   requiredFieldMessage,
-  rowsOf,
+  saveDigitalProductStep,
   useDigitalProductExistingData,
   useDigitalProductLookups,
 } from "./digitalProductWizardShared";
@@ -23,17 +22,16 @@ import { notifications } from "@/Utils/Lib/notifications";
 // across all 9 steps up front (useDigitalProductExistingData), so the
 // stepper can show real "already configured" checkmarks (not just "visited
 // this session"), lets the user jump to ANY step directly, and saves ONE
-// step at a time through that step's own existing edit/add API (see
-// saveDigitalProductWorkflowStep) rather than collecting everything for one
-// final call the way Add does. No CREATE call ever fires for a step that
-// already has an existing record — its real id is always sent.
+// step at a time via saveDigitalProductStep (an `edit` call carrying that
+// step's `sections` entry) rather than collecting everything for one final
+// call. No CREATE call ever fires here — the product already exists.
 export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
   const {
     values: loadedValues,
     recordIds,
-    setRecordIds,
+    reload,
     loading: initialLoading,
   } = useDigitalProductExistingData(product);
   const [values, setValues] = useState(loadedValues);
@@ -99,18 +97,13 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     setBusy(true);
     try {
       const config = CONFIGS[currentEntity];
-      const recordId = recordIds[currentEntity];
-      const payload = Object.fromEntries(
-        config.fields
-          .filter(([key]) => !recordId || !config.readOnlyOnEdit?.includes(key))
-          .map(([key]) => [key, values[currentEntity][key]]),
-      );
-      const response = await saveDigitalProductWorkflowStep(currentEntity, payload, recordId, isDraft);
+      await saveDigitalProductStep({ id: product.id, entity: currentEntity, values, recordIds, isDraft });
       notifications.success(`${config.title} ${isDraft ? "draft saved" : "saved"}`);
-      const savedRecord = rowsOf(response)[0];
-      if (savedRecord?.id != null) {
-        setRecordIds((prev) => ({ ...prev, [currentEntity]: savedRecord.id }));
-      }
+      // The add/edit response doesn't echo back a newly-created section
+      // row's id, so re-fetch the whole tree — needed so a later nested
+      // step (kyc_level/channel_transaction/residency) links to the right
+      // parent record.
+      await reload();
       setSavedValues((prev) => ({ ...prev, [currentEntity]: values[currentEntity] }));
       onSaved?.();
     } catch (e) {

@@ -44,7 +44,7 @@ async function request(path, body = {}) {
 // channel_transaction, eligibility_config, residency); it maps to the
 // matching UPPER_SNAKE_CASE key in that constant.
 const METHOD_TO_KEY = {
-  add: "ADD", submit: "SUBMIT", edit: "EDIT", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
+  add: "ADD", submit: "SUBMIT", edit: "EDIT", get: "GET", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
   list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", pending: "PENDING", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
 };
 export const digitalProductApi = (entity) => {

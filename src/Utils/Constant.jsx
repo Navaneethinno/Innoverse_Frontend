@@ -701,6 +701,7 @@ export const API_ENDPOINTS = {
   DIGITAL_PRODUCT: {
     PRODUCT: {
       ADD: "/digital_product/product/add", SUBMIT: "/digital_product/product/submit", EDIT: "/digital_product/product/edit",
+      GET: "/digital_product/product/get",
       AUTH: "/digital_product/product/auth", DEAUTH: "/digital_product/product/deauth", DELETE: "/digital_product/product/delete",
       DELETE_AUTH: "/digital_product/product/delete_auth", LIST: "/digital_product/product/list",
       GET_ACTIVE: "/digital_product/product/get_active", AUDIT: "/digital_product/product/audit",

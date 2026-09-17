@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { splitFieldsIntoColumns } from "@/Utils/Lib/formFieldColumns";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
-import { configKycApi } from "@/Services/Config/config.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { useChannels, useTransactions, useResidencyTypes } from "@/Hooks/Master/masterHooks";
+import { configKycApi } from "@/Services/Config/config.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // Shared between AddDigitalProductWizard.jsx, EditDigitalProductWizard.jsx
@@ -13,39 +13,80 @@ import { notifications } from "@/Utils/Lib/notifications";
 // plumbing with no add-vs-edit-vs-view opinion, so all three wizards behave
 // identically at the field/dropdown level and only differ in how they load
 // initial values and what (if anything) happens on Next/Save.
+//
+// The real backend collapses all 9 wizard steps into ONE record
+// (`/digital_product/product/*`): step 0 is the product's own basic
+// fields, every other step is a `sections` entry nested inside that same
+// product's add/edit/get payload — see the API reference the backend team
+// shared. kyc_level/channel_transaction/residency aren't sections in their
+// own right; they nest one level deeper, inside kyc_config/channel_config/
+// eligibility_config respectively (see DIGITAL_PRODUCT_STEPS.parentEntity
+// and buildSectionEditPayload below).
 
+const productApi = () => digitalProductApi("product");
 export const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
+const firstOf = (r) => (Array.isArray(r) ? r[0] : r);
 
 export function emptyValuesFor(entity) {
   return Object.fromEntries(CONFIGS[entity].fields.map(([key, , type]) => [key, type === "boolean" ? false : ""]));
 }
 
 function pickFields(entity, record) {
-  return Object.fromEntries(
-    CONFIGS[entity].fields.map(([key, , type]) => [key, record?.[key] ?? (type === "boolean" ? false : "")]),
-  );
+  return Object.fromEntries(CONFIGS[entity].fields.map(([key, , type]) => [key, record?.[key] ?? (type === "boolean" ? false : "")]));
 }
 
-// Finds the existing record (if any) for `entity` whose `parentField`
-// equals `parentId`, by listing that entity's own existing /list endpoint
-// (the same one DigitalProductResource.jsx's own listing page for that
-// entity already calls) and filtering client-side — there is no dedicated
-// "get by parent id" endpoint, and inventing one isn't in scope here.
-async function findChildRecord(entity, parentField, parentId) {
-  if (parentId == null) return undefined;
-  const response = await digitalProductApi(entity).list({ page: 1, limit: 500 });
-  return rowsOf(response).find((row) => String(row[parentField]) === String(parentId));
+// Which step, if any, a given step's section nests INSIDE on the real API
+// (kyc_level -> kyc_config, channel_transaction -> channel_config,
+// residency -> eligibility_config); every other non-product step is its
+// own top-level `sections` key.
+const PARENT_SECTION = { kyc_level: "kyc_config", channel_transaction: "channel_config", residency: "eligibility_config" };
+// The nested child key a section entity carries, if any (the reverse of
+// PARENT_SECTION), and whether that section is sent as an array or a
+// single object — both fixed by the API reference, not guessable per-entity.
+const CHILD_OF_SECTION = { kyc_config: "kyc_level", channel_config: "channel_transaction", eligibility_config: "residency" };
+const ARRAY_SECTIONS = new Set(["product_map", "channel_config"]);
+
+function isFilled(entity, values) {
+  return CONFIGS[entity].fields.some(([key]) => {
+    const v = values[entity][key];
+    return v !== "" && v != null && v !== false;
+  });
 }
 
-// Loads whatever configuration already exists for `product` across all 9
-// steps: `product` itself comes free from the caller (the row it already
-// has), the 5 steps parented directly to it are fetched in parallel, then
-// the 3 steps chained off THOSE (kyc_level off kyc_config's id,
-// channel_transaction off channel_config's id, residency off
-// eligibility_config's id) are resolved once their parent's real id is
-// known. Shared by EditDigitalProductWizard.jsx (which then lets the user
-// mutate the result) and ViewDigitalProductWizard.jsx (which renders it
-// read-only and never mutates it).
+function pickPayload(entity, values) {
+  return Object.fromEntries(CONFIGS[entity].fields.map(([key]) => [key, values[entity][key]]));
+}
+
+// Builds the `sections` object for ONE wizard step's edit call — only the
+// section the user is actually on, per the API's own rule that omitting a
+// section entirely leaves it untouched. `entity` may be a nested step
+// (kyc_level/channel_transaction/residency), in which case this reaches up
+// to its parent section automatically so the nested array lands in the
+// right place.
+export function buildSectionEditPayload(entity, values, recordIds) {
+  const targetEntity = PARENT_SECTION[entity] ?? entity;
+  const childEntity = CHILD_OF_SECTION[targetEntity];
+  const built = { ...pickPayload(targetEntity, values), ...(recordIds[targetEntity] ? { id: recordIds[targetEntity] } : {}) };
+  if (childEntity && isFilled(childEntity, values)) {
+    built[childEntity] = [{ ...pickPayload(childEntity, values), ...(recordIds[childEntity] ? { id: recordIds[childEntity] } : {}) }];
+  }
+  return { [targetEntity]: ARRAY_SECTIONS.has(targetEntity) ? [built] : built };
+}
+
+// The product's own basic fields, as sent on every add/edit call — the API
+// merges `sections` incrementally but expects code/name/description/etc.
+// resent every time (they aren't a section).
+export function buildProductBasicPayload(values) {
+  return pickPayload("product", values);
+}
+
+// Loads the full existing tree for `product` via a single `/get` call —
+// handles both a live product (sections at the top level of the response)
+// and a still-in-progress Draft (everything staged under `pending_payload`
+// instead). Returned as `reload` too, so callers can re-sync recordIds
+// after a step is saved (the add/edit responses don't echo back the ids of
+// newly-created section rows, so re-fetching is the only reliable way to
+// learn them before the next nested step needs them).
 export function useDigitalProductExistingData(product) {
   const [values, setValues] = useState(() =>
     Object.fromEntries(DIGITAL_PRODUCT_STEPS.map((step) => [step.entity, emptyValuesFor(step.entity)])),
@@ -55,60 +96,86 @@ export function useDigitalProductExistingData(product) {
   );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const nextValues = { product: pickFields("product", product) };
-      const nextRecordIds = { product: product.id };
+  const load = useCallback(async () => {
+    const response = await productApi().get({ id: product.id });
+    const data = rowsOf(response)[0] ?? {};
+    const p = data.product ?? product;
+    const staged = p.pending_payload ?? {};
 
-      await Promise.all(
-        DIGITAL_PRODUCT_STEPS.filter((step) => step.parentEntity === "product").map(async (step) => {
-          const record = await findChildRecord(step.entity, step.parentIdField, product.id).catch(() => undefined);
-          nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
-          nextRecordIds[step.entity] = record?.id ?? null;
-        }),
-      );
+    const productMap = firstOf(data.product_map) ?? firstOf(staged.product_map);
+    const securityConfig = data.security_config ?? staged.security_config;
+    const kycConfig = data.kyc_config ?? staged.kyc_config;
+    const kycLevel = firstOf(kycConfig?.kyc_level) ?? firstOf(staged.kyc_config?.kyc_level);
+    const channelConfig = firstOf(data.channel_config) ?? firstOf(staged.channel_config);
+    const channelTransaction =
+      firstOf(channelConfig?.channel_transaction) ?? firstOf(firstOf(staged.channel_config)?.channel_transaction);
+    const eligibilityConfig = data.eligibility_config ?? staged.eligibility_config;
+    const residency = firstOf(eligibilityConfig?.residency) ?? firstOf(staged.eligibility_config?.residency);
 
-      // kyc_level / channel_transaction / residency each depend on a
-      // record resolved in the pass above (kyc_config / channel_config /
-      // eligibility_config respectively) — must run after it, not in
-      // parallel with it.
-      await Promise.all(
-        DIGITAL_PRODUCT_STEPS.filter((step) => step.parentEntity && step.parentEntity !== "product").map(
-          async (step) => {
-            const parentId = nextRecordIds[step.parentEntity];
-            const record = await findChildRecord(step.entity, step.parentIdField, parentId).catch(() => undefined);
-            nextValues[step.entity] = record ? pickFields(step.entity, record) : emptyValuesFor(step.entity);
-            nextRecordIds[step.entity] = record?.id ?? null;
-          },
-        ),
-      );
-
-      if (cancelled) return;
-      setValues(nextValues);
-      setRecordIds(nextRecordIds);
-      setLoading(false);
-    }
-    load().catch((e) => {
-      if (cancelled) return;
-      notifications.error(e.message);
-      setLoading(false);
-    });
-    return () => {
-      cancelled = true;
+    return {
+      values: {
+        product: pickFields("product", p),
+        product_map: pickFields("product_map", productMap),
+        security_config: pickFields("security_config", securityConfig),
+        kyc_config: pickFields("kyc_config", kycConfig),
+        kyc_level: pickFields("kyc_level", kycLevel),
+        channel_config: pickFields("channel_config", channelConfig),
+        channel_transaction: pickFields("channel_transaction", channelTransaction),
+        eligibility_config: pickFields("eligibility_config", eligibilityConfig),
+        residency: pickFields("residency", residency),
+      },
+      recordIds: {
+        product: p.id ?? product.id,
+        product_map: productMap?.id ?? null,
+        security_config: securityConfig?.id ?? null,
+        kyc_config: kycConfig?.id ?? null,
+        kyc_level: kycLevel?.id ?? null,
+        channel_config: channelConfig?.id ?? null,
+        channel_transaction: channelTransaction?.id ?? null,
+        eligibility_config: eligibilityConfig?.id ?? null,
+        residency: residency?.id ?? null,
+      },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
 
-  return { values, setValues, recordIds, setRecordIds, loading };
+  const reload = useCallback(async () => {
+    const next = await load();
+    setValues(next.values);
+    setRecordIds(next.recordIds);
+    return next;
+  }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    load()
+      .then((next) => {
+        if (cancelled) return;
+        setValues(next.values);
+        setRecordIds(next.recordIds);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        notifications.error(e.message);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [load]);
+
+  return { values, setValues, recordIds, setRecordIds, loading, reload };
 }
 
-// Same required-field definition DigitalProductResource.jsx's Editor/save()
-// already enforce (native `required` on plain code/name inputs, a manual
-// check for the "_id" dropdown fields that have no native control) —
-// neither wizard has a <form> per step to get that native validation for
-// free, so it's made explicit here instead of duplicating a different rule
-// in each.
+// Only step 0 (the product's own basic fields) is required up front — a
+// real product can't be created without them. Every other step is
+// genuinely optional per the API (only product_map + channel_config are
+// required, and only at final Submit, which surfaces the backend's own
+// "X, Y Required" message if something's missing) — so wizard Next/Save no
+// longer blocks on incomplete optional sections; findMissingField is only
+// ever called for entity === "product" now.
 export function findMissingField(entity, values) {
   return CONFIGS[entity].fields.find(([key]) => {
     const isRequired = key.endsWith("_id") || ["code", "name"].includes(key);
@@ -130,11 +197,8 @@ export function useDigitalProductLookups(currentEntity) {
   const { channels = [], error: channelsError } = useChannels(currentEntity === "channel_config");
   const { transactions = [], error: transactionsError } = useTransactions(currentEntity === "channel_transaction");
   const { residencyTypes = [], error: residencyTypesError } = useResidencyTypes(currentEntity === "residency");
-  const [products, setProducts] = useState([]);
   const [accountProducts, setAccountProducts] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
-  const [channelConfigs, setChannelConfigs] = useState([]);
-  const [eligibilityConfigs, setEligibilityConfigs] = useState([]);
 
   useEffect(() => {
     if (institutionsError) notifications.error(institutionsError.message);
@@ -150,13 +214,6 @@ export function useDigitalProductLookups(currentEntity) {
   }, [residencyTypesError]);
   useEffect(() => {
     if (currentEntity !== "product_map") return;
-    digitalProductApi("product")
-      .getActive({ view: "dropdown" })
-      .then((r) => setProducts(rowsOf(r)))
-      .catch((e) => notifications.error(e.message));
-  }, [currentEntity]);
-  useEffect(() => {
-    if (currentEntity !== "product_map") return;
     configKycApi("acct_product")
       .getActive({ view: "dropdown" })
       .then((r) => setAccountProducts(rowsOf(r)))
@@ -169,32 +226,8 @@ export function useDigitalProductLookups(currentEntity) {
       .then((r) => setKycGroups(rowsOf(r)))
       .catch((e) => notifications.error(e.message));
   }, [currentEntity]);
-  useEffect(() => {
-    if (currentEntity !== "channel_transaction") return;
-    digitalProductApi("channel_config")
-      .getActive({ view: "dropdown" })
-      .then((r) => setChannelConfigs(rowsOf(r)))
-      .catch((e) => notifications.error(e.message));
-  }, [currentEntity]);
-  useEffect(() => {
-    if (currentEntity !== "residency") return;
-    digitalProductApi("eligibility_config")
-      .getActive({ view: "dropdown" })
-      .then((r) => setEligibilityConfigs(rowsOf(r)))
-      .catch((e) => notifications.error(e.message));
-  }, [currentEntity]);
 
-  return {
-    institutions,
-    products,
-    accountProducts,
-    kycGroups,
-    channels,
-    channelConfigs,
-    transactions,
-    eligibilityConfigs,
-    residencyTypes,
-  };
+  return { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
 }
 
 // The current step's field grid: two independent flex-column stacks, not a
@@ -233,4 +266,26 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
       )}
     </div>
   );
+}
+
+// Saves ONE wizard step against the real API and returns the (possibly new)
+// product id: step 0 creates the product on first save (`add`) or updates
+// its basic fields (`edit`); every later step sends the product's basic
+// fields again plus just that step's `sections` entry, per
+// buildSectionEditPayload. Shared by AddDigitalProductWizard.jsx (which
+// starts with no id) and EditDigitalProductWizard.jsx (which always has
+// one already).
+export async function saveDigitalProductStep({ id, entity, values, recordIds, isDraft }) {
+  const api = productApi();
+  if (entity === "product") {
+    const basic = buildProductBasicPayload(values);
+    const response = id == null ? await api.add({ ...basic, is_draft: isDraft }) : await api.edit({ ...basic, id });
+    return rowsOf(response)[0]?.id ?? id;
+  }
+  await api.edit({
+    id,
+    ...buildProductBasicPayload(values),
+    sections: buildSectionEditPayload(entity, values, recordIds),
+  });
+  return id;
 }
