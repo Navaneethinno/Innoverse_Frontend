@@ -25,8 +25,19 @@ function isEmptyPlaceholder(value) {
   return value == null || EMPTY_PLACEHOLDERS.has(String(value).trim().toLowerCase());
 }
 
+// Mirrors PendingChangesDiff.jsx's displayValue — Digital Product's own
+// audit entries can carry a "pending_payload" field whose value is a whole
+// nested sections object (product_map, channel_config, ...), which used to
+// fall through to String(value) => "[object Object]" here too.
 function formatValue(value) {
   if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) {
+    return value.length === 0 ? "—" : value.map(formatValue).join("; ");
+  }
+  if (value != null && typeof value === "object") {
+    const entries = Object.entries(value).filter(([, v]) => !isEmptyPlaceholder(v));
+    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${k.replaceAll("_", " ")}: ${formatValue(v)}`).join(", ");
+  }
   return isEmptyPlaceholder(value) ? "—" : String(value);
 }
 
@@ -108,7 +119,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
   const fieldEntries =
     fields ??
     Object.keys(entry)
-      .filter((key) => !META_KEYS.has(key) && typeof entry[key] !== "object")
+      .filter((key) => !META_KEYS.has(key))
       .map((key) => [key, key.replaceAll("_", " ")]);
 
   return (
@@ -368,8 +379,7 @@ export function AuditModal({
     const withChanges = chronological.map((entry, index) => {
       if (Array.isArray(entry.changes) && entry.changes.length > 0) return entry;
       const previous = chronological[index - 1] ?? null;
-      const fieldKeys =
-        keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key) && typeof entry[key] !== "object");
+      const fieldKeys = keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key));
       const changes = fieldKeys
         .map((key) => ({
           field: key,
