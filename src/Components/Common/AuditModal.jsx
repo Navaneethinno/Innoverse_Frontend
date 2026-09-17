@@ -377,7 +377,13 @@ export function AuditModal({
   // for those entities, synthesize the same [{field, current, proposed}]
   // shape by diffing each entry against the entry immediately before it in
   // time — only for entries the backend didn't already annotate, so a
-  // real backend `changes` array (when present) always wins.
+  // real backend `changes` array always wins, INCLUDING when it's
+  // authoritatively empty (Digital Product's own /audit, confirmed:
+  // `changes` only ever covers the product's own basic fields, so a row
+  // where only a section changed correctly reports `changes: []` — that
+  // must not be reinterpreted as "no changes array provided" and fall
+  // through to synthesis, which would fabricate spurious basic-field
+  // changes by comparing against the wrong prior entry).
   const entriesWithChanges = useMemo(() => {
     const chronological = [...sortedEntries].reverse();
     const keys = fields
@@ -385,7 +391,7 @@ export function AuditModal({
       : null;
     const withChanges = chronological.map((entry, index) => {
       const previous = chronological[index - 1] ?? null;
-      let changes = Array.isArray(entry.changes) && entry.changes.length > 0 ? entry.changes : null;
+      let changes = Array.isArray(entry.changes) ? entry.changes : null;
       if (!changes) {
         const fieldKeys = keys ?? Object.keys(entry).filter((key) => !META_KEYS.has(key));
         changes = fieldKeys
