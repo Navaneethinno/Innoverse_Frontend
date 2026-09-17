@@ -59,8 +59,14 @@ export function isStepConfigured(entity, values) {
   });
 }
 
+// Wizard field state keeps "" for an untouched text/number field (a
+// controlled input needs a defined string, not null/undefined) — but the
+// API should see an actual "nothing entered" rather than a literal empty
+// string, so this is only ever converted at the point a payload is built.
 function pickPayload(entity, values) {
-  return Object.fromEntries(CONFIGS[entity].fields.map(([key]) => [key, values[entity][key]]));
+  return Object.fromEntries(
+    CONFIGS[entity].fields.map(([key]) => [key, values[entity][key] === "" ? null : values[entity][key]]),
+  );
 }
 
 // Builds the `sections` object for ONE wizard step's edit call — only the

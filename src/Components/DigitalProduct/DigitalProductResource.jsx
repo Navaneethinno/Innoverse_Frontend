@@ -262,7 +262,7 @@ export function DigitalProductResource({ entity }) {
         ...Object.fromEntries(
           config.fields
             .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
-            .map(([key]) => [key, form[key]]),
+            .map(([key]) => [key, form[key] === "" ? null : form[key]]),
         ),
         is_draft,
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
