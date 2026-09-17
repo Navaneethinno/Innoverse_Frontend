@@ -26,6 +26,22 @@ function recordTime(entry) {
   return Number.isNaN(t) ? -Infinity : t;
 }
 
+// Chronological ordering between two audit rows — prefers the row's own
+// numeric `id` (an autoincrement primary key, so strictly insertion-order)
+// over its timestamps whenever both rows have one. Confirmed live on
+// Digital Product: its very first DRAFT_CREATE row can carry an
+// updated_time LATER than several rows created after it (a backend clock
+// artifact on that write path), which made timestamp-only sorting rank a
+// brand-new, still-empty-payload row as "newest" and diff it against the
+// wrong neighbor — showing values in Before/After that beat this record ever
+// had. `id` has no such skew.
+function compareChronological(a, b) {
+  const idA = Number(a?.id);
+  const idB = Number(b?.id);
+  if (Number.isFinite(idA) && Number.isFinite(idB)) return idA - idB;
+  return recordTime(a) - recordTime(b);
+}
+
 function isEmptyPlaceholder(value) {
   return value == null || EMPTY_PLACEHOLDERS.has(String(value).trim().toLowerCase());
 }
@@ -295,7 +311,8 @@ export function AuditModal({
           return;
         }
         const pageOneIsNewestFirst =
-          firstEntries.length < 2 || recordTime(firstEntries[0]) >= recordTime(firstEntries[firstEntries.length - 1]);
+          firstEntries.length < 2 ||
+          compareChronological(firstEntries[0], firstEntries[firstEntries.length - 1]) >= 0;
         if (pageOneIsNewestFirst) {
           // Page 1 already holds the newest records — show it immediately,
           // and step forward (page 2, 3, ...) toward older pages on scroll.
@@ -361,11 +378,11 @@ export function AuditModal({
   const sortedEntries = useMemo(() => {
     const byPageOrder = entries.map((entry, index) => ({ entry, index }));
     // Stable-sort only within same fetched page boundaries isn't tracked
-    // separately, so this simply orders everything currently loaded by
-    // timestamp — correct as long as each page's own records don't overlap
-    // in time with adjacent pages, which holds for sequential audit ids.
+    // separately, so this simply orders everything currently loaded —
+    // correct as long as each page's own records don't overlap with
+    // adjacent pages, which holds for sequential audit ids.
     return byPageOrder
-      .sort((a, b) => recordTime(b.entry) - recordTime(a.entry) || a.index - b.index)
+      .sort((a, b) => compareChronological(b.entry, a.entry) || a.index - b.index)
       .map(({ entry }) => entry);
   }, [entries]);
 
