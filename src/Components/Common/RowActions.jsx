@@ -72,7 +72,7 @@ export function RowActions({
         </UiTooltip>
       )}
       {buttons.deauthorize && onDeauthorize && (
-        <UiTooltip label="Reject">
+        <UiTooltip label="Deauthorize">
           <button type="button" className={actionButtonClass("deauth")} onClick={onDeauthorize}>
             <ShieldOff size={14} />
           </button>
