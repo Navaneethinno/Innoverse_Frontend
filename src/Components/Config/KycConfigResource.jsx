@@ -11,6 +11,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
@@ -569,7 +570,7 @@ export function KycConfigResource({ entity }) {
         <ConfirmDialog
           open
           title={`${action.label} ${config.title}`}
-          description={describeActionRow(action.row)}
+          description={describeConfirmAction(action.type, describeActionRow(action.row))}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}

@@ -13,6 +13,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
@@ -532,7 +533,7 @@ export function DigitalProductResource({ entity }) {
         <ConfirmDialog
           open
           title={`${action.label} ${config.title}`}
-          description={describeActionRow(action.row)}
+          description={describeConfirmAction(action.type, describeActionRow(action.row))}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
