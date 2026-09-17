@@ -752,7 +752,7 @@ export function AcctConfigResource({ entity }) {
                       key={key}
                       className={type === "boolean" ? "flex items-center gap-2 text-sm font-semibold" : "text-sm font-semibold"}
                     >
-                      {type === "boolean" ? <span>{label}</span> : label}
+                      {type !== "boolean" && label}
                       {lookupKey ? (
                         <FilterSelect
                           className="mt-1.5"
@@ -786,6 +786,7 @@ export function AcctConfigResource({ entity }) {
                           className={type === "boolean" ? "h-4 w-4 shrink-0 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
                         />
                       )}
+                      {type === "boolean" && <span>{label}</span>}
                     </label>
                   );
                 })}
