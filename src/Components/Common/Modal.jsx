@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
 const SIZES = {
@@ -49,6 +49,46 @@ export function Modal({
     };
   }, [open]);
 
+  // Pressing Enter inside a form field should submit that form the SAME
+  // way clicking its real submit button would — but the browser's native
+  // "implicit submission" rule picks whichever `type="submit"` control is
+  // FIRST in the form's `elements` list, which on pages whose footer
+  // renders "Save as draft" before "Save changes"/"Add X" silently
+  // submitted as a draft on Enter instead of the real save (confirmed
+  // across several pages). Intercepting Enter here — the one shared Modal
+  // shell nearly every Add/Edit form in the app renders through — fixes
+  // every one of those pages at once: it finds the form's own non-draft
+  // submit button via `form.elements` (which includes footer buttons
+  // associated only via a `form="..."` attribute, not just DOM
+  // descendants), asks for confirmation, then clicks that exact button so
+  // the page's own onSubmit/submitter-detection logic runs unchanged.
+  const [pendingSubmit, setPendingSubmit] = useState(null);
+  const confirmButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (pendingSubmit) confirmButtonRef.current?.focus();
+  }, [pendingSubmit]);
+
+  useEffect(() => {
+    if (!open) setPendingSubmit(null);
+  }, [open]);
+
+  function handleKeyDown(event) {
+    if (event.key !== "Enter" || pendingSubmit) return;
+    const target = event.target;
+    const tag = target.tagName;
+    if (tag === "TEXTAREA" || tag === "BUTTON") return;
+    const formEl = target.form ?? (target.closest ? target.closest("form") : null);
+    if (!formEl) return;
+    const submitButtons = Array.from(formEl.elements).filter(
+      (el) => el.tagName === "BUTTON" && el.type === "submit" && !el.disabled,
+    );
+    if (submitButtons.length === 0) return;
+    const primary = submitButtons.find((btn) => btn.dataset.mode !== "draft") ?? submitButtons[0];
+    event.preventDefault();
+    setPendingSubmit(primary);
+  }
+
   if (!open) return null;
   return createPortal(
     (
@@ -63,11 +103,12 @@ export function Modal({
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.16 }}
         className={cn(
-          "flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
+          "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
           fixedHeight ? "h-[85vh] max-h-[85vh]" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={handleKeyDown}
       >
         <div className="h-1 shrink-0 bg-brand-gradient" />
 
@@ -103,6 +144,41 @@ export function Modal({
         {footer && (
           <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/80 px-5 py-3">
             {footer}
+          </div>
+        )}
+
+        {pendingSubmit && (
+          <div
+            className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-6 flex max-w-xs flex-col items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-xl">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+                <AlertTriangle size={16} />
+              </span>
+              <p className="text-sm font-bold text-slate-800">Are you sure you want to submit?</p>
+              <div className="flex w-full gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setPendingSubmit(null)}
+                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  ref={confirmButtonRef}
+                  type="button"
+                  onClick={() => {
+                    const button = pendingSubmit;
+                    setPendingSubmit(null);
+                    button.click();
+                  }}
+                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white"
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </motion.div>
