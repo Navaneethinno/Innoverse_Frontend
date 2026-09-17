@@ -21,6 +21,25 @@ function recordTime(entry) {
   return Number.isNaN(t) ? -Infinity : t;
 }
 
+// Flattens a Digital Product audit entry's `payload` (nested sections, each
+// possibly an array of records, e.g. channel_config[].channel_transaction[])
+// down to a single { leafFieldName: value } map, dropping every section/
+// array wrapper name — the checker only ever sees the leaf field ("Maximum
+// Age"), never "Eligibility Config" as a field name. Later duplicate leaf
+// keys across sections overwrite earlier ones, which is an accepted
+// trade-off for a flat, readable diff.
+function flattenPayloadLeaves(value, out = {}) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => flattenPayloadLeaves(item, out));
+  } else if (value != null && typeof value === "object") {
+    Object.entries(value).forEach(([key, v]) => {
+      if (v != null && typeof v === "object") flattenPayloadLeaves(v, out);
+      else out[key] = v;
+    });
+  }
+  return out;
+}
+
 function isEmptyPlaceholder(value) {
   return value == null || EMPTY_PLACEHOLDERS.has(String(value).trim().toLowerCase());
 }
@@ -394,15 +413,20 @@ export function AuditModal({
       // Digital Product's own audit rows (confirmed live) carry a "payload"
       // snapshot of the nested wizard sections (product_map, security_config,
       // ...) at that revision instead of listing them in `changes` — diff it
-      // separately, one row per section, since the sections aren't part of
-      // the entity's own flat field list `fieldKeys` above ever covers.
+      // separately, one row per LEAF field (Maximum Age, Kyc Group Id, ...)
+      // rather than one row per section: a section crammed into a single
+      // multi-line cell read as an illegible wall of text, and the section
+      // name itself isn't useful to a checker who just wants to see what
+      // actually changed.
       if (entry.payload && typeof entry.payload === "object") {
-        const payloadKeys = new Set([...Object.keys(entry.payload), ...Object.keys(previous?.payload ?? {})]);
+        const currentFlat = flattenPayloadLeaves(previous?.payload);
+        const proposedFlat = flattenPayloadLeaves(entry.payload);
+        const payloadKeys = new Set([...Object.keys(currentFlat), ...Object.keys(proposedFlat)]);
         const payloadChanges = [...payloadKeys]
           .map((key) => ({
             field: key,
-            current: previous?.payload?.[key] ?? null,
-            proposed: entry.payload[key] ?? null,
+            current: currentFlat[key] ?? null,
+            proposed: proposedFlat[key] ?? null,
           }))
           .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
         changes = [...changes, ...payloadChanges];
