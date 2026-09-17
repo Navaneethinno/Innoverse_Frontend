@@ -6,12 +6,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Modal } from "@/Components/Common/Modal";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-// expandChangeRows is the same Group/Field expansion PendingChangesPanel
-// runs internally — used here too so a payload entry with genuinely no
-// leaf-level change doesn't leave this audit entry looking like an EDIT
-// with zero visible rows (deriveEntryChangeAction below only sees real,
-// already-expanded changes).
-import { PendingChangesPanel, expandChangeRows } from "@/Components/Common/PendingChangesDiff";
+import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 
 // Values the backend sends as literal placeholder strings for "no value" —
@@ -419,20 +414,11 @@ export function AuditModal({
           }))
           .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
       }
-      // Digital Product's own audit rows (confirmed live) carry a "payload"
-      // snapshot of the nested wizard sections (product_map, security_config,
-      // ...) at that revision instead of listing them in `changes`. Left as
-      // ONE raw nested change here (not expanded) — PendingChangesPanel
-      // expands any nested change into Group/Field rows itself, and doing
-      // it twice would strip the group the first pass already assigned.
-      // expandChangeRows is only used here to check whether the section
-      // genuinely changed at the leaf level, so an untouched section carried
-      // forward unchanged doesn't make this entry look like an "EDIT" with
-      // nothing to show.
-      if (entry.payload && typeof entry.payload === "object") {
-        const payloadChange = { field: "payload", current: previous?.payload ?? null, proposed: entry.payload };
-        if (expandChangeRows([payloadChange]).length > 0) changes = [...changes, payloadChange];
-      }
+      // Digital Product's own audit rows (confirmed live) now include the
+      // nested wizard sections (product_map, security_config, ...) directly
+      // in `changes` itself, each already tagged with its own `group` —
+      // PendingChangesPanel expands any nested-value change into per-leaf
+      // Group/Field rows, so nothing extra needs doing here.
       return changes.length > 0 ? { ...entry, changes } : entry;
     });
     return withChanges.reverse();

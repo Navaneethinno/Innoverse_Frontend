@@ -77,46 +77,49 @@ function displayValue(value) {
 
 const isNestedValue = (v) => v != null && typeof v === "object";
 
-// Recursively collects the leaf fields of a nested section value (Digital
-// Product's own "pending_payload"/"payload" field, or any future change
-// shaped the same way), tagging each leaf with the key of the object it's
-// a direct member of — a section that itself nests a child section (e.g.
-// eligibility_config's residency array) tags its leaves with the more
-// specific child key, not the outer one.
-function flattenSectionLeaves(value, group, out) {
+// Recursively collects the leaf {field, value} pairs of a nested section
+// value (Digital Product's own change entries for product_map,
+// security_config, ...), ignoring the wrapper object/array structure
+// entirely — the backend now tells us which section a change belongs to
+// directly (`change.group`), so this only needs to find the actual leaf
+// fields inside it, not re-derive any grouping of its own.
+function flattenLeaves(value, out) {
   if (Array.isArray(value)) {
-    value.forEach((item) => flattenSectionLeaves(item, group, out));
+    value.forEach((item) => flattenLeaves(item, out));
   } else if (isNestedValue(value)) {
     Object.entries(value).forEach(([key, v]) => {
-      if (isNestedValue(v)) flattenSectionLeaves(v, key, out);
-      else out.push({ group, field: key, value: v });
+      if (isNestedValue(v)) flattenLeaves(v, out);
+      else out.push({ field: key, value: v });
     });
   }
   return out;
 }
 
-// Expands a plain {field, current, proposed} changes array into
-// {group, field, current, proposed} rows for a 4-column Group/Field/
-// Before/After table: a scalar change becomes one ungrouped row
-// (group: null) unchanged; a change whose current or proposed is a nested
-// section object/array is expanded into one row per leaf field instead of
-// dumping the whole section into a single unreadable cell.
+// Expands a {group, field, current, proposed} changes array (the backend
+// now sends `group` directly — "" for the entity's own basic fields, the
+// section key for a nested one, e.g. "security_config") into
+// display-ready rows for a 4-column Group/Field/Before/After table: a
+// scalar change is returned as-is (empty group normalized to null); a
+// change whose current/proposed is a whole nested section object/array is
+// expanded into one row per leaf field, all tagged with that same
+// backend-provided group, instead of dumping the whole section into a
+// single unreadable cell.
 export function expandChangeRows(changes) {
   const rows = [];
   (changes ?? []).forEach((change) => {
+    const group = change.group ? change.group : null;
     if (!isNestedValue(change.current) && !isNestedValue(change.proposed)) {
-      rows.push({ group: null, field: change.field, current: change.current, proposed: change.proposed });
+      rows.push({ group, field: change.field, current: change.current, proposed: change.proposed });
       return;
     }
     const byKey = new Map();
-    flattenSectionLeaves(change.current, null, []).forEach((leaf) => {
-      byKey.set(`${leaf.group}::${leaf.field}`, { group: leaf.group, field: leaf.field, current: leaf.value, proposed: null });
+    flattenLeaves(change.current, []).forEach((leaf) => {
+      byKey.set(leaf.field, { group, field: leaf.field, current: leaf.value, proposed: null });
     });
-    flattenSectionLeaves(change.proposed, null, []).forEach((leaf) => {
-      const key = `${leaf.group}::${leaf.field}`;
-      const existing = byKey.get(key);
+    flattenLeaves(change.proposed, []).forEach((leaf) => {
+      const existing = byKey.get(leaf.field);
       if (existing) existing.proposed = leaf.value;
-      else byKey.set(key, { group: leaf.group, field: leaf.field, current: null, proposed: leaf.value });
+      else byKey.set(leaf.field, { group, field: leaf.field, current: null, proposed: leaf.value });
     });
     byKey.forEach((row) => {
       if (JSON.stringify(row.current ?? null) !== JSON.stringify(row.proposed ?? null)) rows.push(row);
