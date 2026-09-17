@@ -373,7 +373,11 @@ export function DataTable({
         }
       >
         {!compact && <div className="flex min-h-10 items-center justify-between border-b border-slate-100 px-3.5">
-          <span className="text-xs font-medium text-slate-500">{selectable && selectedKeys.size > 0 ? `${selectedKeys.size} selected` : `${totalRecords} records`}</span>
+          <span className="text-xs font-medium text-slate-500">
+            {selectable && selectedKeys.size > 0
+              ? t("selectedCount", { count: selectedKeys.size })
+              : t("recordsCount", { count: totalRecords })}
+          </span>
           {viewAllButton}
         </div>}
         <div className="overflow-x-auto">
