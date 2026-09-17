@@ -9,6 +9,7 @@ import {
   DigitalProductStepFields,
   findMissingField,
   requiredFieldMessage,
+  isStepConfigured,
   saveDigitalProductStep,
   useDigitalProductExistingData,
   useDigitalProductLookups,
@@ -154,7 +155,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
         <HorizontalStepper
           steps={steps}
           activeIndex={stepIndex}
-          isStepCompleted={(step) => recordIds[step.entity] != null}
+          isStepCompleted={(step) => step.entity === "product" || isStepConfigured(step.entity, values)}
           onStepClick={goToStep}
         />
       </div>

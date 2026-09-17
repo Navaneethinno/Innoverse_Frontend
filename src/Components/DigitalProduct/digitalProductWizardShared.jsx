@@ -46,7 +46,13 @@ const PARENT_SECTION = { kyc_level: "kyc_config", channel_transaction: "channel_
 const CHILD_OF_SECTION = { kyc_config: "kyc_level", channel_config: "channel_transaction", eligibility_config: "residency" };
 const ARRAY_SECTIONS = new Set(["product_map", "channel_config"]);
 
-function isFilled(entity, values) {
+// Whether a step actually has data — used both to decide what to send in
+// buildSectionEditPayload and (exported as isStepConfigured) to decide
+// whether ViewDigitalProductWizard/the stepper should treat a step as
+// "done". A staged (pending_payload) section never carries an id of its
+// own until it's authorized, so checking recordIds alone would wrongly
+// show a fully-filled-in-but-still-pending step as unconfigured.
+export function isStepConfigured(entity, values) {
   return CONFIGS[entity].fields.some(([key]) => {
     const v = values[entity][key];
     return v !== "" && v != null && v !== false;
@@ -67,7 +73,7 @@ export function buildSectionEditPayload(entity, values, recordIds) {
   const targetEntity = PARENT_SECTION[entity] ?? entity;
   const childEntity = CHILD_OF_SECTION[targetEntity];
   const built = { ...pickPayload(targetEntity, values), ...(recordIds[targetEntity] ? { id: recordIds[targetEntity] } : {}) };
-  if (childEntity && isFilled(childEntity, values)) {
+  if (childEntity && isStepConfigured(childEntity, values)) {
     built[childEntity] = [{ ...pickPayload(childEntity, values), ...(recordIds[childEntity] ? { id: recordIds[childEntity] } : {}) }];
   }
   return { [targetEntity]: ARRAY_SECTIONS.has(targetEntity) ? [built] : built };

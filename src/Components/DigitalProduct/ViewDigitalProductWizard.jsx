@@ -3,7 +3,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
-import { DigitalProductStepFields, useDigitalProductExistingData, useDigitalProductLookups } from "./digitalProductWizardShared";
+import { DigitalProductStepFields, isStepConfigured, useDigitalProductExistingData, useDigitalProductLookups } from "./digitalProductWizardShared";
 
 // Read-only counterpart to AddDigitalProductWizard.jsx/
 // EditDigitalProductWizard.jsx: same 9-step stepper and the exact same
@@ -17,10 +17,11 @@ import { DigitalProductStepFields, useDigitalProductExistingData, useDigitalProd
 export function ViewDigitalProductWizard({ product, onClose }) {
   const steps = DIGITAL_PRODUCT_STEPS;
   const [stepIndex, setStepIndex] = useState(0);
-  const { values, recordIds, loading } = useDigitalProductExistingData(product);
+  const { values, loading } = useDigitalProductExistingData(product);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const lookups = useDigitalProductLookups(currentEntity);
+  const currentConfigured = currentEntity === "product" || isStepConfigured(currentEntity, values);
 
   return (
     <Modal
@@ -59,7 +60,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
         <HorizontalStepper
           steps={steps}
           activeIndex={stepIndex}
-          isStepCompleted={(step) => recordIds[step.entity] != null}
+          isStepCompleted={(step) => step.entity === "product" || isStepConfigured(step.entity, values)}
           onStepClick={setStepIndex}
         />
       </div>
@@ -68,7 +69,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
         <div className="flex justify-center py-12">
           <LoadingAnimation className="h-16 w-48" />
         </div>
-      ) : recordIds[currentEntity] == null ? (
+      ) : !currentConfigured ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-14 text-center">
           <p className="text-sm font-semibold text-slate-600">No {currentStep.label.toLowerCase()} configured</p>
           <p className="text-xs text-slate-400">Nothing has been added for this step yet.</p>
