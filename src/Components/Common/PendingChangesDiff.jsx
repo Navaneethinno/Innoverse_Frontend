@@ -199,7 +199,7 @@ export function PendingChangesDiff({ data, isLoading, error }) {
                 <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
                   {span > 0 && (
                     <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
-                      {change.group ? fieldLabel(change.group) : "—"}
+                      {change.group ? fieldLabel(change.group) : ""}
                     </td>
                   )}
                   <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
@@ -359,7 +359,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                   <tr key={`${row.group}::${row.field}`} className="border-b border-slate-50 last:border-0">
                     {span > 0 && (
                       <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
-                        {row.group ? fieldLabel(row.group) : "—"}
+                        {row.group ? fieldLabel(row.group) : ""}
                       </td>
                     )}
                     <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(row.field)}</td>
