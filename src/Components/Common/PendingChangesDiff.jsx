@@ -54,9 +54,21 @@ function fieldLabel(field) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// A change's proposed/current value is usually a plain scalar, but Digital
+// Product's own pending payload nests entire sections (product_map,
+// channel_config, ...) as one "field" — recurse into arrays/objects
+// instead of falling through to the default String(value) => "[object
+// Object]" every caller was getting for those.
 function displayValue(value) {
   if (value == null || value === "") return "—";
   if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) {
+    return value.length === 0 ? "—" : value.map(displayValue).join("; ");
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value).filter(([, v]) => v !== "" && v != null);
+    return entries.length === 0 ? "—" : entries.map(([k, v]) => `${fieldLabel(k)}: ${displayValue(v)}`).join(", ");
+  }
   return String(value);
 }
 
