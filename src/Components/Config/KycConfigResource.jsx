@@ -39,7 +39,7 @@ const CONFIGS = {
     menuName: "Group Level",
     readOnlyOnEdit: ["kyc_group_id"],
     fields: [
-      ["kyc_group_id", "KYC group ID", "number"],
+      ["kyc_group_id", "KYC Group", "number"],
       ["level_no", "Level number", "number"],
       ["level_name", "Level name", "text"],
       ["description", "Description", "textarea"],
@@ -50,8 +50,8 @@ const CONFIGS = {
     menuName: "Group Level Data",
     readOnlyOnEdit: ["kyc_group_level_id"],
     fields: [
-      ["kyc_group_level_id", "Group level ID", "number"],
-      ["kyc_data_field_id", "Data field ID", "number"],
+      ["kyc_group_level_id", "Group Level", "number"],
+      ["kyc_data_field_id", "Data Field", "number"],
       ["mandatory", "Mandatory", "boolean"],
       ["sequence_no", "Sequence", "number"],
     ],
@@ -61,8 +61,8 @@ const CONFIGS = {
     menuName: "Group Level Process",
     readOnlyOnEdit: ["kyc_group_level_id"],
     fields: [
-      ["kyc_group_level_id", "Group level ID", "number"],
-      ["kyc_process_id", "Process ID", "number"],
+      ["kyc_group_level_id", "Group Level", "number"],
+      ["kyc_process_id", "Process", "number"],
       ["mandatory", "Mandatory", "boolean"],
       ["sequence_no", "Sequence", "number"],
     ],
@@ -72,8 +72,8 @@ const CONFIGS = {
     menuName: "Group Level Document",
     readOnlyOnEdit: ["kyc_group_level_id"],
     fields: [
-      ["kyc_group_level_id", "Group level ID", "number"],
-      ["kyc_document_type_id", "Document type ID", "number"],
+      ["kyc_group_level_id", "Group Level", "number"],
+      ["kyc_document_type_id", "Document Type", "number"],
       ["mandatory", "Mandatory", "boolean"],
       ["sequence_no", "Sequence", "number"],
       ["document_front_required", "Front required", "boolean"],
@@ -161,6 +161,48 @@ export function KycConfigResource({ entity }) {
     API_ENDPOINTS.CONFIG_KYC[entity.toUpperCase()].LIST,
     reconcileSetter(setRows, { insertNew: false }),
   );
+  // Resolves a lookup field (e.g. kyc_group_level_id, kyc_process_id) to a
+  // readable name instead of the raw numeric id — both in the table columns
+  // and the View modal, matching how AcctConfigResource/DigitalProductResource
+  // already resolve their own lookup fields. Confirmed live: the backend
+  // already returns a companion "<field-without-_id>_name" alongside every
+  // one of these ids (e.g. kyc_process_id + kyc_process_name on the very
+  // same row), so that's tried first — far more reliable than a separate
+  // active-list lookup, which previously produced a broken "- 1" for
+  // kyc_group_level_id whenever the fetched list didn't carry level_no.
+  // Only institution profile has no such companion field on the row, so it
+  // still falls back to the active institutions list fetched above.
+  const resolveField = useCallback(
+    (row, key) => {
+      const raw = row?.[key];
+      if (raw == null || raw === "") return "-";
+      if (key.endsWith("_id")) {
+        const companion = row[`${key.slice(0, -3)}_name`];
+        if (companion != null && companion !== "") return companion;
+      }
+      if (key === "inst_profile_id") {
+        return institutions.find((inst) => String(inst.id) === String(raw))?.name ?? String(raw);
+      }
+      if (key === "kyc_group_id") {
+        return kycGroups.find((group) => String(idOf(group)) === String(raw))?.name ?? String(raw);
+      }
+      if (key === "kyc_group_level_id") {
+        const level = kycGroupLevels.find((item) => String(idOf(item)) === String(raw));
+        return level ? `${[level.level_no, level.level_name].filter(Boolean).join(" - ")}` || String(raw) : String(raw);
+      }
+      if (key === "kyc_process_id") {
+        return processes.find((process) => String(idOf(process)) === String(raw))?.name ?? String(raw);
+      }
+      if (key === "kyc_data_field_id") {
+        return dataFields.find((field) => String(idOf(field)) === String(raw))?.name ?? String(raw);
+      }
+      if (key === "kyc_document_type_id") {
+        return documentTypes.find((docType) => String(idOf(docType)) === String(raw))?.name ?? String(raw);
+      }
+      return String(raw);
+    },
+    [institutions, kycGroups, kycGroupLevels, processes, dataFields, documentTypes],
+  );
   const visible = useMemo(
     () =>
       rows.filter(
@@ -240,7 +282,11 @@ export function KycConfigResource({ entity }) {
   const columns = [
     ...config.fields
       .slice(0, 4)
-      .map(([key, label]) => ({ key, label, render: (row) => String(row[key] ?? "-") })),
+      .map(([key, label, type]) => ({
+        key,
+        label,
+        render: (row) => (type === "boolean" ? (row[key] ? "Yes" : "No") : resolveField(row, key)),
+      })),
     {
       key: "status",
       label: "Status",
@@ -484,40 +530,13 @@ export function KycConfigResource({ entity }) {
         </Modal>
       )}
       {view && (
-        <Modal open title={`View ${config.title}`} onClose={() => setView(null)}>
+        <Modal open title={`View ${config.title}`} onClose={() => setView(null)} size="md">
           <dl className="grid gap-3">
-            {config.fields.map(([key, label]) => (
-              <div key={key}>
-                <dt>{label}</dt>
-                <dd>
-                  {key === "inst_profile_id"
-                    ? (institutions.find((inst) => String(inst.id) === String(view[key]))?.name ??
-                      String(view[key] ?? "-"))
-                    : key === "kyc_document_type_id"
-                      ? (documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.name ??
-                        documentTypes.find((documentType) => String(idOf(documentType)) === String(view[key]))?.code ??
-                        String(view[key] ?? "-"))
-                    : key === "kyc_process_id"
-                      ? (processes.find((process) => String(idOf(process)) === String(view[key]))?.name ??
-                        processes.find((process) => String(idOf(process)) === String(view[key]))?.code ??
-                        String(view[key] ?? "-"))
-                    : key === "kyc_data_field_id"
-                      ? (dataFields.find((field) => String(idOf(field)) === String(view[key]))?.name ??
-                        dataFields.find((field) => String(idOf(field)) === String(view[key]))?.code ??
-                        String(view[key] ?? "-"))
-                    : key === "kyc_group_level_id"
-                      ? (() => {
-                          const level = kycGroupLevels.find(
-                            (item) => String(idOf(item)) === String(view[key]),
-                          );
-                          return level
-                            ? `${level.level_no ?? ""} - ${level.level_name ?? idOf(level)}`
-                            : String(view[key] ?? "-");
-                        })()
-                      : key === "kyc_group_id"
-                      ? (kycGroups.find((group) => String(idOf(group)) === String(view[key]))
-                          ?.name ?? String(view[key] ?? "-"))
-                      : String(view[key] ?? "-")}
+            {config.fields.map(([key, label, type]) => (
+              <div key={key} className="rounded-xl border p-3">
+                <dt className="text-xs text-slate-400">{label}</dt>
+                <dd className="text-sm font-semibold">
+                  {type === "boolean" ? (view[key] ? "Yes" : "No") : resolveField(view, key)}
                 </dd>
               </div>
             ))}
