@@ -128,6 +128,25 @@ export function expandChangeRows(changes) {
   return rows;
 }
 
+// For a table where consecutive rows repeat the same Group ("Product Map"
+// printed on 4 rows in a row), returns a parallel array of rowSpan values:
+// the first row of a run gets the run's length, every row after it gets 0
+// (meaning "don't render this cell at all — it's covered by the row
+// above's rowSpan"). Only merges rows that are already adjacent, so it
+// never silently merges two separated occurrences of the same group.
+function groupRowSpans(rows) {
+  const spans = new Array(rows.length).fill(1);
+  let runStart = 0;
+  for (let i = 1; i <= rows.length; i += 1) {
+    const sameAsRunStart = i < rows.length && rows[i].group === rows[runStart].group;
+    if (sameAsRunStart) continue;
+    spans[runStart] = i - runStart;
+    for (let j = runStart + 1; j < i; j += 1) spans[j] = 0;
+    runStart = i;
+  }
+  return spans;
+}
+
 export function PendingChangesDiff({ data, isLoading, error }) {
   const { t } = useTranslation("common");
   if (isLoading) {
@@ -139,6 +158,7 @@ export function PendingChangesDiff({ data, isLoading, error }) {
   if (!data || data.pending_action == null || data.pending_action === "NONE") return null;
 
   const changes = expandChangeRows(Array.isArray(data.changes) ? data.changes : []);
+  const groupSpans = groupRowSpans(changes);
   const isDelete = data.pending_action === "DELETE";
   const isAdd = data.pending_action === "ADD";
 
@@ -173,18 +193,25 @@ export function PendingChangesDiff({ data, isLoading, error }) {
             </tr>
           </thead>
           <tbody>
-            {changes.map((change) => (
-              <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
-                <td className="px-3 py-1.5 text-slate-400">{change.group ? fieldLabel(change.group) : "—"}</td>
-                <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
-                {!isAdd && (
-                  <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
-                )}
-                {!isDelete && (
-                  <td className="whitespace-pre-line px-3 py-1.5 font-medium text-blue-700">{displayValue(change.proposed)}</td>
-                )}
-              </tr>
-            ))}
+            {changes.map((change, index) => {
+              const span = groupSpans[index];
+              return (
+                <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
+                  {span > 0 && (
+                    <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
+                      {change.group ? fieldLabel(change.group) : "—"}
+                    </td>
+                  )}
+                  <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
+                  {!isAdd && (
+                    <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
+                  )}
+                  {!isDelete && (
+                    <td className="whitespace-pre-line px-3 py-1.5 font-medium text-blue-700">{displayValue(change.proposed)}</td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
@@ -260,6 +287,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
   if (!data || data.pending_action == null || data.pending_action === "NONE") return null;
 
   const rows = showAll ? [...changes, ...unchangedRows] : changes;
+  const groupSpans = groupRowSpans(rows);
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -324,11 +352,16 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {rows.map((row, index) => {
                 const changed = changedKeys.has(`${row.group}::${row.field}`);
+                const span = groupSpans[index];
                 return (
                   <tr key={`${row.group}::${row.field}`} className="border-b border-slate-50 last:border-0">
-                    <td className="px-3 py-1.5 text-slate-400">{row.group ? fieldLabel(row.group) : "—"}</td>
+                    {span > 0 && (
+                      <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
+                        {row.group ? fieldLabel(row.group) : "—"}
+                      </td>
+                    )}
                     <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(row.field)}</td>
                     {!isAdd && (
                       <td className="whitespace-pre-line px-3 py-1.5">
