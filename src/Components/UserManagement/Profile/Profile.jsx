@@ -333,7 +333,7 @@ export function Profile() {
               whileTap={{ scale: 0.97 }}
               onClick={openCreate}
               className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-              style={{ background: "#2266EE" }}
+              style={{ background: "var(--primary)" }}
             >
               <Plus size={14} /> {t("newProfile")}
             </motion.button>

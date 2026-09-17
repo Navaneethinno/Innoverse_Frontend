@@ -94,7 +94,7 @@ export function MenuItem({
               ? "ml-3 w-[calc(100%-0.75rem)]"
               : "w-full",
           isExpanded || isActiveLeaf
-            ? "bg-[#2266EE] text-white shadow-sm"
+            ? "bg-[var(--primary)] text-white shadow-sm"
             : "text-slate-500 hover:text-blue-600 hover:bg-blue-50/80",
         )}
       >

@@ -332,7 +332,7 @@ export function InstitutionProfile() {
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate("/institutions/create")}
             className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white"
-            style={{ background: "#2266EE" }}
+            style={{ background: "var(--primary)" }}
           >
             <Plus size={14} />
             <span className="hidden sm:inline">New Institution</span>

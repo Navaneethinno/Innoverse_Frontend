@@ -230,7 +230,7 @@ export function ViewInstitutionProfile() {
               onClick={() => void handleSubmitEdit(false)}
               disabled={submitting}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1 disabled:opacity-60"
-              style={{ background: "#2266EE" }}
+              style={{ background: "var(--primary)" }}
             >
               {submitting ? t("savingEllipsis") : isDraft ? t("saveDraft") : t("submitForApproval")}
             </button>
@@ -242,7 +242,10 @@ export function ViewInstitutionProfile() {
         <div className="flex items-center gap-3">
           <div
             className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg, #2266EE22 0%, #26FFFF22 100%)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, transparent) 0%, color-mix(in srgb, var(--secondary) 13%, transparent) 100%)",
+            }}
           >
             <Building2 size={20} className="text-blue-500" />
           </div>
@@ -320,7 +323,7 @@ export function ViewInstitutionProfile() {
             onClick={() => void handleSubmitEdit(false)}
             disabled={submitting}
             className="px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md shadow-blue-200/50 disabled:opacity-60"
-            style={{ background: "#2266EE" }}
+            style={{ background: "var(--primary)" }}
           >
             {submitting ? t("savingEllipsis") : isDraft ? t("saveDraft") : t("submitForApproval")}
           </button>
