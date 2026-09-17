@@ -287,7 +287,7 @@ export function Profile() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       sortValue: (p) => p.process_status_name ?? "",
       render: (p) => renderProfileValue(p, "process_status_name"),
     },
