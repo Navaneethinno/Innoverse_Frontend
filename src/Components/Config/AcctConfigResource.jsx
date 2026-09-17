@@ -465,6 +465,18 @@ export function AcctConfigResource({ entity }) {
     const match = items.find((item) => String(optionOf(item, idBased).value) === String(value));
     return match ? optionOf(match, idBased).label : String(value ?? "-");
   };
+  // Human-readable identity for a row, for confirm dialogs — same idea as
+  // Institution's own confirm dialogs showing the institution's name/code
+  // instead of its raw id. acct_product itself has its own name/code; every
+  // other acct_* sub-entity has no name of its own, it's identified by the
+  // Account Product it belongs to (acct_product_id), so that product's
+  // resolved name is shown instead.
+  const describeActionRow = (row) => {
+    if (!row) return "";
+    if (entity === "acct_product") return row.product_name || row.product_code || String(idOf(row));
+    const productLabel = labelFor("acctProducts", row.acct_product_id);
+    return productLabel && productLabel !== "-" ? productLabel : String(idOf(row));
+  };
   const [rows, setRows] = useState([]),
     [pagination, setPagination] = useState({}),
     [page, setPage] = useState(1),
@@ -848,7 +860,7 @@ export function AcctConfigResource({ entity }) {
         <ConfirmDialog
           open
           title={`${action.label} ${config.title}`}
-          description={String(idOf(action.row))}
+          description={describeActionRow(action.row)}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}

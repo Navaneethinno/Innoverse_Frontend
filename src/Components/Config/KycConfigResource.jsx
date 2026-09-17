@@ -203,6 +203,18 @@ export function KycConfigResource({ entity }) {
     },
     [institutions, kycGroups, kycGroupLevels, processes, dataFields, documentTypes],
   );
+  // Human-readable identity for a row in confirm dialogs — same idea as
+  // Institution's own confirm dialogs, which show the institution's name
+  // instead of its raw id. Uses the entity's own first configured field
+  // (resolved via resolveField, so a lookup id still shows its name) since
+  // every KYC entity's first field is its most identifying one (code/name
+  // for kyc_group, the parent group/level's name for every child entity).
+  const describeActionRow = (row) => {
+    if (!row) return "";
+    const [firstKey, , firstType] = config.fields[0];
+    const resolved = firstType === "boolean" ? (row[firstKey] ? "Yes" : "No") : resolveField(row, firstKey);
+    return resolved && resolved !== "-" ? resolved : String(idOf(row));
+  };
   const visible = useMemo(
     () =>
       rows.filter(
@@ -557,7 +569,7 @@ export function KycConfigResource({ entity }) {
         <ConfirmDialog
           open
           title={`${action.label} ${config.title}`}
-          description={String(idOf(action.row))}
+          description={describeActionRow(action.row)}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}

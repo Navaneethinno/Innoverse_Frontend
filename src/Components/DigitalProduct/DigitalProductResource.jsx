@@ -28,6 +28,32 @@ import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 
 const idOf = (r) => r?.id;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
+// Same key -> lookup-list mapping DigitalProductFieldInput uses for its
+// dropdown options, reused here to resolve a row's raw lookup id (e.g.
+// product_id, kyc_group_id) to a readable name — for the table columns and
+// for the Authorize/Deauth/Delete confirm dialog, which previously showed
+// the row's raw numeric id instead (confirmed live: none of these
+// sub-entities' rows carry a companion "<field>_name", unlike KYC config's
+// rows, so the resolution has to go through these already-fetched lists).
+const LOOKUP_LIST_BY_KEY = {
+  inst_profile_id: "institutions",
+  product_id: "products",
+  acct_product_id: "accountProducts",
+  kyc_group_id: "kycGroups",
+  channel_id: "channels",
+  channel_config_id: "channelConfigs",
+  transaction_type_id: "transactions",
+  eligibility_config_id: "eligibilityConfigs",
+  residency_type_id: "residencyTypes",
+};
+function resolveLookupLabel(key, value, lookups) {
+  if (value == null || value === "") return "-";
+  const listKey = LOOKUP_LIST_BY_KEY[key];
+  if (!listKey) return String(value);
+  const list = lookups[listKey] ?? [];
+  const match = list.find((item) => String(item.id) === String(value));
+  return match ? (match.name ?? match.code ?? String(value)) : String(value);
+}
 const allowed = (menus, action, title) =>
   (menus ?? []).some(
     (m) =>
@@ -166,6 +192,22 @@ export function DigitalProductResource({ entity }) {
       .then((response) => setAccountProducts(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
+  const lookups = useMemo(
+    () => ({ institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes }),
+    [institutions, products, accountProducts, kycGroups, channels, channelConfigs, transactions, eligibilityConfigs, residencyTypes],
+  );
+  // Human-readable identity for a row in confirm dialogs — same idea as
+  // Institution's own confirm dialogs, which show the institution's name
+  // instead of its raw id. Uses the entity's own first configured field,
+  // resolved through the same lookup lists the table columns use.
+  const describeActionRow = (row) => {
+    if (!row) return "";
+    if (row.name) return row.name;
+    const [firstKey, , firstType] = config.fields[0];
+    const resolved =
+      firstType === "boolean" ? (row[firstKey] ? "Yes" : "No") : resolveLookupLabel(firstKey, row[firstKey], lookups);
+    return resolved && resolved !== "-" ? resolved : String(idOf(row));
+  };
   const [rows, setRows] = useState([]),
     [pagination, setPagination] = useState({}),
     [page, setPage] = useState(1),
@@ -299,7 +341,7 @@ export function DigitalProductResource({ entity }) {
       .map(([key, label, type]) => ({
         key,
         label,
-        render: (r) => (type === "boolean" ? (r[key] ? "Yes" : "No") : String(r[key] ?? "—")),
+        render: (r) => (type === "boolean" ? (r[key] ? "Yes" : "No") : resolveLookupLabel(key, r[key], lookups)),
       })),
     {
       key: "status",
@@ -513,7 +555,7 @@ export function DigitalProductResource({ entity }) {
         <ConfirmDialog
           open
           title={`${action.label} ${config.title}`}
-          description={String(action.row.name ?? idOf(action.row))}
+          description={describeActionRow(action.row)}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
