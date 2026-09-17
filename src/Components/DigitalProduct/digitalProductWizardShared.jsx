@@ -245,6 +245,15 @@ export function useDigitalProductLookups(currentEntity) {
   return { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
 }
 
+// Every dropdown/text/number/date field before every CheckboxPill toggle —
+// the pills read as a distinct "switches" group and belong at the bottom of
+// the form/step, not interleaved between data-entry fields. Only reorders
+// for rendering; the original CONFIGS order is what's sent to the API
+// (each caller still reads values by field key, never by position).
+export function orderedFields(fields) {
+  return [...fields.filter(([, , type]) => type !== "boolean"), ...fields.filter(([, , type]) => type === "boolean")];
+}
+
 // The current step's field grid: two independent flex-column stacks, not a
 // single 2-col CSS grid — a real grid pairs left/right cells into shared
 // rows, so a tall field (a dropdown) next to a short one (a checkbox)
@@ -259,7 +268,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
   const tr = useConfigLabel();
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {splitFieldsIntoColumns(CONFIGS[entity].fields).map((columnFields, columnIndex) => (
+      {splitFieldsIntoColumns(orderedFields(CONFIGS[entity].fields)).map((columnFields, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-4">
           {columnFields.map(([key, label, type]) =>
             type === "boolean" ? (

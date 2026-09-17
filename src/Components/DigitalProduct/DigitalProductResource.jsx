@@ -27,6 +27,7 @@ import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
 import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
 import { ViewDigitalProductWizard } from "./ViewDigitalProductWizard";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { orderedFields } from "./digitalProductWizardShared";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const idOf = (r) => r?.id;
@@ -102,7 +103,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         }}
         className="grid gap-4"
       >
-        {config.fields.map(([key, label, type]) =>
+        {orderedFields(config.fields).map(([key, label, type]) =>
           type === "boolean" ? (
             <CheckboxPill
               key={key}
