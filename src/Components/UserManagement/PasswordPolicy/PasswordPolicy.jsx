@@ -1,6 +1,6 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
-import { Clock, FileText, KeyRound, Plus } from "lucide-react";
+import { Clock, FileText, KeyRound, Plus, ShieldCheck } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
