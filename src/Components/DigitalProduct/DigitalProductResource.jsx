@@ -27,7 +27,7 @@ import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
 import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
 import { ViewDigitalProductWizard } from "./ViewDigitalProductWizard";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
-import { orderedFields } from "./digitalProductWizardShared";
+import { orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const idOf = (r) => r?.id;

@@ -25,3 +25,15 @@ export function splitFieldsIntoColumns(fields) {
   }
   return [fields.slice(0, boundary), fields.slice(boundary)];
 }
+
+// Every dropdown/text/number/date field before every boolean (rendered as a
+// CheckboxPill — see CheckboxPill.jsx) toggle: the pills read as a distinct
+// "switches" group and belong at the bottom of the form, not interleaved
+// between data-entry fields. Shared by AcctConfigResource.jsx/
+// KycConfigResource.jsx/DigitalProductResource.jsx and the Digital Product
+// wizard — only reorders for rendering; every caller still reads/writes
+// values by field key, never by position, so this has no effect on what's
+// actually sent to the API.
+export function orderedFields(fields) {
+  return [...fields.filter(([, , type]) => type !== "boolean"), ...fields.filter(([, , type]) => type === "boolean")];
+}

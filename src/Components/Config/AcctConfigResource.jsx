@@ -33,7 +33,8 @@ import {
   useTransactions,
 } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
-import { splitFieldsIntoColumns } from "@/Utils/Lib/formFieldColumns";
+import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColumns";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
@@ -750,16 +751,25 @@ export function AcctConfigResource({ entity }) {
               cell's row to match, stranding it with a large gap before the
               next row. */}
           <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
-            {splitFieldsIntoColumns(config.fields).map((columnFields, columnIndex) => (
+            {splitFieldsIntoColumns(orderedFields(config.fields)).map((columnFields, columnIndex) => (
               <div key={columnIndex} className="flex flex-col gap-3">
                 {columnFields.map(([key, label, type, lookupKey]) => {
                   const isReadOnly = Boolean(editing && config.readOnlyOnEdit?.includes(key));
+                  if (type === "boolean") {
+                    return (
+                      <CheckboxPill
+                        key={key}
+                        checked={Boolean(form[key])}
+                        onChange={(next) => setForm({ ...form, [key]: next })}
+                        label={tr(label)}
+                        disabled={isReadOnly}
+                        className="self-start"
+                      />
+                    );
+                  }
                   return (
-                    <label
-                      key={key}
-                      className={type === "boolean" ? "flex items-center gap-2 text-sm font-semibold" : "text-sm font-semibold"}
-                    >
-                      {type !== "boolean" && tr(label)}
+                    <label key={key} className="text-sm font-semibold">
+                      {tr(label)}
                       {lookupKey ? (
                         <FilterSelect
                           className="mt-1.5"
@@ -777,23 +787,21 @@ export function AcctConfigResource({ entity }) {
                         />
                       ) : (
                         <input
-                          type={type === "number" ? "number" : type === "boolean" ? "checkbox" : type === "date" ? "date" : "text"}
+                          type={type === "number" ? "number" : type === "date" ? "date" : "text"}
                           min={type === "number" ? 0 : undefined}
-                          checked={type === "boolean" ? Boolean(form[key]) : undefined}
-                          value={type !== "boolean" ? (form[key] ?? "") : undefined}
+                          value={form[key] ?? ""}
                           disabled={isReadOnly}
                           onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
                           onWheel={type === "number" ? blurOnWheel : undefined}
                           onChange={(event) =>
                             setForm({
                               ...form,
-                              [key]: type === "boolean" ? event.target.checked : type === "number" ? clampNonNegative(event.target.value) : event.target.value,
+                              [key]: type === "number" ? clampNonNegative(event.target.value) : event.target.value,
                             })
                           }
-                          className={type === "boolean" ? "h-4 w-4 shrink-0 rounded border" : "mt-1.5 w-full rounded-xl border px-3 py-2.5"}
+                          className="mt-1.5 w-full rounded-xl border px-3 py-2.5"
                         />
                       )}
-                      {type === "boolean" && <span>{tr(label)}</span>}
                     </label>
                   );
                 })}

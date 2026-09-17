@@ -22,6 +22,8 @@ import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHook
 import { useKycDataFields, useKycDocumentTypes, useKycProcesses } from "@/Hooks/Master/masterHooks";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
+import { orderedFields } from "@/Utils/Lib/formFieldColumns";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const CONFIGS = {
@@ -407,16 +409,22 @@ export function KycConfigResource({ entity }) {
           }}
         >
           <div className="grid gap-3">
-            {config.fields.map(([key, label, type]) => (
+            {orderedFields(config.fields).map(([key, label, type]) =>
+              type === "boolean" ? (
+                <CheckboxPill
+                  key={key}
+                  checked={Boolean(form[key])}
+                  onChange={(next) => setForm({ ...form, [key]: next })}
+                  label={tr(label)}
+                  disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
+                  className="self-start"
+                />
+              ) : (
               <label
                 key={key}
-                className={
-                  type === "boolean"
-                    ? "flex items-center gap-2 text-sm font-semibold"
-                    : "text-sm font-semibold"
-                }
+                className="text-sm font-semibold"
               >
-                {type === "boolean" ? <span>{tr(label)}</span> : tr(label)}
+                {tr(label)}
                 {key === "inst_profile_id" ? (
                   <FilterSelect
                     className="mt-1.5"
@@ -502,33 +510,24 @@ export function KycConfigResource({ entity }) {
                   />
                 ) : (
                   <input
-                    type={type === "number" ? "number" : type === "boolean" ? "checkbox" : "text"}
+                    type={type === "number" ? "number" : "text"}
                     min={type === "number" ? 0 : undefined}
-                    checked={type === "boolean" ? Boolean(form[key]) : undefined}
-                    value={type !== "boolean" ? (form[key] ?? "") : undefined}
+                    value={form[key] ?? ""}
                     disabled={Boolean(editing && config.readOnlyOnEdit?.includes(key))}
                     onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
                     onWheel={type === "number" ? blurOnWheel : undefined}
                     onChange={(event) =>
                       setForm({
                         ...form,
-                        [key]:
-                          type === "boolean"
-                            ? event.target.checked
-                            : type === "number"
-                              ? clampNonNegative(event.target.value)
-                              : event.target.value,
+                        [key]: type === "number" ? clampNonNegative(event.target.value) : event.target.value,
                       })
                     }
-                    className={
-                      type === "boolean"
-                        ? "h-4 w-4 rounded border"
-                        : "mt-1.5 w-full rounded-xl border px-3 py-2.5"
-                    }
+                    className="mt-1.5 w-full rounded-xl border px-3 py-2.5"
                   />
                 )}
               </label>
-            ))}
+              ),
+            )}
             <div className="flex justify-end gap-2">
               <button onClick={() => void save(true)} disabled={saving}>
                 {tr("Save draft")}
