@@ -6,7 +6,12 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Modal } from "@/Components/Common/Modal";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
+// expandChangeRows is the same Group/Field expansion PendingChangesPanel
+// runs internally — used here too so a payload entry with genuinely no
+// leaf-level change doesn't leave this audit entry looking like an EDIT
+// with zero visible rows (deriveEntryChangeAction below only sees real,
+// already-expanded changes).
+import { PendingChangesPanel, expandChangeRows } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 
 // Values the backend sends as literal placeholder strings for "no value" —
@@ -19,25 +24,6 @@ function recordTime(entry) {
   const raw = entry?.updated_time ?? entry?.auth_time ?? entry?.created_time;
   const t = raw ? new Date(raw).getTime() : NaN;
   return Number.isNaN(t) ? -Infinity : t;
-}
-
-// Flattens a Digital Product audit entry's `payload` (nested sections, each
-// possibly an array of records, e.g. channel_config[].channel_transaction[])
-// down to a single { leafFieldName: value } map, dropping every section/
-// array wrapper name — the checker only ever sees the leaf field ("Maximum
-// Age"), never "Eligibility Config" as a field name. Later duplicate leaf
-// keys across sections overwrite earlier ones, which is an accepted
-// trade-off for a flat, readable diff.
-function flattenPayloadLeaves(value, out = {}) {
-  if (Array.isArray(value)) {
-    value.forEach((item) => flattenPayloadLeaves(item, out));
-  } else if (value != null && typeof value === "object") {
-    Object.entries(value).forEach(([key, v]) => {
-      if (v != null && typeof v === "object") flattenPayloadLeaves(v, out);
-      else out[key] = v;
-    });
-  }
-  return out;
 }
 
 function isEmptyPlaceholder(value) {
@@ -412,24 +398,17 @@ export function AuditModal({
       }
       // Digital Product's own audit rows (confirmed live) carry a "payload"
       // snapshot of the nested wizard sections (product_map, security_config,
-      // ...) at that revision instead of listing them in `changes` — diff it
-      // separately, one row per LEAF field (Maximum Age, Kyc Group Id, ...)
-      // rather than one row per section: a section crammed into a single
-      // multi-line cell read as an illegible wall of text, and the section
-      // name itself isn't useful to a checker who just wants to see what
-      // actually changed.
+      // ...) at that revision instead of listing them in `changes`. Left as
+      // ONE raw nested change here (not expanded) — PendingChangesPanel
+      // expands any nested change into Group/Field rows itself, and doing
+      // it twice would strip the group the first pass already assigned.
+      // expandChangeRows is only used here to check whether the section
+      // genuinely changed at the leaf level, so an untouched section carried
+      // forward unchanged doesn't make this entry look like an "EDIT" with
+      // nothing to show.
       if (entry.payload && typeof entry.payload === "object") {
-        const currentFlat = flattenPayloadLeaves(previous?.payload);
-        const proposedFlat = flattenPayloadLeaves(entry.payload);
-        const payloadKeys = new Set([...Object.keys(currentFlat), ...Object.keys(proposedFlat)]);
-        const payloadChanges = [...payloadKeys]
-          .map((key) => ({
-            field: key,
-            current: currentFlat[key] ?? null,
-            proposed: proposedFlat[key] ?? null,
-          }))
-          .filter((change) => JSON.stringify(change.current) !== JSON.stringify(change.proposed));
-        changes = [...changes, ...payloadChanges];
+        const payloadChange = { field: "payload", current: previous?.payload ?? null, proposed: entry.payload };
+        if (expandChangeRows([payloadChange]).length > 0) changes = [...changes, payloadChange];
       }
       return changes.length > 0 ? { ...entry, changes } : entry;
     });

@@ -69,6 +69,7 @@ export const common = {
   recordWillBeDeletedIfAuthorize: "This record will be deleted if you authorize.",
   recordWillBeDeletedIfAuthorized: "This record will be deleted if authorized.",
   noFieldLevelChanges: "No field-level changes reported.",
+  group: "Group",
   field: "Field",
   currentValue: "Current Value",
   current: "Current",

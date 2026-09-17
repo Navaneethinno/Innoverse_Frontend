@@ -75,6 +75,56 @@ function displayValue(value) {
   return String(value);
 }
 
+const isNestedValue = (v) => v != null && typeof v === "object";
+
+// Recursively collects the leaf fields of a nested section value (Digital
+// Product's own "pending_payload"/"payload" field, or any future change
+// shaped the same way), tagging each leaf with the key of the object it's
+// a direct member of — a section that itself nests a child section (e.g.
+// eligibility_config's residency array) tags its leaves with the more
+// specific child key, not the outer one.
+function flattenSectionLeaves(value, group, out) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => flattenSectionLeaves(item, group, out));
+  } else if (isNestedValue(value)) {
+    Object.entries(value).forEach(([key, v]) => {
+      if (isNestedValue(v)) flattenSectionLeaves(v, key, out);
+      else out.push({ group, field: key, value: v });
+    });
+  }
+  return out;
+}
+
+// Expands a plain {field, current, proposed} changes array into
+// {group, field, current, proposed} rows for a 4-column Group/Field/
+// Before/After table: a scalar change becomes one ungrouped row
+// (group: null) unchanged; a change whose current or proposed is a nested
+// section object/array is expanded into one row per leaf field instead of
+// dumping the whole section into a single unreadable cell.
+export function expandChangeRows(changes) {
+  const rows = [];
+  (changes ?? []).forEach((change) => {
+    if (!isNestedValue(change.current) && !isNestedValue(change.proposed)) {
+      rows.push({ group: null, field: change.field, current: change.current, proposed: change.proposed });
+      return;
+    }
+    const byKey = new Map();
+    flattenSectionLeaves(change.current, null, []).forEach((leaf) => {
+      byKey.set(`${leaf.group}::${leaf.field}`, { group: leaf.group, field: leaf.field, current: leaf.value, proposed: null });
+    });
+    flattenSectionLeaves(change.proposed, null, []).forEach((leaf) => {
+      const key = `${leaf.group}::${leaf.field}`;
+      const existing = byKey.get(key);
+      if (existing) existing.proposed = leaf.value;
+      else byKey.set(key, { group: leaf.group, field: leaf.field, current: null, proposed: leaf.value });
+    });
+    byKey.forEach((row) => {
+      if (JSON.stringify(row.current ?? null) !== JSON.stringify(row.proposed ?? null)) rows.push(row);
+    });
+  });
+  return rows;
+}
+
 export function PendingChangesDiff({ data, isLoading, error }) {
   const { t } = useTranslation("common");
   if (isLoading) {
@@ -85,7 +135,7 @@ export function PendingChangesDiff({ data, isLoading, error }) {
   }
   if (!data || data.pending_action == null || data.pending_action === "NONE") return null;
 
-  const changes = Array.isArray(data.changes) ? data.changes : [];
+  const changes = expandChangeRows(Array.isArray(data.changes) ? data.changes : []);
   const isDelete = data.pending_action === "DELETE";
   const isAdd = data.pending_action === "ADD";
 
@@ -113,6 +163,7 @@ export function PendingChangesDiff({ data, isLoading, error }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <th className="px-3 py-1.5 text-left">{t("group")}</th>
               <th className="px-3 py-1.5 text-left">{t("field")}</th>
               {!isAdd && <th className="px-3 py-1.5 text-left">{isDelete ? t("currentValue") : t("current")}</th>}
               {!isDelete && <th className="px-3 py-1.5 text-left">{isAdd ? t("value") : t("proposed")}</th>}
@@ -120,7 +171,8 @@ export function PendingChangesDiff({ data, isLoading, error }) {
           </thead>
           <tbody>
             {changes.map((change) => (
-              <tr key={change.field} className="border-b border-slate-50 last:border-0">
+              <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
+                <td className="px-3 py-1.5 text-slate-400">{change.group ? fieldLabel(change.group) : "—"}</td>
                 <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
                 {!isAdd && (
                   <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
@@ -176,21 +228,21 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
   const { t } = useTranslation("common");
   const [showAll, setShowAll] = useState(false);
 
-  const changes = useMemo(() => (Array.isArray(data?.changes) ? data.changes : []), [data]);
+  const changes = useMemo(() => expandChangeRows(Array.isArray(data?.changes) ? data.changes : []), [data]);
   const isAdd = data?.pending_action === "ADD";
   const isDelete = data?.pending_action === "DELETE";
-  const changedKeys = useMemo(() => new Set(changes.map((c) => c.field)), [changes]);
+  const changedKeys = useMemo(() => new Set(changes.map((c) => `${c.group}::${c.field}`)), [changes]);
 
   const unchangedRows = useMemo(() => {
     if (!showAll || isAdd || !currentRecord) return [];
     return Object.keys(currentRecord)
       .filter(
         (key) =>
-          !changedKeys.has(key) &&
+          !changedKeys.has(`null::${key}`) &&
           !ALL_FIELDS_EXCLUDED.has(key) &&
           typeof currentRecord[key] !== "object",
       )
-      .map((key) => ({ field: key, current: currentRecord[key], proposed: currentRecord[key] }));
+      .map((key) => ({ group: null, field: key, current: currentRecord[key], proposed: currentRecord[key] }));
   }, [showAll, isAdd, currentRecord, changedKeys]);
 
   const canShowAll = !isAdd && !!currentRecord;
@@ -262,6 +314,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
           <table className="w-full min-w-[360px] text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("group")}</th>
                 <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("field")}</th>
                 {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("before")}</th>}
                 {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("after")}</th>}
@@ -269,9 +322,10 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
             </thead>
             <tbody>
               {rows.map((row) => {
-                const changed = changedKeys.has(row.field);
+                const changed = changedKeys.has(`${row.group}::${row.field}`);
                 return (
-                  <tr key={row.field} className="border-b border-slate-50 last:border-0">
+                  <tr key={`${row.group}::${row.field}`} className="border-b border-slate-50 last:border-0">
+                    <td className="px-3 py-1.5 text-slate-400">{row.group ? fieldLabel(row.group) : "—"}</td>
                     <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(row.field)}</td>
                     {!isAdd && (
                       <td className="whitespace-pre-line px-3 py-1.5">
