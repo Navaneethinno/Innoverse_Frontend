@@ -184,3 +184,9 @@ export function useProfileDeleteMutation() {
 export function useProfileDeleteAuthMutation() {
   return useProfileMutation(useCallback((payload) => profilesApi.deleteAuth(payload), []));
 }
+export function useProfileDeactivateMutation() {
+  return useProfileMutation(useCallback((payload) => profilesApi.deactivate(payload), []));
+}
+export function useProfileReactivateMutation() {
+  return useProfileMutation(useCallback((payload) => profilesApi.reactivate(payload), []));
+}

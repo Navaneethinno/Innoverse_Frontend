@@ -1,27 +1,12 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
-import {
-  Clock,
-  Eye,
-  FileText,
-  History,
-  KeyRound,
-  Pencil,
-  Plus,
-  Power,
-  PowerOff,
-  Send,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-} from "lucide-react";
+import { Clock, FileText, KeyRound, Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { Modal } from "@/Components/Common/Modal";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Switch } from "@/Components/UI/switch";
 import { cn } from "@/Utils/Lib/cn";
@@ -330,16 +315,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
     ["passwordPolicyAuth", "passwordPolicyDeauth", "passwordPolicyDeleteAuth"].includes(action?.method),
   );
   const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
-  const actions = [
-    ...(visibility.submitDraft ? [["passwordPolicySubmit", "Submit Draft", Send, "submit"]] : []),
-    ...(visibility.authorize
-      ? [[visibility.isPendingDelete ? "passwordPolicyDeleteAuth" : "passwordPolicyAuth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
-      : []),
-    ...(visibility.deauthorize ? [["passwordPolicyDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(visibility.delete ? [["passwordPolicyDelete", "Delete", Trash2, "delete"]] : []),
-    ...(visibility.deactivate ? [["passwordPolicyDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-    ...(visibility.activate ? [["passwordPolicyReactivate", "Activate", Power, "reactivate"]] : []),
-  ];
+  const pendingMethod = visibility.isPendingDelete ? "passwordPolicyDeleteAuth" : "passwordPolicyAuth";
   const mutation = action ? methods[action.method] : null;
 
   const execute = async () => {
@@ -356,32 +332,20 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-center gap-1">
-        <UiTooltip label="View">
-          <button type="button" onClick={() => onView(row)} className={actionButtonClass("view")}>
-            <Eye size={14} />
-          </button>
-        </UiTooltip>
-        {visibility.edit && (
-          <UiTooltip label="Edit">
-            <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
-              <Pencil size={14} />
-            </button>
-          </UiTooltip>
-        )}
-        <UiTooltip label="Audit">
-          <button type="button" onClick={() => onAudit(row)} className={actionButtonClass("view")}>
-            <History size={14} />
-          </button>
-        </UiTooltip>
-        {actions.map(([method, label, Icon, style]) => (
-          <UiTooltip key={method} label={label}>
-            <button type="button" onClick={() => setAction({ method, label, style })} className={actionButtonClass(style)}>
-              <Icon size={14} />
-            </button>
-          </UiTooltip>
-        ))}
-      </div>
+      <RowActions
+        buttons={visibility}
+        onView={() => onView(row)}
+        onEdit={() => onEdit(row)}
+        onAudit={() => onAudit(row)}
+        onSubmit={() => setAction({ method: "passwordPolicySubmit", label: "Submit Draft", style: "submit" })}
+        onAuthorize={() =>
+          setAction({ method: pendingMethod, label: "Authorize", style: visibility.isPendingDelete ? "deleteAuth" : "auth" })
+        }
+        onDeauthorize={() => setAction({ method: "passwordPolicyDeauth", label: "Deauthorize", style: "deauth" })}
+        onDeactivate={() => setAction({ method: "passwordPolicyDeactivate", label: "Deactivate", style: "deactivate" })}
+        onReactivate={() => setAction({ method: "passwordPolicyReactivate", label: "Activate", style: "reactivate" })}
+        onDelete={() => setAction({ method: "passwordPolicyDelete", label: "Delete", style: "delete" })}
+      />
 
       <ConfirmDialog
         open={!!action}

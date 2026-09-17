@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Power, PowerOff, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
@@ -8,8 +9,6 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
@@ -347,84 +346,44 @@ export function DigitalProductResource({ entity }) {
             allowed(menus, "Deactivate", config.menuName ?? config.title) ||
             allowed(menus, "Reactivate", config.menuName ?? config.title),
         });
-        const acts = [
-          ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
-          ...(visibility.authorize
-            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
-            : []),
-          ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
-          ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
-          ...(visibility.activate ? [["reactivate", "Reactivate", Power]] : []),
-          ...(visibility.delete ? [["delete", "Delete", Trash2]] : []),
-        ];
+        const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
         return (
-          <div className="flex flex-wrap justify-center gap-1">
-            <UiTooltip label="View">
-              <button
-                type="button"
-                onClick={() => {
-                  // Digital Product's own View opens the read-only 9-step
-                  // ViewDigitalProductWizard instead of this file's plain
-                  // single-entity view modal — see viewWizardProduct below.
-                  // Every other entity keeps the original single view modal,
-                  // unchanged.
-                  if (entity === "product") {
-                    setViewWizardProduct(r);
-                    return;
-                  }
-                  setView(r);
-                }}
-                className={actionButtonClass("view")}
-              >
-                <Eye size={14} />
-              </button>
-            </UiTooltip>
-            {visibility.edit && (
-              <UiTooltip label="Edit">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Digital Product's own Edit opens the 9-step
-                    // EditDigitalProductWizard instead of this file's
-                    // single-entity Editor — see wizardOpen above for the
-                    // matching Add case. Every other entity (reached only
-                    // via its own still-existing route) keeps the original
-                    // single Editor modal + individual API, unchanged.
-                    if (entity === "product") {
-                      setEditWizardProduct(r);
-                      return;
-                    }
-                    setForm(Object.fromEntries(config.fields.map(([k]) => [k, r[k] ?? ""])));
-                    setEditing(r);
-                    setOpen(true);
-                  }}
-                  className={actionButtonClass("edit")}
-                >
-                  <Pencil size={14} />
-                </button>
-              </UiTooltip>
-            )}
-            <UiTooltip label="Audit">
-              <button
-                type="button"
-                onClick={() => setAudit(r)}
-                className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
-              >
-                <History size={14} />
-              </button>
-            </UiTooltip>
-            {acts.map(([type, label, Icon]) => (
-              <UiTooltip key={type} label={label}>
-                <button
-                  type="button"
-                  onClick={() => setAction({ type, row: r, label, reason: "" })}
-                  className={actionButtonClass(type)}
-                >
-                  <Icon size={14} />
-                </button>
-              </UiTooltip>
-            ))}
-          </div>
+          <RowActions
+            buttons={visibility}
+            onView={() => {
+              // Digital Product's own View opens the read-only 9-step
+              // ViewDigitalProductWizard instead of a plain single-entity
+              // view modal — see viewWizardProduct below. Every other
+              // entity keeps the original single view modal, unchanged.
+              if (entity === "product") {
+                setViewWizardProduct(r);
+                return;
+              }
+              setView(r);
+            }}
+            onEdit={() => {
+              // Digital Product's own Edit opens the 9-step
+              // EditDigitalProductWizard instead of a single-entity Editor
+              // — see wizardOpen above for the matching Add case. Every
+              // other entity (reached only via its own still-existing
+              // route) keeps the original single Editor modal + individual
+              // API, unchanged.
+              if (entity === "product") {
+                setEditWizardProduct(r);
+                return;
+              }
+              setForm(Object.fromEntries(config.fields.map(([k]) => [k, r[k] ?? ""])));
+              setEditing(r);
+              setOpen(true);
+            }}
+            onAudit={() => setAudit(r)}
+            onSubmit={() => setAction({ type: "submit", row: r, label: "Submit", reason: "" })}
+            onAuthorize={() => setAction({ type: pendingType, row: r, label: "Authorize", reason: "" })}
+            onDeauthorize={() => setAction({ type: "deauth", row: r, label: "Deauthorize", reason: "" })}
+            onDeactivate={() => setAction({ type: "deactivate", row: r, label: "Deactivate", reason: "" })}
+            onReactivate={() => setAction({ type: "reactivate", row: r, label: "Reactivate", reason: "" })}
+            onDelete={() => setAction({ type: "delete", row: r, label: "Delete", reason: "" })}
+          />
         );
       },
     },

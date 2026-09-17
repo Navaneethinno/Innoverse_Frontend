@@ -2,15 +2,14 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import {
   mapProfileListResponse,
   useHasProfileAction,
@@ -18,6 +17,8 @@ import {
   useProfileCreateMutation,
   useProfileSubmitMutation,
   useProfileDeauthMutation,
+  useProfileDeactivateMutation,
+  useProfileReactivateMutation,
   useProfileDeleteAuthMutation,
   useProfileDeleteMutation,
   useProfileMenuItem,
@@ -95,6 +96,7 @@ export function Profile() {
   const canDelete = useHasProfileAction("Delete");
   const canAuthorize = useHasProfileAction("Authorize");
   const canSubmit = useHasProfileAction("Submit");
+  const canChangeStatus = useHasProfileAction("Deactivate") || useHasProfileAction("Reactivate") || useHasProfileAction("Change Status");
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -117,6 +119,8 @@ export function Profile() {
   const deauthMutation = useProfileDeauthMutation();
   const deleteMutation = useProfileDeleteMutation();
   const deleteAuthMutation = useProfileDeleteAuthMutation();
+  const deactivateMutation = useProfileDeactivateMutation();
+  const reactivateMutation = useProfileReactivateMutation();
 
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
   const institutionsById = new Map(institutions.map((institution) => [String(institution.id), institution]));
@@ -233,6 +237,8 @@ export function Profile() {
         });
       if (action.type === "deleteAuth")
         result = await deleteAuthMutation.mutateAsync({ profile_id: id, inst_profile_id: instProfileId });
+      if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration });
+      if (action.type === "reactivate") result = await reactivateMutation.mutateAsync({ id, narration });
       notifications.success(apiMessage(result, "Profile action completed"));
       setAction(null);
       setNarration("");
@@ -246,7 +252,9 @@ export function Profile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
-    deleteAuthMutation.isPending;
+    deleteAuthMutation.isPending ||
+    deactivateMutation.isPending ||
+    reactivateMutation.isPending;
 
   const columns = [
     { key: "profile_name", label: t("profileName"), align: "left", render: (p) => renderProfileValue(p, "profile_name") },
@@ -289,42 +297,21 @@ export function Profile() {
       label: t("common:actions"),
       sortable: false,
       render: (p) => {
-        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit });
-        const actions = [
-          ...(visibility.submitDraft ? [["submit", "Submit draft", Send, "submit"]] : []),
-          ...(visibility.authorize
-            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
-            : []),
-          ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-          ...(visibility.delete ? [["delete", "Delete", Trash2, "delete"]] : []),
-        ];
+        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit, canChangeStatus });
+        const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
         return (
-          <div className="flex items-center justify-center gap-1">
-            {visibility.edit && (
-              <UiTooltip label="Edit">
-                <button type="button" onClick={() => openEdit(p)} className={actionButtonClass("edit")}>
-                  <Pencil size={14} />
-                </button>
-              </UiTooltip>
-            )}
-            <UiTooltip label="View">
-              <button type="button" onClick={() => setViewProfile(p)} className={actionButtonClass("view")}>
-                <Eye size={14} />
-              </button>
-            </UiTooltip>
-            <UiTooltip label="Audit">
-              <button type="button" onClick={() => setAuditProfile(p)} className={actionButtonClass("view")}>
-                <History size={14} />
-              </button>
-            </UiTooltip>
-            {actions.map(([type, label, Icon, style]) => (
-              <UiTooltip key={type} label={label}>
-                <button type="button" onClick={() => setAction({ type, profile: p, label, style })} className={actionButtonClass(style)}>
-                  <Icon size={14} />
-                </button>
-              </UiTooltip>
-            ))}
-          </div>
+          <RowActions
+            buttons={visibility}
+            onEdit={() => openEdit(p)}
+            onView={() => setViewProfile(p)}
+            onAudit={() => setAuditProfile(p)}
+            onSubmit={() => setAction({ type: "submit", profile: p, label: "Submit draft" })}
+            onAuthorize={() => setAction({ type: pendingType, profile: p, label: "Authorize" })}
+            onDeauthorize={() => setAction({ type: "deauth", profile: p, label: "Deauthorize" })}
+            onDeactivate={() => setAction({ type: "deactivate", profile: p, label: "Deactivate" })}
+            onReactivate={() => setAction({ type: "reactivate", profile: p, label: "Reactivate" })}
+            onDelete={() => setAction({ type: "delete", profile: p, label: "Delete" })}
+          />
         );
       },
     },
@@ -451,7 +438,7 @@ export function Profile() {
       />
 
       <ConfirmDialog
-        open={["submit", "deleteAuth"].includes(action?.type)}
+        open={["submit", "deleteAuth", "deactivate", "reactivate"].includes(action?.type)}
         title={`${action?.label ?? "Confirm action"} profile`}
         confirmLabel={action?.label ?? "Confirm"}
         destructive={action?.type === "deleteAuth"}
@@ -459,7 +446,7 @@ export function Profile() {
         onClose={closeAction}
         onConfirm={() => void runAction()}
       >
-        {action?.type === "submit" && (
+        {["submit", "deactivate", "reactivate"].includes(action?.type) && (
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
             Narration
             <textarea

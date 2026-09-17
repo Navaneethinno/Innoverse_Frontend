@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, History, Pencil, Plus, Send, ShieldCheck, ShieldOff, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { useSelector } from "react-redux";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -10,8 +11,6 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
@@ -634,91 +633,21 @@ export function AcctConfigResource({ entity }) {
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
         return (
-          <div className="flex items-center justify-start gap-1">
-            <UiTooltip label="View">
-              <button type="button" className={actionButtonClass("view")} onClick={() => setView(row)}>
-                <Eye size={14} />
-              </button>
-            </UiTooltip>
-            {buttons.edit && (
-              <button
-                type="button"
-                className={actionButtonClass("edit")}
-                onClick={() => {
-                  setEditing(row);
-                  setForm({ ...row });
-                }}
-              >
-                <Pencil size={14} />
-              </button>
-            )}
-            {buttons.audit && (
-              <button type="button" className={actionButtonClass("audit")} onClick={() => setAudit(row)}>
-                <History size={14} />
-              </button>
-            )}
-            {buttons.submitDraft && (
-              <button
-                type="button"
-                className={actionButtonClass("submit")}
-                onClick={() => setAction({ row, type: "submit", label: "Submit" })}
-              >
-                <Send size={14} />
-              </button>
-            )}
-            {/* A pending row (PENDING ADD/EDIT/DELETE/...) grants BOTH
-                authorize and deauthorize at once — approve or reject are
-                both valid next steps on the same row — so these render
-                independently rather than as an if/else chain (which used to
-                show only Authorize and silently drop the Reject button on
-                every pending row). deactivate/activate are mutually
-                exclusive with authorize/deauthorize and with each other. */}
-            {buttons.authorize && (
-              <button
-                type="button"
-                className={actionButtonClass("auth")}
-                onClick={() => setAction({ row, type: pendingType, label: "Authorize" })}
-              >
-                <ShieldCheck size={14} />
-              </button>
-            )}
-            {buttons.deauthorize && (
-              <button
-                type="button"
-                className={actionButtonClass("deauth")}
-                onClick={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
-              >
-                <ShieldOff size={14} />
-              </button>
-            )}
-            {buttons.deactivate && (
-              <button
-                type="button"
-                className={actionButtonClass("deauth")}
-                onClick={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
-              >
-                <ShieldOff size={14} />
-              </button>
-            )}
-            {buttons.activate && (
-              <button
-                type="button"
-                className={actionButtonClass("auth")}
-                onClick={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
-              >
-                <ShieldCheck size={14} />
-              </button>
-            )}
-            {buttons.delete && (
-              <button
-                type="button"
-                className={actionButtonClass("delete")}
-                onClick={() => setAction({ row, type: "delete", label: "Delete" })}
-              >
-                <Trash2 size={14} />
-              </button>
-            )}
-          </div>
+          <RowActions
+            buttons={buttons}
+            onView={() => setView(row)}
+            onEdit={() => {
+              setEditing(row);
+              setForm({ ...row });
+            }}
+            onAudit={() => setAudit(row)}
+            onSubmit={() => setAction({ row, type: "submit", label: "Submit" })}
+            onAuthorize={() => setAction({ row, type: pendingType, label: "Authorize" })}
+            onDeauthorize={() => setAction({ row, type: "deauth", label: "Reject", reason: "" })}
+            onDeactivate={() => setAction({ row, type: "deactivate", label: "Deactivate" })}
+            onReactivate={() => setAction({ row, type: "reactivate", label: "Reactivate" })}
+            onDelete={() => setAction({ row, type: "delete", label: "Delete" })}
+          />
         );
       },
     },

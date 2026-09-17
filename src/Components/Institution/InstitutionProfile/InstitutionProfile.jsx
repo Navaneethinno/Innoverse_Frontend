@@ -5,20 +5,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock3,
-  Eye,
   Filter,
-  History,
   ListChecks,
   PauseCircle,
-  Pencil,
   Plus,
-  PowerOff,
-  Power,
-  Send,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
 } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -38,7 +30,6 @@ import {
 import { institutionsApi } from "@/Services/Institutions/institutions.api";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { cn } from "@/Utils/Lib/cn";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
@@ -268,49 +259,18 @@ export function InstitutionProfile() {
           canDelete,
         });
         return (
-          <div className="flex flex-wrap items-center justify-center gap-1">
-            <UiTooltip label="View"><button onClick={() => navigate(`/institutions/${id}`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-              <Eye size={14} />
-            </button></UiTooltip>
-            {buttons.edit && (
-              <UiTooltip label="Edit"><button onClick={() => navigate(`/institutions/${id}?edit=1`)} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-                <Pencil size={14} />
-              </button></UiTooltip>
-            )}
-              <UiTooltip label="Audit"><button onClick={() => setAuditInstitution(inst)} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100">
-                <History size={14} />
-            </button></UiTooltip>
-            {buttons.submitDraft && (
-              <UiTooltip label="Submit Draft"><button onClick={() => setAction({ type: "submit", inst })} className="rounded-lg p-1.5 text-blue-600 hover:bg-blue-50">
-                <Send size={14} />
-              </button></UiTooltip>
-            )}
-            {buttons.authorize && (
-              <UiTooltip label="Authorize"><button onClick={() => setAction({ type: "auth", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                <ShieldCheck size={14} />
-              </button></UiTooltip>
-            )}
-            {buttons.deauthorize && (
-              <UiTooltip label="Deauthorize"><button onClick={() => setAction({ type: "deauth", inst })} className="rounded-lg p-1.5 text-amber-600 hover:bg-amber-50">
-                <ShieldOff size={14} />
-              </button></UiTooltip>
-            )}
-            {buttons.deactivate && (
-                <UiTooltip label="Deactivate"><button onClick={() => setAction({ type: "deactivate", inst })} className="rounded-lg p-1.5 text-orange-600 hover:bg-orange-50">
-                <PowerOff size={14} />
-              </button></UiTooltip>
-            )}
-            {buttons.activate && (
-                <UiTooltip label="Activate"><button onClick={() => setAction({ type: "reactivate", inst })} className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50">
-                <Power size={14} />
-              </button></UiTooltip>
-            )}
-            {buttons.delete && (
-                <UiTooltip label="Delete"><button onClick={() => setAction({ type: "delete", inst })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-                <Trash2 size={14} />
-              </button></UiTooltip>
-            )}
-          </div>
+          <RowActions
+            buttons={buttons}
+            onView={() => navigate(`/institutions/${id}`)}
+            onEdit={() => navigate(`/institutions/${id}?edit=1`)}
+            onAudit={() => setAuditInstitution(inst)}
+            onSubmit={() => setAction({ type: "submit", inst })}
+            onAuthorize={() => setAction({ type: "auth", inst })}
+            onDeauthorize={() => setAction({ type: "deauth", inst })}
+            onDeactivate={() => setAction({ type: "deactivate", inst })}
+            onReactivate={() => setAction({ type: "reactivate", inst })}
+            onDelete={() => setAction({ type: "delete", inst })}
+          />
         );
       },
     },

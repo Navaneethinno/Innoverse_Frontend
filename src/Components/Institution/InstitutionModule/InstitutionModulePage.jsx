@@ -1,18 +1,6 @@
 import { useState } from "react";
-import {
-  AlertCircle,
-  Edit3,
-  Eye,
-  History,
-  Plus,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-  Power,
-  PowerOff,
-  Send,
-  X,
-} from "lucide-react";
+import { AlertCircle, Plus, X } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -20,8 +8,6 @@ import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import {
   useInstitutionModuleMutation,
@@ -65,59 +51,24 @@ function ModuleActions({ row, onRefresh, onEdit }) {
   // Single shared status-based visibility engine — see buttonVisibility.js
   // for the full status_name/process_status_name matrix this is built from.
   const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
-  const buttons = [
-    ...(visibility.submitDraft ? [["submit", "Submit", Send]] : []),
-    ...(visibility.authorize
-      ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
-      : []),
-    ...(visibility.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
-    ...(visibility.delete ? [["delete", "Delete", Trash2]] : []),
-    ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(visibility.activate ? [["reactivate", "Activate", Power]] : []),
-  ];
+  const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
   return (
     <>
-      <div className="flex flex-wrap justify-center gap-1">
-        <UiTooltip label="View">
-          <button
-            type="button"
-            onClick={() => {
-              setAction({ method: "view", label: "View" });
-              setDetails(row);
-            }}
-            className={actionButtonClass("view")}
-          >
-            <Eye size={14} />
-          </button>
-        </UiTooltip>
-        {visibility.edit && (
-          <UiTooltip label="Edit">
-            <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
-              <Edit3 size={14} />
-            </button>
-          </UiTooltip>
-        )}
-        <UiTooltip label="Audit">
-          <button
-            type="button"
-            onClick={() => setAuditOpen(true)}
-            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
-          >
-            <History size={14} />
-          </button>
-        </UiTooltip>
-        {buttons.map(([method, label, Icon]) => (
-          <UiTooltip key={method} label={label}>
-            <button
-              type="button"
-              onClick={() => setAction({ method, label })}
-              className={actionButtonClass(method)}
-            >
-              <Icon size={14} />
-            </button>
-          </UiTooltip>
-        ))}
-      </div>
+      <RowActions
+        buttons={visibility}
+        onView={() => {
+          setAction({ method: "view", label: "View" });
+          setDetails(row);
+        }}
+        onEdit={onEdit}
+        onAudit={() => setAuditOpen(true)}
+        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
+        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
+        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
+        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
+        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
+        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+      />
       <ConfirmDialog
         open={!!action && !details}
         title={`${action?.label ?? "Action"} institution module`}

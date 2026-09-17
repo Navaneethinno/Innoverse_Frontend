@@ -1,17 +1,6 @@
 import { useState } from "react";
-import {
-  AlertCircle,
-  Edit3,
-  Eye,
-  History,
-  Plus,
-  Power,
-  PowerOff,
-  Send,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-} from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -20,8 +9,6 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { institutionChannelApi } from "@/Services/Institutions/institutionChannel.api";
 import {
@@ -65,55 +52,21 @@ function ChannelActions({ row, onRefresh, onEdit }) {
       /* mutation hook already shows the error toast */
     }
   };
+  const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
   return (
     <>
-      <div className="flex flex-wrap justify-center gap-1">
-        <UiTooltip label="View">
-          <button
-            type="button"
-            onClick={() => setDetails(row)}
-            className={actionButtonClass("view")}
-          >
-            <Eye size={14} />
-          </button>
-        </UiTooltip>
-        {buttons.edit && (
-          <UiTooltip label="Edit">
-            <button type="button" onClick={onEdit} className={actionButtonClass("edit")}>
-              <Edit3 size={14} />
-            </button>
-          </UiTooltip>
-        )}
-        <UiTooltip label="Audit">
-          <button
-            type="button"
-            onClick={() => setAudit(true)}
-            className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100"
-          >
-            <History size={14} />
-          </button>
-        </UiTooltip>
-        {[
-          ...(buttons.submitDraft ? [["submit", "Submit", Send]] : []),
-          ...(buttons.authorize
-            ? [[buttons.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck]]
-            : []),
-          ...(buttons.deauthorize ? [["deauth", "Deauthorize", ShieldOff]] : []),
-          ...(buttons.delete ? [["delete", "Delete", Trash2]] : []),
-          ...(buttons.deactivate ? [["deactivate", "Deactivate", PowerOff]] : []),
-          ...(buttons.activate ? [["reactivate", "Activate", Power]] : []),
-        ].map(([method, label, Icon]) => (
-          <UiTooltip key={method} label={label}>
-            <button
-              type="button"
-              onClick={() => setAction({ method, label })}
-              className={actionButtonClass(method)}
-            >
-              <Icon size={14} />
-            </button>
-          </UiTooltip>
-        ))}
-      </div>
+      <RowActions
+        buttons={buttons}
+        onView={() => setDetails(row)}
+        onEdit={onEdit}
+        onAudit={() => setAudit(true)}
+        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
+        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
+        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
+        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
+        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
+        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+      />
       <ConfirmDialog
         open={!!action}
         title={`${action?.label ?? "Action"} institution channel`}

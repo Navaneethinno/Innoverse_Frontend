@@ -1,25 +1,13 @@
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
-import {
-  Eye,
-  History,
-  Pencil,
-  Plus,
-  Power,
-  PowerOff,
-  Send,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/Users/kycHooks";
 import { usersApi } from "@/Services/Users/users.api";
@@ -172,16 +160,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
   );
 
   const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
-  const actions = [
-    ...(visibility.submitDraft ? [["kycSubmit", "Submit Draft", Send, "submit"]] : []),
-    ...(visibility.authorize
-      ? [[visibility.isPendingDelete ? "kycDeleteAuth" : "kycAuth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
-      : []),
-    ...(visibility.deauthorize ? [["kycDeauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-    ...(visibility.delete ? [["kycDelete", "Delete", Trash2, "delete"]] : []),
-    ...(visibility.deactivate ? [["kycDeactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-    ...(visibility.activate ? [["kycReactivate", "Activate", Power, "reactivate"]] : []),
-  ];
+  const pendingMethod = visibility.isPendingDelete ? "kycDeleteAuth" : "kycAuth";
 
   const execute = async () => {
     if (!action) return;
@@ -197,32 +176,18 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-center gap-1">
-        <UiTooltip label="View">
-          <button type="button" onClick={() => onView(row)} className={actionButtonClass("view")}>
-            <Eye size={14} />
-          </button>
-        </UiTooltip>
-        {visibility.edit && (
-          <UiTooltip label="Edit">
-            <button type="button" onClick={() => onEdit(row)} className={actionButtonClass("edit")}>
-              <Pencil size={14} />
-            </button>
-          </UiTooltip>
-        )}
-        <UiTooltip label="Audit">
-          <button type="button" onClick={() => onAudit(row)} className={actionButtonClass("view")}>
-            <History size={14} />
-          </button>
-        </UiTooltip>
-        {actions.map(([method, label, Icon, style]) => (
-          <UiTooltip key={method} label={label}>
-            <button type="button" onClick={() => setAction({ method, label, style })} className={actionButtonClass(style)}>
-              <Icon size={14} />
-            </button>
-          </UiTooltip>
-        ))}
-      </div>
+      <RowActions
+        buttons={visibility}
+        onView={() => onView(row)}
+        onEdit={() => onEdit(row)}
+        onAudit={() => onAudit(row)}
+        onSubmit={() => setAction({ method: "kycSubmit", label: "Submit Draft" })}
+        onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
+        onDeauthorize={() => setAction({ method: "kycDeauth", label: "Deauthorize" })}
+        onDeactivate={() => setAction({ method: "kycDeactivate", label: "Deactivate" })}
+        onReactivate={() => setAction({ method: "kycReactivate", label: "Activate" })}
+        onDelete={() => setAction({ method: "kycDelete", label: "Delete" })}
+      />
 
       <ConfirmDialog
         open={!!action}

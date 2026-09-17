@@ -1,18 +1,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  AlertCircle,
-  Eye,
-  History,
-  Plus,
-  Pencil,
-  ShieldCheck,
-  ShieldOff,
-  Trash2,
-  PowerOff,
-  Power,
-  Send,
-} from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
+import { RowActions } from "@/Components/Common/RowActions";
 import {
   mapUserListResponse,
   useHasUserAction,
@@ -35,8 +24,6 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
@@ -285,56 +272,31 @@ export function User() {
         // definition above), so Reject visibility is computed against it
         // directly rather than through getMakerCheckerButtons's single
         // canAuthorize gate, which governs both Authorize and Deauthorize.
-        const visibility = getMakerCheckerButtons(user, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
+        const rawVisibility = getMakerCheckerButtons(user, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, canSubmit });
         const rawDeauthorize = deriveButtonVisibility(user).deauthorize;
-        const actions = [
-          ...(visibility.submitDraft ? [["submit", "Submit draft", Send, "submit"]] : []),
-          ...(visibility.authorize
-            ? [[visibility.isPendingDelete ? "deleteAuth" : "auth", "Authorize", ShieldCheck, visibility.isPendingDelete ? "deleteAuth" : "auth"]]
-            : []),
-          ...(canDeauthorize && rawDeauthorize && !visibility.isPendingDelete ? [["deauth", "Deauthorize", ShieldOff, "deauth"]] : []),
-          ...(visibility.delete ? [["delete", "Delete", Trash2, "delete"]] : []),
-          ...(visibility.deactivate ? [["deactivate", "Deactivate", PowerOff, "deactivate"]] : []),
-          ...(visibility.activate ? [["reactivate", "Activate", Power, "reactivate"]] : []),
-        ];
-        return <div className="flex flex-wrap items-center justify-center gap-1">
-          <UiTooltip label="View">
-            <button
-              type="button"
-              onClick={() => openEdit(user, { readOnly: true })}
-              className={actionButtonClass("view")}
-            >
-              <Eye size={14} />
-            </button>
-          </UiTooltip>
-          {visibility.edit && (
-            <UiTooltip label="Edit">
-              <button
-                type="button"
-                onClick={() => openEdit(user)}
-                className={actionButtonClass("edit")}
-              >
-                <Pencil size={14} />
-              </button>
-            </UiTooltip>
-          )}
-          <UiTooltip label="Audit">
-            <button
-              type="button"
-              onClick={() => openAudit(user)}
-              className={actionButtonClass("view")}
-            >
-              <History size={14} />
-            </button>
-          </UiTooltip>
-          {actions.map(([type, label, Icon, style]) => (
-            <UiTooltip key={type} label={label}>
-              <button type="button" onClick={() => setAction({ type, user, label, style })} className={actionButtonClass(style)}>
-                <Icon size={14} />
-              </button>
-            </UiTooltip>
-          ))}
-        </div>;
+        // canDeauthorize is intentionally broader than canAuthorize, so
+        // Reject visibility overrides the generic getMakerCheckerButtons
+        // gate (which ties both Authorize and Deauthorize to canAuthorize)
+        // rather than using its value directly.
+        const visibility = {
+          ...rawVisibility,
+          deauthorize: canDeauthorize && rawDeauthorize && !rawVisibility.isPendingDelete,
+        };
+        const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
+        return (
+          <RowActions
+            buttons={visibility}
+            onView={() => openEdit(user, { readOnly: true })}
+            onEdit={() => openEdit(user)}
+            onAudit={() => openAudit(user)}
+            onSubmit={() => setAction({ type: "submit", user, label: "Submit draft" })}
+            onAuthorize={() => setAction({ type: pendingType, user, label: "Authorize" })}
+            onDeauthorize={() => setAction({ type: "deauth", user, label: "Deauthorize" })}
+            onDeactivate={() => setAction({ type: "deactivate", user, label: "Deactivate" })}
+            onReactivate={() => setAction({ type: "reactivate", user, label: "Activate" })}
+            onDelete={() => setAction({ type: "delete", user, label: "Delete" })}
+          />
+        );
       },
     },
   ];
@@ -441,7 +403,7 @@ export function User() {
         open={!!action}
         title={`${action?.label ?? "Confirm action"} user`}
         confirmLabel={action?.label ?? "Confirm"}
-        destructive={["delete", "deleteAuth"].includes(action?.style)}
+        destructive={["delete", "deleteAuth"].includes(action?.type)}
         pending={actionPending}
         confirmDisabled={["deauth", "delete"].includes(action?.type) && !narration.trim()}
         onClose={closeAction}
