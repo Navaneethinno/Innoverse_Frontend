@@ -36,6 +36,8 @@ void i18n
       "setup",
       "changePassword",
       "sidebar",
+      "routes",
+      "statusBadge",
     ],
     interpolation: { escapeValue: false },
     detection: {

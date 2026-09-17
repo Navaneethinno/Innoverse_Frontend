@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
 const STATUS_CONFIG = {
   // Entity statuses
@@ -97,6 +98,20 @@ const STATUS_CONFIG = {
     label: "Pending Delete",
     dot: "bg-amber-800",
     pill: "bg-amber-50 text-amber-900 border-amber-300",
+  },
+  // Confirmed live via /institution/profile/list — a pending reactivate
+  // populates auth_status with this code, the same "_WAIT_AUTH" family as
+  // NEW_WAIT_AUTH/EDIT_WAIT_AUTH/DEL_WAIT_AUTH above, but wasn't in the
+  // original mapping and fell through to the raw-code fallback.
+  REACT_WAIT_AUTH: {
+    label: "Pending Reactivate",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  DEACT_WAIT_AUTH: {
+    label: "Pending Deactivate",
+    dot: "bg-orange-500",
+    pill: "bg-orange-50 text-orange-700 border-orange-200",
   },
   // Checker-rejected outcomes, as seen in the Authorization Status column
   // (auth_status) — a different, more granular field than status_name's
@@ -219,18 +234,59 @@ const TEXT_COLOR_BY_PILL = {
   "bg-slate-50 text-slate-500 border-slate-200": "text-slate-500",
 };
 
+// Every distinct STATUS_CONFIG label above, keyed for translation — kept as
+// a separate lookup (rather than inlining t() calls into STATUS_CONFIG
+// itself) so multiple raw backend codes that share the same human label
+// (e.g. AUTH WAIT / PENDING ADD / NEW_WAIT_AUTH all -> "Pending Add") share
+// one translation key too, instead of duplicating the same string 3x in the
+// locale files.
+const LABEL_KEY = {
+  Active: "statusLabelActive",
+  Authorized: "statusLabelAuthorized",
+  "Pending Add": "statusLabelPendingAdd",
+  "Pending Edit": "statusLabelPendingEdit",
+  "Pending Delete": "statusLabelPendingDelete",
+  "Pending Deactivate": "statusLabelPendingDeactivate",
+  "Pending Reactivate": "statusLabelPendingReactivate",
+  Inactive: "statusLabelInactive",
+  Deleted: "statusLabelDeleted",
+  Deauthorized: "statusLabelDeauthorized",
+  Deactivated: "statusLabelDeactivated",
+  "Rejected Add": "statusLabelRejectedAdd",
+  "Rejected Edit": "statusLabelRejectedEdit",
+  "Rejected Delete": "statusLabelRejectedDelete",
+  "Rejected Deactivate": "statusLabelRejectedDeactivate",
+  "Rejected Reactivate": "statusLabelRejectedReactivate",
+  "Pending Mod": "statusLabelPendingMod",
+  Approved: "statusLabelApproved",
+  Rejected: "statusLabelRejected",
+  Pending: "statusLabelPending",
+  Verified: "statusLabelVerified",
+  Add: "statusLabelAdd",
+  Edit: "statusLabelEdit",
+  Delete: "statusLabelDelete",
+  Activate: "statusLabelActivate",
+  Deactivate: "statusLabelDeactivate",
+};
+
 // `` renders a dot + plain colored text instead of a filled
 // pill — for secondary status columns (Process Status, Authorization
 // Status) shown alongside the primary Status column, so three badges that
 // often carry the same value in a row don't read as three loud, identical
 // pills. Same color language as the solid pill, just lighter-weight.
 export function StatusBadge({ status, variant = "solid" }) {
+  const { t } = useTranslation("statusBadge");
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
   const cfg = STATUS_CONFIG[normalizedStatus] ?? {
     label: status,
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
   };
+  // An unrecognized status falls back to the raw backend string as-is
+  // (cfg.label === status above) — there's no sensible translation for an
+  // arbitrary enum code we don't have a mapping for, so only a label this
+  // component itself defined above goes through t().
+  const label = LABEL_KEY[cfg.label] ? t(LABEL_KEY[cfg.label]) : cfg.label;
   if (variant === "subtle") {
     return (
       <span
@@ -240,7 +296,7 @@ export function StatusBadge({ status, variant = "solid" }) {
         )}
       >
         <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
-        {cfg.label}
+        {label}
       </span>
     );
   }
@@ -252,7 +308,7 @@ export function StatusBadge({ status, variant = "solid" }) {
       )}
     >
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
-      {cfg.label}
+      {label}
     </span>
   );
 }

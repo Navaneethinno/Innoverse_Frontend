@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
 import {
   AlertCircle,
@@ -46,7 +47,12 @@ import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED", "DEAUTH", "DELETED"];
 const TABS = ["all", "active", "pending", "inactive"];
-const TAB_LABEL = { all: "All", active: "Active", pending: "Pending", inactive: "Inactive" };
+const TAB_LABEL_KEY = {
+  all: "statusAll",
+  active: "statusActive",
+  pending: "statusPending",
+  inactive: "statusInactive",
+};
 const TAB_ICON = { all: ListChecks, active: CheckCircle2, pending: Clock3, inactive: PauseCircle };
 
 function statusOf(inst) {
@@ -95,6 +101,7 @@ function timestampOf(inst) {
 // own non-active/non-terminal auth_status rows exactly as before.
 export function InstitutionProfile() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["institutions", "common"]);
   // Real permission source — the user's own menu_array (from login), the
   // exact same data the sidebar itself uses to decide what to show. An
   // action button only renders if its name is actually present in the
@@ -212,12 +219,12 @@ export function InstitutionProfile() {
     submitMutation.isPending;
 
   const columns = [
-    { key: "code", label: "Code", render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
-    { key: "name", label: "Name", render: (r) => <span className="font-semibold text-slate-800">{r.name ?? "—"}</span> },
-    { key: "type", label: "Type", sortValue: (r) => r.type_name ?? r.type ?? "", render: (r) => r.type_name ?? r.type ?? "—" },
+    { key: "code", label: t("institutions:columnCode"), render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
+    { key: "name", label: t("institutions:columnName"), render: (r) => <span className="font-semibold text-slate-800">{r.name ?? "—"}</span> },
+    { key: "type", label: t("institutions:columnType"), sortValue: (r) => r.type_name ?? r.type ?? "", render: (r) => r.type_name ?? r.type ?? "—" },
     {
       key: "status_name",
-      label: "Status",
+      label: t("institutions:columnStatus"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status == null && !r.status_name ? (
@@ -232,19 +239,19 @@ export function InstitutionProfile() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("institutions:columnProcessStatus"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: t("institutions:columnAuthorizationStatus"),
       sortValue: statusOf,
       render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("institutions:columnActions"),
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
@@ -279,9 +286,9 @@ export function InstitutionProfile() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">Institutions</h1>
+        <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("institutions:listTitle")}</h1>
         <p className="mt-1 text-xs font-medium text-slate-400">
-          {institutions.length} registered · {counts.active} active
+          {t("institutions:listSubtitle", { total: institutions.length, active: counts.active })}
         </p>
       </div>
 
@@ -309,16 +316,27 @@ export function InstitutionProfile() {
                 }}
                 className={cn(
                   "flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors",
-                  isActive ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
+                  !isActive && "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
                 )}
+                style={
+                  isActive
+                    ? { background: "var(--primary-light)", color: "var(--primary)" }
+                    : undefined
+                }
               >
-                <Icon size={14} strokeWidth={2} className={isActive ? "text-blue-600" : "text-slate-400"} />
-                {TAB_LABEL[value]}
+                <Icon
+                  size={14}
+                  strokeWidth={2}
+                  className={isActive ? undefined : "text-slate-400"}
+                  style={isActive ? { color: "var(--primary)" } : undefined}
+                />
+                {t(`common:${TAB_LABEL_KEY[value]}`)}
                 <span
                   className={cn(
                     "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-                    isActive ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500",
+                    !isActive && "bg-slate-100 text-slate-500",
                   )}
+                  style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
                 >
                   {counts[value]}
                 </span>
@@ -335,8 +353,8 @@ export function InstitutionProfile() {
             style={{ background: "var(--primary)" }}
           >
             <Plus size={14} />
-            <span className="hidden sm:inline">New Institution</span>
-            <span className="sm:hidden">New</span>
+            <span className="hidden sm:inline">{t("institutions:newInstitution")}</span>
+            <span className="sm:hidden">{t("institutions:newInstitutionShort")}</span>
           </motion.button>
         )}
         </div>
@@ -349,7 +367,7 @@ export function InstitutionProfile() {
               setPage(1);
             }}
             type="text"
-            placeholder="Search institutions…"
+            placeholder={t("institutions:searchInstitutionsPlaceholder")}
             className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
         </div>
@@ -359,7 +377,7 @@ export function InstitutionProfile() {
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {institutionsQuery.error.message}
           <button onClick={() => void institutionsQuery.refetch()} className="ml-auto text-xs font-bold underline">
-            Retry
+            {t("institutions:retry")}
           </button>
         </div>
       )}
@@ -370,10 +388,10 @@ export function InstitutionProfile() {
         rows={filtered}
         rowKey={(inst) => institutionId(inst)}
         isLoading={institutionsQuery.isLoading}
-        title="Institutions"
+        title={t("institutions:listTitle")}
         searchableKeys={["name", "code"]}
-        emptyTitle="No institutions found"
-        emptyDescription="Adjust your search or filter criteria"
+        emptyTitle={t("institutions:emptyTitle")}
+        emptyDescription={t("institutions:emptyDescription")}
         fetchMore={async (page, limit) => {
           const mapped = mapInstitutionListResponse(await institutionsApi.list({ page, limit }));
           return { rows: mapped.institutions, totalPages: mapped.pagination.totalPages };
