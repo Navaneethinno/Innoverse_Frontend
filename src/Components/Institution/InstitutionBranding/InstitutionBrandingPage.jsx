@@ -273,6 +273,7 @@ export function InstitutionBrandingPage() {
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionBrandingMutation("add");
   const edit = useInstitutionBrandingMutation("edit");
+  const submitDraft = useInstitutionBrandingMutation("submit");
   const filteredRows =
     !search.trim() && statusFilter === "all"
       ? query.data
@@ -346,13 +347,28 @@ export function InstitutionBrandingPage() {
   const submit = async (values) => {
     try {
       const instProfileId = editing ? editing.inst_profile_id : values.inst_profile_id;
-      if (editing)
+      if (editing) {
         await edit.mutateAsync({
           id: editing.id,
           ...values,
           ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
         });
-      else await add.mutateAsync(values);
+        // Confirmed live: /institution/branding/edit only updates a
+        // record's fields — it never advances process_status, even when
+        // called with is_draft:false. A still-Draft record edited via
+        // "Save changes" (not "Save as draft") therefore stayed "Draft"
+        // forever unless separately Submitted from the row action, which
+        // is not what "Save changes" implies. Chaining the same /submit
+        // call the row's own Submit button already uses turns "Save
+        // changes" on a draft into what it visually promises: save AND
+        // move it out of draft for checker review.
+        const wasDraft = editing.auth_status === "DRAFT" || editing.process_status_name === "Draft";
+        if (wasDraft && values.is_draft === false) {
+          await submitDraft.mutateAsync({ id: editing.id, narration: values.narration || "Submitted for review" });
+        }
+      } else {
+        await add.mutateAsync(values);
+      }
       setFormOpen(false);
       await query.refetch();
       // Applying this instantly — rather than waiting for the maker-checker
