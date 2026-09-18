@@ -36,6 +36,7 @@ void i18n
       "setup",
       "changePassword",
       "sidebar",
+      "routes",
     ],
     interpolation: { escapeValue: false },
     detection: {

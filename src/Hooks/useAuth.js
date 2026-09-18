@@ -7,9 +7,11 @@ import {
 import { clearAuthSession, persistAuthSession, readAuthUser } from "@/Services/api/authStorage";
 import { clearToken, setSession } from "@/Redux/AuthToken";
 import { setMenuArray, clearMenuState } from "@/Redux/MenuSlice";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 export function useAuth(selector) {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.token);
+  const { setBrandTheme, clearBrandTheme } = useBrandTheme();
   const login = async ({ username, password }) => {
     try {
       const response = await loginRequest(username, password);
@@ -24,6 +26,9 @@ export function useAuth(selector) {
       // The authenticated user's permission/navigation dataset, persisted
       // separately from Master reference data (see Redux/MenuSlice.js).
       dispatch(setMenuArray(response.menu_array));
+      // Tenant's primary/secondary brand colors from the login response, if
+      // present — falls back to theme.css's fixed palette when absent.
+      setBrandTheme(response.theme);
       // Returns the backend's own message (e.g. "Login Successful") rather
       // than a bare boolean, so the UI can show it instead of a hardcoded
       // string — see LoginPage.jsx's use of apiMessage().
@@ -58,11 +63,16 @@ export function useAuth(selector) {
       if (Array.isArray(response.menu_array) && response.menu_array.length > 0) {
         dispatch(setMenuArray(response.menu_array));
       }
+      // Like menu_array, refresh_token doesn't re-send theme colors; only
+      // overwrite the already-persisted brand theme if this response
+      // actually carries one.
+      if (response.theme) setBrandTheme(response.theme);
       return true;
     } catch {
       clearAuthSession();
       dispatch(clearToken());
       dispatch(clearMenuState());
+      clearBrandTheme();
       return false;
     }
   };
@@ -72,6 +82,7 @@ export function useAuth(selector) {
     clearAuthSession();
     dispatch(clearToken());
     dispatch(clearMenuState());
+    clearBrandTheme();
   };
   return selector({ ...auth, login, refresh, changePassword, logout });
 }

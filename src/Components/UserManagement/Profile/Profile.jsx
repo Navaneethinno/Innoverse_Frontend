@@ -287,7 +287,7 @@ export function Profile() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       sortValue: (p) => p.process_status_name ?? "",
       render: (p) => renderProfileValue(p, "process_status_name"),
     },
@@ -333,7 +333,7 @@ export function Profile() {
               whileTap={{ scale: 0.97 }}
               onClick={openCreate}
               className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
-              style={{ background: "#2266EE" }}
+              style={{ background: "var(--primary)" }}
             >
               <Plus size={14} /> {t("newProfile")}
             </motion.button>
@@ -452,7 +452,7 @@ export function Profile() {
             <textarea
               value={narration}
               onChange={(event) => setNarration(event.target.value)}
-              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
             />
           </label>
         )}

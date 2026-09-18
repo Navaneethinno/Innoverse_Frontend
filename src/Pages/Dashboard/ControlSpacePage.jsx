@@ -66,7 +66,10 @@ export function ControlSpacePage() {
         transition={{ duration: 0.35 }}
         className="mb-6"
       >
-        <p className="text-[11px] font-bold text-blue-400 uppercase tracking-widest mb-1">
+        <p
+          className="text-[11px] font-bold uppercase tracking-widest mb-1"
+          style={{ color: "var(--primary)" }}
+        >
           {t("controlSpace")}
         </p>
         <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
@@ -83,7 +86,7 @@ export function ControlSpacePage() {
             label={t("totalInstitutions")}
             value={stats.total}
             sub={t("registeredOnPlatform")}
-            gradient="bg-[#2266EE]"
+            gradient="bg-[var(--primary)]"
             icon={Building2}
             delay={0.05}
           />
@@ -140,7 +143,10 @@ export function ControlSpacePage() {
         >
           <div className="relative">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-[#2266EE] flex items-center justify-center shadow-md shadow-blue-200/50">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md"
+                style={{ background: "var(--primary)", boxShadow: "0 4px 10px var(--primary-light)" }}
+              >
                 <Shield size={14} className="text-white" />
               </div>
               <h2 className="text-sm font-bold text-slate-800">{t("requestBreakdown")}</h2>
@@ -156,7 +162,8 @@ export function ControlSpacePage() {
           </div>
           <button
             onClick={() => navigate("/institutions/create")}
-            className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-blue-600 border border-blue-200/60 hover:bg-white/60 transition-colors"
+            className="mt-5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold border hover:bg-white/60 transition-colors"
+            style={{ color: "var(--primary)", borderColor: "var(--primary-light)" }}
           >
             {t("newInstitution")}
           </button>

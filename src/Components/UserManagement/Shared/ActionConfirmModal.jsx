@@ -5,7 +5,7 @@ export function ActionConfirmModal({ open, title, narration, setNarration, requi
     <Modal open={open} title={title} onClose={onClose} footer={
       <>
         <button type="button" onClick={onClose} className="px-3 py-2 text-sm text-slate-500">Cancel</button>
-        <button type="button" disabled={pending || (required && !narration.trim())} onClick={onConfirm} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">Confirm</button>
+        <button type="button" disabled={pending || (required && !narration.trim())} onClick={onConfirm} className="rounded-lg px-4 py-2 text-sm font-bold text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>Confirm</button>
       </>
     }>
       <label className="block text-sm font-medium text-slate-700">

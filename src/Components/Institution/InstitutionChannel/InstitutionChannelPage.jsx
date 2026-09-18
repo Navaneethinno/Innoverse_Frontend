@@ -21,9 +21,11 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -90,7 +92,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution channel"
+        title={tr("View institution channel")}
         size="md"
       >
         <div className="space-y-3">
@@ -131,6 +133,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionChannelPage() {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -152,19 +155,19 @@ export function InstitutionChannelPage() {
   const columns = [
     {
       key: "channel_name",
-      label: "Channel",
+      label: tr("Channel"),
       render: (r) => (
         <span className="font-semibold text-foreground">{display(r, "channel_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => display(r, "inst_profile_name"),
     },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -175,19 +178,19 @@ export function InstitutionChannelPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <ChannelActions
@@ -220,9 +223,9 @@ export function InstitutionChannelPage() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-foreground">Institution Channel</h1>
+          <h1 className="text-xl font-black tracking-tight text-foreground">{tr("Institution Channel")}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution channel assignments.
+            {tr("Manage institution channel assignments.")}
           </p>
         </div>
         
@@ -247,7 +250,7 @@ export function InstitutionChannelPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add channel
+            <Plus size={14} /> {tr("Add")} {tr("channel")}
           </button>
         )}
       bare /><DataTable
@@ -255,14 +258,14 @@ export function InstitutionChannelPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Channel"
+        title={tr("Institution Channel")}
         searchableKeys={["channel_name", "inst_profile_name"]}
-        emptyTitle="No channels found"
-        emptyDescription="Channel assignments will appear here when available."
+        emptyTitle={tr("No channels found")}
+        emptyDescription={tr("Channel assignments will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution channel" : "Add institution channel"}
+        title={editing ? tr("Edit institution channel") : tr("Add institution channel")}
         size="md"
       >
         <ChannelForm
@@ -278,6 +281,7 @@ export function InstitutionChannelPage() {
   );
 }
 function ChannelForm({ editing, institutions = [], channels = [], pending, onCancel, onSubmit }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
     channel_id: editing?.channel_id ?? "",
@@ -322,7 +326,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
               value={form.inst_profile_id}
               onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
               options={[
-                { value: "", label: "Select institution" },
+                { value: "", label: tr("Select institution") },
                 ...institutions.map((i) => ({
                   value: i.id ?? i.inst_profile_id,
                   label: i.name ?? i.inst_profile_name ?? i.code,
@@ -339,7 +343,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
           value={form.channel_id}
           onChange={(next) => set("channel_id")({ target: { value: next } })}
           options={[
-            { value: "", label: "Select channel" },
+            { value: "", label: tr("Select channel") },
             ...channels.map((c) => ({
               value: c.channel_id ?? c.id,
               label: c.channel_name ?? c.name,

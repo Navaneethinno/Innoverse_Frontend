@@ -52,7 +52,14 @@ export function SetupPage() {
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
-                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "bg-blue-500 text-white" : i === step ? "border-2 border-blue-400 bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-400"}`}
+                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "text-white" : i === step ? "border-2" : "bg-slate-100 text-slate-400"}`}
+                style={
+                  i < step
+                    ? { background: "var(--primary)" }
+                    : i === step
+                      ? { borderColor: "var(--primary)", background: "var(--primary-light)", color: "var(--primary)" }
+                      : undefined
+                }
               >
                 {i < step ? <Check size={13} /> : i + 1}
               </div>
@@ -143,11 +150,14 @@ export function SetupPage() {
                     onChange={(next) => setData({ ...data, currency: next })}
                     options={["USD", "EUR", "GBP", "CAD", "AUD", "SGD"].map((c) => ({ value: c, label: c }))}
                   />
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100">
-                    <CheckCircle size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                  <div
+                    className="flex items-start gap-3 p-4 rounded-xl border"
+                    style={{ background: "var(--primary-light)", borderColor: "var(--primary-light)" }}
+                  >
+                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: "var(--primary)" }} />
                     <div>
-                      <p className="text-sm font-medium text-blue-800">{t("autoSaveEnabled")}</p>
-                      <p className="text-xs text-blue-600 mt-0.5">
+                      <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>{t("autoSaveEnabled")}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--primary)" }}>
                         {t("autoSaveDescription")}
                       </p>
                     </div>
@@ -167,7 +177,8 @@ export function SetupPage() {
             )}
             <button
               onClick={() => (step < steps.length - 1 ? setStep((s) => s + 1) : nav("/dashboard"))}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600"
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white"
+              style={{ background: "var(--primary)" }}
             >
               {step === steps.length - 1 ? t("launchPlatform") : t("continue")}
             </button>

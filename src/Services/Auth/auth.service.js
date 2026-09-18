@@ -36,10 +36,23 @@ function parseSessionResponse(payload) {
   const sessionInfo = data?.user_session_info;
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");
+  // Tenant brand colors: confirmed live on /user/login as a top-level
+  // `branding: { primary_color, secondary_color }` object (e.g.
+  // {"primary_color":"#ff772e","secondary_color":"#fff838"}). user_details
+  // is kept as a fallback lookup spot only in case some tenant/response
+  // variant nests it there instead; deriveBrandThemeVars drops whichever of
+  // the two colors is missing/invalid, so a partial branding object safely
+  // falls back to theme.css for the rest.
+  const themeSource = data?.branding ?? data?.user_details ?? {};
+  const theme = {
+    primary: themeSource?.primary_color ?? null,
+    secondary: themeSource?.secondary_color ?? null,
+  };
   return {
     access_token: accessToken,
     refresh_token: sessionInfo?.refresh_token ?? null,
     user: data?.user_details ?? null,
+    theme: theme.primary || theme.secondary ? theme : null,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
     // Kept separate from Master reference data per Phase 24C spec.

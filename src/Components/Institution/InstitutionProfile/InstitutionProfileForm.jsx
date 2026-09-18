@@ -36,7 +36,7 @@ export function EditField({ label, value, onChange, type = "text", disabled = fa
         onWheel={type === "number" ? blurOnWheel : undefined}
         onChange={(e) => onChange?.(type === "number" ? clampNonNegative(e.target.value) : e.target.value)}
         disabled={disabled}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
       />
     </div>
   );

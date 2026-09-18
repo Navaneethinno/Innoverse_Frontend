@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { I18nProvider } from "@/Hooks/Providers/I18nProvider";
 import { ColorModeProvider } from "@/Hooks/Providers/ColorModeProvider";
+import { BrandThemeProvider } from "@/Hooks/Providers/BrandThemeProvider";
 import { LoadingScreen } from "@/Pages/Loading/LoadingScreen";
 import { appRouter } from "@/Router/Router";
 import store from "@/Redux/Store";
@@ -32,22 +33,24 @@ export function App() {
     <Provider store={store}>
       <AuthSessionInitializer />
       <ColorModeProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <ToastContainer
-            position="top-right"
-            autoClose={5000}
-            limit={5}
-            style={{ top: "76px" }}
-          />
-          <div className="App">
-            <LoadingScreen>
-              <I18nProvider>
-                <RouterProvider router={appRouter} />
-              </I18nProvider>
-            </LoadingScreen>
-          </div>
-        </ThemeProvider>
+        <BrandThemeProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              limit={5}
+              style={{ top: "76px" }}
+            />
+            <div className="App">
+              <LoadingScreen>
+                <I18nProvider>
+                  <RouterProvider router={appRouter} />
+                </I18nProvider>
+              </LoadingScreen>
+            </div>
+          </ThemeProvider>
+        </BrandThemeProvider>
       </ColorModeProvider>
     </Provider>
   );

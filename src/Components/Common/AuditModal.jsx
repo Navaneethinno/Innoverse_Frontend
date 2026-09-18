@@ -469,7 +469,7 @@ export function AuditModal({
           ))}
           <div className="py-2 text-center text-xs text-muted-foreground">
             {loadMoreError ? (
-              <button type="button" onClick={() => void loadMore()} className="font-semibold text-blue-600 underline">
+              <button type="button" onClick={() => void loadMore()} className="font-semibold text-[var(--primary)] underline">
                 {t("common:failedLoadMoreRetry")}
               </button>
             ) : loadingMore ? (

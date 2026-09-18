@@ -24,7 +24,7 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
           required
           value={form.profile_name}
           onChange={(e) => setForm({ ...form, profile_name: e.target.value })}
-          className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
+          className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
         />
       </label>
       <label className="block text-sm text-slate-700">

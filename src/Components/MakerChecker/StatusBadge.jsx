@@ -98,6 +98,20 @@ const STATUS_CONFIG = {
     dot: "bg-amber-800",
     pill: "bg-amber-50 text-amber-900 border-amber-300",
   },
+  // Confirmed live via /institution/profile/list — a pending reactivate
+  // populates auth_status with this code, the same "_WAIT_AUTH" family as
+  // NEW_WAIT_AUTH/EDIT_WAIT_AUTH/DEL_WAIT_AUTH above, but wasn't in the
+  // original mapping and fell through to the raw-code fallback.
+  REACT_WAIT_AUTH: {
+    label: "Pending Reactivate",
+    dot: "bg-blue-500",
+    pill: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  DEACT_WAIT_AUTH: {
+    label: "Pending Deactivate",
+    dot: "bg-orange-500",
+    pill: "bg-orange-50 text-orange-700 border-orange-200",
+  },
   // Checker-rejected outcomes, as seen in the Authorization Status column
   // (auth_status) — a different, more granular field than status_name's
   // own "REJECTED ADD"/etc. above, but the same underlying event. Without
@@ -231,6 +245,7 @@ export function StatusBadge({ status, variant = "solid" }) {
     dot: "bg-slate-400",
     pill: "bg-slate-50 text-slate-500 border-slate-200",
   };
+  const label = cfg.label;
   if (variant === "subtle") {
     return (
       <span
@@ -240,7 +255,7 @@ export function StatusBadge({ status, variant = "solid" }) {
         )}
       >
         <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
-        {cfg.label}
+        {label}
       </span>
     );
   }
@@ -252,7 +267,7 @@ export function StatusBadge({ status, variant = "solid" }) {
       )}
     >
       <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
-      {cfg.label}
+      {label}
     </span>
   );
 }

@@ -14,9 +14,9 @@ import { cn } from "@/Utils/Lib/cn";
 function SortIcon({ direction }) {
   if (!direction) return <ArrowUpDown size={12} className="text-slate-300" />;
   return direction === "asc" ? (
-    <ChevronUp size={13} className="text-blue-600" />
+    <ChevronUp size={13} style={{ color: "var(--primary)" }} />
   ) : (
-    <ChevronDown size={13} className="text-blue-600" />
+    <ChevronDown size={13} style={{ color: "var(--primary)" }} />
   );
 }
 
@@ -64,7 +64,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
   return (
     <thead>
       <tr className="border-b-2 border-slate-200">
-        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></th>}
+        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
         {columns.map((col) => (
           <th
             key={col.key}
@@ -90,8 +90,8 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
                   // non-sortable "Actions" header's plain (correctly-sized)
                   // text.
                   "inline-flex items-center gap-1 text-xs hover:text-slate-800",
-                  sort.key === col.key && "text-blue-600",
                 )}
+                style={sort.key === col.key ? { color: "var(--primary)" } : undefined}
               >
                 {col.label}
                 <SortIcon direction={sort.key === col.key ? sort.direction : null} />
@@ -136,8 +136,8 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
   return (
     <tbody>
       {rows.map((row, i) => (
-        <tr key={rowKey(row, i)} className={cn("border-b border-slate-100 transition-colors hover:bg-blue-50/50", selectedKeys.has(String(rowKey(row, i))) && "bg-blue-50/80")}>
-          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-blue-600" /></td>}
+        <tr key={rowKey(row, i)} className={cn("border-b border-slate-100 transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}>
+          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
           {columns.map((col) => (
             <td
               key={col.key}
@@ -343,7 +343,7 @@ export function DataTable({
     <button
       type="button"
       onClick={() => setViewAllOpen(true)}
-      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-blue-600 hover:bg-blue-50"
+      className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--primary)] hover:bg-[var(--primary-light)]"
     >
       <Maximize2 size={12} /> {t("viewAll")}
     </button>
@@ -373,7 +373,11 @@ export function DataTable({
         }
       >
         {!compact && <div className="flex min-h-10 items-center justify-between border-b border-slate-100 px-3.5">
-          <span className="text-xs font-medium text-slate-500">{selectable && selectedKeys.size > 0 ? `${selectedKeys.size} selected` : `${totalRecords} records`}</span>
+          <span className="text-xs font-medium text-slate-500">
+            {selectable && selectedKeys.size > 0
+              ? t("selectedCount", { count: selectedKeys.size })
+              : t("recordsCount", { count: totalRecords })}
+          </span>
           {viewAllButton}
         </div>}
         <div className="overflow-x-auto">
@@ -481,7 +485,7 @@ export function DataTable({
                 value={viewAllSearch}
                 onChange={(e) => setViewAllSearch(e.target.value)}
                 placeholder={t("searchPlaceholder")}
-                className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-400"
+                className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
               />
             </div>
             {fetchMore && viewAllSearch.trim() !== "" && (
@@ -507,7 +511,7 @@ export function DataTable({
           {fetchMore && infiniteRows.length > 0 && (
             <div className="py-3 text-center text-xs text-slate-400">
               {infiniteError ? (
-                <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-blue-600 underline">
+                <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-[var(--primary)] underline">
                   {t("failedLoadMoreRetry")}
                 </button>
               ) : infiniteLoading ? (

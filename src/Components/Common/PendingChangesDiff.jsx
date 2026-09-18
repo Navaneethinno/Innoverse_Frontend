@@ -207,7 +207,7 @@ export function PendingChangesDiff({ data, isLoading, error }) {
                     <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
                   )}
                   {!isDelete && (
-                    <td className="whitespace-pre-line px-3 py-1.5 font-medium text-blue-700">{displayValue(change.proposed)}</td>
+                    <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary)" }}>{displayValue(change.proposed)}</td>
                   )}
                 </tr>
               );
@@ -324,7 +324,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
             <button
               type="button"
               onClick={() => setShowAll((v) => !v)}
-              className="text-[11px] font-bold text-blue-600 hover:underline"
+              className="text-[11px] font-bold text-[var(--primary)] hover:underline"
             >
               {showAll ? t("showChangedOnly") : t("showAllFields", { count: totalFieldCount })}
             </button>

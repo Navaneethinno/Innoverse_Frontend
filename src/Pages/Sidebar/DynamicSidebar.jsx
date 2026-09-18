@@ -275,7 +275,10 @@ export function DynamicSidebar() {
       </div>
 
       <div className="px-2 mt-2">
-        <div className="h-px bg-gradient-to-r from-transparent via-blue-100 to-transparent mb-3" />
+        <div
+          className="h-px mb-3"
+          style={{ background: "linear-gradient(to right, transparent, var(--primary-light), transparent)" }}
+        />
         <UiTooltip label="Sign out" side="right">
           <motion.button
             onClick={() => {
@@ -316,7 +319,7 @@ export function DynamicSidebar() {
             whileTap={{ scale: 0.96 }}
             aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
             className={cn(
-              "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50/80 transition-colors",
+              "flex items-center gap-2.5 rounded-xl h-9 text-slate-400 hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors",
               isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
             )}
           >

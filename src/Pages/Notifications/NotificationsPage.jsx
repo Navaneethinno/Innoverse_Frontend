@@ -12,7 +12,7 @@ export function NotificationsPage() {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#F9FAFB] px-4 pb-12 pt-24">
-      <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/90 bg-white/85 p-6 shadow-xl shadow-blue-100/40 sm:p-8">
+      <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/90 bg-white/85 p-6 shadow-xl sm:p-8">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -21,7 +21,10 @@ export function NotificationsPage() {
           <ArrowLeft size={16} /> Back
         </button>
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+          <div
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+          >
             <Bell size={18} />
           </div>
           <div className="min-w-0">

@@ -14,6 +14,7 @@ import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicy
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditPasswordPolicy } from "./AuditPasswordPolicy";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const TEXT_FIELDS = [
   "policy_name",
@@ -268,8 +269,9 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
 }
 
 function PolicyView({ row, onClose }) {
+  const tr = useConfigLabel();
   return (
-    <Modal open title="View password policy" onClose={onClose} size="xl">
+    <Modal open title={tr("View password policy")} onClose={onClose} size="xl">
       <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
           <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -300,6 +302,7 @@ function PolicyView({ row, onClose }) {
 }
 
 function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const tr = useConfigLabel();
   const canAdd = useHasPasswordPolicyAction("Add");
   const canEdit = useHasPasswordPolicyAction("Edit");
   const canAuthorize = useHasPasswordPolicyAction("Authorize");
@@ -337,7 +340,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
         onView={() => onView(row)}
         onEdit={() => onEdit(row)}
         onAudit={() => onAudit(row)}
-        onSubmit={() => setAction({ method: "passwordPolicySubmit", label: "Submit Draft", style: "submit" })}
+        onSubmit={() => setAction({ method: "passwordPolicySubmit", label: tr("Submit Draft"), style: "submit" })}
         onAuthorize={() =>
           setAction({ method: pendingMethod, label: "Authorize", style: visibility.isPendingDelete ? "deleteAuth" : "auth" })
         }
@@ -367,7 +370,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={action?.method === "passwordPolicyDeauth" ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>
@@ -376,6 +379,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
 }
 
 export function PasswordPolicy() {
+  const tr = useConfigLabel();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -421,14 +425,14 @@ export function PasswordPolicy() {
   };
 
   const columns = [
-    { key: "policy_name", label: "Policy Name", align: "left", render: (row) => row.policy_name ?? "-" },
-    { key: "min_length", label: "Min Length", render: (row) => row.min_length ?? "-" },
-    { key: "max_retry_count", label: "Max Retries", render: (row) => row.max_retry_count ?? "-" },
-    { key: "session_timeout_minutes", label: "Session Timeout", render: (row) => row.session_timeout_minutes ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
+    { key: "policy_name", label: tr("Policy Name"), align: "left", render: (row) => row.policy_name ?? "-" },
+    { key: "min_length", label: tr("Min Length"), render: (row) => row.min_length ?? "-" },
+    { key: "max_retry_count", label: tr("Max Retries"), render: (row) => row.max_retry_count ?? "-" },
+    { key: "session_timeout_minutes", label: tr("Session Timeout"), render: (row) => row.session_timeout_minutes ?? "-" },
+    { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: tr("Process Status"), render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: tr("Authorization Status"), render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (row) => (
         <PolicyActions
@@ -463,7 +467,7 @@ export function PasswordPolicy() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
-            <Plus size={14} /> Add policy
+            <Plus size={14} /> {tr("Add")} {tr("policy")}
           </button>
         )} bare /><DataTable
         columns={columns}

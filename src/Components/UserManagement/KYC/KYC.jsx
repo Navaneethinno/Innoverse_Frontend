@@ -13,6 +13,7 @@ import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useK
 import { usersApi } from "@/Services/Users/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const EMPTY = {
   user_id: "",
@@ -118,7 +119,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
               <textarea
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="min-h-24 w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400"
+                className="min-h-24 w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
               />
             ) : (
               <input
@@ -127,7 +128,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
                 type={key.includes("email") ? "email" : "text"}
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-blue-400 disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-slate-50 disabled:text-slate-500"
               />
             )}
             {key === "user_id" && usersError && (
@@ -144,6 +145,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
 }
 
 function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const tr = useConfigLabel();
   const canAdd = useHasKycAction("Add");
   const canEdit = useHasKycAction("Edit");
   const canAuthorize = useHasKycAction("Authorize");
@@ -181,7 +183,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
         onView={() => onView(row)}
         onEdit={() => onEdit(row)}
         onAudit={() => onAudit(row)}
-        onSubmit={() => setAction({ method: "kycSubmit", label: "Submit Draft" })}
+        onSubmit={() => setAction({ method: "kycSubmit", label: tr("Submit Draft") })}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
         onDeauthorize={() => setAction({ method: "kycDeauth", label: "Deauthorize" })}
         onDeactivate={() => setAction({ method: "kycDeactivate", label: "Deactivate" })}
@@ -209,7 +211,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={action?.method === "kycDeauth" ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-blue-400"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>
@@ -218,6 +220,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
 }
 
 export function KYC() {
+  const tr = useConfigLabel();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -267,17 +270,17 @@ export function KYC() {
   const columns = [
     {
       key: "user",
-      label: "User",
+      label: tr("User"),
       align: "left",
       render: (row) => displayName(row) || "-",
     },
-    { key: "employee_id", label: "Employee ID", render: (row) => row.employee_id ?? "-" },
-    { key: "email", label: "Email", render: (row) => row.email ?? "-" },
-    { key: "mobile", label: "Mobile", render: (row) => row.mobile ?? "-" },
-    { key: "status", label: "Status", render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: "Process Status", render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: "Authorization Status", render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
+    { key: "employee_id", label: tr("Employee ID"), render: (row) => row.employee_id ?? "-" },
+    { key: "email", label: tr("Email"), render: (row) => row.email ?? "-" },
+    { key: "mobile", label: tr("Mobile"), render: (row) => row.mobile ?? "-" },
+    { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: tr("Process Status"), render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—") }, { key: "auth_status", label: tr("Authorization Status"), render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—") },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (row) => (
         <KycActions
@@ -298,11 +301,11 @@ export function KYC() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">User KYC</h1>
-        <p className="mt-1 text-xs font-medium text-slate-500">Manage user KYC and personal details.</p>
+        <h1 className="text-xl font-black text-slate-800">{tr("User KYC")}</h1>
+        <p className="mt-1 text-xs font-medium text-slate-500">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search KYC records..." actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -312,16 +315,16 @@ export function KYC() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
-            <Plus size={14} /> Add KYC
+            <Plus size={14} /> {tr("Add")} KYC
           </button>
         )} bare /><DataTable
         columns={columns}
         rows={visibleRows}
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
-        title="User KYC"
+        title={tr("User KYC")}
         searchableKeys={["user_name", "first_name", "last_name", "employee_id", "email", "mobile"]}
-        emptyTitle="No KYC records found"
+        emptyTitle={tr("No KYC records found")}
         serverPagination={{
           page,
           totalPages: query.pagination?.totalPages ?? 1,
@@ -363,7 +366,7 @@ export function KYC() {
       />
 
       {viewRow && (
-        <Modal open title="View user KYC" onClose={() => setViewRow(null)} size="lg">
+        <Modal open title={tr("View user KYC")} onClose={() => setViewRow(null)} size="lg">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {FORM_FIELDS.map(([key, label]) => (
               <div key={key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">

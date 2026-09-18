@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertCircle, Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { AlertCircle, Plus, Upload, X } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -20,11 +20,14 @@ import {
   useHasInstitutionAction,
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useAuth } from "@/Hooks/useAuth";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 
 const FIELDS = [
   ["display_name", "Display Name"],
-  ["logo", "Logo URL"],
-  ["favicon", "Favicon URL"],
+  ["logo", "Logo"],
+  ["favicon", "Favicon"],
   ["primary_color", "Primary Color"],
   ["secondary_color", "Secondary Color"],
   ["login_background", "Login Background"],
@@ -36,6 +39,7 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
 const COLOR_NAMES = {
   "#d82222": "Red",
   "#b90e0e": "Dark red",
@@ -45,6 +49,90 @@ const COLOR_NAMES = {
   "#000000": "Black",
 };
 const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "Custom color";
+// Backend's logo/favicon fields are plain strings (confirmed: no file-
+// upload/asset-storage endpoint exists anywhere in this API's Postman
+// collection) — so "uploading" here reads the chosen file client-side and
+// stores it as a data: URL in that same string field, rendered identically
+// to an already-hosted external URL a legacy record might still have.
+const MAX_IMAGE_BYTES = 500 * 1024;
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+function ImageUploadField({ tr, value, onChange }) {
+  const inputRef = useRef(null);
+  const [error, setError] = useState("");
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError(`Image must be under ${Math.round(MAX_IMAGE_BYTES / 1024)}KB`);
+      return;
+    }
+    setError("");
+    onChange(await readFileAsDataUrl(file));
+  };
+
+  return (
+    <div className="mt-1.5">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => void handleFile(e.target.files?.[0])}
+      />
+      {value ? (
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-2.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+            <img
+              src={value}
+              alt=""
+              className="h-full w-full object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+          >
+            {tr("Replace image")}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-red-500"
+            aria-label={tr("Remove image")}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-slate-500 transition hover:border-primary/50 hover:text-primary"
+        >
+          <Upload size={15} className="shrink-0" />
+          {tr("Upload image")}
+        </button>
+      )}
+      <p className="mt-1 text-[11px] text-slate-400">{tr("PNG, JPG, or SVG, up to 500KB")}</p>
+      {error && <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p>}
+    </div>
+  );
+}
 function ColorValue({ color }) {
   if (!color) return <span>—</span>;
   return (
@@ -59,6 +147,7 @@ function ColorValue({ color }) {
   );
 }
 function BrandingActions({ row, onRefresh, onEdit }) {
+  const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
   const canAuthorize = useHasInstitutionAction("Authorize");
@@ -125,20 +214,26 @@ function BrandingActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title="View institution branding"
+        title={tr("View institution branding")}
         size="lg"
       >
         <div className="grid gap-3 sm:grid-cols-2">
           {FIELDS.map(([key, label]) => (
             <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <p className="mt-1 break-words text-sm font-semibold text-foreground">
+              <p className="text-xs font-semibold text-muted-foreground">{tr(label)}</p>
+              <div className="mt-1 break-words text-sm font-semibold text-foreground">
                 {key.includes("color") ? (
                   <ColorValue color={details?.[key]} />
+                ) : key === "logo" || key === "favicon" ? (
+                  details?.[key] ? (
+                    <img src={details[key]} alt="" className="h-10 w-10 rounded-lg border border-slate-200 object-contain bg-white" />
+                  ) : (
+                    "—"
+                  )
                 ) : (
                   value(details, key)
                 )}
-              </p>
+              </div>
             </div>
           ))}
         </div>
@@ -166,6 +261,9 @@ function BrandingActions({ row, onRefresh, onEdit }) {
 }
 
 export function InstitutionBrandingPage() {
+  const tr = useConfigLabel();
+  const currentUser = useAuth((s) => s.user);
+  const { colors: liveBrandColors, setBrandTheme } = useBrandTheme();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -175,6 +273,7 @@ export function InstitutionBrandingPage() {
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionBrandingMutation("add");
   const edit = useInstitutionBrandingMutation("edit");
+  const submitDraft = useInstitutionBrandingMutation("submit");
   const filteredRows =
     !search.trim() && statusFilter === "all"
       ? query.data
@@ -186,29 +285,29 @@ export function InstitutionBrandingPage() {
   const columns = [
     {
       key: "display_name",
-      label: "Display Name",
+      label: tr("Display Name"),
       render: (r) => (
         <span className="font-semibold text-foreground">{value(r, "display_name")}</span>
       ),
     },
     {
       key: "inst_profile_name",
-      label: "Institution",
+      label: tr("Institution"),
       render: (r) => value(r, "inst_profile_name"),
     },
     {
       key: "primary_color",
-      label: "Primary Color",
+      label: tr("Primary Color"),
       render: (r) => <ColorValue color={r.primary_color} />,
     },
     {
       key: "secondary_color",
-      label: "Secondary Color",
+      label: tr("Secondary Color"),
       render: (r) => <ColorValue color={r.secondary_color} />,
     },
     {
       key: "status",
-      label: "Status",
+      label: tr("Status"),
       sortValue: (r) => r.status_name ?? r.status ?? "",
       render: (r) =>
         r.status_name != null || r.status != null ? (
@@ -219,19 +318,19 @@ export function InstitutionBrandingPage() {
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: tr("Actions"),
       sortable: false,
       render: (r) => (
         <BrandingActions
@@ -247,15 +346,49 @@ export function InstitutionBrandingPage() {
   ];
   const submit = async (values) => {
     try {
-      if (editing)
+      const instProfileId = editing ? editing.inst_profile_id : values.inst_profile_id;
+      if (editing) {
         await edit.mutateAsync({
           id: editing.id,
           ...values,
           ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
         });
-      else await add.mutateAsync(values);
+        // Confirmed live: /institution/branding/edit only updates a
+        // record's fields — it never advances process_status, even when
+        // called with is_draft:false. A still-Draft record edited via
+        // "Save changes" (not "Save as draft") therefore stayed "Draft"
+        // forever unless separately Submitted from the row action, which
+        // is not what "Save changes" implies. Chaining the same /submit
+        // call the row's own Submit button already uses turns "Save
+        // changes" on a draft into what it visually promises: save AND
+        // move it out of draft for checker review.
+        const wasDraft = editing.auth_status === "DRAFT" || editing.process_status_name === "Draft";
+        if (wasDraft && values.is_draft === false) {
+          await submitDraft.mutateAsync({ id: editing.id, narration: values.narration || "Submitted for review" });
+        }
+      } else {
+        await add.mutateAsync(values);
+      }
       setFormOpen(false);
       await query.refetch();
+      // Applying this instantly — rather than waiting for the maker-checker
+      // authorization that would normally make it the record's "active"
+      // color — matches what was asked: seeing your own institution's new
+      // brand color without logging out and back in. If the change is
+      // later rejected, the theme simply reverts on the next login/token
+      // refresh's branding payload, same as any other unauthorized change
+      // would (there's no live channel for "my own session's branding" to
+      // correct it sooner — see BrandThemeProvider.jsx).
+      if (
+        currentUser?.inst_profile_id != null &&
+        String(instProfileId) === String(currentUser.inst_profile_id) &&
+        (values.primary_color || values.secondary_color)
+      ) {
+        setBrandTheme({
+          primary: values.primary_color || liveBrandColors?.primary,
+          secondary: values.secondary_color || liveBrandColors?.secondary,
+        });
+      }
     } catch {
       /* mutation hook already shows the error toast */
     }
@@ -265,10 +398,10 @@ export function InstitutionBrandingPage() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black tracking-tight text-foreground">
-            Institution Branding
+            {tr("Institution Branding")}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage institution branding and white-label configuration.
+            {tr("Manage institution branding and white-label configuration.")}
           </p>
         </div>
         
@@ -293,7 +426,7 @@ export function InstitutionBrandingPage() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> Add branding
+            <Plus size={14} /> {tr("Add")} {tr("branding")}
           </button>
         )}
       bare /><DataTable
@@ -301,14 +434,14 @@ export function InstitutionBrandingPage() {
         rows={filteredRows}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title="Institution Branding"
+        title={tr("Institution Branding")}
         searchableKeys={["display_name", "inst_profile_name", "primary_color"]}
-        emptyTitle="No branding profiles found"
-        emptyDescription="Branding profiles will appear here when available."
+        emptyTitle={tr("No branding profiles found")}
+        emptyDescription={tr("Branding profiles will appear here when available.")}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? "Edit institution branding" : "Add institution branding"}
+        title={editing ? tr("Edit institution branding") : tr("Add institution branding")}
         size="lg"
       >
         <BrandingForm
@@ -324,13 +457,37 @@ export function InstitutionBrandingPage() {
 }
 
 function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
-    ...Object.fromEntries(FIELDS.map(([key]) => [key, editing?.[key] ?? ""])),
+    // A color field's existing value might already be malformed on the
+    // record (e.g. a 5-digit hex saved before this form validated hex
+    // input at all) — loading it as-is into a field that now hard-blocks
+    // submission on invalid hex would force fixing a color the user never
+    // meant to touch just to save an unrelated edit. Dropping an
+    // already-invalid legacy value back to empty on load is the same
+    // "treat it as unset" behavior the color swatch preview already falls
+    // back to, just applied to the text field/submission too.
+    ...Object.fromEntries(
+      FIELDS.map(([key]) => [
+        key,
+        key.includes("color") && editing?.[key] && !HEX_COLOR_RE.test(editing[key])
+          ? ""
+          : editing?.[key] ?? "",
+      ]),
+    ),
     narration: "",
     is_draft: false,
   });
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  // Lets the hex text field accept "2563EB" as well as "#2563EB" — the
+  // native color swatch always emits the "#"-prefixed form, but someone
+  // typing/pasting a hex value by hand may not bother with the "#".
+  const setColorText = (key) => (e) => {
+    const raw = e.target.value.trim();
+    const normalized = raw && !raw.startsWith("#") ? `#${raw}` : raw;
+    setForm((f) => ({ ...f, [key]: normalized }));
+  };
   return (
     <form
       className="grid gap-4 sm:grid-cols-2"
@@ -340,6 +497,13 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         // (previously free from the bare <select> it replaced) by hand.
         if (!editing && !form.inst_profile_id) {
           notifications.error("Please select an institution");
+          return;
+        }
+        const invalidColorField = FIELDS.find(
+          ([key]) => key.includes("color") && form[key] && !HEX_COLOR_RE.test(form[key]),
+        );
+        if (invalidColorField) {
+          notifications.error(`${invalidColorField[1]} must be a valid hex color (e.g. #2563EB)`);
           return;
         }
         const { inst_profile_id, ...branding } = form;
@@ -356,7 +520,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             value={form.inst_profile_id}
             onChange={(next) => set("inst_profile_id")({ target: { value: next } })}
             options={[
-              { value: "", label: "Select institution" },
+              { value: "", label: tr("Select institution") },
               ...institutions.map((i) => ({
                 value: i.id ?? i.inst_profile_id,
                 label: i.name ?? i.inst_profile_name ?? i.code,
@@ -365,28 +529,63 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           />
         </label>
       )}
-      {FIELDS.map(([key, label]) => (
-        <label key={key} className="text-sm font-medium">
-          {label}
-          <input
-            required={key === "display_name"}
-            type={key.includes("color") ? "color" : key.includes("email") ? "email" : "text"}
-            value={
-              key.includes("color") && !form[key]
-                ? key === "primary_color"
-                  ? "#2563eb"
-                  : "#dbeafe"
-                : form[key]
-            }
-            onChange={set(key)}
-            className={
-              key.includes("color")
-                ? "mt-1.5 h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
-                : "mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-            }
-          />
-        </label>
-      ))}
+      {FIELDS.map(([key, label]) => {
+        if (key.includes("color")) {
+          const fallback = key === "primary_color" ? "#2563eb" : "#dbeafe";
+          const currentValue = form[key] || fallback;
+          return (
+            <label key={key} className="text-sm font-medium">
+              {label}
+              {/* Bare <input type="color"> opens the browser's native
+                  picker, which on Chrome has no way to type a hex value
+                  directly (only an RGB slider/eyedropper) — paired with a
+                  text input here so a hex code can be typed or pasted, and
+                  kept in sync with the swatch both ways. */}
+              <div className="mt-1.5 flex items-center gap-2">
+                <input
+                  type="color"
+                  value={HEX_COLOR_RE.test(currentValue) ? currentValue : fallback}
+                  onChange={set(key)}
+                  className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                />
+                <input
+                  type="text"
+                  value={form[key] ?? ""}
+                  onChange={setColorText(key)}
+                  placeholder={fallback}
+                  spellCheck={false}
+                  maxLength={7}
+                  className="h-12 w-full rounded-xl border border-slate-200 p-3 font-mono text-sm uppercase"
+                />
+              </div>
+            </label>
+          );
+        }
+        if (key === "logo" || key === "favicon") {
+          return (
+            <label key={key} className="text-sm font-medium">
+              {label}
+              <ImageUploadField
+                tr={tr}
+                value={form[key]}
+                onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
+              />
+            </label>
+          );
+        }
+        return (
+          <label key={key} className="text-sm font-medium">
+            {label}
+            <input
+              required={key === "display_name"}
+              type={key.includes("email") ? "email" : "text"}
+              value={form[key]}
+              onChange={set(key)}
+              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+            />
+          </label>
+        );
+      })}
       <label className="text-sm font-medium sm:col-span-2">
         Narration
         <textarea
