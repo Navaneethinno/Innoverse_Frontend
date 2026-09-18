@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
+import { Spinner } from "@/Components/Common/Spinner";
 
 // Generic confirm-action dialog built on the shared Modal shell (gradient
 // bar, circular close, tinted footer) — used for auth/deauth/delete
@@ -41,10 +42,11 @@ export function ConfirmDialog({
             type="button"
             disabled={pending || confirmDisabled}
             onClick={onConfirm}
-            className="rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
             style={{ background: destructive ? "var(--destructive)" : "var(--primary)" }}
           >
-            {pending ? "Working..." : confirmLabel}
+            {pending && <Spinner size={13} />}
+            {pending ? t("common:working", "Working...") : confirmLabel}
           </button>
         </>
       }

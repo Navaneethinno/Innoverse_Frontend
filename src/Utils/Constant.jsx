@@ -476,6 +476,74 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/master_config/ownership_sub_type/deactivate",
       REACTIVATE: "/master_config/ownership_sub_type/reactivate",
     },
+    // Global (not institution-scoped) master of acceptable document names —
+    // Individual Customer Onboarding Configuration reference (2026-09),
+    // entity F. Feeds indv_document_type_config's document_type_id lookup.
+    DOCUMENT_TYPE: {
+      ADD: "/master_config/document_type/add", SUBMIT: "/master_config/document_type/submit", LIST: "/master_config/document_type/list",
+      GET_ACTIVE: "/master_config/document_type/get_active", AUDIT: "/master_config/document_type/audit", AUTH: "/master_config/document_type/auth",
+      DEAUTH: "/master_config/document_type/deauth", EDIT: "/master_config/document_type/edit", DELETE: "/master_config/document_type/delete",
+      DELETE_AUTH: "/master_config/document_type/delete_auth",
+      PENDING: "/master_config/document_type/pending",
+      DEACTIVATE: "/master_config/document_type/deactivate",
+      REACTIVATE: "/master_config/document_type/reactivate",
+    },
+  },
+
+  // --- EPURSE > Individual Customer Onboarding Configuration ---------------
+  // 6 menu-wise, separated entities (no composite tree) that configure what
+  // an institution's individual-customer onboarding wizard shows/requires —
+  // see Individual_Customer_Onboarding_Configuration_APIs.md (2026-09).
+  // Every path configCustomerApi(entity) calls, spelled out.
+  CONFIG_CUSTOMER: {
+    INDV_TYPE_CONFIG: {
+      ADD: "/config/customer/indv_type_config/add", SUBMIT: "/config/customer/indv_type_config/submit", EDIT: "/config/customer/indv_type_config/edit",
+      AUTH: "/config/customer/indv_type_config/auth", DEAUTH: "/config/customer/indv_type_config/deauth", DELETE: "/config/customer/indv_type_config/delete",
+      DELETE_AUTH: "/config/customer/indv_type_config/delete_auth", LIST: "/config/customer/indv_type_config/list",
+      GET_ACTIVE: "/config/customer/indv_type_config/get_active", AUDIT: "/config/customer/indv_type_config/audit",
+      DEACTIVATE: "/config/customer/indv_type_config/deactivate", REACTIVATE: "/config/customer/indv_type_config/reactivate",
+      PENDING: "/config/customer/indv_type_config/pending",
+    },
+    INDV_IDENTIFICATION_TYPE: {
+      ADD: "/config/customer/indv_identification_type/add", SUBMIT: "/config/customer/indv_identification_type/submit", EDIT: "/config/customer/indv_identification_type/edit",
+      AUTH: "/config/customer/indv_identification_type/auth", DEAUTH: "/config/customer/indv_identification_type/deauth", DELETE: "/config/customer/indv_identification_type/delete",
+      DELETE_AUTH: "/config/customer/indv_identification_type/delete_auth", LIST: "/config/customer/indv_identification_type/list",
+      GET_ACTIVE: "/config/customer/indv_identification_type/get_active", AUDIT: "/config/customer/indv_identification_type/audit",
+      DEACTIVATE: "/config/customer/indv_identification_type/deactivate", REACTIVATE: "/config/customer/indv_identification_type/reactivate",
+      PENDING: "/config/customer/indv_identification_type/pending",
+    },
+    INDV_ADDRESS_TYPE: {
+      ADD: "/config/customer/indv_address_type/add", SUBMIT: "/config/customer/indv_address_type/submit", EDIT: "/config/customer/indv_address_type/edit",
+      AUTH: "/config/customer/indv_address_type/auth", DEAUTH: "/config/customer/indv_address_type/deauth", DELETE: "/config/customer/indv_address_type/delete",
+      DELETE_AUTH: "/config/customer/indv_address_type/delete_auth", LIST: "/config/customer/indv_address_type/list",
+      GET_ACTIVE: "/config/customer/indv_address_type/get_active", AUDIT: "/config/customer/indv_address_type/audit",
+      DEACTIVATE: "/config/customer/indv_address_type/deactivate", REACTIVATE: "/config/customer/indv_address_type/reactivate",
+      PENDING: "/config/customer/indv_address_type/pending",
+    },
+    INDV_EMPLOYMENT_CONFIG: {
+      ADD: "/config/customer/indv_employment_config/add", SUBMIT: "/config/customer/indv_employment_config/submit", EDIT: "/config/customer/indv_employment_config/edit",
+      AUTH: "/config/customer/indv_employment_config/auth", DEAUTH: "/config/customer/indv_employment_config/deauth", DELETE: "/config/customer/indv_employment_config/delete",
+      DELETE_AUTH: "/config/customer/indv_employment_config/delete_auth", LIST: "/config/customer/indv_employment_config/list",
+      GET_ACTIVE: "/config/customer/indv_employment_config/get_active", AUDIT: "/config/customer/indv_employment_config/audit",
+      DEACTIVATE: "/config/customer/indv_employment_config/deactivate", REACTIVATE: "/config/customer/indv_employment_config/reactivate",
+      PENDING: "/config/customer/indv_employment_config/pending",
+    },
+    INDV_DOCUMENT_REQUIREMENT_CONFIG: {
+      ADD: "/config/customer/indv_document_requirement_config/add", SUBMIT: "/config/customer/indv_document_requirement_config/submit", EDIT: "/config/customer/indv_document_requirement_config/edit",
+      AUTH: "/config/customer/indv_document_requirement_config/auth", DEAUTH: "/config/customer/indv_document_requirement_config/deauth", DELETE: "/config/customer/indv_document_requirement_config/delete",
+      DELETE_AUTH: "/config/customer/indv_document_requirement_config/delete_auth", LIST: "/config/customer/indv_document_requirement_config/list",
+      GET_ACTIVE: "/config/customer/indv_document_requirement_config/get_active", AUDIT: "/config/customer/indv_document_requirement_config/audit",
+      DEACTIVATE: "/config/customer/indv_document_requirement_config/deactivate", REACTIVATE: "/config/customer/indv_document_requirement_config/reactivate",
+      PENDING: "/config/customer/indv_document_requirement_config/pending",
+    },
+    INDV_DOCUMENT_TYPE_CONFIG: {
+      ADD: "/config/customer/indv_document_type_config/add", SUBMIT: "/config/customer/indv_document_type_config/submit", EDIT: "/config/customer/indv_document_type_config/edit",
+      AUTH: "/config/customer/indv_document_type_config/auth", DEAUTH: "/config/customer/indv_document_type_config/deauth", DELETE: "/config/customer/indv_document_type_config/delete",
+      DELETE_AUTH: "/config/customer/indv_document_type_config/delete_auth", LIST: "/config/customer/indv_document_type_config/list",
+      GET_ACTIVE: "/config/customer/indv_document_type_config/get_active", AUDIT: "/config/customer/indv_document_type_config/audit",
+      DEACTIVATE: "/config/customer/indv_document_type_config/deactivate", REACTIVATE: "/config/customer/indv_document_type_config/reactivate",
+      PENDING: "/config/customer/indv_document_type_config/pending",
+    },
   },
 
   // --- EPURSE > Settings > Configuration > Account -------------------------

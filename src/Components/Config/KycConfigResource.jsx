@@ -134,7 +134,8 @@ export function KycConfigResource({ entity }) {
     [view, setView] = useState(null),
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [actionPending, setActionPending] = useState(false);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -268,6 +269,7 @@ export function KycConfigResource({ entity }) {
     }
   };
   const run = async () => {
+    setActionPending(true);
     try {
       const { row, type } = action;
       // Every action in this lifecycle takes {id, narration} per the API
@@ -294,6 +296,8 @@ export function KycConfigResource({ entity }) {
       void load();
     } catch (error) {
       notifications.error(error.message);
+    } finally {
+      setActionPending(false);
     }
   };
   const columns = [
@@ -575,6 +579,7 @@ export function KycConfigResource({ entity }) {
           confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
+          pending={actionPending}
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >

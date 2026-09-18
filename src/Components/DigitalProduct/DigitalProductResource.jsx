@@ -11,6 +11,7 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { Spinner } from "@/Components/Common/Spinner";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -79,8 +80,9 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             form="digital-product-form"
             data-mode="draft"
             disabled={saving}
-            className="rounded-xl border px-4 py-2 text-sm font-bold"
+            className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold"
           >
+            {saving && <Spinner size={13} />}
             {tr("Save as draft")}
           </button>
           <button
@@ -88,8 +90,9 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             form="digital-product-form"
             data-mode="submit"
             disabled={saving}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
           >
+            {saving && <Spinner size={13} />}
             {editing ? tr("Save changes") : `${tr("Add")} ${tr(config.title)}`}
           </button>
         </>
@@ -205,7 +208,8 @@ export function DigitalProductResource({ entity }) {
     [saving, setSaving] = useState(false),
     [wizardOpen, setWizardOpen] = useState(false),
     [editWizardProduct, setEditWizardProduct] = useState(null),
-    [viewWizardProduct, setViewWizardProduct] = useState(null);
+    [viewWizardProduct, setViewWizardProduct] = useState(null),
+    [actionPending, setActionPending] = useState(false);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBrandingPage.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -288,6 +292,7 @@ export function DigitalProductResource({ entity }) {
     }
   };
   const run = async () => {
+    setActionPending(true);
     try {
       const id = idOf(action.row);
       // Every action in this lifecycle takes {id, narration} per the API
@@ -314,6 +319,8 @@ export function DigitalProductResource({ entity }) {
       void load();
     } catch (e) {
       notifications.error(e.message);
+    } finally {
+      setActionPending(false);
     }
   };
   const columns = [
@@ -538,6 +545,7 @@ export function DigitalProductResource({ entity }) {
           confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
+          pending={actionPending}
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >

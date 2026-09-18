@@ -87,6 +87,14 @@ const SEGMENT_LABELS = {
   residency: { titleKey: "crumbResidency", breadcrumb: ["crumbDigitalProduct", "crumbResidency"] },
   customer: { titleKey: "crumbCustomer", breadcrumb: ["crumbCustomer", "crumbCustomer"] },
 
+  // --- EPURSE > Individual Customer Onboarding Configuration (2026-09) ----
+  individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },
+  identificationtypeconfig: { titleKey: "crumbIndvIdentificationType", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvIdentificationType"] },
+  addresstypeconfig: { titleKey: "crumbIndvAddressTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvAddressTypeConfig"] },
+  employmentconfig: { titleKey: "crumbIndvEmploymentConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvEmploymentConfig"] },
+  documentrequirementconfig: { titleKey: "crumbIndvDocumentRequirementConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvDocumentRequirementConfig"] },
+  documenttypeconfig: { titleKey: "crumbIndvDocumentTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvDocumentTypeConfig"] },
+
   // --- EPURSE > Settings > Configuration > Account (config/acct_product*) -
   // "accountproduct": qualified slug for the Account > Product leaf
   // (the acct_product entity itself), disambiguated from Digital Product >

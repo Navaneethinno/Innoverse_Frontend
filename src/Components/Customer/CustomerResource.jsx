@@ -60,7 +60,8 @@ export function CustomerResource() {
     [action, setAction] = useState(null),
     [wizardOpen, setWizardOpen] = useState(false),
     [editWizardProfile, setEditWizardProfile] = useState(null),
-    [viewWizardProfile, setViewWizardProfile] = useState(null);
+    [viewWizardProfile, setViewWizardProfile] = useState(null),
+    [actionPending, setActionPending] = useState(false);
 
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog — fetched only while that dialog is actually open, via
@@ -102,6 +103,7 @@ export function CustomerResource() {
   );
 
   const run = async () => {
+    setActionPending(true);
     try {
       const id = idOf(action.row);
       const narration = action.reason || "";
@@ -125,6 +127,8 @@ export function CustomerResource() {
       void load();
     } catch (e) {
       notifications.error(e.message);
+    } finally {
+      setActionPending(false);
     }
   };
 
@@ -274,6 +278,7 @@ export function CustomerResource() {
           confirmLabel={tr(action.label)}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
+          pending={actionPending}
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >

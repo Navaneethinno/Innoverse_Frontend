@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
+import { Spinner } from "@/Components/Common/Spinner";
 import { CUSTOMER_STEPS } from "./customerSteps";
 import { indvProfileApi } from "@/Services/Customer/customer.api";
 import {
@@ -134,8 +135,9 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
             type="button"
             disabled={savingDraft}
             onClick={() => void handleSaveDraft()}
-            className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
           >
+            {savingDraft && <Spinner size={13} />}
             {tr("Save as draft")}
           </button>
           {!isLastStep ? (
@@ -143,8 +145,9 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
               type="button"
               disabled={savingStep}
               onClick={() => void goNext()}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
+              {savingStep && <Spinner size={13} />}
               {tr("Next")}
             </button>
           ) : (
@@ -152,8 +155,9 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
               type="button"
               disabled={submitting}
               onClick={() => void handleSubmit()}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
+              {submitting && <Spinner size={13} />}
               {tr("Submit")}
             </button>
           )}

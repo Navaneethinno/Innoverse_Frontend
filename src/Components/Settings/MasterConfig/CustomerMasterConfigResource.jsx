@@ -6,6 +6,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { Spinner } from "@/Components/Common/Spinner";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -88,7 +89,8 @@ export function CustomerMasterConfigResource({ entity }) {
     [view, setView] = useState(null),
     [audit, setAudit] = useState(null),
     [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [actionPending, setActionPending] = useState(false);
 
   const pendingInfo = usePendingChanges(
     config.api.pending,
@@ -156,6 +158,7 @@ export function CustomerMasterConfigResource({ entity }) {
   };
 
   const run = async () => {
+    setActionPending(true);
     try {
       const id = idOf(action.row);
       const narration = action.reason || "";
@@ -179,6 +182,8 @@ export function CustomerMasterConfigResource({ entity }) {
       void load();
     } catch (error) {
       notifications.error(error.message);
+    } finally {
+      setActionPending(false);
     }
   };
 
@@ -313,8 +318,9 @@ export function CustomerMasterConfigResource({ entity }) {
                 form="customer-master-config-form"
                 data-mode="draft"
                 disabled={saving}
-                className="rounded-xl border px-4 py-2 text-sm font-bold"
+                className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold"
               >
+                {saving && <Spinner size={13} />}
                 Save as draft
               </button>
               <button
@@ -322,8 +328,9 @@ export function CustomerMasterConfigResource({ entity }) {
                 form="customer-master-config-form"
                 data-mode="submit"
                 disabled={saving}
-                className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
               >
+                {saving && <Spinner size={13} />}
                 {editing ? "Save changes" : `Add ${config.title}`}
               </button>
             </>
@@ -406,6 +413,7 @@ export function CustomerMasterConfigResource({ entity }) {
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
           confirmDisabled={action.type === "deauth" && !action.reason?.trim()}
+          pending={actionPending}
           onClose={() => setAction(null)}
           onConfirm={() => void run()}
         >

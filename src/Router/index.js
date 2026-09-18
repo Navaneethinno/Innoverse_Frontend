@@ -8,3 +8,4 @@ export { digitalProductRoutes } from "./digitalProductRoutes";
 export { configKycRoutes } from "./configKycRoutes";
 export { acctConfigRoutes } from "./acctConfigRoutes";
 export { customerRoutes } from "./customerRoutes";
+export { customerOnboardingConfigRoutes } from "./customerOnboardingConfigRoutes";

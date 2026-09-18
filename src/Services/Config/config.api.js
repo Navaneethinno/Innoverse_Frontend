@@ -65,3 +65,20 @@ export const configKycApi = (entity) => {
       ]),
   );
 };
+
+// Same dispatcher shape as configKycApi, for the 6 Individual Customer
+// Onboarding Configuration entities under API_ENDPOINTS.CONFIG_CUSTOMER
+// (2026-09) — menu-wise, separated entities, no composite tree.
+export const configCustomerApi = (entity) => {
+  const constantKey = entity.toUpperCase();
+  const endpoints = API_ENDPOINTS.CONFIG_CUSTOMER?.[constantKey];
+  if (!endpoints) throw new Error(`No API_ENDPOINTS.CONFIG_CUSTOMER entry for entity "${entity}"`);
+  return Object.fromEntries(
+    Object.entries(METHOD_TO_KEY)
+      .filter(([, key]) => endpoints[key])
+      .map(([method, key]) => [
+        method,
+        (payload = method === "getActive" ? { view: "dropdown" } : undefined) => request(endpoints[key], payload),
+      ]),
+  );
+};

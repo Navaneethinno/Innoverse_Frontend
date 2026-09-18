@@ -109,3 +109,6 @@ export const indvPepCategoryApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_
 // field content, so no special-casing needed here; the UI form is what
 // adds/locks that field (see CustomerMasterConfigResource.jsx).
 export const ownershipSubTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.OWNERSHIP_SUB_TYPE);
+// Global (not institution-scoped) master of document names — Individual
+// Customer Onboarding Configuration reference (2026-09), entity F.
+export const documentTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.DOCUMENT_TYPE);
