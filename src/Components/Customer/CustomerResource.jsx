@@ -133,7 +133,6 @@ export function CustomerResource() {
   };
 
   const columns = [
-    { key: "reference_id", label: "Reference", render: (r) => r.reference_id ?? "-" },
     { key: "first_name", label: "First name", render: (r) => r.first_name ?? "-" },
     { key: "last_name", label: "Last name", render: (r) => r.last_name ?? "-" },
     {
