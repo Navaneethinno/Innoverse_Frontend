@@ -90,7 +90,13 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
   // the profile at all — there's no profile yet until Personal Details.
   const saveContactStep = async () => {
     const { primary_mobile, personal_email } = values.contact;
-    const response = await indvOnboardingApi().start({ inst_profile_id: instProfileId, primary_mobile, personal_email });
+    // Confirmed live: /customer/indv_onboarding/start rejects
+    // primary_mobile/personal_email with "request failed validation:
+    // either email or phone_number is required" — it wants `email`/
+    // `phone_number`, not the indv_profile "contact" section's own field
+    // names (which stay primary_mobile/personal_email for the profile's
+    // own /add|/edit calls, just not for /start).
+    const response = await indvOnboardingApi().start({ inst_profile_id: instProfileId, phone_number: primary_mobile, email: personal_email });
     const id = rowsOf(response)[0]?.id ?? onboardingId;
     setOnboardingId(id);
     return id;
