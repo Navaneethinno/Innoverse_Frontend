@@ -46,8 +46,8 @@ const PROFILE_METHOD_TO_KEY = {
   add: "ADD", submit: "SUBMIT", edit: "EDIT", get: "GET", auth: "AUTH", deauth: "DEAUTH", delete: "DELETE", deleteAuth: "DELETE_AUTH",
   list: "LIST", getActive: "GET_ACTIVE", audit: "AUDIT", pending: "PENDING", deactivate: "DEACTIVATE", reactivate: "REACTIVATE",
 };
-export const indvProfileApi = () =>
-  Object.fromEntries(
+export const indvProfileApi = () => ({
+  ...Object.fromEntries(
     Object.entries(PROFILE_METHOD_TO_KEY).map(([method, key]) => [
       method,
       (p = method === "list" ? { page: 1, limit: 10 } : method === "getActive" ? { view: "dropdown" } : undefined) => {
@@ -56,7 +56,17 @@ export const indvProfileApi = () =>
         return request(path, p);
       },
     ]),
-  );
+  ),
+  // Fetches the whole self-onboarding wizard's shape (ownership sub types,
+  // identification/address types, employment statuses, document
+  // requirements/types) for this institution in one call — see
+  // customerWizardConfig.js for the hook that consumes this.
+  wizardConfig: (p) => {
+    const path = API_ENDPOINTS.CUSTOMER.INDV_PROFILE.WIZARD_CONFIG;
+    if (!path) throw new Error("No API_ENDPOINTS.CUSTOMER.INDV_PROFILE.WIZARD_CONFIG defined");
+    return request(path, p);
+  },
+});
 
 // indv_onboarding — the separate pre-profile self-serve lookup (no
 // maker-checker: no add/edit/submit/auth/deauth/audit/pending, just these

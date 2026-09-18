@@ -15,16 +15,18 @@ import {
   useCustomerExistingData,
   useCustomerLookups,
 } from "./customerWizardShared";
+import { indvProfileApi } from "@/Services/Customer/customer.api";
+import { useWizardConfig } from "./customerWizardConfig";
+import { IdentificationStepFields, AddressStepFields, buildIdentificationPayload, buildAddressPayload, findMissingAddress } from "./customerDynamicSteps";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
-// Same 3-step stepper and field/dropdown plumbing as AddCustomerWizard.jsx/
+// Same stepper and field/dropdown plumbing as AddCustomerWizard.jsx/
 // ViewCustomerWizard.jsx, but EDIT loads whatever already exists for this
 // Customer up front (useCustomerExistingData), lets the user jump to ANY
-// step directly, and saves ONE step at a time via saveCustomerStep (an
-// `edit` call carrying that step's `sections` entry). No CREATE call ever
-// fires here — the profile already exists. Mirrors
-// EditDigitalProductWizard.jsx exactly.
+// step directly, and saves ONE step at a time. No onboarding/profile CREATE
+// call ever fires here — the profile (and its onboarding_id) already
+// exist. Mirrors EditDigitalProductWizard.jsx's shape.
 export function EditCustomerWizard({ profile, onClose, onSaved }) {
   const tr = useConfigLabel();
   const steps = CUSTOMER_STEPS;
@@ -49,11 +51,19 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
   const [pendingNav, setPendingNav] = useState(null);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
-  const lookups = useCustomerLookups(currentEntity);
+  const masterLookups = useCustomerLookups(currentEntity);
+  const { ownershipSubTypes, identificationTypes, addressTypes, loading: wizardConfigLoading } = useWizardConfig(profile.inst_profile_id);
+  const chosenSubType = values.profile?.ownership_sub_type_id || null;
+  const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
+  const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
+  const lookups = { ...masterLookups, ownershipSubTypes };
+  const isDynamic = currentStep.dynamic;
 
   const isDirty = JSON.stringify(values[currentEntity]) !== JSON.stringify(savedValues[currentEntity]);
   const setFieldValue = (key, next) =>
     setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [key]: next } }));
+  const setDynamicRow = (rowKey, nextRow) =>
+    setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [rowKey]: nextRow } }));
 
   const goToStep = (index) => {
     if (index === stepIndex) return;
@@ -81,18 +91,31 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
   };
 
   const saveCurrentStep = async (isDraft, setBusy) => {
-    if (!isDraft) {
+    if (!isDraft && currentEntity !== "identification" && currentEntity !== "address") {
       const missing = findMissingField(currentEntity, values[currentEntity]);
       if (missing) {
         notifications.error(requiredFieldMessage(missing, tr));
         return;
       }
     }
+    if (!isDraft && currentEntity === "address") {
+      const missing = findMissingAddress(filteredAddressTypes, values.address);
+      if (missing) {
+        notifications.error(`${tr("Please fill in")} ${missing.name} (${tr("mandatory")})`);
+        return;
+      }
+    }
     setBusy(true);
     try {
+      if (currentEntity === "identification") {
+        await indvProfileApi().edit({ id: profile.id, sections: { identification: buildIdentificationPayload(filteredIdentificationTypes, values.identification, recordIds.identification) } });
+      } else if (currentEntity === "address") {
+        await indvProfileApi().edit({ id: profile.id, sections: { address: buildAddressPayload(filteredAddressTypes, values.address, recordIds.address) } });
+      } else {
+        await saveCustomerStep({ id: profile.id, entity: currentEntity, values, recordIds, isDraft });
+      }
       const config = CONFIGS[currentEntity];
-      await saveCustomerStep({ id: profile.id, entity: currentEntity, values, recordIds, isDraft });
-      notifications.success(`${tr(config.title)} ${isDraft ? tr("draft saved") : tr("saved")}`);
+      notifications.success(`${tr(config?.title ?? currentStep.label)} ${isDraft ? tr("draft saved") : tr("saved")}`);
       await reload();
       setSavedValues((prev) => ({ ...prev, [currentEntity]: values[currentEntity] }));
       onSaved?.();
@@ -151,10 +174,14 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
         />
       </div>
       <h2 className="mb-3 text-sm font-bold text-slate-800">{currentStep.label}</h2>
-      {initialLoading ? (
+      {initialLoading || (isDynamic && wizardConfigLoading) ? (
         <div className="flex justify-center py-12">
           <LoadingAnimation className="h-16 w-48" />
         </div>
+      ) : currentEntity === "identification" ? (
+        <IdentificationStepFields types={filteredIdentificationTypes} values={values.identification} onRowChange={setDynamicRow} />
+      ) : currentEntity === "address" ? (
+        <AddressStepFields types={filteredAddressTypes} values={values.address} onRowChange={setDynamicRow} />
       ) : (
         <CustomerStepFields
           entity={currentEntity}

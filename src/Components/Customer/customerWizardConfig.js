@@ -1,0 +1,127 @@
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { indvProfileApi } from "@/Services/Customer/customer.api";
+import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
+import { notifications } from "@/Utils/Lib/notifications";
+import { rowsOf } from "./customerWizardShared";
+
+// The self-onboarding customer never picks their own institution — the
+// frontend already knows which institution it's serving (its own
+// config/subdomain), carried through the logged-in maker's own session:
+// auth.service.js's parseSessionResponse stores the whole `user_details`
+// object verbatim as `user` in Redux (AuthToken.js's state.token.user), and
+// a real /user/login response already has `inst_profile_id` on it
+// (data[0].user_details.inst_profile_id) — just read it.
+export function useCustomerInstProfileId() {
+  return useSelector((state) => state.token?.user?.inst_profile_id ?? null);
+}
+
+// Scans a master list's rows for the one whose name/code (case-insensitive)
+// matches `target` — same "field names aren't fixed across masters" scan
+// AcctConfigResource.jsx's own firstMatchingKey/optionOf uses, since
+// party_type/ownership rows don't have a single guaranteed field name.
+function firstMatchingKey(item, patterns) {
+  const keys = Object.keys(item ?? {});
+  for (const pattern of patterns) {
+    const key = keys.find((k) => pattern.test(k));
+    if (key && item[key] != null && item[key] !== "") return item[key];
+  }
+  return undefined;
+}
+function findByNameOrCode(list, target) {
+  const wanted = String(target).toLowerCase();
+  return (list ?? []).find((item) => {
+    const name = firstMatchingKey(item, [/^name$/i, /_name$/i]);
+    const code = firstMatchingKey(item, [/^code$/i, /_code$/i]);
+    return String(name ?? "").toLowerCase() === wanted || String(code ?? "").toLowerCase() === wanted;
+  });
+}
+
+// Resolves the fixed party_type_id (CUSTOMER) / ownership_id (INDIVIDUAL)
+// ids this wizard always sends — never hardcoded numeric ids, since they
+// aren't guaranteed stable across environments; resolved at runtime from
+// the same master lists CustomerResource.jsx's own Add/Edit form already
+// fetches. Fails loud (a notifications.error) rather than silently
+// guessing when no exact match exists.
+export function useCustomerPartyOwnershipIds(enabled = true) {
+  const { partyTypes = [], error: partyTypesError } = usePartyTypes(enabled);
+  const { ownershipTypes = [], error: ownershipTypesError } = useOwnershipTypes(enabled);
+
+  useEffect(() => {
+    if (partyTypesError) notifications.error(partyTypesError.message);
+  }, [partyTypesError]);
+  useEffect(() => {
+    if (ownershipTypesError) notifications.error(ownershipTypesError.message);
+  }, [ownershipTypesError]);
+
+  const partyTypeId = useMemo(() => {
+    if (!enabled || partyTypes.length === 0) return null;
+    const match = findByNameOrCode(partyTypes, "CUSTOMER");
+    if (!match) {
+      notifications.error("Could not resolve the CUSTOMER party type — check master data.");
+      return null;
+    }
+    return match.id;
+  }, [enabled, partyTypes]);
+
+  const ownershipId = useMemo(() => {
+    if (!enabled || ownershipTypes.length === 0) return null;
+    const match = findByNameOrCode(ownershipTypes, "INDIVIDUAL");
+    if (!match) {
+      notifications.error("Could not resolve the INDIVIDUAL ownership type — check master data.");
+      return null;
+    }
+    return match.id;
+  }, [enabled, ownershipTypes]);
+
+  return { partyTypeId, ownershipId, loading: enabled && (partyTypes.length === 0 || ownershipTypes.length === 0) };
+}
+
+// Loads the whole wizard's shape once at the very start of the wizard, per
+// the redesign handoff — ownership sub types (filtered to what this
+// institution actually accepts), identification/address types (with
+// front/back/mandatory/same-as rules), employment statuses, document
+// requirements + document types. Re-fetches if `ownershipSubTypeId`
+// changes (the optional narrower re-call the handoff describes); passing
+// none just returns everything unfiltered.
+export function useWizardConfig(instProfileId, ownershipSubTypeId) {
+  const [config, setConfig] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (instProfileId == null) return;
+    let cancelled = false;
+    setLoading(true);
+    indvProfileApi()
+      .wizardConfig({ inst_profile_id: instProfileId, ...(ownershipSubTypeId ? { ownership_sub_type_id: ownershipSubTypeId } : {}) })
+      .then((r) => {
+        if (cancelled) return;
+        setConfig(rowsOf(r)[0] ?? {});
+        setError(null);
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        setError(e);
+        notifications.error(e.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [instProfileId, ownershipSubTypeId]);
+
+  return {
+    config: config ?? {},
+    ownershipSubTypes: config?.ownership_sub_types ?? [],
+    identificationTypes: config?.identification_types ?? [],
+    addressTypes: config?.address_types ?? [],
+    employmentStatuses: config?.employment_statuses ?? [],
+    documentRequirements: config?.document_requirements ?? [],
+    documentTypes: config?.document_types ?? [],
+    loading,
+    error,
+  };
+}

@@ -961,6 +961,7 @@ export const API_ENDPOINTS = {
     INDV_PROFILE: {
       ADD: "/customer/indv_profile/add", SUBMIT: "/customer/indv_profile/submit", EDIT: "/customer/indv_profile/edit",
       GET: "/customer/indv_profile/get",
+      WIZARD_CONFIG: "/customer/indv_profile/wizard_config",
       AUTH: "/customer/indv_profile/auth", DEAUTH: "/customer/indv_profile/deauth", DELETE: "/customer/indv_profile/delete",
       DELETE_AUTH: "/customer/indv_profile/delete_auth", LIST: "/customer/indv_profile/list",
       GET_ACTIVE: "/customer/indv_profile/get_active", AUDIT: "/customer/indv_profile/audit",
