@@ -37,6 +37,7 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
 const COLOR_NAMES = {
   "#d82222": "Red",
   "#b90e0e": "Dark red",
@@ -335,6 +336,14 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
     is_draft: false,
   });
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  // Lets the hex text field accept "2563EB" as well as "#2563EB" — the
+  // native color swatch always emits the "#"-prefixed form, but someone
+  // typing/pasting a hex value by hand may not bother with the "#".
+  const setColorText = (key) => (e) => {
+    const raw = e.target.value.trim();
+    const normalized = raw && !raw.startsWith("#") ? `#${raw}` : raw;
+    setForm((f) => ({ ...f, [key]: normalized }));
+  };
   return (
     <form
       className="grid gap-4 sm:grid-cols-2"
@@ -344,6 +353,13 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         // (previously free from the bare <select> it replaced) by hand.
         if (!editing && !form.inst_profile_id) {
           notifications.error("Please select an institution");
+          return;
+        }
+        const invalidColorField = FIELDS.find(
+          ([key]) => key.includes("color") && form[key] && !HEX_COLOR_RE.test(form[key]),
+        );
+        if (invalidColorField) {
+          notifications.error(`${invalidColorField[1]} must be a valid hex color (e.g. #2563EB)`);
           return;
         }
         const { inst_profile_id, ...branding } = form;
@@ -369,28 +385,51 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           />
         </label>
       )}
-      {FIELDS.map(([key, label]) => (
-        <label key={key} className="text-sm font-medium">
-          {label}
-          <input
-            required={key === "display_name"}
-            type={key.includes("color") ? "color" : key.includes("email") ? "email" : "text"}
-            value={
-              key.includes("color") && !form[key]
-                ? key === "primary_color"
-                  ? "#2563eb"
-                  : "#dbeafe"
-                : form[key]
-            }
-            onChange={set(key)}
-            className={
-              key.includes("color")
-                ? "mt-1.5 h-12 w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
-                : "mt-1.5 w-full rounded-xl border border-slate-200 p-3"
-            }
-          />
-        </label>
-      ))}
+      {FIELDS.map(([key, label]) => {
+        if (key.includes("color")) {
+          const fallback = key === "primary_color" ? "#2563eb" : "#dbeafe";
+          const currentValue = form[key] || fallback;
+          return (
+            <label key={key} className="text-sm font-medium">
+              {label}
+              {/* Bare <input type="color"> opens the browser's native
+                  picker, which on Chrome has no way to type a hex value
+                  directly (only an RGB slider/eyedropper) — paired with a
+                  text input here so a hex code can be typed or pasted, and
+                  kept in sync with the swatch both ways. */}
+              <div className="mt-1.5 flex items-center gap-2">
+                <input
+                  type="color"
+                  value={HEX_COLOR_RE.test(currentValue) ? currentValue : fallback}
+                  onChange={set(key)}
+                  className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                />
+                <input
+                  type="text"
+                  value={form[key] ?? ""}
+                  onChange={setColorText(key)}
+                  placeholder={fallback}
+                  spellCheck={false}
+                  maxLength={7}
+                  className="h-12 w-full rounded-xl border border-slate-200 p-3 font-mono text-sm uppercase"
+                />
+              </div>
+            </label>
+          );
+        }
+        return (
+          <label key={key} className="text-sm font-medium">
+            {label}
+            <input
+              required={key === "display_name"}
+              type={key.includes("email") ? "email" : "text"}
+              value={form[key]}
+              onChange={set(key)}
+              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+            />
+          </label>
+        );
+      })}
       <label className="text-sm font-medium sm:col-span-2">
         Narration
         <textarea
