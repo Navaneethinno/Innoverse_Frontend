@@ -381,6 +381,7 @@ export const routes = {
   crumbDesignation: "Cargo",
   crumbDigitalProduct: "Produto Digital",
   crumbDisability: "Deficiência",
+  crumbDocumentType: "Tipo de Documento",
   crumbDocumentTypeMaster: "Tipo de Documento (Mestre)",
   crumbIndvTypeConfig: "Configuração de Tipo Individual",
   crumbIndvIdentificationType: "Configuração de Tipo de Identificação",

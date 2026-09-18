@@ -38,6 +38,7 @@ const CUSTOMER_MASTER_CONFIG_ENTITIES = [
   ["indvpepstatus", "indv_pep_status"],
   ["indvpepcategory", "indv_pep_category"],
   ["ownershipsubtype", "ownership_sub_type"],
+  ["documenttype", "document_type"],
 ];
 masterConfigRoutes.push(
   ...CUSTOMER_MASTER_CONFIG_ENTITIES.flatMap(([slug, entity]) => [

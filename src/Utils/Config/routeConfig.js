@@ -64,6 +64,7 @@ const SEGMENT_LABELS = {
   indvpepstatus: { titleKey: "crumbIndvPepStatus", breadcrumb: ["crumbMaster", "crumbIndvPepStatus"] },
   indvpepcategory: { titleKey: "crumbIndvPepCategory", breadcrumb: ["crumbMaster", "crumbIndvPepCategory"] },
   ownershipsubtype: { titleKey: "crumbOwnershipSubType", breadcrumb: ["crumbMaster", "crumbOwnershipSubType"] },
+  documenttype: { titleKey: "crumbDocumentType", breadcrumb: ["crumbMaster", "crumbDocumentType"] },
 
   // --- EPURSE > Settings > Configuration > KYC (config/kyc_group*) --------
   group: { titleKey: "crumbGroup", breadcrumb: ["crumbKYC", "crumbGroup"] },

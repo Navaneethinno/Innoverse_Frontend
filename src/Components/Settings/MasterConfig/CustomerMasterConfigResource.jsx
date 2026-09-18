@@ -33,7 +33,12 @@ import {
   indvPepStatusApi,
   indvPepCategoryApi,
   ownershipSubTypeApi,
+  documentTypeApi,
 } from "@/Services/MasterConfig/district.api";
+
+// document_type's only real static enum, per Individual Customer Onboarding
+// Configuration reference (2026-09).
+const DOCUMENT_TYPE_CATEGORIES = ["TAX", "ADDRESS", "FINANCIAL"];
 
 // One generic resource for the 12 new Individual Customer domain masters
 // (2026-09) instead of 12 near-duplicate hand-rolled files like
@@ -64,6 +69,19 @@ const CONFIGS = {
     hasOwnership: true,
     readOnlyOnEdit: ["ownership_id"],
   },
+  // Global master of document names, grouped by category — entity F of the
+  // Individual Customer Onboarding Configuration reference (2026-09). Not
+  // institution-scoped, unlike the 6 config/customer/* entities that
+  // reference it (see CustomerOnboardingConfigResource.jsx's own
+  // document_type_id lookup).
+  document_type: {
+    title: "Document Type",
+    menuName: "Document Type",
+    api: documentTypeApi,
+    endpoint: API_ENDPOINTS.MASTER_CONFIG.DOCUMENT_TYPE,
+    hasCategory: true,
+    readOnlyOnEdit: ["category"],
+  },
 };
 
 const idOf = (row) => row?.id;
@@ -87,7 +105,7 @@ export function CustomerMasterConfigResource({ entity }) {
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(""),
     [tab, setTab] = useState("all"),
-    [form, setForm] = useState({ name: "", description: "", ownership_id: "" }),
+    [form, setForm] = useState({ name: "", description: "", ownership_id: "", category: "" }),
     [editing, setEditing] = useState(null),
     [open, setOpen] = useState(false),
     [view, setView] = useState(null),
@@ -140,12 +158,17 @@ export function CustomerMasterConfigResource({ entity }) {
       notifications.error("Please select an ownership");
       return;
     }
+    if (config.hasCategory && !editing && !form.category) {
+      notifications.error("Please select a category");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
         name: form.name,
         description: form.description,
         ...(config.hasOwnership && !editing ? { ownership_id: form.ownership_id } : {}),
+        ...(config.hasCategory && !editing ? { category: form.category } : {}),
         is_draft: draft,
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };
@@ -153,7 +176,7 @@ export function CustomerMasterConfigResource({ entity }) {
       notifications.success(apiMessage(response, `${config.title} saved`));
       setOpen(false);
       setEditing(null);
-      setForm({ name: "", description: "", ownership_id: "" });
+      setForm({ name: "", description: "", ownership_id: "", category: "" });
       void load();
     } catch (error) {
       notifications.error(error.message);
@@ -193,6 +216,7 @@ export function CustomerMasterConfigResource({ entity }) {
   };
 
   const columns = [
+    ...(config.hasCategory ? [{ key: "category", label: "Category", render: (row) => row.category ?? "-" }] : []),
     { key: "name", label: "Name", render: (row) => row.name ?? "-" },
     { key: "description", label: "Description", render: (row) => row.description || "-" },
     ...(config.hasOwnership
@@ -237,7 +261,7 @@ export function CustomerMasterConfigResource({ entity }) {
             buttons={buttons}
             onView={() => setView(row)}
             onEdit={() => {
-              setForm({ name: row.name ?? "", description: row.description ?? "", ownership_id: row.ownership_id ?? "" });
+              setForm({ name: row.name ?? "", description: row.description ?? "", ownership_id: row.ownership_id ?? "", category: row.category ?? "" });
               setEditing(row);
               setOpen(true);
             }}
@@ -257,7 +281,7 @@ export function CustomerMasterConfigResource({ entity }) {
   const addAction = allowed(menus, "Add", config.menuName) ? (
     <button
       onClick={() => {
-        setForm({ name: "", description: "", ownership_id: "" });
+        setForm({ name: "", description: "", ownership_id: "", category: "" });
         setEditing(null);
         setOpen(true);
       }}
@@ -364,6 +388,21 @@ export function CustomerMasterConfigResource({ entity }) {
                 />
               </label>
             )}
+            {config.hasCategory && (
+              <label className="text-sm font-semibold text-slate-700">
+                Category
+                <FilterSelect
+                  className="mt-1.5"
+                  value={form.category}
+                  onChange={(value) => setForm({ ...form, category: value })}
+                  disabled={Boolean(editing)}
+                  options={[
+                    { value: "", label: "Select category" },
+                    ...DOCUMENT_TYPE_CATEGORIES.map((c) => ({ value: c, label: c })),
+                  ]}
+                />
+              </label>
+            )}
             <label className="text-sm font-semibold text-slate-700">
               Name
               <input
@@ -388,6 +427,7 @@ export function CustomerMasterConfigResource({ entity }) {
         <Modal open title={`View ${config.title}`} onClose={() => setView(null)} size="sm">
           <dl className="grid gap-3">
             {[
+              ...(config.hasCategory ? [["Category", view.category]] : []),
               ["Name", view.name],
               ["Description", view.description],
               ...(config.hasOwnership
@@ -406,7 +446,7 @@ export function CustomerMasterConfigResource({ entity }) {
         <AuditModal
           title={config.title}
           onClose={() => setAudit(null)}
-          fields={[["name", "Name"], ["description", "Description"], ...(config.hasOwnership ? [["ownership_id", "Ownership"]] : [])]}
+          fields={[...(config.hasCategory ? [["category", "Category"]] : []), ["name", "Name"], ["description", "Description"], ...(config.hasOwnership ? [["ownership_id", "Ownership"]] : [])]}
           fetchAudit={(p, l) => config.api.audit({ id: idOf(audit), page: p, limit: l }).then(mapAuditResponse)}
         />
       )}
