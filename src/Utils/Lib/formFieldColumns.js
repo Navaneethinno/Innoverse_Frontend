@@ -18,7 +18,19 @@
 // cells into shared rows, so a tall field (a dropdown) next to a short one
 // (a checkbox) forces the short cell's row to stretch to the tall one's
 // height, stranding it with a large gap before the next row.
+// Short forms (a handful of dropdowns plus a couple of checkboxes, e.g.
+// Identification Type Config's 3 dropdowns + 3 checkboxes) fit comfortably
+// in one column — splitting them in half at this size stranded every
+// checkbox alone in a near-empty right column, floated at the same height
+// as the left column's first field with nothing below it, which read as a
+// separate detached group rather than part of the same form. Below this
+// threshold, everything (dropdowns AND checkboxes) fills the left column
+// top to bottom in field order; the right column only comes into play once
+// there are enough fields that a single column would run too tall (e.g.
+// acct_product's ~26 fields).
+const SINGLE_COLUMN_THRESHOLD = 8;
 export function splitFieldsIntoColumns(fields) {
+  if (fields.length <= SINGLE_COLUMN_THRESHOLD) return [fields, []];
   let boundary = Math.ceil(fields.length / 2);
   while (boundary > 0 && fields[boundary - 1][2] === "boolean" && fields[boundary]?.[2] === "boolean") {
     boundary -= 1;
