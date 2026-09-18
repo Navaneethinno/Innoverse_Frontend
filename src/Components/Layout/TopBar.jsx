@@ -136,8 +136,19 @@ export function TopBar() {
               <div className="w-7 h-7 rounded-full bg-brand-gradient text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
                 {user?.username?.charAt(0).toUpperCase() ?? t("layout:admin").charAt(0)}
               </div>
-              <span className="hidden sm:block text-xs font-semibold text-foreground">
-                {user?.username ?? t("layout:admin")}
+              <span className="hidden sm:flex flex-col items-start leading-tight">
+                <span className="text-xs font-semibold text-foreground">
+                  {user?.username ?? t("layout:admin")}
+                </span>
+                {/* user_details (raw login payload) names this field
+                    inst_profile_name, not institution.name — the dropdown
+                    below read the wrong path and always fell back to
+                    "Platform"; same field used here. */}
+                {user?.inst_profile_name && (
+                  <span className="text-[10px] font-medium text-muted-foreground">
+                    {user.inst_profile_name}
+                  </span>
+                )}
               </span>
             </button>
 
@@ -159,7 +170,7 @@ export function TopBar() {
                   <div className="px-4 py-3 border-b border-border">
                     <p className="text-xs font-bold text-foreground">{user?.username ?? t("layout:admin")}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {user?.institution?.name ?? t("layout:platform")}
+                      {user?.inst_profile_name ?? t("layout:platform")}
                     </p>
                   </div>
                   <button

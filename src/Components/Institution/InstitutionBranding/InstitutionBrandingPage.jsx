@@ -21,6 +21,8 @@ import {
 } from "@/Hooks/Institutions/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useAuth } from "@/Hooks/useAuth";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 
 const FIELDS = [
   ["display_name", "Display Name"],
@@ -260,6 +262,8 @@ function BrandingActions({ row, onRefresh, onEdit }) {
 
 export function InstitutionBrandingPage() {
   const tr = useConfigLabel();
+  const currentUser = useAuth((s) => s.user);
+  const { colors: liveBrandColors, setBrandTheme } = useBrandTheme();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -341,6 +345,7 @@ export function InstitutionBrandingPage() {
   ];
   const submit = async (values) => {
     try {
+      const instProfileId = editing ? editing.inst_profile_id : values.inst_profile_id;
       if (editing)
         await edit.mutateAsync({
           id: editing.id,
@@ -350,6 +355,24 @@ export function InstitutionBrandingPage() {
       else await add.mutateAsync(values);
       setFormOpen(false);
       await query.refetch();
+      // Applying this instantly — rather than waiting for the maker-checker
+      // authorization that would normally make it the record's "active"
+      // color — matches what was asked: seeing your own institution's new
+      // brand color without logging out and back in. If the change is
+      // later rejected, the theme simply reverts on the next login/token
+      // refresh's branding payload, same as any other unauthorized change
+      // would (there's no live channel for "my own session's branding" to
+      // correct it sooner — see BrandThemeProvider.jsx).
+      if (
+        currentUser?.inst_profile_id != null &&
+        String(instProfileId) === String(currentUser.inst_profile_id) &&
+        (values.primary_color || values.secondary_color)
+      ) {
+        setBrandTheme({
+          primary: values.primary_color || liveBrandColors?.primary,
+          secondary: values.secondary_color || liveBrandColors?.secondary,
+        });
+      }
     } catch {
       /* mutation hook already shows the error toast */
     }
