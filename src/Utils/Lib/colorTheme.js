@@ -102,12 +102,22 @@ export function deriveBrandThemeVars({ primary, secondary }, mode = "light") {
       vars["--glass-gradient"] =
         `linear-gradient(135deg, ${glassTint} 0%, ${hexToRgba(secondaryHex ?? primaryHex, 0.08) ?? glassTint} 50%, rgba(255, 255, 255, 0) 100%)`;
     }
+    // The whole-page background wash (theme.css's `body` rule) — a very
+    // light tint of primary for the mesh gradient's dark-mode-aware corner,
+    // plus the rgba tint its first radial-gradient blob uses.
+    vars["--mesh-1"] = isDark ? mix(primaryHex, -0.82) : mix(primaryHex, 0.86);
+    vars["--bg-tint-primary"] = hexToRgba(primaryHex, isDark ? 0.16 : 0.12);
   }
 
   if (secondaryHex) {
     vars["--secondary"] = secondaryHex;
     vars["--secondary-foreground"] = bestForeground(secondaryHex);
     vars["--chart-4"] = secondaryHex;
+    // Same background-wash treatment as --mesh-1/--bg-tint-primary above,
+    // but for the secondary-colored corner/blob.
+    vars["--mesh-2"] = isDark ? mix(secondaryHex, -0.82) : mix(secondaryHex, 0.86);
+    vars["--bg-tint-secondary"] = hexToRgba(secondaryHex, isDark ? 0.1 : 0.08);
+    vars["--bg-tint-accent"] = hexToRgba(secondaryHex, isDark ? 0.28 : 0.22);
   }
 
   return vars;

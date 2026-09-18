@@ -203,10 +203,19 @@
 
   body {
     @apply bg-background text-foreground;
+    /* The three radial-gradient tints were literal rgba(34, 102, 238, ...)
+       / rgba(38, 255, 255, ...) — the exact RGB of the old fixed
+       primary/secondary (#2266ee / #26ffff) baked in directly, so this
+       whole-page background wash never picked up a tenant's branding
+       colors from BrandThemeProvider no matter what --primary/--secondary
+       were set to. var(--bg-tint-*, <original literal>) lets
+       BrandThemeProvider override them the same way it overrides every
+       other brand token, while every tenant with no branding configured
+       still falls back to the exact original blue/cyan wash. */
     background-image:
-      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(34, 102, 238, 0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(184, 240, 224, 0.35) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 50% at 50% 50%, rgba(38, 255, 255, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 80% 50% at 10% -10%, var(--bg-tint-primary, rgba(34, 102, 238, 0.12)) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 90% 100%, var(--bg-tint-accent, rgba(184, 240, 224, 0.35)) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 50% at 50% 50%, var(--bg-tint-secondary, rgba(38, 255, 255, 0.08)) 0%, transparent 70%),
       linear-gradient(135deg, var(--mesh-1) 0%, var(--background) 46%, var(--mesh-2) 100%);
     background-attachment: fixed;
     transition: background-color 250ms ease, color 250ms ease;

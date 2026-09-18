@@ -36,6 +36,11 @@ function clearBrandVars() {
     "--gradient-start",
     "--gradient-end",
     "--glass-gradient",
+    "--mesh-1",
+    "--mesh-2",
+    "--bg-tint-primary",
+    "--bg-tint-secondary",
+    "--bg-tint-accent",
   ];
   tokens.forEach((token) => root.style.removeProperty(token));
 }
