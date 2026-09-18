@@ -421,7 +421,22 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
   const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
-    ...Object.fromEntries(FIELDS.map(([key]) => [key, editing?.[key] ?? ""])),
+    // A color field's existing value might already be malformed on the
+    // record (e.g. a 5-digit hex saved before this form validated hex
+    // input at all) — loading it as-is into a field that now hard-blocks
+    // submission on invalid hex would force fixing a color the user never
+    // meant to touch just to save an unrelated edit. Dropping an
+    // already-invalid legacy value back to empty on load is the same
+    // "treat it as unset" behavior the color swatch preview already falls
+    // back to, just applied to the text field/submission too.
+    ...Object.fromEntries(
+      FIELDS.map(([key]) => [
+        key,
+        key.includes("color") && editing?.[key] && !HEX_COLOR_RE.test(editing[key])
+          ? ""
+          : editing?.[key] ?? "",
+      ]),
+    ),
     narration: "",
     is_draft: false,
   });
