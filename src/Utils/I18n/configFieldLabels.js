@@ -278,6 +278,12 @@ const PT = {
   user: "usuário",
   "Submit Draft": "Enviar Rascunho",
   "Submit draft": "Enviar rascunho",
+  Logo: "Logo",
+  Favicon: "Favicon",
+  "Upload image": "Enviar imagem",
+  "Replace image": "Substituir imagem",
+  "Remove image": "Remover imagem",
+  "PNG, JPG, or SVG, up to 500KB": "PNG, JPG ou SVG, até 500KB",
   // MasterConfig list pages' page title / subtitle / search placeholder /
   // DataTable+view-modal titles / empty state — the "top part" of each
   // page, still hardcoded English even after the column headers and Add

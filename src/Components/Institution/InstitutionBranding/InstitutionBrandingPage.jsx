@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertCircle, Plus } from "lucide-react";
+import { useRef, useState } from "react";
+import { AlertCircle, Plus, Upload, X } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -24,8 +24,8 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const FIELDS = [
   ["display_name", "Display Name"],
-  ["logo", "Logo URL"],
-  ["favicon", "Favicon URL"],
+  ["logo", "Logo"],
+  ["favicon", "Favicon"],
   ["primary_color", "Primary Color"],
   ["secondary_color", "Secondary Color"],
   ["login_background", "Login Background"],
@@ -47,6 +47,90 @@ const COLOR_NAMES = {
   "#000000": "Black",
 };
 const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "Custom color";
+// Backend's logo/favicon fields are plain strings (confirmed: no file-
+// upload/asset-storage endpoint exists anywhere in this API's Postman
+// collection) — so "uploading" here reads the chosen file client-side and
+// stores it as a data: URL in that same string field, rendered identically
+// to an already-hosted external URL a legacy record might still have.
+const MAX_IMAGE_BYTES = 500 * 1024;
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+function ImageUploadField({ tr, value, onChange }) {
+  const inputRef = useRef(null);
+  const [error, setError] = useState("");
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError(`Image must be under ${Math.round(MAX_IMAGE_BYTES / 1024)}KB`);
+      return;
+    }
+    setError("");
+    onChange(await readFileAsDataUrl(file));
+  };
+
+  return (
+    <div className="mt-1.5">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => void handleFile(e.target.files?.[0])}
+      />
+      {value ? (
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-2.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+            <img
+              src={value}
+              alt=""
+              className="h-full w-full object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+          >
+            {tr("Replace image")}
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-red-500"
+            aria-label={tr("Remove image")}
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-slate-500 transition hover:border-primary/50 hover:text-primary"
+        >
+          <Upload size={15} className="shrink-0" />
+          {tr("Upload image")}
+        </button>
+      )}
+      <p className="mt-1 text-[11px] text-slate-400">{tr("PNG, JPG, or SVG, up to 500KB")}</p>
+      {error && <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p>}
+    </div>
+  );
+}
 function ColorValue({ color }) {
   if (!color) return <span>—</span>;
   return (
@@ -134,14 +218,20 @@ function BrandingActions({ row, onRefresh, onEdit }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {FIELDS.map(([key, label]) => (
             <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <p className="mt-1 break-words text-sm font-semibold text-foreground">
+              <p className="text-xs font-semibold text-muted-foreground">{tr(label)}</p>
+              <div className="mt-1 break-words text-sm font-semibold text-foreground">
                 {key.includes("color") ? (
                   <ColorValue color={details?.[key]} />
+                ) : key === "logo" || key === "favicon" ? (
+                  details?.[key] ? (
+                    <img src={details[key]} alt="" className="h-10 w-10 rounded-lg border border-slate-200 object-contain bg-white" />
+                  ) : (
+                    "—"
+                  )
                 ) : (
                   value(details, key)
                 )}
-              </p>
+              </div>
             </div>
           ))}
         </div>
@@ -414,6 +504,18 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                   className="h-12 w-full rounded-xl border border-slate-200 p-3 font-mono text-sm uppercase"
                 />
               </div>
+            </label>
+          );
+        }
+        if (key === "logo" || key === "favicon") {
+          return (
+            <label key={key} className="text-sm font-medium">
+              {label}
+              <ImageUploadField
+                tr={tr}
+                value={form[key]}
+                onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
+              />
             </label>
           );
         }
