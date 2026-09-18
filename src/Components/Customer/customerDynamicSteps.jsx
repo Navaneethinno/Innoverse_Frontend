@@ -1,5 +1,6 @@
 import { CustomerFieldInput } from "./customerFields";
-import { IDENTIFICATION_ROW_FIELDS, ADDRESS_ROW_FIELDS } from "./customerFields";
+import { IDENTIFICATION_ROW_FIELDS, ADDRESS_ROW_FIELDS, RELATIONSHIP_ROW_FIELDS, GUARDIAN_ROW_FIELDS } from "./customerFields";
+import { isGuardianRelationshipType } from "./customerWizardConfig";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Identification and Address are NOT plain CONFIGS sections — each renders
@@ -196,5 +197,198 @@ export function findMissingAddress(types, values) {
     const row = values[key];
     if (row?.same_as) return false;
     return !row || !ADDRESS_ROW_FIELDS.some(([f]) => row[f]);
+  });
+}
+
+// Relationships — unlike identification/address, this isn't one row per
+// wizard_config type (relationships aren't institution-configured); it's a
+// freely-addable list, so rows are keyed by a local id (`new-<n>` for an
+// unsaved row, the real saved id once persisted) rather than a fixed type
+// id. Judgment call: kept consistent with identification/address's
+// "row keyed by id, edited via onRowChange" shape rather than inventing a
+// second list-editing pattern.
+let relationshipTempSeq = 0;
+export function emptyRelationshipRow() {
+  return Object.fromEntries([...RELATIONSHIP_ROW_FIELDS.map(([key]) => [key, ""]), ...GUARDIAN_ROW_FIELDS.map(([key]) => [key, ""])]);
+}
+export function newRelationshipRowKey() {
+  relationshipTempSeq += 1;
+  return `new-${Date.now()}-${relationshipTempSeq}`;
+}
+
+export function RelationshipStepFields({ relationshipTypes, values, onRowChange, onAddRow, onRemoveRow, minorAge, disabled = false }) {
+  const tr = useConfigLabel();
+  const keys = Object.keys(values ?? {});
+  return (
+    <div className="flex flex-col gap-6">
+      {keys.length === 0 && <p className="text-sm text-slate-500">{tr("No relationships added yet.")}</p>}
+      {keys.map((key) => {
+        const row = values[key] ?? emptyRelationshipRow();
+        const setField = (field, next) => onRowChange(key, { ...row, [field]: next });
+        const isGuardianType = isGuardianRelationshipType(relationshipTypes, row.relationship_type_id);
+        const showGuardianBlock = isGuardianType && minorAge;
+        return (
+          <div key={key} className="rounded-2xl border p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-800">{tr("Relationship")}</h3>
+              {!disabled && (
+                <button type="button" onClick={() => onRemoveRow(key)} className="text-xs font-bold text-red-600">
+                  {tr("Remove")}
+                </button>
+              )}
+            </div>
+            <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+              {RELATIONSHIP_ROW_FIELDS.map(([fieldKey, label, type]) => (
+                <label key={fieldKey} className="text-sm font-semibold text-slate-700">
+                  {tr(label)}
+                  <CustomerFieldInput fieldKey={fieldKey} type={type} value={row[fieldKey]} onChange={(next) => setField(fieldKey, next)} lookups={{ relationshipTypes }} disabled={disabled} />
+                </label>
+              ))}
+            </div>
+            {showGuardianBlock && (
+              <div className="mt-4 rounded-xl bg-amber-50 p-3">
+                <h4 className="mb-3 text-xs font-bold uppercase text-amber-700">{tr("Guardian details (customer is a minor)")}</h4>
+                <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+                  {GUARDIAN_ROW_FIELDS.map(([fieldKey, label, type]) => (
+                    <label key={fieldKey} className="text-sm font-semibold text-slate-700">
+                      {tr(label)}
+                      <CustomerFieldInput fieldKey={fieldKey} type={type} value={row[fieldKey]} onChange={(next) => setField(fieldKey, next)} disabled={disabled} />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {!disabled && (
+        <button type="button" onClick={onAddRow} className="self-start rounded-xl border px-4 py-2 text-sm font-bold text-primary">
+          {tr("Add relationship")}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function buildRelationshipPayload(values, existingIds = {}) {
+  return Object.entries(values ?? {})
+    .filter(([, row]) => RELATIONSHIP_ROW_FIELDS.some(([f]) => row[f]))
+    .map(([key, row]) => ({
+      ...(existingIds[key] ? { id: existingIds[key] } : {}),
+      relationship_type_id: row.relationship_type_id || null,
+      name: row.name || null,
+      contact_number: row.contact_number || null,
+      share_percentage: row.share_percentage || null,
+      guardian_name: row.guardian_name || null,
+      guardian_relationship: row.guardian_relationship || null,
+      guardian_contact_number: row.guardian_contact_number || null,
+      guardian_id_number: row.guardian_id_number || null,
+    }));
+}
+
+// Documents — fully wizard_config-driven (document_requirements +
+// document_types), same "one form block per applicable row" shape as
+// Identification/Address, not a static CONFIGS entry. Each visible
+// requirement row shows a document-name dropdown (document_types filtered
+// to that row's own document_category) plus a file upload, reusing the
+// exact same base64 data-URL read IdentificationStepFields already uses
+// (judgment call carried over from the previous pass — no real upload
+// endpoint exists anywhere in the codebase).
+export function emptyDocumentRow() {
+  return { document_type_id: "", document_number: "", document_file: null };
+}
+
+export function DocumentStepFields({ requirements, documentTypes, values, onRowChange, disabled = false }) {
+  const tr = useConfigLabel();
+  if (requirements.length === 0) {
+    return <p className="text-sm text-slate-500">{tr("No documents are required for this profile.")}</p>;
+  }
+  return (
+    <div className="flex flex-col gap-6">
+      {requirements.map((req) => {
+        const key = req.document_category ?? req.category ?? req.id;
+        const row = values[key] ?? emptyDocumentRow();
+        const setField = (field, next) => onRowChange(key, { ...row, [field]: next });
+        const typeOptions = documentTypes.filter((dt) => String(dt.document_category ?? dt.category) === String(req.document_category ?? req.category));
+        const isMandatory = req.requirement_type === "MANDATORY";
+        return (
+          <div key={key} className="rounded-2xl border p-4">
+            <h3 className="mb-3 text-sm font-bold text-slate-800">
+              {req.name ?? req.document_category ?? req.category}{" "}
+              {isMandatory ? <span className="text-xs font-normal text-red-600">({tr("mandatory")})</span> : <span className="text-xs font-normal text-slate-400">({tr("optional")})</span>}
+            </h3>
+            <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
+              <label className="text-sm font-semibold text-slate-700">
+                {tr("Document name")}
+                <select
+                  className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
+                  value={row.document_type_id ?? ""}
+                  disabled={disabled}
+                  onChange={(e) => setField("document_type_id", e.target.value)}
+                >
+                  <option value="">{tr("Select document")}</option>
+                  {typeOptions.map((dt) => (
+                    <option key={dt.id} value={dt.id}>
+                      {dt.name ?? dt.code}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-semibold text-slate-700">
+                {tr("Document number")}
+                <input
+                  type="text"
+                  value={row.document_number ?? ""}
+                  disabled={disabled}
+                  onChange={(e) => setField("document_number", e.target.value)}
+                  className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
+                />
+              </label>
+              <label className="text-sm font-semibold text-slate-700">
+                {tr("Upload file")}
+                <input
+                  type="file"
+                  disabled={disabled}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setField("document_file", await readFileAsDataUrl(file));
+                  }}
+                  className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
+                />
+                {row.document_file && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
+              </label>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export function buildDocumentPayload(requirements, values, existingIds = {}) {
+  return requirements
+    .map((req) => {
+      const key = req.document_category ?? req.category ?? req.id;
+      const row = values[key];
+      if (!row) return null;
+      const hasData = row.document_type_id || row.document_number || row.document_file;
+      if (!hasData) return null;
+      return {
+        ...(existingIds[key] ? { id: existingIds[key] } : {}),
+        document_category: req.document_category ?? req.category ?? null,
+        document_type_id: row.document_type_id || null,
+        document_number: row.document_number || null,
+        document_file: row.document_file || null,
+      };
+    })
+    .filter(Boolean);
+}
+
+export function findMissingDocument(requirements, values) {
+  return requirements.find((req) => {
+    if (req.requirement_type !== "MANDATORY") return false;
+    const key = req.document_category ?? req.category ?? req.id;
+    const row = values[key];
+    return !row || !(row.document_type_id || row.document_file);
   });
 }

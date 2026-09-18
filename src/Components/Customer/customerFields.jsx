@@ -85,6 +85,60 @@ export const CONFIGS = {
       ["employer_contact", "Employer contact", "text"],
     ],
   },
+  // Business Details — only relevant when the Employment step's chosen
+  // status is self-employed/business/professional-ish; gated at the step
+  // level (isBusinessEmployment in customerWizardConfig.js), not per-field
+  // here, since it's an all-or-nothing section.
+  business: {
+    title: "Business Details",
+    fields: [
+      ["business_name", "Business name", "text"],
+      ["business_type", "Business type / nature", "text"],
+      ["registration_number", "Registration number", "text"],
+      ["business_address", "Business address", "text"],
+      ["annual_turnover_id", "Annual turnover", "number", "turnovers"],
+      ["years_in_business", "Years in business", "number"],
+      ["tax_registration_number", "GST / tax registration number", "text"],
+    ],
+  },
+  financial_profile: {
+    title: "Financial Profile",
+    fields: [
+      ["annual_income", "Annual income", "number"],
+      ["net_worth", "Net worth", "number"],
+      ["expected_transaction_volume", "Expected transaction volume", "number"],
+      ["expected_transaction_count", "Expected transaction count", "number"],
+      ["purpose_of_account", "Purpose of account / relationship", "text"],
+    ],
+  },
+  source_of_fund: {
+    title: "Source of Funds",
+    fields: [["source_of_fund_id", "Source of funds", "number", "sourceOfFunds"]],
+  },
+  // PEP Details — pep_status_id/pep_category_id/position/organization/
+  // country/start_date/end_date only make sense once is_pep is checked;
+  // gated per-field via CustomerStepFields' fieldFilter (see
+  // AddCustomerWizard.jsx/EditCustomerWizard.jsx/ViewCustomerWizard.jsx).
+  pep: {
+    title: "PEP Details",
+    fields: [
+      ["is_pep", "Are you a politically exposed person?", "boolean"],
+      ["pep_status_id", "PEP status", "number", "pepStatuses"],
+      ["pep_category_id", "PEP category", "number", "pepCategories"],
+      ["position", "Position", "text"],
+      ["organization", "Organization", "text"],
+      ["country", "Country", "text"],
+      ["start_date", "Start date", "date"],
+      ["end_date", "End date", "date"],
+    ],
+  },
+  communication: {
+    title: "Communication",
+    fields: [
+      ["preferred_channel_id", "Preferred channel", "number", "channels"],
+      ["preferred_language_id", "Preferred language", "number", "languages"],
+    ],
+  },
 };
 
 // Row-field templates for the two wizard_config-driven steps (one form
@@ -106,6 +160,23 @@ export const ADDRESS_ROW_FIELDS = [
   ["postal_code", "Postal code", "text"],
 ];
 
+// Relationships step — freely-addable rows (not one-per-wizard_config-row
+// like identification/address), see customerDynamicSteps.jsx's
+// RelationshipStepFields. Guardian sub-block only appears when the row's
+// relationship_type_id resolves to "GUARDIAN" AND the customer is a minor.
+export const RELATIONSHIP_ROW_FIELDS = [
+  ["relationship_type_id", "Relationship type", "number", "relationshipTypes"],
+  ["name", "Name", "text"],
+  ["contact_number", "Contact number", "text"],
+  ["share_percentage", "Share / percentage (if nominee)", "number"],
+];
+export const GUARDIAN_ROW_FIELDS = [
+  ["guardian_name", "Guardian name", "text"],
+  ["guardian_relationship", "Guardian relationship to minor", "text"],
+  ["guardian_contact_number", "Guardian contact number", "text"],
+  ["guardian_id_number", "Guardian ID number", "text"],
+];
+
 // The dropdown-driven control (or plain input/date) for one field of one
 // CONFIGS entry. `lookups` bundles every list the caller already fetches
 // (institutions/partyTypes/ownershipTypes/genders/citizenships/disabilities);
@@ -122,6 +193,13 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
     employmentStatuses = [],
     occupations = [],
     designations = [],
+    turnovers = [],
+    sourceOfFunds = [],
+    pepStatuses = [],
+    pepCategories = [],
+    relationshipTypes = [],
+    channels = [],
+    languages = [],
   } = lookups;
   const LOOKUP_OPTIONS = {
     gender_id: { list: genders, placeholder: "Select gender" },
@@ -137,6 +215,13 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
     employment_id: { list: employmentStatuses, placeholder: "Select employment status", idKey: "employment_id" },
     occupation_id: { list: occupations, placeholder: "Select occupation" },
     designation_id: { list: designations, placeholder: "Select designation" },
+    annual_turnover_id: { list: turnovers, placeholder: "Select annual turnover" },
+    source_of_fund_id: { list: sourceOfFunds, placeholder: "Select source of funds" },
+    pep_status_id: { list: pepStatuses, placeholder: "Select PEP status" },
+    pep_category_id: { list: pepCategories, placeholder: "Select PEP category" },
+    relationship_type_id: { list: relationshipTypes, placeholder: "Select relationship type" },
+    preferred_channel_id: { list: channels, placeholder: "Select preferred channel" },
+    preferred_language_id: { list: languages, placeholder: "Select preferred language" },
   };
   const lookupConfig = LOOKUP_OPTIONS[key];
   if (lookupConfig) {
@@ -153,6 +238,17 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
             return { value: id, label: item.name ?? item.code ?? String(id) };
           }),
         ]}
+      />
+    );
+  }
+  if (type === "boolean") {
+    return (
+      <input
+        type="checkbox"
+        checked={Boolean(value)}
+        onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
+        className="mt-1.5 h-4 w-4 rounded border-slate-300"
       />
     );
   }

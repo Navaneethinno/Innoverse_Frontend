@@ -12,7 +12,21 @@
 // identification/address) once a section's fields are known. KYC/
 // verification/screening/risk are intentionally skipped forever — they're
 // back-office/system-populated, never customer-entered.
-import { BadgeCheck, Briefcase, Contact as ContactIcon, MapPin, Percent, UserRound } from "lucide-react";
+import {
+  BadgeCheck,
+  Briefcase,
+  Building2,
+  Contact as ContactIcon,
+  FileText,
+  Landmark,
+  MapPin,
+  MessageCircle,
+  Percent,
+  ShieldAlert,
+  UserRound,
+  Users,
+  Wallet,
+} from "lucide-react";
 
 export const CUSTOMER_STEPS = [
   { id: "contact", label: "Contact", entity: "contact", order: 1, icon: ContactIcon },
@@ -21,9 +35,28 @@ export const CUSTOMER_STEPS = [
   { id: "address", label: "Address", entity: "address", order: 4, icon: MapPin, dynamic: true },
   { id: "tax", label: "Tax Details", entity: "tax", order: 5, icon: Percent },
   { id: "employment", label: "Employment", entity: "employment", order: 6, icon: Briefcase },
+  { id: "business", label: "Business Details", entity: "business", order: 7, icon: Building2 },
+  { id: "financial_profile", label: "Financial Profile", entity: "financial_profile", order: 8, icon: Wallet },
+  { id: "source_of_fund", label: "Source of Funds", entity: "source_of_fund", order: 9, icon: Landmark },
+  { id: "relationship", label: "Relationships", entity: "relationship", order: 10, icon: Users, dynamic: true },
+  { id: "pep", label: "PEP Details", entity: "pep", order: 11, icon: ShieldAlert },
+  { id: "document", label: "Documents", entity: "document", order: 12, icon: FileText, dynamic: true },
+  { id: "communication", label: "Communication", entity: "communication", order: 13, icon: MessageCircle },
 ];
 
 // Steps that need at least the profile's Draft id to exist before they can
 // be visited (everything after Personal Details — they all save via
 // `/customer/indv_profile/edit`, which requires `id`).
-export const STEPS_REQUIRING_PROFILE = new Set(["identification", "address", "tax", "employment"]);
+export const STEPS_REQUIRING_PROFILE = new Set([
+  "identification",
+  "address",
+  "tax",
+  "employment",
+  "business",
+  "financial_profile",
+  "source_of_fund",
+  "relationship",
+  "pep",
+  "document",
+  "communication",
+]);

@@ -3,9 +3,16 @@ import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { CUSTOMER_STEPS } from "./customerSteps";
-import { CustomerStepFields, isStepConfigured, useCustomerExistingData, useCustomerLookups } from "./customerWizardShared";
-import { useWizardConfig } from "./customerWizardConfig";
-import { IdentificationStepFields, AddressStepFields } from "./customerDynamicSteps";
+import { CustomerStepFields, isStepConfigured, useCustomerExistingData, useCustomerLookups, ageFromDob } from "./customerWizardShared";
+import {
+  useWizardConfig,
+  employmentRequiresEmployerDetails,
+  isBusinessEmployment,
+  isForeignOwnershipSubType,
+  isNomineeRelationshipType,
+  evaluateDocumentCondition,
+} from "./customerWizardConfig";
+import { IdentificationStepFields, AddressStepFields, RelationshipStepFields, DocumentStepFields } from "./customerDynamicSteps";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Read-only counterpart to AddCustomerWizard.jsx/EditCustomerWizard.jsx —
@@ -20,12 +27,35 @@ export function ViewCustomerWizard({ profile, onClose }) {
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const masterLookups = useCustomerLookups(currentEntity);
-  const { ownershipSubTypes, identificationTypes, addressTypes, loading: wizardConfigLoading } = useWizardConfig(profile.inst_profile_id);
+  const {
+    ownershipSubTypes,
+    identificationTypes,
+    addressTypes,
+    employmentStatuses,
+    documentRequirements,
+    documentTypes,
+    loading: wizardConfigLoading,
+  } = useWizardConfig(profile.inst_profile_id);
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const lookups = { ...masterLookups, ownershipSubTypes };
   const currentConfigured = currentEntity === "profile" || isStepConfigured(currentEntity, values);
+
+  const employmentId = values.employment?.employment_id || null;
+  const employmentFieldFilter = (key) =>
+    !["employer_name", "employer_address", "employer_contact"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
+  const businessRelevant = isBusinessEmployment(employmentStatuses, employmentId);
+  const pepFieldFilter = (key, vals) => key === "is_pep" || vals.is_pep === true || vals.is_pep === "true";
+  const customerAge = ageFromDob(values.profile?.date_of_birth);
+  const isForeigner = isForeignOwnershipSubType(ownershipSubTypes, chosenSubType);
+  const hasNominee = Object.values(values.relationship ?? {}).some((row) => isNomineeRelationshipType(masterLookups.relationshipTypes, row.relationship_type_id));
+  const visibleDocumentRequirements = documentRequirements.filter((req) => {
+    if (req.requirement_type === "CONDITIONAL") {
+      return evaluateDocumentCondition(req.condition_rule, { age: customerAge, isForeigner, hasNominee });
+    }
+    return true;
+  });
 
   return (
     <Modal
@@ -82,6 +112,26 @@ export function ViewCustomerWizard({ profile, onClose }) {
         <IdentificationStepFields types={filteredIdentificationTypes} values={values.identification} onRowChange={() => {}} disabled />
       ) : currentEntity === "address" ? (
         <AddressStepFields types={filteredAddressTypes} values={values.address} onRowChange={() => {}} disabled />
+      ) : currentEntity === "relationship" ? (
+        <RelationshipStepFields
+          relationshipTypes={masterLookups.relationshipTypes}
+          values={values.relationship}
+          onRowChange={() => {}}
+          onAddRow={() => {}}
+          onRemoveRow={() => {}}
+          minorAge={customerAge != null && customerAge < 18}
+          disabled
+        />
+      ) : currentEntity === "document" ? (
+        <DocumentStepFields
+          requirements={visibleDocumentRequirements}
+          documentTypes={documentTypes}
+          values={values.document}
+          onRowChange={() => {}}
+          disabled
+        />
+      ) : currentEntity === "business" && !businessRelevant ? (
+        <p className="text-sm text-slate-500">{tr("Business Details aren't applicable for the selected employment status.")}</p>
       ) : (
         <CustomerStepFields
           entity={currentEntity}
@@ -89,6 +139,7 @@ export function ViewCustomerWizard({ profile, onClose }) {
           onFieldChange={() => {}}
           lookups={lookups}
           disabled
+          fieldFilter={currentEntity === "employment" ? employmentFieldFilter : currentEntity === "pep" ? pepFieldFilter : undefined}
         />
       )}
     </Modal>

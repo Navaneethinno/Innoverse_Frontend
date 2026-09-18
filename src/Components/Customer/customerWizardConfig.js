@@ -125,3 +125,68 @@ export function useWizardConfig(instProfileId, ownershipSubTypeId) {
     error,
   };
 }
+
+// Looks up one wizard_config.employment_statuses row by the id the customer
+// picked on the Employment step (employment_id key, per customerFields.jsx's
+// LOOKUP_OPTIONS idKey override).
+function findEmploymentRow(employmentStatuses, employmentId) {
+  if (employmentId == null || employmentId === "") return null;
+  return (employmentStatuses ?? []).find((row) => String(row.employment_id ?? row.id) === String(employmentId)) ?? null;
+}
+
+// Employer-detail fields (employer name/address/contact) on the Employment
+// step should only render when the chosen row's own
+// is_employer_details_required flag says so — see AddCustomerWizard.jsx's
+// bug fix comment.
+export function employmentRequiresEmployerDetails(employmentStatuses, employmentId) {
+  return Boolean(findEmploymentRow(employmentStatuses, employmentId)?.is_employer_details_required);
+}
+
+// Business Details is only relevant when the chosen employment status looks
+// self-employed/business/professional — wizard_config doesn't carry an
+// explicit flag for this, so (per the handoff's own fallback) match a
+// case-insensitive substring against the row's name/code.
+export function isBusinessEmployment(employmentStatuses, employmentId) {
+  const row = findEmploymentRow(employmentStatuses, employmentId);
+  if (!row) return false;
+  const name = String(row.name ?? row.code ?? "").toUpperCase();
+  return /SELF[\s_-]?EMPLOYED|BUSINESS|PROFESSIONAL/.test(name);
+}
+
+// IF_FOREIGNER document condition — matches the chosen ownership_sub_type
+// row's name/code against the same NRI/PIO/OCI/FOREIGN_NATIONAL categories
+// the original onboarding handoff called out.
+export function isForeignOwnershipSubType(ownershipSubTypes, subTypeId) {
+  if (subTypeId == null || subTypeId === "") return false;
+  const row = (ownershipSubTypes ?? []).find((t) => String(t.id ?? t.ownership_sub_type_id) === String(subTypeId));
+  if (!row) return false;
+  const name = String(row.name ?? row.code ?? "").toUpperCase();
+  return /\bNRI\b|\bPIO\b|\bOCI\b|FOREIGN[\s_-]?NATIONAL|FOREIGNER/.test(name);
+}
+
+// GUARDIAN / NOMINEE relationship-type matching — same name/code
+// case-insensitive substring scan, used by the Relationships step (Guardian
+// sub-block) and the Documents step's IF_NOMINEE_ADDED condition.
+export function isGuardianRelationshipType(relationshipTypes, relationshipTypeId) {
+  const row = (relationshipTypes ?? []).find((t) => String(t.id) === String(relationshipTypeId));
+  return /GUARDIAN/.test(String(row?.name ?? row?.code ?? "").toUpperCase());
+}
+export function isNomineeRelationshipType(relationshipTypes, relationshipTypeId) {
+  const row = (relationshipTypes ?? []).find((t) => String(t.id) === String(relationshipTypeId));
+  return /NOMINEE/.test(String(row?.name ?? row?.code ?? "").toUpperCase());
+}
+
+// Evaluates one document_requirements row's condition_rule (CONDITIONAL
+// requirement_type only) against the wizard's current state.
+export function evaluateDocumentCondition(rule, ctx) {
+  switch (rule) {
+    case "AGE_LT_18":
+      return ctx.age != null && ctx.age < 18;
+    case "IF_FOREIGNER":
+      return Boolean(ctx.isForeigner);
+    case "IF_NOMINEE_ADDED":
+      return Boolean(ctx.hasNominee);
+    default:
+      return true;
+  }
+}

@@ -14,10 +14,31 @@ import {
   saveCustomerStep,
   useCustomerExistingData,
   useCustomerLookups,
+  ageFromDob,
 } from "./customerWizardShared";
 import { indvProfileApi } from "@/Services/Customer/customer.api";
-import { useWizardConfig } from "./customerWizardConfig";
-import { IdentificationStepFields, AddressStepFields, buildIdentificationPayload, buildAddressPayload, findMissingAddress } from "./customerDynamicSteps";
+import {
+  useWizardConfig,
+  employmentRequiresEmployerDetails,
+  isBusinessEmployment,
+  isForeignOwnershipSubType,
+  isNomineeRelationshipType,
+  evaluateDocumentCondition,
+} from "./customerWizardConfig";
+import {
+  IdentificationStepFields,
+  AddressStepFields,
+  buildIdentificationPayload,
+  buildAddressPayload,
+  findMissingAddress,
+  RelationshipStepFields,
+  buildRelationshipPayload,
+  emptyRelationshipRow,
+  newRelationshipRowKey,
+  DocumentStepFields,
+  buildDocumentPayload,
+  findMissingDocument,
+} from "./customerDynamicSteps";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -52,18 +73,47 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const masterLookups = useCustomerLookups(currentEntity);
-  const { ownershipSubTypes, identificationTypes, addressTypes, loading: wizardConfigLoading } = useWizardConfig(profile.inst_profile_id);
+  const {
+    ownershipSubTypes,
+    identificationTypes,
+    addressTypes,
+    employmentStatuses,
+    documentRequirements,
+    documentTypes,
+    loading: wizardConfigLoading,
+  } = useWizardConfig(profile.inst_profile_id);
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const lookups = { ...masterLookups, ownershipSubTypes };
   const isDynamic = currentStep.dynamic;
 
+  const employmentId = values.employment?.employment_id || null;
+  const employmentFieldFilter = (key) =>
+    !["employer_name", "employer_address", "employer_contact"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
+  const businessRelevant = isBusinessEmployment(employmentStatuses, employmentId);
+  const pepFieldFilter = (key, vals) => key === "is_pep" || vals.is_pep === true || vals.is_pep === "true";
+  const customerAge = ageFromDob(values.profile?.date_of_birth);
+  const isForeigner = isForeignOwnershipSubType(ownershipSubTypes, chosenSubType);
+  const hasNominee = Object.values(values.relationship ?? {}).some((row) => isNomineeRelationshipType(masterLookups.relationshipTypes, row.relationship_type_id));
+  const visibleDocumentRequirements = documentRequirements.filter((req) => {
+    if (req.requirement_type === "CONDITIONAL") {
+      return evaluateDocumentCondition(req.condition_rule, { age: customerAge, isForeigner, hasNominee });
+    }
+    return true;
+  });
+
   const isDirty = JSON.stringify(values[currentEntity]) !== JSON.stringify(savedValues[currentEntity]);
   const setFieldValue = (key, next) =>
     setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [key]: next } }));
   const setDynamicRow = (rowKey, nextRow) =>
     setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [rowKey]: nextRow } }));
+  const removeRelationshipRow = (rowKey) =>
+    setValues((prev) => {
+      const next = { ...prev.relationship };
+      delete next[rowKey];
+      return { ...prev, relationship: next };
+    });
 
   const goToStep = (index) => {
     if (index === stepIndex) return;
@@ -105,12 +155,25 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
         return;
       }
     }
+    if (!isDraft && currentEntity === "document") {
+      const missing = findMissingDocument(visibleDocumentRequirements, values.document);
+      if (missing) {
+        notifications.error(`${tr("Please provide")} ${missing.name ?? missing.document_category} (${tr("mandatory")})`);
+        return;
+      }
+    }
     setBusy(true);
     try {
       if (currentEntity === "identification") {
         await indvProfileApi().edit({ id: profile.id, sections: { identification: buildIdentificationPayload(filteredIdentificationTypes, values.identification, recordIds.identification) } });
       } else if (currentEntity === "address") {
         await indvProfileApi().edit({ id: profile.id, sections: { address: buildAddressPayload(filteredAddressTypes, values.address, recordIds.address) } });
+      } else if (currentEntity === "relationship") {
+        await indvProfileApi().edit({ id: profile.id, sections: { relationship: buildRelationshipPayload(values.relationship, recordIds.relationship) } });
+      } else if (currentEntity === "document") {
+        await indvProfileApi().edit({ id: profile.id, sections: { document: buildDocumentPayload(visibleDocumentRequirements, values.document, recordIds.document) } });
+      } else if (currentEntity === "business" && !businessRelevant) {
+        // nothing to save — section not applicable for this employment type
       } else {
         await saveCustomerStep({ id: profile.id, entity: currentEntity, values, recordIds, isDraft });
       }
@@ -182,12 +245,31 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
         <IdentificationStepFields types={filteredIdentificationTypes} values={values.identification} onRowChange={setDynamicRow} />
       ) : currentEntity === "address" ? (
         <AddressStepFields types={filteredAddressTypes} values={values.address} onRowChange={setDynamicRow} />
+      ) : currentEntity === "relationship" ? (
+        <RelationshipStepFields
+          relationshipTypes={masterLookups.relationshipTypes}
+          values={values.relationship}
+          onRowChange={setDynamicRow}
+          onAddRow={() => setDynamicRow(newRelationshipRowKey(), emptyRelationshipRow())}
+          onRemoveRow={removeRelationshipRow}
+          minorAge={customerAge != null && customerAge < 18}
+        />
+      ) : currentEntity === "document" ? (
+        <DocumentStepFields
+          requirements={visibleDocumentRequirements}
+          documentTypes={documentTypes}
+          values={values.document}
+          onRowChange={setDynamicRow}
+        />
+      ) : currentEntity === "business" && !businessRelevant ? (
+        <p className="text-sm text-slate-500">{tr("Business Details aren't applicable for the selected employment status.")}</p>
       ) : (
         <CustomerStepFields
           entity={currentEntity}
           values={values[currentEntity]}
           onFieldChange={setFieldValue}
           lookups={lookups}
+          fieldFilter={currentEntity === "employment" ? employmentFieldFilter : currentEntity === "pep" ? pepFieldFilter : undefined}
         />
       )}
       {pendingNav && (

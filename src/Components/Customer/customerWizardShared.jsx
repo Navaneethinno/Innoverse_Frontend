@@ -3,7 +3,22 @@ import { CONFIGS, CustomerFieldInput } from "./customerFields";
 import { CUSTOMER_STEPS } from "./customerSteps";
 import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { indvProfileApi } from "@/Services/Customer/customer.api";
-import { genderApi, citizenshipApi, disabilityApi, maritalStatusApi, indvTaxStatusApi, indvTaxClassificationApi, occupationApi, designationApi } from "@/Services/MasterConfig/district.api";
+import {
+  genderApi,
+  citizenshipApi,
+  disabilityApi,
+  maritalStatusApi,
+  indvTaxStatusApi,
+  indvTaxClassificationApi,
+  occupationApi,
+  designationApi,
+  turnoverApi,
+  sourceOfFundApi,
+  indvPepStatusApi,
+  indvPepCategoryApi,
+  relationshipTypeApi,
+} from "@/Services/MasterConfig/district.api";
+import { useChannels, useLanguages } from "@/Hooks/Master/masterHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -18,6 +33,20 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const profileApi = () => indvProfileApi();
 export const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 const firstOf = (r) => (Array.isArray(r) ? r[0] : r);
+
+// Age-from-DOB — used by the Relationships step's Guardian sub-block and
+// the Documents step's AGE_LT_18 condition. No existing helper for this
+// anywhere else in the codebase (checked), so a plain local calculation.
+export function ageFromDob(dob) {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (Number.isNaN(birth.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
+  return age;
+}
 
 export function emptyValuesFor(entity) {
   if (!CONFIGS[entity]) return {};
@@ -103,6 +132,40 @@ export function useCustomerExistingData(profile) {
       (Array.isArray(addressRows) ? addressRows : [addressRows]).filter(Boolean).map((row) => [row.address_type_id, row.id ?? null]),
     );
 
+    // Relationships/documents are freely-addable arrays, keyed by their own
+    // row's saved id (or a local temp key when new/unsaved) — see
+    // customerDynamicSteps.jsx's RelationshipStepFields/DocumentStepFields.
+    const relationshipRows = data.relationship ?? staged.relationship ?? [];
+    const relationship = Object.fromEntries(
+      (Array.isArray(relationshipRows) ? relationshipRows : [relationshipRows]).filter(Boolean).map((row, i) => [
+        row.id ?? `new-${i}`,
+        {
+          relationship_type_id: row.relationship_type_id ?? "",
+          name: row.name ?? "",
+          contact_number: row.contact_number ?? "",
+          share_percentage: row.share_percentage ?? "",
+          guardian_name: row.guardian_name ?? "",
+          guardian_relationship: row.guardian_relationship ?? "",
+          guardian_contact_number: row.guardian_contact_number ?? "",
+          guardian_id_number: row.guardian_id_number ?? "",
+        },
+      ]),
+    );
+    const relationshipIds = Object.fromEntries(
+      (Array.isArray(relationshipRows) ? relationshipRows : [relationshipRows]).filter(Boolean).map((row, i) => [row.id ?? `new-${i}`, row.id ?? null]),
+    );
+
+    const documentRows = data.document ?? staged.document ?? [];
+    const document = Object.fromEntries(
+      (Array.isArray(documentRows) ? documentRows : [documentRows]).filter(Boolean).map((row) => [
+        row.document_category ?? row.category,
+        { document_type_id: row.document_type_id ?? "", document_number: row.document_number ?? "", document_file: row.document_file ?? null },
+      ]),
+    );
+    const documentIds = Object.fromEntries(
+      (Array.isArray(documentRows) ? documentRows : [documentRows]).filter(Boolean).map((row) => [row.document_category ?? row.category, row.id ?? null]),
+    );
+
     return {
       values: {
         profile: pickFields("profile", p),
@@ -111,6 +174,13 @@ export function useCustomerExistingData(profile) {
         address,
         tax: pickFields("tax", data.tax ?? staged.tax),
         employment: pickFields("employment", data.employment ?? staged.employment),
+        business: pickFields("business", data.business ?? staged.business),
+        financial_profile: pickFields("financial_profile", data.financial_profile ?? staged.financial_profile),
+        source_of_fund: pickFields("source_of_fund", data.source_of_fund ?? staged.source_of_fund),
+        relationship,
+        pep: pickFields("pep", data.pep ?? staged.pep),
+        document,
+        communication: pickFields("communication", data.communication ?? staged.communication),
       },
       recordIds: {
         profile: p.id ?? profile.id,
@@ -119,6 +189,13 @@ export function useCustomerExistingData(profile) {
         address: addressIds,
         tax: (data.tax ?? staged.tax)?.id ?? null,
         employment: (data.employment ?? staged.employment)?.id ?? null,
+        business: (data.business ?? staged.business)?.id ?? null,
+        financial_profile: (data.financial_profile ?? staged.financial_profile)?.id ?? null,
+        source_of_fund: (data.source_of_fund ?? staged.source_of_fund)?.id ?? null,
+        relationship: relationshipIds,
+        pep: (data.pep ?? staged.pep)?.id ?? null,
+        document: documentIds,
+        communication: (data.communication ?? staged.communication)?.id ?? null,
       },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,6 +268,13 @@ export function useCustomerLookups(currentEntity) {
   const [taxClassifications, setTaxClassifications] = useState([]);
   const [occupations, setOccupations] = useState([]);
   const [designations, setDesignations] = useState([]);
+  const [turnovers, setTurnovers] = useState([]);
+  const [sourceOfFunds, setSourceOfFunds] = useState([]);
+  const [pepStatuses, setPepStatuses] = useState([]);
+  const [pepCategories, setPepCategories] = useState([]);
+  const [relationshipTypes, setRelationshipTypes] = useState([]);
+  const { channels } = useChannels(currentEntity === "communication");
+  const { languages } = useLanguages();
 
   useEffect(() => {
     if (currentEntity !== "profile") return;
@@ -210,20 +294,57 @@ export function useCustomerLookups(currentEntity) {
     occupationApi.getActive({ view: "dropdown" }).then((r) => setOccupations(rowsOf(r))).catch((e) => notifications.error(e.message));
     designationApi.getActive({ view: "dropdown" }).then((r) => setDesignations(rowsOf(r))).catch((e) => notifications.error(e.message));
   }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "business") return;
+    turnoverApi.getActive({ view: "dropdown" }).then((r) => setTurnovers(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "source_of_fund") return;
+    sourceOfFundApi.getActive({ view: "dropdown" }).then((r) => setSourceOfFunds(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "pep") return;
+    indvPepStatusApi.getActive({ view: "dropdown" }).then((r) => setPepStatuses(rowsOf(r))).catch((e) => notifications.error(e.message));
+    indvPepCategoryApi.getActive({ view: "dropdown" }).then((r) => setPepCategories(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
+  useEffect(() => {
+    // Also fetched on the Documents step: IF_NOMINEE_ADDED needs to resolve
+    // relationship rows' types even when the customer isn't currently on
+    // the Relationships step.
+    if (currentEntity !== "relationship" && currentEntity !== "document") return;
+    relationshipTypeApi.getActive({ view: "dropdown" }).then((r) => setRelationshipTypes(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
 
-  return { genders, citizenships, disabilities, maritalStatuses, taxStatuses, taxClassifications, occupations, designations };
+  return {
+    genders,
+    citizenships,
+    disabilities,
+    maritalStatuses,
+    taxStatuses,
+    taxClassifications,
+    occupations,
+    designations,
+    turnovers,
+    sourceOfFunds,
+    pepStatuses,
+    pepCategories,
+    relationshipTypes,
+    channels,
+    languages,
+  };
 }
 
 // The current step's field grid — same two-flex-column layout as
 // DigitalProductStepFields. Only for plain CONFIGS entities
 // (profile/contact/tax/employment) — identification/address render via
 // customerDynamicSteps.jsx instead.
-export function CustomerStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
+export function CustomerStepFields({ entity, values, onFieldChange, lookups, disabled = false, fieldFilter }) {
   const tr = useConfigLabel();
   if (!CONFIGS[entity]) return null;
+  const fields = fieldFilter ? CONFIGS[entity].fields.filter(([key]) => fieldFilter(key, values)) : CONFIGS[entity].fields;
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {splitFieldsIntoColumns(orderedFields(CONFIGS[entity].fields)).map((columnFields, columnIndex) => (
+      {splitFieldsIntoColumns(orderedFields(fields)).map((columnFields, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-4">
           {columnFields.map(([key, label, type]) => (
             <label key={key} className="text-sm font-semibold text-slate-700">
