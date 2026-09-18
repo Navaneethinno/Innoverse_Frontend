@@ -139,7 +139,10 @@ export function AddressStepFields({ types, values, onRowChange, disabled = false
 // Builds the `identification` sections array for the edit payload — one
 // entry per identification type the customer actually filled in (or that's
 // implied by having an id already saved), tagged with the type's own
-// kyc_document_type_id so the backend knows which type each row is.
+// kyc_document_type_id (renamed to identification_type_id on the outgoing
+// payload per backend's confirmed field name for this endpoint — every
+// other field in this payload was already correct) so the backend knows
+// which type each row is.
 export function buildIdentificationPayload(types, values, existingIds = {}) {
   return types
     .map((idType) => {
@@ -150,7 +153,7 @@ export function buildIdentificationPayload(types, values, existingIds = {}) {
       if (!hasData) return null;
       return {
         ...(existingIds[key] ? { id: existingIds[key] } : {}),
-        kyc_document_type_id: key,
+        identification_type_id: key,
         identification_number: row.identification_number || null,
         date_of_issue: row.date_of_issue || null,
         date_of_expiry: row.date_of_expiry || null,
