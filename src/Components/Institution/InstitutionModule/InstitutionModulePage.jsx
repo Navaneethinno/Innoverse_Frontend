@@ -328,6 +328,7 @@ function ModuleForm({
   onCancel,
   onSubmit,
 }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
     module_id: editing?.module_id ?? "",

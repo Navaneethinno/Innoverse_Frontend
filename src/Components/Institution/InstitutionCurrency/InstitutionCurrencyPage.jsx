@@ -295,6 +295,7 @@ function CurrencyForm({
   onCancel,
   onSubmit,
 }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
     currency_code: editing?.currency_code ?? "",

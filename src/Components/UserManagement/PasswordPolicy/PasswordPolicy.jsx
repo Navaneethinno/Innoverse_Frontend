@@ -302,6 +302,7 @@ function PolicyView({ row, onClose }) {
 }
 
 function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const tr = useConfigLabel();
   const canAdd = useHasPasswordPolicyAction("Add");
   const canEdit = useHasPasswordPolicyAction("Edit");
   const canAuthorize = useHasPasswordPolicyAction("Authorize");

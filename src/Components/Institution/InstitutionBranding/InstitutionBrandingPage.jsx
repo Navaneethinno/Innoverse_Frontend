@@ -327,6 +327,7 @@ export function InstitutionBrandingPage() {
 }
 
 function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
     ...Object.fromEntries(FIELDS.map(([key]) => [key, editing?.[key] ?? ""])),

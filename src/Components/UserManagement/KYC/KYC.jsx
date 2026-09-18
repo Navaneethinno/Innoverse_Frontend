@@ -145,6 +145,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
 }
 
 function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
+  const tr = useConfigLabel();
   const canAdd = useHasKycAction("Add");
   const canEdit = useHasKycAction("Edit");
   const canAuthorize = useHasKycAction("Authorize");

@@ -31,6 +31,7 @@ function useDistrictPermission(action) {
 }
 
 function DistrictForm({ open, form, setForm, provinces, editing, saving, onClose, onSave }) {
+  const tr = useConfigLabel();
   return <Modal open={open} onClose={onClose} title={editing ? "Edit district" : "Add district"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500 disabled:opacity-50">Cancel</button><button type="submit" form="district-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">Save as draft</button><button type="submit" form="district-form" data-mode="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving ? "Saving..." : editing ? "Save changes" : "Add district"}</button></>}>
     <form id="district-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4">
       <label className="text-sm font-semibold text-slate-700">Province<FilterSelect className="mt-1.5" value={form.province_id} onChange={(next) => setForm({ ...form, province_id: next })} options={[{ value: "", label: tr("Select province") }, ...provinces.map((p) => ({ value: idOf(p), label: p.name ?? p.province_name ?? `Province #${idOf(p)}` }))]} /></label>

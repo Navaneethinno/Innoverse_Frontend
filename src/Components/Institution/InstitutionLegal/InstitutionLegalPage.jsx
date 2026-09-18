@@ -299,6 +299,7 @@ export function InstitutionLegalPage() {
 }
 
 function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) {
+  const tr = useConfigLabel();
   const initial = Object.fromEntries(FIELDS.map(([key]) => [key, editing?.[key] ?? ""]));
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",

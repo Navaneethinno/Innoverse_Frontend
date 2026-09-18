@@ -281,6 +281,7 @@ export function InstitutionChannelPage() {
   );
 }
 function ChannelForm({ editing, institutions = [], channels = [], pending, onCancel, onSubmit }) {
+  const tr = useConfigLabel();
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? "",
     channel_id: editing?.channel_id ?? "",
