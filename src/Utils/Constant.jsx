@@ -773,4 +773,27 @@ export const API_ENDPOINTS = {
       PENDING: "/digital_product/residency/pending",
     },
   },
+  // Customer domain (2026-09 API reference). indv_profile is a composite
+  // maker-checker root — same 13-route shape as DIGITAL_PRODUCT.PRODUCT,
+  // with a `sections` object on add/edit instead of separate per-section
+  // endpoints. indv_onboarding is the separate, non-maker-checker pre-profile
+  // self-serve lookup (no audit/pending/auth/deauth — 5 routes only).
+  CUSTOMER: {
+    INDV_PROFILE: {
+      ADD: "/customer/indv_profile/add", SUBMIT: "/customer/indv_profile/submit", EDIT: "/customer/indv_profile/edit",
+      GET: "/customer/indv_profile/get",
+      AUTH: "/customer/indv_profile/auth", DEAUTH: "/customer/indv_profile/deauth", DELETE: "/customer/indv_profile/delete",
+      DELETE_AUTH: "/customer/indv_profile/delete_auth", LIST: "/customer/indv_profile/list",
+      GET_ACTIVE: "/customer/indv_profile/get_active", AUDIT: "/customer/indv_profile/audit",
+      DEACTIVATE: "/customer/indv_profile/deactivate", REACTIVATE: "/customer/indv_profile/reactivate",
+      PENDING: "/customer/indv_profile/pending",
+    },
+    INDV_ONBOARDING: {
+      START: "/customer/indv_onboarding/start",
+      RESUME: "/customer/indv_onboarding/resume",
+      UPDATE_STEP: "/customer/indv_onboarding/update_step",
+      GET: "/customer/indv_onboarding/get",
+      LIST: "/customer/indv_onboarding/list",
+    },
+  },
 };

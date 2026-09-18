@@ -73,6 +73,7 @@ const SEGMENT_LABELS = {
   channeltransaction: { title: "Channel Transaction", breadcrumb: ["Digital Product", "Channel Transaction"] },
   eligibilityconfig: { title: "Eligibility Config", breadcrumb: ["Digital Product", "Eligibility Config"] },
   residency: { title: "Residency", breadcrumb: ["Digital Product", "Residency"] },
+  customer: { title: "Customer", breadcrumb: ["Customer", "Customer"] },
 
   // --- EPURSE > Settings > Configuration > Account (config/acct_product*) -
   // "accountproduct": qualified slug for the Account > Product leaf
