@@ -17,6 +17,9 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useOwnershipTypes } from "@/Hooks/Master/masterHooks";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import {
   maritalStatusApi,
   visaTypeApi,
@@ -39,17 +42,17 @@ import {
 // this batch since every one of these 12 is the exact same plain
 // name/description master (only ownership_sub_type adds one more field).
 const CONFIGS = {
-  marital_status: { title: "Marital Status", menuName: "Marital Status", api: maritalStatusApi },
-  visa_type: { title: "Visa Type", menuName: "Visa Type", api: visaTypeApi },
-  immigration_status: { title: "Immigration Status", menuName: "Immigration Status", api: immigrationStatusApi },
-  address_type: { title: "Address Type", menuName: "Address Type", api: addressTypeApi },
-  relationship_type: { title: "Relationship Type", menuName: "Relationship Type", api: relationshipTypeApi },
-  indv_verification_status: { title: "Verification Status", menuName: "Verification Status", api: indvVerificationStatusApi },
-  indv_verification_method: { title: "Verification Method", menuName: "Verification Method", api: indvVerificationMethodApi },
-  indv_tax_status: { title: "Tax Status", menuName: "Tax Status", api: indvTaxStatusApi },
-  indv_tax_classification: { title: "Tax Classification", menuName: "Tax Classification", api: indvTaxClassificationApi },
-  indv_pep_status: { title: "PEP Status", menuName: "PEP Status", api: indvPepStatusApi },
-  indv_pep_category: { title: "PEP Category", menuName: "PEP Category", api: indvPepCategoryApi },
+  marital_status: { title: "Marital Status", menuName: "Marital Status", api: maritalStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.MARITAL_STATUS },
+  visa_type: { title: "Visa Type", menuName: "Visa Type", api: visaTypeApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.VISA_TYPE },
+  immigration_status: { title: "Immigration Status", menuName: "Immigration Status", api: immigrationStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.IMMIGRATION_STATUS },
+  address_type: { title: "Address Type", menuName: "Address Type", api: addressTypeApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.ADDRESS_TYPE },
+  relationship_type: { title: "Relationship Type", menuName: "Relationship Type", api: relationshipTypeApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.RELATIONSHIP_TYPE },
+  indv_verification_status: { title: "Verification Status", menuName: "Verification Status", api: indvVerificationStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_VERIFICATION_STATUS },
+  indv_verification_method: { title: "Verification Method", menuName: "Verification Method", api: indvVerificationMethodApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_VERIFICATION_METHOD },
+  indv_tax_status: { title: "Tax Status", menuName: "Tax Status", api: indvTaxStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_TAX_STATUS },
+  indv_tax_classification: { title: "Tax Classification", menuName: "Tax Classification", api: indvTaxClassificationApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_TAX_CLASSIFICATION },
+  indv_pep_status: { title: "PEP Status", menuName: "PEP Status", api: indvPepStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_STATUS },
+  indv_pep_category: { title: "PEP Category", menuName: "PEP Category", api: indvPepCategoryApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_CATEGORY },
   // ownership_id is set once on add and never editable — same
   // readOnlyOnEdit convention every other CONFIGS-driven resource in the
   // app uses (see AcctConfigResource.jsx's own acct_product.readOnlyOnEdit).
@@ -57,6 +60,7 @@ const CONFIGS = {
     title: "Ownership Sub Type",
     menuName: "Ownership Sub Type",
     api: ownershipSubTypeApi,
+    endpoint: API_ENDPOINTS.MASTER_CONFIG.OWNERSHIP_SUB_TYPE,
     hasOwnership: true,
     readOnlyOnEdit: ["ownership_id"],
   },
@@ -113,6 +117,7 @@ export function CustomerMasterConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel(config.endpoint.LIST, reconcileSetter(setRows, { insertNew: false }));
 
   const visible = useMemo(
     () =>

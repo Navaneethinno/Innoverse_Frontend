@@ -23,6 +23,9 @@ import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHook
 import { useKycDocumentTypes } from "@/Hooks/Master/masterHooks";
 import { configCustomerApi } from "@/Services/Config/config.api";
 import { addressTypeApi, employmentApi, ownershipSubTypeApi, documentTypeApi } from "@/Services/MasterConfig/district.api";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // The 7 Individual Customer Onboarding Configuration entities (2026-09) —
 // 6 institution-scoped config/customer/* entities (menu-wise, separated,
@@ -41,6 +44,7 @@ const CONFIGS = {
     title: "Individual Type Config",
     menuName: "Individual Type Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_TYPE_CONFIG,
     readOnlyOnEdit: ["inst_profile_id", "ownership_sub_type_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -52,6 +56,7 @@ const CONFIGS = {
     title: "Identification Type Config",
     menuName: "Identification Type Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_IDENTIFICATION_TYPE,
     readOnlyOnEdit: ["inst_profile_id", "ownership_sub_type_id", "kyc_document_type_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -66,6 +71,7 @@ const CONFIGS = {
     title: "Address Type Config",
     menuName: "Address Type Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_ADDRESS_TYPE,
     readOnlyOnEdit: ["inst_profile_id", "ownership_sub_type_id", "address_type_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -80,6 +86,7 @@ const CONFIGS = {
     title: "Employment Config",
     menuName: "Employment Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_EMPLOYMENT_CONFIG,
     readOnlyOnEdit: ["inst_profile_id", "employment_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -92,6 +99,7 @@ const CONFIGS = {
     title: "Document Requirement Config",
     menuName: "Document Requirement Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_DOCUMENT_REQUIREMENT_CONFIG,
     readOnlyOnEdit: ["inst_profile_id", "document_category"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -104,6 +112,7 @@ const CONFIGS = {
     title: "Document Type Config",
     menuName: "Document Type Config",
     api: (entity) => configCustomerApi(entity),
+    endpoint: API_ENDPOINTS.CONFIG_CUSTOMER.INDV_DOCUMENT_TYPE_CONFIG,
     readOnlyOnEdit: ["inst_profile_id", "document_type_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
@@ -115,6 +124,7 @@ const CONFIGS = {
     title: "Document Type (Master)",
     menuName: "Document Type",
     api: () => documentTypeApi,
+    endpoint: API_ENDPOINTS.MASTER_CONFIG.DOCUMENT_TYPE,
     readOnlyOnEdit: ["category"],
     fields: [
       ["category", "Category", "select", null, DOCUMENT_CATEGORIES_MASTER],
@@ -237,6 +247,7 @@ export function CustomerOnboardingConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel(config.endpoint.LIST, reconcileSetter(setRows, { insertNew: false }));
 
   const visible = useMemo(
     () =>
