@@ -61,8 +61,22 @@ export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePat
   useEffect(() => {
     void refetch();
   }, [refetch]);
-  useLiveChannel(livePath, (_action, records) =>
-    setState((current) => ({ ...current, data: reconcileRecords(current.data, records) })),
-  );
-  return { ...state, refetch };
+  // Shared by the live-push handler below and by callers reconciling a
+  // mutation's own response (see applyRecords) — same merge logic either
+  // way, so a locally-triggered change and a same-shaped push from another
+  // tab/user behave identically.
+  const applyRecords = useCallback((records) => {
+    setState((current) => ({ ...current, data: reconcileRecords(current.data, records) }));
+  }, []);
+  useLiveChannel(livePath, (_action, records) => applyRecords(records));
+  // For a caller that just performed its own add/edit: reconcile the
+  // mutation's own response record(s) straight into state instead of
+  // calling refetch() again. A fresh refetch() race against the live push
+  // this exact mutation already triggers — both resolve independently, and
+  // refetch's full-array overwrite can win with a snapshot taken just
+  // before the write was visible, silently erasing the row the live push
+  // had already (correctly) inserted. Reconciling the mutation's own
+  // response sidesteps the race entirely: no extra round trip, no
+  // depending on the socket being connected at that instant either.
+  return { ...state, refetch, applyRecords };
 }

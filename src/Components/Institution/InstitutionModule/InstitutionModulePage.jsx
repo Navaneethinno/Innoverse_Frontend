@@ -288,26 +288,32 @@ export function InstitutionModulePage() {
           onCancel={() => setFormOpen(false)}
           onSubmit={async (values) => {
             try {
-              if (editing) {
-                await editMutation.mutateAsync({
-                  id: values.id,
-                  module_id: values.module_id,
-                  effective_from: values.effective_from,
-                  effective_to: values.effective_to,
-                  narration: values.narration,
-                  is_draft: values.is_draft,
-                  ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
-                });
-              } else {
-                await addMutation.mutateAsync({
-                  inst_profile_id: values.inst_profile_id,
-                  modules: values.modules,
-                  narration: values.narration,
-                  is_draft: values.is_draft,
-                });
-              }
+              const result = editing
+                ? await editMutation.mutateAsync({
+                    id: values.id,
+                    module_id: values.module_id,
+                    effective_from: values.effective_from,
+                    effective_to: values.effective_to,
+                    narration: values.narration,
+                    is_draft: values.is_draft,
+                    ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
+                  })
+                : await addMutation.mutateAsync({
+                    inst_profile_id: values.inst_profile_id,
+                    modules: values.modules,
+                    narration: values.narration,
+                    is_draft: values.is_draft,
+                  });
               setFormOpen(false);
-              await query.refetch();
+              // Reconcile the mutation's own response record(s) straight into
+              // the list instead of calling refetch() again — a fresh
+              // refetch() races the live push this same mutation already
+              // triggers, and can win with a snapshot taken just before the
+              // write was visible, silently erasing the row the live push
+              // had already inserted correctly (see useEntityListQuery.js).
+              const records = Array.isArray(result?.data) ? result.data : result?.data ? [result.data] : [];
+              if (records.length) query.applyRecords(records);
+              else await query.refetch();
             } catch {
               /* mutation hook already shows the error toast */
             }
