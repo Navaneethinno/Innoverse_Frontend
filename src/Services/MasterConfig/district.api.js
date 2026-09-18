@@ -91,3 +91,21 @@ export const religionApi = lifecycleApi(RELIGION);
 export const genderApi = lifecycleApi(GENDER);
 export const sourceOfFundApi = lifecycleApi(SOURCE_OF_FUND);
 export const turnoverApi = lifecycleApi(TURNOVER);
+// Individual Customer domain masters (2026-09) — same 13-route shape as
+// every entity above.
+export const maritalStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.MARITAL_STATUS);
+export const visaTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.VISA_TYPE);
+export const immigrationStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.IMMIGRATION_STATUS);
+export const addressTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.ADDRESS_TYPE);
+export const relationshipTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.RELATIONSHIP_TYPE);
+export const indvVerificationStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_VERIFICATION_STATUS);
+export const indvVerificationMethodApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_VERIFICATION_METHOD);
+export const indvTaxStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_TAX_STATUS);
+export const indvTaxClassificationApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_TAX_CLASSIFICATION);
+export const indvPepStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_STATUS);
+export const indvPepCategoryApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_CATEGORY);
+// ownership_sub_type additionally carries an ownership_id field (set once
+// on add, not editable) — the generic lifecycleApi shape doesn't care about
+// field content, so no special-casing needed here; the UI form is what
+// adds/locks that field (see CustomerMasterConfigResource.jsx).
+export const ownershipSubTypeApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.OWNERSHIP_SUB_TYPE);

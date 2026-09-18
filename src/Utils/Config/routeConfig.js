@@ -52,6 +52,18 @@ const SEGMENT_LABELS = {
   turnover: { title: "Turnover", breadcrumb: ["Master", "Turnover"] },
   sourceoffund: { title: "Source Of Fund", breadcrumb: ["Master", "Source Of Fund"] },
   "source-of-fund": { title: "Source Of Fund", breadcrumb: ["Master", "Source Of Fund"] },
+  maritalstatus: { title: "Marital Status", breadcrumb: ["Master", "Marital Status"] },
+  visatype: { title: "Visa Type", breadcrumb: ["Master", "Visa Type"] },
+  immigrationstatus: { title: "Immigration Status", breadcrumb: ["Master", "Immigration Status"] },
+  addresstype: { title: "Address Type", breadcrumb: ["Master", "Address Type"] },
+  relationshiptype: { title: "Relationship Type", breadcrumb: ["Master", "Relationship Type"] },
+  indvverificationstatus: { title: "Verification Status", breadcrumb: ["Master", "Verification Status"] },
+  indvverificationmethod: { title: "Verification Method", breadcrumb: ["Master", "Verification Method"] },
+  indvtaxstatus: { title: "Tax Status", breadcrumb: ["Master", "Tax Status"] },
+  indvtaxclassification: { title: "Tax Classification", breadcrumb: ["Master", "Tax Classification"] },
+  indvpepstatus: { title: "PEP Status", breadcrumb: ["Master", "PEP Status"] },
+  indvpepcategory: { title: "PEP Category", breadcrumb: ["Master", "PEP Category"] },
+  ownershipsubtype: { title: "Ownership Sub Type", breadcrumb: ["Master", "Ownership Sub Type"] },
 
   // --- EPURSE > Settings > Configuration > KYC (config/kyc_group*) --------
   group: { title: "Group", breadcrumb: ["KYC", "Group"] },

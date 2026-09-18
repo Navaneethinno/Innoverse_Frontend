@@ -5,7 +5,7 @@ import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColu
 import { indvProfileApi } from "@/Services/Customer/customer.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
-import { genderApi, citizenshipApi, disabilityApi } from "@/Services/MasterConfig/district.api";
+import { genderApi, citizenshipApi, disabilityApi, maritalStatusApi, ownershipSubTypeApi, addressTypeApi } from "@/Services/MasterConfig/district.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -153,6 +153,9 @@ export function useCustomerLookups(currentEntity) {
   const [genders, setGenders] = useState([]);
   const [citizenships, setCitizenships] = useState([]);
   const [disabilities, setDisabilities] = useState([]);
+  const [maritalStatuses, setMaritalStatuses] = useState([]);
+  const [ownershipSubTypes, setOwnershipSubTypes] = useState([]);
+  const [addressTypes, setAddressTypes] = useState([]);
 
   useEffect(() => {
     if (institutionsError) notifications.error(institutionsError.message);
@@ -177,9 +180,34 @@ export function useCustomerLookups(currentEntity) {
       .getActive({ view: "dropdown" })
       .then((r) => setDisabilities(rowsOf(r)))
       .catch((e) => notifications.error(e.message));
+    maritalStatusApi
+      .getActive({ view: "dropdown" })
+      .then((r) => setMaritalStatuses(rowsOf(r)))
+      .catch((e) => notifications.error(e.message));
+    ownershipSubTypeApi
+      .getActive({ view: "dropdown" })
+      .then((r) => setOwnershipSubTypes(rowsOf(r)))
+      .catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "address") return;
+    addressTypeApi
+      .getActive({ view: "dropdown" })
+      .then((r) => setAddressTypes(rowsOf(r)))
+      .catch((e) => notifications.error(e.message));
   }, [currentEntity]);
 
-  return { institutions, partyTypes, ownershipTypes, genders, citizenships, disabilities };
+  return {
+    institutions,
+    partyTypes,
+    ownershipTypes,
+    genders,
+    citizenships,
+    disabilities,
+    maritalStatuses,
+    ownershipSubTypes,
+    addressTypes,
+  };
 }
 
 // The current step's field grid — same two-flex-column layout as

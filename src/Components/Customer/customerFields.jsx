@@ -22,7 +22,7 @@ export const CONFIGS = {
       ["inst_profile_id", "Institution profile", "number", "institutions"],
       ["party_type_id", "Party type", "number", "partyTypes"],
       ["ownership_id", "Ownership", "number", "ownershipTypes"],
-      ["ownership_sub_type_id", "Ownership sub type", "number"],
+      ["ownership_sub_type_id", "Ownership sub type", "number", "ownershipSubTypes"],
       ["onboarding_id", "Onboarding ID", "number"],
       ["title", "Title", "text"],
       ["first_name", "First name", "text"],
@@ -36,7 +36,7 @@ export const CONFIGS = {
       ["country_of_birth_id", "Country of birth", "number", "citizenships"],
       ["nationality_id", "Nationality", "number", "citizenships"],
       ["secondary_nationality_id", "Secondary nationality", "number", "citizenships"],
-      ["marital_status_id", "Marital status", "number"],
+      ["marital_status_id", "Marital status", "number", "maritalStatuses"],
       ["father_name", "Father's name", "text"],
       ["mother_name", "Mother's name", "text"],
       ["spouse_name", "Spouse's name", "text"],
@@ -53,7 +53,7 @@ export const CONFIGS = {
   address: {
     title: "Address",
     fields: [
-      ["address_type_id", "Address type", "number"],
+      ["address_type_id", "Address type", "number", "addressTypes"],
       ["address_line_1", "Address line 1", "text"],
       ["city", "City", "text"],
     ],
@@ -65,7 +65,17 @@ export const CONFIGS = {
 // (institutions/partyTypes/ownershipTypes/genders/citizenships/disabilities);
 // a caller only needs to pass the ones relevant to the fields it renders.
 export function CustomerFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false }) {
-  const { institutions = [], partyTypes = [], ownershipTypes = [], genders = [], citizenships = [], disabilities = [] } = lookups;
+  const {
+    institutions = [],
+    partyTypes = [],
+    ownershipTypes = [],
+    genders = [],
+    citizenships = [],
+    disabilities = [],
+    maritalStatuses = [],
+    ownershipSubTypes = [],
+    addressTypes = [],
+  } = lookups;
   const LOOKUP_OPTIONS = {
     inst_profile_id: { list: institutions, placeholder: "Select institution profile" },
     party_type_id: { list: partyTypes, placeholder: "Select party type" },
@@ -75,6 +85,9 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
     nationality_id: { list: citizenships, placeholder: "Select nationality" },
     secondary_nationality_id: { list: citizenships, placeholder: "Select secondary nationality" },
     disability_id: { list: disabilities, placeholder: "Select disability" },
+    marital_status_id: { list: maritalStatuses, placeholder: "Select marital status" },
+    ownership_sub_type_id: { list: ownershipSubTypes, placeholder: "Select ownership sub type" },
+    address_type_id: { list: addressTypes, placeholder: "Select address type" },
   };
   const lookupConfig = LOOKUP_OPTIONS[key];
   if (lookupConfig) {
