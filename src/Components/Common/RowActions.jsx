@@ -29,7 +29,7 @@ export function RowActions({
   onDelete,
 }) {
   return (
-    <div className="flex items-center justify-start gap-1">
+    <div className="flex items-center justify-center gap-1">
       {onView && (
         <UiTooltip label="View">
           <button type="button" className={actionButtonClass("view")} onClick={onView}>
