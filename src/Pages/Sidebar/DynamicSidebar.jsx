@@ -156,16 +156,41 @@ export function DynamicSidebar() {
     focusSearch();
   }, [focusSearch]);
 
+  // SidebarSearch unmounts entirely while the rail is collapsed (isExpanded
+  // false), so searchInputRef is null and focusSearch() is a no-op until
+  // something expands the rail first. Ctrl/Cmd+K needs to work even then —
+  // it force-expands via `hovering` (the same state the mouse-hover
+  // expansion already uses) and defers the focus call to the effect below,
+  // which fires once isExpanded flips true and the input has actually
+  // mounted.
+  const pendingFocusRef = useRef(false);
+
   useEffect(() => {
     const handleShortcut = (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        focusSearch();
+        if (!isExpanded) {
+          pendingFocusRef.current = true;
+          setHovering(true);
+        } else {
+          focusSearch();
+        }
       }
     };
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
-  }, [focusSearch]);
+  }, [focusSearch, isExpanded, setHovering]);
+
+  useEffect(() => {
+    if (isExpanded && pendingFocusRef.current) {
+      pendingFocusRef.current = false;
+      // Wait a tick for SidebarSearch's input to mount/animate in before
+      // focusing it.
+      const id = requestAnimationFrame(() => focusSearch());
+      return () => cancelAnimationFrame(id);
+    }
+    return undefined;
+  }, [isExpanded, focusSearch]);
 
   return (
     <>
