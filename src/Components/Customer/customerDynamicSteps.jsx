@@ -1,6 +1,6 @@
 import { CustomerFieldInput } from "./customerFields";
 import { IDENTIFICATION_ROW_FIELDS, ADDRESS_ROW_FIELDS, RELATIONSHIP_ROW_FIELDS, GUARDIAN_ROW_FIELDS } from "./customerFields";
-import { isGuardianRelationshipType } from "./customerWizardConfig";
+import { isGuardianRelationshipType, sameDocumentCategory } from "./customerWizardConfig";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Identification and Address are NOT plain CONFIGS sections — each renders
@@ -311,28 +311,36 @@ export function buildRelationshipPayload(values, existingIds = {}) {
 
 // Documents — fully wizard_config-driven (document_requirements +
 // document_types), same "one form block per applicable row" shape as
-// Identification/Address, not a static CONFIGS entry. The document-name
-// dropdown is sourced from the plain global `/master/kyc_document_type`
-// list (via useKycDocumentTypes) rather than wizard_config.document_types —
-// confirmed by the backend team: document_types only gives
-// document_type_id/category/name (institution-scoped display metadata), the
-// actual outgoing `kyc_document_type_id` must come from that master list,
-// with the chosen option's own name sent separately as `document_name`.
-// wizard_config.document_types has no category info to cross-reference
-// kyc_document_type against, so every requirement row offers the full list
-// rather than a category-filtered subset. File upload reuses the same
-// base64 data-URL read IdentificationStepFields already uses (judgment call
-// carried over from the previous pass — no real upload endpoint exists
+// Identification/Address, not a static CONFIGS entry.
+//
+// Round 2 (confirmed by the backend team): the document-name dropdown must
+// come from wizard_config.document_types — the institution's OWN configured
+// list per category, e.g. FINANCIAL only offers BANK_STATEMENT/SALARY_SLIP/
+// FINANCIAL_STATEMENT, not the plain global /master/kyc_document_type list
+// (that was round 1's mistake — it offered every institution every global
+// type regardless of what it actually accepts). document_requirements'
+// "ADDRESS_PROOF" category and document_types' "ADDRESS" category name the
+// same thing, so sameDocumentCategory() treats them as equal when filtering.
+// A category with no configured types at all (e.g. SIGNATURE, VISA) gets no
+// dropdown — just number/file inputs — since there's nothing to pick from.
+//
+// The one exception: an institution with NO document types configured at
+// all (documentTypes.length === 0 globally, not just for this category)
+// falls back to the plain global kyc_document_type list and sends
+// kyc_document_type_id instead of document_type_id, per the backend's own
+// fallback rule. File upload reuses the same base64 data-URL read
+// IdentificationStepFields already uses (no real upload endpoint exists
 // anywhere in the codebase).
 export function emptyDocumentRow() {
-  return { kyc_document_type_id: "", document_name: "", document_number: "", file_front: null, file_back: null };
+  return { document_type_id: "", kyc_document_type_id: "", document_name: "", document_number: "", file_front: null, file_back: null };
 }
 
-export function DocumentStepFields({ requirements, documentTypes: kycDocumentTypes, values, onRowChange, disabled = false }) {
+export function DocumentStepFields({ requirements, documentTypes, kycDocumentTypes, values, onRowChange, disabled = false }) {
   const tr = useConfigLabel();
   if (requirements.length === 0) {
     return <p className="text-sm text-slate-500">{tr("No documents are required for this profile.")}</p>;
   }
+  const noTypesConfigured = (documentTypes ?? []).length === 0;
   return (
     <div className="flex flex-col gap-6">
       {requirements.map((req) => {
@@ -340,33 +348,44 @@ export function DocumentStepFields({ requirements, documentTypes: kycDocumentTyp
         const row = values[key] ?? emptyDocumentRow();
         const setField = (field, next) => onRowChange(key, { ...row, [field]: next });
         const isMandatory = req.requirement_type === "MANDATORY";
+        const category = req.document_category ?? req.category;
+        const options = noTypesConfigured
+          ? (kycDocumentTypes ?? [])
+          : (documentTypes ?? []).filter((dt) => sameDocumentCategory(dt.category ?? dt.document_category, category));
+        const optionIdKey = noTypesConfigured ? "id" : "document_type_id";
+        const rowIdField = noTypesConfigured ? "kyc_document_type_id" : "document_type_id";
         return (
           <div key={key} className="rounded-2xl border p-4">
             <h3 className="mb-3 text-sm font-bold text-slate-800">
-              {req.name ?? req.document_category ?? req.category}{" "}
+              {req.name ?? category}{" "}
               {isMandatory ? <span className="text-xs font-normal text-red-600">({tr("mandatory")})</span> : <span className="text-xs font-normal text-slate-400">({tr("optional")})</span>}
             </h3>
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-              <label className="text-sm font-semibold text-slate-700">
-                {tr("Document name")}
-                <select
-                  className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
-                  value={row.kyc_document_type_id ?? ""}
-                  disabled={disabled}
-                  onChange={(e) => {
-                    const chosen = (kycDocumentTypes ?? []).find((dt) => String(dt.id) === e.target.value);
-                    setField("kyc_document_type_id", e.target.value);
-                    setField("document_name", chosen?.name ?? chosen?.code ?? "");
-                  }}
-                >
-                  <option value="">{tr("Select document")}</option>
-                  {(kycDocumentTypes ?? []).map((dt) => (
-                    <option key={dt.id} value={dt.id}>
-                      {dt.name ?? dt.code}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              {options.length > 0 && (
+                <label className="text-sm font-semibold text-slate-700">
+                  {tr("Document name")}
+                  <select
+                    className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
+                    value={row[rowIdField] ?? ""}
+                    disabled={disabled}
+                    onChange={(e) => {
+                      const chosen = options.find((dt) => String(dt[optionIdKey]) === e.target.value);
+                      onRowChange(key, {
+                        ...row,
+                        [rowIdField]: e.target.value,
+                        document_name: chosen?.name ?? chosen?.code ?? "",
+                      });
+                    }}
+                  >
+                    <option value="">{tr("Select document")}</option>
+                    {options.map((dt) => (
+                      <option key={dt[optionIdKey]} value={dt[optionIdKey]}>
+                        {dt.name ?? dt.code}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label className="text-sm font-semibold text-slate-700">
                 {tr("Document number")}
                 <input
@@ -417,12 +436,16 @@ export function buildDocumentPayload(requirements, values, existingIds = {}) {
       const key = req.document_category ?? req.category ?? req.id;
       const row = values[key];
       if (!row) return null;
-      const hasData = row.kyc_document_type_id || row.document_number || row.file_front || row.file_back;
+      const hasData = row.document_type_id || row.kyc_document_type_id || row.document_number || row.file_front || row.file_back;
       if (!hasData) return null;
       return {
         ...(existingIds[key] ? { id: existingIds[key] } : {}),
         document_category: req.document_category ?? req.category ?? null,
-        kyc_document_type_id: row.kyc_document_type_id || null,
+        ...(row.document_type_id
+          ? { document_type_id: row.document_type_id }
+          : row.kyc_document_type_id
+            ? { kyc_document_type_id: row.kyc_document_type_id }
+            : {}),
         document_name: row.document_name || null,
         document_number: row.document_number || null,
         file_front: row.file_front || null,
@@ -437,6 +460,6 @@ export function findMissingDocument(requirements, values) {
     if (req.requirement_type !== "MANDATORY") return false;
     const key = req.document_category ?? req.category ?? req.id;
     const row = values[key];
-    return !row || !(row.kyc_document_type_id && row.file_front);
+    return !row || !((row.document_type_id || row.kyc_document_type_id) && row.file_front);
   });
 }

@@ -83,12 +83,13 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
     addressTypes,
     employmentStatuses,
     documentRequirements,
+    documentTypes,
     loading: wizardConfigLoading,
   } = useWizardConfig(profile.inst_profile_id);
-  // Documents step's dropdown sources the plain global kyc_document_type
-  // master list, not wizard_config.document_types — see
-  // customerDynamicSteps.jsx's DocumentStepFields comment for why.
-  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document");
+  // Fallback list only — used when this institution has NO document types
+  // configured at all; see customerDynamicSteps.jsx's DocumentStepFields
+  // comment for why wizard_config.document_types is the primary source.
+  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document" && documentTypes.length === 0);
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
@@ -189,14 +190,14 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
       if (currentEntity === "identification") {
         const payload = buildIdentificationPayload(filteredIdentificationTypes, values.identification, recordIds.identification);
         if (payload.length > 0) {
-          await indvProfileApi().edit({ id: profile.id, sections: { identification: payload } });
+          await indvProfileApi().edit({ id: profile.id, is_draft: true, sections: { identification: payload } });
         }
       } else if (currentEntity === "address") {
-        await indvProfileApi().edit({ id: profile.id, sections: { address: buildAddressPayload(filteredAddressTypes, values.address, recordIds.address) } });
+        await indvProfileApi().edit({ id: profile.id, is_draft: true, sections: { address: buildAddressPayload(filteredAddressTypes, values.address, recordIds.address) } });
       } else if (currentEntity === "relationship") {
-        await indvProfileApi().edit({ id: profile.id, sections: { relationship: buildRelationshipPayload(values.relationship, recordIds.relationship) } });
+        await indvProfileApi().edit({ id: profile.id, is_draft: true, sections: { relationship: buildRelationshipPayload(values.relationship, recordIds.relationship) } });
       } else if (currentEntity === "document") {
-        await indvProfileApi().edit({ id: profile.id, sections: { document: buildDocumentPayload(visibleDocumentRequirements, values.document, recordIds.document) } });
+        await indvProfileApi().edit({ id: profile.id, is_draft: true, sections: { document: buildDocumentPayload(visibleDocumentRequirements, values.document, recordIds.document) } });
       } else if (currentEntity === "business" && !businessRelevant) {
         // nothing to save — section not applicable for this employment type
       } else {
@@ -282,7 +283,8 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
       ) : currentEntity === "document" ? (
         <DocumentStepFields
           requirements={visibleDocumentRequirements}
-          documentTypes={kycDocumentTypes}
+          documentTypes={documentTypes}
+          kycDocumentTypes={kycDocumentTypes}
           values={values.document}
           onRowChange={setDynamicRow}
         />

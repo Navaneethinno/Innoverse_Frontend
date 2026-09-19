@@ -99,12 +99,15 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
     addressTypes,
     employmentStatuses,
     documentRequirements,
+    documentTypes,
     loading: wizardConfigLoading,
   } = useWizardConfig(instProfileId);
-  // Documents step's dropdown sources the plain global kyc_document_type
-  // master list, not wizard_config.document_types — see
-  // customerDynamicSteps.jsx's DocumentStepFields comment for why.
-  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document");
+  // Fallback list only — used when this institution has NO document types
+  // configured at all (documentTypes.length === 0); see
+  // customerDynamicSteps.jsx's DocumentStepFields comment for why the
+  // institution's own wizard_config.document_types is now the primary
+  // source instead.
+  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document" && documentTypes.length === 0);
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
@@ -161,19 +164,19 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
     // was filled in yet (the server treats an empty array as "clear the
     // section", not "nothing to save this time").
     if (payload.length === 0) return;
-    await indvProfileApi().edit({ id: profileId, sections: { identification: payload } });
+    await indvProfileApi().edit({ id: profileId, is_draft: true, sections: { identification: payload } });
   };
   const saveAddressStep = async () => {
     const payload = buildAddressPayload(filteredAddressTypes, values.address, recordIds.address);
-    await indvProfileApi().edit({ id: profileId, sections: { address: payload } });
+    await indvProfileApi().edit({ id: profileId, is_draft: true, sections: { address: payload } });
   };
   const saveRelationshipStep = async () => {
     const payload = buildRelationshipPayload(values.relationship, recordIds.relationship);
-    await indvProfileApi().edit({ id: profileId, sections: { relationship: payload } });
+    await indvProfileApi().edit({ id: profileId, is_draft: true, sections: { relationship: payload } });
   };
   const saveDocumentStep = async () => {
     const payload = buildDocumentPayload(visibleDocumentRequirements, values.document, recordIds.document);
-    await indvProfileApi().edit({ id: profileId, sections: { document: payload } });
+    await indvProfileApi().edit({ id: profileId, is_draft: true, sections: { document: payload } });
   };
 
   const saveStep = async (isDraft) => {
@@ -397,7 +400,8 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
       ) : currentEntity === "document" ? (
         <DocumentStepFields
           requirements={visibleDocumentRequirements}
-          documentTypes={kycDocumentTypes}
+          documentTypes={documentTypes}
+          kycDocumentTypes={kycDocumentTypes}
           values={values.document}
           onRowChange={(rowKey, nextRow) => setDynamicRow("document", rowKey, nextRow)}
         />

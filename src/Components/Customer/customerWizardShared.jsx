@@ -88,7 +88,16 @@ function pickPayload(entity, values) {
 // fields (CONFIGS.communication.fields), but it's wrapped in a one-element
 // array on the wire here so the shape matches what /customer/indv_profile/
 // add|edit actually accepts.
+//
+// Round 2: the backend now skips any section row where every value is
+// null/blank/false, and a page the customer clicked past with nothing
+// filled in used to create an empty row after approval — so a step with no
+// data AND no existing saved record is omitted from `sections` entirely
+// (returns `{}`) instead of sending an all-empty object/row. A step that
+// DOES have an existing record is still sent even if now blank, so an
+// intentional clear-out still reaches the backend.
 export function buildSectionEditPayload(entity, values, recordIds) {
+  if (!isStepFilled(entity, values) && !recordIds[entity]) return {};
   const built = { ...pickPayload(entity, values), ...(recordIds[entity] ? { id: recordIds[entity] } : {}) };
   if (entity === "communication") return { communication: [built] };
   return { [entity]: built };
@@ -180,6 +189,7 @@ export function useCustomerExistingData(profile) {
       (Array.isArray(documentRows) ? documentRows : [documentRows]).filter(Boolean).map((row) => [
         row.document_category ?? row.category,
         {
+          document_type_id: row.document_type_id ?? "",
           kyc_document_type_id: row.kyc_document_type_id ?? "",
           document_name: row.document_name ?? "",
           document_number: row.document_number ?? "",
@@ -434,12 +444,16 @@ export function CustomerStepFields({ entity, values, onFieldChange, lookups, dis
 // step's edit is unnecessary.
 export async function saveCustomerStep({ id, entity, values, recordIds, isDraft, fixedIds = {} }) {
   const api = profileApi();
-  const contactSection = values.contact
-    ? { contact: { primary_mobile: values.contact.primary_mobile || null, personal_email: values.contact.personal_email || null } }
-    : {};
+  // A contact section with only null/blank values now counts as MISSING at
+  // submit (round 2), so it's only included here when actually filled in —
+  // never sent as an all-null object.
+  const contactSection =
+    values.contact?.primary_mobile || values.contact?.personal_email
+      ? { contact: { primary_mobile: values.contact.primary_mobile || null, personal_email: values.contact.personal_email || null } }
+      : {};
   if (entity === "profile") {
-    const basic = { ...buildProfileBasicPayload(values), ...fixedIds, sections: contactSection };
-    const response = id == null ? await api.add({ ...basic, is_draft: isDraft }) : await api.edit({ ...basic, id });
+    const basic = { ...buildProfileBasicPayload(values), ...fixedIds, is_draft: isDraft, sections: contactSection };
+    const response = id == null ? await api.add(basic) : await api.edit({ ...basic, id });
     return rowsOf(response)[0]?.id ?? id;
   }
   await api.edit({

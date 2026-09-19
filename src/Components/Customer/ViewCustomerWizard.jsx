@@ -34,9 +34,10 @@ export function ViewCustomerWizard({ profile, onClose }) {
     addressTypes,
     employmentStatuses,
     documentRequirements,
+    documentTypes,
     loading: wizardConfigLoading,
   } = useWizardConfig(profile.inst_profile_id);
-  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document");
+  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document" && documentTypes.length === 0);
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
@@ -126,7 +127,8 @@ export function ViewCustomerWizard({ profile, onClose }) {
       ) : currentEntity === "document" ? (
         <DocumentStepFields
           requirements={visibleDocumentRequirements}
-          documentTypes={kycDocumentTypes}
+          documentTypes={documentTypes}
+          kycDocumentTypes={kycDocumentTypes}
           values={values.document}
           onRowChange={() => {}}
           disabled
