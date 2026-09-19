@@ -5,9 +5,9 @@
 export const actionButtonClass = (method) => {
   const colors = {
     view: "text-blue-600 hover:bg-blue-50", // info — look, don't touch
-    edit: "text-violet-600 hover:bg-violet-50", // modify the record
-    audit: "text-slate-500 hover:bg-slate-100", // neutral — look at history
-    submit: "text-teal-600 hover:bg-teal-50", // forward it into the workflow
+    edit: "text-indigo-600 hover:bg-indigo-50", // modify the record
+    audit: "text-slate-600 hover:bg-slate-100", // neutral — look at history
+    submit: "text-cyan-600 hover:bg-cyan-50", // forward it into the workflow
     auth: "text-emerald-600 hover:bg-emerald-50", // approve
     deauth: "text-amber-600 hover:bg-amber-50", // reject/undo approval
     delete: "text-red-600 hover:bg-red-50", // destructive
