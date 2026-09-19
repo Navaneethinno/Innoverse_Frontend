@@ -464,6 +464,21 @@
    native form control an explicit dark background/text/border by default
    in dark mode; anything that already sets its own bg-* utility (already
    remapped above) simply keeps winning via normal cascade order below. */
+/* Plain native checkboxes/radios across the app (SourceOfFund's "Has
+   employer", InstitutionCurrency's "Is base currency", ProfilePermissionTree's
+   module/menu/action grants, the Customer wizard's boolean fields, etc.)
+   were left with no accent styling, so they rendered the browser's default
+   blue regardless of the tenant's brand color — inconsistent with
+   DataTable.jsx's row-selection checkboxes, which already set
+   accent-[var(--primary)] individually. One global rule here covers every
+   checkbox/radio in the app at once (including ones added later) instead of
+   hunting down each className; a component that already sets its own
+   accent-* utility simply keeps winning via normal cascade/specificity. */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--primary);
+}
+
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,
 .dark textarea {
