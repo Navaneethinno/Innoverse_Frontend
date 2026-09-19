@@ -14,6 +14,7 @@ import {
   House,
   KeyRound,
   Landmark,
+  LayoutGrid,
   Layers,
   Link2,
   Lock,
@@ -52,10 +53,20 @@ export function getModuleIcon(moduleName = "") {
   return match ? match[1] : Layers;
 }
 
+// Order matters: every "Institution X" menu name also contains the word
+// "institution", so the specific sub-page rules (legal/branding/channel/
+// currency/profile/module) must be checked BEFORE the generic /institution/i
+// fallback below them — otherwise they'd all resolve to the same Landmark
+// icon (which is exactly what was happening before this list was reordered).
 const MENU_ICON_RULES = [
+  [/legal|compliance/i, Gavel],
+  [/branding|brand/i, Palette],
+  [/channel/i, Radio],
+  [/currency|money/i, CircleDollarSign],
+  [/profile|role/i, BadgeCheck],
+  [/module/i, LayoutGrid],
   [/institution/i, Landmark],
   [/user management|users?$/i, UsersRound],
-  [/profile|role/i, BadgeCheck],
   [/password|credential/i, KeyRound],
   [/kyc|identity/i, Fingerprint],
   [/epurse|wallet/i, Wallet],
@@ -64,10 +75,6 @@ const MENU_ICON_RULES = [
   [/province|state|region/i, MapPinned],
   [/district|branch/i, Building2],
   [/village|city|town/i, House],
-  [/legal|compliance/i, Gavel],
-  [/branding|brand/i, Palette],
-  [/channel/i, Radio],
-  [/currency|money/i, CircleDollarSign],
   [/account|person/i, UserRound],
 ];
 
