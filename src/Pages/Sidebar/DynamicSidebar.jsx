@@ -209,6 +209,15 @@ export function DynamicSidebar() {
           WebkitBackdropFilter: "var(--glass-blur)",
           border: "1px solid var(--glass-border)",
           boxShadow: "var(--glass-shadow)",
+          // Belt-and-braces against a horizontal scrollbar ever appearing in
+          // the narrow collapsed rail: framer-motion animates `width` via an
+          // inline style, and during that animation (or while `isExpanded`
+          // is momentarily out of sync with `sidebarWidth`) a child's
+          // intrinsic min-content width can briefly exceed the rail's
+          // current width. `overflow-hidden` on this element already clips
+          // that, but an explicit inline overflowX guarantees no browser
+          // ever reserves scrollbar space for it regardless of class order.
+          overflowX: "hidden",
         }}
       >
       {isMobile && (
@@ -244,15 +253,18 @@ export function DynamicSidebar() {
         />
       </div>
 
-      <div className="thin-scrollbar mt-3 flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto">
+      <div
+        className="thin-scrollbar mt-3 flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto"
+        style={{ overflowX: "hidden" }}
+      >
         {selectedModule &&
           (() => {
             const SelectedIcon = getModuleIcon(selectedModule.module_name);
             return (
-              <div className="px-2">
+              <div className="px-2 min-w-0">
                 <div
                   className={cn(
-                    "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary",
+                    "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0",
                     isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
                   )}
                 >
@@ -262,7 +274,7 @@ export function DynamicSidebar() {
               </div>
             );
           })()}
-        <div className="px-2">
+        <div className="px-2 min-w-0">
           <MenuList
             menuItems={filteredMenuItems}
             navigate={handleNavigate}
