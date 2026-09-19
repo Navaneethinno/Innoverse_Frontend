@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/institution/i, Landmark],
+  [/user management|users?$/i, UsersRound],
   [/purse|wallet/i, Wallet],
   [/risk/i, ShieldAlert],
   [/cms|content/i, ClipboardList],
@@ -41,7 +43,7 @@ const MODULE_ICON_RULES = [
   [/aml/i, ShieldCheck],
   [/chatbot|bot/i, Bot],
   [/fraud/i, AlertTriangle],
-  [/lrms|loan|recovery/i, Landmark],
+  [/lrms|loan|recovery/i, Gavel],
   [/recon/i, RefreshCcw],
   [/bridge/i, Link2],
   [/fleet/i, Truck],
