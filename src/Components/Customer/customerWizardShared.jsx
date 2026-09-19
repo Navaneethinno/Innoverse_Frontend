@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { CONFIGS, CustomerFieldInput } from "./customerFields";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { CUSTOMER_STEPS } from "./customerSteps";
 import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { indvProfileApi } from "@/Services/Customer/customer.api";
@@ -394,6 +395,14 @@ export function useCustomerLookups(currentEntity) {
 // DigitalProductStepFields. Only for plain CONFIGS entities
 // (profile/contact/tax/employment) — identification/address render via
 // customerDynamicSteps.jsx instead.
+// Same "boolean fields render as a CheckboxPill instead of a plain
+// label+checkbox row" pattern as DigitalProductStepFields
+// (digitalProductWizardShared.jsx) — a bare `<input type="checkbox">` here
+// looked inconsistent with the rest of the app's toggle-style fields (see
+// AcctConfigResource's "Branch required"/"KYC required"/etc pills), and a
+// tall dropdown next to a short checkbox in the same 2-column grid stretched
+// the checkbox's row to match. CheckboxPill is self-contained (its own
+// label + circular indicator) so it doesn't need that grid workaround.
 export function CustomerStepFields({ entity, values, onFieldChange, lookups, disabled = false, fieldFilter }) {
   const tr = useConfigLabel();
   if (!CONFIGS[entity]) return null;
@@ -402,19 +411,30 @@ export function CustomerStepFields({ entity, values, onFieldChange, lookups, dis
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
       {splitFieldsIntoColumns(orderedFields(fields)).map((columnFields, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-4">
-          {columnFields.map(([key, label, type]) => (
-            <label key={key} className="text-sm font-semibold text-slate-700">
-              {tr(label)}
-              <CustomerFieldInput
-                fieldKey={key}
-                type={type}
-                value={values[key]}
+          {columnFields.map(([key, label, type]) =>
+            type === "boolean" ? (
+              <CheckboxPill
+                key={key}
+                checked={Boolean(values[key])}
                 onChange={(next) => onFieldChange(key, next)}
-                lookups={lookups}
+                label={tr(label)}
                 disabled={disabled}
+                className="self-start"
               />
-            </label>
-          ))}
+            ) : (
+              <label key={key} className="text-sm font-semibold text-slate-700">
+                {tr(label)}
+                <CustomerFieldInput
+                  fieldKey={key}
+                  type={type}
+                  value={values[key]}
+                  onChange={(next) => onFieldChange(key, next)}
+                  lookups={lookups}
+                  disabled={disabled}
+                />
+              </label>
+            ),
+          )}
         </div>
       ))}
     </div>

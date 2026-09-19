@@ -272,6 +272,10 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
       />
     );
   }
+  // type === "boolean" never actually reaches here — CustomerStepFields
+  // (customerWizardShared.jsx) renders a CheckboxPill directly for it
+  // instead, same as DigitalProductStepFields does. Kept as a fallback for
+  // any future direct caller of CustomerFieldInput with a boolean field.
   if (type === "boolean") {
     return (
       <input
