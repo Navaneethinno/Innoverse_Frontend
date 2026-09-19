@@ -13,6 +13,7 @@ import {
   evaluateDocumentCondition,
 } from "./customerWizardConfig";
 import { IdentificationStepFields, AddressStepFields, RelationshipStepFields, DocumentStepFields } from "./customerDynamicSteps";
+import { useKycDocumentTypes } from "@/Hooks/Master/masterHooks";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Read-only counterpart to AddCustomerWizard.jsx/EditCustomerWizard.jsx —
@@ -33,9 +34,9 @@ export function ViewCustomerWizard({ profile, onClose }) {
     addressTypes,
     employmentStatuses,
     documentRequirements,
-    documentTypes,
     loading: wizardConfigLoading,
   } = useWizardConfig(profile.inst_profile_id);
+  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document");
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
@@ -44,7 +45,7 @@ export function ViewCustomerWizard({ profile, onClose }) {
 
   const employmentId = values.employment?.employment_id || null;
   const employmentFieldFilter = (key) =>
-    !["employer_name", "employer_address", "employer_contact"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
+    !["employer_name", "employer_address", "employer_phone", "employer_email"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
   const businessRelevant = isBusinessEmployment(employmentStatuses, employmentId);
   const pepFieldFilter = (key, vals) => key === "is_pep" || vals.is_pep === true || vals.is_pep === "true";
   const customerAge = ageFromDob(values.profile?.date_of_birth);
@@ -111,7 +112,7 @@ export function ViewCustomerWizard({ profile, onClose }) {
       ) : currentEntity === "identification" ? (
         <IdentificationStepFields types={filteredIdentificationTypes} values={values.identification} onRowChange={() => {}} disabled />
       ) : currentEntity === "address" ? (
-        <AddressStepFields types={filteredAddressTypes} values={values.address} onRowChange={() => {}} disabled />
+        <AddressStepFields types={filteredAddressTypes} values={values.address} onRowChange={() => {}} lookups={masterLookups} disabled />
       ) : currentEntity === "relationship" ? (
         <RelationshipStepFields
           relationshipTypes={masterLookups.relationshipTypes}
@@ -125,7 +126,7 @@ export function ViewCustomerWizard({ profile, onClose }) {
       ) : currentEntity === "document" ? (
         <DocumentStepFields
           requirements={visibleDocumentRequirements}
-          documentTypes={documentTypes}
+          documentTypes={kycDocumentTypes}
           values={values.document}
           onRowChange={() => {}}
           disabled

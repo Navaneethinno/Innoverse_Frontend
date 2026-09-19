@@ -17,8 +17,11 @@ import {
   indvPepStatusApi,
   indvPepCategoryApi,
   relationshipTypeApi,
+  accountPurposeApi,
+  provinceApi,
+  districtApi,
 } from "@/Services/MasterConfig/district.api";
-import { useChannels, useLanguages } from "@/Hooks/Master/masterHooks";
+import { useLanguages, useCountries } from "@/Hooks/Master/masterHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -75,11 +78,19 @@ function pickPayload(entity, values) {
 
 // Builds the `sections` object for ONE wizard step's edit call — mirrors
 // digitalProductWizardShared.jsx's buildSectionEditPayload. Only used for
-// the plain object sections (contact/tax/employment); identification/
-// address build their own `sections` entry via customerDynamicSteps.jsx's
-// buildIdentificationPayload/buildAddressPayload.
+// the plain object sections (contact/tax/employment/communication);
+// identification/address build their own `sections` entry via
+// customerDynamicSteps.jsx's buildIdentificationPayload/buildAddressPayload.
+//
+// `communication` is the one exception: the backend models it as an ARRAY
+// of rows (one per channel preference), not a single object like every
+// other plain CONFIGS section — the form still edits one row's worth of
+// fields (CONFIGS.communication.fields), but it's wrapped in a one-element
+// array on the wire here so the shape matches what /customer/indv_profile/
+// add|edit actually accepts.
 export function buildSectionEditPayload(entity, values, recordIds) {
   const built = { ...pickPayload(entity, values), ...(recordIds[entity] ? { id: recordIds[entity] } : {}) };
+  if (entity === "communication") return { communication: [built] };
   return { [entity]: built };
 }
 
@@ -125,7 +136,16 @@ export function useCustomerExistingData(profile) {
     const address = Object.fromEntries(
       (Array.isArray(addressRows) ? addressRows : [addressRows]).filter(Boolean).map((row) => [
         row.address_type_id,
-        { address_line_1: row.address_line_1 ?? "", address_line_2: row.address_line_2 ?? "", city: row.city ?? "", state: row.state ?? "", country: row.country ?? "", postal_code: row.postal_code ?? "", same_as: false },
+        {
+          address_line_1: row.address_line_1 ?? "",
+          address_line_2: row.address_line_2 ?? "",
+          city: row.city ?? "",
+          district_id: row.district_id ?? "",
+          province_id: row.province_id ?? "",
+          country_id: row.country_id ?? "",
+          postal_code: row.postal_code ?? "",
+          same_as: false,
+        },
       ]),
     );
     const addressIds = Object.fromEntries(
@@ -159,12 +179,24 @@ export function useCustomerExistingData(profile) {
     const document = Object.fromEntries(
       (Array.isArray(documentRows) ? documentRows : [documentRows]).filter(Boolean).map((row) => [
         row.document_category ?? row.category,
-        { document_type_id: row.document_type_id ?? "", document_number: row.document_number ?? "", document_file: row.document_file ?? null },
+        {
+          kyc_document_type_id: row.kyc_document_type_id ?? "",
+          document_name: row.document_name ?? "",
+          document_number: row.document_number ?? "",
+          file_front: row.file_front ?? null,
+          file_back: row.file_back ?? null,
+        },
       ]),
     );
     const documentIds = Object.fromEntries(
       (Array.isArray(documentRows) ? documentRows : [documentRows]).filter(Boolean).map((row) => [row.document_category ?? row.category, row.id ?? null]),
     );
+
+    // communication is an array of rows on the backend (see
+    // buildSectionEditPayload above) — the form only edits one row, so
+    // hydrate from the first one.
+    const communicationRows = data.communication ?? staged.communication ?? [];
+    const communicationRow = Array.isArray(communicationRows) ? communicationRows[0] : communicationRows;
 
     return {
       values: {
@@ -180,7 +212,7 @@ export function useCustomerExistingData(profile) {
         relationship,
         pep: pickFields("pep", data.pep ?? staged.pep),
         document,
-        communication: pickFields("communication", data.communication ?? staged.communication),
+        communication: pickFields("communication", communicationRow),
       },
       recordIds: {
         profile: p.id ?? profile.id,
@@ -195,7 +227,7 @@ export function useCustomerExistingData(profile) {
         relationship: relationshipIds,
         pep: (data.pep ?? staged.pep)?.id ?? null,
         document: documentIds,
-        communication: (data.communication ?? staged.communication)?.id ?? null,
+        communication: communicationRow?.id ?? null,
       },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -273,8 +305,11 @@ export function useCustomerLookups(currentEntity) {
   const [pepStatuses, setPepStatuses] = useState([]);
   const [pepCategories, setPepCategories] = useState([]);
   const [relationshipTypes, setRelationshipTypes] = useState([]);
-  const { channels } = useChannels(currentEntity === "communication");
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [accountPurposes, setAccountPurposes] = useState([]);
   const { languages } = useLanguages();
+  const { countries } = useCountries(currentEntity === "tax" || currentEntity === "pep" || currentEntity === "address");
 
   useEffect(() => {
     if (currentEntity !== "profile") return;
@@ -285,7 +320,6 @@ export function useCustomerLookups(currentEntity) {
   }, [currentEntity]);
   useEffect(() => {
     if (currentEntity !== "tax") return;
-    citizenshipApi.getActive({ view: "dropdown" }).then((r) => setCitizenships(rowsOf(r))).catch((e) => notifications.error(e.message));
     indvTaxStatusApi.getActive({ view: "dropdown" }).then((r) => setTaxStatuses(rowsOf(r))).catch((e) => notifications.error(e.message));
     indvTaxClassificationApi.getActive({ view: "dropdown" }).then((r) => setTaxClassifications(rowsOf(r))).catch((e) => notifications.error(e.message));
   }, [currentEntity]);
@@ -297,6 +331,10 @@ export function useCustomerLookups(currentEntity) {
   useEffect(() => {
     if (currentEntity !== "business") return;
     turnoverApi.getActive({ view: "dropdown" }).then((r) => setTurnovers(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "financial_profile") return;
+    accountPurposeApi.getActive({ view: "dropdown" }).then((r) => setAccountPurposes(rowsOf(r))).catch((e) => notifications.error(e.message));
   }, [currentEntity]);
   useEffect(() => {
     if (currentEntity !== "source_of_fund") return;
@@ -314,6 +352,11 @@ export function useCustomerLookups(currentEntity) {
     if (currentEntity !== "relationship" && currentEntity !== "document") return;
     relationshipTypeApi.getActive({ view: "dropdown" }).then((r) => setRelationshipTypes(rowsOf(r))).catch((e) => notifications.error(e.message));
   }, [currentEntity]);
+  useEffect(() => {
+    if (currentEntity !== "address") return;
+    provinceApi.getActive({ view: "dropdown" }).then((r) => setProvinces(rowsOf(r))).catch((e) => notifications.error(e.message));
+    districtApi.getActive({ view: "dropdown" }).then((r) => setDistricts(rowsOf(r))).catch((e) => notifications.error(e.message));
+  }, [currentEntity]);
 
   return {
     genders,
@@ -329,8 +372,11 @@ export function useCustomerLookups(currentEntity) {
     pepStatuses,
     pepCategories,
     relationshipTypes,
-    channels,
     languages,
+    countries,
+    provinces,
+    districts,
+    accountPurposes,
   };
 }
 
@@ -371,21 +417,34 @@ export function CustomerStepFields({ entity, values, onFieldChange, lookups, dis
 // once from master data) + onboarding_id (from the Contact step's
 // /customer/indv_onboarding/start call) — every one of these is sent
 // silently, never user-entered. Only used for the plain CONFIGS sections
-// (profile/tax/employment); contact has its own onboarding-start path in
-// AddCustomerWizard.jsx, and identification/address build their own
-// `sections` entry via customerDynamicSteps.jsx.
+// (profile/tax/employment/communication); identification/address build
+// their own `sections` entry via customerDynamicSteps.jsx.
+//
+// The profile step's own `add`/`edit` also carries `sections.contact` (the
+// contact typed on the wizard's first page) — per the backend's confirmed
+// contract, /indv_profile/add falls back to the onboarding-start phone/
+// email if contact is missing, but that fallback isn't something to rely
+// on, so it's sent explicitly here every time the profile step is saved.
+//
+// Once the profile exists, its own `add`'s job is done — every later `edit`
+// call (any entity other than `profile`) only needs {id, is_draft,
+// sections}: the backend already has party_type_id/ownership_id/
+// inst_profile_id/onboarding_id and the rest of the profile's own basic
+// fields from that first call, so re-sending them on every subsequent
+// step's edit is unnecessary.
 export async function saveCustomerStep({ id, entity, values, recordIds, isDraft, fixedIds = {} }) {
   const api = profileApi();
+  const contactSection = values.contact
+    ? { contact: { primary_mobile: values.contact.primary_mobile || null, personal_email: values.contact.personal_email || null } }
+    : {};
   if (entity === "profile") {
-    const basic = { ...buildProfileBasicPayload(values), ...fixedIds };
+    const basic = { ...buildProfileBasicPayload(values), ...fixedIds, sections: contactSection };
     const response = id == null ? await api.add({ ...basic, is_draft: isDraft }) : await api.edit({ ...basic, id });
     return rowsOf(response)[0]?.id ?? id;
   }
   await api.edit({
     id,
     is_draft: isDraft,
-    ...buildProfileBasicPayload(values),
-    ...fixedIds,
     sections: buildSectionEditPayload(entity, values, recordIds),
   });
   return id;

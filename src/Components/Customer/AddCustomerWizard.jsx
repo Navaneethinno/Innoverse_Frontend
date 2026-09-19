@@ -20,15 +20,18 @@ import {
   useCustomerPartyOwnershipIds,
   useWizardConfig,
   employmentRequiresEmployerDetails,
+  employerNameMissing,
   isBusinessEmployment,
   isForeignOwnershipSubType,
   isNomineeRelationshipType,
+  isSubTypeRequired,
   evaluateDocumentCondition,
 } from "./customerWizardConfig";
 import {
   IdentificationStepFields,
   AddressStepFields,
   buildIdentificationPayload,
+  findMissingIdentification,
   buildAddressPayload,
   findMissingAddress,
   RelationshipStepFields,
@@ -39,6 +42,7 @@ import {
   buildDocumentPayload,
   findMissingDocument,
 } from "./customerDynamicSteps";
+import { useKycDocumentTypes } from "@/Hooks/Master/masterHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -95,9 +99,12 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
     addressTypes,
     employmentStatuses,
     documentRequirements,
-    documentTypes,
     loading: wizardConfigLoading,
   } = useWizardConfig(instProfileId);
+  // Documents step's dropdown sources the plain global kyc_document_type
+  // master list, not wizard_config.document_types — see
+  // customerDynamicSteps.jsx's DocumentStepFields comment for why.
+  const { documentTypes: kycDocumentTypes } = useKycDocumentTypes(currentEntity === "document");
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
@@ -109,7 +116,7 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
   // has is_employer_details_required true.
   const employmentId = values.employment?.employment_id || null;
   const employmentFieldFilter = (key) =>
-    !["employer_name", "employer_address", "employer_contact"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
+    !["employer_name", "employer_address", "employer_phone", "employer_email"].includes(key) || employmentRequiresEmployerDetails(employmentStatuses, employmentId);
   const businessRelevant = isBusinessEmployment(employmentStatuses, employmentId);
   const pepFieldFilter = (key, vals) =>
     key === "is_pep" || vals.is_pep === true || vals.is_pep === "true";
@@ -150,6 +157,10 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
 
   const saveIdentificationStep = async () => {
     const payload = buildIdentificationPayload(filteredIdentificationTypes, values.identification, recordIds.identification);
+    // Never send `identification: []` — omit the key entirely when nothing
+    // was filled in yet (the server treats an empty array as "clear the
+    // section", not "nothing to save this time").
+    if (payload.length === 0) return;
     await indvProfileApi().edit({ id: profileId, sections: { identification: payload } });
   };
   const saveAddressStep = async () => {
@@ -208,11 +219,26 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
         notifications.error(requiredFieldMessage(missing, tr));
         return;
       }
+      if (isSubTypeRequired(ownershipSubTypes) && !values.profile.ownership_sub_type_id) {
+        notifications.error(`${tr("Please select")} ${tr("Ownership sub type").toLowerCase()}`);
+        return;
+      }
       if (instProfileId == null) {
         notifications.error("Could not determine your institution — please sign in again.");
         return;
       }
       if (partyTypeId == null || ownershipId == null) return; // useCustomerPartyOwnershipIds already surfaced the error
+    }
+    if (currentEntity === "identification") {
+      const missing = findMissingIdentification(filteredIdentificationTypes, values.identification);
+      if (missing) {
+        notifications.error(tr(missing));
+        return;
+      }
+    }
+    if (currentEntity === "employment" && employerNameMissing(employmentStatuses, employmentId, values.employment?.employer_name)) {
+      notifications.error(`${tr("Please enter")} ${tr("Employer name").toLowerCase()}`);
+      return;
     }
     if (currentEntity === "document") {
       const missing = findMissingDocument(visibleDocumentRequirements, values.document);
@@ -351,6 +377,7 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
           types={filteredAddressTypes}
           values={values.address}
           onRowChange={(rowKey, nextRow) => setDynamicRow("address", rowKey, nextRow)}
+          lookups={masterLookups}
         />
       ) : currentEntity === "relationship" ? (
         <RelationshipStepFields
@@ -370,7 +397,7 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
       ) : currentEntity === "document" ? (
         <DocumentStepFields
           requirements={visibleDocumentRequirements}
-          documentTypes={documentTypes}
+          documentTypes={kycDocumentTypes}
           values={values.document}
           onRowChange={(rowKey, nextRow) => setDynamicRow("document", rowKey, nextRow)}
         />

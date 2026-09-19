@@ -36,7 +36,7 @@ export function IdentificationStepFields({ types, values, onRowChange, disabled 
   return (
     <div className="flex flex-col gap-6">
       {types.map((idType) => {
-        const key = idType.kyc_document_type_id;
+        const key = idType.identification_type_id;
         const row = values[key] ?? emptyIdentificationRow();
         const setField = (field, next) => onRowChange(key, { ...row, [field]: next });
         return (
@@ -89,7 +89,7 @@ export function IdentificationStepFields({ types, values, onRowChange, disabled 
   );
 }
 
-export function AddressStepFields({ types, values, onRowChange, disabled = false }) {
+export function AddressStepFields({ types, values, onRowChange, lookups = {}, disabled = false }) {
   const tr = useConfigLabel();
   if (types.length === 0) {
     return <p className="text-sm text-slate-500">{tr("No address types are configured for this institution.")}</p>;
@@ -124,7 +124,7 @@ export function AddressStepFields({ types, values, onRowChange, disabled = false
                 {ADDRESS_ROW_FIELDS.map(([fieldKey, label, type]) => (
                   <label key={fieldKey} className="text-sm font-semibold text-slate-700">
                     {tr(label)}
-                    <CustomerFieldInput fieldKey={fieldKey} type={type} value={row[fieldKey]} onChange={(next) => setField(fieldKey, next)} disabled={disabled} />
+                    <CustomerFieldInput fieldKey={fieldKey} type={type} value={row[fieldKey]} onChange={(next) => setField(fieldKey, next)} lookups={lookups} disabled={disabled} />
                   </label>
                 ))}
               </div>
@@ -139,14 +139,16 @@ export function AddressStepFields({ types, values, onRowChange, disabled = false
 // Builds the `identification` sections array for the edit payload — one
 // entry per identification type the customer actually filled in (or that's
 // implied by having an id already saved), tagged with the type's own
-// kyc_document_type_id (renamed to identification_type_id on the outgoing
-// payload per backend's confirmed field name for this endpoint — every
-// other field in this payload was already correct) so the backend knows
-// which type each row is.
+// identification_type_id (wizard_config.identification_types[].identification_type_id
+// — NOT kyc_document_type_id, confirmed by the backend team) so the backend
+// knows which type each row is. Returns `[]` when nothing was filled in —
+// callers must OMIT the `identification` key entirely in that case rather
+// than sending an empty array (see findMissingIdentification below, which
+// is what actually blocks Next/Submit when the section is empty).
 export function buildIdentificationPayload(types, values, existingIds = {}) {
   return types
     .map((idType) => {
-      const key = idType.kyc_document_type_id;
+      const key = idType.identification_type_id;
       const row = values[key];
       if (!row) return null;
       const hasData = IDENTIFICATION_ROW_FIELDS.some(([f]) => row[f]) || row.front_image;
@@ -165,12 +167,30 @@ export function buildIdentificationPayload(types, values, existingIds = {}) {
     .filter(Boolean);
 }
 
+// At least one configured identification is required (server rejects an
+// empty submit), and any row that IS filled in must satisfy its own type's
+// front_required/back_required flags. Returns a short reason string (or
+// null when everything's fine) so the caller can show it directly.
+export function findMissingIdentification(types, values) {
+  if (types.length === 0) return null;
+  const filledTypes = types.filter((idType) => {
+    const row = values[idType.identification_type_id];
+    return row && (IDENTIFICATION_ROW_FIELDS.some(([f]) => row[f]) || row.front_image);
+  });
+  if (filledTypes.length === 0) return "at least one configured identification is required";
+  for (const idType of filledTypes) {
+    const row = values[idType.identification_type_id] ?? {};
+    if (idType.front_required && !row.front_image) return `${idType.name}: front image is required`;
+    if (idType.back_required && !row.back_image) return `${idType.name}: back image is required`;
+  }
+  return null;
+}
+
 // Builds the `address` sections array — one entry per address type with
 // data, "same as" resolved to the target type's own values so the backend
 // receives real field values either way (server-side same-as duplication
 // isn't assumed).
 export function buildAddressPayload(types, values, existingIds = {}) {
-  const byId = Object.fromEntries(types.map((t) => [t.address_type_id, t]));
   return types
     .map((addrType) => {
       const key = addrType.address_type_id;
@@ -291,17 +311,24 @@ export function buildRelationshipPayload(values, existingIds = {}) {
 
 // Documents — fully wizard_config-driven (document_requirements +
 // document_types), same "one form block per applicable row" shape as
-// Identification/Address, not a static CONFIGS entry. Each visible
-// requirement row shows a document-name dropdown (document_types filtered
-// to that row's own document_category) plus a file upload, reusing the
-// exact same base64 data-URL read IdentificationStepFields already uses
-// (judgment call carried over from the previous pass — no real upload
-// endpoint exists anywhere in the codebase).
+// Identification/Address, not a static CONFIGS entry. The document-name
+// dropdown is sourced from the plain global `/master/kyc_document_type`
+// list (via useKycDocumentTypes) rather than wizard_config.document_types —
+// confirmed by the backend team: document_types only gives
+// document_type_id/category/name (institution-scoped display metadata), the
+// actual outgoing `kyc_document_type_id` must come from that master list,
+// with the chosen option's own name sent separately as `document_name`.
+// wizard_config.document_types has no category info to cross-reference
+// kyc_document_type against, so every requirement row offers the full list
+// rather than a category-filtered subset. File upload reuses the same
+// base64 data-URL read IdentificationStepFields already uses (judgment call
+// carried over from the previous pass — no real upload endpoint exists
+// anywhere in the codebase).
 export function emptyDocumentRow() {
-  return { document_type_id: "", document_number: "", document_file: null };
+  return { kyc_document_type_id: "", document_name: "", document_number: "", file_front: null, file_back: null };
 }
 
-export function DocumentStepFields({ requirements, documentTypes, values, onRowChange, disabled = false }) {
+export function DocumentStepFields({ requirements, documentTypes: kycDocumentTypes, values, onRowChange, disabled = false }) {
   const tr = useConfigLabel();
   if (requirements.length === 0) {
     return <p className="text-sm text-slate-500">{tr("No documents are required for this profile.")}</p>;
@@ -312,7 +339,6 @@ export function DocumentStepFields({ requirements, documentTypes, values, onRowC
         const key = req.document_category ?? req.category ?? req.id;
         const row = values[key] ?? emptyDocumentRow();
         const setField = (field, next) => onRowChange(key, { ...row, [field]: next });
-        const typeOptions = documentTypes.filter((dt) => String(dt.document_category ?? dt.category) === String(req.document_category ?? req.category));
         const isMandatory = req.requirement_type === "MANDATORY";
         return (
           <div key={key} className="rounded-2xl border p-4">
@@ -325,12 +351,16 @@ export function DocumentStepFields({ requirements, documentTypes, values, onRowC
                 {tr("Document name")}
                 <select
                   className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
-                  value={row.document_type_id ?? ""}
+                  value={row.kyc_document_type_id ?? ""}
                   disabled={disabled}
-                  onChange={(e) => setField("document_type_id", e.target.value)}
+                  onChange={(e) => {
+                    const chosen = (kycDocumentTypes ?? []).find((dt) => String(dt.id) === e.target.value);
+                    setField("kyc_document_type_id", e.target.value);
+                    setField("document_name", chosen?.name ?? chosen?.code ?? "");
+                  }}
                 >
                   <option value="">{tr("Select document")}</option>
-                  {typeOptions.map((dt) => (
+                  {(kycDocumentTypes ?? []).map((dt) => (
                     <option key={dt.id} value={dt.id}>
                       {dt.name ?? dt.code}
                     </option>
@@ -348,17 +378,30 @@ export function DocumentStepFields({ requirements, documentTypes, values, onRowC
                 />
               </label>
               <label className="text-sm font-semibold text-slate-700">
-                {tr("Upload file")}
+                {tr("Upload file (front)")}
                 <input
                   type="file"
                   disabled={disabled}
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
-                    if (file) setField("document_file", await readFileAsDataUrl(file));
+                    if (file) setField("file_front", await readFileAsDataUrl(file));
                   }}
                   className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
                 />
-                {row.document_file && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
+                {row.file_front && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
+              </label>
+              <label className="text-sm font-semibold text-slate-700">
+                {tr("Upload file (back)")}
+                <input
+                  type="file"
+                  disabled={disabled}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setField("file_back", await readFileAsDataUrl(file));
+                  }}
+                  className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
+                />
+                {row.file_back && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
               </label>
             </div>
           </div>
@@ -374,14 +417,16 @@ export function buildDocumentPayload(requirements, values, existingIds = {}) {
       const key = req.document_category ?? req.category ?? req.id;
       const row = values[key];
       if (!row) return null;
-      const hasData = row.document_type_id || row.document_number || row.document_file;
+      const hasData = row.kyc_document_type_id || row.document_number || row.file_front || row.file_back;
       if (!hasData) return null;
       return {
         ...(existingIds[key] ? { id: existingIds[key] } : {}),
         document_category: req.document_category ?? req.category ?? null,
-        document_type_id: row.document_type_id || null,
+        kyc_document_type_id: row.kyc_document_type_id || null,
+        document_name: row.document_name || null,
         document_number: row.document_number || null,
-        document_file: row.document_file || null,
+        file_front: row.file_front || null,
+        file_back: row.file_back || null,
       };
     })
     .filter(Boolean);
@@ -392,6 +437,6 @@ export function findMissingDocument(requirements, values) {
     if (req.requirement_type !== "MANDATORY") return false;
     const key = req.document_category ?? req.category ?? req.id;
     const row = values[key];
-    return !row || !(row.document_type_id || row.document_file);
+    return !row || !(row.kyc_document_type_id && row.file_front);
   });
 }

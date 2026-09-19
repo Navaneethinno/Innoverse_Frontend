@@ -60,18 +60,28 @@ export const CONFIGS = {
   // profile/contact — unlike identification/address (whose rows are driven
   // one-per-type by wizard_config, see customerDynamicSteps.jsx), these are
   // a single object per profile with a fixed field list.
+  // Field names/types here match the backend's confirmed `tax` section
+  // contract exactly (verified against a real submit rejection listing
+  // "unknown field(s)" for the old names) — see the PR description for the
+  // full before/after table. `pan_status_id`/`tax_exemption_status_id` both
+  // come from the same `indv_tax_status` master; `fatca_classification_id`/
+  // `crs_classification_id` both come from `indv_tax_classification`.
   tax: {
     title: "Tax Details",
     fields: [
-      ["pan_number", "PAN number", "text"],
-      ["pan_status", "PAN status", "text"],
-      ["form60_reason", "Form 60 reason", "text"],
-      ["tax_residency_country_id", "Tax residency country", "number", "citizenships"],
-      ["tax_status_id", "Tax status", "number", "taxStatuses"],
-      ["tax_classification_id", "Tax classification", "number", "taxClassifications"],
-      ["fatca_status", "FATCA status", "text"],
-      ["crs_status", "CRS status", "text"],
-      ["tax_exemption_reason", "Tax exemption reason", "text"],
+      ["pan", "PAN", "text"],
+      ["pan_status_id", "PAN status", "number", "taxStatuses"],
+      ["form_60_applicable", "Form 60 applicable", "boolean"],
+      ["form_60_reference", "Form 60 reference", "text"],
+      ["tax_residency_country_id", "Tax residency country", "number", "countries"],
+      ["foreign_tax_identification_number", "Foreign tax identification number", "text"],
+      ["fatca_applicable", "FATCA applicable", "boolean"],
+      ["crs_applicable", "CRS applicable", "boolean"],
+      ["fatca_classification_id", "FATCA classification", "number", "taxClassifications"],
+      ["crs_classification_id", "CRS classification", "number", "taxClassifications"],
+      ["tax_exemption_status_id", "Tax exemption status", "number", "taxStatuses"],
+      ["tax_exemption_number", "Tax exemption number", "text"],
+      ["tax_exemption_expiry_date", "Tax exemption expiry date", "date"],
     ],
   },
   employment: {
@@ -82,7 +92,8 @@ export const CONFIGS = {
       ["designation_id", "Designation", "number", "designations"],
       ["employer_name", "Employer name", "text"],
       ["employer_address", "Employer address", "text"],
-      ["employer_contact", "Employer contact", "text"],
+      ["employer_phone", "Employer phone", "text"],
+      ["employer_email", "Employer email", "text"],
     ],
   },
   // Business Details — only relevant when the Employment step's chosen
@@ -108,7 +119,8 @@ export const CONFIGS = {
       ["net_worth", "Net worth", "number"],
       ["expected_transaction_volume", "Expected transaction volume", "number"],
       ["expected_transaction_count", "Expected transaction count", "number"],
-      ["purpose_of_account", "Purpose of account / relationship", "text"],
+      ["purpose_of_account_id", "Purpose of account", "number", "accountPurposes"],
+      ["purpose_of_relationship", "Purpose of relationship (if not listed)", "text"],
     ],
   },
   source_of_fund: {
@@ -127,16 +139,23 @@ export const CONFIGS = {
       ["pep_category_id", "PEP category", "number", "pepCategories"],
       ["position", "Position", "text"],
       ["organization", "Organization", "text"],
-      ["country", "Country", "text"],
+      ["country_id", "Country", "number", "countries"],
       ["start_date", "Start date", "date"],
       ["end_date", "End date", "date"],
     ],
   },
+  // The backend contract for `communication` is an ARRAY of rows (one per
+  // channel preference), not a single object — see
+  // customerWizardShared.jsx's buildSectionEditPayload/pickFields special
+  // case for how a single-row form here gets wrapped/unwrapped on the wire.
+  // `preferred_channel` is the channel's own code (e.g. "EMAIL"), not an id.
   communication: {
     title: "Communication",
     fields: [
-      ["preferred_channel_id", "Preferred channel", "number", "channels"],
+      ["preferred_channel", "Preferred channel (e.g. EMAIL, SMS, WHATSAPP)", "text"],
       ["preferred_language_id", "Preferred language", "number", "languages"],
+      ["marketing_opt_in", "Marketing opt-in", "boolean"],
+      ["notification_opt_in", "Notification opt-in", "boolean"],
     ],
   },
 };
@@ -151,12 +170,16 @@ export const IDENTIFICATION_ROW_FIELDS = [
   ["date_of_expiry", "Date of expiry", "date"],
   ["issue_place", "Issue place", "text"],
 ];
+// No `state` field exists on the backend's `address` section — use
+// province_id/district_id instead — and `country` must be `country_id` (an
+// id from /master/country), never a free-text name.
 export const ADDRESS_ROW_FIELDS = [
   ["address_line_1", "Address line 1", "text"],
   ["address_line_2", "Address line 2", "text"],
   ["city", "City", "text"],
-  ["state", "State", "text"],
-  ["country", "Country", "text"],
+  ["district_id", "District", "number", "districts"],
+  ["province_id", "Province", "number", "provinces"],
+  ["country_id", "Country", "number", "countries"],
   ["postal_code", "Postal code", "text"],
 ];
 
@@ -198,20 +221,20 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
     pepStatuses = [],
     pepCategories = [],
     relationshipTypes = [],
-    channels = [],
     languages = [],
+    countries = [],
+    provinces = [],
+    districts = [],
+    accountPurposes = [],
   } = lookups;
   const LOOKUP_OPTIONS = {
     gender_id: { list: genders, placeholder: "Select gender" },
     country_of_birth_id: { list: citizenships, placeholder: "Select country of birth" },
     nationality_id: { list: citizenships, placeholder: "Select nationality" },
     secondary_nationality_id: { list: citizenships, placeholder: "Select secondary nationality" },
-    tax_residency_country_id: { list: citizenships, placeholder: "Select tax residency country" },
     disability_id: { list: disabilities, placeholder: "Select disability" },
     marital_status_id: { list: maritalStatuses, placeholder: "Select marital status" },
     ownership_sub_type_id: { list: ownershipSubTypes, placeholder: "Select ownership sub type" },
-    tax_status_id: { list: taxStatuses, placeholder: "Select tax status" },
-    tax_classification_id: { list: taxClassifications, placeholder: "Select tax classification" },
     employment_id: { list: employmentStatuses, placeholder: "Select employment status", idKey: "employment_id" },
     occupation_id: { list: occupations, placeholder: "Select occupation" },
     designation_id: { list: designations, placeholder: "Select designation" },
@@ -220,8 +243,16 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
     pep_status_id: { list: pepStatuses, placeholder: "Select PEP status" },
     pep_category_id: { list: pepCategories, placeholder: "Select PEP category" },
     relationship_type_id: { list: relationshipTypes, placeholder: "Select relationship type" },
-    preferred_channel_id: { list: channels, placeholder: "Select preferred channel" },
     preferred_language_id: { list: languages, placeholder: "Select preferred language" },
+    tax_residency_country_id: { list: countries, placeholder: "Select tax residency country" },
+    pan_status_id: { list: taxStatuses, placeholder: "Select PAN status" },
+    tax_exemption_status_id: { list: taxStatuses, placeholder: "Select tax exemption status" },
+    fatca_classification_id: { list: taxClassifications, placeholder: "Select FATCA classification" },
+    crs_classification_id: { list: taxClassifications, placeholder: "Select CRS classification" },
+    purpose_of_account_id: { list: accountPurposes, placeholder: "Select purpose of account" },
+    country_id: { list: countries, placeholder: "Select country" },
+    province_id: { list: provinces, placeholder: "Select province" },
+    district_id: { list: districts, placeholder: "Select district" },
   };
   const lookupConfig = LOOKUP_OPTIONS[key];
   if (lookupConfig) {

@@ -142,6 +142,31 @@ export function employmentRequiresEmployerDetails(employmentStatuses, employment
   return Boolean(findEmploymentRow(employmentStatuses, employmentId)?.is_employer_details_required);
 }
 
+// Server rule: ownership_sub_type_id is required whenever the institution
+// has ANY enabled sub-type — mirror that client-side so the customer never
+// reaches submit only to be rejected there.
+export function isSubTypeRequired(ownershipSubTypes) {
+  return (ownershipSubTypes ?? []).length > 0;
+}
+
+// Server rule: employer_name is required once the chosen employment status
+// says employer details are needed — same condition
+// employmentRequiresEmployerDetails already gates the fields' visibility on.
+export function employerNameMissing(employmentStatuses, employmentId, employerName) {
+  return employmentRequiresEmployerDetails(employmentStatuses, employmentId) && !employerName;
+}
+
+// document_requirements' document_category ("ADDRESS_PROOF") and
+// document_types' category ("ADDRESS") name the same real-world category
+// under two different strings — confirmed by the backend team. Treat them
+// as equal everywhere a document row is matched against its category.
+const CATEGORY_ALIASES = { ADDRESS_PROOF: "ADDRESS", ADDRESS: "ADDRESS" };
+export function sameDocumentCategory(a, b) {
+  if (a == null || b == null) return false;
+  const normalize = (v) => CATEGORY_ALIASES[String(v).toUpperCase()] ?? String(v).toUpperCase();
+  return normalize(a) === normalize(b);
+}
+
 // Business Details is only relevant when the chosen employment status looks
 // self-employed/business/professional — wizard_config doesn't carry an
 // explicit flag for this, so (per the handoff's own fallback) match a

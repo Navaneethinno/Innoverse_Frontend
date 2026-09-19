@@ -118,6 +118,22 @@ export function useChannels(enabled = true) {
   return { channels, error };
 }
 
+export function useCountries(enabled = true) {
+  const [countries, setCountries] = useState([]);
+  const [error, setError] = useState(null);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      setCountries(await masterApi.countryList());
+      setError(null);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError : new Error("Failed to load countries"));
+    }
+  }, [enabled]);
+  useEffect(() => { void load(); }, [load]);
+  return { countries, error };
+}
+
 export function useTransactions(enabled = true) {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
