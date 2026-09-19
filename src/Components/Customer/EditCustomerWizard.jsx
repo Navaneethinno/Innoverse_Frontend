@@ -93,7 +93,7 @@ export function EditCustomerWizard({ profile, onClose, onSaved }) {
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
-  const lookups = { ...masterLookups, ownershipSubTypes };
+  const lookups = { ...masterLookups, ownershipSubTypes, employmentStatuses };
   const isDynamic = currentStep.dynamic;
 
   const employmentId = values.employment?.employment_id || null;

@@ -41,7 +41,7 @@ export function ViewCustomerWizard({ profile, onClose }) {
   const chosenSubType = values.profile?.ownership_sub_type_id || null;
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
-  const lookups = { ...masterLookups, ownershipSubTypes };
+  const lookups = { ...masterLookups, ownershipSubTypes, employmentStatuses };
   const currentConfigured = currentEntity === "profile" || isStepConfigured(currentEntity, values);
 
   const employmentId = values.employment?.employment_id || null;

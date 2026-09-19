@@ -372,7 +372,10 @@ export function DocumentStepFields({ requirements, documentTypes, kycDocumentTyp
                       const chosen = options.find((dt) => String(dt[optionIdKey]) === e.target.value);
                       onRowChange(key, {
                         ...row,
-                        [rowIdField]: e.target.value,
+                        // A native <select>'s value is always a string —
+                        // cast back to a number since document_type_id (and
+                        // kyc_document_type_id) are ints on the wire.
+                        [rowIdField]: e.target.value === "" ? "" : Number(e.target.value),
                         document_name: chosen?.name ?? chosen?.code ?? "",
                       });
                     }}
@@ -441,10 +444,13 @@ export function buildDocumentPayload(requirements, values, existingIds = {}) {
       return {
         ...(existingIds[key] ? { id: existingIds[key] } : {}),
         document_category: req.document_category ?? req.category ?? null,
+        // Always send as a number — the contract is an int, never a numeric
+        // string (defensive Number() here in case a value round-tripped
+        // through GET-response hydration as a string).
         ...(row.document_type_id
-          ? { document_type_id: row.document_type_id }
+          ? { document_type_id: Number(row.document_type_id) }
           : row.kyc_document_type_id
-            ? { kyc_document_type_id: row.kyc_document_type_id }
+            ? { kyc_document_type_id: Number(row.kyc_document_type_id) }
             : {}),
         document_name: row.document_name || null,
         document_number: row.document_number || null,

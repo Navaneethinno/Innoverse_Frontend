@@ -112,7 +112,7 @@ export function AddCustomerWizard({ onClose, onSuccess }) {
   const filteredIdentificationTypes = identificationTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
   const filteredAddressTypes = addressTypes.filter((t) => t.ownership_sub_type_id == null || String(t.ownership_sub_type_id) === String(chosenSubType));
 
-  const lookups = { ...masterLookups, ownershipSubTypes };
+  const lookups = { ...masterLookups, ownershipSubTypes, employmentStatuses };
 
   // Employment conditional reveal (bug fix): employer_name/employer_address/
   // employer_contact only render when the chosen employment_statuses row
