@@ -115,12 +115,12 @@ export function useCustomerExistingData(profile) {
     // wizard_config row it belongs to.
     const identification = Object.fromEntries(
       (Array.isArray(identificationRows) ? identificationRows : [identificationRows]).filter(Boolean).map((row) => [
-        row.kyc_document_type_id,
+        row.identification_type_id ?? row.kyc_document_type_id,
         { identification_number: row.identification_number ?? "", date_of_issue: row.date_of_issue ?? "", date_of_expiry: row.date_of_expiry ?? "", issue_place: row.issue_place ?? "", front_image: row.front_image ?? null, back_image: row.back_image ?? null },
       ]),
     );
     const identificationIds = Object.fromEntries(
-      (Array.isArray(identificationRows) ? identificationRows : [identificationRows]).filter(Boolean).map((row) => [row.kyc_document_type_id, row.id ?? null]),
+      (Array.isArray(identificationRows) ? identificationRows : [identificationRows]).filter(Boolean).map((row) => [row.identification_type_id ?? row.kyc_document_type_id, row.id ?? null]),
     );
     const address = Object.fromEntries(
       (Array.isArray(addressRows) ? addressRows : [addressRows]).filter(Boolean).map((row) => [
