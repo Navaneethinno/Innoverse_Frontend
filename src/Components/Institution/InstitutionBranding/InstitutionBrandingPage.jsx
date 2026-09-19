@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
-import { AlertCircle, Plus, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
+import { FileUploadField } from "@/Components/Common/FileUploadField";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -53,86 +54,12 @@ const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "
 // upload/asset-storage endpoint exists anywhere in this API's Postman
 // collection) — so "uploading" here reads the chosen file client-side and
 // stores it as a data: URL in that same string field, rendered identically
-// to an already-hosted external URL a legacy record might still have.
+// to an already-hosted external URL a legacy record might still have. The
+// actual upload control (preview, uploading animation, view/replace/remove)
+// now lives in the shared FileUploadField — see that file's comment for why
+// this is the one place every upload surface in the app should render
+// through, instead of each page hand-rolling its own.
 const MAX_IMAGE_BYTES = 500 * 1024;
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-function ImageUploadField({ tr, value, onChange }) {
-  const inputRef = useRef(null);
-  const [error, setError] = useState("");
-
-  const handleFile = async (file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Please choose an image file");
-      return;
-    }
-    if (file.size > MAX_IMAGE_BYTES) {
-      setError(`Image must be under ${Math.round(MAX_IMAGE_BYTES / 1024)}KB`);
-      return;
-    }
-    setError("");
-    onChange(await readFileAsDataUrl(file));
-  };
-
-  return (
-    <div className="mt-1.5">
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => void handleFile(e.target.files?.[0])}
-      />
-      {value ? (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-2.5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-            <img
-              src={value}
-              alt=""
-              className="h-full w-full object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
-          >
-            {tr("Replace image")}
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-red-500"
-            aria-label={tr("Remove image")}
-          >
-            <X size={15} />
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-slate-500 transition hover:border-primary/50 hover:text-primary"
-        >
-          <Upload size={15} className="shrink-0" />
-          {tr("Upload image")}
-        </button>
-      )}
-      <p className="mt-1 text-[11px] text-slate-400">{tr("PNG, JPG, or SVG, up to 500KB")}</p>
-      {error && <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p>}
-    </div>
-  );
-}
 function ColorValue({ color }) {
   if (!color) return <span>—</span>;
   return (
@@ -565,10 +492,14 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           return (
             <label key={key} className="text-sm font-medium">
               {label}
-              <ImageUploadField
+              <FileUploadField
                 tr={tr}
                 value={form[key]}
                 onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
+                accept="image/*"
+                maxBytes={MAX_IMAGE_BYTES}
+                uploadLabel="Upload image"
+                hint="PNG, JPG, or SVG, up to 500KB"
               />
             </label>
           );

@@ -1,6 +1,7 @@
 import { CustomerFieldInput } from "./customerFields";
 import { IDENTIFICATION_ROW_FIELDS, ADDRESS_ROW_FIELDS, RELATIONSHIP_ROW_FIELDS, GUARDIAN_ROW_FIELDS } from "./customerFields";
 import { isGuardianRelationshipType, sameDocumentCategory } from "./customerWizardConfig";
+import { FileUploadField } from "@/Components/Common/FileUploadField";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Identification and Address are NOT plain CONFIGS sections — each renders
@@ -11,15 +12,6 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 // (kyc_document_type_id / address_type_id) so values survive re-renders and
 // step navigation the same way a CONFIGS-driven step's `values[entity]`
 // object does.
-
-function readFileAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 export function emptyIdentificationRow() {
   return Object.fromEntries([...IDENTIFICATION_ROW_FIELDS.map(([key]) => [key, ""]), ["front_image", null], ["back_image", null]]);
@@ -53,32 +45,28 @@ export function IdentificationStepFields({ types, values, onRowChange, disabled 
               ))}
               <label className="text-sm font-semibold text-slate-700">
                 {tr("Front image")}
-                <input
-                  type="file"
+                <FileUploadField
+                  tr={tr}
+                  value={row.front_image}
+                  onChange={(next) => setField("front_image", next || null)}
                   accept="image/*"
+                  maxBytes={2 * 1024 * 1024}
+                  uploadLabel="Upload image"
                   disabled={disabled}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setField("front_image", await readFileAsDataUrl(file));
-                  }}
-                  className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
                 />
-                {row.front_image && <span className="mt-1 block text-xs text-emerald-600">{tr("Image selected")}</span>}
               </label>
               {idType.back_required && (
                 <label className="text-sm font-semibold text-slate-700">
                   {tr("Back image")}
-                  <input
-                    type="file"
+                  <FileUploadField
+                    tr={tr}
+                    value={row.back_image}
+                    onChange={(next) => setField("back_image", next || null)}
                     accept="image/*"
+                    maxBytes={2 * 1024 * 1024}
+                    uploadLabel="Upload image"
                     disabled={disabled}
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) setField("back_image", await readFileAsDataUrl(file));
-                    }}
-                    className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
                   />
-                  {row.back_image && <span className="mt-1 block text-xs text-emerald-600">{tr("Image selected")}</span>}
                 </label>
               )}
             </div>
@@ -401,29 +389,27 @@ export function DocumentStepFields({ requirements, documentTypes, kycDocumentTyp
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 {tr("Upload file (front)")}
-                <input
-                  type="file"
+                <FileUploadField
+                  tr={tr}
+                  value={row.file_front}
+                  onChange={(next) => setField("file_front", next || null)}
+                  accept="image/*,application/pdf"
+                  maxBytes={2 * 1024 * 1024}
+                  uploadLabel="Upload file"
                   disabled={disabled}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setField("file_front", await readFileAsDataUrl(file));
-                  }}
-                  className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
                 />
-                {row.file_front && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 {tr("Upload file (back)")}
-                <input
-                  type="file"
+                <FileUploadField
+                  tr={tr}
+                  value={row.file_back}
+                  onChange={(next) => setField("file_back", next || null)}
+                  accept="image/*,application/pdf"
+                  maxBytes={2 * 1024 * 1024}
+                  uploadLabel="Upload file"
                   disabled={disabled}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) setField("file_back", await readFileAsDataUrl(file));
-                  }}
-                  className="mt-1.5 w-full rounded-xl border px-3 py-2 text-sm disabled:bg-slate-50"
                 />
-                {row.file_back && <span className="mt-1 block text-xs text-emerald-600">{tr("File selected")}</span>}
               </label>
             </div>
           </div>
