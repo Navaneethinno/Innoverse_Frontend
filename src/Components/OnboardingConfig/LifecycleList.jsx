@@ -16,6 +16,7 @@ import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { rowsOf } from "@/Services/Onboarding/onboarding.api";
+import { useAuth } from "@/Hooks/useAuth";
 
 // Permission gate off the login menu_array, matched by menu name. The new
 // onboarding screens' menu names aren't registered in the sidebar data yet;
@@ -73,6 +74,7 @@ export function LifecycleList({
   onChanged,
 }) {
   const can = useMenuPermission(menuName);
+  const username = useAuth((state) => state.user?.username);
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
@@ -155,6 +157,12 @@ export function LifecycleList({
         if (!canEditRow(row)) buttons.edit = false;
         if (!canDeleteRow(row)) buttons.delete = false;
         if (!canDeactivateRow(row)) buttons.deactivate = false;
+        // A checker must be a different user from the maker (guide §12): the
+        // server refuses "You Cannot Authorize Your Own Request", so don't offer it.
+        if (username && row.updated_by === username) {
+          buttons.authorize = false;
+          buttons.deauthorize = false;
+        }
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
         return (
           <div className="flex items-center justify-center gap-1">
