@@ -15,7 +15,6 @@ import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
-import { withSupplementalMenus } from "./supplementalMenus";
 
 const SIDEBAR_EXPANDED_W = 256;
 const SIDEBAR_COLLAPSED_W = 56;
@@ -53,8 +52,7 @@ export function DynamicSidebar() {
     if (isMobile) closeMobile();
   };
 
-  const backendMenuArray = useSelector((store) => store.menu.menuArray);
-  const menuArray = useMemo(() => withSupplementalMenus(backendMenuArray), [backendMenuArray]);
+  const menuArray = useSelector((store) => store.menu.menuArray);
   const { masterModules } = useMasterModules();
 
   // The selected module is tracked by id, sourced from the user's own
