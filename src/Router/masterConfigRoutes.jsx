@@ -38,8 +38,16 @@ const CUSTOMER_MASTER_CONFIG_ENTITIES = [
   ["indvpepstatus", "indv_pep_status"],
   ["indvpepcategory", "indv_pep_category"],
   ["ownershipsubtype", "ownership_sub_type"],
-  ["documenttype", "document_type"],
 ];
+// Sidebar menu names for the customer masters slugify without the "indv" prefix.
+CUSTOMER_MASTER_CONFIG_ENTITIES.push(
+  ["verificationstatus", "indv_verification_status"],
+  ["verificationmethod", "indv_verification_method"],
+  ["taxstatus", "indv_tax_status"],
+  ["taxclassification", "indv_tax_classification"],
+  ["pepstatus", "indv_pep_status"],
+  ["pepcategory", "indv_pep_category"],
+);
 masterConfigRoutes.push(
   ...CUSTOMER_MASTER_CONFIG_ENTITIES.flatMap(([slug, entity]) => [
     { path: slug, element: pageElement(CustomerMasterConfigPage, { entity }) },
