@@ -14,7 +14,7 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 // be built in memory and sent once (guide §8.2).
 const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-500";
 
-function FieldInput({ field, item, setItem, readOnly }) {
+export function FieldInput({ field, item, setItem, readOnly }) {
   const value = item[field.key];
   const disabled = readOnly || Boolean(field.disabled?.(item));
   const set = (next) => setItem({ ...item, [field.key]: next });

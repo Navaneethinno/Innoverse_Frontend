@@ -1,22 +1,15 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
-const Resource = lazy(() =>
-  import("@/Components/Config/CustomerOnboardingConfigResource.jsx").then((module) => ({ default: module.CustomerOnboardingConfigResource })),
+const CustomerTypes = lazy(() =>
+  import("@/Components/OnboardingConfig/OnboardingDefinitionPage.jsx").then((m) => ({ default: m.OnboardingDefinitionPage })),
 );
-
-// Individual Customer Onboarding Configuration (2026-09) — confirmed live
-// against a real sidebar: 6 leaves under a "Customer" parent group (menu
-// header, non-clickable — see MenuItem.jsx's hasChildren behavior), each
-// slug = slugifyMenuName(menu_name) of the exact labels shown there
-// (Individual/Identification/Address Type Config, Employment Config,
-// Document Requirement Config, Document Type Config). The 7th entity from
-// the API doc, the global master_config/document_type list ("Document Type
-// (Master)"), is NOT one of these 6 sidebar leaves — no confirmed menu_name
-// or slug for it yet, so no route is registered for it (CustomerOnboarding-
-// ConfigResource.jsx still supports entity="document_type" for whenever one
-// is confirmed; indv_document_type_config's own document_type_id dropdown
-// works regardless, via documentTypeApi.getActive() directly).
+// The six /config/customer/indv_* endpoints (individual type, identification
+// type, address type, employment, document requirement, document type
+// config) were replaced by the customer-type definition + version model:
+// identification/address/employment/document rules are now sections of one
+// version's configuration (see OnboardingVersionWizard.jsx). The existing
+// sidebar slugs stay valid and open the Customer Types screen.
 const paths = [
   "individualtypeconfig",
   "identificationtypeconfig",
@@ -25,15 +18,7 @@ const paths = [
   "documentrequirementconfig",
   "documenttypeconfig",
 ];
-const entities = [
-  "indv_type_config",
-  "indv_identification_type",
-  "indv_address_type",
-  "indv_employment_config",
-  "indv_document_requirement_config",
-  "indv_document_type_config",
-];
-export const customerOnboardingConfigRoutes = paths.flatMap((path, index) => [
-  { path, element: pageElement(Resource, { entity: entities[index] }) },
-  { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },
+export const customerOnboardingConfigRoutes = paths.flatMap((path) => [
+  { path, element: pageElement(CustomerTypes) },
+  { path: `${path}/:id`, element: pageElement(CustomerTypes) },
 ]);

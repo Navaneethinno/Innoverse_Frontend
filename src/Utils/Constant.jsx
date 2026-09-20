@@ -816,13 +816,13 @@ export const API_ENDPOINTS = {
   // configKycApi(entity) calls for these 5 entities, spelled out.
   CONFIG_KYC: {
     KYC_GROUP: {
-      ADD: "/config/kyc_group/add", SUBMIT: "/config/kyc_group/submit", EDIT: "/config/kyc_group/edit",
-      AUTH: "/config/kyc_group/auth", DEAUTH: "/config/kyc_group/deauth", DELETE: "/config/kyc_group/delete",
-      DELETE_AUTH: "/config/kyc_group/delete_auth", LIST: "/config/kyc_group/list",
-      GET_ACTIVE: "/config/kyc_group/get_active", AUDIT: "/config/kyc_group/audit",
-      PENDING: "/config/kyc_group/pending",
-      DEACTIVATE: "/config/kyc_group/deactivate",
-      REACTIVATE: "/config/kyc_group/reactivate",
+      ADD: "/config/kyc/group/add", SUBMIT: "/config/kyc/group/submit", EDIT: "/config/kyc/group/edit",
+      AUTH: "/config/kyc/group/auth", DEAUTH: "/config/kyc/group/deauth", DELETE: "/config/kyc/group/delete",
+      DELETE_AUTH: "/config/kyc/group/delete_auth", LIST: "/config/kyc/group/list",
+      GET_ACTIVE: "/config/kyc/group/get_active", AUDIT: "/config/kyc/group/audit",
+      PENDING: "/config/kyc/group/pending",
+      DEACTIVATE: "/config/kyc/group/deactivate",
+      REACTIVATE: "/config/kyc/group/reactivate",
     },
     KYC_GROUP_LEVEL: {
       ADD: "/config/kyc_group_level/add", SUBMIT: "/config/kyc_group_level/submit", EDIT: "/config/kyc_group_level/edit",

@@ -105,7 +105,7 @@ export function CustomerMasterConfigResource({ entity }) {
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(""),
     [tab, setTab] = useState("all"),
-    [form, setForm] = useState({ name: "", description: "", ownership_id: "", category: "" }),
+    [form, setForm] = useState({ code: "", name: "", description: "", ownership_id: "", category: "" }),
     [editing, setEditing] = useState(null),
     [open, setOpen] = useState(false),
     [view, setView] = useState(null),
@@ -154,6 +154,10 @@ export function CustomerMasterConfigResource({ entity }) {
       notifications.error("Name is required");
       return;
     }
+    if (!editing && !form.code.trim()) {
+      notifications.error("Code is required");
+      return;
+    }
     if (config.hasOwnership && !editing && (form.ownership_id === "" || form.ownership_id == null)) {
       notifications.error("Please select an ownership");
       return;
@@ -165,6 +169,9 @@ export function CustomerMasterConfigResource({ entity }) {
     setSaving(true);
     try {
       const payload = {
+        // code is required on add (unique per institution, A-Z 0-9 _) and
+        // cannot be changed afterwards.
+        ...(!editing ? { code: form.code.trim().toUpperCase() } : {}),
         name: form.name,
         description: form.description,
         ...(config.hasOwnership && !editing ? { ownership_id: form.ownership_id } : {}),
@@ -176,7 +183,7 @@ export function CustomerMasterConfigResource({ entity }) {
       notifications.success(apiMessage(response, `${config.title} saved`));
       setOpen(false);
       setEditing(null);
-      setForm({ name: "", description: "", ownership_id: "", category: "" });
+      setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });
       void load();
     } catch (error) {
       notifications.error(error.message);
@@ -217,6 +224,7 @@ export function CustomerMasterConfigResource({ entity }) {
 
   const columns = [
     ...(config.hasCategory ? [{ key: "category", label: "Category", render: (row) => row.category ?? "-" }] : []),
+    { key: "code", label: "Code", render: (row) => row.code ?? "-" },
     { key: "name", label: "Name", render: (row) => row.name ?? "-" },
     { key: "description", label: "Description", render: (row) => row.description || "-" },
     ...(config.hasOwnership
@@ -261,7 +269,7 @@ export function CustomerMasterConfigResource({ entity }) {
             buttons={buttons}
             onView={() => setView(row)}
             onEdit={() => {
-              setForm({ name: row.name ?? "", description: row.description ?? "", ownership_id: row.ownership_id ?? "", category: row.category ?? "" });
+              setForm({ code: row.code ?? "", name: row.name ?? "", description: row.description ?? "", ownership_id: row.ownership_id ?? "", category: row.category ?? "" });
               setEditing(row);
               setOpen(true);
             }}
@@ -281,7 +289,7 @@ export function CustomerMasterConfigResource({ entity }) {
   const addAction = allowed(menus, "Add", config.menuName) ? (
     <button
       onClick={() => {
-        setForm({ name: "", description: "", ownership_id: "", category: "" });
+        setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });
         setEditing(null);
         setOpen(true);
       }}
@@ -404,6 +412,17 @@ export function CustomerMasterConfigResource({ entity }) {
               </label>
             )}
             <label className="text-sm font-semibold text-slate-700">
+              Code
+              <input
+                required
+                disabled={Boolean(editing)}
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
+                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono disabled:bg-slate-50"
+              />
+              <span className="mt-1 block text-[11px] font-normal text-slate-400">A-Z, 0-9 and _. Cannot be changed later.</span>
+            </label>
+            <label className="text-sm font-semibold text-slate-700">
               Name
               <input
                 required
@@ -428,6 +447,7 @@ export function CustomerMasterConfigResource({ entity }) {
           <dl className="grid gap-3">
             {[
               ...(config.hasCategory ? [["Category", view.category]] : []),
+              ["Code", view.code],
               ["Name", view.name],
               ["Description", view.description],
               ...(config.hasOwnership

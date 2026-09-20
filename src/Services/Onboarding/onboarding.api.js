@@ -50,7 +50,7 @@ export const rowsOf = (response) => (Array.isArray(response?.data) ? response.da
 
 // The maker-checker verbs shared by every master, KYC scheme and onboarding
 // version (guide §4.2).
-function lifecycleApi(base) {
+export function createLifecycle(base) {
   const call = (verb) => (payload = {}) => request(`${base}/${verb}`, payload);
   return {
     base,
@@ -75,9 +75,9 @@ function lifecycleApi(base) {
 
 export const onboardingCatalog = () => request("/master_config/onboarding_catalog", {});
 
-export const onboardingDefinitionApi = { ...lifecycleApi("/master_config/onboarding_definition") };
-export const onboardingVersionApi = lifecycleApi("/master_config/onboarding_version");
-export const kycSchemeApi = lifecycleApi("/config/kyc/group");
+export const onboardingDefinitionApi = { ...createLifecycle("/master_config/onboarding_definition") };
+export const onboardingVersionApi = createLifecycle("/master_config/onboarding_version");
+export const kycSchemeApi = createLifecycle("/config/kyc/group");
 
 // A customer type's `config` (sections/fields/documents/...) is edited as one
 // object and replaced whole by save_config (guide §8.11).
@@ -101,14 +101,14 @@ export const kycSchemeOps = {
 // with view=dropdown only returns {id, name}, so pickers that must send a
 // code read the plain list instead and keep Active rows.
 export const masterApis = {
-  ownership_sub_type: lifecycleApi("/master_config/ownership_sub_type"),
-  document_type: lifecycleApi("/master_config/document_type"),
-  address_type: lifecycleApi("/master_config/address_type"),
-  employment: lifecycleApi("/master_config/employment"),
-  relationship_type: lifecycleApi("/master_config/relationship_type"),
-  source_of_fund: lifecycleApi("/master_config/source_of_fund"),
-  validation_rule: lifecycleApi("/master_config/validation_rule"),
-  verification_method: lifecycleApi("/master_config/verification_method"),
+  ownership_sub_type: createLifecycle("/master_config/ownership_sub_type"),
+  document_type: createLifecycle("/master_config/document_type"),
+  address_type: createLifecycle("/master_config/address_type"),
+  employment: createLifecycle("/master_config/employment"),
+  relationship_type: createLifecycle("/master_config/relationship_type"),
+  source_of_fund: createLifecycle("/master_config/source_of_fund"),
+  validation_rule: createLifecycle("/master_config/validation_rule"),
+  verification_method: createLifecycle("/master_config/verification_method"),
 };
 
 export async function activeMasterOptions(name) {

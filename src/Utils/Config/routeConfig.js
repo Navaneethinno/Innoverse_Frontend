@@ -64,6 +64,15 @@ const SEGMENT_LABELS = {
   indvpepstatus: { titleKey: "crumbIndvPepStatus", breadcrumb: ["crumbMaster", "crumbIndvPepStatus"] },
   indvpepcategory: { titleKey: "crumbIndvPepCategory", breadcrumb: ["crumbMaster", "crumbIndvPepCategory"] },
   ownershipsubtype: { titleKey: "crumbOwnershipSubType", breadcrumb: ["crumbMaster", "crumbOwnershipSubType"] },
+  title: { titleKey: "crumbTitleMaster", breadcrumb: ["crumbMaster", "crumbTitleMaster"] },
+  kinship: { titleKey: "crumbKinship", breadcrumb: ["crumbMaster", "crumbKinship"] },
+  businessnature: { titleKey: "crumbBusinessNature", breadcrumb: ["crumbMaster", "crumbBusinessNature"] },
+  annualincomerange: { titleKey: "crumbAnnualIncomeRange", breadcrumb: ["crumbMaster", "crumbAnnualIncomeRange"] },
+  monthlyincomerange: { titleKey: "crumbMonthlyIncomeRange", breadcrumb: ["crumbMaster", "crumbMonthlyIncomeRange"] },
+  networthrange: { titleKey: "crumbNetWorthRange", breadcrumb: ["crumbMaster", "crumbNetWorthRange"] },
+  turnoverrange: { titleKey: "crumbTurnoverRange", breadcrumb: ["crumbMaster", "crumbTurnoverRange"] },
+  riskcategory: { titleKey: "crumbRiskCategory", breadcrumb: ["crumbMaster", "crumbRiskCategory"] },
+  validationrule: { titleKey: "crumbValidationRule", breadcrumb: ["crumbMaster", "crumbValidationRule"] },
   documenttype: { titleKey: "crumbDocumentType", breadcrumb: ["crumbMaster", "crumbDocumentType"] },
 
   // --- EPURSE > Settings > Configuration > KYC (config/kyc_group*) --------
