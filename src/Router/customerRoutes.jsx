@@ -10,10 +10,14 @@ export const customerRoutes = [
   { path: "customer/:id", element: pageElement(Resource) },
 ];
 
-const Pending = lazy(() => import("@/Components/Customer/CustomerIndividualPending.jsx").then((m) => ({ default: m.CustomerIndividualPending })));
+const CustomerTypes = lazy(() =>
+  import("@/Components/OnboardingConfig/OnboardingDefinitionPage.jsx").then((m) => ({ default: m.OnboardingDefinitionPage })),
+);
 // Sidebar menu "Customer Individual" -> slug "customerindividual" (+ the
-// per-click uuid MenuItem appends).
+// per-click uuid MenuItem appends). It is the CONFIGURATION entry point for
+// individual customers (customer types and their versions), not the
+// customer-facing onboarding itself.
 customerRoutes.push(
-  { path: "customerindividual", element: pageElement(Pending) },
-  { path: "customerindividual/:id", element: pageElement(Pending) },
+  { path: "customerindividual", element: pageElement(CustomerTypes) },
+  { path: "customerindividual/:id", element: pageElement(CustomerTypes) },
 );
