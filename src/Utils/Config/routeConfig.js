@@ -89,6 +89,16 @@ const SEGMENT_LABELS = {
   customer: { titleKey: "crumbCustomer", breadcrumb: ["crumbCustomer", "crumbCustomer"] },
 
   // --- EPURSE > Individual Customer Onboarding Configuration (2026-09) ----
+  customertypes: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
+  customertype: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
+  onboardingdefinition: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
+  onboardingdefinitions: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
+  onboardingversions: { titleKey: "crumbOnboardingVersions", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbOnboardingVersions"] },
+  onboardingversion: { titleKey: "crumbOnboardingVersions", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbOnboardingVersions"] },
+  customertypeversions: { titleKey: "crumbOnboardingVersions", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbOnboardingVersions"] },
+  kycschemes: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
+  kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
+  kycschemeconfig: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },
   identificationtypeconfig: { titleKey: "crumbIndvIdentificationType", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvIdentificationType"] },
   addresstypeconfig: { titleKey: "crumbIndvAddressTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvAddressTypeConfig"] },
