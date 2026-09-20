@@ -160,12 +160,31 @@ export function OnboardingDefinitionPage() {
     }
   };
 
+  // Kept to few columns so the Actions button stays visible without a
+  // horizontal scroll: name + code share one cell, party x ownership and the
+  // sub type share another.
   const columns = [
-    { key: "code", label: "Code", render: (r) => <span className="font-semibold">{r.code}</span> },
-    { key: "name", label: "Name" },
-    { key: "party", label: "Party × Ownership", sortable: false, render: (r) => `${r.party_type_name ?? "-"} × ${r.ownership_name ?? "-"}` },
-    { key: "ownership_sub_type_name", label: "Sub type", render: (r) => r.ownership_sub_type_name ?? "-" },
-    { key: "active_version_no", label: "Active version", render: (r) => (r.active_version_no ? `v${r.active_version_no}` : "-") },
+    {
+      key: "name",
+      label: "Customer type",
+      render: (r) => (
+        <div className="text-left">
+          <div className="font-semibold">{r.name}</div>
+          <div className="font-mono text-[11px] text-slate-400">{r.code}</div>
+        </div>
+      ),
+    },
+    {
+      key: "ownership_sub_type_name",
+      label: "Sub type",
+      render: (r) => (
+        <div className="text-left">
+          <div>{r.ownership_sub_type_name ?? "-"}</div>
+          <div className="text-[11px] text-slate-400">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
+        </div>
+      ),
+    },
+    { key: "active_version_no", label: "Active", render: (r) => (r.active_version_no ? `v${r.active_version_no}` : "-") },
     {
       key: "latest_version_process_status",
       label: "Latest version",

@@ -35,12 +35,10 @@ export function useMenuPermission(menuName) {
   );
 }
 
+// Status is shown as process status + authorization status; the plain
+// `status` column repeats the process status for almost every row and only
+// made the table wide enough to push Actions off-screen.
 const STATUS_COLUMNS = [
-  {
-    key: "status",
-    label: "Status",
-    render: (row) => <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "-"))} variant="solid" />,
-  },
   { key: "process_status_name", label: "Process Status", render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} /> },
   { key: "auth_status", label: "Authorization Status", render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} /> },
 ];
