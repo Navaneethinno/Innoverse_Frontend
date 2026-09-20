@@ -9,3 +9,11 @@ export const customerRoutes = [
   { path: "customer", element: pageElement(Resource) },
   { path: "customer/:id", element: pageElement(Resource) },
 ];
+
+const Pending = lazy(() => import("@/Components/Customer/CustomerIndividualPending.jsx").then((m) => ({ default: m.CustomerIndividualPending })));
+// Sidebar menu "Customer Individual" -> slug "customerindividual" (+ the
+// per-click uuid MenuItem appends).
+customerRoutes.push(
+  { path: "customerindividual", element: pageElement(Pending) },
+  { path: "customerindividual/:id", element: pageElement(Pending) },
+);

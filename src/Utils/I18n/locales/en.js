@@ -448,6 +448,7 @@ export const routes = {
   crumbTurnoverRange: "Turnover Range",
   crumbRiskCategory: "Risk Category",
   crumbValidationRule: "Validation Rule",
+  crumbCustomerIndividual: "Customer Individual",
   crumbKYC: "KYC",
   crumbKYCConfig: "KYC Config",
   crumbKYCLevel: "KYC Level",

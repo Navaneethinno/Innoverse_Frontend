@@ -95,6 +95,7 @@ const SEGMENT_LABELS = {
   channeltransaction: { titleKey: "crumbChannelTransaction", breadcrumb: ["crumbDigitalProduct", "crumbChannelTransaction"] },
   eligibilityconfig: { titleKey: "crumbEligibilityConfig", breadcrumb: ["crumbDigitalProduct", "crumbEligibilityConfig"] },
   residency: { titleKey: "crumbResidency", breadcrumb: ["crumbDigitalProduct", "crumbResidency"] },
+  customerindividual: { titleKey: "crumbCustomerIndividual", breadcrumb: ["crumbCustomer", "crumbCustomerIndividual"] },
   customer: { titleKey: "crumbCustomer", breadcrumb: ["crumbCustomer", "crumbCustomer"] },
 
   // --- EPURSE > Individual Customer Onboarding Configuration (2026-09) ----
