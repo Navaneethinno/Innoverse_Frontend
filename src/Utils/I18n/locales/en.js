@@ -448,7 +448,6 @@ export const routes = {
   crumbTurnoverRange: "Turnover Range",
   crumbRiskCategory: "Risk Category",
   crumbValidationRule: "Validation Rule",
-  crumbCustomerIndividual: "Customer Individual",
   crumbOnboardingWizard: "Onboarding Wizard",
   crumbOnboarding: "Onboarding",
   crumbOnboardingConfiguration: "Onboarding Configuration",

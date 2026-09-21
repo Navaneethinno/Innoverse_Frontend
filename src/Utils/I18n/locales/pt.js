@@ -428,7 +428,6 @@ export const routes = {
   crumbTurnoverRange: "Faixa de Faturamento",
   crumbRiskCategory: "Categoria de Risco",
   crumbValidationRule: "Regra de Validação",
-  crumbCustomerIndividual: "Cliente Individual",
   crumbOnboardingWizard: "Assistente de Integração",
   crumbOnboarding: "Integração",
   crumbOnboardingConfiguration: "Configuração de Integração",
