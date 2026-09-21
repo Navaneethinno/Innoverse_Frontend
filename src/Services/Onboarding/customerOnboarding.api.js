@@ -58,6 +58,7 @@ export const customerOnboardingApi = {
   start: (payload) => request("/customer/individual/start", payload),
   wizard: (referenceId) => request("/customer/individual/wizard", { reference_id: referenceId }),
   saveSection: (payload) => request("/customer/individual/save_section", payload),
+  submit: (payload) => request("/customer/individual/submit", payload),
   list: (payload = { page: 1, limit: 10 }) => request("/customer/individual/list", payload),
 };
 

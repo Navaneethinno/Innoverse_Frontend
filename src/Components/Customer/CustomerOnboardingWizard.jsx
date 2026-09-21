@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -7,6 +7,26 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, startOnboarding, loadWizard, saveSection } from "@/Services/Onboarding/customerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
+
+// onboarding.process_status: 9 draft (editable), 2 waiting for approval,
+// 5 rejected (editable again, with a reason), 1 approved.
+const PROCESS_STATUS_NOTICE = {
+  2: { tone: "bg-amber-50 text-amber-700", text: "Waiting for approval." },
+  1: { tone: "bg-emerald-50 text-emerald-700", text: "Approved." },
+};
+function StatusNotice({ onboarding }) {
+  const status = Number(onboarding?.process_status);
+  if (status === 5) {
+    return (
+      <div className="mt-4 rounded-lg bg-red-50 p-2.5 text-xs font-semibold text-red-700">
+        Rejected{onboarding?.narration ? `: ${onboarding.narration}` : "."} Edit the sections above and resubmit.
+      </div>
+    );
+  }
+  const notice = PROCESS_STATUS_NOTICE[status];
+  if (!notice) return null;
+  return <div className={`mt-4 rounded-lg p-2.5 text-xs font-semibold ${notice.tone}`}>{notice.text}</div>;
+}
 
 // Runs a customer through the institution's published onboarding
 // configuration, one section at a time, exactly as
@@ -30,6 +50,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   // wholesale each time the section changes).
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (referenceId) return;
@@ -50,13 +71,31 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
 
   const sections = wizard?.sections ?? [];
   const section = sections[activeSection];
+  const editable = wizard?.onboarding?.editable !== false;
 
   // Reseed the section draft whenever the active section or the wizard
-  // itself changes (a fresh reply after save, or switching tabs).
-  useEffect(() => {
-    if (!section) return;
-    setDraft(section.multi_row ? (section.values?.length ? section.values : [{}]) : (section.values ?? {}));
-  }, [section?.code, wizard]);
+  // itself changes (a fresh reply after save, or switching tabs) — done
+  // synchronously during render, not in an effect. An effect only runs
+  // AFTER the first render of the new section, so a single -> multi-row
+  // step change (Contact -> Identification) would render once with
+  // `draft` still holding the previous section's plain object, and
+  // `draft.map(...)` on a non-array threw ("Oops! You're lost"). Deriving
+  // it here means the very first render of a new section already has the
+  // right shape.
+  const seedKey = section ? `${section.code}:${wizard?.onboarding?.updated_time}` : null;
+  const seedKeyRef = useRef(null);
+  let effectiveDraft = draft;
+  if (seedKeyRef.current !== seedKey) {
+    seedKeyRef.current = seedKey;
+    effectiveDraft = section
+      ? section.multi_row
+        ? section.values?.length
+          ? section.values
+          : [{}]
+        : (section.values ?? {})
+      : null;
+    setDraft(effectiveDraft);
+  }
 
   const partyTypes = options?.party_types ?? [];
   const chosenParty = partyTypes.find((p) => String(p.id) === String(pick.party_type_id));
@@ -94,14 +133,16 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   };
 
   const setFieldValue = (fieldKey, value) => {
-    setDraft((prev) => {
-      if (!section?.multi_row) return { ...prev, [fieldKey]: value };
-      return prev;
-    });
+    setDraft((prev) => ({ ...prev, [fieldKey]: value }));
   };
   const setRowValue = (rowIndex, fieldKey, value) => {
     setDraft((prev) => prev.map((row, i) => (i === rowIndex ? { ...row, [fieldKey]: value } : row)));
   };
+  // Single-row sections update the one draft object; multi-row sections
+  // update the row at `rowIndex`. Shared by renderRow so a section's type
+  // picker and duplicate-field skip apply identically either way.
+  const setValue = (rowIndex, fieldKey, value) =>
+    rowIndex === undefined ? setFieldValue(fieldKey, value) : setRowValue(rowIndex, fieldKey, value);
   const addRow = () => setDraft((prev) => [...prev, {}]);
   const removeRow = (rowIndex) => setDraft((prev) => prev.filter((_, i) => i !== rowIndex));
 
@@ -115,7 +156,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
       const w = await saveSection({
         reference_id: wizard.onboarding.reference_id,
         section_code: section.code,
-        data: draft,
+        data: effectiveDraft,
         expected_updated_time: wizard.onboarding.updated_time,
       });
       setWizard(w);
@@ -140,38 +181,71 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
     }
   };
 
+  const submitForApproval = async () => {
+    setSubmitting(true);
+    try {
+      const response = await customerOnboardingApi.submit({ reference_id: wizard.onboarding.reference_id });
+      const w = Array.isArray(response?.data) ? response.data[0] : response?.data;
+      if (w) setWizard(w);
+      else {
+        const fresh = await loadWizard(wizard.onboarding.reference_id).catch(() => null);
+        if (fresh) setWizard(fresh);
+      }
+      notifications.success("Submitted for approval");
+      onChanged?.();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const fieldOptionsFor = (field, row) => {
     if (!field.parent_key) return field.options;
-    const parentValue = row ? row[field.parent_key] : draft?.[field.parent_key];
+    const parentValue = row ? row[field.parent_key] : effectiveDraft?.[field.parent_key];
     return (field.options ?? []).filter((o) => String(o.parent_id) === String(parentValue));
   };
 
+  // The API sends the row's type both as `type_field`/`types` (the picker
+  // below) and as an ordinary select inside `fields` with the same key —
+  // rendering both asked for the same thing twice.
+  const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? "Type";
+  const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
+
+  // Renders one row's fields — a multi-row section's row (with `rowIndex`)
+  // or a single-row section's one-and-only "row" (`rowIndex` undefined).
+  // Handles both the same way so the type picker and the skip-the-
+  // duplicate-field rule (item 2) apply regardless of `multi_row`.
   const renderRow = (fields, row, rowIndex) => (
-    <div key={rowIndex} className="grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-2">
+    <div
+      key={rowIndex ?? "single"}
+      className={rowIndex === undefined ? "grid gap-4 sm:grid-cols-2" : "grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-2"}
+    >
       {section.type_field && (
         <div className="sm:col-span-2">
           <label className="block text-sm font-semibold text-slate-700">
-            {section.name} type
+            {typeFieldCaption(fields)}
             <FilterSelect
               className="mt-1.5"
-              value={row[section.type_field] ?? ""}
-              onChange={(v) => setRowValue(rowIndex, section.type_field, Number(v))}
+              value={row?.[section.type_field] ?? ""}
+              onChange={(v) => setValue(rowIndex, section.type_field, Number(v))}
+              disabled={!editable}
               options={[{ value: "", label: "Select type" }, ...(section.types ?? []).map((t) => ({ value: t.id, label: t.name }))]}
             />
           </label>
         </div>
       )}
-      {fields.map((field) => (
+      {visibleFields(fields).map((field) => (
         <OnboardingField
           key={field.key}
-          field={field}
-          value={row[field.key]}
+          field={editable ? field : { ...field, read_only: true }}
+          value={row?.[field.key]}
           options={fieldOptionsFor(field, row)}
           error={issueFor(field.key, rowIndex)}
-          onChange={(v) => setRowValue(rowIndex, field.key, v)}
+          onChange={(v) => setValue(rowIndex, field.key, v)}
         />
       ))}
-      {section.multi_row && (
+      {rowIndex !== undefined && editable && (
         <div className="sm:col-span-2">
           <button
             type="button"
@@ -255,11 +329,12 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         </div>
         <HorizontalStepper
           className="mb-4"
-          steps={sections.map((s) => ({ id: s.code, label: s.name }))}
+          steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}
           activeIndex={activeSection}
           onStepClick={(_, i) => setActiveSection(i)}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
+        <h2 className="mb-3 text-sm font-bold text-slate-700">{section.label ?? section.name}</h2>
         {section.document_groups?.length > 0 && (
           <div className="mb-3 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
             {section.document_groups.map((g) => (
@@ -269,32 +344,33 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         )}
         {section.multi_row ? (
           <div className="grid gap-3">
-            {(draft ?? []).map((row, i) => renderRow(section.fields, row, i))}
-            <button
-              type="button"
-              onClick={addRow}
-              className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-primary px-3 py-1.5 text-xs font-bold text-primary"
-            >
-              <Plus size={13} /> Add {section.name.toLowerCase()}
-            </button>
+            {(Array.isArray(effectiveDraft) ? effectiveDraft : []).map((row, i) => renderRow(section.fields, row, i))}
+            {editable && (
+              <button
+                type="button"
+                onClick={addRow}
+                className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-primary px-3 py-1.5 text-xs font-bold text-primary"
+              >
+                <Plus size={13} /> Add {(section.label ?? section.name).toLowerCase()}
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {section.fields.map((field) => (
-              <OnboardingField
-                key={field.key}
-                field={field}
-                value={draft?.[field.key]}
-                options={fieldOptionsFor(field)}
-                error={issueFor(field.key)}
-                onChange={(v) => setFieldValue(field.key, v)}
-              />
-            ))}
-          </div>
+          renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
-        {wizard.progress.ready_to_submit && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
-            <Check size={14} /> All required sections are complete. Submitting for approval isn't available yet.
+        <StatusNotice onboarding={wizard.onboarding} />
+        {editable && wizard.progress.ready_to_submit && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
+            <span className="flex items-center gap-2"><Check size={14} /> All required sections are complete.</span>
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => void submitForApproval()}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+            >
+              {submitting ? <Spinner size={12} /> : <Send size={13} />}
+              Submit for approval
+            </button>
           </div>
         )}
       </div>
@@ -331,15 +407,17 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         </button>
         <div className="flex-1" />
         <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Close</button>
-        <button
-          type="button"
-          disabled={saving}
-          onClick={() => void persistSection()}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-        >
-          {saving && <Spinner size={13} />}
-          Save section
-        </button>
+        {editable && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => void persistSection()}
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {saving && <Spinner size={13} />}
+            Save section
+          </button>
+        )}
         <button
           type="button"
           disabled={activeSection >= sections.length - 1}
@@ -353,7 +431,18 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   };
 
   return (
-    <Modal open onClose={onClose} title={wizard ? `${wizard.customer_type.name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}` : "Start customer onboarding"} size="xl" fixedHeight footer={footer()}>
+    <Modal
+      open
+      onClose={onClose}
+      title={
+        wizard
+          ? `${wizard.customer_type.onboarding_definition_name ?? wizard.customer_type.name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
+          : "Start customer onboarding"
+      }
+      size="xl"
+      fixedHeight
+      footer={footer()}
+    >
       {body()}
     </Modal>
   );
