@@ -331,7 +331,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}
           activeIndex={activeSection}
-          onStepClick={(_, i) => setActiveSection(i)}
+          onStepClick={(index) => setActiveSection(index)}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
         <h2 className="mb-3 text-sm font-bold text-slate-700">{section.label ?? section.name}</h2>
