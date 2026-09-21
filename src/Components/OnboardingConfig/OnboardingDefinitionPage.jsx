@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Eye, RefreshCw } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
+import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -25,11 +27,12 @@ import { OnboardingVersionWizard } from "./OnboardingVersionWizard";
 function nextAction(row) {
   const latest = row.latest_version_id;
   const state = Number(row.latest_version_process_status);
-  if (!latest) return { label: "Create first version", kind: "create" };
-  if (state === 9) return { label: "Edit draft", kind: "open", versionId: latest };
-  if (state === 5) return { label: "Fix rejected", kind: "open", versionId: latest };
-  if ([2, 3, 4, 11, 14].includes(state)) return { label: "Awaiting approval", kind: "open", versionId: latest };
-  return { label: "New version", kind: "new" };
+  if (!latest) return { label: "Create first version", kind: "create", icon: Plus, tone: "submit" };
+  if (state === 9) return { label: "Edit draft", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
+  if (state === 5) return { label: "Fix rejected", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
+  if ([2, 3, 4, 11, 14].includes(state))
+    return { label: "Awaiting approval", kind: "open", versionId: latest, icon: Eye, tone: "view" };
+  return { label: "New version", kind: "new", icon: RefreshCw, tone: "submit" };
 }
 
 const STATUS_LABELS = {
@@ -217,16 +220,20 @@ export function OnboardingDefinitionPage() {
       sortable: false,
       render: (r) => {
         const next = nextAction(r);
+        const Icon = next.icon;
         return (
-          <button
-            type="button"
-            disabled={starting === r.id || (!can("Add") && next.kind !== "open")}
-            onClick={() => void act(r)}
-            className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-primary disabled:opacity-50"
-          >
-            {starting === r.id && <Spinner size={12} />}
-            {next.label}
-          </button>
+          <div className="flex items-center justify-center gap-1">
+            <UiTooltip label={next.label}>
+              <button
+                type="button"
+                disabled={starting === r.id || (!can("Add") && next.kind !== "open")}
+                onClick={() => void act(r)}
+                className={`${actionButtonClass(next.tone)} disabled:opacity-50`}
+              >
+                {starting === r.id ? <Spinner size={14} /> : <Icon size={14} />}
+              </button>
+            </UiTooltip>
+          </div>
         );
       },
     },
