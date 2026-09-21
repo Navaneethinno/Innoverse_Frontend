@@ -15,10 +15,12 @@ export const customerRoutes = [
 const CustomerTypes = lazy(() =>
   import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
 );
-// Sidebar menu "Customer Individual" -> slug "customerindividual" (+ the
-// per-click uuid MenuItem appends). It is the CONFIGURATION entry point for
-// individual customers (customer types and their versions), not the
-// customer-facing onboarding itself.
+// Sidebar menu "Customer Individual" (older name for the same menu, now
+// called "Onboarding Configuration" below) -> slug "customerindividual"
+// (+ the per-click uuid MenuItem appends). It is the CONFIGURATION entry
+// point for individual customers (customer types and their versions), not
+// the customer-facing onboarding itself. Kept as a fallback in case an
+// institution's menu still uses the old name.
 customerRoutes.push(
   { path: "customerindividual", element: pageElement(CustomerTypes) },
   { path: "customerindividual/:id", element: pageElement(CustomerTypes) },

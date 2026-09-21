@@ -95,7 +95,7 @@ const SEGMENT_LABELS = {
   channeltransaction: { titleKey: "crumbChannelTransaction", breadcrumb: ["crumbDigitalProduct", "crumbChannelTransaction"] },
   eligibilityconfig: { titleKey: "crumbEligibilityConfig", breadcrumb: ["crumbDigitalProduct", "crumbEligibilityConfig"] },
   residency: { titleKey: "crumbResidency", breadcrumb: ["crumbDigitalProduct", "crumbResidency"] },
-  customerindividual: { titleKey: "crumbCustomerIndividual", breadcrumb: ["crumbCustomer", "crumbCustomerIndividual"] },
+  customerindividual: { titleKey: "crumbOnboardingConfiguration", breadcrumb: ["crumbOnboarding", "crumbOnboardingConfiguration"] },
   customer: { titleKey: "crumbCustomer", breadcrumb: ["crumbCustomer", "crumbCustomer"] },
   onboardingwizard: { titleKey: "crumbOnboardingWizard", breadcrumb: ["crumbOnboarding", "crumbOnboardingWizard"] },
   onboardingconfiguration: { titleKey: "crumbOnboardingConfiguration", breadcrumb: ["crumbOnboarding", "crumbOnboardingConfiguration"] },
