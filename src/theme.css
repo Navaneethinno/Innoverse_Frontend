@@ -495,15 +495,9 @@ input[type="radio"] {
   color: var(--foreground);
 }
 
-/* react-toastify: restyle the default white/boxed toast to match the
-   app's card + border + shadow tokens instead of the library defaults.
-   Previously every type (success/error/warning/info) looked identical
-   apart from a thin 3px progress bar at the very bottom — easy to miss at
-   a glance which kind of toast just appeared. Each type now gets its own
-   soft tinted background and a colored left accent bar (using the same
-   --success-soft/--warning-soft/--destructive-soft tokens already defined
-   for status badges elsewhere), so the color itself communicates the
-   outcome before the text is even read. */
+/* react-toastify: solid card background (no translucent tint/glass, so
+   content behind the toast never shows through); the type is conveyed by
+   the colored left accent bar, the inner icon and the progress bar. */
 .Toastify__toast {
   padding: 14px 12px 14px 16px;
   border-radius: var(--radius);
@@ -511,24 +505,25 @@ input[type="radio"] {
   color: var(--foreground);
   border: 1px solid var(--border);
   border-left: 4px solid var(--muted-foreground);
-  box-shadow: var(--glass-shadow);
+  backdrop-filter: none;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.14), 0 1px 3px rgba(15, 23, 42, 0.08);
   font-family: var(--font-sans);
 }
 .Toastify__toast--success {
-  background: var(--success-soft) !important;
+  background: var(--card) !important;
   border-left-color: var(--success);
 }
 .Toastify__toast--error {
-  background: var(--destructive-soft) !important;
+  background: var(--card) !important;
   border-left-color: var(--destructive);
 }
 .Toastify__toast--warning {
-  background: var(--warning-soft) !important;
+  background: var(--card) !important;
   border-left-color: var(--warning);
 }
 .Toastify__toast--info,
 .Toastify__toast--default {
-  background: var(--primary-light) !important;
+  background: var(--card) !important;
   border-left-color: var(--primary);
 }
 .Toastify__toast-body {
