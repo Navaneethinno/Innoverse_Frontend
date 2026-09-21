@@ -400,7 +400,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         <button
           type="button"
           disabled={activeSection === 0}
-          onClick={() => setActiveSection((i) => i - 1)}
+          onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
           className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-slate-500 disabled:opacity-40"
         >
           <ArrowLeft size={14} /> Previous
@@ -421,7 +421,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         <button
           type="button"
           disabled={activeSection >= sections.length - 1}
-          onClick={() => setActiveSection((i) => i + 1)}
+          onClick={() => setActiveSection((i) => Math.min(Math.max(sections.length - 1, 0), i + 1))}
           className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40"
         >
           Next <ArrowRight size={14} />
