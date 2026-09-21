@@ -184,16 +184,29 @@ export function OnboardingDefinitionPage() {
         </div>
       ),
     },
-    { key: "active_version_no", label: "Active", render: (r) => (r.active_version_no ? `v${r.active_version_no}` : "-") },
+    {
+      key: "active_version_no",
+      label: "Active version",
+      render: (r) =>
+        r.active_version_id ? (
+          <div className="text-left">
+            <div>{r.active_version_name ?? `Version ${r.active_version_no}`}</div>
+            <div className="text-[11px] text-slate-400">v{r.active_version_no} · {r.status_name ?? "-"}</div>
+          </div>
+        ) : (
+          "No active version"
+        ),
+    },
     {
       key: "latest_version_process_status",
       label: "Latest version",
       sortValue: (r) => r.latest_version_process_status ?? 0,
       render: (r) =>
         r.latest_version_id ? (
-          <span className="inline-flex items-center gap-2">
-            v{r.latest_version_no} <StatusBadge status={String(statusLabel(r.latest_version_process_status))} />
-          </span>
+          <div className="flex flex-col items-center gap-1">
+            <span>{r.latest_version_name ?? `Version ${r.latest_version_no}`}</span>
+            <StatusBadge status={String(statusLabel(r.latest_version_process_status))} />
+          </div>
         ) : (
           "-"
         ),
