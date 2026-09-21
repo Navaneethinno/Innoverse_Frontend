@@ -81,6 +81,8 @@ export function FieldInput({ field, item, setItem, readOnly }) {
   );
 }
 
+const visible = (spec, item) => spec.filter((f) => !f.showIf || f.showIf(item));
+
 export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, emptyText, seed, nested = false }) {
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
@@ -106,13 +108,18 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
               </button>
             )}
           </div>
-          <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-            {spec
-              .filter((field) => !field.showIf || field.showIf(item))
-              .map((field) => (
-                <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
-              ))}
-          </div>
+          {/* Inputs first, then every checkbox pill grouped together below,
+              filling left then right — so pills never sit next to a tall input. */}
+          {[visible(spec, item).filter((f) => f.type !== "bool"), visible(spec, item).filter((f) => f.type === "bool")].map(
+            (group, g) =>
+              group.length > 0 && (
+                <div key={g} className={`grid items-start gap-x-6 gap-y-4 md:grid-cols-2 ${g === 1 ? "mt-4" : ""}`}>
+                  {group.map((field) => (
+                    <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
+                  ))}
+                </div>
+              ),
+          )}
         </div>
       ))}
       {!readOnly && (

@@ -170,16 +170,19 @@ export function OnboardingDefinitionPage() {
     {
       key: "name",
       label: "Customer type",
+      align: "left",
       render: (r) => (
         <div className="text-left">
           <div className="font-semibold">{r.name}</div>
           <div className="font-mono text-[11px] text-slate-400">{r.code}</div>
+          {r.description && <div className="mt-0.5 max-w-[260px] truncate text-[11px] text-slate-500" title={r.description}>{r.description}</div>}
         </div>
       ),
     },
     {
       key: "ownership_sub_type_name",
       label: "Sub type",
+      align: "left",
       render: (r) => (
         <div className="text-left">
           <div>{r.ownership_sub_type_name ?? "-"}</div>
@@ -190,6 +193,7 @@ export function OnboardingDefinitionPage() {
     {
       key: "active_version_no",
       label: "Active version",
+      align: "left",
       render: (r) =>
         r.active_version_id ? (
           <div className="text-left">
@@ -199,6 +203,17 @@ export function OnboardingDefinitionPage() {
         ) : (
           "No active version"
         ),
+    },
+    {
+      key: "inst_profile_name",
+      label: "Institution",
+      align: "left",
+      render: (r) => r.inst_profile_name ?? "-",
+    },
+    {
+      key: "status_name",
+      label: "Status",
+      render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
       key: "latest_version_process_status",
