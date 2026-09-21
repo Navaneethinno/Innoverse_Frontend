@@ -98,6 +98,7 @@ const SEGMENT_LABELS = {
   customerindividual: { titleKey: "crumbCustomerIndividual", breadcrumb: ["crumbCustomer", "crumbCustomerIndividual"] },
   customer: { titleKey: "crumbCustomer", breadcrumb: ["crumbCustomer", "crumbCustomer"] },
   onboardingwizard: { titleKey: "crumbOnboardingWizard", breadcrumb: ["crumbCustomer", "crumbOnboardingWizard"] },
+  onboardingconfiguration: { titleKey: "crumbCustomerIndividual", breadcrumb: ["crumbCustomer", "crumbCustomerIndividual"] },
 
   // --- EPURSE > Individual Customer Onboarding Configuration (2026-09) ----
   customertypes: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },

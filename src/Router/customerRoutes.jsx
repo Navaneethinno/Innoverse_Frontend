@@ -31,3 +31,11 @@ customerRoutes.push(
   { path: "onboardingwizard", element: pageElement(Resource) },
   { path: "onboardingwizard/:id", element: pageElement(Resource) },
 );
+
+// Sidebar menu "Onboarding Configuration" -> slug "onboardingconfiguration"
+// (+ the per-click uuid). Same CONFIGURATION entry point as
+// "customerindividual" above — another name the backend menu uses for it.
+customerRoutes.push(
+  { path: "onboardingconfiguration", element: pageElement(CustomerTypes) },
+  { path: "onboardingconfiguration/:id", element: pageElement(CustomerTypes) },
+);
