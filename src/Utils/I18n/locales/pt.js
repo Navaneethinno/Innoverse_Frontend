@@ -429,6 +429,7 @@ export const routes = {
   crumbRiskCategory: "Categoria de Risco",
   crumbValidationRule: "Regra de Validação",
   crumbCustomerIndividual: "Cliente Individual",
+  crumbOnboardingWizard: "Assistente de Integração",
   crumbKYC: "KYC",
   crumbKYCConfig: "Configuração KYC",
   crumbKYCLevel: "Nível KYC",

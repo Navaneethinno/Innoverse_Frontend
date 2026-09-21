@@ -23,3 +23,11 @@ customerRoutes.push(
   { path: "customerindividual", element: pageElement(CustomerTypes) },
   { path: "customerindividual/:id", element: pageElement(CustomerTypes) },
 );
+
+// Sidebar menu "Onboarding Wizard" -> slug "onboardingwizard" (+ the
+// per-click uuid). Same runtime onboarding work list as "customer" above —
+// just the entry point the backend menu now names explicitly.
+customerRoutes.push(
+  { path: "onboardingwizard", element: pageElement(Resource) },
+  { path: "onboardingwizard/:id", element: pageElement(Resource) },
+);
