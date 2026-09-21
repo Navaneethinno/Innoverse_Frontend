@@ -450,6 +450,8 @@ export const routes = {
   crumbValidationRule: "Validation Rule",
   crumbCustomerIndividual: "Customer Individual",
   crumbOnboardingWizard: "Onboarding Wizard",
+  crumbOnboarding: "Onboarding",
+  crumbOnboardingConfiguration: "Onboarding Configuration",
   crumbKYC: "KYC",
   crumbKYCConfig: "KYC Config",
   crumbKYCLevel: "KYC Level",

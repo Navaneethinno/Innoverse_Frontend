@@ -260,9 +260,9 @@ export function OnboardingConfigurationPage() {
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black text-slate-800">Customer Types</h1>
+          <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
           <p className="mt-1 text-xs text-slate-500">
-            Each customer type is configured through versions — a version holds the sections, fields, documents and rules and goes through maker-checker.
+            Each customer type's onboarding is configured through versions — a version holds the sections, fields, documents and rules and goes through maker-checker.
           </p>
         </div>
         {can("Add") && (
@@ -274,7 +274,7 @@ export function OnboardingConfigurationPage() {
             }}
             className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
           >
-            <Plus size={14} /> Add customer type
+            <Plus size={14} /> Add onboarding configuration
           </button>
         )}
       </div>
@@ -307,7 +307,7 @@ export function OnboardingConfigurationPage() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Add customer type"
+        title="Add onboarding configuration"
         footer={
           <>
             <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-slate-500">
