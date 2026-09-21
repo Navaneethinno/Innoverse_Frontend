@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
@@ -52,6 +53,12 @@ const FACT_REF_SOURCE = {
   NATIONALITY: "countries",
   RESIDENCY_STATUS: "residencyTypes",
 };
+const REF_SOURCE_MASTER = {
+  employment: ["/employment", "employment status"],
+  document_type: ["/documenttype", "document type"],
+  relationship_type: ["/relationshiptype", "relationship type"],
+  source_of_fund: ["/sourceoffund", "source of funds"],
+};
 const BOOLEAN_FACTS = new Set(["IS_MINOR", "PEP_FLAG"]);
 const NUMBER_FACTS = new Set(["AGE"]);
 const RANGE_OPERATORS = new Set(["BETWEEN"]);
@@ -72,6 +79,7 @@ function pruneCondition({ _value, ...c }) {
 }
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
+  const navigate = useNavigate();
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
   const set = (patch) => setCondition({ ...condition, ...patch });
@@ -126,6 +134,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
           disabled={disabled}
           value={condition.value_ref_ids?.[0] ?? ""}
           onChange={(v) => set({ value_ref_ids: v === "" ? [] : [v] })}
+          addAction={REF_SOURCE_MASTER[refSource] ? { label: `Add ${REF_SOURCE_MASTER[refSource][1]}`, onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
           options={[{ value: "", label: "Select..." }, ...options]}
         />
       </label>
@@ -141,6 +150,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
 }
 
 export function OnboardingVersionWizard({ definition, versionId: initialVersionId = null, onClose, onSaved }) {
+  const navigate = useNavigate();
   const catalog = useOnboardingCatalog();
   const { masters, countries, residencyTypes, kycGroups, loading: mastersLoading } = useOnboardingMasters();
   const [versionId, setVersionId] = useState(initialVersionId);
@@ -259,7 +269,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       { key: "visible", label: "Visible", type: "bool", defaultValue: true, disabled: (i) => lockedFieldCodes.has(i.field_code) },
       { key: "read_only", label: "Read only", type: "bool" },
       { key: "sequence_no", label: "Order", type: "number" },
-      { key: "validation_rule_code", label: "Validation rule", type: "select", options: asOptions(masters.validation_rule) },
+      { key: "validation_rule_code", label: "Validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(masters.validation_rule) },
       { key: "label_override", label: "Label override", type: "text" },
       { key: "help_text", label: "Help text", type: "text" },
       { key: "default_value", label: "Default value", type: "text" },
@@ -273,7 +283,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       { key: "sequence_no", label: "Order", type: "number" },
     ],
     documents: [
-      { key: "document_type_code", label: "Document type", type: "select", required: true, options: asOptions(masters.document_type) },
+      { key: "document_type_code", label: "Document type", type: "select", addTo: ["/documenttype", "document type"], required: true, options: asOptions(masters.document_type) },
       {
         key: "group_code",
         label: "Document group",
@@ -284,20 +294,20 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       { key: "mandatory", label: "Mandatory (stand-alone only)", type: "bool", disabled: (i) => Boolean(i.group_code) },
       { key: "sequence_no", label: "Order", type: "number" },
       { key: "number_required", label: "Number required", type: "bool" },
-      { key: "number_validation_rule_code", label: "Number validation rule", type: "select", options: asOptions(masters.validation_rule), showIf: (i) => i.number_required },
+      { key: "number_validation_rule_code", label: "Number validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(masters.validation_rule), showIf: (i) => i.number_required },
       { key: "issue_date_required", label: "Issue date required", type: "bool" },
       { key: "expiry_date_required", label: "Expiry date required", type: "bool" },
       { key: "front_required", label: "Front required", type: "bool", defaultValue: true },
       { key: "back_required", label: "Back required", type: "bool" },
       { key: "verification_required", label: "Verification required", type: "bool" },
-      { key: "verification_method_code", label: "Verification method", type: "select", options: asOptions(masters.verification_method), showIf: (i) => i.verification_required },
+      { key: "verification_method_code", label: "Verification method", type: "select", addTo: ["/verificationmethod", "verification method"], options: asOptions(masters.verification_method), showIf: (i) => i.verification_required },
       { key: "min_count", label: "Min count", type: "number", defaultValue: 1 },
       { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
       { key: "max_file_size_kb", label: "Max file size (KB)", type: "number" },
       { key: "file_formats", label: "File formats (empty = any)", type: "multi", wide: true, options: (catalog?.file_formats ?? []).map((f) => ({ value: f.code ?? f, label: f.code ?? f })) },
     ],
     address_types: [
-      { key: "address_type_code", label: "Address type", type: "select", required: true, options: asOptions(masters.address_type) },
+      { key: "address_type_code", label: "Address type", type: "select", addTo: ["/addresstype", "address type"], required: true, options: asOptions(masters.address_type) },
       { key: "mandatory", label: "Mandatory", type: "bool" },
       { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
       { key: "sequence_no", label: "Order", type: "number" },
@@ -311,20 +321,20 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       },
     ],
     employments: [
-      { key: "employment_code", label: "Employment status", type: "select", required: true, options: asOptions(masters.employment) },
+      { key: "employment_code", label: "Employment status", type: "select", addTo: ["/employment", "employment status"], required: true, options: asOptions(masters.employment) },
       { key: "employer_details_required", label: "Employer details required", type: "bool" },
       { key: "business_details_required", label: "Business details required", type: "bool" },
       { key: "sequence_no", label: "Order", type: "number" },
     ],
     relationships: [
-      { key: "relationship_type_code", label: "Relationship type", type: "select", required: true, options: asOptions(masters.relationship_type) },
+      { key: "relationship_type_code", label: "Relationship type", type: "select", addTo: ["/relationshiptype", "relationship type"], required: true, options: asOptions(masters.relationship_type) },
       { key: "mandatory", label: "Mandatory", type: "bool" },
       { key: "min_count", label: "Min count", type: "number", defaultValue: 0 },
       { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
       { key: "sequence_no", label: "Order", type: "number" },
     ],
     sources_of_fund: [
-      { key: "source_of_fund_code", label: "Source of funds", type: "select", required: true, options: asOptions(masters.source_of_fund) },
+      { key: "source_of_fund_code", label: "Source of funds", type: "select", addTo: ["/sourceoffund", "source of funds"], required: true, options: asOptions(masters.source_of_fund) },
       { key: "employer_details_required", label: "Employer details required", type: "bool" },
       { key: "sequence_no", label: "Order", type: "number" },
     ],
@@ -597,7 +607,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 KYC scheme
-                <FilterSelect className="mt-1.5" disabled={readOnly} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+                <FilterSelect className="mt-1.5" disabled={readOnly} addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
                 <span className="mt-1 block text-[11px] font-normal text-slate-400">Must be an approved (Active) scheme by the time you submit.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">

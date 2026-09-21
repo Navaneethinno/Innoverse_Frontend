@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CustomerFieldInput } from "./customerFields";
 import { IDENTIFICATION_ROW_FIELDS, ADDRESS_ROW_FIELDS, RELATIONSHIP_ROW_FIELDS, GUARDIAN_ROW_FIELDS } from "./customerFields";
 import { isGuardianRelationshipType, sameDocumentCategory } from "./customerWizardConfig";
@@ -325,6 +327,7 @@ export function emptyDocumentRow() {
 
 export function DocumentStepFields({ requirements, documentTypes, kycDocumentTypes, values, onRowChange, disabled = false }) {
   const tr = useConfigLabel();
+  const navigate = useNavigate();
   if (requirements.length === 0) {
     return <p className="text-sm text-slate-500">{tr("No documents are required for this profile.")}</p>;
   }
@@ -349,32 +352,27 @@ export function DocumentStepFields({ requirements, documentTypes, kycDocumentTyp
               {isMandatory ? <span className="text-xs font-normal text-red-600">({tr("mandatory")})</span> : <span className="text-xs font-normal text-slate-400">({tr("optional")})</span>}
             </h3>
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-              {options.length > 0 && (
+              {(
                 <label className="text-sm font-semibold text-slate-700">
                   {tr("Document name")}
-                  <select
-                    className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50"
+<FilterSelect
+                    className="mt-1.5"
                     value={row[rowIdField] ?? ""}
                     disabled={disabled}
-                    onChange={(e) => {
-                      const chosen = options.find((dt) => String(dt[optionIdKey]) === e.target.value);
+                    addAction={{ label: tr("Add document type"), onClick: () => navigate("/documenttype") }}
+                    onChange={(v) => {
+                      const chosen = options.find((dt) => String(dt[optionIdKey]) === String(v));
                       onRowChange(key, {
                         ...row,
-                        // A native <select>'s value is always a string —
-                        // cast back to a number since document_type_id (and
-                        // kyc_document_type_id) are ints on the wire.
-                        [rowIdField]: e.target.value === "" ? "" : Number(e.target.value),
+                        [rowIdField]: v === "" ? "" : Number(v),
                         document_name: chosen?.name ?? chosen?.code ?? "",
                       });
                     }}
-                  >
-                    <option value="">{tr("Select document")}</option>
-                    {options.map((dt) => (
-                      <option key={dt[optionIdKey]} value={dt[optionIdKey]}>
-                        {dt.name ?? dt.code}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: "", label: tr("Select document") },
+                      ...options.map((dt) => ({ value: dt[optionIdKey], label: dt.name ?? dt.code })),
+                    ]}
+                  />
                 </label>
               )}
               <label className="text-sm font-semibold text-slate-700">

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
@@ -204,7 +205,36 @@ export const GUARDIAN_ROW_FIELDS = [
 // CONFIGS entry. `lookups` bundles every list the caller already fetches
 // (institutions/partyTypes/ownershipTypes/genders/citizenships/disabilities);
 // a caller only needs to pass the ones relevant to the fields it renders.
+// Master page (route slug + label) behind each lookup dropdown, for the
+// "Add ..." row at the end of its list. Lookups with no master screen (country,
+// language) are left out and get no add row.
+const MASTER_ADD_TARGETS = {
+  gender_id: ["/gender", "gender"],
+  country_of_birth_id: ["/citizenship", "citizenship"],
+  nationality_id: ["/citizenship", "citizenship"],
+  secondary_nationality_id: ["/citizenship", "citizenship"],
+  disability_id: ["/disability", "disability"],
+  marital_status_id: ["/maritalstatus", "marital status"],
+  ownership_sub_type_id: ["/ownershipsubtype", "ownership sub type"],
+  employment_id: ["/employment", "employment status"],
+  occupation_id: ["/occupation", "occupation"],
+  designation_id: ["/designation", "designation"],
+  annual_turnover_id: ["/turnover", "turnover"],
+  source_of_fund_id: ["/sourceoffund", "source of funds"],
+  pep_status_id: ["/pepstatus", "PEP status"],
+  pep_category_id: ["/pepcategory", "PEP category"],
+  relationship_type_id: ["/relationshiptype", "relationship type"],
+  pan_status_id: ["/taxstatus", "tax status"],
+  tax_exemption_status_id: ["/taxstatus", "tax status"],
+  fatca_classification_id: ["/taxclassification", "tax classification"],
+  crs_classification_id: ["/taxclassification", "tax classification"],
+  purpose_of_account_id: ["/accountpurpose", "account purpose"],
+  province_id: ["/province", "province"],
+  district_id: ["/district", "district"],
+};
+
 export function CustomerFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false }) {
+  const navigate = useNavigate();
   const {
     genders = [],
     citizenships = [],
@@ -262,6 +292,7 @@ export function CustomerFieldInput({ fieldKey: key, type, value, onChange, looku
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        addAction={MASTER_ADD_TARGETS[key] ? { label: `Add ${MASTER_ADD_TARGETS[key][1]}`, onClick: () => navigate(MASTER_ADD_TARGETS[key][0]) } : undefined}
         options={[
           { value: "", label: lookupConfig.placeholder },
           ...lookupConfig.list.map((item) => {

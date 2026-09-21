@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
 
@@ -8,6 +9,7 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 //   { key, label, type: text|number|date|bool|select|multi|list|custom,
 //     options?: [{value,label}] | (item) => [...], required?, hint?,
 //     showIf?: (item) => bool, disabled?: (item) => bool, defaultValue?,
+//     addTo?: [masterPath, label] (select: "Add <label>" row opening that master),
 //     spec?/addLabel? (type "list": a nested ListEditor),
 //     render?: (item, setItem) => node (type "custom"), wide?: bool }
 // Items are plain objects held by the caller, so the whole configuration can
@@ -15,6 +17,7 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-500";
 
 export function FieldInput({ field, item, setItem, readOnly }) {
+  const navigate = useNavigate();
   const value = item[field.key];
   const disabled = readOnly || Boolean(field.disabled?.(item));
   const set = (next) => setItem({ ...item, [field.key]: next });
@@ -60,6 +63,7 @@ export function FieldInput({ field, item, setItem, readOnly }) {
           value={value ?? ""}
           onChange={set}
           disabled={disabled}
+          addAction={field.addTo ? { label: `Add ${field.addTo[1]}`, onClick: () => navigate(field.addTo[0]) } : undefined}
           options={[{ value: "", label: field.placeholder ?? "Select..." }, ...options]}
         />
       ) : field.type === "multi" ? (

@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Pencil, Eye, RefreshCw } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -51,6 +52,7 @@ const statusLabel = (code) => STATUS_LABELS[Number(code)] ?? String(code ?? "-")
 const emptyForm = { code: "", name: "", description: "", combination: "", ownership_sub_type_id: "" };
 
 export function OnboardingDefinitionPage() {
+  const navigate = useNavigate();
   const can = useMenuPermission("Individual Type Config|Onboarding Definition|Customer Type");
   const catalog = useOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
@@ -343,7 +345,7 @@ export function OnboardingDefinitionPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Sub type
-            <FilterSelect className="mt-1.5" value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "Select sub type" }, ...subTypeOptions]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: "Add ownership sub type", onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "Select sub type" }, ...subTypeOptions]} />
             <span className="mt-1 block text-[11px] font-normal text-slate-400">Create the sub type in the Ownership Sub Type master first.</span>
           </label>
         </div>

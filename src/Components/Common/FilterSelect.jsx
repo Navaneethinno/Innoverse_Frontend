@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Plus } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 
 // A styled dropdown to replace bare native <select> filters, which render
@@ -19,7 +19,10 @@ import { cn } from "@/Utils/Lib/utils";
 // popup never had this problem: it renders in the browser's own top-level
 // layer, not inside any element's box. Flips to open upward when there
 // isn't enough room below in the viewport.
-export function FilterSelect({ value, onChange, options, className, panelClassName, disabled }) {
+// `addAction` ({ label, onClick }) pins an "Add ..." row at the end of the
+// list — for dropdowns fed by a master, so an empty (or incomplete) list can
+// send the user straight to that master to create the missing value.
+export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, addAction }) {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
   const containerRef = useRef(null);
@@ -137,6 +140,19 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                 </button>
               );
             })}
+            {addAction && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  addAction.onClick();
+                }}
+                className="sticky -bottom-1.5 mt-1 flex w-full items-center gap-1.5 whitespace-nowrap rounded-lg border-t bg-[var(--popover)] px-3 py-2 text-left text-sm font-bold text-primary hover:bg-primary-light"
+              >
+                <Plus size={14} className="shrink-0" />
+                {addAction.label}
+              </button>
+            )}
           </div>,
           document.body,
         )}
