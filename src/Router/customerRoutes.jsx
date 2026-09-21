@@ -1,10 +1,12 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
-const Resource = lazy(() => import("@/Components/Customer/CustomerResource.jsx").then((m) => ({ default: m.CustomerResource })));
-// The sidebar's "Customer" menu item slugifies to "customer" (see
-// menuRouteMap.js's slugifyMenuName) — a single flat page, same as Digital
-// Product's own top-level "Digital Product" entry, not an expandable
-// submenu of sub-entity pages.
+// The old `/customer/indv_profile/*` maker-checker list+wizard is gone —
+// those endpoints 404 across the board. The sidebar's "Customer" menu item
+// (slug "customer") now opens the real runtime onboarding work list from
+// "Customer Onboarding (Individual) — Frontend Guide" (/customer/individual/*).
+const Resource = lazy(() =>
+  import("@/Components/Customer/CustomerOnboardingResource.jsx").then((m) => ({ default: m.CustomerOnboardingResource })),
+);
 export const customerRoutes = [
   { path: "customer", element: pageElement(Resource) },
   { path: "customer/:id", element: pageElement(Resource) },
