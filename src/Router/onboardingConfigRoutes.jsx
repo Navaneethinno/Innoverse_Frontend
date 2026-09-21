@@ -2,7 +2,7 @@ import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
 const Definitions = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingDefinitionPage.jsx").then((m) => ({ default: m.OnboardingDefinitionPage })),
+  import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
 );
 const Versions = lazy(() =>
   import("@/Components/OnboardingConfig/OnboardingVersionPage.jsx").then((m) => ({ default: m.OnboardingVersionPage })),

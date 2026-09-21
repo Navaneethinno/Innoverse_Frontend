@@ -13,7 +13,7 @@ export const customerRoutes = [
 ];
 
 const CustomerTypes = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingDefinitionPage.jsx").then((m) => ({ default: m.OnboardingDefinitionPage })),
+  import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
 );
 // Sidebar menu "Customer Individual" -> slug "customerindividual" (+ the
 // per-click uuid MenuItem appends). It is the CONFIGURATION entry point for

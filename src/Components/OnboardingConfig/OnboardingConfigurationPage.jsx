@@ -51,7 +51,7 @@ const statusLabel = (code) => STATUS_LABELS[Number(code)] ?? String(code ?? "-")
 
 const emptyForm = { code: "", name: "", description: "", combination: "", ownership_sub_type_id: "" };
 
-export function OnboardingDefinitionPage() {
+export function OnboardingConfigurationPage() {
   const navigate = useNavigate();
   const can = useMenuPermission("Individual Type Config|Onboarding Definition|Customer Type");
   const catalog = useOnboardingCatalog();
