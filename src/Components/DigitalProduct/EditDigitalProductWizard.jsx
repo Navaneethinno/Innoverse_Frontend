@@ -120,7 +120,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const handleSaveDraft = () => saveCurrentStep(true, setSavingDraft);
 
   return (
-    <Modal open onClose={attemptClose} title={tr("Edit Digital Product")} size="full" fixedHeight
+    <Modal open onClose={attemptClose} title={tr("Edit Digital Product")} size="xl" growWithContent
       footer={
         <>
           <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">

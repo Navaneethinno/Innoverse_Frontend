@@ -30,8 +30,8 @@ export function ViewDigitalProductWizard({ product, onClose }) {
       open
       onClose={onClose}
       title={tr("View Digital Product")}
-      size="full"
-      fixedHeight
+      size="xl"
+      growWithContent
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">

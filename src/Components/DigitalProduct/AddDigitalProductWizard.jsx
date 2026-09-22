@@ -133,7 +133,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       open
       onClose={onClose}
       title={tr("Add Digital Product")}
-      size="full"
+      size="xl"
       growWithContent
       footer={
         <>
