@@ -174,7 +174,7 @@ function LevelsEditor({ scheme, onClose, onSaved }) {
       fixedHeight
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             Close
           </button>
           {!readOnly && (
@@ -319,7 +319,7 @@ export function KycSchemePage() {
           title="Add KYC scheme"
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-slate-500">
+              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
                 Cancel
               </button>
               <button type="button" disabled={saving} onClick={() => void create()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
@@ -352,7 +352,7 @@ export function KycSchemePage() {
           title={`Clone ${clone.source.name}`}
           footer={
             <>
-              <button type="button" onClick={() => setClone(null)} className="px-3 py-2 text-sm font-bold text-slate-500">
+              <button type="button" onClick={() => setClone(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
                 Cancel
               </button>
               <button type="button" disabled={saving} onClick={() => void doClone()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
@@ -362,7 +362,7 @@ export function KycSchemePage() {
             </>
           }
         >
-          <p className="mb-3 text-xs text-slate-500">Copies the scheme and all its levels into a new Draft under a new code.</p>
+          <p className="mb-3 text-xs text-muted-foreground">Copies the scheme and all its levels into a new Draft under a new code.</p>
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
               New code

@@ -36,7 +36,7 @@ export function DeauthUser({ user, narration, setNarration, pending, onClose, on
         value={narration}
         onChange={(event) => setNarration(event.target.value)}
         placeholder={t("narration")}
-        className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
+        className="mt-3 min-h-20 w-full rounded-xl border border-border p-2.5 text-sm"
       />
     </ConfirmDialog>
   );

@@ -29,7 +29,7 @@ class ErrorBoundaryContent extends Component {
               <h1 className="text-sm font-bold">Something went wrong</h1>
             </div>
             {this.state.message && (
-              <p className="text-xs text-slate-500 font-mono bg-slate-50 rounded-xl px-3 py-2 mb-4 break-all">
+              <p className="text-xs text-muted-foreground font-mono bg-muted rounded-xl px-3 py-2 mb-4 break-all">
                 {this.state.message}
               </p>
             )}

@@ -60,8 +60,8 @@ export function InstitutionModuleViewPage() {
           View institution module assignment details.
         </p>
       </div>
-      <section className="max-w-4xl rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
+      <section className="max-w-4xl rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Assignment details

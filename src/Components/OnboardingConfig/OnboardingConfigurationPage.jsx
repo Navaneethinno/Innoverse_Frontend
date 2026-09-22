@@ -105,7 +105,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
           placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
-          className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+          className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
         />
       </ConfirmDialog>
       {audit && (
@@ -258,8 +258,8 @@ export function OnboardingConfigurationPage() {
       render: (r) => (
         <div className="text-left">
           <div className="font-semibold">{r.name}</div>
-          <div className="font-mono text-[11px] text-slate-400">{r.code}</div>
-          {r.description && <div className="mt-0.5 max-w-[260px] truncate text-[11px] text-slate-500" title={r.description}>{r.description}</div>}
+          <div className="font-mono text-[11px] text-muted-foreground">{r.code}</div>
+          {r.description && <div className="mt-0.5 max-w-[260px] truncate text-[11px] text-muted-foreground" title={r.description}>{r.description}</div>}
         </div>
       ),
     },
@@ -270,8 +270,8 @@ export function OnboardingConfigurationPage() {
       render: (r) => (
         <div className="text-left">
           <div>{r.ownership_sub_type_name ?? "-"}</div>
-          <div className="text-[11px] text-slate-400">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
-          <div className="text-[11px] text-slate-400">{r.inst_profile_name ?? "-"}</div>
+          <div className="text-[11px] text-muted-foreground">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
+          <div className="text-[11px] text-muted-foreground">{r.inst_profile_name ?? "-"}</div>
         </div>
       ),
     },
@@ -325,7 +325,7 @@ export function OnboardingConfigurationPage() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Each customer type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.
         </p>
       </div>
@@ -371,7 +371,7 @@ export function OnboardingConfigurationPage() {
         title="Add onboarding configuration"
         footer={
           <>
-            <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-slate-500">
+            <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
               Cancel
             </button>
             <button
@@ -390,7 +390,7 @@ export function OnboardingConfigurationPage() {
           <label className="text-sm font-semibold text-slate-700">
             Code
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder="CUSTOMER_INDIVIDUAL_STUDENT" />
-            <span className="mt-1 block text-[11px] font-normal text-slate-400">Letters, digits and underscore. Cannot be changed later.</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Letters, digits and underscore. Cannot be changed later.</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Name
@@ -399,7 +399,7 @@ export function OnboardingConfigurationPage() {
           <label className="text-sm font-semibold text-slate-700">
             Description
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
-            <span className="mt-1 block text-[11px] font-normal text-slate-400">{form.description.length}/250</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Party type × Ownership
@@ -409,7 +409,7 @@ export function OnboardingConfigurationPage() {
             <label className="text-sm font-semibold text-slate-700">
               Sub type
               <FilterSelect className="mt-1.5" addAction={{ label: "Add ownership sub type", onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "No sub type" }, ...subTypeOptions]} />
-              <span className="mt-1 block text-[11px] font-normal text-slate-400">Optional — leave unset unless this combination requires one.</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Optional — leave unset unless this combination requires one.</span>
             </label>
           )}
         </div>

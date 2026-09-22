@@ -34,7 +34,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+            className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100"
           >
             {cancelLabel ?? t("common:cancel")}
           </button>

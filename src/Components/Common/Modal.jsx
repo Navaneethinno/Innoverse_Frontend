@@ -112,7 +112,7 @@ export function Modal({
       >
         <div className="h-1 shrink-0 bg-brand-gradient" />
 
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-3.5">
           <div className="flex min-w-0 items-center gap-2.5">
             {icon && (
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary-light)] text-[var(--primary)]">
@@ -121,14 +121,14 @@ export function Modal({
             )}
             <div className="min-w-0">
               <h2 className="truncate text-sm font-bold text-slate-800">{title}</h2>
-              {subtitle && <p className="truncate text-xs text-slate-400">{subtitle}</p>}
+              {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X size={15} />
           </button>
@@ -142,7 +142,7 @@ export function Modal({
         </div>
 
         {footer && (
-          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-slate-100 bg-slate-50/80 px-5 py-3">
+          <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-muted/80 px-5 py-3">
             {footer}
           </div>
         )}
@@ -152,7 +152,7 @@ export function Modal({
             className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 backdrop-blur-sm"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mx-6 flex max-w-xs flex-col items-center gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-xl">
+            <div className="mx-6 flex max-w-xs flex-col items-center gap-3 rounded-2xl border border-border bg-white p-5 text-center shadow-xl">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                 <AlertTriangle size={16} />
               </span>
@@ -161,7 +161,7 @@ export function Modal({
                 <button
                   type="button"
                   onClick={() => setPendingSubmit(null)}
-                  className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50"
+                  className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted"
                 >
                   Cancel
                 </button>

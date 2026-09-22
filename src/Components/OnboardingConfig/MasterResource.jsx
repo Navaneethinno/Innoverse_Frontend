@@ -189,7 +189,7 @@ export function MasterResource({ entity }) {
           title={`${editing ? "Edit" : "Add"} ${config.title}`}
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-slate-500">
+              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
                 Cancel
               </button>
               <button type="button" disabled={saving} onClick={() => void save(true)} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
@@ -210,9 +210,9 @@ export function MasterResource({ entity }) {
                 value={form.code ?? ""}
                 disabled={Boolean(editing)}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
-                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm disabled:bg-slate-50"
+                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm disabled:bg-muted"
               />
-              <span className="mt-1 block text-[11px] font-normal text-slate-400">A–Z, 0–9 and _. Cannot be changed later.</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">A–Z, 0–9 and _. Cannot be changed later.</span>
             </label>
             <label className="text-sm font-semibold text-slate-700">
               Name <span className="text-red-500">*</span>
@@ -221,7 +221,7 @@ export function MasterResource({ entity }) {
             <label className="text-sm font-semibold text-slate-700 md:col-span-2">
               Description
               <textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
-              <span className="mt-1 block text-[11px] font-normal text-slate-400">{(form.description ?? "").length}/250</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{(form.description ?? "").length}/250</span>
             </label>
             {fields
               .filter((field) => !field.showIf || field.showIf(form))

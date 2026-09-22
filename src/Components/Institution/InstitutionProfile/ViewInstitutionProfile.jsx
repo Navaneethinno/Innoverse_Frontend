@@ -186,7 +186,7 @@ export function ViewInstitutionProfile() {
           <AlertCircle size={22} className="text-red-400" />
         </div>
         <p className="text-sm font-bold text-slate-700">{t("institutionNotFound")}</p>
-        <p className="text-xs text-slate-400 mt-1 max-w-sm">
+        <p className="text-xs text-muted-foreground mt-1 max-w-sm">
           {t("institutionNotFoundDescription")}
         </p>
         <button
@@ -204,7 +204,7 @@ export function ViewInstitutionProfile() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <button
           onClick={() => navigate("/institutions")}
-          className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-700"
+          className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-slate-700"
         >
           <ArrowLeft size={13} /> {t("institutionsBreadcrumb")}
         </button>
@@ -213,7 +213,7 @@ export function ViewInstitutionProfile() {
           <div className="flex gap-2">
             <button
               onClick={exitEditMode}
-              className="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50"
+              className="px-3 py-2 rounded-xl text-xs font-bold border border-border flex items-center gap-1 text-slate-600 hover:bg-muted"
             >
               <X size={13} /> {t("common:cancel")}
             </button>
@@ -221,7 +221,7 @@ export function ViewInstitutionProfile() {
               <button
                 onClick={() => void handleSubmitEdit(true)}
                 disabled={submitting}
-                className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                className="px-4 py-2 rounded-xl text-xs font-bold border border-border flex items-center gap-1 text-slate-600 hover:bg-muted disabled:opacity-60"
               >
                 <FileEdit size={13} /> {t("saveAsDraftEdit")}
               </button>
@@ -251,8 +251,8 @@ export function ViewInstitutionProfile() {
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-800">{institution.name}</h1>
-            <p className="text-xs text-slate-400 font-mono">{institution.code}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{t("typeColonLabel")} {institution.type_name ?? institution.type}</p>
+            <p className="text-xs text-muted-foreground font-mono">{institution.code}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("typeColonLabel")} {institution.type_name ?? institution.type}</p>
           </div>
         </div>
         <StatusBadge status={status} />
@@ -306,10 +306,10 @@ export function ViewInstitutionProfile() {
       )}
 
       {editMode && (
-        <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
+        <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-border">
           <button
             onClick={exitEditMode}
-            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100"
+            className="px-4 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-slate-100"
           >
             {t("common:cancel")}
           </button>
@@ -317,7 +317,7 @@ export function ViewInstitutionProfile() {
             <button
               onClick={() => void handleSubmitEdit(true)}
               disabled={submitting}
-              className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+              className="px-4 py-2 rounded-xl text-xs font-bold border border-border text-slate-600 hover:bg-muted disabled:opacity-60"
             >
               {t("saveAsDraftEdit")}
             </button>

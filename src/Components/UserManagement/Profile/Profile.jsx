@@ -321,7 +321,7 @@ export function Profile() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("profilesTitle")}</h1>
-        <p className="mt-1 text-xs font-medium text-slate-400">
+        <p className="mt-1 text-xs font-medium text-muted-foreground">
           {t("profilesActiveSummary", { count: profiles.length, active: counts.active })}
         </p>
       </div>
@@ -447,12 +447,12 @@ export function Profile() {
         onConfirm={() => void runAction()}
       >
         {["submit", "deactivate", "reactivate"].includes(action?.type) && (
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Narration
             <textarea
               value={narration}
               onChange={(event) => setNarration(event.target.value)}
-              className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
+              className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
             />
           </label>
         )}
@@ -464,17 +464,17 @@ export function Profile() {
         <Modal open={!!viewProfile} onClose={() => setViewProfile(null)} title={t("viewProfile")} size="lg">
           <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("profileName")}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("profileName")}</p>
               <p className="text-sm font-semibold text-slate-800">{viewProfile.profile_name ?? "—"}</p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("institution")}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("institution")}</p>
               <p className="text-sm font-semibold text-slate-800">
                 {viewProfile.institution_name ?? institutionsById.get(String(viewProfile.inst_profile_id))?.name ?? "—"}
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t("authorizationStatus")}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("authorizationStatus")}</p>
               {viewProfile.auth_status ? (
                 <StatusBadge status={String(viewProfile.auth_status)} />
               ) : (

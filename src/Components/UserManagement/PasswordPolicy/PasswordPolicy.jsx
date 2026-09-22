@@ -197,12 +197,12 @@ function PolicyField({ field, form, setForm }) {
       <div
         className={cn(
           "flex min-h-[68px] items-center justify-between gap-3 rounded-lg border px-4 py-3 transition-colors",
-          enabled ? "border-primary/20 bg-primary/5" : "border-slate-200 bg-slate-50/60",
+          enabled ? "border-primary/20 bg-primary/5" : "border-border bg-muted/60",
         )}
       >
         <div>
           <p className="text-sm font-semibold text-slate-700">{label}</p>
-          <p className={cn("mt-0.5 text-[11px] font-semibold", enabled ? "text-primary" : "text-slate-400")}>
+          <p className={cn("mt-0.5 text-[11px] font-semibold", enabled ? "text-primary" : "text-muted-foreground")}>
             {enabled ? "Enabled" : "Disabled"}
           </p>
         </div>
@@ -220,7 +220,7 @@ function PolicyField({ field, form, setForm }) {
         min={isNumber ? 0 : undefined}
         value={form[field] ?? ""}
         onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-        className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
       />
     </label>
   );
@@ -235,10 +235,10 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
       size="xl"
       footer={
         <>
-          <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100">
+          <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100">
             Cancel
           </button>
-          <button type="button" disabled={pending} onClick={() => onSave(true)} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
+          <button type="button" disabled={pending} onClick={() => onSave(true)} className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
             Save as draft
           </button>
           <button type="button" disabled={pending} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
@@ -249,8 +249,8 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
     >
       <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
-          <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <section key={section.title} className="rounded-xl border border-border bg-white p-4 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <section.icon size={14} strokeWidth={2} />
               </span>
@@ -274,8 +274,8 @@ function PolicyView({ row, onClose }) {
     <Modal open title={tr("View password policy")} onClose={onClose} size="xl">
       <div className="space-y-4">
         {FORM_SECTIONS.map((section) => (
-          <section key={section.title} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <section key={section.title} className="rounded-xl border border-border bg-white p-4 shadow-sm">
+            <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <section.icon size={14} strokeWidth={2} />
               </span>
@@ -283,8 +283,8 @@ function PolicyView({ row, onClose }) {
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {section.fields.map((field) => (
-                <div key={field} className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{FIELD_LABELS[field]}</p>
+                <div key={field} className="rounded-lg border border-border bg-muted/60 p-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{FIELD_LABELS[field]}</p>
                   <p className="mt-1 text-sm font-semibold text-slate-800">
                     {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : row?.[field] || "-"}
                   </p>
@@ -364,13 +364,13 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
         onConfirm={() => void execute()}
       >
         {["passwordPolicyAuth", "passwordPolicyDeauth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
-        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-slate-500">
+        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Narration{action?.method === "passwordPolicyDeauth" ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={action?.method === "passwordPolicyDeauth" ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>
@@ -454,7 +454,7 @@ export function PasswordPolicy() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">Password Policy</h1>
-        <p className="mt-1 text-xs font-medium text-slate-500">Manage password rules, lockout, and session security.</p>
+        <p className="mt-1 text-xs font-medium text-muted-foreground">Manage password rules, lockout, and session security.</p>
       </div>
 
       <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." actions={canAdd && (

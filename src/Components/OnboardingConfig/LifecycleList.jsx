@@ -190,7 +190,7 @@ export function LifecycleList({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black text-slate-800">{title}</h1>
-          {subtitle && <p className="mt-1 text-xs text-slate-500">{subtitle}</p>}
+          {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {toolbar}
       </div>
@@ -242,7 +242,7 @@ export function LifecycleList({
               {[...auditFields, ["status_name", "Status"], ["process_status_name", "Process Status"], ["auth_status", "Authorization Status"]].map(
                 ([key, label]) => (
                   <div key={key} className="rounded-xl border p-3">
-                    <dt className="text-xs text-slate-400">{label}</dt>
+                    <dt className="text-xs text-muted-foreground">{label}</dt>
                     <dd className="text-sm font-semibold">{view[key] ?? "-"}</dd>
                   </div>
                 ),

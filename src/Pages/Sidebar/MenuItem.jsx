@@ -89,7 +89,7 @@ export function MenuItem({
     ? isRoot
       ? "bg-[var(--primary)] text-white shadow-sm"
       : "bg-[var(--primary-light)] text-[var(--primary)] font-semibold"
-    : "text-slate-500 hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
+    : "text-muted-foreground hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
 
   return (
     <div className="flex flex-col gap-1">

@@ -26,7 +26,7 @@ export function DeleteProfile({ profile, narration, setNarration, pending, onClo
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
         placeholder={t("reasonRequired")}
-        className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
+        className="mt-3 min-h-20 w-full rounded-xl border border-border p-2.5 text-sm"
       />
     </ConfirmDialog>
   );

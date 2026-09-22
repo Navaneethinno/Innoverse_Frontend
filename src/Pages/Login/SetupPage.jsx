@@ -46,13 +46,13 @@ export function SetupPage() {
             <Settings size={20} className="text-white" />
           </div>
           <h1 className="text-xl font-semibold text-slate-800">{t("platformSetup")}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t("configureWorkspace")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("configureWorkspace")}</p>
         </div>
         <div className="flex items-center justify-center gap-2 mb-8">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
-                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "text-white" : i === step ? "border-2" : "bg-slate-100 text-slate-400"}`}
+                className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold ${i < step ? "text-white" : i === step ? "border-2" : "bg-slate-100 text-muted-foreground"}`}
                 style={
                   i < step
                     ? { background: "var(--primary)" }
@@ -64,7 +64,7 @@ export function SetupPage() {
                 {i < step ? <Check size={13} /> : i + 1}
               </div>
               <span
-                className={`text-xs hidden sm:block ${i === step ? "text-slate-700 font-medium" : "text-slate-400"}`}
+                className={`text-xs hidden sm:block ${i === step ? "text-slate-700 font-medium" : "text-muted-foreground"}`}
               >
                 {s}
               </span>
@@ -93,13 +93,13 @@ export function SetupPage() {
               {step === 0 && (
                 <div className="space-y-4">
                   <input
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("companyNamePlaceholder")}
                     value={data.companyName}
                     onChange={(e) => setData({ ...data, companyName: e.target.value })}
                   />
                   <input
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("regNumberPlaceholder")}
                     value={data.regNumber}
                     onChange={(e) => setData({ ...data, regNumber: e.target.value })}
@@ -109,19 +109,19 @@ export function SetupPage() {
               {step === 1 && (
                 <div className="space-y-4">
                   <input
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("contactNamePlaceholder")}
                     value={data.contactName}
                     onChange={(e) => setData({ ...data, contactName: e.target.value })}
                   />
                   <input
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("contactEmailPlaceholder")}
                     value={data.contactEmail}
                     onChange={(e) => setData({ ...data, contactEmail: e.target.value })}
                   />
                   <input
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm"
+                    className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("contactPhonePlaceholder")}
                     value={data.contactPhone}
                     onChange={(e) => setData({ ...data, contactPhone: e.target.value })}
@@ -170,7 +170,7 @@ export function SetupPage() {
             {step > 0 && (
               <button
                 onClick={() => setStep((s) => s - 1)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-medium text-slate-600 hover:bg-muted"
               >
                 {t("common:back")}
               </button>

@@ -154,7 +154,7 @@ export function LoginPage() {
                 <div className="relative">
                   <Mail
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                   />
                   <input
                     value={username}
@@ -169,7 +169,7 @@ export function LoginPage() {
                 <div className="relative">
                   <Lock
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                   />
                   <input
                     type={showPassword ? "text" : "password"}

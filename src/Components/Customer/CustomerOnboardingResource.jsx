@@ -89,7 +89,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
           placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
-          className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+          className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
         />
       </ConfirmDialog>
       {audit && (
@@ -160,7 +160,7 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div className="font-semibold">{r.customer_name || "-"}</div>
-          <div className="text-[11px] text-slate-400">{r.email || r.phone_number}</div>
+          <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
         </div>
       ),
     },
@@ -171,9 +171,9 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
-          <div className="text-[11px] text-slate-400">Step: {r.current_step ?? "-"}</div>
+          <div className="text-[11px] text-muted-foreground">Step: {r.current_step ?? "-"}</div>
           {r.kyc_level_name && (
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] text-muted-foreground">
               KYC: {r.kyc_level_name}
               {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? "Verified" : "Pending review"}</span>}
             </div>
@@ -230,7 +230,7 @@ export function CustomerOnboardingResource() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">Customer Onboarding</h1>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Take an individual customer through the institution's published onboarding form — every field, option and rule comes from that configuration.
         </p>
       </div>

@@ -8,7 +8,7 @@ export function AccessDenied() {
     <div className="flex flex-col items-center justify-center h-screen bg-white gap-3">
       <ShieldAlert className="h-16 w-16 text-red-500" />
       <h1 className="text-2xl font-bold">{t("accessDenied")}</h1>
-      <p className="text-sm font-medium text-slate-500">
+      <p className="text-sm font-medium text-muted-foreground">
         {t("mustBeLoggedIn")}
       </p>
       <Link

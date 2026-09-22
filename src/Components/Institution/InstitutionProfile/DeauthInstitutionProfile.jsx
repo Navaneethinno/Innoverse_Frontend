@@ -38,7 +38,7 @@ export function DeauthInstitutionProfile({ institution, narration, setNarration,
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
         placeholder={t("narrationRequiredPlaceholder")}
-        className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-2.5 text-sm"
+        className="mt-3 min-h-20 w-full rounded-xl border border-border p-2.5 text-sm"
       />
     </ConfirmDialog>
   );

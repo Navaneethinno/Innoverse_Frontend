@@ -33,7 +33,7 @@ export function EditUser({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+              className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100"
             >
               {t("common:cancel")}
             </button>
@@ -42,7 +42,7 @@ export function EditUser({
               form="user-form"
               data-mode="draft"
               disabled={submitting}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
+              className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
             >
               {t("saveAsDraft", "Save as draft")}
             </button>

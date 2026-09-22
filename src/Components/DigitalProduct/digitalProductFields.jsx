@@ -221,7 +221,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="mt-1.5 min-h-24 w-full rounded-xl border p-3 disabled:bg-slate-50 disabled:text-slate-500"
+        className="mt-1.5 min-h-24 w-full rounded-xl border p-3 disabled:bg-muted disabled:text-muted-foreground"
       />
     );
   }
@@ -239,7 +239,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
       onWheel={type === "number" ? blurOnWheel : undefined}
       onChange={(e) => onChange(type === "number" ? clampNonNegative(e.target.value) : e.target.value)}
       disabled={disabled}
-      className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-slate-50 disabled:text-slate-500"
+      className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-muted disabled:text-muted-foreground"
     />
   );
 }

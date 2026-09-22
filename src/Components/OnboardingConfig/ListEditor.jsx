@@ -14,7 +14,7 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 //     render?: (item, setItem) => node (type "custom"), wide?: bool }
 // Items are plain objects held by the caller, so the whole configuration can
 // be built in memory and sent once (guide §8.2).
-const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-500";
+const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted disabled:text-muted-foreground";
 
 export function FieldInput({ field, item, setItem, readOnly }) {
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ export function FieldInput({ field, item, setItem, readOnly }) {
           className={inputClass}
         />
       )}
-      {field.hint && <span className="mt-1 block text-[11px] font-normal text-slate-400">{field.hint}</span>}
+      {field.hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{field.hint}</span>}
     </label>
   );
 }
@@ -96,9 +96,9 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
   };
   return (
     <div className="flex flex-col gap-3">
-      {items.length === 0 && <p className="text-sm text-slate-500">{emptyText ?? "Nothing added yet."}</p>}
+      {items.length === 0 && <p className="text-sm text-muted-foreground">{emptyText ?? "Nothing added yet."}</p>}
       {items.map((item, index) => (
-        <div key={index} className={`rounded-2xl border p-4 ${nested ? "bg-slate-50/60" : ""}`}>
+        <div key={index} className={`rounded-2xl border p-4 ${nested ? "bg-muted/60" : ""}`}>
           <div className="mb-3 flex items-center justify-between">
             <h4 className="text-sm font-bold text-slate-800">{itemTitle ? itemTitle(item, index) : `#${index + 1}`}</h4>
             {!readOnly && (

@@ -39,7 +39,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                 onEditProduct?.();
               }
             }}
-            className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
+            className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
           >
             <div className="flex items-start gap-3">
               {/* Fixed icon box on every card, regardless of which icon it
@@ -50,7 +50,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-bold leading-tight text-slate-800">{tr(label)}</p>
-                <p className="mt-1 text-xs leading-snug text-slate-500">{tr(description)}</p>
+                <p className="mt-1 text-xs leading-snug text-muted-foreground">{tr(description)}</p>
               </div>
             </div>
             {/* mt-auto pins status + action to the bottom of every card

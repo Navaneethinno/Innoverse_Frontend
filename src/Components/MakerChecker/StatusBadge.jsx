@@ -49,7 +49,7 @@ const STATUS_CONFIG = {
   INACTIVE: {
     label: "Inactive",
     dot: "bg-slate-400",
-    pill: "bg-slate-50 text-slate-500 border-slate-200",
+    pill: "bg-muted text-muted-foreground border-border",
   },
   DELETED: { label: "Deleted", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
   DEAUTHORIZED: {
@@ -230,7 +230,7 @@ const TEXT_COLOR_BY_PILL = {
   "bg-blue-50 text-blue-700 border-blue-200": "text-blue-700",
   "bg-orange-50 text-orange-700 border-orange-200": "text-orange-700",
   "bg-red-50 text-red-700 border-red-200": "text-red-700",
-  "bg-slate-50 text-slate-500 border-slate-200": "text-slate-500",
+  "bg-muted text-muted-foreground border-border": "text-muted-foreground",
 };
 
 // `` renders a dot + plain colored text instead of a filled
@@ -243,7 +243,7 @@ export function StatusBadge({ status, variant = "solid" }) {
   const cfg = STATUS_CONFIG[normalizedStatus] ?? {
     label: status,
     dot: "bg-slate-400",
-    pill: "bg-slate-50 text-slate-500 border-slate-200",
+    pill: "bg-muted text-muted-foreground border-border",
   };
   const label = cfg.label;
   if (variant === "subtle") {
@@ -251,7 +251,7 @@ export function StatusBadge({ status, variant = "solid" }) {
       <span
         className={cn(
           "inline-flex items-center gap-1.5 text-xs font-medium",
-          TEXT_COLOR_BY_PILL[cfg.pill] ?? "text-slate-500",
+          TEXT_COLOR_BY_PILL[cfg.pill] ?? "text-muted-foreground",
         )}
       >
         <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />

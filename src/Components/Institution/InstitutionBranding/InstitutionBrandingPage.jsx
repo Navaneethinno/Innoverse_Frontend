@@ -134,7 +134,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
             value={narration}
             onChange={(e) => setNarration(e.target.value)}
             placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
           />
         )}
       </ConfirmDialog>
@@ -146,14 +146,14 @@ function BrandingActions({ row, onRefresh, onEdit }) {
       >
         <div className="grid gap-3 sm:grid-cols-2">
           {FIELDS.map(([key, label]) => (
-            <div key={key} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div key={key} className="rounded-xl border border-border bg-muted p-3">
               <p className="text-xs font-semibold text-muted-foreground">{tr(label)}</p>
               <div className="mt-1 break-words text-sm font-semibold text-foreground">
                 {key.includes("color") ? (
                   <ColorValue color={details?.[key]} />
                 ) : key === "logo" || key === "favicon" ? (
                   details?.[key] ? (
-                    <img src={details[key]} alt="" className="h-10 w-10 rounded-lg border border-slate-200 object-contain bg-white" />
+                    <img src={details[key]} alt="" className="h-10 w-10 rounded-lg border border-border object-contain bg-white" />
                   ) : (
                     "—"
                   )
@@ -473,7 +473,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                   type="color"
                   value={HEX_COLOR_RE.test(currentValue) ? currentValue : fallback}
                   onChange={set(key)}
-                  className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+                  className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-border bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
                 />
                 <input
                   type="text"
@@ -482,7 +482,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                   placeholder={fallback}
                   spellCheck={false}
                   maxLength={7}
-                  className="h-12 w-full rounded-xl border border-slate-200 p-3 font-mono text-sm uppercase"
+                  className="h-12 w-full rounded-xl border border-border p-3 font-mono text-sm uppercase"
                 />
               </div>
             </label>
@@ -512,7 +512,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
               type={key.includes("email") ? "email" : "text"}
               value={form[key]}
               onChange={set(key)}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+              className="mt-1.5 w-full rounded-xl border border-border p-3"
             />
           </label>
         );
@@ -522,7 +522,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         <textarea
           value={form.narration}
           onChange={set("narration")}
-          className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3"
+          className="mt-1.5 min-h-20 w-full rounded-xl border border-border p-3"
         />
       </label>
       <div className="flex items-center justify-end gap-2 sm:col-span-2">
@@ -544,7 +544,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                   },
             )
           }
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+          className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-slate-600"
         >
           Save as draft
         </button>

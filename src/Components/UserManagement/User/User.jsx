@@ -307,7 +307,7 @@ export function User() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{tr("Users")}</h1>
-        <p className="mt-1 text-xs font-medium text-slate-400">
+        <p className="mt-1 text-xs font-medium text-muted-foreground">
           {tr("Manage application users and access.")}
         </p>
       </div>
@@ -412,13 +412,13 @@ export function User() {
         onConfirm={() => void runAction()}
       >
         {["auth", "deauth"].includes(action?.type) && <PendingChangesDiff {...pendingInfo} />}
-        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-slate-500">
+        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Narration{["deauth", "delete"].includes(action?.type) ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={["deauth", "delete"].includes(action?.type) ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>

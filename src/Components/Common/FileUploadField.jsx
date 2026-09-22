@@ -81,18 +81,18 @@ export function FileUploadField({
         onChange={(e) => void handleFile(e.target.files?.[0])}
       />
       {uploading ? (
-        <div className="flex items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-xs font-semibold text-slate-500">
+        <div className="flex items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-xs font-semibold text-muted-foreground">
           <Spinner size={14} className="text-primary" />
           {tr("Uploading...")}
         </div>
       ) : value ? (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-2.5">
+        <div className="flex items-center gap-3 rounded-xl border border-border p-2.5">
           <a
             href={value}
             target="_blank"
             rel="noreferrer"
             title={tr("View uploaded file")}
-            className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+            className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted"
           >
             {previewIsImage ? (
               <img
@@ -104,14 +104,14 @@ export function FileUploadField({
                 }}
               />
             ) : (
-              <FileText size={20} className="text-slate-400" />
+              <FileText size={20} className="text-muted-foreground" />
             )}
           </a>
           <a
             href={value}
             target="_blank"
             rel="noreferrer"
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted"
           >
             {tr("View")}
           </a>
@@ -119,7 +119,7 @@ export function FileUploadField({
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted"
             >
               {tr("Replace")}
             </button>
@@ -128,7 +128,7 @@ export function FileUploadField({
             <button
               type="button"
               onClick={() => onChange("")}
-              className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-red-500"
+              className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
               aria-label={tr("Remove file")}
             >
               <X size={15} />
@@ -140,13 +140,13 @@ export function FileUploadField({
           type="button"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
-          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-slate-500 transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Upload size={15} className="shrink-0" />
           {tr(uploadLabel)}
         </button>
       )}
-      {hint && !uploading && <p className="mt-1 text-[11px] text-slate-400">{tr(hint)}</p>}
+      {hint && !uploading && <p className="mt-1 text-[11px] text-muted-foreground">{tr(hint)}</p>}
       {error && <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p>}
     </div>
   );

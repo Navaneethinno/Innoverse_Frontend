@@ -840,7 +840,7 @@ export function AcctConfigResource({ entity }) {
                   ["Status", view.status_name ?? (view.status === 1 ? "ACTIVE" : view.status === 0 ? "INACTIVE" : "-")],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-xl border p-3">
-                    <dt className="text-xs text-slate-400">{tr(label)}</dt>
+                    <dt className="text-xs text-muted-foreground">{tr(label)}</dt>
                     <dd className="text-sm font-semibold">{value}</dd>
                   </div>
                 ))}
@@ -858,7 +858,7 @@ export function AcctConfigResource({ entity }) {
             <dl className="grid gap-3">
               {config.fields.map(([key, label, type, lookupKey]) => (
                 <div key={key} className="rounded-xl border p-3">
-                  <dt className="text-xs text-slate-400">{tr(label)}</dt>
+                  <dt className="text-xs text-muted-foreground">{tr(label)}</dt>
                   <dd className="text-sm font-semibold">
                     {lookupKey ? labelFor(lookupKey, view[key]) : type === "boolean" ? (view[key] ? tr("Yes") : tr("No")) : String(view[key] ?? "-")}
                   </dd>
@@ -893,7 +893,7 @@ export function AcctConfigResource({ entity }) {
             value={action.reason ?? ""}
             onChange={(event) => setAction({ ...action, reason: event.target.value })}
             placeholder={tr("Narration")}
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
           />
         </ConfirmDialog>
       )}

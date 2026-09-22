@@ -137,7 +137,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       fixedHeight
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {tr("Cancel")}
           </button>
           {stepIndex > 0 && (

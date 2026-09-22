@@ -86,7 +86,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-primary"
+            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm outline-none focus:border-primary"
           />
         )}
       </ConfirmDialog>
@@ -108,7 +108,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
           ].map(([label, value]) => (
             <label key={label} className="block text-sm font-medium text-slate-700">
               {label}
-              <div className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+              <div className="mt-1.5 w-full rounded-xl border border-border bg-muted p-3 text-sm text-slate-700">
                 {displayValue(value)}
               </div>
             </label>
@@ -438,7 +438,7 @@ function ModuleForm({
                 type="date"
                 value={form.effective_from}
                 onChange={set("effective_from")}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                className="mt-1.5 w-full rounded-xl border border-border p-3"
               />
             </label>
             <label className="text-sm font-medium">
@@ -447,7 +447,7 @@ function ModuleForm({
                 type="date"
                 value={form.effective_to}
                 onChange={set("effective_to")}
-                className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                className="mt-1.5 w-full rounded-xl border border-border p-3"
               />
             </label>
           </div>
@@ -455,7 +455,7 @@ function ModuleForm({
       ) : (
         <div className="space-y-3">
           {moduleRows.map((row, index) => (
-            <div key={index} className="relative rounded-xl border border-slate-200 p-4">
+            <div key={index} className="relative rounded-xl border border-border p-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                   Module {index + 1}
@@ -464,7 +464,7 @@ function ModuleForm({
                   <button
                     type="button"
                     onClick={() => removeModuleRow(index)}
-                    className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    className="rounded-lg p-1 text-muted-foreground hover:bg-slate-100 hover:text-slate-600"
                   >
                     <X size={14} />
                   </button>
@@ -493,7 +493,7 @@ function ModuleForm({
                     type="date"
                     value={row.effective_from}
                     onChange={setModuleRow(index, "effective_from")}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                    className="mt-1.5 w-full rounded-xl border border-border p-3"
                   />
                 </label>
                 <label className="text-sm font-medium">
@@ -502,7 +502,7 @@ function ModuleForm({
                     type="date"
                     value={row.effective_to}
                     onChange={setModuleRow(index, "effective_to")}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 p-3"
+                    className="mt-1.5 w-full rounded-xl border border-border p-3"
                   />
                 </label>
               </div>
@@ -522,7 +522,7 @@ function ModuleForm({
         <textarea
           value={form.narration}
           onChange={set("narration")}
-          className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3"
+          className="mt-1.5 min-h-20 w-full rounded-xl border border-border p-3"
         />
       </label>
       <div className="flex items-center justify-end gap-2">
@@ -533,7 +533,7 @@ function ModuleForm({
           type="button"
           disabled={pending}
           onClick={() => void onSubmit(buildPayload(true))}
-          className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${form.is_draft ? "border-primary bg-primary/10 text-primary" : "border-slate-200 text-slate-600 hover:border-primary/40 hover:bg-primary/5"}`}
+          className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${form.is_draft ? "border-primary bg-primary/10 text-primary" : "border-border text-slate-600 hover:border-primary/40 hover:bg-primary/5"}`}
         >
           {editing ? "Save as draft" : form.is_draft ? "Draft selected" : "Save as draft"}
         </button>

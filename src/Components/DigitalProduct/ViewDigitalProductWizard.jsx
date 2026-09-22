@@ -34,7 +34,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
       fixedHeight
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {tr("Close")}
           </button>
           {stepIndex > 0 && (
@@ -72,9 +72,9 @@ export function ViewDigitalProductWizard({ product, onClose }) {
           <LoadingAnimation className="h-16 w-48" />
         </div>
       ) : !currentConfigured ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-14 text-center">
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-14 text-center">
           <p className="text-sm font-semibold text-slate-600">{tr("No")} {tr(currentStep.label).toLowerCase()} {tr("configured")}</p>
-          <p className="text-xs text-slate-400">{tr("Nothing has been added for this step yet.")}</p>
+          <p className="text-xs text-muted-foreground">{tr("Nothing has been added for this step yet.")}</p>
         </div>
       ) : (
         <DigitalProductStepFields

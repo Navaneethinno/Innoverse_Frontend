@@ -65,9 +65,9 @@ export function LanguageDropdown({ className }) {
         className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"
         style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
-        <Globe size={13} className="shrink-0 text-slate-400" />
+        <Globe size={13} className="shrink-0 text-muted-foreground" />
         <span className="max-w-[6rem] truncate">{languageLabel(current)}</span>
-        <ChevronDown size={12} className="shrink-0 text-slate-400" />
+        <ChevronDown size={12} className="shrink-0 text-muted-foreground" />
       </button>
 
       <AnimatePresence>
@@ -98,7 +98,7 @@ export function LanguageDropdown({ className }) {
                     setOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs font-medium hover:bg-slate-50",
+                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs font-medium hover:bg-muted",
                     !active && "text-slate-600",
                   )}
                   style={active ? { color: "var(--primary)" } : undefined}

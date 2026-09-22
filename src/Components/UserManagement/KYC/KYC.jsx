@@ -69,10 +69,10 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
       size="xl"
       footer={
         <>
-          <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100">
+          <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100">
             Cancel
           </button>
-          <button type="button" disabled={pending || !isValid} onClick={() => onSave(true)} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
+          <button type="button" disabled={pending || !isValid} onClick={() => onSave(true)} className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
             Save as draft
           </button>
           <button type="button" disabled={pending || !isValid} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50">
@@ -119,7 +119,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
               <textarea
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="min-h-24 w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
+                className="min-h-24 w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
               />
             ) : (
               <input
@@ -128,7 +128,7 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
                 type={key.includes("email") ? "email" : "text"}
                 value={form[key] ?? ""}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-slate-50 disabled:text-slate-500"
+                className="w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-muted disabled:text-muted-foreground"
               />
             )}
             {key === "user_id" && usersError && (
@@ -205,13 +205,13 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
         onConfirm={() => void execute()}
       >
         {["kycAuth", "kycDeauth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
-        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-slate-500">
+        <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Narration{action?.method === "kycDeauth" ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
             placeholder={action?.method === "kycDeauth" ? "Narration is required" : "Narration"}
-            className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
+            className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 text-sm font-medium normal-case tracking-normal text-slate-700 outline-none focus:border-[var(--primary)]"
           />
         </label>
       </ConfirmDialog>
@@ -302,7 +302,7 @@ export function KYC() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">{tr("User KYC")}</h1>
-        <p className="mt-1 text-xs font-medium text-slate-500">{tr("Manage user KYC and personal details.")}</p>
+        <p className="mt-1 text-xs font-medium text-muted-foreground">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
       <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
@@ -369,8 +369,8 @@ export function KYC() {
         <Modal open title={tr("View user KYC")} onClose={() => setViewRow(null)} size="lg">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {FORM_FIELDS.map(([key, label]) => (
-              <div key={key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+              <div key={key} className="rounded-xl border border-border bg-muted/70 p-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">{normalizeForm(viewRow)[key] || "-"}</p>
               </div>
             ))}

@@ -26,9 +26,9 @@ export function DateFormatField({ label = "Date Format", value, onChange }) {
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
       <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger className="w-full rounded-xl bg-slate-50 border-slate-200 h-auto py-2.5 px-4">
+        <SelectTrigger className="w-full rounded-xl bg-muted border-border h-auto py-2.5 px-4">
           <div className="flex items-center gap-2 text-sm">
-            <Calendar size={14} className="text-slate-400 shrink-0" />
+            <Calendar size={14} className="text-muted-foreground shrink-0" />
             <SelectValue placeholder="Select a date format" />
           </div>
         </SelectTrigger>

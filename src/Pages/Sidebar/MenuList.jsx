@@ -28,9 +28,9 @@ export function MenuList({
   if (sortedRootMenus.length === 0) {
     if (searchQuery) {
       return (
-        <div className="mx-2 mt-3 rounded-lg border border-slate-200 bg-white/70 px-3 py-4 text-center">
+        <div className="mx-2 mt-3 rounded-lg border border-border bg-white/70 px-3 py-4 text-center">
           <p className="text-xs font-semibold text-slate-600">No menus found</p>
-          <p className="mt-1 text-[11px] text-slate-400">Try a different keyword.</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Try a different keyword.</p>
         </div>
       );
     }

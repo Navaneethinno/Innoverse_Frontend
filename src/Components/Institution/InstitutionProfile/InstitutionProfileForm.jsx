@@ -13,7 +13,7 @@ export function Field({ label, value }) {
   const { t } = useTranslation();
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-0.5">
         {label}
       </p>
       <p className="text-sm text-slate-700 font-medium">
@@ -25,7 +25,7 @@ export function Field({ label, value }) {
 export function EditField({ label, value, onChange, type = "text", disabled = false }) {
   return (
     <div>
-      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
         {label}
       </label>
       <input
@@ -36,7 +36,7 @@ export function EditField({ label, value, onChange, type = "text", disabled = fa
         onWheel={type === "number" ? blurOnWheel : undefined}
         onChange={(e) => onChange?.(type === "number" ? clampNonNegative(e.target.value) : e.target.value)}
         disabled={disabled}
-        className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+        className="h-10 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
       />
     </div>
   );
@@ -44,7 +44,7 @@ export function EditField({ label, value, onChange, type = "text", disabled = fa
 export function EditSelect({ label, value, onChange, options, placeholder, disabled = false }) {
   return (
     <div>
-      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
         {label}
       </label>
       <FilterSelect
@@ -58,8 +58,8 @@ export function EditSelect({ label, value, onChange, options, placeholder, disab
 }
 export function EditToggle({ label, value, onChange }) {
   return (
-    <label className="flex h-10 items-center justify-between rounded-xl border border-slate-200 px-3 py-2">
-      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+    <label className="flex h-10 items-center justify-between rounded-xl border border-border px-3 py-2">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
       <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />

@@ -16,7 +16,7 @@ export function NotificationsPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800"
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -29,15 +29,15 @@ export function NotificationsPage() {
           </div>
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-slate-800">Notifications</h1>
-            <p className="text-sm text-slate-500">Alerts and activity for your account.</p>
+            <p className="text-sm text-muted-foreground">Alerts and activity for your account.</p>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 px-4 py-14 text-center sm:py-16">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-14 text-center sm:py-16">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-muted-foreground">
             <Bell size={20} />
           </div>
           <p className="text-sm font-semibold text-slate-700">No notifications yet</p>
-          <p className="max-w-xs text-xs text-slate-500">
+          <p className="max-w-xs text-xs text-muted-foreground">
             You're all caught up. New notifications will appear here.
           </p>
         </div>

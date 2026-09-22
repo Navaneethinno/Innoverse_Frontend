@@ -287,7 +287,7 @@ export function InstitutionProfile() {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("institutions:listTitle")}</h1>
-        <p className="mt-1 text-xs font-medium text-slate-400">
+        <p className="mt-1 text-xs font-medium text-muted-foreground">
           {t("institutions:listSubtitle", { total: institutions.length, active: counts.active })}
         </p>
       </div>
@@ -301,7 +301,7 @@ export function InstitutionProfile() {
           boxShadow: "var(--glass-shadow)",
         }}
       >
-      <div className="flex flex-col gap-2 border-b border-slate-100 p-3">
+      <div className="flex flex-col gap-2 border-b border-border p-3">
         <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
           {TABS.map((value) => {
@@ -316,7 +316,7 @@ export function InstitutionProfile() {
                 }}
                 className={cn(
                   "flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors",
-                  !isActive && "text-slate-500 hover:bg-slate-50 hover:text-slate-700",
+                  !isActive && "text-muted-foreground hover:bg-muted hover:text-slate-700",
                 )}
                 style={
                   isActive
@@ -327,14 +327,14 @@ export function InstitutionProfile() {
                 <Icon
                   size={14}
                   strokeWidth={2}
-                  className={isActive ? undefined : "text-slate-400"}
+                  className={isActive ? undefined : "text-muted-foreground"}
                   style={isActive ? { color: "var(--primary)" } : undefined}
                 />
                 {t(`common:${TAB_LABEL_KEY[value]}`)}
                 <span
                   className={cn(
                     "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-                    !isActive && "bg-slate-100 text-slate-500",
+                    !isActive && "bg-slate-100 text-muted-foreground",
                   )}
                   style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
                 >
@@ -359,7 +359,7 @@ export function InstitutionProfile() {
         )}
         </div>
         <div className="relative w-full max-w-sm sm:max-w-none">
-          <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => {
@@ -368,7 +368,7 @@ export function InstitutionProfile() {
             }}
             type="text"
             placeholder={t("institutions:searchInstitutionsPlaceholder")}
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+            className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
         </div>
       </div>

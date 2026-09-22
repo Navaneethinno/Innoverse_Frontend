@@ -63,7 +63,7 @@ function useSortedRows(rows, columns, sort) {
 function TableHead({ columns, sort, onSort, selectable = false, allSelected = false, onToggleAll }) {
   return (
     <thead>
-      <tr className="border-b-2 border-slate-200">
+      <tr className="border-b-2 border-border">
         {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
         {columns.map((col) => (
           <th
@@ -127,7 +127,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
           <td colSpan={columns.length + Number(selectable)} className={cn("px-4 text-center", compact ? "py-6" : "py-12")}>
             <NoDataAnimation className={cn("mx-auto", compact ? "h-16 w-24" : "h-24 w-32")} />
             <p className="text-sm font-bold text-slate-600">{emptyTitle ?? t("noRecordsFound")}</p>
-            {emptyDescription && <p className="mt-1 text-xs text-slate-400">{emptyDescription}</p>}
+            {emptyDescription && <p className="mt-1 text-xs text-muted-foreground">{emptyDescription}</p>}
           </td>
         </tr>
       </tbody>
@@ -136,7 +136,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
   return (
     <tbody>
       {rows.map((row, i) => (
-        <tr key={rowKey(row, i)} className={cn("border-b border-slate-100 transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}>
+        <tr key={rowKey(row, i)} className={cn("border-b border-border transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}>
           {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
           {columns.map((col) => (
             <td
@@ -372,8 +372,8 @@ export function DataTable({
               }
         }
       >
-        {!compact && <div className="flex min-h-10 items-center justify-between border-b border-slate-100 px-3.5">
-          <span className="text-xs font-medium text-slate-500">
+        {!compact && <div className="flex min-h-10 items-center justify-between border-b border-border px-3.5">
+          <span className="text-xs font-medium text-muted-foreground">
             {selectable && selectedKeys.size > 0
               ? t("selectedCount", { count: selectedKeys.size })
               : t("recordsCount", { count: totalRecords })}
@@ -400,7 +400,7 @@ export function DataTable({
         </div>
 
         {!isLoading && totalRecords > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/40 px-3.5 py-2.5 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground">
             <span className="whitespace-nowrap">
               {t("showingEntries", {
                 from: (currentPage - 1) * effectivePageSize + 1,
@@ -414,13 +414,13 @@ export function DataTable({
                 type="button"
                 disabled={currentPage <= 1}
                 onClick={() => goToPage(currentPage - 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 <ChevronLeft size={13} /> {t("prev")}
               </button>
               {getPageNumbers(currentPage, totalPages).map((p, i) =>
                 p === "…" ? (
-                  <span key={`ellipsis-${i}`} className="px-1.5 text-slate-400">
+                  <span key={`ellipsis-${i}`} className="px-1.5 text-muted-foreground">
                     …
                   </span>
                 ) : (
@@ -433,7 +433,7 @@ export function DataTable({
                       "min-w-[28px] rounded-lg px-2 py-1.5 font-semibold transition-colors",
                       p === currentPage
                         ? "bg-primary text-primary-foreground"
-                        : "text-slate-600 hover:bg-slate-50",
+                        : "text-slate-600 hover:bg-muted",
                     )}
                   >
                     {p}
@@ -444,7 +444,7 @@ export function DataTable({
                 type="button"
                 disabled={currentPage >= totalPages}
                 onClick={() => goToPage(currentPage + 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
+                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 {t("next")} <ChevronRight size={13} />
               </button>
@@ -478,14 +478,14 @@ export function DataTable({
         bodyClassName="px-0 py-0"
       >
         {searchableKeys.length > 0 && (
-          <div className="border-b border-slate-100 px-5 py-3">
+          <div className="border-b border-border px-5 py-3">
             <div className="relative max-w-xs">
-              <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={viewAllSearch}
                 onChange={(e) => setViewAllSearch(e.target.value)}
                 placeholder={t("searchPlaceholder")}
-                className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
+                className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
               />
             </div>
             {fetchMore && viewAllSearch.trim() !== "" && (
@@ -509,7 +509,7 @@ export function DataTable({
             />
           </table>
           {fetchMore && infiniteRows.length > 0 && (
-            <div className="py-3 text-center text-xs text-slate-400">
+            <div className="py-3 text-center text-xs text-muted-foreground">
               {infiniteError ? (
                 <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-[var(--primary)] underline">
                   {t("failedLoadMoreRetry")}

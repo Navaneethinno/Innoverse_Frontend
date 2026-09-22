@@ -23,7 +23,7 @@ function StatCard({ label, value, sub, gradient, icon: Icon, delay = 0 }) {
       style={glass}
     >
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{label}</p>
         <div
           className={cn(
             "w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-md shrink-0",
@@ -35,7 +35,7 @@ function StatCard({ label, value, sub, gradient, icon: Icon, delay = 0 }) {
       </div>
       <div>
         <p className="text-4xl font-black text-slate-800 tracking-tight leading-none">{value}</p>
-        {sub && <p className="text-[11px] text-slate-400 mt-1.5 font-medium">{sub}</p>}
+        {sub && <p className="text-[11px] text-muted-foreground mt-1.5 font-medium">{sub}</p>}
       </div>
     </motion.div>
   );
@@ -75,7 +75,7 @@ export function ControlSpacePage() {
         <h1 className="text-2xl font-black text-slate-800 tracking-tight leading-none">
           {t("goodMorning", { name: currentUser?.username ?? t("admin") })}
         </h1>
-        <p className="text-sm text-slate-400 mt-1.5 font-medium">
+        <p className="text-sm text-muted-foreground mt-1.5 font-medium">
           {t("workspaceSummary")}
         </p>
       </motion.div>
@@ -130,8 +130,8 @@ export function ControlSpacePage() {
           style={glass}
         >
           <CheckCircle size={24} className="text-emerald-400" />
-          <p className="text-sm font-bold text-slate-500">{t("allCaughtUp")}</p>
-          <p className="text-xs text-slate-400">{t("noPendingRequests")}</p>
+          <p className="text-sm font-bold text-muted-foreground">{t("allCaughtUp")}</p>
+          <p className="text-xs text-muted-foreground">{t("noPendingRequests")}</p>
         </motion.div>
 
         <motion.div
@@ -154,7 +154,7 @@ export function ControlSpacePage() {
             <div className="space-y-2">
               {BREAKDOWN_GROUP_KEYS.map((key) => (
                 <div key={key} className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">{t(key)}</span>
+                  <span className="text-xs text-muted-foreground font-medium">{t(key)}</span>
                   <span className="text-xs font-bold text-slate-300">0</span>
                 </div>
               ))}

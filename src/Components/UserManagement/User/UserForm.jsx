@@ -96,13 +96,13 @@ function PasswordPolicyField({ policies, policy, selectedId, onSelect, requireme
             <ChevronDown size={13} className={cn("transition-transform", expanded && "rotate-180")} />
           </button>
           {expanded && (
-            <ul className="mt-2 space-y-1 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+            <ul className="mt-2 space-y-1 rounded-xl border border-border bg-muted/70 p-3">
               {requirements.length === 0 ? (
-                <li className="text-xs text-slate-400">{t("noSpecificRequirements")}</li>
+                <li className="text-xs text-muted-foreground">{t("noSpecificRequirements")}</li>
               ) : (
                 requirements.map((req) => (
                   <li key={req.key} className="flex items-center gap-1.5 text-xs text-slate-600">
-                    <Check size={12} className="text-slate-400" />
+                    <Check size={12} className="text-muted-foreground" />
                     {req.label}
                   </li>
                 ))
@@ -179,7 +179,7 @@ export function UserForm({
                 }
                 value={editing && key === "user_pwd" ? "" : form[key]}
                 onChange={(event) => setForm({ ...form, [key]: event.target.value })}
-                className={`w-full rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-slate-50 text-slate-500" : ""}`}
+                className={`w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-muted text-muted-foreground" : ""}`}
               />
             )}
             {key === "user_pwd" && !readOnly && (
@@ -187,7 +187,7 @@ export function UserForm({
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
                 aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -198,7 +198,7 @@ export function UserForm({
               {passwordRequirements.map((req) => (
                 <li
                   key={req.key}
-                  className={`flex items-center gap-1.5 text-xs ${req.met ? "text-emerald-600" : "text-slate-400"}`}
+                  className={`flex items-center gap-1.5 text-xs ${req.met ? "text-emerald-600" : "text-muted-foreground"}`}
                 >
                   {req.met ? <Check size={13} /> : <span className="h-1 w-1 rounded-full bg-current" />}
                   {req.label}

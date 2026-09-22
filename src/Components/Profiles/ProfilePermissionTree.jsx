@@ -257,7 +257,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     : filteredModules;
 
   if (isLoading) {
-    return <p className="text-sm text-slate-400">Loading available menu actions...</p>;
+    return <p className="text-sm text-muted-foreground">Loading available menu actions...</p>;
   }
   if (error) {
     return (
@@ -270,10 +270,10 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     );
   }
   if (modules.length === 0) {
-    return <p className="text-sm text-slate-400">No valid menu/action data is available to grant.</p>;
+    return <p className="text-sm text-muted-foreground">No valid menu/action data is available to grant.</p>;
   }
   if (readOnly && visibleModules.length === 0) {
-    return <p className="text-sm text-slate-400">No permissions granted.</p>;
+    return <p className="text-sm text-muted-foreground">No permissions granted.</p>;
   }
 
   // When filtering, auto-expand every matching module so results are
@@ -286,13 +286,13 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         <div className="relative">
           <Search
             size={13}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search modules or menus…"
-            className="w-full rounded-xl border border-slate-200 py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
+            className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
           />
         </div>
       )}
@@ -328,12 +328,12 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
             );
           const grantedCount = module.menus.filter((menu) => isMenuGranted(menu.menu_id)).length;
           return (
-            <div key={module.moduleId} className="rounded-xl border border-slate-100">
+            <div key={module.moduleId} className="rounded-xl border border-border">
               <div className="flex items-center justify-between gap-2 px-3 py-2">
                 <button
                   type="button"
                   onClick={() => toggleModuleOpen(module.moduleId)}
-                  className="flex min-w-0 items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-slate-500"
+                  className="flex min-w-0 items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-muted-foreground"
                 >
                   {isOpen(module.moduleId) ? (
                     <ChevronDown size={13} className="shrink-0" />
@@ -342,11 +342,11 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                   )}
                   <span className="truncate">{module.moduleName}</span>
                   {readOnly ? (
-                    <span className="font-normal normal-case text-slate-400">
+                    <span className="font-normal normal-case text-muted-foreground">
                       ({module.menus.length})
                     </span>
                   ) : (
-                    <span className="font-normal normal-case text-slate-400">
+                    <span className="font-normal normal-case text-muted-foreground">
                       ({grantedCount}/{module.menus.length})
                     </span>
                   )}
@@ -366,7 +366,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
               </div>
 
               {isOpen(module.moduleId) && (
-                <div className="space-y-1.5 border-t border-slate-100 p-3">
+                <div className="space-y-1.5 border-t border-border p-3">
                   {module.menus.map((menu) => {
                     const grant = grantFor(menu.menu_id);
                     const granted = isMenuGranted(menu.menu_id);
@@ -402,7 +402,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                   key={action.action_id}
                                   className={cn(
                                     "flex items-center gap-1.5 text-[11px] font-medium",
-                                    readOnly ? "text-slate-500" : "cursor-pointer text-slate-600",
+                                    readOnly ? "text-muted-foreground" : "cursor-pointer text-slate-600",
                                   )}
                                 >
                                   <input
@@ -417,7 +417,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                               );
                             })}
                             {!readOnly && (
-                              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                                 <input
                                   type="checkbox"
                                   checked={!!grant?.is_configuration_only}

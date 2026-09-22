@@ -123,7 +123,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     <Modal open onClose={attemptClose} title={tr("Edit Digital Product")} size="full" fixedHeight
       footer={
         <>
-          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {tr("Cancel")}
           </button>
           {stepIndex > 0 && (

@@ -121,8 +121,8 @@ function InputField({ label, fieldKey, placeholder, required = false, value, err
         onChange={(e) => onChange(fieldKey, e.target.value)}
         placeholder={placeholder}
         className={cn(
-          "w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-transparent transition-all",
-          error ? "border-red-300 bg-red-50" : "border-slate-200",
+          "w-full px-4 py-2.5 rounded-xl bg-muted border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-transparent transition-all",
+          error ? "border-red-300 bg-red-50" : "border-border",
         )}
       />
       {error && (
@@ -144,14 +144,14 @@ function NumberField({ label, fieldKey, value, onChange }) {
         onKeyDown={blockNegativeKeyDown}
         onWheel={blurOnWheel}
         onChange={(e) => onChange(fieldKey, clampNonNegative(e.target.value))}
-        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 transition-all"
+        className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 transition-all"
       />
     </div>
   );
 }
 function ToggleField({ label, fieldKey, value, onChange }) {
   return (
-    <label className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200">
+    <label className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-muted border border-border">
       <span className="text-sm font-medium text-slate-700">{label}</span>
       <input
         type="checkbox"
@@ -166,7 +166,7 @@ function ReviewRow({ label, value }) {
   const { t } = useTranslation();
   return (
     <div className="flex items-start justify-between py-2.5 border-b border-slate-50 last:border-0">
-      <span className="text-sm text-slate-500 shrink-0">{label}</span>
+      <span className="text-sm text-muted-foreground shrink-0">{label}</span>
       <span className="text-sm font-medium text-slate-700 text-right ml-4 min-w-0 break-all">
         {typeof value === "boolean" ? (value ? t("common:yes") : t("common:no")) : value || "—"}
       </span>
@@ -262,7 +262,7 @@ export function AddInstitutionProfile() {
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-10 border border-slate-100 shadow-sm text-center"
+            className="bg-white rounded-2xl p-10 border border-border shadow-sm text-center"
           >
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-5">
               <CheckCircle size={28} className="text-emerald-500" />
@@ -270,14 +270,14 @@ export function AddInstitutionProfile() {
             <h2 className="text-lg font-bold text-slate-800 mb-2">
               {savedAsDraft ? t("savedAsDraftTitle") : t("submittedForApprovalTitle")}
             </h2>
-            <p className="text-sm text-slate-500 mb-1">
+            <p className="text-sm text-muted-foreground mb-1">
               {t("createdWithStatusPrefix")}{" "}
               <span className="font-semibold text-amber-600">
                 {savedAsDraft ? t("statusDraft") : t("statusPendingAdd")}
               </span>
               .
             </p>
-            <p className="text-sm text-slate-400 mb-6">
+            <p className="text-sm text-muted-foreground mb-6">
               {savedAsDraft
                 ? t("draftVisibleOnlyToYou")
                 : t("checkerMustApprove")}
@@ -290,13 +290,13 @@ export function AddInstitutionProfile() {
                   setSubmitted(false);
                   setCreatedId(null);
                 }}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-border hover:bg-muted transition-colors"
               >
                 {t("createAnother")}
               </button>
               <button
                 onClick={() => navigate("/institutions")}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 border border-border hover:bg-muted transition-colors"
               >
                 {t("viewInstitutions")}
               </button>
@@ -439,7 +439,7 @@ export function AddInstitutionProfile() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -18 }}
             transition={{ duration: 0.2 }}
-            className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm"
+            className="bg-white rounded-2xl p-8 border border-border shadow-sm"
           >
             {isLoading ? (
               <div className="space-y-4">
@@ -519,7 +519,7 @@ export function AddInstitutionProfile() {
                           return { value, label };
                         })}
                       />
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t("supportedLanguages")}</p>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("supportedLanguages")}</p>
                       <div className="flex flex-wrap gap-4">
                         {languages.map((language) => {
                           const value = typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;
@@ -666,10 +666,10 @@ export function AddInstitutionProfile() {
                   <div className="space-y-5">
                     <h2 className="text-sm font-semibold text-slate-800">{t("stepReviewSubmit")}</h2>
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                         {t("institutionSectionLabel")}
                       </p>
-                      <div className="rounded-xl border border-slate-100 px-4">
+                      <div className="rounded-xl border border-border px-4">
                         <ReviewRow label={t("reviewCode")} value={form.code} />
                         <ReviewRow label={t("reviewName")} value={form.name} />
                         <ReviewRow label={t("reviewType")} value={form.type} />
@@ -679,10 +679,10 @@ export function AddInstitutionProfile() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-2">
                         {t("kycLoginPolicySectionLabel")}
                       </p>
-                      <div className="rounded-xl border border-slate-100 px-4">
+                      <div className="rounded-xl border border-border px-4">
                         <ReviewRow label={t("kycEnabled")} value={form.kyc_enabled} />
                         <ReviewRow
                           label={t("reviewLoginIdentifiers")}
@@ -700,7 +700,7 @@ export function AddInstitutionProfile() {
                         value={form.narration}
                         onChange={(e) => setField("narration", e.target.value)}
                         placeholder={t("reasonForRequestPlaceholder")}
-                        className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+                        className="w-full min-h-20 px-4 py-2.5 rounded-xl bg-muted border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
                       />
                     </div>
                     <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100">
@@ -726,7 +726,7 @@ export function AddInstitutionProfile() {
           {step > 0 && (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+              className="flex-1 py-3 rounded-xl border border-border text-sm font-medium text-slate-600 hover:bg-muted transition-colors"
             >
               {t("common:back")}
             </button>
@@ -735,7 +735,7 @@ export function AddInstitutionProfile() {
             <button
               onClick={() => void handleNext(true)}
               disabled={isLoading}
-              className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
+              className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold text-slate-600 hover:bg-muted transition-colors disabled:opacity-60"
             >
               {t("saveAsDraft")}
             </button>

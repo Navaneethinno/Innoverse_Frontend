@@ -16,7 +16,7 @@ export function ForgotPasswordPage() {
           <LockKeyhole size={22} />
         </div>
         <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
           {t("notConnectedYet")}
         </p>
         <button

@@ -307,7 +307,7 @@ export function CustomerMasterConfigResource({ entity }) {
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
-        <p className="mt-1 text-xs text-slate-500">Manage {config.title.toLowerCase()} master data.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Manage {config.title.toLowerCase()} master data.</p>
       </div>
       <div
         className="mb-4 overflow-hidden rounded-2xl"
@@ -351,7 +351,7 @@ export function CustomerMasterConfigResource({ entity }) {
           title={`${editing ? "Edit" : "Add"} ${config.title}`}
           footer={
             <>
-              <button onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-slate-500">
+              <button onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
                 Cancel
               </button>
               <button
@@ -422,9 +422,9 @@ export function CustomerMasterConfigResource({ entity }) {
                 disabled={Boolean(editing)}
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
-                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono disabled:bg-slate-50"
+                className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono disabled:bg-muted"
               />
-              <span className="mt-1 block text-[11px] font-normal text-slate-400">A-Z, 0-9 and _. Cannot be changed later.</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">A-Z, 0-9 and _. Cannot be changed later.</span>
             </label>
             <label className="text-sm font-semibold text-slate-700">
               Name
@@ -443,7 +443,7 @@ export function CustomerMasterConfigResource({ entity }) {
                 maxLength={250}
                 className="mt-1.5 min-h-24 w-full rounded-xl border p-3"
               />
-              <span className="mt-1 block text-[11px] font-normal text-slate-400">{form.description.length}/250</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
             </label>
           </form>
         </Modal>
@@ -461,7 +461,7 @@ export function CustomerMasterConfigResource({ entity }) {
                 : []),
             ].map(([label, value]) => (
               <div key={label} className="rounded-xl border p-3">
-                <dt className="text-xs text-slate-400">{label}</dt>
+                <dt className="text-xs text-muted-foreground">{label}</dt>
                 <dd className="text-sm font-semibold">{value || "-"}</dd>
               </div>
             ))}

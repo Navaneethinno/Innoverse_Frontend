@@ -55,7 +55,7 @@ export function ChangePasswordPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800"
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
         >
           <ArrowLeft size={16} /> {t("common:back")}
         </button>
@@ -68,7 +68,7 @@ export function ChangePasswordPage() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>
-            <p className="text-sm text-slate-500">{t("subtitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
         <form onSubmit={submit} className="space-y-4">
@@ -79,13 +79,13 @@ export function ChangePasswordPage() {
                 type={visible.old ? "text" : "password"}
                 value={oldPassword}
                 onChange={(event) => setOldPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("old")}
                 aria-label={visible.old ? t("hideOldPassword") : t("showOldPassword")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.old ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -98,13 +98,13 @@ export function ChangePasswordPage() {
                 type={visible.next ? "text" : "password"}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("next")}
                 aria-label={visible.next ? t("hideNewPassword") : t("showNewPassword")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.next ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -114,7 +114,7 @@ export function ChangePasswordPage() {
                 {passwordRequirements.map((req) => (
                   <li
                     key={req.key}
-                    className={`flex items-center gap-1.5 text-xs font-normal ${req.met ? "text-emerald-600" : "text-slate-400"}`}
+                    className={`flex items-center gap-1.5 text-xs font-normal ${req.met ? "text-emerald-600" : "text-muted-foreground"}`}
                   >
                     {req.met ? (
                       <Check size={13} />
@@ -134,13 +134,13 @@ export function ChangePasswordPage() {
                 type={visible.confirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 pr-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("confirm")}
                 aria-label={visible.confirm ? t("hideConfirmedPassword") : t("showConfirmedPassword")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

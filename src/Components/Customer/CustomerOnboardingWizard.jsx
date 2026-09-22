@@ -48,7 +48,7 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
     <div className="mb-4 rounded-xl border border-border p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-bold text-slate-700">{kyc.kyc_group_name ?? "KYC levels"}</span>
-        <span className="text-[11px] text-slate-400">
+        <span className="text-[11px] text-muted-foreground">
           Reached: Level {kyc.current_level_no || 0} · Achieved now: Level {kyc.achieved_level_no || 0}
         </span>
       </div>
@@ -56,17 +56,17 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
         {levels.map((level) => (
           <div
             key={level.kyc_level_id}
-            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}
+            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-muted"}`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-slate-400" />}
+                {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
                 Level {level.level_no} — {level.kyc_level_name}
-                {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">Entry</span>}
+                {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Entry</span>}
               </span>
               <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
             </div>
-            {level.description && <p className="mt-1 text-[11px] text-slate-500">{level.description}</p>}
+            {level.description && <p className="mt-1 text-[11px] text-muted-foreground">{level.description}</p>}
             {level.missing?.length > 0 && (
               <ul className="mt-1.5 grid gap-1">
                 {level.missing.map((m, i) => (
@@ -420,17 +420,17 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               />
             </label>
           </div>
-          <p className="text-[11px] text-slate-400">At least one of email or phone. An existing onboarding for that contact resumes automatically.</p>
+          <p className="text-[11px] text-muted-foreground">At least one of email or phone. An existing onboarding for that contact resumes automatically.</p>
         </div>
       );
     }
     if (loading || !wizard) return <div className="flex justify-center py-10"><Spinner size={22} /></div>;
-    if (!section) return <p className="py-6 text-center text-sm text-slate-500">This customer type has no configured sections.</p>;
+    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">This customer type has no configured sections.</p>;
 
     return (
       <div>
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-muted-foreground">
             {wizard.progress.sections_done}/{wizard.progress.sections_required} required sections · {wizard.progress.percent}%
           </div>
           <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-100">
@@ -450,7 +450,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           <KycLevelBadge levelNo={section.kyc_level_no} levels={wizard?.kyc?.levels} />
         </h2>
         {section.document_groups?.length > 0 && (
-          <div className="mb-3 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
+          <div className="mb-3 rounded-lg bg-muted p-2.5 text-[11px] text-muted-foreground">
             {section.document_groups.map((g) => (
               <div key={g.code}>{g.name}: at least {g.min_required} of these required{g.max_allowed ? `, up to ${g.max_allowed}` : ""}.</div>
             ))}
@@ -526,7 +526,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     if (!referenceId && !wizard) {
       return (
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Cancel</button>
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button>
           <button
             type="button"
             disabled={starting}
@@ -539,19 +539,19 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         </>
       );
     }
-    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Close</button>;
+    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>;
     return (
       <>
         <button
           type="button"
           disabled={activeSection === 0}
           onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
-          className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-slate-500 disabled:opacity-40"
+          className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-40"
         >
           <ArrowLeft size={14} /> Previous
         </button>
         <div className="flex-1" />
-        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">Close</button>
+        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>
         {editable && (
           <button
             type="button"

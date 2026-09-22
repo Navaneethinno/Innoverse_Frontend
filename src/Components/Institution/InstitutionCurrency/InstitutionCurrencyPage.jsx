@@ -84,7 +84,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
             value={narration}
             onChange={(e) => setNarration(e.target.value)}
             placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
           />
         )}
       </ConfirmDialog>
@@ -102,7 +102,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
           ].map(([label, val]) => (
             <div key={label}>
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <div className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold">
+              <div className="mt-1.5 rounded-xl border border-border bg-muted p-3 text-sm font-semibold">
                 {val ?? "—"}
               </div>
             </div>
@@ -378,7 +378,7 @@ function CurrencyForm({
         <textarea
           value={form.narration}
           onChange={set("narration")}
-          className="mt-1.5 min-h-20 w-full rounded-xl border border-slate-200 p-3"
+          className="mt-1.5 min-h-20 w-full rounded-xl border border-border p-3"
         />
       </label>
       <div className="flex justify-end gap-2">
@@ -396,7 +396,7 @@ function CurrencyForm({
               is_draft: true,
             })
           }
-          className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600"
+          className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-slate-600"
         >
           Save as draft
         </button>

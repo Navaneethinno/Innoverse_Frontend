@@ -150,7 +150,7 @@ function groupRowSpans(rows) {
 export function PendingChangesDiff({ data, isLoading, error }) {
   const { t } = useTranslation("common");
   if (isLoading) {
-    return <p className="mt-3 text-xs text-slate-400">{t("loadingRequestedChanges")}</p>;
+    return <p className="mt-3 text-xs text-muted-foreground">{t("loadingRequestedChanges")}</p>;
   }
   if (error) {
     return <p className="mt-3 text-xs text-red-500">{t("couldNotLoadRequestedChanges")}: {error}</p>;
@@ -163,13 +163,13 @@ export function PendingChangesDiff({ data, isLoading, error }) {
   const isAdd = data.pending_action === "ADD";
 
   return (
-    <div className="mt-3 rounded-xl border border-slate-200 overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
-        <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+    <div className="mt-3 rounded-xl border border-border overflow-hidden">
+      <div className="flex items-center justify-between gap-2 border-b border-border bg-muted px-3 py-2">
+        <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
           {isAdd ? t("newRecordRequested") : isDelete ? t("deleteRequested") : t("requestedChanges")}
         </span>
         {data.requested_by && (
-          <span className="text-[11px] text-slate-400">{t("by")} {data.requested_by}</span>
+          <span className="text-[11px] text-muted-foreground">{t("by")} {data.requested_by}</span>
         )}
       </div>
 
@@ -181,11 +181,11 @@ export function PendingChangesDiff({ data, isLoading, error }) {
       )}
 
       {changes.length === 0 ? (
-        <p className="px-3 py-3 text-xs text-slate-400">{t("noFieldLevelChanges")}</p>
+        <p className="px-3 py-3 text-xs text-muted-foreground">{t("noFieldLevelChanges")}</p>
       ) : (
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <tr className="border-b border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               <th className="px-3 py-1.5 text-left">{t("group")}</th>
               <th className="px-3 py-1.5 text-left">{t("field")}</th>
               {!isAdd && <th className="px-3 py-1.5 text-left">{isDelete ? t("currentValue") : t("current")}</th>}
@@ -198,13 +198,13 @@ export function PendingChangesDiff({ data, isLoading, error }) {
               return (
                 <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
                   {span > 0 && (
-                    <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
+                    <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
                       {change.group ? fieldLabel(change.group) : ""}
                     </td>
                   )}
                   <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
                   {!isAdd && (
-                    <td className="whitespace-pre-line px-3 py-1.5 text-slate-500">{displayValue(change.current)}</td>
+                    <td className="whitespace-pre-line px-3 py-1.5 text-muted-foreground">{displayValue(change.current)}</td>
                   )}
                   {!isDelete && (
                     <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary)" }}>{displayValue(change.proposed)}</td>
@@ -279,7 +279,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
   const totalFieldCount = changes.length + unchangedRows.length;
 
   if (isLoading) {
-    return <p className="text-xs text-slate-400">{t("loadingRequestedChanges")}</p>;
+    return <p className="text-xs text-muted-foreground">{t("loadingRequestedChanges")}</p>;
   }
   if (error) {
     return <p className="text-xs text-red-500">{t("couldNotLoadRequestedChanges")}: {error}</p>;
@@ -291,9 +291,9 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <div className="rounded-xl border border-slate-200 overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
-          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+      <div className="rounded-xl border border-border overflow-hidden">
+        <div className="border-b border-border bg-muted px-3 py-2">
+          <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
             {t("lifecycleMetadata")}
           </span>
         </div>
@@ -304,7 +304,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
             [t("requestedTime"), formatMetaTime(data.requested_time)],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-2">
-              <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</dt>
               <UiTooltip label={String(value ?? "")}>
                 <dd className="truncate text-xs font-semibold text-slate-700">
                   {formatMetaValue(value)}
@@ -315,9 +315,9 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         </dl>
       </div>
 
-      <div className="rounded-xl border border-slate-200 overflow-hidden">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2">
-          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+      <div className="rounded-xl border border-border overflow-hidden">
+        <div className="flex items-center justify-between gap-2 border-b border-border bg-muted px-3 py-2">
+          <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
             {t("dataChanges")}
           </span>
           {canShowAll && (
@@ -339,12 +339,12 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
         )}
 
         {rows.length === 0 ? (
-          <p className="px-3 py-3 text-xs text-slate-400">{t("noFieldLevelChanges")}</p>
+          <p className="px-3 py-3 text-xs text-muted-foreground">{t("noFieldLevelChanges")}</p>
         ) : (
           <div className="thin-scrollbar max-h-64 overflow-y-auto overflow-x-auto">
           <table className="w-full min-w-[360px] text-xs">
             <thead>
-              <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <tr className="border-b border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("group")}</th>
                 <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("field")}</th>
                 {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("before")}</th>}
@@ -358,7 +358,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                 return (
                   <tr key={`${row.group}::${row.field}`} className="border-b border-slate-50 last:border-0">
                     {span > 0 && (
-                      <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-slate-400">
+                      <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
                         {row.group ? fieldLabel(row.group) : ""}
                       </td>
                     )}
@@ -370,7 +370,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                             {displayValue(row.current)}
                           </span>
                         ) : (
-                          <span className="text-slate-500">{displayValue(row.current)}</span>
+                          <span className="text-muted-foreground">{displayValue(row.current)}</span>
                         )}
                       </td>
                     )}
@@ -381,7 +381,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                             {displayValue(row.proposed)}
                           </span>
                         ) : (
-                          <span className="text-slate-500">{displayValue(row.proposed)}</span>
+                          <span className="text-muted-foreground">{displayValue(row.proposed)}</span>
                         )}
                       </td>
                     )}

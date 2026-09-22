@@ -86,7 +86,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
   const set = (patch) => setCondition({ ...condition, ...patch });
-  const input = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50";
+  const input = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted";
   if (BOOLEAN_FACTS.has(fact)) {
     return <CheckboxPill checked={Boolean(condition.value_boolean)} onChange={(v) => set({ value_boolean: v })} label="Value is true" disabled={disabled} className="self-start" />;
   }
@@ -515,7 +515,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
       fixedHeight
       footer={
         <>
-          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {readOnly ? "Close" : "Cancel"}
           </button>
           {stepIndex > 0 && (
@@ -596,22 +596,22 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">
                 Minor age (years)
-                <input type="number" min={0} disabled={readOnly} value={basics.minor_age_years} onChange={(e) => setBasic("minor_age_years", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50" />
-                <span className="mt-1 block text-[11px] font-normal text-slate-400">Below this age the IS_MINOR rule fact is true.</span>
+                <input type="number" min={0} disabled={readOnly} value={basics.minor_age_years} onChange={(e) => setBasic("minor_age_years", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Below this age the IS_MINOR rule fact is true.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 Home country
                 <FilterSelect className="mt-1.5" disabled={readOnly} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
-                <span className="mt-1 block text-[11px] font-normal text-slate-400">Required if any rule uses RESIDENCY_STATUS.</span>
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if any rule uses RESIDENCY_STATUS.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 KYC scheme
                 <FilterSelect className="mt-1.5" disabled={readOnly} addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
-                <span className="mt-1 block text-[11px] font-normal text-slate-400">Must be an approved (Active) scheme by the time you submit.</span>
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Must be an approved (Active) scheme by the time you submit.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 Effective from
-                <input type="date" disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50" />
+                <input type="date" disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">
@@ -658,8 +658,8 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
             <div className="flex flex-col gap-4">
               <div className="grid gap-3 sm:grid-cols-3">
                 {summary.map(([label, count]) => (
-                  <div key={label} className="rounded-xl border bg-slate-50 p-3">
-                    <p className="text-xs font-semibold text-slate-500">{label}</p>
+                  <div key={label} className="rounded-xl border bg-muted p-3">
+                    <p className="text-xs font-semibold text-muted-foreground">{label}</p>
                     <p className="text-lg font-black text-slate-800">{count}</p>
                   </div>
                 ))}
@@ -678,7 +678,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
                   )}
                 </div>
               )}
-              {!readOnly && <p className="text-xs text-slate-500">Validate runs the same checks as Submit. Once submitted, the configuration is frozen.</p>}
+              {!readOnly && <p className="text-xs text-muted-foreground">Validate runs the same checks as Submit. Once submitted, the configuration is frozen.</p>}
             </div>
           )}
         </>

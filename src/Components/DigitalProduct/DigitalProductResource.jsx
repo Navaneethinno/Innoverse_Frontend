@@ -72,7 +72,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
       title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
       footer={
         <>
-          <button onClick={onClose} className="px-3 py-2 text-sm font-bold text-slate-500">
+          <button onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {tr("Cancel")}
           </button>
           <button
@@ -446,7 +446,7 @@ export function DigitalProductResource({ entity }) {
       <div className="mb-3 flex items-start justify-between">
         <div>
           <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-muted-foreground">
             {tr("Manage")} {tr(config.title).toLowerCase()} {tr("configuration")}.
           </p>
         </div>
@@ -520,7 +520,7 @@ export function DigitalProductResource({ entity }) {
           <dl className="grid gap-3">
             {config.fields.map(([key, label]) => (
               <div key={key} className="rounded-xl border p-3">
-                <dt className="text-xs text-slate-400">{tr(label)}</dt>
+                <dt className="text-xs text-muted-foreground">{tr(label)}</dt>
                 <dd className="text-sm font-semibold">{String(view[key] ?? "-")}</dd>
               </div>
             ))}
