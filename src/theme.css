@@ -519,15 +519,30 @@ input[type="radio"] {
   accent-color: var(--primary);
 }
 
-/* Belt-and-suspenders alongside the color-scheme declarations up in :root/
-   .dark above: every plain text/number/date/textarea field across the app
-   relied on the browser's own UA-default background (no component sets one
-   itself outside the disabled/.dark states), which is exactly what a
-   browser's forced/automatic dark-mode-for-web-content feature repaints —
-   even on a light page - because there was never an explicit
-   background-color for it to leave alone. var(--card) already resolves to
-   the right color in both themes via the cascade, so this one rule doesn't
-   need a separate .dark copy. */
+/* Neither the color-scheme declarations above nor an explicit
+   background-color on inputs (still below, kept for the normal-rendering
+   path) actually reach the pixels when Windows' own "Contrast themes" /
+   Forced Colors Mode is on (Settings > Accessibility > Contrast themes,
+   or a high-contrast theme carried over from an older Windows version) —
+   forced-colors mode is SPECIFICALLY DEFINED to override author
+   background-color on native form controls (input/select/textarea/button)
+   with the OS's own system colors ("Field", "ButtonFace", ...), which on
+   many Windows contrast themes render as a flat mid-gray, and it does
+   this deliberately regardless of !important. It leaves plain, non-form
+   elements (a div styled to look like a dropdown, e.g. FilterSelect)
+   completely alone, which is exactly the split reported: every real
+   input/select/textarea across totally unrelated pages (Digital Product's
+   Add form, the Customer Onboarding wizard, ...) went the same flat gray
+   while every custom div-based control on the same screen stayed white.
+   forced-color-adjust: none opts an element back out of that substitution
+   so it keeps rendering the app's own theme colors even under forced
+   colors — the standard, documented escape hatch for exactly this. */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  forced-color-adjust: none;
+}
+
 input:not([type="checkbox"]):not([type="radio"]):not(:disabled),
 select:not(:disabled),
 textarea:not(:disabled) {
