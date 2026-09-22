@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -34,6 +34,74 @@ function StatusNotice({ onboarding }) {
   );
 }
 
+// The KYC-level checklist (Customer_Onboarding_API.md §4.3 /
+// Frontend_Changes §3): a customer type pointed at a KYC scheme can be
+// onboarded level by level — the customer reaches the first level with
+// only what it asks, and can come back later for a higher one.
+// Requirements are cumulative (level 3 needs 1-3); limits/capabilities/
+// processes are per level, shown as "what you can do" at the level
+// currently reached.
+function KycLevelPanel({ kyc, onJumpToSection }) {
+  if (!kyc) return null;
+  const levels = kyc.levels ?? [];
+  return (
+    <div className="mb-4 rounded-xl border border-border p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-xs font-bold text-slate-700">{kyc.kyc_group_name ?? "KYC levels"}</span>
+        <span className="text-[11px] text-slate-400">
+          Reached: Level {kyc.current_level_no || 0} · Achieved now: Level {kyc.achieved_level_no || 0}
+        </span>
+      </div>
+      <div className="grid gap-2">
+        {levels.map((level) => (
+          <div
+            key={level.kyc_level_id}
+            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 font-bold text-slate-700">
+                {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-slate-400" />}
+                Level {level.level_no} — {level.kyc_level_name}
+                {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">Entry</span>}
+              </span>
+              <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
+            </div>
+            {level.description && <p className="mt-1 text-[11px] text-slate-500">{level.description}</p>}
+            {level.missing?.length > 0 && (
+              <ul className="mt-1.5 grid gap-1">
+                {level.missing.map((m, i) => (
+                  <li key={i}>
+                    <button
+                      type="button"
+                      onClick={() => m.section_code && onJumpToSection(m.section_code)}
+                      className="text-left text-[11px] font-medium text-amber-700 underline decoration-dotted hover:text-amber-900"
+                    >
+                      {m.message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// "needed for Basic" badge — kyc_level_no on a section/field/document type
+// is the level that first requires it (guide §3.3); `mandatory` on the
+// field itself still means required by the whole form regardless of level.
+function KycLevelBadge({ levelNo, levels }) {
+  if (!levelNo) return null;
+  const level = levels?.find((l) => l.level_no === levelNo);
+  return (
+    <span className="ml-1.5 rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600">
+      needed for {level?.kyc_level_name ?? `Level ${levelNo}`}
+    </span>
+  );
+}
+
 // Runs a customer through the institution's published onboarding
 // configuration, one section at a time, exactly as
 // "Customer Onboarding (Individual) — Frontend Guide" describes it (§1).
@@ -57,6 +125,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitLevel, setSubmitLevel] = useState("");
 
   useEffect(() => {
     if (referenceId) return;
@@ -66,11 +135,19 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
       .catch((error) => notifications.error(error.message));
   }, [referenceId]);
 
+  // Every reply that changes `progress` also re-suggests the level the
+  // customer would be submitted at right now (submit_level_no) — keep the
+  // picker in sync with it rather than a stale choice from before the edit.
+  const applyWizard = (w) => {
+    setWizard(w);
+    if (w?.progress?.submit_level_no) setSubmitLevel(String(w.progress.submit_level_no));
+  };
+
   useEffect(() => {
     if (!referenceId) return;
     setLoading(true);
     loadWizard(referenceId)
-      .then((w) => setWizard(w))
+      .then(applyWizard)
       .catch((error) => notifications.error(error.message))
       .finally(() => setLoading(false));
   }, [referenceId]);
@@ -131,7 +208,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
       });
       if (w?.notice) notifications.info(w.notice);
-      setWizard(w);
+      applyWizard(w);
       setActiveSection(0);
       onChanged?.();
     } catch (error) {
@@ -158,6 +235,11 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   const issueFor = (fieldKey, rowIndex) =>
     section?.issues?.find((i) => i.field === fieldKey && (rowIndex === undefined || i.row === rowIndex))?.message;
 
+  const jumpToSection = (code) => {
+    const idx = sections.findIndex((s) => s.code === code);
+    if (idx >= 0) setActiveSection(idx);
+  };
+
   const persistSection = async () => {
     if (!section) return;
     setSaving(true);
@@ -168,7 +250,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
         data: effectiveDraft,
         expected_updated_time: wizard.onboarding.updated_time,
       });
-      setWizard(w);
+      applyWizard(w);
       notifications.success("Saved");
       onChanged?.();
       // Jump to wherever the server says to go next, when it isn't this one.
@@ -181,7 +263,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
       if (error.conflict) {
         notifications.error(error.message);
         const fresh = await loadWizard(wizard.onboarding.reference_id).catch(() => null);
-        if (fresh) setWizard(fresh);
+        if (fresh) applyWizard(fresh);
       } else {
         notifications.error(error.message);
       }
@@ -193,12 +275,15 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   const submitForApproval = async () => {
     setSubmitting(true);
     try {
-      const response = await customerOnboardingApi.submit({ reference_id: wizard.onboarding.reference_id });
+      const response = await customerOnboardingApi.submit({
+        reference_id: wizard.onboarding.reference_id,
+        ...(wizard.kyc && submitLevel ? { level_no: Number(submitLevel) } : {}),
+      });
       const w = Array.isArray(response?.data) ? response.data[0] : response?.data;
-      if (w) setWizard(w);
+      if (w) applyWizard(w);
       else {
         const fresh = await loadWizard(wizard.onboarding.reference_id).catch(() => null);
-        if (fresh) setWizard(fresh);
+        if (fresh) applyWizard(fresh);
       }
       notifications.success("Submitted for approval");
       onChanged?.();
@@ -252,6 +337,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
           options={fieldOptionsFor(field, row)}
           error={issueFor(field.key, rowIndex)}
           onChange={(v) => setValue(rowIndex, field.key, v)}
+          badge={<KycLevelBadge levelNo={field.kyc_level_no} levels={wizard?.kyc?.levels} />}
         />
       ))}
       {rowIndex !== undefined && editable && (
@@ -338,6 +424,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress.percent}%` }} />
           </div>
         </div>
+        <KycLevelPanel kyc={wizard.kyc} onJumpToSection={jumpToSection} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}
@@ -345,7 +432,10 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
           onStepClick={(index) => setActiveSection(index)}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
-        <h2 className="mb-3 text-sm font-bold text-slate-700">{section.label ?? section.name}</h2>
+        <h2 className="mb-3 flex items-center text-sm font-bold text-slate-700">
+          {section.label ?? section.name}
+          <KycLevelBadge levelNo={section.kyc_level_no} levels={wizard?.kyc?.levels} />
+        </h2>
         {section.document_groups?.length > 0 && (
           <div className="mb-3 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-500">
             {section.document_groups.map((g) => (
@@ -370,18 +460,49 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
           renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
         <StatusNotice onboarding={wizard.onboarding} />
+        {/* With a KYC scheme, ready_to_submit means the level the customer
+            must at least reach is met — not that the whole form is done
+            (guide §3.4). complete=false then just means there's more the
+            customer COULD fill in for a higher level, not that submitting
+            now is blocked. */}
         {editable && wizard.progress.ready_to_submit && (
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
-            <span className="flex items-center gap-2"><Check size={14} /> All required sections are complete.</span>
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => void submitForApproval()}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
-            >
-              {submitting ? <Spinner size={12} /> : <Send size={13} />}
-              Submit for approval
-            </button>
+          <div className="mt-4 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Check size={14} />
+                {wizard.kyc
+                  ? wizard.progress.complete
+                    ? "The whole form is complete."
+                    : "The required KYC level is reached. More can still be filled in for a higher level."
+                  : "All required sections are complete."}
+              </span>
+              <div className="flex items-center gap-2">
+                {wizard.kyc && (
+                  <FilterSelect
+                    className="w-40"
+                    value={submitLevel}
+                    onChange={setSubmitLevel}
+                    options={(wizard.kyc.levels ?? [])
+                      .filter((l) => l.achieved)
+                      .map((l) => ({ value: String(l.level_no), label: `Level ${l.level_no} — ${l.kyc_level_name}` }))}
+                  />
+                )}
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => void submitForApproval()}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                >
+                  {submitting ? <Spinner size={12} /> : <Send size={13} />}
+                  Submit for approval
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {editable && wizard.kyc && !wizard.progress.ready_to_submit && (
+          <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">
+            The required KYC level hasn't been reached yet — fill in what the level stepper above still lists as missing.
           </div>
         )}
       </div>

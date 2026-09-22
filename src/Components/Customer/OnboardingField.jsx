@@ -5,7 +5,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 // (Customer Onboarding (Individual) — Frontend Guide §4.2). `field.input`
 // picks the control; nothing here is hard-coded per field name — a new
 // field the institution configures tomorrow renders correctly today.
-export function OnboardingField({ field, value, onChange, error, options }) {
+export function OnboardingField({ field, value, onChange, error, options, badge }) {
   const disabled = field.read_only;
   const commonInput =
     "w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400" +
@@ -93,6 +93,7 @@ export function OnboardingField({ field, value, onChange, error, options }) {
     return (
       <div>
         {control}
+        {badge}
         {field.help_text && <p className="mt-1 text-[11px] text-slate-400">{field.help_text}</p>}
         {error && <p className="mt-1 text-[11px] font-semibold text-red-500">{error}</p>}
       </div>
@@ -103,6 +104,7 @@ export function OnboardingField({ field, value, onChange, error, options }) {
     <label className="block text-sm font-semibold text-slate-700">
       {field.label}
       {field.mandatory && <span className="text-red-500"> *</span>}
+      {badge}
       <div className="mt-1.5">{control}</div>
       {field.help_text && <p className="mt-1 text-[11px] font-normal text-slate-400">{field.help_text}</p>}
       {error && <p className="mt-1 text-[11px] font-semibold text-red-500">{error}</p>}

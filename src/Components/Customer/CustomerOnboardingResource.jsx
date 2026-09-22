@@ -149,7 +149,12 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
-          {r.kyc_level_name && <div className="text-[11px] text-slate-400">KYC: {r.kyc_level_name}</div>}
+          {r.kyc_level_name && (
+            <div className="text-[11px] text-slate-400">
+              KYC: {r.kyc_level_name}
+              {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? "Verified" : "Pending review"}</span>}
+            </div>
+          )}
         </div>
       ),
     },
