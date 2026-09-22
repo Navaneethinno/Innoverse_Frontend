@@ -111,7 +111,7 @@ function KycLevelBadge({ levelNo, levels }) {
 //
 // `referenceId` (optional) resumes an existing onboarding straight into
 // the section view; otherwise the picker (§2-3) runs first.
-export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
+export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
   const [options, setOptions] = useState(null);
   const [pick, setPick] = useState({ party_type_id: "", ownership_id: "", ownership_sub_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
@@ -154,7 +154,9 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
 
   const sections = wizard?.sections ?? [];
   const section = sections[activeSection];
-  const editable = wizard?.onboarding?.editable !== false;
+  // Opened via the row's View action — no Save/Submit/Add-row controls at
+  // all, regardless of what the onboarding's own editable flag allows.
+  const editable = !forceReadOnly && wizard?.onboarding?.editable !== false;
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes (a fresh reply after save, or switching tabs) — done

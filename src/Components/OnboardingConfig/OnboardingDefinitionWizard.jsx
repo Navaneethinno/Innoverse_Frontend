@@ -160,7 +160,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
 // proposed and rejected.
 const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 
-export function OnboardingDefinitionWizard({ definition, onClose, onSaved }) {
+export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, onClose, onSaved }) {
   const navigate = useNavigate();
   const catalog = useOnboardingCatalog();
   const { masters, countries, residencyTypes, kycGroups, loading: mastersLoading } = useOnboardingMasters();
@@ -174,7 +174,9 @@ export function OnboardingDefinitionWizard({ definition, onClose, onSaved }) {
   const [dirty, setDirty] = useState(false);
 
   const processStatus = Number(def?.process_status ?? 9);
-  const readOnly = Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus);
+  // Opened via the row's View action — no Edit/Save-draft/Submit at all,
+  // regardless of what the record's own status would otherwise allow.
+  const readOnly = forceReadOnly || (Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus));
   const isRejected = processStatus === 5;
 
   useEffect(() => {
@@ -585,7 +587,9 @@ export function OnboardingDefinitionWizard({ definition, onClose, onSaved }) {
           <h2 className="mb-3 text-sm font-bold text-slate-800">{step.label}</h2>
           {readOnly && (
             <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">
-              This configuration is {def?.process_status_name ?? "frozen"} and cannot be changed right now.
+              {forceReadOnly
+                ? "Viewing only."
+                : `This configuration is ${def?.process_status_name ?? "frozen"} and cannot be changed right now.`}
             </p>
           )}
           {step.id === "basics" && (

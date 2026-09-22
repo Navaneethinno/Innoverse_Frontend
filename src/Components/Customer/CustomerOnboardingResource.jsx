@@ -65,7 +65,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
     <>
       <RowActions
         buttons={buttons}
-        onView={() => onOpen(row)}
+        onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
@@ -210,7 +210,7 @@ export function CustomerOnboardingResource() {
           canChangeStatus={can("Change Status")}
           canDelete={can("Delete")}
           onRefresh={load}
-          onOpen={(row) => setWizard({ referenceId: row.reference_id })}
+          onOpen={(row, opts) => setWizard({ referenceId: row.reference_id, forceReadOnly: Boolean(opts?.forceReadOnly) })}
         />
       ),
     },
@@ -273,6 +273,7 @@ export function CustomerOnboardingResource() {
       {wizard && (
         <CustomerOnboardingWizard
           referenceId={wizard.referenceId}
+          forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
           onChanged={() => void load()}
         />

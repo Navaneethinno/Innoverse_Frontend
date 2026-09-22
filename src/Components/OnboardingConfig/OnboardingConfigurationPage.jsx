@@ -80,7 +80,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
     <div className="flex items-center justify-center gap-1">
       <RowActions
         buttons={buttons}
-        onView={() => onOpen(row)}
+        onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
         onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
@@ -298,7 +298,12 @@ export function OnboardingConfigurationPage() {
       label: "Actions",
       sortable: false,
       render: (r) => (
-        <DefinitionRowActions row={r} can={can} onOpen={(row) => setWizard({ definition: row })} onRefresh={load} />
+        <DefinitionRowActions
+          row={r}
+          can={can}
+          onOpen={(row, opts) => setWizard({ definition: row, forceReadOnly: Boolean(opts?.forceReadOnly) })}
+          onRefresh={load}
+        />
       ),
     },
   ];
@@ -413,6 +418,7 @@ export function OnboardingConfigurationPage() {
       {wizard && (
         <OnboardingDefinitionWizard
           definition={wizard.definition}
+          forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
           onSaved={() => void load()}
         />
