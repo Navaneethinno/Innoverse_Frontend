@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Eye, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { RowActions } from "@/Components/Common/RowActions";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+import { AuditModal } from "@/Components/Common/AuditModal";
+import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
@@ -14,6 +19,7 @@ import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import {
   masterApis,
   onboardingDefinitionApi,
+  onboardingVersionApi,
   onboardingVersionOps,
   rowsOf,
 } from "@/Services/Onboarding/onboarding.api";
@@ -21,21 +27,139 @@ import { useMenuPermission } from "./LifecycleList";
 import { useOnboardingCatalog } from "./onboardingHooks";
 import { OnboardingVersionWizard } from "./OnboardingVersionWizard";
 
-// Customer-type definitions (Onboarding_Configuration_API.md §2): the
-// identity of a customer type (party type × ownership × sub type). A
-// definition itself has no maker-checker — the row instead carries its
-// LATEST VERSION's own lifecycle (`status`/`process_status`/`auth_status`,
-// each with its `_name`), so each row's button reflects where that version
-// stands. `process_status` 10 = no version created yet.
-function nextAction(row) {
+const pendingApi = ({ id }) => onboardingVersionApi.pending({ id });
+
+// The row's action buttons are the LATEST VERSION's own maker-checker
+// lifecycle (Onboarding_Configuration_API.md §2), routed to the
+// onboarding_version verbs with id = latest_version_id — the exact same
+// RowActions/getMakerCheckerButtons() every other maker-checker list uses,
+// not a one-off button. Two cases fall outside that vocabulary because
+// there is no acted-on version content yet, or editing in place no longer
+// applies:
+//  - no version at all yet (process_status 10) -> just "Create first
+//    version", nothing to run RowActions against.
+//  - the latest version is Active -> further changes go through a new
+//    version, not an in-place edit, so Edit is suppressed and a "New
+//    version" button (same icon/tooltip pattern as Create) sits alongside
+//    the still-valid Audit/Deactivate/Delete.
+function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh, starting }) {
+  const [action, setAction] = useState(null); // { method, label }
+  const [audit, setAudit] = useState(false);
+  const [narration, setNarration] = useState("");
+  const [working, setWorking] = useState(false);
   const latest = row.latest_version_id;
-  const state = Number(row.process_status);
-  if (!latest || state === 10) return { label: "Create first version", kind: "create", icon: Plus, tone: "submit" };
-  if (state === 9) return { label: "Edit draft", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
-  if (state === 5) return { label: "Fix rejected", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
-  if ([2, 3, 4, 11, 14].includes(state))
-    return { label: "Awaiting approval", kind: "open", versionId: latest, icon: Eye, tone: "view" };
-  return { label: "New version", kind: "new", icon: RefreshCw, tone: "submit" };
+  const noVersionYet = !latest || Number(row.process_status) === 10;
+
+  const buttons = getMakerCheckerButtons(row, {
+    canAdd: can("Add"),
+    canEdit: can("Edit"),
+    canAuthorize: can("Authorize"),
+    canChangeStatus: can("Deactivate") || can("Reactivate"),
+    canDelete: can("Delete"),
+  });
+  const isActive = String(row.status_name).toUpperCase() === "ACTIVE" && String(row.process_status_name).toUpperCase() === "ACTIVE";
+  if (isActive) buttons.edit = false;
+
+  const pendingInfo = usePendingChanges(pendingApi, latest, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
+
+  if (noVersionYet) {
+    return (
+      <UiTooltip label="Create first version">
+        <button
+          type="button"
+          disabled={starting}
+          onClick={() => onNewVersion(row)}
+          className={`${actionButtonClass("submit")} disabled:opacity-50`}
+        >
+          {starting ? <Spinner size={14} /> : <Plus size={14} />}
+        </button>
+      </UiTooltip>
+    );
+  }
+
+  const execute = async () => {
+    if (action.method === "deauth" && !narration.trim()) {
+      notifications.error("A reason is required to reject this");
+      return;
+    }
+    setWorking(true);
+    try {
+      const payload = { id: latest, ...(narration.trim() ? { narration: narration.trim() } : {}) };
+      const response = await onboardingVersionApi[action.method](payload);
+      notifications.success(apiMessage(response, `${action.label} successful`));
+      await onRefresh();
+      setAction(null);
+      setNarration("");
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+
+  const pendingMethod = buttons.isPendingDelete ? "deleteAuth" : "auth";
+  return (
+    <div className="flex items-center justify-center gap-1">
+      <RowActions
+        buttons={buttons}
+        onView={!buttons.edit ? () => onOpen(row) : undefined}
+        onEdit={buttons.edit ? () => onOpen(row) : undefined}
+        onAudit={() => setAudit(true)}
+        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
+        onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
+        onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
+        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
+        onReactivate={() => setAction({ method: "reactivate", label: "Reactivate" })}
+        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+      />
+      {isActive && can("Add") && (
+        <UiTooltip label="New version">
+          <button
+            type="button"
+            disabled={starting}
+            onClick={() => onNewVersion(row)}
+            className={`${actionButtonClass("submit")} disabled:opacity-50`}
+          >
+            {starting ? <Spinner size={14} /> : <RefreshCw size={14} />}
+          </button>
+        </UiTooltip>
+      )}
+      <ConfirmDialog
+        open={!!action}
+        title={`${action?.label ?? "Action"} version`}
+        confirmLabel={action?.label}
+        destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
+        pending={working}
+        confirmDisabled={action?.method === "deauth" && !narration.trim()}
+        onClose={() => setAction(null)}
+        onConfirm={() => void execute()}
+      >
+        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        <textarea
+          value={narration}
+          onChange={(e) => setNarration(e.target.value)}
+          placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
+          className="mt-3 min-h-20 w-full rounded-xl border border-slate-200 p-3 text-sm"
+        />
+      </ConfirmDialog>
+      {audit && (
+        <AuditModal
+          title={`${row.name} — ${row.latest_version_name ?? `v${row.latest_version_no}`}`}
+          fields={[
+            ["version_no", "Version"],
+            ["minor_age_years", "Minor age"],
+          ]}
+          onClose={() => setAudit(false)}
+          fetchAudit={(page, limit) =>
+            onboardingVersionApi.audit({ id: latest, page, limit }).then((r) => ({
+              entries: Array.isArray(r?.data) ? r.data : [],
+              totalPages: r?.pagination?.totalPages ?? 1,
+            }))
+          }
+        />
+      )}
+    </div>
+  );
 }
 
 const emptyForm = { code: "", name: "", description: "", combination: "", ownership_sub_type_id: "" };
@@ -133,28 +257,30 @@ export function OnboardingConfigurationPage() {
     }
   };
 
-  const act = async (row) => {
-    const next = nextAction(row);
-    if (next.kind === "open") {
-      setWizard({ definition: row, versionId: next.versionId });
-    } else if (next.kind === "create") {
+  const openLatest = (row) => setWizard({ definition: row, versionId: row.latest_version_id ?? null });
+
+  const startNewVersion = async (row) => {
+    // No version at all yet: nothing to copy from — the wizard creates the
+    // draft itself on its first Next (see OnboardingVersionWizard).
+    if (!row.latest_version_id || Number(row.process_status) === 10) {
       setWizard({ definition: row, versionId: null });
-    } else {
-      // Next version starts as a copy of the Active one (guide §10).
-      setStarting(row.id);
-      try {
-        const response = await onboardingVersionOps.newVersion({
-          definition_id: row.id,
-          copy_from_version_id: row.active_version_id,
-          narration: "New version",
-        });
-        setWizard({ definition: row, versionId: rowsOf(response)[0]?.id ?? null });
-        await load();
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setStarting(null);
-      }
+      return;
+    }
+    // Otherwise the latest (Active) version's content seeds the new one
+    // (guide §10).
+    setStarting(row.id);
+    try {
+      const response = await onboardingVersionOps.newVersion({
+        definition_id: row.id,
+        copy_from_version_id: row.active_version_id,
+        narration: "New version",
+      });
+      setWizard({ definition: row, versionId: rowsOf(response)[0]?.id ?? null });
+      await load();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setStarting(null);
     }
   };
 
@@ -230,24 +356,16 @@ export function OnboardingConfigurationPage() {
       key: "actions",
       label: "Actions",
       sortable: false,
-      render: (r) => {
-        const next = nextAction(r);
-        const Icon = next.icon;
-        return (
-          <div className="flex items-center justify-center gap-1">
-            <UiTooltip label={next.label}>
-              <button
-                type="button"
-                disabled={starting === r.id || (!can("Add") && next.kind !== "open")}
-                onClick={() => void act(r)}
-                className={`${actionButtonClass(next.tone)} disabled:opacity-50`}
-              >
-                {starting === r.id ? <Spinner size={14} /> : <Icon size={14} />}
-              </button>
-            </UiTooltip>
-          </div>
-        );
-      },
+      render: (r) => (
+        <DefinitionRowActions
+          row={r}
+          can={can}
+          starting={starting === r.id}
+          onOpen={openLatest}
+          onNewVersion={(row) => void startNewVersion(row)}
+          onRefresh={load}
+        />
+      ),
     },
   ];
 
