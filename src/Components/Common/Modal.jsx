@@ -36,6 +36,23 @@ export function Modal({
   // instead of growing/shrinking with each step's field count — only the
   // content area (already flex-1 + overflow-y-auto below) scrolls.
   fixedHeight = false,
+  // Opt-in only, for the same reason. The default body (flex-1 +
+  // min-h-0 + overflow-y-auto, capped by the modal's own max-h-[85vh])
+  // relies on the browser sizing that inner scroll box to exactly its
+  // content — which held up in every other modal, but on at least one
+  // step of the Digital Product wizard (a couple of fields plus their
+  // showIf-revealed followers) users kept seeing dead space at the
+  // bottom of that scroll box even after scrolling all the way down,
+  // i.e. its scrollHeight ended up taller than what was actually
+  // rendered inside it. Rather than keep guessing at what inflates that
+  // one box, growWithContent removes the separate scroll region
+  // entirely: the modal has no max-height of its own and just grows to
+  // fit its content, and the BACKDROP scrolls instead if that ever
+  // exceeds the viewport. With no inner box to mismeasure, this class of
+  // bug can't happen structurally — the trade-off is that the footer is
+  // guaranteed to sit immediately after the last field, but is only
+  // guaranteed to be on-screen without scrolling when the step fits.
+  growWithContent = false,
 }) {
   // No modal in this codebase locked background scroll before — added here
   // once, in the shared shell, rather than each caller (or the Digital
@@ -101,7 +118,10 @@ export function Modal({
   return createPortal(
     (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm"
+      className={cn(
+        "fixed inset-0 z-50 flex justify-center bg-slate-900/40 p-4 backdrop-blur-sm",
+        growWithContent ? "items-start overflow-y-auto" : "items-center",
+      )}
       onClick={onClose}
       role="presentation"
     >
@@ -120,7 +140,8 @@ export function Modal({
           // body's own overflow-y-auto taking over from there) while letting
           // a short step's modal shrink-wrap its actual content instead of
           // padding out to the same height as the tallest step.
-          "max-h-[85vh]",
+          !growWithContent && "max-h-[85vh]",
+          growWithContent && "my-4",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}
@@ -151,14 +172,23 @@ export function Modal({
         </div>
 
         <div
-          className={cn("thin-scrollbar min-h-0 flex-1 overflow-y-auto px-5 py-4", bodyClassName)}
+          className={cn(
+            "thin-scrollbar px-5 py-4",
+            growWithContent ? "overflow-visible" : "min-h-0 flex-1 overflow-y-auto",
+            bodyClassName,
+          )}
           onScroll={onBodyScroll}
         >
           {children}
         </div>
 
         {footer && (
-          <div className="sticky bottom-0 flex shrink-0 items-center justify-end gap-2 border-t border-border bg-muted/80 px-5 py-3">
+          <div
+            className={cn(
+              "flex shrink-0 items-center justify-end gap-2 border-t border-border bg-muted/80 px-5 py-3",
+              !growWithContent && "sticky bottom-0",
+            )}
+          >
             {footer}
           </div>
         )}

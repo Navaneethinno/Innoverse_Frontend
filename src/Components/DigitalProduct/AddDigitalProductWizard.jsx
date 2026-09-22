@@ -134,6 +134,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       onClose={onClose}
       title={tr("Add Digital Product")}
       size="full"
+      growWithContent
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
