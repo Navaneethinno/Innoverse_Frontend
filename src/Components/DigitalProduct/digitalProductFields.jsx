@@ -19,9 +19,12 @@ export const CONFIGS = {
       ["name", "Name", "text"],
       ["description", "Description", "textarea"],
       ["multiple_accounts_allowed", "Multiple accounts allowed", "boolean"],
-      ["max_accounts", "Maximum accounts", "number"],
+      // Only meaningful once "Multiple accounts/cards allowed" is on — shown
+      // only then instead of an always-visible field nobody can explain the
+      // point of until they've already ticked the checkbox below it.
+      ["max_accounts", "Maximum accounts", "number", (v) => Boolean(v.multiple_accounts_allowed)],
       ["multiple_cards_allowed", "Multiple cards allowed", "boolean"],
-      ["max_cards", "Maximum cards", "number"],
+      ["max_cards", "Maximum cards", "number", (v) => Boolean(v.multiple_cards_allowed)],
     ],
     deactivate: true,
   },

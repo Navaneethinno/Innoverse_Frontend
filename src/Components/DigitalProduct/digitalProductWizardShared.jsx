@@ -260,7 +260,9 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
   const tr = useConfigLabel();
   return (
     <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {splitFieldsIntoColumns(orderedFields(CONFIGS[entity].fields)).map((columnFields, columnIndex) => (
+      {splitFieldsIntoColumns(
+        orderedFields(CONFIGS[entity].fields).filter(([, , , showIf]) => !showIf || showIf(values)),
+      ).map((columnFields, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-4">
           {columnFields.map(([key, label, type]) =>
             type === "boolean" ? (

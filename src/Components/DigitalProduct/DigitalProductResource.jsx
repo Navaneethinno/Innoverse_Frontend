@@ -105,7 +105,9 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         }}
         className="grid gap-4"
       >
-        {orderedFields(config.fields).map(([key, label, type]) =>
+        {orderedFields(config.fields)
+          .filter(([, , , showIf]) => !showIf || showIf(value))
+          .map(([key, label, type]) =>
           type === "boolean" ? (
             <CheckboxPill
               key={key}
