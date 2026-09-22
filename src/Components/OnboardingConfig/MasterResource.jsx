@@ -111,6 +111,22 @@ const CONFIGS = {
 const apiCache = {};
 const apiFor = (name) => (apiCache[name] ??= baseMasterApis[name] ?? createLifecycle(CONFIGS[name].base));
 
+// While a Draft edit is staged, the live /list row is intentionally left
+// untouched (the staged values only exist in a new /audit row until a
+// checker approves) — reopening Edit straight off the /list row therefore
+// always showed the pre-edit values. The newest audit row (audit is
+// newest-first) holds what was actually staged.
+async function draftAwareRow(api, row) {
+  if (String(row?.process_status_name ?? "").trim().toUpperCase() !== "DRAFT") return row;
+  try {
+    const response = await api.audit({ id: row.id, page: 1, limit: 1 });
+    const latest = (Array.isArray(response?.data) ? response.data : response?.data?.data ?? [])[0];
+    return latest ? { ...row, ...latest } : row;
+  } catch {
+    return row;
+  }
+}
+
 export function MasterResource({ entity }) {
   const config = CONFIGS[entity];
   const api = apiFor(entity);
@@ -173,7 +189,11 @@ export function MasterResource({ entity }) {
     }
   };
 
-  const openEdit = (row) => setForm({ ...row, editingRow: row });
+  const openEdit = (row) =>
+    void (async () => {
+      const e = await draftAwareRow(api, row);
+      setForm({ ...e, editingRow: row });
+    })();
 
   return (
     <>

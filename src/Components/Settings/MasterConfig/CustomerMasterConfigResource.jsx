@@ -85,6 +85,25 @@ const CONFIGS = {
 
 const idOf = (row) => row?.id;
 const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
+
+// While a Draft edit is staged, the live /list row is intentionally left
+// untouched (the backend only writes the staged values into a new /audit
+// row, so a checker can later diff current vs proposed) — reopening Edit
+// straight off the /list row therefore always showed the pre-edit values,
+// making a staged edit look lost. The newest audit row (audit is
+// newest-first) holds what was actually staged; a plain Active row with no
+// Draft in progress needs no extra call and keeps using the /list row as
+// before.
+async function draftAwareRow(api, row) {
+  if (String(row?.process_status_name ?? "").trim().toUpperCase() !== "DRAFT") return row;
+  try {
+    const response = await api.audit({ id: idOf(row), page: 1, limit: 1 });
+    const latest = rowsOf(response)[0];
+    return latest ? { ...row, ...latest } : row;
+  } catch {
+    return row;
+  }
+}
 const allowed = (menus, action, menuName) =>
   (menus ?? []).some(
     (m) =>
@@ -283,11 +302,14 @@ export function CustomerMasterConfigResource({ entity }) {
           <RowActions
             buttons={buttons}
             onView={() => setView(row)}
-            onEdit={() => {
-              setForm({ code: row.code ?? "", name: row.name ?? "", description: row.description ?? "", ownership_id: row.ownership_id ?? "", category: row.category ?? "" });
-              setEditing(row);
-              setOpen(true);
-            }}
+            onEdit={() =>
+              void (async () => {
+                const e = await draftAwareRow(config.api, row);
+                setForm({ code: e.code ?? "", name: e.name ?? "", description: e.description ?? "", ownership_id: e.ownership_id ?? "", category: e.category ?? "" });
+                setEditing(row);
+                setOpen(true);
+              })()
+            }
             onAudit={() => setAudit(row)}
             onSubmit={() => setAction({ type: "submit", row, label: "Submit", reason: "" })}
             onAuthorize={() => setAction({ type: pendingType, row, label: "Authorize", reason: "" })}
