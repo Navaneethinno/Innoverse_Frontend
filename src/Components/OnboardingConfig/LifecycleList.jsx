@@ -35,10 +35,12 @@ export function useMenuPermission(menuName) {
   );
 }
 
-// Status is shown as process status + authorization status; the plain
-// `status` column repeats the process status for almost every row and only
-// made the table wide enough to push Actions off-screen.
+// Status/Process Status/Authorization Status as three separate columns —
+// the same convention every other maker-checker list in the app uses
+// (Institution Branding/Channel, Onboarding Configuration, Customer
+// Onboarding, ...).
 const STATUS_COLUMNS = [
+  { key: "status_name", label: "Status", render: (row) => <StatusBadge status={String(row.status_name ?? "-")} /> },
   { key: "process_status_name", label: "Process Status", render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} /> },
   { key: "auth_status", label: "Authorization Status", render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} /> },
 ];
