@@ -169,6 +169,7 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
+          <div className="text-[11px] text-slate-400">Step: {r.current_step ?? "-"}</div>
           {r.kyc_level_name && (
             <div className="text-[11px] text-slate-400">
               KYC: {r.kyc_level_name}
@@ -178,7 +179,6 @@ export function CustomerOnboardingResource() {
         </div>
       ),
     },
-    { key: "current_step", label: "Step" },
     {
       key: "status_name",
       label: "Status",
@@ -186,8 +186,13 @@ export function CustomerOnboardingResource() {
     },
     {
       key: "process_status_name",
-      label: "Process status",
+      label: "Process Status",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
     },
     { key: "updated_time", label: "Last activity", render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "-") },
     {
