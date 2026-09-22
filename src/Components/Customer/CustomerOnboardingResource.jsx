@@ -119,7 +119,6 @@ export function CustomerOnboardingResource() {
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [pendingOnly, setPendingOnly] = useState(false);
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -128,7 +127,7 @@ export function CustomerOnboardingResource() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await customerOnboardingApi.list({ page, limit, ...(pendingOnly ? { pending_only: true } : {}) });
+      const response = await customerOnboardingApi.list({ page, limit });
       setRows(onboardingRowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -136,7 +135,7 @@ export function CustomerOnboardingResource() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, pendingOnly]);
+  }, [page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -217,29 +216,15 @@ export function CustomerOnboardingResource() {
     },
   ];
 
-  const addAction = (
-    <div className="flex items-center gap-1.5">
-      <button
-        type="button"
-        onClick={() => {
-          setPendingOnly((v) => !v);
-          setPage(1);
-        }}
-        className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold ${pendingOnly ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-100"}`}
-      >
-        Waiting for me
-      </button>
-      {can("Add") && (
-        <button
-          type="button"
-          onClick={() => setWizard({ referenceId: null })}
-          className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
-        >
-          <Plus size={14} /> New onboarding
-        </button>
-      )}
-    </div>
-  );
+  const addAction = can("Add") ? (
+    <button
+      type="button"
+      onClick={() => setWizard({ referenceId: null })}
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+    >
+      <Plus size={14} /> New onboarding
+    </button>
+  ) : null;
 
   return (
     <div className="pt-1 pb-6">
