@@ -1,10 +1,12 @@
 import {
   AlertTriangle,
   BadgeCheck,
+  Boxes,
   Bot,
   Building2,
   CircleDollarSign,
   ClipboardList,
+  Compass,
   CreditCard,
   Database,
   FileText,
@@ -22,13 +24,16 @@ import {
   Palette,
   Radio,
   RefreshCcw,
+  Settings2,
   ShieldAlert,
   ShieldCheck,
+  SlidersHorizontal,
   Store,
   Truck,
   UserRound,
   UsersRound,
   Wallet,
+  Wand2,
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
@@ -67,12 +72,21 @@ const MENU_ICON_RULES = [
   [/currency|money/i, CircleDollarSign],
   [/profile|role/i, BadgeCheck],
   [/module/i, LayoutGrid],
+  // Onboarding's own sub-pages, same reason as Institution above: each one
+  // contains the word "onboarding" too, so they must be matched before any
+  // catch-all for it.
+  [/onboarding wizard/i, Wand2],
+  [/onboarding configuration/i, SlidersHorizontal],
+  [/onboarding master/i, Database],
+  [/^onboarding$/i, Compass],
+  [/digital product/i, Boxes],
   [/institution/i, Landmark],
   [/user management|users?$/i, UsersRound],
   [/password|credential/i, KeyRound],
   [/kyc|identity/i, Fingerprint],
   [/epurse|wallet/i, Wallet],
   [/settings?/i, FolderCog],
+  [/^configuration$/i, Settings2],
   [/master/i, Database],
   [/province|state|region/i, MapPinned],
   [/district|branch/i, Building2],
