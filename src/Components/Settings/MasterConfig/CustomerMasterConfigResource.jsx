@@ -18,7 +18,6 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import {
   maritalStatusApi,
@@ -135,7 +134,7 @@ export function CustomerMasterConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(config.endpoint.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(config.endpoint.LIST, () => void load());
 
   const visible = useMemo(
     () =>

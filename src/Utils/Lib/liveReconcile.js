@@ -16,19 +16,19 @@
 // entity in this app.
 export const STATUS_DELETED = 8;
 
-// `insertNew: false` for a server-paginated view: a record this tab has
-// never fetched (new record, or one that just moved onto some other page)
-// can't be correctly slotted into "the current page" without replicating
-// the server's own sort/pagination — the guide's own §3 says to just
-// ignore a changed record that wouldn't belong on the current page/filter
-// rather than guess. Updates/removals of rows already on the current page
-// still apply instantly either way; only blind inserts are skipped.
+// `insertNew: false` was tried for server-paginated views, on the theory
+// that a record this tab has never fetched can't be correctly slotted into
+// "the current page" without replicating the server's own sort/pagination.
+// In practice that meant a genuinely new record's `changed` push was
+// silently dropped for every server-paginated list in the app (confirmed
+// live: the socket frame arrived, nothing on screen changed) — every one
+// of those call sites now refetches instead (see useLiveChannel usages in
+// userHooks.js, institutionHooks.js, CustomerMasterConfigResource.jsx,
+// etc.), which is correct regardless of page/sort/search. `insertNew`
+// stays available (default true) for a caller like useEntityListQuery.js
+// that already holds every page in memory, where a blind insert is safe.
 // `rowKey` may be a plain field name (the common case, "id") or a resolver
-// function for entities whose identity isn't a bare `id` field — e.g.
-// Users/Profiles/Institutions, whose list rows key off userId(row)/
-// profileId(row)/institutionId(row) fallback chains (`user_id ?? id`, ...)
-// instead, matching whatever each page already passes as DataTable's own
-// rowKey prop.
+// function for entities whose identity isn't a bare `id` field.
 export function reconcileRecords(prevRows, records, { rowKey = "id", insertNew = true } = {}) {
   const keyOf = typeof rowKey === "function" ? rowKey : (row) => row?.[rowKey];
   let next = prevRows;
@@ -48,13 +48,4 @@ export function reconcileRecords(prevRows, records, { rowKey = "id", insertNew =
     }
   }
   return next;
-}
-
-// Convenience wrapper for the common case: a component holding its list in
-// `setRows` state just wants each live push folded straight in. Matches
-// useLiveChannel's own onChanged(action, records) signature directly (the
-// action name is deliberately unused here — see reconcileRecords above for
-// why removal is keyed off record.status instead).
-export function reconcileSetter(setRows, options) {
-  return (_action, records) => setRows((prev) => reconcileRecords(prev ?? [], records, options));
 }

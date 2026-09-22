@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/Users/users.api";
-import { userId } from "@/Components/UserManagement/User/UserForm";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -111,18 +109,12 @@ export function useUsersQuery(params) {
       [page, limit, search, status],
     ),
   );
-  // Reconciled in place instead of refetching (Live Updates guide §3) —
-  // insertNew: false since this list is server-paginated/filtered (see
-  // AcctConfigResource.jsx's identical reasoning).
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, (_action, records) => {
-    query.setData((current) => {
-      const mappedCurrent = mapUserListResponse(current);
-      return {
-        data: reconcileRecords(mappedCurrent.users, records, { insertNew: false, rowKey: userId }),
-        pagination: mappedCurrent.pagination,
-      };
-    });
-  });
+  // Refetch on every live push rather than reconciling in place — the
+  // in-place merge (insertNew: false) silently dropped brand-new records
+  // pushed by another user/tab entirely (confirmed live: the socket frame
+  // arrived, nothing changed on screen until a manual refresh). A refetch
+  // is always correct regardless of page/sort/search.
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, () => void query.refetch());
   const mapped = mapUserListResponse(query.data);
   return { ...query, data: mapped.users, pagination: mapped.pagination };
 }

@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -31,7 +30,7 @@ export function AccountPurpose() {
   const tr = useConfigLabel();
   const menus = useSelector((s) => s.menu.menuArray); const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
   const can = (a) => hasPermission(menus, a); const load = useCallback(async () => { setLoading(true); try { const r = await accountPurposeApi.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit]); useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.ACCOUNT_PURPOSE.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.ACCOUNT_PURPOSE.LIST, () => void load());
   const pendingInfo = usePendingChanges(accountPurposeApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (isDraft) => { if (!form.name.trim()) return notifications.error("Account purpose name is required"); setSaving(true); try { const payload = { ...form, is_draft: isDraft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const r = await (editing ? accountPurposeApi.edit(payload) : accountPurposeApi.add(payload)); notifications.success(apiMessage(r, "Account purpose saved")); setOpen(false); setEditing(null); setForm(empty()); void load(); } catch (e) { notifications.error(e.message); } finally { setSaving(false); } };

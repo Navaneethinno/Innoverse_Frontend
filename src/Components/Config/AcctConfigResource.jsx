@@ -17,7 +17,6 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { configKycApi } from "@/Services/Config/config.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import {
@@ -523,13 +522,14 @@ export function AcctConfigResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  // Reconcile in place instead of refetching (Live Updates guide §3) — the
-  // list is server-paginated, so a brand-new record can't be correctly
-  // slotted into "this page" without asking the server; only updates to
-  // rows already visible on the current page apply instantly.
+  // Refetch on every live push rather than reconciling in place — the
+  // in-place merge previously used (insertNew: false) silently dropped
+  // brand-new records from another user/tab entirely (confirmed live: the
+  // socket frame arrived, but nothing changed on screen until a manual
+  // refresh). A refetch is always correct regardless of page/sort/search.
   useLiveChannel(
     API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST,
-    reconcileSetter(setRows, { insertNew: false }),
+    () => void load(),
   );
   const visible = useMemo(
     () =>

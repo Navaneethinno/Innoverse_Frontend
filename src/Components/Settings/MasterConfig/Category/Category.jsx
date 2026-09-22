@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -29,7 +28,7 @@ export function Category() {
   const tr = useConfigLabel();
   const menus = useSelector((s) => s.menu.menuArray); const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
   const can = (a) => allowed(menus, a); const load = useCallback(async () => { setLoading(true); try { const r = await categoryApi.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit]); useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.CATEGORY.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.CATEGORY.LIST, () => void load());
   const pendingInfo = usePendingChanges(categoryApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (isDraft) => { if (!form.name.trim()) return notifications.error("Category name is required"); setSaving(true); try { const p = { ...form, is_draft: isDraft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const r = await (editing ? categoryApi.edit(p) : categoryApi.add(p)); notifications.success(apiMessage(r, "Category saved")); setOpen(false); setEditing(null); setForm(empty()); void load(); } catch (e) { notifications.error(e.message); } finally { setSaving(false); } };

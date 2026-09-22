@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -32,7 +31,7 @@ export function Village() {
   const canAdd = usePermission("Add"), canEdit = usePermission("Edit"), canDelete = usePermission("Delete"), canAuthorize = usePermission("Authorize"), canSubmit = usePermission("Submit"), canDeactivate = usePermission("Deactivate"), canReactivate = usePermission("Reactivate");
   const load = useCallback(async () => { setLoading(true); try { const r = await villageApi.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit]);
   useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.VILLAGE.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.VILLAGE.LIST, () => void load());
   const pendingInfo = usePendingChanges(villageApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type)); useEffect(() => { districtApi.getActive().then((r) => setDistricts(rowsOf(r))).catch((e) => notifications.error(e.message)); }, []);
   const filtered = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (draft) => { const districtId = Number(form.district_id); if (!form.name.trim() || !Number.isInteger(districtId) || districtId <= 0) return notifications.error("District and village name are required"); setSaving(true); try { const payload = { ...form, district_id: districtId, is_draft: draft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const r = await (editing ? villageApi.edit(payload) : villageApi.add(payload)); notifications.success(apiMessage(r, "Village saved")); setFormOpen(false); setEditing(null); setForm(empty()); void load(); } catch (e) { notifications.error(e.message); } finally { setSaving(false); } };

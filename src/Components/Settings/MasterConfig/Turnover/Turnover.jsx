@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -30,7 +29,7 @@ export function Turnover() {
   const tr = useConfigLabel();
   const menus = useSelector((s) => s.menu.menuArray); const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
   const can = (a) => allowed(menus, a); const load = useCallback(async () => { setLoading(true); try { const r = await turnoverApi.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit]); useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.TURNOVER.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.TURNOVER.LIST, () => void load());
   const pendingInfo = usePendingChanges(turnoverApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && `${r.name ?? ""} ${r.min_value ?? ""} ${r.max_value ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (isDraft) => { if (!form.name.trim() || (form.min_value !== "" && form.max_value !== "" && Number(form.min_value) > Number(form.max_value))) return notifications.error("Name is required and minimum value cannot exceed maximum value"); setSaving(true); try { const p = { ...form, min_value: form.min_value === "" ? null : Number(form.min_value), max_value: form.max_value === "" ? null : Number(form.max_value), is_draft: isDraft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const r = await (editing ? turnoverApi.edit(p) : turnoverApi.add(p)); notifications.success(apiMessage(r, "Turnover saved")); setOpen(false); setEditing(null); setForm(empty()); void load(); } catch (e) { notifications.error(e.message); } finally { setSaving(false); } };

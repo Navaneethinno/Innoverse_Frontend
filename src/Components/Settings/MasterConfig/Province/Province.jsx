@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -34,7 +33,7 @@ export function Province() {
   const canAdd = usePermission("Add"), canEdit = usePermission("Edit"), canDelete = usePermission("Delete"), canAuthorize = usePermission("Authorize"), canSubmit = usePermission("Submit"), canDeactivate = usePermission("Deactivate"), canReactivate = usePermission("Reactivate");
   const load = useCallback(async () => { setLoading(true); try { const r = await provinceApi.list({ page, limit }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit]);
   useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.PROVINCE.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.PROVINCE.LIST, () => void load());
   const pendingInfo = usePendingChanges(provinceApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const filtered = useMemo(() => rows.filter((r) => (tab === "all" || statusBucket(r) === tab) && `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (isDraft) => { if (!form.name.trim()) return notifications.error("Province name is required"); setSaving(true); try { const payload = { ...form, is_draft: isDraft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const r = await (editing ? provinceApi.edit(payload) : provinceApi.add(payload)); notifications.success(apiMessage(r, "Province saved")); setFormOpen(false); setEditing(null); setForm(empty()); void load(); } catch (e) { notifications.error(e.message); } finally { setSaving(false); } };

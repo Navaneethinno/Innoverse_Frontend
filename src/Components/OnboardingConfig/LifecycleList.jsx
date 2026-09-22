@@ -14,7 +14,6 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { rowsOf } from "@/Services/Onboarding/onboarding.api";
 import { useAuth } from "@/Hooks/useAuth";
 
@@ -109,7 +108,7 @@ export function LifecycleList({
   useEffect(() => {
     void load();
   }, [load, reloadKey]);
-  useLiveChannel(api.listPath, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(api.listPath, () => void load());
 
   const visible = useMemo(
     () =>

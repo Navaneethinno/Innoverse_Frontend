@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -34,7 +33,7 @@ export function Gender() {
   const tr = useConfigLabel();
   const menus = useSelector((state) => state.menu.menuArray); const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
   const can = (name) => canAction(menus, name); const load = useCallback(async () => { setLoading(true); try { const response = await genderApi.list({ page, limit }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit]); useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.GENDER.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.GENDER.LIST, () => void load());
   const pendingInfo = usePendingChanges(genderApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((row) => (tab === "all" || statusBucket(row) === tab) && `${row.name ?? ""} ${row.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (draftMode) => { if (!form.name.trim()) return notifications.error("Gender name is required"); setSaving(true); try { const payload = { ...form, is_draft: draftMode, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const response = await (editing ? genderApi.edit(payload) : genderApi.add(payload)); notifications.success(apiMessage(response, "Gender saved")); setOpen(false); setEditing(null); setForm(empty()); void load(); } catch (error) { notifications.error(error.message); } finally { setSaving(false); } };

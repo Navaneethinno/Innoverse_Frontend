@@ -17,7 +17,6 @@ import { digitalProductApi } from "@/Services/DigitalProduct/digitalProduct.api"
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
 import { configKycApi } from "@/Services/Config/config.api";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -234,12 +233,12 @@ export function DigitalProductResource({ entity }) {
   useEffect(() => {
     void load();
   }, [load]);
-  // Reconcile in place instead of refetching (Live Updates guide §3) — see
-  // AcctConfigResource.jsx's identical comment for why inserts are skipped
-  // on this server-paginated list.
+  // Refetch on every live push — see AcctConfigResource.jsx's identical
+  // comment for why the in-place reconcile this replaced silently dropped
+  // brand-new records pushed by another user/tab.
   useLiveChannel(
     `/digital_product/${entity}/list`,
-    reconcileSetter(setRows, { insertNew: false }),
+    () => void load(),
   );
   const visible = useMemo(
     () =>

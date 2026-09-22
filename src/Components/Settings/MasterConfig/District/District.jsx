@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -49,7 +48,7 @@ export function District() {
   const canAdd = useDistrictPermission("Add"); const canEdit = useDistrictPermission("Edit"); const canDelete = useDistrictPermission("Delete"); const canAuthorize = useDistrictPermission("Authorize"); const canSubmit = useDistrictPermission("Submit"); const canDeactivate = useDistrictPermission("Deactivate"); const canReactivate = useDistrictPermission("Reactivate");
   const load = useCallback(async () => { setLoading(true); try { const result = await districtApi.list({ page, limit }); setRows(rowsOf(result)); setPagination(result?.pagination ?? result?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit]);
   useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.DISTRICT.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.DISTRICT.LIST, () => void load());
   const pendingInfo = usePendingChanges(districtApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   useEffect(() => { districtApi.activeProvinces().then((result) => setProvinces(rowsOf(result))).catch((error) => notifications.error(error.message)); }, []);
   const visible = useMemo(() => rows.filter((row) => (tab === "all" || statusBucket(row) === tab) && `${row.name ?? ""} ${row.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, search, tab]);

@@ -5,15 +5,11 @@ import { usersApi } from "@/Services/Users/users.api";
 import { genderApi } from "@/Services/MasterConfig/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const KYC_CHANGED = "user-kyc:data-changed";
 const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
-// Matches KYC.jsx's own (unexported, to avoid a circular import back into
-// this file) row-identity resolver.
-const kycRowId = (row) => row?.user_id ?? row?.id;
 
 export function useHasKycAction(actionName) {
   const menuArray = useSelector((store) => store.menu.menuArray);
@@ -44,15 +40,10 @@ function useQuery(queryFn) {
 
 export function useKycQuery(params = {}) {
   const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10 }), [params.page, params.limit]));
-  // Reconciled in place instead of refetching (Live Updates guide §3) —
-  // insertNew: false since this list is server-paginated (see
-  // AcctConfigResource.jsx's identical reasoning).
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, (_action, records) => {
-    query.setData((current) => {
-      const rows = Array.isArray(current?.data) ? current.data : [];
-      return { ...current, data: reconcileRecords(rows, records, { insertNew: false, rowKey: kycRowId }) };
-    });
-  });
+  // Refetch on every live push — the in-place reconcile this replaced
+  // (insertNew: false) silently dropped brand-new records pushed by
+  // another user/tab entirely. See userHooks.js's identical fix.
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, () => void query.refetch());
   const rows = Array.isArray(query.data?.data) ? query.data.data : [];
   return { ...query, data: rows, pagination: query.data?.pagination };
 }

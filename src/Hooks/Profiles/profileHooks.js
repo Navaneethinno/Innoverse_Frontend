@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/Profiles/profiles.api";
-import { profileId } from "@/Components/UserManagement/Profile/ProfileForm";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileRecords } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 
@@ -130,18 +128,10 @@ export function useProfilesQuery(params) {
   const query = useProfileAsyncQuery(
     useCallback(() => profilesApi.list({ page, limit }), [page, limit]),
   );
-  // Reconciled in place instead of refetching (Live Updates guide §3) —
-  // insertNew: false since this list is server-paginated (see
-  // AcctConfigResource.jsx's identical reasoning).
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, (_action, records) => {
-    query.setData((current) => {
-      const mappedCurrent = mapProfileListResponse(current);
-      return {
-        data: reconcileRecords(mappedCurrent.profiles, records, { insertNew: false, rowKey: profileId }),
-        pagination: mappedCurrent.pagination,
-      };
-    });
-  });
+  // Refetch on every live push — the in-place reconcile this replaced
+  // (insertNew: false) silently dropped brand-new records pushed by
+  // another user/tab entirely. See userHooks.js's identical fix.
+  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, () => void query.refetch());
   const mapped = mapProfileListResponse(query.data);
   return { ...query, data: mapped.profiles, pagination: mapped.pagination };
 }

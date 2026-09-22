@@ -1,5 +1,4 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { reconcileSetter } from "@/Utils/Lib/liveReconcile";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -29,7 +28,7 @@ export function SourceOfFund() {
   const tr = useConfigLabel();
   const menus = useSelector((state) => state.menu.menuArray); const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
   const can = (name) => allowed(menus, name); const load = useCallback(async () => { setLoading(true); try { const response = await sourceOfFundApi.list({ page, limit }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit]); useEffect(() => { void load(); }, [load]);
-  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND.LIST, reconcileSetter(setRows, { insertNew: false }));
+  useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND.LIST, () => void load());
   const pendingInfo = usePendingChanges(sourceOfFundApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((row) => (tab === "all" || statusBucket(row) === tab) && `${row.name ?? ""} ${row.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);
   const save = async (isDraft) => { if (!form.name.trim()) return notifications.error("Source of fund name is required"); setSaving(true); try { const payload = { ...form, has_employer: Boolean(form.has_employer), is_draft: isDraft, ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}) }; const response = await (editing ? sourceOfFundApi.edit(payload) : sourceOfFundApi.add(payload)); notifications.success(apiMessage(response, "Source of fund saved")); setOpen(false); setEditing(null); setForm(empty()); void load(); } catch (error) { notifications.error(error.message); } finally { setSaving(false); } };
