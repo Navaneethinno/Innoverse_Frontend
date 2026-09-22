@@ -46,6 +46,28 @@ export function splitFieldsIntoColumns(fields) {
 // wizard — only reorders for rendering; every caller still reads/writes
 // values by field key, never by position, so this has no effect on what's
 // actually sent to the API.
+//
+// A field with a `showIf` (4th tuple element) is the one exception to "all
+// data fields before all checkboxes": it stays glued immediately after the
+// nearest preceding boolean in the field list, instead of moving up with
+// the other data fields. Moving it away from its own checkbox (e.g.
+// Digital Product's Maximum accounts, only shown once Multiple accounts
+// allowed is checked) put it at the top of the form on its own, appearing
+// out of nowhere above the checkbox that reveals it and leaving a blank
+// gap where it "should" have been — checking the box then had to shift
+// the whole layout instead of just growing the space right under it.
 export function orderedFields(fields) {
-  return [...fields.filter(([, , type]) => type !== "boolean"), ...fields.filter(([, , type]) => type === "boolean")];
+  const leading = [];
+  const booleanGroups = [];
+  for (const field of fields) {
+    const [, , type, showIf] = field;
+    if (type === "boolean") {
+      booleanGroups.push({ field, followers: [] });
+      continue;
+    }
+    const owner = showIf && booleanGroups[booleanGroups.length - 1];
+    if (owner) owner.followers.push(field);
+    else leading.push(field);
+  }
+  return [...leading, ...booleanGroups.flatMap(({ field, followers }) => [field, ...followers])];
 }
