@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { DataTable } from "@/Components/Common/DataTable";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -19,17 +19,6 @@ import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 // Institution/User Management/Master Config, via the shared
 // getMakerCheckerButtons() engine instead of a hand-rolled state table.
 const pendingApi = ({ id }) => customerOnboardingApi.pending({ reference_id: id });
-
-// The common single-status views from the state table (guide §1.2) — the
-// list call itself takes `status`/`process_status` as plain numbers now.
-const STATUS_FILTERS = [
-  { value: "", label: "Any status" },
-  { value: "1:1", label: "Active" },
-  { value: "9:9", label: "Draft" },
-  { value: "5:5", label: "Rejected add" },
-  { value: "13:13", label: "Inactive" },
-  { value: "8:8", label: "Deleted" },
-];
 
 function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
   const [action, setAction] = useState(null); // { method, label }
@@ -123,20 +112,15 @@ export function CustomerOnboardingResource() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pendingOnly, setPendingOnly] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [tab, setTab] = useState("all");
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
 
-  const [status, processStatus] = statusFilter ? statusFilter.split(":").map(Number) : [undefined, undefined];
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await customerOnboardingApi.list({
-        page,
-        limit,
-        ...(pendingOnly ? { pending_only: true } : {}),
-        ...(status != null ? { status, process_status: processStatus } : {}),
-      });
+      const response = await customerOnboardingApi.list({ page, limit, ...(pendingOnly ? { pending_only: true } : {}) });
       setRows(onboardingRowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -144,11 +128,22 @@ export function CustomerOnboardingResource() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, pendingOnly, statusFilter]);
+  }, [page, limit, pendingOnly]);
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Same StatusFilterTabs + search filtering every other maker-checker list
+  // uses, applied on top of whatever page pending_only already narrowed
+  // server-side to.
+  const visible =
+    !search.trim() && tab === "all"
+      ? rows
+      : rows.filter(
+          (row) =>
+            (tab === "all" || statusBucket(row) === tab) &&
+            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
+        );
 
   const columns = [
     {
@@ -214,66 +209,59 @@ export function CustomerOnboardingResource() {
     },
   ];
 
+  const addAction = (
+    <div className="flex items-center gap-1.5">
+      <button
+        type="button"
+        onClick={() => {
+          setPendingOnly((v) => !v);
+          setPage(1);
+        }}
+        className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-bold ${pendingOnly ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-100"}`}
+      >
+        Waiting for me
+      </button>
+      {can("Add") && (
+        <button
+          type="button"
+          onClick={() => setWizard({ referenceId: null })}
+          className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+        >
+          <Plus size={14} /> New onboarding
+        </button>
+      )}
+    </div>
+  );
+
   return (
     <div className="pt-1 pb-6">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black text-slate-800">Customer Onboarding</h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Take an individual customer through the institution's published onboarding form — every field, option and rule comes from that configuration.
-          </p>
-        </div>
-        {can("Add") && (
-          <button
-            type="button"
-            onClick={() => setWizard({ referenceId: null })}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
-          >
-            <Plus size={14} /> New onboarding
-          </button>
-        )}
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">Customer Onboarding</h1>
+        <p className="mt-1 text-xs text-slate-500">
+          Take an individual customer through the institution's published onboarding form — every field, option and rule comes from that configuration.
+        </p>
       </div>
       <div
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3">
-          <div className="flex items-center gap-1.5">
-            {[
-              { key: false, label: "All" },
-              { key: true, label: "Waiting for me" },
-            ].map((tab) => (
-              <button
-                key={String(tab.key)}
-                type="button"
-                onClick={() => {
-                  setPendingOnly(tab.key);
-                  setPage(1);
-                }}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold ${pendingOnly === tab.key ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-100"}`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <FilterSelect
-            className="w-40"
-            value={statusFilter}
-            onChange={(v) => {
-              setStatusFilter(v);
-              setPage(1);
-            }}
-            options={STATUS_FILTERS}
-          />
-        </div>
+        <StatusFilterTabs
+          rows={rows}
+          value={tab}
+          onChange={setTab}
+          search={search}
+          onSearch={setSearch}
+          searchPlaceholder="Search customer onboarding..."
+          actions={addAction}
+          bare
+        />
         <DataTable
           columns={columns}
-          rows={rows}
+          rows={visible}
           rowKey={(r) => r.reference_id}
           isLoading={loading}
           title="Customer Onboarding"
           emptyTitle="No onboarding in progress"
-          searchableKeys={["customer_name", "email", "phone_number", "onboarding_definition_name"]}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -175,6 +176,8 @@ export function OnboardingConfigurationPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("all");
+  const [search, setSearch] = useState("");
   const [subTypes, setSubTypes] = useState([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -284,6 +287,18 @@ export function OnboardingConfigurationPage() {
     }
   };
 
+  // Same StatusFilterTabs + search filtering every other maker-checker
+  // list uses (CustomerMasterConfigResource, InstitutionBrandingPage, ...)
+  // rather than a page-specific tab bar.
+  const visible =
+    !search.trim() && tab === "all"
+      ? rows
+      : rows.filter(
+          (row) =>
+            (tab === "all" || statusBucket(row) === tab) &&
+            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
+        );
+
   // `status`/`process_status`/`auth_status` on this row are the LATEST
   // VERSION's own lifecycle, not the definition's (a definition has no
   // maker-checker of its own) — confirmed on the live response: a
@@ -369,35 +384,44 @@ export function OnboardingConfigurationPage() {
     },
   ];
 
+  const addAction = can("Add") ? (
+    <button
+      type="button"
+      onClick={() => {
+        setForm(emptyForm);
+        setOpen(true);
+      }}
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+    >
+      <Plus size={14} /> Add onboarding configuration
+    </button>
+  ) : null;
+
   return (
     <div className="pt-1 pb-6">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Each customer type's onboarding is configured through versions — a version holds the sections, fields, documents and rules and goes through maker-checker.
-          </p>
-        </div>
-        {can("Add") && (
-          <button
-            type="button"
-            onClick={() => {
-              setForm(emptyForm);
-              setOpen(true);
-            }}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
-          >
-            <Plus size={14} /> Add onboarding configuration
-          </button>
-        )}
+      <div className="mb-3">
+        <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
+        <p className="mt-1 text-xs text-slate-500">
+          Each customer type's onboarding is configured through versions — a version holds the sections, fields, documents and rules and goes through maker-checker.
+        </p>
       </div>
       <div
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
+        <StatusFilterTabs
+          rows={rows}
+          value={tab}
+          onChange={setTab}
+          search={search}
+          onSearch={setSearch}
+          searchPlaceholder="Search onboarding configurations..."
+          actions={addAction}
+          bare
+        />
         <DataTable
           columns={columns}
-          rows={rows}
+          rows={visible}
           rowKey={(r) => r.id}
           isLoading={loading}
           title="Customer Types"
