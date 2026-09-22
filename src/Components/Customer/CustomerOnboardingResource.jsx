@@ -10,6 +10,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Onboarding/customerOnboarding.api";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useMenuPermission } from "@/Components/OnboardingConfig/LifecycleList";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 
@@ -139,6 +140,7 @@ export function CustomerOnboardingResource() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/customer/individual/list", () => void load());
 
   // Same StatusFilterTabs + search filtering every other maker-checker list
   // uses, applied on top of whatever page pending_only already narrowed
