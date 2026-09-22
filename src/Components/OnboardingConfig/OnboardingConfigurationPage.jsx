@@ -18,7 +18,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Onboarding/onboarding.api";
 import { useMenuPermission } from "./LifecycleList";
-import { useOnboardingCatalog } from "./onboardingHooks";
+import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
 const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
@@ -141,7 +141,23 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
   );
 }
 
-const emptyForm = { code: "", name: "", description: "", combination: "", ownership_sub_type_id: "" };
+// minor_age_years/home_country_id/kyc_group_id/effective_from are Basics
+// fields the API requires on this SAME `add` call (Onboarding_Configuration_
+// API.md §8.3-8.4) — there is no separate "create draft, then set basics"
+// step, so this dialog has to collect them up front instead of leaving them
+// to the wizard's own Basics step (which only ever runs after the record
+// already exists).
+const emptyForm = {
+  code: "",
+  name: "",
+  description: "",
+  combination: "",
+  ownership_sub_type_id: "",
+  minor_age_years: 18,
+  home_country_id: "",
+  kyc_group_id: "",
+  effective_from: "",
+};
 
 export function OnboardingConfigurationPage() {
   const navigate = useNavigate();
@@ -156,6 +172,10 @@ export function OnboardingConfigurationPage() {
   const { partyTypes = [] } = usePartyTypes(true);
   const { ownershipTypes = [] } = useOwnershipTypes(true);
   const [rows, setRows] = useState([]);
+  const [open, setOpen] = useState(false);
+  // Only loaded while the create dialog is actually open — same masters
+  // the wizard's own Basics step uses.
+  const { countries, kycGroups } = useOnboardingMasters(open);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -163,7 +183,6 @@ export function OnboardingConfigurationPage() {
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [subTypes, setSubTypes] = useState([]);
-  const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
@@ -220,13 +239,17 @@ export function OnboardingConfigurationPage() {
       notifications.error("Code, name and combination are required");
       return;
     }
+    if (!form.minor_age_years || Number(form.minor_age_years) <= 0) {
+      notifications.error("Minor age (years) is required");
+      return;
+    }
     setSaving(true);
     try {
       // Basics (minor_age_years, home_country_id, kyc_group_id,
-      // effective_from) are filled in inside the wizard's own Basics step
-      // right after this, via `edit`, rather than crowding this modal —
-      // is_draft:true here just lands the identity in Draft so save_config
-      // can build its configuration next (guide §8.3).
+      // effective_from) have to go on this SAME `add` call — the API has no
+      // separate "create draft, then set basics" step (guide §8.3-8.4), so
+      // they can't be deferred to the wizard's own Basics step the way the
+      // rest of the configuration is.
       const response = await onboardingDefinitionApi.add({
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
@@ -234,6 +257,10 @@ export function OnboardingConfigurationPage() {
         party_type_id: chosen.party_type_id,
         ownership_id: chosen.ownership_id,
         ...(form.ownership_sub_type_id ? { ownership_sub_type_id: Number(form.ownership_sub_type_id) } : {}),
+        minor_age_years: Number(form.minor_age_years),
+        ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
+        ...(form.kyc_group_id ? { kyc_group_id: Number(form.kyc_group_id) } : {}),
+        ...(form.effective_from ? { effective_from: form.effective_from } : {}),
         is_draft: true,
       });
       notifications.success(apiMessage(response, "Customer type created"));
@@ -423,6 +450,25 @@ export function OnboardingConfigurationPage() {
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Optional — leave unset unless this combination requires one.</span>
             </label>
           )}
+          <label className="text-sm font-semibold text-slate-700">
+            Minor age (years)
+            <input type="number" min={0} value={form.minor_age_years} onChange={(e) => setForm({ ...form, minor_age_years: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Below this age the IS_MINOR rule fact is true.</span>
+          </label>
+          <label className="text-sm font-semibold text-slate-700">
+            Home country
+            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if any rule uses RESIDENCY_STATUS.</span>
+          </label>
+          <label className="text-sm font-semibold text-slate-700">
+            KYC scheme
+            <FilterSelect className="mt-1.5" addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Must be an approved (Active) scheme by the time you submit.</span>
+          </label>
+          <label className="text-sm font-semibold text-slate-700">
+            Effective from
+            <input type="date" value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
+          </label>
         </div>
       </Modal>
 
