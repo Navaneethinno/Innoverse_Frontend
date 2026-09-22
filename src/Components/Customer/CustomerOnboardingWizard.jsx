@@ -308,11 +308,25 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? "Type";
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
 
+  // Address rows may carry "same_as" on their chosen type (Customer_
+  // Onboarding_API.md §4.1/§5): instead of repeating an address's fields,
+  // the row is marked same_as_address_type_id and takes that other
+  // address's values at approval. Only offered when the current type's
+  // own `same_as` list is non-empty (the configuration's allow_same_as).
+  const sameAsTargets = (row) => {
+    const currentType = section.types?.find((t) => t.id === row?.[section.type_field]);
+    const eligible = currentType?.same_as ?? [];
+    return (section.types ?? []).filter((t) => eligible.includes(t.id));
+  };
+
   // Renders one row's fields — a multi-row section's row (with `rowIndex`)
   // or a single-row section's one-and-only "row" (`rowIndex` undefined).
   // Handles both the same way so the type picker and the skip-the-
   // duplicate-field rule (item 2) apply regardless of `multi_row`.
-  const renderRow = (fields, row, rowIndex) => (
+  const renderRow = (fields, row, rowIndex) => {
+    const sameAsOptions = sameAsTargets(row);
+    const sameAsId = row?.same_as_address_type_id;
+    return (
     <div
       key={rowIndex ?? "single"}
       className={rowIndex === undefined ? "grid gap-4 sm:grid-cols-2" : "grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-2"}
@@ -342,17 +356,40 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           </label>
         </div>
       )}
-      {visibleFields(fields).map((field) => (
-        <OnboardingField
-          key={field.key}
-          field={editable ? field : { ...field, read_only: true }}
-          value={row?.[field.key]}
-          options={fieldOptionsFor(field, row)}
-          error={issueFor(field.key, rowIndex)}
-          onChange={(v) => setValue(rowIndex, field.key, v)}
-          badge={<KycLevelBadge levelNo={field.kyc_level_no} levels={wizard?.kyc?.levels} />}
-        />
-      ))}
+      {sameAsOptions.length > 0 && (
+        <div className="sm:col-span-2">
+          <CheckboxPill
+            checked={Boolean(sameAsId)}
+            disabled={!editable}
+            label="Same as another address"
+            onChange={(checked) => setValue(rowIndex, "same_as_address_type_id", checked ? sameAsOptions[0].id : undefined)}
+          />
+          {sameAsId && (
+            <label className="mt-2 block text-sm font-semibold text-slate-700">
+              Same as
+              <FilterSelect
+                className="mt-1.5"
+                disabled={!editable}
+                value={sameAsId}
+                onChange={(v) => setValue(rowIndex, "same_as_address_type_id", Number(v))}
+                options={sameAsOptions.map((t) => ({ value: t.id, label: t.name }))}
+              />
+            </label>
+          )}
+        </div>
+      )}
+      {!sameAsId &&
+        visibleFields(fields).map((field) => (
+          <OnboardingField
+            key={field.key}
+            field={editable ? field : { ...field, read_only: true }}
+            value={row?.[field.key]}
+            options={fieldOptionsFor(field, row)}
+            error={issueFor(field.key, rowIndex)}
+            onChange={(v) => setValue(rowIndex, field.key, v)}
+            badge={<KycLevelBadge levelNo={field.kyc_level_no} levels={wizard?.kyc?.levels} />}
+          />
+        ))}
       {rowIndex !== undefined && editable && (
         <div className="sm:col-span-2">
           <button
@@ -365,7 +402,8 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   const body = () => {
     if (!referenceId && !wizard) {
