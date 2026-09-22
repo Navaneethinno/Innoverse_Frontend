@@ -324,7 +324,18 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
               value={row?.[section.type_field] ?? ""}
               onChange={(v) => setValue(rowIndex, section.type_field, Number(v))}
               disabled={!editable}
-              options={[{ value: "", label: "Select type" }, ...(section.types ?? []).map((t) => ({ value: t.id, label: t.name }))]}
+              options={[
+                { value: "", label: "Select type" },
+                ...(section.types ?? []).map((t) => ({
+                  value: t.id,
+                  label: (
+                    <span className="flex items-center">
+                      {t.name}
+                      <KycLevelBadge levelNo={t.kyc_level_no} levels={wizard?.kyc?.levels} />
+                    </span>
+                  ),
+                })),
+              ]}
             />
           </label>
         </div>
