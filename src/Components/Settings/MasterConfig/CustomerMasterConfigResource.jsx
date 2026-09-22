@@ -500,6 +500,25 @@ export function CustomerMasterConfigResource({ entity }) {
           onConfirm={() => void run()}
         >
           {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
+          {action.type === "submit" && (
+            <dl className="mt-1 grid gap-2">
+              <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
+              {[
+                ...(config.hasCategory ? [["Category", action.row?.category]] : []),
+                ["Code", action.row?.code],
+                ["Name", action.row?.name],
+                ["Description", action.row?.description],
+                ...(config.hasOwnership
+                  ? [["Ownership", ownershipTypes.find((o) => String(o.id) === String(action.row?.ownership_id))?.name ?? action.row?.ownership_id]]
+                  : []),
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-border p-2.5">
+                  <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold text-slate-700">{value || "-"}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <textarea
             className="mt-3 min-h-20 w-full rounded-xl border p-3"
             value={action.reason ?? ""}

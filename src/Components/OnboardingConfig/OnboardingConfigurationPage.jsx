@@ -101,6 +101,17 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         onConfirm={() => void execute()}
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        {action?.method === "submit" && (
+          <dl className="mt-1 grid gap-2">
+            <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
+            {[["name", "Name"], ["code", "Code"], ["party_type_name", "Party type"], ["ownership_name", "Ownership"], ["ownership_sub_type_name", "Sub type"]].map(([key, label]) => (
+              <div key={key} className="rounded-xl border border-border p-2.5">
+                <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
+                <dd className="mt-0.5 text-sm font-semibold text-slate-700">{row?.[key] ?? "-"}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}

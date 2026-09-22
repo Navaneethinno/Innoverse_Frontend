@@ -18,15 +18,18 @@ const PENDING_PROCESS_STATES = new Set([
 // authorized record with a staged-but-unsubmitted edit proposal, started
 // via /edit with is_draft: true). That's not a pending-checker-approval
 // state at all — the live row's business values were never touched, so
-// there's nothing to authorize/reject. It's intentionally left to fall
-// through to whatever the record's own status_name row below says
-// (typically ACTIVE, but per the backend spec it can just as well be
-// EDIT_DEAUTH if the draft edit was started on top of a rejected edit) —
-// e.g. "Rejected Edit" if the draft edit was started on top of a
-// rejected-edit record). That row's existing `delete: true` already covers
-// discarding the draft, since /delete's backend behavior branches on
-// status/process_status, not on anything the frontend has to choose
-// between.
+// there's nothing to authorize/reject. It falls through to whatever the
+// record's own status_name row below says (typically ACTIVE, but per the
+// backend spec it can just as well be "Rejected Edit" if the draft edit
+// was started on top of a rejected-edit record) for edit/delete/deactivate
+// — that row's existing `delete: true` already covers discarding the
+// draft, since /delete's backend behavior branches on status/process_status.
+// `submitDraft` is forced on regardless of which status row matched
+// (confirmed live: "Save changes" on this shape silently left the record
+// stuck in Draft with no way back — see CustomerMasterConfigResource.jsx's
+// own fix for the same finding), so a checker-pending edit is never one
+// click short of Submit just because its live status isn't literally
+// "Draft".
 
 // One row per non-pending status_name value from the spec's Button
 // Visibility Matrix. Pending rows aren't listed here — they're handled by
@@ -79,7 +82,11 @@ export function deriveButtonVisibility(row) {
     return { view: true, audit: true, ...PENDING_VISIBILITY, isPendingDelete };
   }
   const matched = STATUS_VISIBILITY[statusState] ?? FALLBACK_VISIBILITY;
-  return { view: true, audit: true, authorize: false, deauthorize: false, ...matched, isPendingDelete: false };
+  // An edit-side draft on an otherwise-Active/Inactive/Rejected record
+  // (process_status_name "Draft" while status_name isn't literally "Draft")
+  // still needs Submit — see the comment above.
+  const submitDraft = matched.submitDraft || processState === "DRAFT";
+  return { view: true, audit: true, authorize: false, deauthorize: false, ...matched, submitDraft, isPendingDelete: false };
 }
 
 // Combines the pure status lookup with the page's own permission grants
