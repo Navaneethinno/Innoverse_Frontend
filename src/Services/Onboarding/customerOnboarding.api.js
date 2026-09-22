@@ -53,15 +53,30 @@ async function request(path, body = {}) {
 const first = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 export const onboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
+// The customer runtime now follows the same 13-call lifecycle as every
+// other entity in the app (Customer_Onboarding_API.md §1): add/edit/get
+// instead of the old start/save_section/wizard verbs, plus get_active,
+// delete_auth, deactivate, reactivate that didn't exist before. There is
+// no backwards-compatibility alias for the old names — they 404 now.
+const base = "/customer/individual";
 export const customerOnboardingApi = {
-  options: (payload = {}) => request("/customer/individual/options", payload),
-  start: (payload) => request("/customer/individual/start", payload),
-  wizard: (referenceId) => request("/customer/individual/wizard", { reference_id: referenceId }),
-  saveSection: (payload) => request("/customer/individual/save_section", payload),
-  submit: (payload) => request("/customer/individual/submit", payload),
-  list: (payload = { page: 1, limit: 10 }) => request("/customer/individual/list", payload),
+  options: (payload = {}) => request(`${base}/options`, payload),
+  add: (payload) => request(`${base}/add`, payload),
+  edit: (payload) => request(`${base}/edit`, payload),
+  get: (referenceId) => request(`${base}/get`, { reference_id: referenceId }),
+  submit: (payload) => request(`${base}/submit`, payload),
+  auth: (payload) => request(`${base}/auth`, payload),
+  deauth: (payload) => request(`${base}/deauth`, payload),
+  delete: (payload) => request(`${base}/delete`, payload),
+  deleteAuth: (payload) => request(`${base}/delete_auth`, payload),
+  deactivate: (payload) => request(`${base}/deactivate`, payload),
+  reactivate: (payload) => request(`${base}/reactivate`, payload),
+  list: (payload = { page: 1, limit: 10 }) => request(`${base}/list`, payload),
+  getActive: (payload = { view: "dropdown" }) => request(`${base}/get_active`, payload),
+  pending: (payload) => request(`${base}/pending`, payload),
+  audit: (payload) => request(`${base}/audit`, payload),
 };
 
-export const startOnboarding = async (payload) => first(await customerOnboardingApi.start(payload));
-export const loadWizard = async (referenceId) => first(await customerOnboardingApi.wizard(referenceId));
-export const saveSection = async (payload) => first(await customerOnboardingApi.saveSection(payload));
+export const startOnboarding = async (payload) => first(await customerOnboardingApi.add(payload));
+export const loadWizard = async (referenceId) => first(await customerOnboardingApi.get(referenceId));
+export const saveSection = async (payload) => first(await customerOnboardingApi.edit(payload));

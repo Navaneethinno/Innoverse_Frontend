@@ -21,33 +21,22 @@ import { useMenuPermission } from "./LifecycleList";
 import { useOnboardingCatalog } from "./onboardingHooks";
 import { OnboardingVersionWizard } from "./OnboardingVersionWizard";
 
-// Customer-type definitions (guide §8.3): the identity of a customer type
-// (party type × ownership × sub type). A definition carries no content and no
-// approval — its versions do — so each row's button reflects where its
-// latest version stands.
+// Customer-type definitions (Onboarding_Configuration_API.md §2): the
+// identity of a customer type (party type × ownership × sub type). A
+// definition itself has no maker-checker — the row instead carries its
+// LATEST VERSION's own lifecycle (`status`/`process_status`/`auth_status`,
+// each with its `_name`), so each row's button reflects where that version
+// stands. `process_status` 10 = no version created yet.
 function nextAction(row) {
   const latest = row.latest_version_id;
-  const state = Number(row.latest_version_process_status);
-  if (!latest) return { label: "Create first version", kind: "create", icon: Plus, tone: "submit" };
+  const state = Number(row.process_status);
+  if (!latest || state === 10) return { label: "Create first version", kind: "create", icon: Plus, tone: "submit" };
   if (state === 9) return { label: "Edit draft", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
   if (state === 5) return { label: "Fix rejected", kind: "open", versionId: latest, icon: Pencil, tone: "edit" };
   if ([2, 3, 4, 11, 14].includes(state))
     return { label: "Awaiting approval", kind: "open", versionId: latest, icon: Eye, tone: "view" };
   return { label: "New version", kind: "new", icon: RefreshCw, tone: "submit" };
 }
-
-const STATUS_LABELS = {
-  9: "Draft",
-  2: "Pending Add",
-  3: "Pending Edit",
-  4: "Pending Delete",
-  5: "Rejected Add",
-  1: "Active",
-  13: "Inactive",
-  11: "Pending Deactivate",
-  14: "Pending Reactivate",
-};
-const statusLabel = (code) => STATUS_LABELS[Number(code)] ?? String(code ?? "-");
 
 const emptyForm = { code: "", name: "", description: "", combination: "", ownership_sub_type_id: "" };
 
@@ -115,8 +104,12 @@ export function OnboardingConfigurationPage() {
     .map((s) => ({ value: s.id, label: s.name }));
 
   const create = async () => {
-    if (!form.code.trim() || !form.name.trim() || !chosen || !form.ownership_sub_type_id) {
-      notifications.error("Code, name, combination and sub type are required");
+    // Sub type is optional now (guide §4) — an ownership without sub-typed
+    // customer types has none to pick, and even one that does may allow
+    // "no sub type". The backend still refuses with its own message
+    // ("This Ownership Has Sub Types: Choose One") when one is required.
+    if (!form.code.trim() || !form.name.trim() || !chosen) {
+      notifications.error("Code, name and combination are required");
       return;
     }
     setSaving(true);
@@ -127,7 +120,7 @@ export function OnboardingConfigurationPage() {
         description: form.description,
         party_type_id: chosen.party_type_id,
         ownership_id: chosen.ownership_id,
-        ownership_sub_type_id: Number(form.ownership_sub_type_id),
+        ...(form.ownership_sub_type_id ? { ownership_sub_type_id: Number(form.ownership_sub_type_id) } : {}),
       });
       notifications.success(apiMessage(response, "Customer type created"));
       setOpen(false);
@@ -218,14 +211,14 @@ export function OnboardingConfigurationPage() {
       render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
-      key: "latest_version_process_status",
+      key: "process_status",
       label: "Latest version",
-      sortValue: (r) => r.latest_version_process_status ?? 0,
+      sortValue: (r) => r.process_status ?? 0,
       render: (r) =>
         r.latest_version_id ? (
           <div className="flex flex-col items-center gap-1">
             <span>{r.latest_version_name ?? `Version ${r.latest_version_no}`}</span>
-            <StatusBadge status={String(statusLabel(r.latest_version_process_status))} />
+            <StatusBadge status={String(r.process_status_name ?? "-")} />
           </div>
         ) : (
           "-"
@@ -343,11 +336,13 @@ export function OnboardingConfigurationPage() {
             Party type × Ownership
             <FilterSelect className="mt-1.5" value={form.combination} onChange={(v) => setForm({ ...form, combination: v, ownership_sub_type_id: "" })} options={[{ value: "", label: "Select combination" }, ...combinations]} />
           </label>
-          <label className="text-sm font-semibold text-slate-700">
-            Sub type
-            <FilterSelect className="mt-1.5" addAction={{ label: "Add ownership sub type", onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "Select sub type" }, ...subTypeOptions]} />
-            <span className="mt-1 block text-[11px] font-normal text-slate-400">Create the sub type in the Ownership Sub Type master first.</span>
-          </label>
+          {subTypeOptions.length > 0 && (
+            <label className="text-sm font-semibold text-slate-700">
+              Sub type
+              <FilterSelect className="mt-1.5" addAction={{ label: "Add ownership sub type", onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "No sub type" }, ...subTypeOptions]} />
+              <span className="mt-1 block text-[11px] font-normal text-slate-400">Optional — leave unset unless this combination requires one.</span>
+            </label>
+          )}
         </div>
       </Modal>
 

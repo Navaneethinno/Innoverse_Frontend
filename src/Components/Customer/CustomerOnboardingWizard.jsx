@@ -8,24 +8,30 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, startOnboarding, loadWizard, saveSection } from "@/Services/Onboarding/customerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
 
-// onboarding.process_status: 9 draft (editable), 2 waiting for approval,
-// 5 rejected (editable again, with a reason), 1 approved.
-const PROCESS_STATUS_NOTICE = {
-  2: { tone: "bg-amber-50 text-amber-700", text: "Waiting for approval." },
-  1: { tone: "bg-emerald-50 text-emerald-700", text: "Approved." },
-};
+// State model per Customer_Onboarding_API.md §1.2: a plain "Draft"
+// (status/process_status 9/9) needs no banner — the form itself makes that
+// obvious. Everything else (pending, rejected, active, draft edit of an
+// approved customer, inactive...) gets one, built from the row's own
+// status_name/process_status_name rather than a hand-maintained code map,
+// since the API now sends those labels translated.
+const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
-  const status = Number(onboarding?.process_status);
-  if (status === 5) {
-    return (
-      <div className="mt-4 rounded-lg bg-red-50 p-2.5 text-xs font-semibold text-red-700">
-        Rejected{onboarding?.narration ? `: ${onboarding.narration}` : "."} Edit the sections above and resubmit.
-      </div>
-    );
-  }
-  const notice = PROCESS_STATUS_NOTICE[status];
-  if (!notice) return null;
-  return <div className={`mt-4 rounded-lg p-2.5 text-xs font-semibold ${notice.tone}`}>{notice.text}</div>;
+  if (!onboarding) return null;
+  const status = Number(onboarding.status);
+  const processStatus = Number(onboarding.process_status);
+  if (status === 9 && processStatus === 9) return null;
+  const label = onboarding.process_status_name || onboarding.status_name;
+  if (!label) return null;
+  const rejected = REJECTED_PROCESS_STATUSES.has(processStatus);
+  const approved = status === 1 && processStatus === 1;
+  const tone = rejected ? "bg-red-50 text-red-700" : approved ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700";
+  return (
+    <div className={`mt-4 rounded-lg p-2.5 text-xs font-semibold ${tone}`}>
+      {label}
+      {rejected && onboarding.narration ? `: ${onboarding.narration}` : ""}
+      {rejected ? " Edit the sections above and resubmit." : ""}
+    </div>
+  );
 }
 
 // Runs a customer through the institution's published onboarding
@@ -104,8 +110,11 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
   const subTypes = chosenOwnership?.sub_types ?? [];
 
   const beginOnboarding = async () => {
-    if (!pick.party_type_id || !pick.ownership_id || !pick.ownership_sub_type_id) {
-      notifications.error("Choose the party type, ownership and sub type");
+    // Sub type is optional now (guide §4) — the backend refuses with "This
+    // Ownership Has Sub Types: Choose One" when the ownership actually
+    // requires picking one; the client no longer forces it up front.
+    if (!pick.party_type_id || !pick.ownership_id) {
+      notifications.error("Choose the party type and ownership");
       return;
     }
     if (!pick.email.trim() && !pick.phone_number.trim()) {
@@ -117,7 +126,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
       const w = await startOnboarding({
         party_type_id: Number(pick.party_type_id),
         ownership_id: Number(pick.ownership_id),
-        ownership_sub_type_id: Number(pick.ownership_sub_type_id),
+        ...(pick.ownership_sub_type_id ? { ownership_sub_type_id: Number(pick.ownership_sub_type_id) } : {}),
         ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
         ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
       });
@@ -281,15 +290,17 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
               options={[{ value: "", label: "Select ownership" }, ...ownerships.map((o) => ({ value: o.id, label: o.name }))]}
             />
           </label>
-          <label className="text-sm font-semibold text-slate-700">
-            Sub type
-            <FilterSelect
-              className="mt-1.5"
-              value={pick.ownership_sub_type_id}
-              onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })}
-              options={[{ value: "", label: "Select sub type" }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
-            />
-          </label>
+          {subTypes.length > 0 && (
+            <label className="text-sm font-semibold text-slate-700">
+              Sub type
+              <FilterSelect
+                className="mt-1.5"
+                value={pick.ownership_sub_type_id}
+                onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })}
+                options={[{ value: "", label: "No sub type" }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
+              />
+            </label>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
               Email
@@ -436,7 +447,7 @@ export function CustomerOnboardingWizard({ referenceId, onClose, onChanged }) {
       onClose={onClose}
       title={
         wizard
-          ? `${wizard.customer_type.onboarding_definition_name ?? wizard.customer_type.name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
+          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
           : "Start customer onboarding"
       }
       size="xl"
