@@ -108,7 +108,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
           ].map(([label, value]) => (
             <label key={label} className="block text-sm font-medium text-slate-700">
               {label}
-              <div className="mt-1.5 w-full rounded-xl border border-border bg-muted p-3 text-sm text-slate-700">
+              <div className="mt-1.5 w-full rounded-xl border border-border bg-card p-3 text-sm text-slate-700">
                 {displayValue(value)}
               </div>
             </label>

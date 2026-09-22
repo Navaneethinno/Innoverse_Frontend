@@ -116,7 +116,7 @@ function LegalActions({ row, onRefresh, onEdit }) {
       >
         <div className="grid gap-3 sm:grid-cols-2">
           {FIELDS.map(([key, label]) => (
-            <div key={key} className="rounded-xl border border-border bg-muted p-3">
+            <div key={key} className="rounded-xl border border-border bg-card p-3">
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
               <p className="mt-1 text-sm font-semibold text-foreground">{value(details, key)}</p>
             </div>

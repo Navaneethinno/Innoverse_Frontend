@@ -102,7 +102,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
           ].map(([label, val]) => (
             <div key={label}>
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <div className="mt-1.5 rounded-xl border border-border bg-muted p-3 text-sm font-semibold">
+              <div className="mt-1.5 rounded-xl border border-border bg-card p-3 text-sm font-semibold">
                 {val ?? "—"}
               </div>
             </div>

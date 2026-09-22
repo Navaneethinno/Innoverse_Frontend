@@ -49,25 +49,32 @@ export function MenuItem({
   onNavigate,
   depth = 0,
 }) {
-  const [manuallyExpanded, setManuallyExpanded] = useState(false);
+  // Tri-state, not a plain boolean: `null` means "no explicit click yet,
+  // derive it" (auto-open for the active branch); `true`/`false` means the
+  // user explicitly clicked this row open or shut, which always wins —
+  // including over the active-branch auto-open below, so a group the user
+  // is currently inside can still be collapsed by hand instead of being
+  // stuck open forever.
+  const [manualOverride, setManualOverride] = useState(null);
 
   const children = sortedChildrenOf(menuItems, item?.menu_id);
   const hasChildren = children.length > 0;
   // Collapsing the rail unmounts every child MenuItem at every level (see
-  // the `!isCollapsed` gate below), which throws away their own
-  // `manuallyExpanded` state — expanding the rail again then remounted
-  // everything closed, even a group the user was actively inside. Falling
-  // back to "does the active leaf live under here" re-derives that open
-  // state from activeMenuId (owned by MenuList, which never unmounts)
-  // instead of depending on state that just got destroyed.
+  // the `!isCollapsed` gate below), which throws away their own expand
+  // state — expanding the rail again then remounted everything closed,
+  // even a group the user was actively inside. Falling back to "does the
+  // active leaf live under here" re-derives that open state from
+  // activeMenuId (owned by MenuList, which never unmounts) instead of
+  // depending on state that just got destroyed — but only when the user
+  // hasn't explicitly said otherwise (see manualOverride above).
   const containsActive = hasChildren && subtreeContainsId(menuItems, item?.menu_id, activeMenuId);
-  const isExpanded =
-    manuallyExpanded || containsActive || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
+  const derivedExpanded = containsActive || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
+  const isExpanded = manualOverride ?? derivedExpanded;
   const isActiveLeaf = !hasChildren && activeMenuId === item?.menu_id;
 
   const handleClick = () => {
     if (hasChildren) {
-      setManuallyExpanded((current) => !current);
+      setManualOverride(!isExpanded);
       return;
     }
     onNavigate(item?.menu_id);
