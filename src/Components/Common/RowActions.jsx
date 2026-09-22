@@ -22,6 +22,12 @@ export function RowActions({
   onEdit,
   onAudit,
   onSubmit,
+  // Lets a caller repurpose the Submit button's tooltip when its
+  // buttons.submitDraft state means something else in that flow (e.g.
+  // "start a new version" on an Active row, which has no submitDraft
+  // state of its own) — same button, same icon/color, only the label
+  // changes, instead of a one-off button outside this set.
+  submitLabel = "Submit",
   onAuthorize,
   onDeauthorize,
   onDeactivate,
@@ -52,7 +58,7 @@ export function RowActions({
         </UiTooltip>
       )}
       {buttons.submitDraft && onSubmit && (
-        <UiTooltip label="Submit">
+        <UiTooltip label={submitLabel}>
           <button type="button" className={actionButtonClass("submit")} onClick={onSubmit}>
             <Send size={14} />
           </button>

@@ -1,18 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -40,10 +38,11 @@ const pendingApi = ({ id }) => onboardingVersionApi.pending({ id });
 //  - no version at all yet (process_status 10) -> just "Create first
 //    version", nothing to run RowActions against.
 //  - the latest version is Active -> further changes go through a new
-//    version, not an in-place edit, so Edit is suppressed and a "New
-//    version" button (same icon/tooltip pattern as Create) sits alongside
-//    the still-valid Audit/Deactivate/Delete.
-function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh, starting }) {
+//    version, not an in-place edit, so Edit is suppressed and the
+//    (otherwise unused on an Active row) Submit button is repurposed as
+//    "New version" via RowActions' submitLabel override, instead of a
+//    one-off button outside this set.
+function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -59,7 +58,13 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh, start
     canDelete: can("Delete"),
   });
   const isActive = String(row.status_name).toUpperCase() === "ACTIVE" && String(row.process_status_name).toUpperCase() === "ACTIVE";
-  if (isActive) buttons.edit = false;
+  if (isActive) {
+    // Further changes to an Active version go through a new version, not
+    // an in-place edit — and ACTIVE's own submitDraft is always false, so
+    // this slot is free to repurpose rather than adding a new button.
+    buttons.edit = false;
+    buttons.submitDraft = can("Add");
+  }
 
   const pendingInfo = usePendingChanges(pendingApi, latest, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
 
@@ -98,25 +103,14 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh, start
         onView={!buttons.edit ? () => onOpen(row) : undefined}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
-        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
+        onSubmit={buttons.submitDraft ? () => (isActive ? onNewVersion(row) : setAction({ method: "submit", label: "Submit" })) : undefined}
+        submitLabel={isActive ? "New version" : "Submit"}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
         onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
         onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
         onReactivate={() => setAction({ method: "reactivate", label: "Reactivate" })}
         onDelete={() => setAction({ method: "delete", label: "Delete" })}
       />
-      {isActive && can("Add") && (
-        <UiTooltip label="New version">
-          <button
-            type="button"
-            disabled={starting}
-            onClick={() => onNewVersion(row)}
-            className={`${actionButtonClass("submit")} disabled:opacity-50`}
-          >
-            {starting ? <Spinner size={14} /> : <RefreshCw size={14} />}
-          </button>
-        </UiTooltip>
-      )}
       <ConfirmDialog
         open={!!action}
         title={`${action?.label ?? "Action"} version`}
@@ -367,7 +361,6 @@ export function OnboardingConfigurationPage() {
         <DefinitionRowActions
           row={r}
           can={can}
-          starting={starting === r.id}
           onOpen={openLatest}
           onNewVersion={(row) => void startNewVersion(row)}
           onRefresh={load}
