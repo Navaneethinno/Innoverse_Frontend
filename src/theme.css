@@ -302,6 +302,30 @@
   caret-color: var(--foreground);
 }
 
+/* Chrome/Edge fill a remembered field's own OS-level autofill highlight
+   (a flat gray on this Windows build, yellow on others) over whatever
+   background the input's own class sets, the instant the value matches
+   something the browser remembers typing there before (e.g. "test123"
+   into an Add-record Code/Name field during manual testing) — nothing
+   in this app's CSS puts it there, and it isn't scoped to any one page
+   the way the login-only rule above is. Neutralizing it everywhere for
+   every plain text/textarea input keeps a previously-used value reading
+   as a normal filled field instead of a flatly "disabled"-looking one. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important;
+  box-shadow: 0 0 0 1000px var(--card) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Illustration crossfade — kept on its own opacity transition (same 300ms
    duration) rather than the blanket rule above, so it never fights the
    framer-motion-driven entrance animations elsewhere on the page. */
