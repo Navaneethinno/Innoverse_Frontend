@@ -63,6 +63,14 @@ const SEGMENT_LABELS = {
   indvtaxclassification: { titleKey: "crumbIndvTaxClassification", breadcrumb: ["crumbMaster", "crumbIndvTaxClassification"] },
   indvpepstatus: { titleKey: "crumbIndvPepStatus", breadcrumb: ["crumbMaster", "crumbIndvPepStatus"] },
   indvpepcategory: { titleKey: "crumbIndvPepCategory", breadcrumb: ["crumbMaster", "crumbIndvPepCategory"] },
+  // Sidebar menu names for these slugify without the "indv" prefix (see
+  // masterConfigRoutes.jsx) — same page, same breadcrumb as the indv* slug.
+  verificationstatus: { titleKey: "crumbIndvVerificationStatus", breadcrumb: ["crumbMaster", "crumbIndvVerificationStatus"] },
+  verificationmethod: { titleKey: "crumbIndvVerificationMethod", breadcrumb: ["crumbMaster", "crumbIndvVerificationMethod"] },
+  taxstatus: { titleKey: "crumbIndvTaxStatus", breadcrumb: ["crumbMaster", "crumbIndvTaxStatus"] },
+  taxclassification: { titleKey: "crumbIndvTaxClassification", breadcrumb: ["crumbMaster", "crumbIndvTaxClassification"] },
+  pepstatus: { titleKey: "crumbIndvPepStatus", breadcrumb: ["crumbMaster", "crumbIndvPepStatus"] },
+  pepcategory: { titleKey: "crumbIndvPepCategory", breadcrumb: ["crumbMaster", "crumbIndvPepCategory"] },
   ownershipsubtype: { titleKey: "crumbOwnershipSubType", breadcrumb: ["crumbMaster", "crumbOwnershipSubType"] },
   title: { titleKey: "crumbTitleMaster", breadcrumb: ["crumbMaster", "crumbTitleMaster"] },
   kinship: { titleKey: "crumbKinship", breadcrumb: ["crumbMaster", "crumbKinship"] },
