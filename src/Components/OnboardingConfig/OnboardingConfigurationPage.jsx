@@ -63,20 +63,12 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh, start
 
   const pendingInfo = usePendingChanges(pendingApi, latest, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
 
-  if (noVersionYet) {
-    return (
-      <UiTooltip label="Create first version">
-        <button
-          type="button"
-          disabled={starting}
-          onClick={() => onNewVersion(row)}
-          className={`${actionButtonClass("submit")} disabled:opacity-50`}
-        >
-          {starting ? <Spinner size={14} /> : <Plus size={14} />}
-        </button>
-      </UiTooltip>
-    );
-  }
+  // No bespoke "create" button here — a definition with nothing to act on
+  // yet gets the same plain "-" the Active version/Latest version columns
+  // already use for "nothing here", not a one-off button outside the
+  // reusable RowActions set. Creating the first version happens from the
+  // Add-onboarding-configuration flow itself.
+  if (noVersionYet) return <span className="text-slate-400">-</span>;
 
   const execute = async () => {
     if (action.method === "deauth" && !narration.trim()) {
