@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
@@ -50,6 +51,7 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
   const latest = row.latest_version_id;
   const noVersionYet = !latest || Number(row.process_status) === 10;
 
+  const username = useAuth((state) => state.user?.username);
   const buttons = getMakerCheckerButtons(row, {
     canAdd: can("Add"),
     canEdit: can("Edit"),
@@ -57,6 +59,12 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
     canChangeStatus: can("Deactivate") || can("Reactivate"),
     canDelete: can("Delete"),
   });
+  // A checker must be a different user from the maker (server refuses
+  // "cannot authorise own"), same check as LifecycleList.jsx.
+  if (username && row.updated_by === username) {
+    buttons.authorize = false;
+    buttons.deauthorize = false;
+  }
   const isActive = String(row.status_name).toUpperCase() === "ACTIVE" && String(row.process_status_name).toUpperCase() === "ACTIVE";
   if (isActive) {
     // Further changes to an Active version go through a new version, not

@@ -26,6 +26,14 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   const [narration, setNarration] = useState("");
   const [working, setWorking] = useState(false);
   const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
+  // The API's own can_authorise (true when a request is waiting AND the
+  // viewer isn't the one who made it) is the authoritative "may I decide
+  // this one" — the server refuses a self-approval regardless, so this
+  // just keeps the button from being offered in the first place.
+  if (row.can_authorise === false) {
+    buttons.authorize = false;
+    buttons.deauthorize = false;
+  }
   const pendingInfo = usePendingChanges(
     pendingApi,
     row.reference_id,
