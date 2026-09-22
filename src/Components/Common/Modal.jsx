@@ -112,7 +112,15 @@ export function Modal({
         transition={{ duration: 0.16 }}
         className={cn(
           "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
-          fixedHeight ? "h-[85vh] max-h-[85vh]" : "max-h-[85vh]",
+          // fixedHeight used to force h-[85vh] on every step so a wizard's
+          // outer size never grew/shrank step to step — but that left a
+          // short step (e.g. a couple of fields plus their now-revealed
+          // showIf followers) with a large dead gap between its content and
+          // the footer. max-h alone still caps a tall step at 85vh (with the
+          // body's own overflow-y-auto taking over from there) while letting
+          // a short step's modal shrink-wrap its actual content instead of
+          // padding out to the same height as the tallest step.
+          "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}
