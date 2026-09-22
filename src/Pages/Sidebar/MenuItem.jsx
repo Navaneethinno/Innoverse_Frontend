@@ -78,6 +78,18 @@ export function MenuItem({
   };
 
   const isRoot = depth === 0;
+  const isHighlighted = isExpanded || isActiveLeaf;
+  // A solid filled pill means "this is a module" — reserved for depth 0.
+  // A child (any depth > 0), even Onboarding Configuration/Wizard sitting
+  // right alongside plain masters like Kinship under the same parent, gets
+  // a lighter left-accent treatment instead: real nesting is shown by the
+  // tree line + indent in the children wrapper below, and the active state
+  // never looks like "another root module" no matter how deep it is.
+  const highlightClasses = isHighlighted
+    ? isRoot
+      ? "bg-[var(--primary)] text-white shadow-sm"
+      : "bg-[var(--primary-light)] text-[var(--primary)] font-semibold"
+    : "text-slate-500 hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
 
   return (
     <div className="flex flex-col gap-1">
@@ -87,15 +99,9 @@ export function MenuItem({
         onClick={handleClick}
         className={cn(
           "flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-colors",
-          isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-9 px-2.5 text-xs font-medium",
-          isCollapsed
-            ? "justify-center px-0 w-9 mx-auto"
-            : depth > 0
-              ? "ml-3 w-[calc(100%-0.75rem)]"
-              : "w-full",
-          isExpanded || isActiveLeaf
-            ? "bg-[var(--primary)] text-white shadow-sm"
-            : "text-slate-500 hover:text-[var(--primary)] hover:bg-[var(--primary-light)]",
+          isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-8 px-2.5 text-[11px] font-medium",
+          isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
+          highlightClasses,
         )}
       >
         <span className="flex min-w-0 items-center gap-1.5">
@@ -105,7 +111,7 @@ export function MenuItem({
             </span>
           )}
           {createElement(getMenuIcon(item?.menu_name), {
-            size: 14,
+            size: isRoot ? 14 : 12,
             strokeWidth: 1.8,
             className: "shrink-0",
           })}
@@ -117,24 +123,30 @@ export function MenuItem({
       {hasChildren && !isCollapsed && (
         <div
           className={cn(
-            "overflow-hidden transition-all duration-300 ease-in-out flex flex-col gap-1",
+            "overflow-hidden transition-all duration-300 ease-in-out",
             isExpanded ? "max-h-[999px] opacity-100" : "max-h-0 opacity-0",
           )}
         >
-          {children.map((child) => (
-            <MenuItem
-              key={child.menu_id}
-              item={child}
-              menuItems={menuItems}
-              navigate={navigate}
-              isCollapsed={isCollapsed}
-              autoExpandedMenuIds={autoExpandedMenuIds}
-              isSearching={isSearching}
-              activeMenuId={activeMenuId}
-              onNavigate={onNavigate}
-              depth={depth + 1}
-            />
-          ))}
+          {/* The tree guide line + indent is what actually shows nesting —
+              every level adds its own line/indent recursively, so depth is
+              legible at a glance instead of relying on a ~12px margin that
+              disappears in a long flat list. */}
+          <div className="ml-[0.95rem] flex flex-col gap-1 border-l pl-2" style={{ borderColor: "var(--border)" }}>
+            {children.map((child) => (
+              <MenuItem
+                key={child.menu_id}
+                item={child}
+                menuItems={menuItems}
+                navigate={navigate}
+                isCollapsed={isCollapsed}
+                autoExpandedMenuIds={autoExpandedMenuIds}
+                isSearching={isSearching}
+                activeMenuId={activeMenuId}
+                onNavigate={onNavigate}
+                depth={depth + 1}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
