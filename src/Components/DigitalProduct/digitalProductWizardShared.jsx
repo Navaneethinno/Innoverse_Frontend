@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { cn } from "@/Utils/Lib/cn";
 import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
@@ -258,11 +259,17 @@ export function useDigitalProductLookups(currentEntity) {
 // layout required.
 export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
   const tr = useConfigLabel();
+  const columns = splitFieldsIntoColumns(
+    orderedFields(CONFIGS[entity].fields).filter(([, , , showIf]) => !showIf || showIf(values)),
+  ).filter((columnFields) => columnFields.length > 0);
   return (
-    <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
-      {splitFieldsIntoColumns(
-        orderedFields(CONFIGS[entity].fields).filter(([, , , showIf]) => !showIf || showIf(values)),
-      ).map((columnFields, columnIndex) => (
+    // Only actually split into two grid columns when there's a second
+    // column's worth of fields to put there — splitFieldsIntoColumns can
+    // return an empty second column (few fields, or several hidden by
+    // showIf), and forcing md:grid-cols-2 anyway reserved a whole empty
+    // half-width column next to a short single-column form.
+    <div className={cn("grid gap-x-8 gap-y-4", columns.length > 1 && "md:grid-cols-2")}>
+      {columns.map((columnFields, columnIndex) => (
         <div key={columnIndex} className="flex flex-col gap-4">
           {columnFields.map(([key, label, type]) =>
             type === "boolean" ? (

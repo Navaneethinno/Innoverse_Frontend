@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { cn } from "@/Utils/Lib/cn";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { useSelector } from "react-redux";
@@ -754,8 +755,16 @@ export function AcctConfigResource({ entity }) {
               dropdown) next to a short one (a checkbox) stretches the short
               cell's row to match, stranding it with a large gap before the
               next row. */}
-          <div className="grid gap-x-8 gap-y-3 md:grid-cols-2">
-            {splitFieldsIntoColumns(orderedFields(config.fields)).map((columnFields, columnIndex) => (
+          {(() => {
+            // Only actually split into two grid columns when there's a
+            // second column's worth of fields — splitFieldsIntoColumns
+            // returns an empty second column for a short form (its own
+            // SINGLE_COLUMN_THRESHOLD), and forcing md:grid-cols-2 anyway
+            // reserved a whole empty half-width column next to it.
+            const columns = splitFieldsIntoColumns(orderedFields(config.fields)).filter((columnFields) => columnFields.length > 0);
+            return (
+          <div className={cn("grid gap-x-8 gap-y-3", columns.length > 1 && "md:grid-cols-2")}>
+            {columns.map((columnFields, columnIndex) => (
               <div key={columnIndex} className="flex flex-col gap-3">
                 {columnFields.map(([key, label, type, lookupKey]) => {
                   const isReadOnly = Boolean(editing && config.readOnlyOnEdit?.includes(key));
@@ -812,6 +821,8 @@ export function AcctConfigResource({ entity }) {
               </div>
             ))}
           </div>
+            );
+          })()}
         </Modal>
       )}
       {view && (
