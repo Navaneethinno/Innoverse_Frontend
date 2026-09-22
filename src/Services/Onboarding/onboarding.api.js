@@ -5,7 +5,7 @@ import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
 // Customer Onboarding Configuration API (Frontend Guide, 2026-09): masters,
-// KYC scheme (/config/kyc/group) and the customer-type definition/version
+// KYC scheme (/config/kyc/group) and the customer-type definition
 // wizard (/master_config/onboarding_*). Every call is a POST with a JSON body
 // and the standard {status, message, remark, data[]} envelope; a failure
 // throws an Error whose message prefers the specific `remark`.
@@ -76,19 +76,17 @@ export function createLifecycle(base) {
 export const onboardingCatalog = () => request("/master_config/onboarding_catalog", {});
 
 export const onboardingDefinitionApi = { ...createLifecycle("/master_config/onboarding_definition") };
-export const onboardingVersionApi = createLifecycle("/master_config/onboarding_version");
 export const kycSchemeApi = createLifecycle("/config/kyc/group");
 
-// A customer type's `config` (sections/fields/documents/...) is edited as one
-// object and replaced whole by save_config (guide §8.11).
-export const onboardingVersionOps = {
-  newVersion: (payload) => onboardingVersionApi.call("new_version", payload),
-  get: (payload) => onboardingVersionApi.call("get", payload),
-  saveConfig: (payload) => onboardingVersionApi.call("save_config", payload),
-  validate: (payload) => onboardingVersionApi.call("validate", payload),
-};
+// The definition itself IS the whole customer-type configuration now — no
+// more separate "version" entity (Onboarding_Configuration_API.md §8.1).
+// `config` (sections/fields/documents/...) is edited as one object and
+// replaced whole by save_config (§8.11), directly on the definition's own
+// id, while it is Draft or Rejected Add.
 export const onboardingDefinitionOps = {
   get: (payload) => onboardingDefinitionApi.call("get", payload),
+  saveConfig: (payload) => onboardingDefinitionApi.call("save_config", payload),
+  validate: (payload) => onboardingDefinitionApi.call("validate", payload),
 };
 export const kycSchemeOps = {
   get: (payload) => kycSchemeApi.call("get", payload),

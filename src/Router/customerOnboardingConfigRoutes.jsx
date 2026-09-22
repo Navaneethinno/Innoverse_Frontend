@@ -6,10 +6,10 @@ const CustomerTypes = lazy(() =>
 );
 // The six /config/customer/indv_* endpoints (individual type, identification
 // type, address type, employment, document requirement, document type
-// config) were replaced by the customer-type definition + version model:
+// config) were replaced by the customer-type definition model:
 // identification/address/employment/document rules are now sections of one
-// version's configuration (see OnboardingVersionWizard.jsx). The existing
-// sidebar slugs stay valid and open the Customer Types screen.
+// definition's own configuration (see OnboardingDefinitionWizard.jsx). The
+// existing sidebar slugs stay valid and open the Customer Types screen.
 const paths = [
   "individualtypeconfig",
   "identificationtypeconfig",

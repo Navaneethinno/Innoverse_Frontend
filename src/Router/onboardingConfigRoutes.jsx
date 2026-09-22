@@ -4,22 +4,20 @@ import { pageElement } from "./routeSupport";
 const Definitions = lazy(() =>
   import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
 );
-const Versions = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingVersionPage.jsx").then((m) => ({ default: m.OnboardingVersionPage })),
-);
 const Master = lazy(() => import("@/Components/OnboardingConfig/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
 const KycSchemes = lazy(() => import("@/Components/OnboardingConfig/KycSchemePage.jsx").then((m) => ({ default: m.KycSchemePage })));
 
-// Customer Onboarding Configuration screens (customer types + their
-// versions, and KYC schemes). Each sidebar leaf's slug is
-// slugifyMenuName(menu_name), and those menu names aren't confirmed yet, so
-// each screen answers on a few plausible slugs.
+// Customer Onboarding Configuration screens (customer types, and KYC
+// schemes). There is no separate "versions" screen any more — a customer
+// type IS one maker-checker row (Onboarding_Configuration_API.md §8.1), so
+// Definitions' own list carries the maker-checker actions directly. Each
+// sidebar leaf's slug is slugifyMenuName(menu_name), and those menu names
+// aren't confirmed yet, so each screen answers on a few plausible slugs.
 const slugs = {
   Definitions: ["customertypes", "customertype", "onboardingdefinition", "onboardingdefinitions"],
-  Versions: ["onboardingversions", "onboardingversion", "customertypeversions"],
   KycSchemes: ["kycschemes", "kycscheme", "kycschemeconfig"],
 };
-const components = { Definitions, Versions, KycSchemes };
+const components = { Definitions, KycSchemes };
 export const onboardingConfigRoutes = Object.entries(slugs).flatMap(([name, paths]) =>
   paths.map((path) => ({ path, element: pageElement(components[name]) })),
 );

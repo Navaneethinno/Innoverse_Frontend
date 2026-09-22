@@ -437,7 +437,6 @@ export const routes = {
   crumbInterestConfiguration: "Interest Configuration",
   crumbJointConfiguration: "Joint Configuration",
   crumbCustomerTypes: "Customer Types",
-  crumbOnboardingVersions: "Onboarding Versions",
   crumbKycSchemes: "KYC Schemes",
   crumbTitleMaster: "Title",
   crumbKinship: "Kinship",

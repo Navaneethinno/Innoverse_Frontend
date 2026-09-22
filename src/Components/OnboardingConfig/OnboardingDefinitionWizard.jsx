@@ -7,13 +7,16 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { notifications } from "@/Utils/Lib/notifications";
-import { onboardingVersionApi, onboardingVersionOps, rowsOf } from "@/Services/Onboarding/onboarding.api";
+import { onboardingDefinitionApi, onboardingDefinitionOps, rowsOf } from "@/Services/Onboarding/onboarding.api";
 import { ListEditor, cleanConfig } from "./ListEditor";
 import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
 
-// Customer-type configuration wizard (guide §8): one in-memory `config`
-// object edited across steps 2–9 and replaced whole by save_config; step 1
-// creates/edits the version's own columns; step 10 validates and submits.
+// Customer-type configuration wizard (Onboarding_Configuration_API.md §8):
+// one in-memory `config` object edited across steps 2–9 and replaced whole
+// by save_config; step 1 edits the definition's own basics columns; step 10
+// validates and submits. There is no separate "version" any more — the
+// definition IS the configuration, so every call here targets the
+// definition's own id directly (§8.1).
 const STEPS = [
   { id: "basics", label: "Basics" },
   { id: "sections", label: "Sections" },
@@ -149,41 +152,45 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   );
 }
 
-export function OnboardingVersionWizard({ definition, versionId: initialVersionId = null, onClose, onSaved }) {
+// Reachable for a Draft (9), Rejected Add (5) or Active (1) definition —
+// Active is included because "editing" an Active definition IS the reopen-
+// for-config action now (guide §8.4/§10), not a dead end that forces a new
+// version. Rejected-metadata-edit states (6, 7, 12, 15) behave like Active:
+// the definition stayed Active with its prior config, only metadata was
+// proposed and rejected.
+const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
+
+export function OnboardingDefinitionWizard({ definition, onClose, onSaved }) {
   const navigate = useNavigate();
   const catalog = useOnboardingCatalog();
   const { masters, countries, residencyTypes, kycGroups, loading: mastersLoading } = useOnboardingMasters();
-  const [versionId, setVersionId] = useState(initialVersionId);
-  const [version, setVersion] = useState(null);
+  const [def, setDef] = useState(definition ?? null);
   const [basics, setBasics] = useState({ minor_age_years: 18, home_country_id: "", kyc_group_id: "", effective_from: "", narration: "" });
   const [config, setConfig] = useState(EMPTY_CONFIG);
   const [stepIndex, setStepIndex] = useState(0);
-  const [loading, setLoading] = useState(Boolean(initialVersionId));
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [problems, setProblems] = useState(null);
   const [dirty, setDirty] = useState(false);
 
-  // Only a Draft (9) or Rejected Add (5) version's content can change, and
-  // only for its maker — the server enforces the maker part.
-  const processStatus = Number(version?.process_status ?? version?.status ?? 9);
-  const readOnly = Boolean(version) && ![9, 5].includes(processStatus);
+  const processStatus = Number(def?.process_status ?? 9);
+  const readOnly = Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus);
   const isRejected = processStatus === 5;
 
   useEffect(() => {
-    if (!initialVersionId) return undefined;
     let cancelled = false;
-    onboardingVersionOps
-      .get({ id: initialVersionId })
+    onboardingDefinitionOps
+      .get({ id: definition.id })
       .then((response) => {
         if (cancelled) return;
         const data = rowsOf(response)[0] ?? {};
-        setVersion(data.version ?? null);
+        setDef(data.definition ?? definition);
         setConfig({ ...EMPTY_CONFIG, ...(data.config ?? {}) });
         setBasics({
-          minor_age_years: data.version?.minor_age_years ?? 18,
-          home_country_id: data.version?.home_country_id ?? "",
-          kyc_group_id: data.version?.kyc_group_id ?? "",
-          effective_from: String(data.version?.effective_from ?? "").slice(0, 10),
+          minor_age_years: data.definition?.minor_age_years ?? 18,
+          home_country_id: data.definition?.home_country_id ?? "",
+          kyc_group_id: data.definition?.kyc_group_id ?? "",
+          effective_from: String(data.definition?.effective_from ?? "").slice(0, 10),
           narration: "",
         });
       })
@@ -192,7 +199,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
     return () => {
       cancelled = true;
     };
-  }, [initialVersionId]);
+  }, [definition.id]);
 
   const setList = (key) => (next) => {
     setConfig((c) => ({ ...c, [key]: next }));
@@ -214,7 +221,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
   const codesOf = (key, codeKey) => config[key].map((x) => x[codeKey]).filter(Boolean);
 
   // What the picker for each rule effect target_type offers — the target must
-  // be part of THIS version's own configuration (guide §8.10).
+  // be part of THIS definition's own configuration (guide §8.10).
   const targetOptions = {
     section: codesOf("sections", "section_code"),
     field: codesOf("fields", "field_code"),
@@ -385,7 +392,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
             type: "select",
             required: true,
             options: (e) => (targetOptions[e.target_type] ?? []).map((code) => ({ value: code, label: code })),
-            hint: "Only items already in this version's configuration can be targeted.",
+            hint: "Only items already in this definition's configuration can be targeted.",
           },
         ],
       },
@@ -412,24 +419,17 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       effective_from: basics.effective_from,
     });
 
-  // Persists everything and returns the version id: creates the version on
-  // first save, otherwise edits its columns, then replaces the whole config.
+  // Persists everything on the definition's own row: `edit ... is_draft:true`
+  // both updates the basics AND is what reopens an Active definition for
+  // config editing again (moves process_status to Draft, status stays
+  // Active) — calling it on an already-Draft definition just edits its
+  // fields, so it's safe to run unconditionally rather than branching on
+  // whether this is "the first save" the way a separate version id used to
+  // require. Then save_config replaces the whole `config` object.
   const persist = async () => {
-    let id = versionId;
-    if (!id) {
-      const created = await onboardingVersionOps.newVersion({
-        definition_id: definition.id,
-        ...basicsPayload(),
-        narration: basics.narration || "",
-      });
-      const row = rowsOf(created)[0];
-      id = row?.id;
-      setVersionId(id);
-      setVersion(row);
-    } else {
-      await onboardingVersionApi.edit({ id, ...basicsPayload(), is_draft: true });
-    }
-    await onboardingVersionOps.saveConfig({ id, config: prepared() });
+    const id = definition.id;
+    await onboardingDefinitionApi.edit({ id, name: def?.name ?? definition.name, ...basicsPayload(), is_draft: true });
+    await onboardingDefinitionOps.saveConfig({ id, config: prepared() });
     setDirty(false);
     return id;
   };
@@ -453,17 +453,12 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
       onSaved?.();
     });
 
-  const goNext = () =>
-    run("next", async () => {
-      // Step 1 creates the draft version so later steps have an id to save to.
-      if (stepIndex === 0 && !versionId) await persist();
-      setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
-    });
+  const goNext = () => setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
 
   const validate = () =>
     run("validate", async () => {
       const id = await persist();
-      const response = await onboardingVersionOps.validate({ id });
+      const response = await onboardingDefinitionOps.validate({ id });
       const result = rowsOf(response)[0] ?? {};
       setProblems(result.problems ?? []);
       if (result.valid) notifications.success("Configuration is valid");
@@ -473,16 +468,16 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
   const submit = () =>
     run("submit", async () => {
       const id = await persist();
-      const check = rowsOf(await onboardingVersionOps.validate({ id }))[0] ?? {};
+      const check = rowsOf(await onboardingDefinitionOps.validate({ id }))[0] ?? {};
       setProblems(check.problems ?? []);
       if (!check.valid) {
         notifications.error("Fix the listed problems before submitting");
         return;
       }
-      // A rejected version is resubmitted through edit(is_draft:false); only a
-      // Draft uses submit (guide §9).
-      if (isRejected) await onboardingVersionApi.edit({ id, ...basicsPayload(), is_draft: false });
-      else await onboardingVersionApi.submit({ id, narration: basics.narration || "Submitted for review" });
+      // A rejected definition is resubmitted through edit(is_draft:false);
+      // only a Draft uses submit (guide §9).
+      if (isRejected) await onboardingDefinitionApi.edit({ id, name: def?.name ?? definition.name, ...basicsPayload(), is_draft: false });
+      else await onboardingDefinitionApi.submit({ id, narration: basics.narration || "Submitted for review" });
       notifications.success("Submitted for review");
       onSaved?.();
       onClose();
@@ -513,7 +508,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
     <Modal
       open
       onClose={attemptClose}
-      title={`${readOnly ? "View" : version ? "Edit" : "New"} version — ${definition?.name ?? definition?.code ?? ""}${version?.version_no ? ` (v${version.version_no})` : ""}`}
+      title={`${readOnly ? "View" : "Edit"} onboarding configuration — ${def?.name ?? definition?.name ?? definition?.code ?? ""}`}
       size="full"
       fixedHeight
       footer={
@@ -578,7 +573,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
         <HorizontalStepper
           steps={STEPS}
           activeIndex={stepIndex}
-          onStepClick={(index) => (versionId || readOnly || index === 0) && setStepIndex(index)}
+          onStepClick={(index) => setStepIndex(index)}
         />
       </div>
       {!ready ? (
@@ -590,7 +585,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
           <h2 className="mb-3 text-sm font-bold text-slate-800">{step.label}</h2>
           {readOnly && (
             <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">
-              This version is {version?.process_status_name ?? "frozen"} — its configuration can no longer be changed. Create a new version to change it.
+              This configuration is {def?.process_status_name ?? "frozen"} and cannot be changed right now.
             </p>
           )}
           {step.id === "basics" && (
@@ -614,7 +609,7 @@ export function OnboardingVersionWizard({ definition, versionId: initialVersionI
                 Effective from
                 <input type="date" disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-slate-50" />
               </label>
-              {!version && (
+              {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">
                   Narration
                   <textarea value={basics.narration} onChange={(e) => setBasic("narration", e.target.value)} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />

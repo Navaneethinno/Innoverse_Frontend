@@ -16,40 +16,27 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
-import {
-  masterApis,
-  onboardingDefinitionApi,
-  onboardingVersionApi,
-  onboardingVersionOps,
-  rowsOf,
-} from "@/Services/Onboarding/onboarding.api";
+import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Onboarding/onboarding.api";
 import { useMenuPermission } from "./LifecycleList";
 import { useOnboardingCatalog } from "./onboardingHooks";
-import { OnboardingVersionWizard } from "./OnboardingVersionWizard";
+import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
-const pendingApi = ({ id }) => onboardingVersionApi.pending({ id });
+const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 
-// The row's action buttons are the LATEST VERSION's own maker-checker
-// lifecycle (Onboarding_Configuration_API.md §2), routed to the
-// onboarding_version verbs with id = latest_version_id — the exact same
-// RowActions/getMakerCheckerButtons() every other maker-checker list uses,
-// not a one-off button. Two cases fall outside that vocabulary because
-// there is no acted-on version content yet, or editing in place no longer
-// applies:
-//  - no version at all yet (process_status 10) -> just "Create first
-//    version", nothing to run RowActions against.
-//  - the latest version is Active -> further changes go through a new
-//    version, not an in-place edit, so Edit is suppressed and the
-//    (otherwise unused on an Active row) Submit button is repurposed as
-//    "New version" via RowActions' submitLabel override, instead of a
-//    one-off button outside this set.
-function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
+// A customer type = the definition, full stop (Onboarding_Configuration_
+// API.md §8.1) — no separate "version" any more, so this is now an
+// ordinary single-entity maker-checker list: same RowActions +
+// getMakerCheckerButtons() + ConfirmDialog + PendingChangesDiff + AuditModal
+// pattern as Kinship or any other master, just with its own "Edit" opening
+// the configuration wizard instead of a plain field form. Editing an Active
+// row is exactly that "reopen for reconfiguration" action (guide §8.4/§10),
+// so it needs no special-casing here — getMakerCheckerButtons already
+// grants Edit on Active, and the wizard itself does the reopen.
+function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
   const [working, setWorking] = useState(false);
-  const latest = row.latest_version_id;
-  const noVersionYet = !latest || Number(row.process_status) === 10;
 
   const username = useAuth((state) => state.user?.username);
   const buttons = getMakerCheckerButtons(row, {
@@ -65,23 +52,8 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
     buttons.authorize = false;
     buttons.deauthorize = false;
   }
-  const isActive = String(row.status_name).toUpperCase() === "ACTIVE" && String(row.process_status_name).toUpperCase() === "ACTIVE";
-  if (isActive) {
-    // Further changes to an Active version go through a new version, not
-    // an in-place edit — and ACTIVE's own submitDraft is always false, so
-    // this slot is free to repurpose rather than adding a new button.
-    buttons.edit = false;
-    buttons.submitDraft = can("Add");
-  }
 
-  const pendingInfo = usePendingChanges(pendingApi, latest, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
-
-  // No bespoke "create" button here — a definition with nothing to act on
-  // yet gets the same plain "-" the Active version/Latest version columns
-  // already use for "nothing here", not a one-off button outside the
-  // reusable RowActions set. Creating the first version happens from the
-  // Add-onboarding-configuration flow itself.
-  if (noVersionYet) return <span className="text-slate-400">-</span>;
+  const pendingInfo = usePendingChanges(pendingApi, row.id, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
 
   const execute = async () => {
     if (action.method === "deauth" && !narration.trim()) {
@@ -90,8 +62,8 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
     }
     setWorking(true);
     try {
-      const payload = { id: latest, ...(narration.trim() ? { narration: narration.trim() } : {}) };
-      const response = await onboardingVersionApi[action.method](payload);
+      const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
+      const response = await onboardingDefinitionApi[action.method](payload);
       notifications.success(apiMessage(response, `${action.label} successful`));
       await onRefresh();
       setAction(null);
@@ -111,8 +83,7 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
         onView={!buttons.edit ? () => onOpen(row) : undefined}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
-        onSubmit={buttons.submitDraft ? () => (isActive ? onNewVersion(row) : setAction({ method: "submit", label: "Submit" })) : undefined}
-        submitLabel={isActive ? "New version" : "Submit"}
+        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
         onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
         onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
@@ -121,7 +92,7 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
       />
       <ConfirmDialog
         open={!!action}
-        title={`${action?.label ?? "Action"} version`}
+        title={`${action?.label ?? "Action"} onboarding configuration`}
         confirmLabel={action?.label}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={working}
@@ -139,14 +110,16 @@ function DefinitionRowActions({ row, can, onOpen, onNewVersion, onRefresh }) {
       </ConfirmDialog>
       {audit && (
         <AuditModal
-          title={`${row.name} — ${row.latest_version_name ?? `v${row.latest_version_no}`}`}
+          title={row.name}
           fields={[
-            ["version_no", "Version"],
             ["minor_age_years", "Minor age"],
+            ["home_country_id", "Home country"],
+            ["kyc_group_id", "KYC scheme"],
+            ["effective_from", "Effective from"],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
-            onboardingVersionApi.audit({ id: latest, page, limit }).then((r) => ({
+            onboardingDefinitionApi.audit({ id: row.id, page, limit }).then((r) => ({
               entries: Array.isArray(r?.data) ? r.data : [],
               totalPages: r?.pagination?.totalPages ?? 1,
             }))
@@ -177,7 +150,6 @@ export function OnboardingConfigurationPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
-  const [starting, setStarting] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -194,9 +166,7 @@ export function OnboardingConfigurationPage() {
   useEffect(() => {
     void load();
   }, [load]);
-  // A version's status moves the definition's row too, so refresh on either.
   useLiveChannel(onboardingDefinitionApi.listPath, () => void load());
-  useLiveChannel("/master_config/onboarding_version/list", () => void load());
 
   useEffect(() => {
     masterApis.ownership_sub_type
@@ -235,6 +205,11 @@ export function OnboardingConfigurationPage() {
     }
     setSaving(true);
     try {
+      // Basics (minor_age_years, home_country_id, kyc_group_id,
+      // effective_from) are filled in inside the wizard's own Basics step
+      // right after this, via `edit`, rather than crowding this modal —
+      // is_draft:true here just lands the identity in Draft so save_config
+      // can build its configuration next (guide §8.3).
       const response = await onboardingDefinitionApi.add({
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
@@ -242,42 +217,18 @@ export function OnboardingConfigurationPage() {
         party_type_id: chosen.party_type_id,
         ownership_id: chosen.ownership_id,
         ...(form.ownership_sub_type_id ? { ownership_sub_type_id: Number(form.ownership_sub_type_id) } : {}),
+        is_draft: true,
       });
       notifications.success(apiMessage(response, "Customer type created"));
       setOpen(false);
       setForm(emptyForm);
       await load();
+      const created = rowsOf(response)[0];
+      if (created) setWizard({ definition: created });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const openLatest = (row) => setWizard({ definition: row, versionId: row.latest_version_id ?? null });
-
-  const startNewVersion = async (row) => {
-    // No version at all yet: nothing to copy from — the wizard creates the
-    // draft itself on its first Next (see OnboardingVersionWizard).
-    if (!row.latest_version_id || Number(row.process_status) === 10) {
-      setWizard({ definition: row, versionId: null });
-      return;
-    }
-    // Otherwise the latest (Active) version's content seeds the new one
-    // (guide §10).
-    setStarting(row.id);
-    try {
-      const response = await onboardingVersionOps.newVersion({
-        definition_id: row.id,
-        copy_from_version_id: row.active_version_id,
-        narration: "New version",
-      });
-      setWizard({ definition: row, versionId: rowsOf(response)[0]?.id ?? null });
-      await load();
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setStarting(null);
     }
   };
 
@@ -293,14 +244,6 @@ export function OnboardingConfigurationPage() {
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
 
-  // `status`/`process_status`/`auth_status` on this row are the LATEST
-  // VERSION's own lifecycle, not the definition's (a definition has no
-  // maker-checker of its own) — confirmed on the live response: a
-  // definition whose active version is v1 but whose latest (v2) is
-  // "Pending Add" carries that status/process_status/auth_status here.
-  // Shown as three separate columns, same as every other maker-checker
-  // list in the app (Institution Branding, Institution Channel, ...)
-  // rather than folded into one badge.
   const columns = [
     {
       key: "name",
@@ -327,23 +270,6 @@ export function OnboardingConfigurationPage() {
       ),
     },
     {
-      key: "active_version_no",
-      label: "Active version",
-      align: "left",
-      render: (r) =>
-        r.active_version_id ? (
-          <div className="text-left">{r.active_version_name ?? `Version ${r.active_version_no}`}</div>
-        ) : (
-          "No active version"
-        ),
-    },
-    {
-      key: "process_status",
-      label: "Latest version",
-      sortValue: (r) => r.process_status ?? 0,
-      render: (r) => (r.latest_version_id ? (r.latest_version_name ?? `Version ${r.latest_version_no}`) : "-"),
-    },
-    {
       key: "status_name",
       label: "Status",
       sortValue: (r) => r.status_name ?? "",
@@ -366,13 +292,7 @@ export function OnboardingConfigurationPage() {
       label: "Actions",
       sortable: false,
       render: (r) => (
-        <DefinitionRowActions
-          row={r}
-          can={can}
-          onOpen={openLatest}
-          onNewVersion={(row) => void startNewVersion(row)}
-          onRefresh={load}
-        />
+        <DefinitionRowActions row={r} can={can} onOpen={(row) => setWizard({ definition: row })} onRefresh={load} />
       ),
     },
   ];
@@ -395,7 +315,7 @@ export function OnboardingConfigurationPage() {
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
         <p className="mt-1 text-xs text-slate-500">
-          Each customer type's onboarding is configured through versions — a version holds the sections, fields, documents and rules and goes through maker-checker.
+          Each customer type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.
         </p>
       </div>
       <div
@@ -484,9 +404,8 @@ export function OnboardingConfigurationPage() {
       </Modal>
 
       {wizard && (
-        <OnboardingVersionWizard
+        <OnboardingDefinitionWizard
           definition={wizard.definition}
-          versionId={wizard.versionId}
           onClose={() => setWizard(null)}
           onSaved={() => void load()}
         />

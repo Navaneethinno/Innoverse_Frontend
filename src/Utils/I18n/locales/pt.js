@@ -417,7 +417,6 @@ export const routes = {
   crumbInterestConfiguration: "Configuração de Juros",
   crumbJointConfiguration: "Configuração Conjunta",
   crumbCustomerTypes: "Tipos de Cliente",
-  crumbOnboardingVersions: "Versões de Onboarding",
   crumbKycSchemes: "Esquemas de KYC",
   crumbTitleMaster: "Título",
   crumbKinship: "Parentesco",
