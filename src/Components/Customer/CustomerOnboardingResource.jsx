@@ -65,7 +65,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
     <>
       <RowActions
         buttons={buttons}
-        onView={!buttons.edit ? () => onOpen(row) : undefined}
+        onView={() => onOpen(row)}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
         onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}

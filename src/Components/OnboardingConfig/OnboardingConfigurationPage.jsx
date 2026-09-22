@@ -80,7 +80,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
     <div className="flex items-center justify-center gap-1">
       <RowActions
         buttons={buttons}
-        onView={!buttons.edit ? () => onOpen(row) : undefined}
+        onView={() => onOpen(row)}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
         onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
@@ -134,7 +134,13 @@ const emptyForm = { code: "", name: "", description: "", combination: "", owners
 
 export function OnboardingConfigurationPage() {
   const navigate = useNavigate();
-  const can = useMenuPermission("Individual Type Config|Onboarding Definition|Customer Type");
+  // "Onboarding Configuration" is the menu's real, current name (confirmed
+  // in the sidebar) — the other alternatives are kept only in case an
+  // institution's menu still uses an older name. Without a match here,
+  // useMenuPermission falls back to permissive (every button shown to
+  // everyone), which is what was silently happening before this menu name
+  // was added: none of the old alternatives matched it.
+  const can = useMenuPermission("Onboarding Configuration|Individual Type Config|Onboarding Definition|Customer Type");
   const catalog = useOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
   const { ownershipTypes = [] } = useOwnershipTypes(true);
@@ -213,7 +219,7 @@ export function OnboardingConfigurationPage() {
       const response = await onboardingDefinitionApi.add({
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
-        description: form.description,
+        description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
         party_type_id: chosen.party_type_id,
         ownership_id: chosen.ownership_id,
         ...(form.ownership_sub_type_id ? { ownership_sub_type_id: Number(form.ownership_sub_type_id) } : {}),
@@ -387,7 +393,8 @@ export function OnboardingConfigurationPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Description
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
+            <span className="mt-1 block text-[11px] font-normal text-slate-400">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
             Party type × Ownership

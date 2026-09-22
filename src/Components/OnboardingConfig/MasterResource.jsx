@@ -144,6 +144,8 @@ export function MasterResource({ entity }) {
       const known = new Set(["code", "name", "description", ...fields.map((f) => f.key)]);
       const body = cleanConfig(Object.fromEntries(Object.entries(values).filter(([k]) => known.has(k))));
       if (body.code) body.code = String(body.code).trim().toUpperCase();
+      // Collapse runs of blank lines a paste/held-Enter can leave behind.
+      if (body.description) body.description = String(body.description).trim().replace(/\n{3,}/g, "\n\n");
       // Only the fields the current validation type uses go on the wire.
       if (entity === "validation_rule") {
         const visible = new Set(["code", "name", "description", ...fields.filter((f) => !f.showIf || f.showIf(form)).map((f) => f.key)]);
@@ -218,7 +220,8 @@ export function MasterResource({ entity }) {
             </label>
             <label className="text-sm font-semibold text-slate-700 md:col-span-2">
               Description
-              <textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
+              <textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
+              <span className="mt-1 block text-[11px] font-normal text-slate-400">{(form.description ?? "").length}/250</span>
             </label>
             {fields
               .filter((field) => !field.showIf || field.showIf(form))

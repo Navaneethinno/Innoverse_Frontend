@@ -173,7 +173,11 @@ export function CustomerMasterConfigResource({ entity }) {
         // cannot be changed afterwards.
         ...(!editing ? { code: form.code.trim().toUpperCase() } : {}),
         name: form.name,
-        description: form.description,
+        // Collapse runs of blank lines (a paste, or holding Enter, can leave
+        // dozens) and drop leading/trailing whitespace — the textarea's
+        // maxLength stops new ones, but this also cleans up anything typed
+        // before that limit was added.
+        description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
         ...(config.hasOwnership && !editing ? { ownership_id: form.ownership_id } : {}),
         ...(config.hasCategory && !editing ? { category: form.category } : {}),
         is_draft: draft,
@@ -436,8 +440,10 @@ export function CustomerMasterConfigResource({ entity }) {
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
+                maxLength={250}
                 className="mt-1.5 min-h-24 w-full rounded-xl border p-3"
               />
+              <span className="mt-1 block text-[11px] font-normal text-slate-400">{form.description.length}/250</span>
             </label>
           </form>
         </Modal>
