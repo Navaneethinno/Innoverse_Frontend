@@ -136,7 +136,11 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
   return (
     <tbody>
       {rows.map((row, i) => (
-        <tr key={rowKey(row, i)} className={cn("border-b border-border transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}>
+        <tr
+          key={rowKey(row, i)}
+          className={cn("border-b transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}
+          style={{ borderColor: "color-mix(in srgb, var(--border) 40%, transparent)" }}
+        >
           {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
           {columns.map((col) => (
             <td
