@@ -154,6 +154,15 @@ export function MasterResource({ entity }) {
       const response = editing
         ? await api.edit({ id: editing.id, ...body, is_draft: draft, ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}) })
         : await api.add({ ...body, is_draft: draft });
+      // Confirmed live (see InstitutionBrandingPage.jsx's identical fix):
+      // /edit with is_draft:false only updates fields — it never advances
+      // process_status by itself. Without this, "Save changes" on a Draft
+      // row looked like it submitted but left it stuck in Draft, with no
+      // Submit button on the row to recover it.
+      const wasDraft = editing && (editing.auth_status === "DRAFT" || editing.process_status_name === "Draft");
+      if (wasDraft && !draft) {
+        await api.submit({ id: editing.id, narration: "Submitted for review" });
+      }
       notifications.success(apiMessage(response, `${config.title} saved`));
       setForm(null);
       setReloadKey((k) => k + 1);

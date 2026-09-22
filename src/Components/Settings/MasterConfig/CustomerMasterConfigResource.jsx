@@ -183,6 +183,18 @@ export function CustomerMasterConfigResource({ entity }) {
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };
       const response = await (editing ? config.api.edit(payload) : config.api.add(payload));
+      // Confirmed live (see InstitutionBrandingPage.jsx's identical fix):
+      // /edit with is_draft:false only updates the record's fields — it
+      // never advances process_status on its own, draft or not. Without
+      // this, "Save changes" on a Draft (new or edit-in-progress) row
+      // looked like it submitted but silently left it stuck in Draft
+      // forever, with no Submit button ever appearing on the row to
+      // recover it (getMakerCheckerButtons hides Submit for exactly that
+      // "Active record with an edit-side draft" shape).
+      const wasDraft = editing && (editing.auth_status === "DRAFT" || editing.process_status_name === "Draft");
+      if (wasDraft && !draft) {
+        await config.api.submit({ id: idOf(editing), narration: "Submitted for review" });
+      }
       notifications.success(apiMessage(response, `${config.title} saved`));
       setOpen(false);
       setEditing(null);
