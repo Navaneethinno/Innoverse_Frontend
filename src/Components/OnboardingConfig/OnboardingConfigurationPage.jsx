@@ -158,17 +158,14 @@ export function OnboardingConfigurationPage() {
     }
   };
 
-  // Kept to few columns so the Actions button stays visible without a
-  // horizontal scroll. `status`/`process_status`/`auth_status` on this row
-  // are the LATEST VERSION's own lifecycle, not the definition's (a
-  // definition has no maker-checker of its own) — confirmed on the live
-  // response: a definition whose active version is v1 but whose latest
-  // (v2) is "Pending Add" carries status_name/process_status_name
-  // "Pending Add" here, and status_name === process_status_name in every
-  // case seen so far, so one badge (off process_status_name, since that's
-  // the one that actually distinguishes "Active" from "Pending Edit" when
-  // they ever do differ) next to the Latest version cell covers both,
-  // instead of a separate Status column duplicating it.
+  // `status`/`process_status`/`auth_status` on this row are the LATEST
+  // VERSION's own lifecycle, not the definition's (a definition has no
+  // maker-checker of its own) — confirmed on the live response: a
+  // definition whose active version is v1 but whose latest (v2) is
+  // "Pending Add" carries that status/process_status/auth_status here.
+  // Shown as three separate columns, same as every other maker-checker
+  // list in the app (Institution Branding, Institution Channel, ...)
+  // rather than folded into one badge.
   const columns = [
     {
       key: "name",
@@ -209,15 +206,25 @@ export function OnboardingConfigurationPage() {
       key: "process_status",
       label: "Latest version",
       sortValue: (r) => r.process_status ?? 0,
-      render: (r) =>
-        r.latest_version_id ? (
-          <div className="flex flex-col items-center gap-1">
-            <span>{r.latest_version_name ?? `Version ${r.latest_version_no}`}</span>
-            <StatusBadge status={String(r.process_status_name ?? "-")} />
-          </div>
-        ) : (
-          "-"
-        ),
+      render: (r) => (r.latest_version_id ? (r.latest_version_name ?? `Version ${r.latest_version_no}`) : "-"),
+    },
+    {
+      key: "status_name",
+      label: "Status",
+      sortValue: (r) => r.status_name ?? "",
+      render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
+    },
+    {
+      key: "process_status_name",
+      label: "Process Status",
+      sortValue: (r) => r.process_status_name ?? "",
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
+    },
+    {
+      key: "auth_status",
+      label: "Authorization Status",
+      sortValue: (r) => r.auth_status ?? "",
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
     },
     {
       key: "actions",
