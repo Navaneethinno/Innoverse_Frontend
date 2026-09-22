@@ -231,11 +231,23 @@ export function LifecycleList({
       </div>
 
       {view && (
-        <Modal open onClose={() => setView(null)} title={`View ${title}`} size="lg">
+        <Modal open onClose={() => setView(null)} title={`View ${title}`} size="sm">
           {renderView ? (
             renderView(view)
           ) : (
-            <pre className="max-h-[60vh] overflow-auto rounded-xl bg-slate-50 p-3 text-xs">{JSON.stringify(view, null, 2)}</pre>
+            // Same label/value card grid every other master's View modal uses
+            // (CustomerMasterConfigResource, ...), not a raw JSON dump —
+            // auditFields already gives every screen's own field list.
+            <dl className="grid gap-3">
+              {[...auditFields, ["status_name", "Status"], ["process_status_name", "Process Status"], ["auth_status", "Authorization Status"]].map(
+                ([key, label]) => (
+                  <div key={key} className="rounded-xl border p-3">
+                    <dt className="text-xs text-slate-400">{label}</dt>
+                    <dd className="text-sm font-semibold">{view[key] ?? "-"}</dd>
+                  </div>
+                ),
+              )}
+            </dl>
           )}
         </Modal>
       )}
