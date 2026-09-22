@@ -18,7 +18,7 @@ const isEditable = (row) => EDITABLE.includes(Number(row.process_status));
 const asOptions = (list, valueKey = "code", labelOf = (x) => `${x.name} (${x.code})`) =>
   (list ?? []).map((x) => ({ value: x[valueKey], label: labelOf(x) }));
 
-function LevelsEditor({ scheme, onClose, onSaved }) {
+function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   const catalog = useOnboardingCatalog();
   const { masters, loading: mastersLoading } = useOnboardingMasters();
   const [levels, setLevels] = useState([]);
@@ -26,7 +26,11 @@ function LevelsEditor({ scheme, onClose, onSaved }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [problems, setProblems] = useState(null);
-  const readOnly = !isEditable(record);
+  // The row's own edit-ability (Draft/Rejected only) decides whether Save/
+  // Validate exist at all — but clicking View (as opposed to the Levels
+  // shortcut or Edit) must always land here read-only regardless of status,
+  // same as every other maker-checker list's View action.
+  const readOnly = forceReadOnly || !isEditable(record);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,9 +173,9 @@ function LevelsEditor({ scheme, onClose, onSaved }) {
     <Modal
       open
       onClose={onClose}
-      title={`KYC levels — ${record.name ?? record.code}`}
-      size="full"
-      fixedHeight
+      title={`${readOnly ? "View" : "Edit"} KYC levels — ${record.name ?? record.code}`}
+      size="xl"
+      growWithContent
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
@@ -200,7 +204,9 @@ function LevelsEditor({ scheme, onClose, onSaved }) {
         <div className="flex flex-col gap-4">
           {readOnly && (
             <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">
-              This scheme is {record.process_status_name ?? "frozen"} and can't be changed. Clone it into a new Draft to make changes.
+              {forceReadOnly && isEditable(record)
+                ? "Viewing only."
+                : `This scheme is ${record.process_status_name ?? "frozen"} and can't be changed. Clone it into a new Draft to make changes.`}
             </p>
           )}
           <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel="Add level" readOnly={readOnly} itemTitle={(l) => `Level ${l.level_no ?? "?"}${l.name ? ` — ${l.name}` : ""}`} emptyText="No levels yet. A scheme needs at least one entry level." />
@@ -226,6 +232,7 @@ export function KycSchemePage() {
   const [form, setForm] = useState(null);
   const [clone, setClone] = useState(null);
   const [editor, setEditor] = useState(null);
+  const [editorReadOnly, setEditorReadOnly] = useState(false);
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey((k) => k + 1);
@@ -243,7 +250,10 @@ export function KycSchemePage() {
       reload();
       // Straight on to step 2 — defining the levels.
       const created = rowsOf(response)[0];
-      if (created) setEditor(created);
+      if (created) {
+        setEditorReadOnly(false);
+        setEditor(created);
+      }
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -284,8 +294,14 @@ export function KycSchemePage() {
         menuName="KYC Scheme|Group"
         columns={columns}
         reloadKey={reloadKey}
-        onEdit={(row) => setEditor(row)}
-        onView={(row) => setEditor(row)}
+        onEdit={(row) => {
+          setEditorReadOnly(false);
+          setEditor(row);
+        }}
+        onView={(row) => {
+          setEditorReadOnly(true);
+          setEditor(row);
+        }}
         canEditRow={isEditable}
         canDeleteRow={isEditable}
         addButton={
@@ -296,7 +312,14 @@ export function KycSchemePage() {
         renderExtra={(row) => (
           <>
             <UiTooltip label="Levels">
-              <button type="button" onClick={() => setEditor(row)} className="rounded-lg p-1.5 text-cyan-700 hover:bg-cyan-50">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditorReadOnly(!isEditable(row));
+                  setEditor(row);
+                }}
+                className="rounded-lg p-1.5 text-cyan-700 hover:bg-cyan-50"
+              >
                 <Layers size={14} />
               </button>
             </UiTooltip>
@@ -375,7 +398,9 @@ export function KycSchemePage() {
           </div>
         </Modal>
       )}
-      {editor && <LevelsEditor scheme={editor} onClose={() => setEditor(null)} onSaved={reload} />}
+      {editor && (
+        <LevelsEditor scheme={editor} onClose={() => setEditor(null)} onSaved={reload} forceReadOnly={editorReadOnly} />
+      )}
     </>
   );
 }
