@@ -1,4 +1,19 @@
 :root {
+  /* Every text input/textarea in the app relies on the browser's own
+     default white background rather than an explicit background-color
+     (only the disabled/.dark variants set one) — with no color-scheme
+     declared at all, Chrome/Edge on a system with dark mode enabled at
+     the OS level applies its own automatic-dark-mode heuristic to native
+     form controls specifically, painting inputs/textareas/selects a flat
+     gray even though the page itself is rendering its normal light
+     theme. Custom div-based controls (FilterSelect, CheckboxPill) aren't
+     native form elements, so they were never touched by it — which is
+     exactly the "every real <input> looks gray, dropdowns stay white"
+     split reported. Declaring color-scheme here (and `dark` under .dark
+     below) tells the browser this page has deliberately handled both
+     schemes itself, so it stops guessing on form controls.
+  */
+  color-scheme: light;
   --font-size: 16px;
 
   /* Type scale used by the base h1-h4/label/button/input rules below.
@@ -121,6 +136,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #0b1220;
   --foreground: #f8fafc;
   --card: #162033;
@@ -501,6 +517,22 @@ textarea:-webkit-autofill:focus {
 input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--primary);
+}
+
+/* Belt-and-suspenders alongside the color-scheme declarations up in :root/
+   .dark above: every plain text/number/date/textarea field across the app
+   relied on the browser's own UA-default background (no component sets one
+   itself outside the disabled/.dark states), which is exactly what a
+   browser's forced/automatic dark-mode-for-web-content feature repaints —
+   even on a light page - because there was never an explicit
+   background-color for it to leave alone. var(--card) already resolves to
+   the right color in both themes via the cascade, so this one rule doesn't
+   need a separate .dark copy. */
+input:not([type="checkbox"]):not([type="radio"]):not(:disabled),
+select:not(:disabled),
+textarea:not(:disabled) {
+  background-color: var(--card);
+  color: var(--foreground);
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
