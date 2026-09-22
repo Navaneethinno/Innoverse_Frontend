@@ -159,8 +159,16 @@ export function OnboardingConfigurationPage() {
   };
 
   // Kept to few columns so the Actions button stays visible without a
-  // horizontal scroll: name + code share one cell, party x ownership and the
-  // sub type share another.
+  // horizontal scroll. `status`/`process_status`/`auth_status` on this row
+  // are the LATEST VERSION's own lifecycle, not the definition's (a
+  // definition has no maker-checker of its own) — confirmed on the live
+  // response: a definition whose active version is v1 but whose latest
+  // (v2) is "Pending Add" carries status_name/process_status_name
+  // "Pending Add" here, and status_name === process_status_name in every
+  // case seen so far, so one badge (off process_status_name, since that's
+  // the one that actually distinguishes "Active" from "Pending Edit" when
+  // they ever do differ) next to the Latest version cell covers both,
+  // instead of a separate Status column duplicating it.
   const columns = [
     {
       key: "name",
@@ -182,6 +190,7 @@ export function OnboardingConfigurationPage() {
         <div className="text-left">
           <div>{r.ownership_sub_type_name ?? "-"}</div>
           <div className="text-[11px] text-slate-400">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
+          <div className="text-[11px] text-slate-400">{r.inst_profile_name ?? "-"}</div>
         </div>
       ),
     },
@@ -191,24 +200,10 @@ export function OnboardingConfigurationPage() {
       align: "left",
       render: (r) =>
         r.active_version_id ? (
-          <div className="text-left">
-            <div>{r.active_version_name ?? `Version ${r.active_version_no}`}</div>
-            <div className="text-[11px] text-slate-400">v{r.active_version_no} · {r.status_name ?? "-"}</div>
-          </div>
+          <div className="text-left">{r.active_version_name ?? `Version ${r.active_version_no}`}</div>
         ) : (
           "No active version"
         ),
-    },
-    {
-      key: "inst_profile_name",
-      label: "Institution",
-      align: "left",
-      render: (r) => r.inst_profile_name ?? "-",
-    },
-    {
-      key: "status_name",
-      label: "Status",
-      render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
       key: "process_status",
