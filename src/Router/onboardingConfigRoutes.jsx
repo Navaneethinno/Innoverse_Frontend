@@ -18,8 +18,16 @@ const slugs = {
   KycSchemes: ["kycschemes", "kycscheme", "kycschemeconfig"],
 };
 const components = { Definitions, KycSchemes };
+// Both screens open a specific record by id (Definitions' wizard, KycSchemes'
+// own edit view via its "Add KYC scheme" shortcut from
+// OnboardingConfigurationPage/OnboardingDefinitionWizard's FilterSelect) —
+// needs the same `path` + `path/:id` pair masterSlugs registers below, or
+// navigate(`/kycschemes/${id}`) 404s with no route matching the id segment.
 export const onboardingConfigRoutes = Object.entries(slugs).flatMap(([name, paths]) =>
-  paths.map((path) => ({ path, element: pageElement(components[name]) })),
+  paths.flatMap((path) => [
+    { path, element: pageElement(components[name]) },
+    { path: `${path}/:id`, element: pageElement(components[name]) },
+  ]),
 );
 
 // Masters with extra fields (guide §5) on one schema-driven page. document_type
