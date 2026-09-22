@@ -56,7 +56,7 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
         {levels.map((level) => (
           <div
             key={level.kyc_level_id}
-            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-muted"}`}
+            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-card"}`}
           >
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-1.5 font-bold text-slate-700">
@@ -68,14 +68,15 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
             </div>
             {level.description && <p className="mt-1 text-[11px] text-muted-foreground">{level.description}</p>}
             {level.missing?.length > 0 && (
-              <ul className="mt-1.5 grid gap-1">
+              <ul className="mt-2 grid gap-1">
                 {level.missing.map((m, i) => (
                   <li key={i}>
                     <button
                       type="button"
                       onClick={() => m.section_code && onJumpToSection(m.section_code)}
-                      className="text-left text-[11px] font-medium text-amber-700 underline decoration-dotted hover:text-amber-900"
+                      className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
                     >
+                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
                       {m.message}
                     </button>
                   </li>

@@ -1,3 +1,4 @@
+import { Paperclip } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 
@@ -66,15 +67,26 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
           />
         );
       case "file":
+        // Real upload isn't wired up yet — a plain text input with a dense
+        // placeholder read as a broken/unstyled field rather than an
+        // intentionally-stubbed one. Styling it like a dashed drop-zone
+        // (icon + short label) reads as "coming soon", not broken, while
+        // still taking the same plain-text file-reference value.
         return (
-          <input
-            type="text"
-            className={commonInput}
-            value={value ?? ""}
-            disabled={disabled}
-            placeholder="File reference (upload not available yet)"
-            onChange={(e) => onChange(e.target.value)}
-          />
+          <div className="relative">
+            <Paperclip size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              className={
+                "w-full rounded-xl border border-dashed px-3 py-2.5 pl-8 text-sm placeholder:italic placeholder:text-muted-foreground disabled:bg-muted disabled:text-muted-foreground" +
+                (error ? " border-red-400" : " border-border")
+              }
+              value={value ?? ""}
+              disabled={disabled}
+              placeholder="Upload coming soon"
+              onChange={(e) => onChange(e.target.value)}
+            />
+          </div>
         );
       default:
         return (
