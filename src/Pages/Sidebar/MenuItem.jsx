@@ -19,6 +19,18 @@ function sortedChildrenOf(menuItems, parentId) {
   return getChildMenuItems(menuItems, parentId);
 }
 
+// Whether the active leaf lives anywhere under this node — used to force a
+// group open even when its own `manuallyExpanded` state was just reset (see
+// the comment on the children block below for why that happens on a rail
+// collapse/expand). Recurses through the same getChildMenuItems lookup used
+// everywhere else in this file.
+function subtreeContainsId(menuItems, parentId, targetId) {
+  if (targetId == null) return false;
+  return getChildMenuItems(menuItems, parentId).some(
+    (child) => String(child.menu_id) === String(targetId) || subtreeContainsId(menuItems, child.menu_id, targetId),
+  );
+}
+
 // Leaf menu names confirmed to appear more than once in the tree under
 // different parents. Add to this set only for a name actually seen to
 // collide — never speculatively — since qualifying an otherwise-unique
@@ -41,8 +53,16 @@ export function MenuItem({
 
   const children = sortedChildrenOf(menuItems, item?.menu_id);
   const hasChildren = children.length > 0;
+  // Collapsing the rail unmounts every child MenuItem at every level (see
+  // the `!isCollapsed` gate below), which throws away their own
+  // `manuallyExpanded` state — expanding the rail again then remounted
+  // everything closed, even a group the user was actively inside. Falling
+  // back to "does the active leaf live under here" re-derives that open
+  // state from activeMenuId (owned by MenuList, which never unmounts)
+  // instead of depending on state that just got destroyed.
+  const containsActive = hasChildren && subtreeContainsId(menuItems, item?.menu_id, activeMenuId);
   const isExpanded =
-    manuallyExpanded || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
+    manuallyExpanded || containsActive || (isSearching && autoExpandedMenuIds?.has(item?.menu_id));
   const isActiveLeaf = !hasChildren && activeMenuId === item?.menu_id;
 
   const handleClick = () => {
