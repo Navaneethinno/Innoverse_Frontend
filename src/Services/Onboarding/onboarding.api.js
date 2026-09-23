@@ -36,9 +36,14 @@ async function request(path, body = {}) {
       throw new Error("Session expired. Please sign in again.");
     }
     const statusError = getStatusErrorMessage(response.status);
-    if (statusError) throw new Error(payload?.remark || statusError);
+    // getApiErrorMessage already prefers payload.message over remark/error/
+    // etc internally — checking payload?.remark first, as this used to,
+    // bypassed that priority and always surfaced the backend's internal
+    // field-name remark ("field 'max_value' must be...") in the toast
+    // instead of its own user-facing message ("Maximum Value Must Be...").
+    if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
-      throw new Error(payload?.remark || getApiErrorMessage(payload, payload?.message || "Request failed"));
+      throw new Error(getApiErrorMessage(payload, "Request failed"));
     }
     return payload;
   } finally {

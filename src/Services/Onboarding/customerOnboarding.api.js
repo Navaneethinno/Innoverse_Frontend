@@ -35,14 +35,18 @@ async function request(path, body = {}) {
       throw new Error("Session expired. Please sign in again.");
     }
     if (response.status === 409) {
-      const error = new Error(payload?.remark || "Someone else updated this onboarding. Reloading the latest version.");
+      const error = new Error(getApiErrorMessage(payload, "Someone else updated this onboarding. Reloading the latest version."));
       error.conflict = true;
       throw error;
     }
     const statusError = getStatusErrorMessage(response.status);
-    if (statusError) throw new Error(payload?.remark || statusError);
+    // getApiErrorMessage already prefers payload.message over remark/error/
+    // etc internally — checking payload?.remark first, as this used to,
+    // bypassed that priority and always surfaced the backend's internal
+    // field-name remark instead of its own user-facing message.
+    if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
-      throw new Error(payload?.remark || getApiErrorMessage(payload, payload?.message || "Request failed"));
+      throw new Error(getApiErrorMessage(payload, "Request failed"));
     }
     return payload;
   } finally {

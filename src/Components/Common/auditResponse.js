@@ -66,7 +66,7 @@ function findPagination(value, depth = 0) {
 // Normalize all documented forms before handing history to AuditModal.
 export function mapAuditResponse(payload) {
   if (payload?.status && String(payload.status).toLowerCase() === "fail") {
-    throw new Error(payload.remark || payload.message || "Failed to load audit history");
+    throw new Error(payload.message || payload.remark || "Failed to load audit history");
   }
 
   const entries = findAuditEntries(payload);
