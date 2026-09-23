@@ -1,6 +1,6 @@
 import { Link, useRouteError } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import notFoundAnimation from "@/assets/animations/404-warning-green.lottie";
+import notFoundAnimation from "@/assets/animations/Lonely 404.lottie";
 import { useTranslation } from "react-i18next";
 
 export function RouteError() {
