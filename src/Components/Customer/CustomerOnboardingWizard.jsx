@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, Check, ChevronDown, Send, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -42,6 +42,20 @@ function StatusNotice({ onboarding }) {
 // processes are per level, shown as "what you can do" at the level
 // currently reached.
 function KycLevelPanel({ kyc, onJumpToSection }) {
+  // Collapsed by default — each level card is just its own accordion
+  // section (name + Met/Not yet met), expanding on click to reveal the
+  // description and missing-requirements list. All that detail sitting
+  // open by default (especially a long "Not yet met" reasons list) ate a
+  // lot of vertical space above the actual step content for something the
+  // user only needs to check occasionally.
+  const [expanded, setExpanded] = useState(() => new Set());
+  const toggle = (id) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   if (!kyc) return null;
   const levels = kyc.levels ?? [];
   return (
@@ -53,38 +67,56 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
         </span>
       </div>
       <div className="grid gap-2">
-        {levels.map((level) => (
-          <div
-            key={level.kyc_level_id}
-            className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-card"}`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
-                Level {level.level_no} — {level.kyc_level_name}
-                {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Entry</span>}
-              </span>
-              <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
+        {levels.map((level) => {
+          const isOpen = expanded.has(level.kyc_level_id);
+          const hasDetail = Boolean(level.description) || level.missing?.length > 0;
+          return (
+            <div
+              key={level.kyc_level_id}
+              className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-card"}`}
+            >
+              <button
+                type="button"
+                onClick={() => hasDetail && toggle(level.kyc_level_id)}
+                disabled={!hasDetail}
+                className="flex w-full items-center justify-between gap-2 text-left disabled:cursor-default"
+              >
+                <span className="flex items-center gap-1.5 font-bold text-slate-700">
+                  {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
+                  Level {level.level_no} — {level.kyc_level_name}
+                  {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Entry</span>}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
+                  {hasDetail && (
+                    <ChevronDown size={13} className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  )}
+                </span>
+              </button>
+              {isOpen && (
+                <>
+                  {level.description && <p className="mt-1 text-[11px] text-muted-foreground">{level.description}</p>}
+                  {level.missing?.length > 0 && (
+                    <ul className="mt-2 grid gap-1">
+                      {level.missing.map((m, i) => (
+                        <li key={i}>
+                          <button
+                            type="button"
+                            onClick={() => m.section_code && onJumpToSection(m.section_code)}
+                            className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
+                          >
+                            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                            {m.message}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
             </div>
-            {level.description && <p className="mt-1 text-[11px] text-muted-foreground">{level.description}</p>}
-            {level.missing?.length > 0 && (
-              <ul className="mt-2 grid gap-1">
-                {level.missing.map((m, i) => (
-                  <li key={i}>
-                    <button
-                      type="button"
-                      onClick={() => m.section_code && onJumpToSection(m.section_code)}
-                      className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
-                    >
-                      <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-                      {m.message}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
