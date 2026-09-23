@@ -50,7 +50,7 @@ export function ToastProvider({ children }) {
   const timerRef = useRef(null);
 
   const show = useCallback((message, options = {}) => {
-    const { duration = 2400, variant = "success" } = options;
+    const { duration = 4000, variant = "success" } = options;
 
     clearTimeout(timerRef.current);
     const id = ++idCounter;

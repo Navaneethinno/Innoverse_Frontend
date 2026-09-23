@@ -27,8 +27,8 @@
   gap: 10px;
   background: var(--ink);
   color: #fff;
-  border-radius: 14px;
-  padding: 11px 12px 11px 12px;
+  border-radius: 16px;
+  padding: 16px 14px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   font-family: "Manrope", -apple-system, sans-serif;
   font-size: 13.5px;
