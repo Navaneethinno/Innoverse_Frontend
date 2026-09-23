@@ -87,6 +87,32 @@ export function FieldInput({ field, item, setItem, readOnly }) {
 
 const visible = (spec, item) => spec.filter((f) => !f.showIf || f.showIf(item));
 
+// Every non-bool field before every checkbox pill, mirroring
+// formFieldColumns.js's orderedFields (same reasoning: a checkbox row
+// stretching to match a tall input's height next to it looks padded, so
+// pills get grouped together below the inputs) — with the same one
+// exception that fix added: a field with its own `showIf` (e.g.
+// "Verification method", shown once "Verification required" is checked)
+// stays glued immediately after the nearest preceding checkbox instead of
+// moving up with the other inputs. Left as the plain "all non-bool first"
+// split, checking "Verification required" made "Verification method"
+// appear at the very TOP of the card, among unrelated fields like "Order",
+// instead of next to the checkbox that revealed it.
+function orderedFields(spec, item) {
+  const leading = [];
+  const booleanGroups = [];
+  for (const field of visible(spec, item)) {
+    if (field.type === "bool") {
+      booleanGroups.push({ field, followers: [] });
+      continue;
+    }
+    const owner = field.showIf && booleanGroups[booleanGroups.length - 1];
+    if (owner) owner.followers.push(field);
+    else leading.push(field);
+  }
+  return [leading, booleanGroups.flatMap(({ field, followers }) => [field, ...followers])];
+}
+
 export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, emptyText, seed, nested = false }) {
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
@@ -113,8 +139,10 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
             )}
           </div>
           {/* Inputs first, then every checkbox pill grouped together below,
-              filling left then right — so pills never sit next to a tall input. */}
-          {[visible(spec, item).filter((f) => f.type !== "bool"), visible(spec, item).filter((f) => f.type === "bool")].map(
+              filling left then right — so pills never sit next to a tall input
+              — except a showIf field, kept glued right after its own checkbox
+              by orderedFields above instead of jumping up to the inputs group. */}
+          {orderedFields(spec, item).map(
             (group, g) =>
               group.length > 0 && (
                 <div key={g} className={`grid items-start gap-x-6 gap-y-4 md:grid-cols-2 ${g === 1 ? "mt-4" : ""}`}>
