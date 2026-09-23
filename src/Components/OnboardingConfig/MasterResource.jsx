@@ -4,7 +4,8 @@ import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { masterApi } from "@/Services/Master/master.api";
-import { masterApis as baseMasterApis, createLifecycle } from "@/Services/Onboarding/onboarding.api";
+import { masterApis as baseMasterApis, createLifecycle, rowsOf } from "@/Services/Onboarding/onboarding.api";
+import { usePartyTypes } from "@/Hooks/Master/masterHooks";
 import { LifecycleList } from "./LifecycleList";
 import { FieldInput, cleanConfig } from "./ListEditor";
 import { useOnboardingCatalog } from "./onboardingHooks";
@@ -120,6 +121,80 @@ const CONFIGS = {
       ];
     },
   },
+  // --- Corporate Onboarding Configuration masters (Corporate_Onboarding_
+  // Configuration_API.md §2, 2026-09) — same maker-checker CRUD shape as
+  // the individual masters above, under their own corp_ base paths.
+  corp_company_type: plain("Company Type", "/master_config/corp_company_type"),
+  corp_address_type: plain("Corporate Address Type", "/master_config/corp_address_type"),
+  corp_relationship_type: plain("Corporate Relationship Type", "/master_config/corp_relationship_type"),
+  corp_document_type: plain("Corporate Document Type", "/master_config/corp_document_type"),
+  corp_identification_type: {
+    title: "Identification Type",
+    base: "/master_config/corp_identification_type",
+    columns: (ctx) => [
+      { key: "code", label: "Code" },
+      { key: "name", label: "Name" },
+      { key: "front_required", label: "Front required", render: (r) => (r.front_required ? "Yes" : "No") },
+      { key: "back_required", label: "Back required", render: (r) => (r.back_required ? "Yes" : "No") },
+      { key: "validation_rule_id", label: "Validation rule", render: (r) => ctx.validationRules?.find((v) => v.id === r.validation_rule_id)?.name ?? "-" },
+    ],
+    fields: (ctx) => [
+      { key: "front_required", label: "Front required", type: "bool", defaultValue: true },
+      // Backend refuses back_required without front_required — surfaced as
+      // its own error rather than blocked client-side, same as every other
+      // cross-field refusal in this app (guide §2: "back_required needs
+      // front_required").
+      { key: "back_required", label: "Back required", type: "bool" },
+      {
+        key: "validation_rule_id",
+        label: "Validation rule",
+        type: "select",
+        options: asOptions(ctx.validationRules),
+        hint: "Must be an active rule that applies to text (decides numeric/alphanumeric/fixed length/...).",
+      },
+    ],
+  },
+  corp_tax_type: plain("Tax Type", "/master_config/corp_tax_type"),
+  corp_screening_type: plain("Screening Type", "/master_config/corp_screening_type"),
+  corp_business_nature: plain("Corporate Business Nature", "/master_config/corp_business_nature"),
+  corp_industry_sector: plain("Industry Sector", "/master_config/corp_industry_sector"),
+  corp_merchant_category: plain("Merchant Category", "/master_config/corp_merchant_category"),
+  corp_merchant_group: {
+    title: "Merchant Group",
+    base: "/master_config/corp_merchant_group",
+    columns: (ctx) => [
+      { key: "code", label: "Code" },
+      { key: "name", label: "Name" },
+      { key: "party_type_id", label: "Party type", render: (r) => ctx.partyTypes?.find((p) => p.id === r.party_type_id)?.name ?? r.party_type_id ?? "-" },
+    ],
+    fields: (ctx) => [
+      {
+        key: "party_type_id",
+        label: "Party type",
+        type: "select",
+        required: true,
+        options: asOptions(ctx.partyTypes),
+        hint: 'Must be Merchant or Agent — refused otherwise ("a merchant group must be for the MERCHANT or AGENT party type").',
+      },
+    ],
+  },
+  corp_gst_registration_status: plain("GST Registration Status", "/master_config/corp_gst_registration_status"),
+  corp_tax_exemption_status: plain("Tax Exemption Status", "/master_config/corp_tax_exemption_status"),
+  // Shared by every customer type (not corp_-prefixed) — the settlement
+  // account bank/branch masters (guide §2).
+  bank: plain("Bank", "/master_config/bank"),
+  bank_branch: {
+    title: "Bank Branch",
+    base: "/master_config/bank_branch",
+    columns: (ctx) => [
+      { key: "code", label: "Code" },
+      { key: "name", label: "Name" },
+      { key: "bank_id", label: "Bank", render: (r) => ctx.banks?.find((b) => b.id === r.bank_id)?.name ?? r.bank_id ?? "-" },
+    ],
+    fields: (ctx) => [
+      { key: "bank_id", label: "Bank", type: "select", required: true, options: asOptions(ctx.banks), lockedOnEdit: true, hint: "Code and name are unique within the bank." },
+    ],
+  },
 };
 
 const apiCache = {};
@@ -145,15 +220,37 @@ export function MasterResource({ entity }) {
   const config = CONFIGS[entity];
   const api = apiFor(entity);
   const catalog = useOnboardingCatalog();
+  const { partyTypes } = usePartyTypes(entity === "corp_merchant_group");
   const [currencies, setCurrencies] = useState([]);
+  const [validationRules, setValidationRules] = useState([]);
+  const [banks, setBanks] = useState([]);
   const [form, setForm] = useState(null);
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const ctx = useMemo(() => ({ catalog, currencies }), [catalog, currencies]);
+  const ctx = useMemo(
+    () => ({ catalog, currencies, validationRules, banks, partyTypes }),
+    [catalog, currencies, validationRules, banks, partyTypes],
+  );
 
   useEffect(() => {
     if (!entity.endsWith("_range")) return;
     masterApi.currencyList().then(setCurrencies).catch(() => setCurrencies([]));
+  }, [entity]);
+
+  useEffect(() => {
+    if (entity !== "corp_identification_type") return;
+    baseMasterApis.validation_rule
+      .list({ page: 1, limit: 200 })
+      .then((r) => setValidationRules(rowsOf(r).filter((row) => Number(row.status) === 1)))
+      .catch(() => setValidationRules([]));
+  }, [entity]);
+
+  useEffect(() => {
+    if (entity !== "bank_branch") return;
+    apiFor("bank")
+      .list({ page: 1, limit: 200 })
+      .then((r) => setBanks(rowsOf(r).filter((row) => Number(row.status) === 1)))
+      .catch(() => setBanks([]));
   }, [entity]);
 
   const fields = config.fields(ctx);

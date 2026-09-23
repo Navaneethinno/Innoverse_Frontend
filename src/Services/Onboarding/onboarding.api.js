@@ -127,3 +127,43 @@ export async function activeMasterOptions(name) {
     .filter((row) => Number(row.status) === 1)
     .map((row) => ({ id: row.id, code: row.code, name: row.name ?? row.code }));
 }
+
+// --- Corporate Onboarding Configuration (Corporate_Onboarding_
+// Configuration_API.md, 2026-09) — runs alongside the individual framework
+// above with the same conventions (maker-checker verbs, envelope, response
+// shape), a separate catalog and definition base, and its own set of
+// corp_-prefixed masters. province/district/gender/validation_rule/
+// verification_method/verification_status keep their existing (individual/
+// shared) routes — not duplicated here.
+export const corpOnboardingCatalog = () => request("/master_config/corp_onboarding_catalog", {});
+export const corpOnboardingDefinitionApi = { ...createLifecycle("/master_config/corp_onboarding_definition") };
+export const corpOnboardingDefinitionOps = {
+  get: (payload) => corpOnboardingDefinitionApi.call("get", payload),
+  saveConfig: (payload) => corpOnboardingDefinitionApi.call("save_config", payload),
+  validate: (payload) => corpOnboardingDefinitionApi.call("validate", payload),
+};
+
+export const corpMasterApis = {
+  corp_company_type: createLifecycle("/master_config/corp_company_type"),
+  corp_address_type: createLifecycle("/master_config/corp_address_type"),
+  corp_relationship_type: createLifecycle("/master_config/corp_relationship_type"),
+  corp_document_type: createLifecycle("/master_config/corp_document_type"),
+  corp_identification_type: createLifecycle("/master_config/corp_identification_type"),
+  corp_tax_type: createLifecycle("/master_config/corp_tax_type"),
+  corp_screening_type: createLifecycle("/master_config/corp_screening_type"),
+  corp_business_nature: createLifecycle("/master_config/corp_business_nature"),
+  corp_industry_sector: createLifecycle("/master_config/corp_industry_sector"),
+  corp_merchant_category: createLifecycle("/master_config/corp_merchant_category"),
+  corp_merchant_group: createLifecycle("/master_config/corp_merchant_group"),
+  corp_gst_registration_status: createLifecycle("/master_config/corp_gst_registration_status"),
+  corp_tax_exemption_status: createLifecycle("/master_config/corp_tax_exemption_status"),
+  bank: createLifecycle("/master_config/bank"),
+  bank_branch: createLifecycle("/master_config/bank_branch"),
+};
+
+export async function activeCorpMasterOptions(name) {
+  const response = await corpMasterApis[name].list({ page: 1, limit: 200 });
+  return rowsOf(response)
+    .filter((row) => Number(row.status) === 1)
+    .map((row) => ({ id: row.id, code: row.code, name: row.name ?? row.code }));
+}
