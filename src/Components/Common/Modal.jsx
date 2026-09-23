@@ -31,10 +31,15 @@ export function Modal({
   onBodyScroll,
   // Opt-in only — every existing Modal caller keeps auto-sizing to its
   // content (a short confirm dialog shouldn't grow to 85vh just because
-  // one caller elsewhere needs a stable height). AddDigitalProductWizard
-  // passes this so its outer size stays identical across all 9 steps
-  // instead of growing/shrinking with each step's field count — only the
-  // content area (already flex-1 + overflow-y-auto below) scrolls.
+  // one caller elsewhere needs a stable height). A multi-step wizard whose
+  // steps vary wildly in field count (OnboardingDefinitionWizard's Basics
+  // vs. its Fields/Rules steps) passes this so the outer modal stays the
+  // same size on every step instead of visibly resizing as you move
+  // through them — at the cost of a short step showing blank space below
+  // its own content, which is the deliberate trade-off for that "the
+  // dialog itself shouldn't jump around" request. A step tall enough to
+  // exceed that height still scrolls internally via the body's own
+  // flex-1 + overflow-y-auto below.
   fixedHeight = false,
   // Opt-in only, for the same reason. The default body (flex-1 +
   // min-h-0 + overflow-y-auto, capped by the modal's own max-h-[85vh])
@@ -132,16 +137,7 @@ export function Modal({
         transition={{ duration: 0.16 }}
         className={cn(
           "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
-          // fixedHeight used to force h-[85vh] on every step so a wizard's
-          // outer size never grew/shrank step to step — but that left a
-          // short step (e.g. a couple of fields plus their now-revealed
-          // showIf followers) with a large dead gap between its content and
-          // the footer. max-h alone still caps a tall step at 85vh (with the
-          // body's own overflow-y-auto taking over from there) while letting
-          // a short step's modal shrink-wrap its actual content instead of
-          // padding out to the same height as the tallest step.
-          !growWithContent && "max-h-[85vh]",
-          growWithContent && "my-4",
+          growWithContent ? "my-4" : fixedHeight ? "h-[85vh] max-h-[85vh]" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}
