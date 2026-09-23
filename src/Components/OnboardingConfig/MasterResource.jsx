@@ -49,17 +49,20 @@ const rangeConfig = (title, base) => ({
 
 const plain = (title, base) => ({ title, base, columns: () => [{ key: "code", label: "Code" }, { key: "name", label: "Name" }], fields: () => [] });
 
+// title/kinship/business_nature/the four ranges/document_type moved under
+// indv_ (2026-09 route change); risk_category/validation_rule below are
+// shared masters that kept their old routes.
 const CONFIGS = {
-  title: plain("Title", "/master_config/title"),
-  kinship: plain("Kinship", "/master_config/kinship"),
-  business_nature: plain("Business Nature", "/master_config/business_nature"),
-  annual_income_range: rangeConfig("Annual Income Range", "/master_config/annual_income_range"),
-  monthly_income_range: rangeConfig("Monthly Income Range", "/master_config/monthly_income_range"),
-  net_worth_range: rangeConfig("Net Worth Range", "/master_config/net_worth_range"),
-  turnover_range: rangeConfig("Turnover Range", "/master_config/turnover_range"),
+  title: plain("Title", "/master_config/indv_title"),
+  kinship: plain("Kinship", "/master_config/indv_kinship"),
+  business_nature: plain("Business Nature", "/master_config/indv_business_nature"),
+  annual_income_range: rangeConfig("Annual Income Range", "/master_config/indv_annual_income_range"),
+  monthly_income_range: rangeConfig("Monthly Income Range", "/master_config/indv_monthly_income_range"),
+  net_worth_range: rangeConfig("Net Worth Range", "/master_config/indv_net_worth_range"),
+  turnover_range: rangeConfig("Turnover Range", "/master_config/indv_turnover_range"),
   document_type: {
     title: "Document Type",
-    base: "/master_config/document_type",
+    base: "/master_config/indv_document_type",
     columns: (ctx) => [
       { key: "code", label: "Code" },
       { key: "name", label: "Name" },

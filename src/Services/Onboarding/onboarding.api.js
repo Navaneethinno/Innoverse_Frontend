@@ -78,9 +78,13 @@ export function createLifecycle(base) {
   };
 }
 
-export const onboardingCatalog = () => request("/master_config/onboarding_catalog", {});
+// Individual-customer masters and onboarding config moved to /indv_* base
+// paths (2026-09) — the old /master_config/onboarding_* routes now 404.
+// Request/response bodies, field names and the maker-checker verb set are
+// unchanged; only the path segment changed.
+export const onboardingCatalog = () => request("/master_config/indv_onboarding_catalog", {});
 
-export const onboardingDefinitionApi = { ...createLifecycle("/master_config/onboarding_definition") };
+export const onboardingDefinitionApi = { ...createLifecycle("/master_config/indv_onboarding_definition") };
 export const kycSchemeApi = createLifecycle("/config/kyc/group");
 
 // The definition itself IS the whole customer-type configuration now — no
@@ -103,13 +107,16 @@ export const kycSchemeOps = {
 // Institution masters the wizard refers to BY CODE (guide §8). `get_active`
 // with view=dropdown only returns {id, name}, so pickers that must send a
 // code read the plain list instead and keep Active rows.
+// ownership_sub_type/validation_rule/verification_method are shared masters
+// that kept their old routes; the rest moved under indv_ (2026-09 route
+// change — see onboardingCatalog/onboardingDefinitionApi above).
 export const masterApis = {
   ownership_sub_type: createLifecycle("/master_config/ownership_sub_type"),
-  document_type: createLifecycle("/master_config/document_type"),
-  address_type: createLifecycle("/master_config/address_type"),
-  employment: createLifecycle("/master_config/employment"),
-  relationship_type: createLifecycle("/master_config/relationship_type"),
-  source_of_fund: createLifecycle("/master_config/source_of_fund"),
+  document_type: createLifecycle("/master_config/indv_document_type"),
+  address_type: createLifecycle("/master_config/indv_address_type"),
+  employment: createLifecycle("/master_config/indv_employment"),
+  relationship_type: createLifecycle("/master_config/indv_relationship_type"),
+  source_of_fund: createLifecycle("/master_config/indv_source_of_fund"),
   validation_rule: createLifecycle("/master_config/validation_rule"),
   verification_method: createLifecycle("/master_config/verification_method"),
 };
