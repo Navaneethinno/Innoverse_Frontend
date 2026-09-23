@@ -512,7 +512,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
       onClose={attemptClose}
       title={`${readOnly ? "View" : "Edit"} onboarding configuration — ${def?.name ?? definition?.name ?? definition?.code ?? ""}`}
       size="full"
-      fixedHeight
+      growWithContent
       footer={
         <>
           <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">

@@ -30,33 +30,26 @@ export function Modal({
   bodyClassName,
   onBodyScroll,
   // Opt-in only — every existing Modal caller keeps auto-sizing to its
-  // content (a short confirm dialog shouldn't grow to 85vh just because
-  // one caller elsewhere needs a stable height). A multi-step wizard whose
-  // steps vary wildly in field count (OnboardingDefinitionWizard's Basics
-  // vs. its Fields/Rules steps) passes this so the outer modal stays the
-  // same size on every step instead of visibly resizing as you move
-  // through them — at the cost of a short step showing blank space below
-  // its own content, which is the deliberate trade-off for that "the
-  // dialog itself shouldn't jump around" request. A step tall enough to
-  // exceed that height still scrolls internally via the body's own
-  // flex-1 + overflow-y-auto below.
-  fixedHeight = false,
-  // Opt-in only, for the same reason. The default body (flex-1 +
-  // min-h-0 + overflow-y-auto, capped by the modal's own max-h-[85vh])
-  // relies on the browser sizing that inner scroll box to exactly its
-  // content — which held up in every other modal, but on at least one
-  // step of the Digital Product wizard (a couple of fields plus their
-  // showIf-revealed followers) users kept seeing dead space at the
-  // bottom of that scroll box even after scrolling all the way down,
-  // i.e. its scrollHeight ended up taller than what was actually
-  // rendered inside it. Rather than keep guessing at what inflates that
-  // one box, growWithContent removes the separate scroll region
-  // entirely: the modal has no max-height of its own and just grows to
-  // fit its content, and the BACKDROP scrolls instead if that ever
-  // exceeds the viewport. With no inner box to mismeasure, this class of
-  // bug can't happen structurally — the trade-off is that the footer is
-  // guaranteed to sit immediately after the last field, but is only
-  // guaranteed to be on-screen without scrolling when the step fits.
+  // content (a short confirm dialog shouldn't grow just because one caller
+  // elsewhere needs this). The default body (flex-1 + min-h-0 +
+  // overflow-y-auto, capped by the modal's own max-h-[85vh]) relies on the
+  // browser sizing that inner scroll box to exactly its content — which
+  // held up everywhere it was first used, but every multi-step wizard that
+  // tried a "keep the same outer size across steps" variant (forcing
+  // h-[85vh] regardless of that step's actual content) ran into the same
+  // complaint from every angle: a short step (a handful of checkboxes) or
+  // one whose content shrinks after an interaction (unchecking a box that
+  // was revealing more fields) left a large dead gap between its content
+  // and the footer, at some points even a scrollbar over a scroll box
+  // whose scrollHeight didn't match what was actually rendered inside it.
+  // growWithContent removes the separate scroll region entirely instead of
+  // trying to force a size: the modal has no max-height of its own and
+  // just grows to fit whatever the current step actually contains, and the
+  // BACKDROP scrolls instead if that step ever exceeds the viewport. With
+  // no inner box to mismeasure and no forced height to pad out, this class
+  // of bug can't happen structurally — the trade-off, accepted deliberately
+  // after trying the alternative, is that the dialog's outer size varies
+  // step to step rather than staying fixed.
   growWithContent = false,
 }) {
   // No modal in this codebase locked background scroll before — added here
@@ -137,7 +130,7 @@ export function Modal({
         transition={{ duration: 0.16 }}
         className={cn(
           "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
-          growWithContent ? "my-4" : fixedHeight ? "h-[85vh] max-h-[85vh]" : "max-h-[85vh]",
+          growWithContent ? "my-4" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
         onClick={(event) => event.stopPropagation()}

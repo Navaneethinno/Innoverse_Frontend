@@ -733,7 +733,7 @@ export function AcctConfigResource({ entity }) {
           open
           title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
           size="lg"
-          fixedHeight
+          growWithContent
           onClose={() => {
             setEditing(null);
             setForm({});
@@ -831,7 +831,7 @@ export function AcctConfigResource({ entity }) {
           title={entity === "acct_product" ? `${view.product_name ?? tr(config.title)} — Configurations` : `${tr("View")} ${tr(config.title)}`}
           subtitle={entity === "acct_product" ? "Only the configurations enabled for this product are shown" : undefined}
           size={entity === "acct_product" ? "xl" : "md"}
-          fixedHeight={entity === "acct_product"}
+          growWithContent={entity === "acct_product"}
           onClose={() => setView(null)}
         >
           {/* Account Product's own field-by-field dump (19 boolean flags

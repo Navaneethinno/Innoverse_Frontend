@@ -624,7 +624,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           : "Start customer onboarding"
       }
       size="xl"
-      fixedHeight
+      growWithContent
       footer={footer()}
     >
       {body()}
