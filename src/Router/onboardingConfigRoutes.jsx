@@ -1,30 +1,29 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
+// Definitions now renders OnboardingConfigurationHub (Individual|Corporate
+// switch), not the plain individual-only page — "Frontend fixes —
+// onboarding menus and corporate masters", 2026-09, fix 1: there is ONE
+// Onboarding Configuration menu/page, not a separate one per ownership
+// type. The confirmed real path (onboardingconfiguration) is registered in
+// customerRoutes.jsx; the guesses below are this app's own earlier
+// best-guess aliases for the individual-flavored menu names, kept as
+// aliases into the same unified hub (defaulting to Individual) rather than
+// removed outright, in case any of them is actually still in use. The
+// corporate-only slug guesses that used to point at a separate
+// CorporateOnboardingConfigurationPage here now redirect to
+// onboardingconfiguration?type=corporate instead — see customerRoutes.jsx.
 const Definitions = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
-);
-const CorpDefinitions = lazy(() =>
-  import("@/Components/OnboardingConfig/CorporateOnboardingConfigurationPage.jsx").then((m) => ({ default: m.CorporateOnboardingConfigurationPage })),
+  import("@/Components/OnboardingConfig/OnboardingConfigurationHub.jsx").then((m) => ({ default: m.OnboardingConfigurationHub })),
 );
 const Master = lazy(() => import("@/Components/OnboardingConfig/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
 const KycSchemes = lazy(() => import("@/Components/OnboardingConfig/KycSchemePage.jsx").then((m) => ({ default: m.KycSchemePage })));
 
-// Customer Onboarding Configuration screens (customer types, and KYC
-// schemes). There is no separate "versions" screen any more — a customer
-// type IS one maker-checker row (Onboarding_Configuration_API.md §8.1), so
-// Definitions' own list carries the maker-checker actions directly. Each
-// sidebar leaf's slug is slugifyMenuName(menu_name), and those menu names
-// aren't confirmed yet, so each screen answers on a few plausible slugs.
 const slugs = {
   Definitions: ["customertypes", "customertype", "onboardingdefinition", "onboardingdefinitions"],
   KycSchemes: ["kycschemes", "kycscheme", "kycschemeconfig"],
-  // Corporate customer-type definitions (Corporate_Onboarding_Configuration_
-  // API.md §4) — same "answer on a few plausible slugs" hedge as Definitions
-  // above, since the real corporate menu_name isn't confirmed yet either.
-  CorpDefinitions: ["corporatecustomertypes", "corporatecustomertype", "corporateonboardingdefinition", "corporateonboardingconfiguration"],
 };
-const components = { Definitions, KycSchemes, CorpDefinitions };
+const components = { Definitions, KycSchemes };
 // Both screens open a specific record by id (Definitions' wizard, KycSchemes'
 // own edit view via its "Add KYC scheme" shortcut from
 // OnboardingConfigurationPage/OnboardingDefinitionWizard's FilterSelect) —
