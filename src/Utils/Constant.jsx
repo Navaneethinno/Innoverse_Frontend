@@ -209,8 +209,6 @@ export const API_ENDPOINTS = {
     TRANSACTION_LIST: "/master/transaction",
     FREQUENCY_LIST: "/master/frequency",
     KYC_PROCESS_LIST: "/master/kyc_process",
-    KYC_DATA_FIELD_LIST: "/master/kyc_data_field",
-    KYC_DOCUMENT_TYPE_LIST: "/master/kyc_document_type",
     PARTY_TYPE_LIST: "/master/party_type",
     INSTITUTION_TYPE_LIST: "/master/institution_type",
     OWNERSHIP_LIST: "/master/ownership",
@@ -293,24 +291,6 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/master_config/indv_disability/deactivate",
       REACTIVATE: "/master_config/indv_disability/reactivate",
     },
-    CATEGORY: {
-      ADD: "/master_config/category/add", SUBMIT: "/master_config/category/submit", LIST: "/master_config/category/list",
-      GET_ACTIVE: "/master_config/category/get_active", AUDIT: "/master_config/category/audit", AUTH: "/master_config/category/auth",
-      DEAUTH: "/master_config/category/deauth", EDIT: "/master_config/category/edit", DELETE: "/master_config/category/delete",
-      DELETE_AUTH: "/master_config/category/delete_auth",
-      PENDING: "/master_config/category/pending",
-      DEACTIVATE: "/master_config/category/deactivate",
-      REACTIVATE: "/master_config/category/reactivate",
-    },
-    CITIZENSHIP: {
-      ADD: "/master_config/citizenship/add", SUBMIT: "/master_config/citizenship/submit", LIST: "/master_config/citizenship/list",
-      GET_ACTIVE: "/master_config/citizenship/get_active", AUDIT: "/master_config/citizenship/audit", AUTH: "/master_config/citizenship/auth",
-      DEAUTH: "/master_config/citizenship/deauth", EDIT: "/master_config/citizenship/edit", DELETE: "/master_config/citizenship/delete",
-      DELETE_AUTH: "/master_config/citizenship/delete_auth",
-      PENDING: "/master_config/citizenship/pending",
-      DEACTIVATE: "/master_config/citizenship/deactivate",
-      REACTIVATE: "/master_config/citizenship/reactivate",
-    },
     EMPLOYMENT: {
       ADD: "/master_config/indv_employment/add", SUBMIT: "/master_config/indv_employment/submit", LIST: "/master_config/indv_employment/list",
       GET_ACTIVE: "/master_config/indv_employment/get_active", AUDIT: "/master_config/indv_employment/audit", AUTH: "/master_config/indv_employment/auth",
@@ -346,15 +326,6 @@ export const API_ENDPOINTS = {
       PENDING: "/master_config/indv_account_purpose/pending",
       DEACTIVATE: "/master_config/indv_account_purpose/deactivate",
       REACTIVATE: "/master_config/indv_account_purpose/reactivate",
-    },
-    TURNOVER: {
-      ADD: "/master_config/turnover/add", SUBMIT: "/master_config/turnover/submit", LIST: "/master_config/turnover/list",
-      GET_ACTIVE: "/master_config/turnover/get_active", AUDIT: "/master_config/turnover/audit", AUTH: "/master_config/turnover/auth",
-      DEAUTH: "/master_config/turnover/deauth", EDIT: "/master_config/turnover/edit", DELETE: "/master_config/turnover/delete",
-      DELETE_AUTH: "/master_config/turnover/delete_auth",
-      PENDING: "/master_config/turnover/pending",
-      DEACTIVATE: "/master_config/turnover/deactivate",
-      REACTIVATE: "/master_config/turnover/reactivate",
     },
     DESIGNATION: {
       ADD: "/master_config/indv_designation/add", SUBMIT: "/master_config/indv_designation/submit", LIST: "/master_config/indv_designation/list",
@@ -824,42 +795,13 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/config/kyc/group/deactivate",
       REACTIVATE: "/config/kyc/group/reactivate",
     },
-    KYC_GROUP_LEVEL: {
-      ADD: "/config/kyc_group_level/add", SUBMIT: "/config/kyc_group_level/submit", EDIT: "/config/kyc_group_level/edit",
-      AUTH: "/config/kyc_group_level/auth", DEAUTH: "/config/kyc_group_level/deauth", DELETE: "/config/kyc_group_level/delete",
-      DELETE_AUTH: "/config/kyc_group_level/delete_auth", LIST: "/config/kyc_group_level/list",
-      GET_ACTIVE: "/config/kyc_group_level/get_active", AUDIT: "/config/kyc_group_level/audit",
-      PENDING: "/config/kyc_group_level/pending",
-      DEACTIVATE: "/config/kyc_group_level/deactivate",
-      REACTIVATE: "/config/kyc_group_level/reactivate",
-    },
-    KYC_GROUP_LEVEL_DATA: {
-      ADD: "/config/kyc_group_level_data/add", SUBMIT: "/config/kyc_group_level_data/submit", EDIT: "/config/kyc_group_level_data/edit",
-      AUTH: "/config/kyc_group_level_data/auth", DEAUTH: "/config/kyc_group_level_data/deauth", DELETE: "/config/kyc_group_level_data/delete",
-      DELETE_AUTH: "/config/kyc_group_level_data/delete_auth", LIST: "/config/kyc_group_level_data/list",
-      GET_ACTIVE: "/config/kyc_group_level_data/get_active", AUDIT: "/config/kyc_group_level_data/audit",
-      PENDING: "/config/kyc_group_level_data/pending",
-      DEACTIVATE: "/config/kyc_group_level_data/deactivate",
-      REACTIVATE: "/config/kyc_group_level_data/reactivate",
-    },
-    KYC_GROUP_LEVEL_PROCESS: {
-      ADD: "/config/kyc_group_level_process/add", SUBMIT: "/config/kyc_group_level_process/submit", EDIT: "/config/kyc_group_level_process/edit",
-      AUTH: "/config/kyc_group_level_process/auth", DEAUTH: "/config/kyc_group_level_process/deauth", DELETE: "/config/kyc_group_level_process/delete",
-      DELETE_AUTH: "/config/kyc_group_level_process/delete_auth", LIST: "/config/kyc_group_level_process/list",
-      GET_ACTIVE: "/config/kyc_group_level_process/get_active", AUDIT: "/config/kyc_group_level_process/audit",
-      PENDING: "/config/kyc_group_level_process/pending",
-      DEACTIVATE: "/config/kyc_group_level_process/deactivate",
-      REACTIVATE: "/config/kyc_group_level_process/reactivate",
-    },
-    KYC_GROUP_LEVEL_DOCUMENT: {
-      ADD: "/config/kyc_group_level_document/add", SUBMIT: "/config/kyc_group_level_document/submit", EDIT: "/config/kyc_group_level_document/edit",
-      AUTH: "/config/kyc_group_level_document/auth", DEAUTH: "/config/kyc_group_level_document/deauth", DELETE: "/config/kyc_group_level_document/delete",
-      DELETE_AUTH: "/config/kyc_group_level_document/delete_auth", LIST: "/config/kyc_group_level_document/list",
-      GET_ACTIVE: "/config/kyc_group_level_document/get_active", AUDIT: "/config/kyc_group_level_document/audit",
-      PENDING: "/config/kyc_group_level_document/pending",
-      DEACTIVATE: "/config/kyc_group_level_document/deactivate",
-      REACTIVATE: "/config/kyc_group_level_document/reactivate",
-    },
+    // KYC_GROUP_LEVEL/_DATA/_PROCESS/_DOCUMENT removed (Frontend fixes —
+    // onboarding menus and corporate masters, 2026-09, fix 4): none of
+    // these /config/kyc_group_level* routes exist on the backend any more
+    // — a KYC scheme and all its levels are now one record edited whole
+    // via /config/kyc/group (KYC_GROUP above, used by kycSchemeApi in
+    // onboarding.api.js) — and nothing in this codebase actually called
+    // configKycApi() with any of these four entity names.
   },
 
   // --- EPURSE > Digital Product ---------------------------------------------

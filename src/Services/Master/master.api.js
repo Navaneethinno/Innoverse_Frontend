@@ -156,10 +156,6 @@ export const masterApi = {
     toArray(await masterPost(API_ENDPOINTS.MASTER.FREQUENCY_LIST, {}), "frequency"),
   kycProcessList: async () =>
     toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_PROCESS_LIST, {}), "kyc_process"),
-  kycDataFieldList: async () =>
-    toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_DATA_FIELD_LIST, {}), "kyc_data_field"),
-  kycDocumentTypeList: async () =>
-    toArray(await masterPost(API_ENDPOINTS.MASTER.KYC_DOCUMENT_TYPE_LIST, {}), "kyc_document_type"),
   partyTypeList: async () =>
     toArray(await masterPost(API_ENDPOINTS.MASTER.PARTY_TYPE_LIST, {}), "party_type"),
   ownershipList: async () =>

@@ -27,8 +27,6 @@ const DISTRICT = API_ENDPOINTS.MASTER_CONFIG.DISTRICT;
 const PROVINCE = API_ENDPOINTS.MASTER_CONFIG.PROVINCE;
 const VILLAGE = API_ENDPOINTS.MASTER_CONFIG.VILLAGE;
 const ACCOUNT_PURPOSE = API_ENDPOINTS.MASTER_CONFIG.ACCOUNT_PURPOSE;
-const CATEGORY = API_ENDPOINTS.MASTER_CONFIG.CATEGORY;
-const CITIZENSHIP = API_ENDPOINTS.MASTER_CONFIG.CITIZENSHIP;
 const DESIGNATION = API_ENDPOINTS.MASTER_CONFIG.DESIGNATION;
 const DISABILITY = API_ENDPOINTS.MASTER_CONFIG.DISABILITY;
 const EMPLOYMENT = API_ENDPOINTS.MASTER_CONFIG.EMPLOYMENT;
@@ -37,7 +35,6 @@ const QUALIFICATION = API_ENDPOINTS.MASTER_CONFIG.QUALIFICATION;
 const RELIGION = API_ENDPOINTS.MASTER_CONFIG.RELIGION;
 const GENDER = API_ENDPOINTS.MASTER_CONFIG.GENDER;
 const SOURCE_OF_FUND = API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND;
-const TURNOVER = API_ENDPOINTS.MASTER_CONFIG.TURNOVER;
 const deauthPayload = (payload = {}) => ({
   id: payload.id,
   narration: payload.narration ?? payload.description ?? "UNDEFINED",
@@ -80,8 +77,6 @@ export const villageApi = {
   deactivate: (payload) => request(VILLAGE.DEACTIVATE, payload), reactivate: (payload) => request(VILLAGE.REACTIVATE, payload),
 };
 export const accountPurposeApi = lifecycleApi(ACCOUNT_PURPOSE);
-export const categoryApi = lifecycleApi(CATEGORY);
-export const citizenshipApi = lifecycleApi(CITIZENSHIP);
 export const designationApi = lifecycleApi(DESIGNATION);
 export const disabilityApi = lifecycleApi(DISABILITY);
 export const employmentApi = lifecycleApi(EMPLOYMENT);
@@ -90,7 +85,6 @@ export const qualificationApi = lifecycleApi(QUALIFICATION);
 export const religionApi = lifecycleApi(RELIGION);
 export const genderApi = lifecycleApi(GENDER);
 export const sourceOfFundApi = lifecycleApi(SOURCE_OF_FUND);
-export const turnoverApi = lifecycleApi(TURNOVER);
 // Individual Customer domain masters (2026-09) — same 13-route shape as
 // every entity above.
 export const maritalStatusApi = lifecycleApi(API_ENDPOINTS.MASTER_CONFIG.MARITAL_STATUS);

@@ -54,22 +54,6 @@ export function useTimezones() {
   return { timezones, loading, error };
 }
 
-export function useKycDataFields(enabled = true) {
-  const [dataFields, setDataFields] = useState([]);
-  const [error, setError] = useState(null);
-  const load = useCallback(async () => {
-    if (!enabled) return;
-    try {
-      setDataFields(await masterApi.kycDataFieldList());
-      setError(null);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC data fields"));
-    }
-  }, [enabled]);
-  useEffect(() => { void load(); }, [load]);
-  return { dataFields, error };
-}
-
 export function useKycProcesses(enabled = true) {
   const [processes, setProcesses] = useState([]);
   const [error, setError] = useState(null);
@@ -86,21 +70,6 @@ export function useKycProcesses(enabled = true) {
   return { processes, error };
 }
 
-export function useKycDocumentTypes(enabled = true) {
-  const [documentTypes, setDocumentTypes] = useState([]);
-  const [error, setError] = useState(null);
-  const load = useCallback(async () => {
-    if (!enabled) return;
-    try {
-      setDocumentTypes(await masterApi.kycDocumentTypeList());
-      setError(null);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC document types"));
-    }
-  }, [enabled]);
-  useEffect(() => { void load(); }, [load]);
-  return { documentTypes, error };
-}
 
 export function useChannels(enabled = true) {
   const [channels, setChannels] = useState([]);

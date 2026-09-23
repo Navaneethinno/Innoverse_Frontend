@@ -51,26 +51,30 @@ const masterSlugs = {
   validation_rule: ["validationrule", "validation-rule"],
   document_type: ["documenttype", "document-type"],
   // Corporate Onboarding Master (Corporate_Onboarding_Configuration_API.md
-  // §2, 2026-09). "Address Type"/"Relationship Type"/"Document Type"/
-  // "Business Nature" exist under BOTH the Individual and Corporate
-  // Onboarding Master groups — if the backend sends the exact same
-  // menu_name for both, slugifyMenuName collides and only one can win a
-  // given slug. Individual already owns the plain slug above (established
-  // first); these four get "corp"-prefixed slugs as their best-guess
-  // fallback pending the real sidebar menu_name strings.
-  corp_company_type: ["companytype", "company-type"],
+  // §2, 2026-09; slugs per "Frontend fixes — onboarding menus and corporate
+  // masters", 2026-09, fix 3). "Address Type"/"Relationship Type"/
+  // "Document Type"/"Business Nature" exist under BOTH the Individual and
+  // Corporate Onboarding Master groups and share the exact menu_name —
+  // MenuItem.jsx's buildMenuPathForItem now prefixes every direct child of
+  // a "Corporate" parent menu with "corp" precisely to avoid this collision
+  // (Individual keeps the plain slug). Every corp_ master gets its
+  // corp-prefixed slug registered here regardless of whether its plain name
+  // actually collides, since that prefixing is unconditional for any menu
+  // under "Corporate" — the plain slugs stay registered too, so a direct/
+  // bookmarked link to the old path still works.
+  corp_company_type: ["corpcompanytype", "corp-company-type", "companytype", "company-type"],
   corp_address_type: ["corpaddresstype", "corp-address-type"],
   corp_relationship_type: ["corprelationshiptype", "corp-relationship-type"],
   corp_document_type: ["corpdocumenttype", "corp-document-type"],
-  corp_identification_type: ["identificationtype", "identification-type"],
-  corp_tax_type: ["taxtype", "tax-type"],
-  corp_screening_type: ["screeningtype", "screening-type"],
+  corp_identification_type: ["corpidentificationtype", "corp-identification-type", "identificationtype", "identification-type"],
+  corp_tax_type: ["corptaxtype", "corp-tax-type", "taxtype", "tax-type"],
+  corp_screening_type: ["corpscreeningtype", "corp-screening-type", "screeningtype", "screening-type"],
   corp_business_nature: ["corpbusinessnature", "corp-business-nature"],
-  corp_industry_sector: ["industrysector", "industry-sector"],
-  corp_merchant_category: ["merchantcategory", "merchant-category"],
-  corp_merchant_group: ["merchantgroup", "merchant-group"],
-  corp_gst_registration_status: ["gstregistrationstatus", "gst-registration-status"],
-  corp_tax_exemption_status: ["taxexemptionstatus", "tax-exemption-status"],
+  corp_industry_sector: ["corpindustrysector", "corp-industry-sector", "industrysector", "industry-sector"],
+  corp_merchant_category: ["corpmerchantcategory", "corp-merchant-category", "merchantcategory", "merchant-category"],
+  corp_merchant_group: ["corpmerchantgroup", "corp-merchant-group", "merchantgroup", "merchant-group"],
+  corp_gst_registration_status: ["corpgstregistrationstatus", "corp-gst-registration-status", "gstregistrationstatus", "gst-registration-status"],
+  corp_tax_exemption_status: ["corptaxexemptionstatus", "corp-tax-exemption-status", "taxexemptionstatus", "tax-exemption-status"],
   // Settings > Master (shared, not corp_-prefixed) — the settlement account
   // bank/branch masters.
   bank: ["bank", "banks"],

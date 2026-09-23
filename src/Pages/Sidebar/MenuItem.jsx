@@ -1,7 +1,7 @@
 import { createElement, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
-import { buildMenuPath } from "./menuRouteMap";
+import { buildMenuPath, buildMenuPathForItem } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { getMenuIcon } from "./moduleIcons";
@@ -96,11 +96,18 @@ export function MenuItem({
     // e.g. Epurse > Configuration > KYC > "Profile" collides with the
     // top-level User Management > "Profile" (both slugify to "profile"),
     // and only that one needs "KYC" folded in to become "kycprofile".
+    const parent = menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id));
+    // A menu directly under "Corporate" (Onboarding Master > Corporate)
+    // wins first — Address Type/Relationship Type/Document Type/Business
+    // Nature share a name with an Individual menu and would otherwise
+    // collide on the same slug and open Individual's page (Frontend fixes
+    // — onboarding menus and corporate masters, 2026-09, fix 3).
+    if (String(parent?.menu_name ?? "").trim() === "Corporate") {
+      navigate(buildMenuPathForItem(item, menuItems));
+      return;
+    }
     const needsParentQualification = DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim());
-    const parent = needsParentQualification
-      ? menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id))
-      : null;
-    const qualifiedName = parent?.menu_name ? `${parent.menu_name} ${item?.menu_name}` : item?.menu_name;
+    const qualifiedName = needsParentQualification && parent?.menu_name ? `${parent.menu_name} ${item?.menu_name}` : item?.menu_name;
     navigate(buildMenuPath(qualifiedName));
   };
 
