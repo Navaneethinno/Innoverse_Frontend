@@ -541,6 +541,14 @@ input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
   forced-color-adjust: none;
+  /* forced-color-adjust: none alone has been unreliable in practice for
+     restoring a plain text <input>'s own background under Windows forced
+     colors — appearance: none additionally hands the control's rendering
+     fully to this stylesheet instead of the UA/OS forced-colors chrome,
+     which is the documented companion fix when forced-color-adjust alone
+     doesn't fully take. */
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input:not([type="checkbox"]):not([type="radio"]):not(:disabled),
