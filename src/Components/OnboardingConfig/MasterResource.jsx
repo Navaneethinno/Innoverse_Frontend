@@ -29,10 +29,14 @@ const currencyLabel = (c) => c.currency_name ?? c.alpha_code ?? String(c.id);
 const rangeConfig = (title, base) => ({
   title,
   base,
-  columns: (ctx) => [
+  columns: () => [
     { key: "code", label: "Code" },
     { key: "name", label: "Name" },
-    { key: "currency_id", label: "Currency", render: (r) => { const c = ctx.currencies.find((c) => c.id === r.currency_id); return c ? currencyLabel(c) : (r.currency_id ?? "-"); } },
+    // The row itself already carries currency_name straight from the API
+    // (Net_Worth_Range's /list response, confirmed live) — no need to
+    // cross-reference the separate /master/currency list at all, and it
+    // stays correct even before that list has finished loading.
+    { key: "currency_id", label: "Currency", render: (r) => r.currency_name ?? r.currency_id ?? "-" },
     { key: "min_value", label: "Min", render: (r) => r.min_value ?? "-" },
     { key: "max_value", label: "Max", render: (r) => r.max_value ?? "and above" },
   ],
