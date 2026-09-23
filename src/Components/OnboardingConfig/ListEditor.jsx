@@ -113,6 +113,34 @@ function orderedFields(spec, item) {
   return [leading, booleanGroups.flatMap(({ field, followers }) => [field, ...followers])];
 }
 
+// The checkbox group renders as a plain 2-column CSS grid with items
+// auto-flowing left-to-right, top-to-bottom — fine as long as every cell
+// is the same short pill height, but a checkbox+follower run (e.g.
+// "Number required" + its revealed "Number validation rule" select) is
+// taller than a lone pill, and grid auto-placement doesn't know the two
+// are a unit: it pairs whatever comes next in document order into the
+// OTHER column of that same row, e.g. "Issue date required" landing next
+// to "Number validation rule" purely by position, throwing every row
+// after it out of alignment between the two columns. Splitting into two
+// explicit vertical stacks instead — each run (a checkbox plus its own
+// followers) kept whole, handed to whichever stack is currently shorter —
+// guarantees a run never straddles a row shared with unrelated content.
+function splitIntoColumns(fields) {
+  const runs = [];
+  for (const field of fields) {
+    if (field.type === "bool" || runs.length === 0) runs.push([field]);
+    else runs[runs.length - 1].push(field);
+  }
+  const columns = [[], []];
+  const weights = [0, 0];
+  for (const run of runs) {
+    const lighter = weights[0] <= weights[1] ? 0 : 1;
+    columns[lighter].push(...run);
+    weights[lighter] += run.length;
+  }
+  return columns;
+}
+
 export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, emptyText, seed, nested = false }) {
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
@@ -138,20 +166,39 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
               </button>
             )}
           </div>
-          {/* Inputs first, then every checkbox pill grouped together below,
-              filling left then right — so pills never sit next to a tall input
-              — except a showIf field, kept glued right after its own checkbox
-              by orderedFields above instead of jumping up to the inputs group. */}
-          {orderedFields(spec, item).map(
-            (group, g) =>
-              group.length > 0 && (
-                <div key={g} className={`grid items-start gap-x-6 gap-y-4 md:grid-cols-2 ${g === 1 ? "mt-4" : ""}`}>
-                  {group.map((field) => (
-                    <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
-                  ))}
-                </div>
-              ),
-          )}
+          {/* Inputs first (plain grid auto-flow — every cell there is a
+              similar-height label+input, so pairing across a row is fine),
+              then every checkbox pill grouped together below as two
+              explicit column stacks (splitIntoColumns) rather than grid
+              auto-flow, since a checkbox+showIf-follower run is taller
+              than a lone pill and auto-flow doesn't know to keep it out of
+              an unrelated row. */}
+          {(() => {
+            const [leading, booleans] = orderedFields(spec, item);
+            const columns = splitIntoColumns(booleans).filter((column) => column.length > 0);
+            return (
+              <>
+                {leading.length > 0 && (
+                  <div className="grid items-start gap-x-6 gap-y-4 md:grid-cols-2">
+                    {leading.map((field) => (
+                      <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
+                    ))}
+                  </div>
+                )}
+                {columns.length > 0 && (
+                  <div className={`grid items-start gap-x-6 gap-y-4 ${columns.length > 1 ? "md:grid-cols-2" : ""} ${leading.length > 0 ? "mt-4" : ""}`}>
+                    {columns.map((column, c) => (
+                      <div key={c} className="flex flex-col gap-4">
+                        {column.map((field) => (
+                          <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       ))}
       {!readOnly && (
