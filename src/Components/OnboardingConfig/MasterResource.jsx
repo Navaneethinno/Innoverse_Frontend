@@ -19,18 +19,25 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const LENGTH_TEXT_TYPES = new Set(["ANY_TEXT", "NUMERIC", "ALPHABETIC", "ALPHANUMERIC"]);
 const asOptions = (list, valueKey = "id", labelOf = (x) => x.name ?? x.code) => (list ?? []).map((x) => ({ value: x[valueKey], label: labelOf(x) }));
 
+// A /master/currency record is { id, alpha_code, currency_name, ... } — no
+// `name`/`code` fields, unlike every other master this page's asOptions
+// default (x.name ?? x.code) was written for. Left as the default, every
+// currency option silently rendered a blank label (asOptions' fallback
+// resolved to undefined) and the table column's own `.name` lookup below
+// always missed too, falling through to the raw currency_id.
+const currencyLabel = (c) => c.currency_name ?? c.alpha_code ?? String(c.id);
 const rangeConfig = (title, base) => ({
   title,
   base,
   columns: (ctx) => [
     { key: "code", label: "Code" },
     { key: "name", label: "Name" },
-    { key: "currency_id", label: "Currency", render: (r) => ctx.currencies.find((c) => c.id === r.currency_id)?.name ?? r.currency_id ?? "-" },
+    { key: "currency_id", label: "Currency", render: (r) => { const c = ctx.currencies.find((c) => c.id === r.currency_id); return c ? currencyLabel(c) : (r.currency_id ?? "-"); } },
     { key: "min_value", label: "Min", render: (r) => r.min_value ?? "-" },
     { key: "max_value", label: "Max", render: (r) => r.max_value ?? "and above" },
   ],
   fields: (ctx) => [
-    { key: "currency_id", label: "Currency", type: "select", required: true, options: asOptions(ctx.currencies), lockedOnEdit: true },
+    { key: "currency_id", label: "Currency", type: "select", required: true, options: asOptions(ctx.currencies, "id", currencyLabel), lockedOnEdit: true },
     { key: "min_value", label: "Min value", type: "number", required: true },
     { key: "max_value", label: "Max value", type: "number", hint: "Leave empty for “and above”. Ranges of the same currency must not overlap (checked at approval)." },
   ],
