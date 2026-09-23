@@ -10,23 +10,31 @@
 }
 
 .cpt-toast {
+  /* The bubble itself stays a fixed dark chrome regardless of light/dark
+     mode (a deliberate "always pops off the page" snackbar look, same as
+     the ring pulse) — but the ring/icon colors below pull from the app's
+     own --primary/--destructive tokens instead of hardcoded hex, so a
+     tenant's brand color (or a future palette change) is reflected here
+     automatically instead of needing this component edited too. */
   --ink: #0f1b33;
-  --royal: #2856e8;
-  --cyan: #20b8d8;
-  --error: #e0393e;
+  --ring-a: var(--primary);
+  --ring-b: color-mix(in srgb, var(--primary) 55%, white);
+  --error-a: var(--destructive);
+  --error-b: color-mix(in srgb, var(--destructive) 55%, white);
 
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   background: var(--ink);
   color: #fff;
-  border-radius: 12px;
-  padding: 9px 14px 9px 10px;
+  border-radius: 14px;
+  padding: 11px 12px 11px 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   font-family: "Manrope", -apple-system, sans-serif;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
   white-space: nowrap;
+  pointer-events: auto;
 
   opacity: 0;
   transform: translateY(-14px) scale(0.9);
@@ -39,24 +47,24 @@
 }
 
 .cpt-ring {
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   flex: none;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle, var(--royal), var(--cyan));
+  background: radial-gradient(circle, var(--ring-a), var(--ring-b));
 }
 
 .cpt-error .cpt-ring {
-  background: radial-gradient(circle, var(--error), #ff7a7e);
+  background: radial-gradient(circle, var(--error-a), var(--error-b));
 }
 
 .cpt-ring svg {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   stroke: #fff;
 }
 
@@ -65,12 +73,43 @@
   position: absolute;
   inset: -5px;
   border-radius: 50%;
-  border: 1.5px solid var(--cyan);
+  border: 1.5px solid var(--ring-b);
   opacity: 0;
 }
 
 .cpt-error .cpt-ring::before {
-  border-color: #ff7a7e;
+  border-color: var(--error-b);
+}
+
+/* Dismiss button — bigger than the pulse ring since it's the one
+   interactive hit target on the toast (per "increase button" — was
+   small enough it could get missed). A muted background instead of a
+   distinct color so it doesn't compete with the ring for attention as
+   "the important part" of the toast. */
+.cpt-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.cpt-close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.cpt-close svg {
+  width: 11px;
+  height: 11px;
+  stroke: currentColor;
 }
 
 .cpt-show .cpt-ring::before {

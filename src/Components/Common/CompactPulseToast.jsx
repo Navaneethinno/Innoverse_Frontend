@@ -64,6 +64,11 @@ export function ToastProvider({ children }) {
     });
   }, []);
 
+  const dismiss = useCallback(() => {
+    clearTimeout(timerRef.current);
+    setToast(null);
+  }, []);
+
   useEffect(() => {
     activeShow = show;
     return () => {
@@ -88,6 +93,11 @@ export function ToastProvider({ children }) {
                 </svg>
               </span>
               <span className="cpt-text">{toast.message}</span>
+              <button type="button" className="cpt-close" onClick={dismiss} aria-label="Dismiss">
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           )}
         </div>,
