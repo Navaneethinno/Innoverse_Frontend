@@ -1,7 +1,16 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { Check, ChevronDown, Plus, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
+
+// Below this many options, scanning the list by eye is faster than typing —
+// above it (currency/country-sized lists, ~150-250 entries), a search box
+// is worth the extra row. An option's own `label` is what's matched by
+// default (lowercased, substring match); a caller whose label is JSX (e.g.
+// a country name plus a flag icon) rather than plain text passes
+// `searchText` on that option so search still works even though the label
+// itself isn't a plain string.
+const SEARCH_THRESHOLD = 8;
 
 // A styled dropdown to replace bare native <select> filters, which render
 // with the browser's own unstyled popup (plain white background, default
@@ -25,9 +34,32 @@ import { cn } from "@/Utils/Lib/utils";
 export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, addAction }) {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
+  const [query, setQuery] = useState("");
   const containerRef = useRef(null);
   const panelRef = useRef(null);
+  const searchInputRef = useRef(null);
   const selected = options.find((option) => option.value === value) ?? options[0];
+  const showSearch = options.length > SEARCH_THRESHOLD;
+  const visibleOptions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((option) => {
+      const text = option.searchText ?? (typeof option.label === "string" ? option.label : "");
+      return text.toLowerCase().includes(q);
+    });
+  }, [options, query]);
+
+  useEffect(() => {
+    if (!isOpen) setQuery("");
+  }, [isOpen]);
+
+  // Autofocus the search box the instant the panel (and its measured
+  // placement) is ready, so typing can start immediately without an extra
+  // click — the same reason a native <select> combobox with a search field
+  // grabs focus on open.
+  useEffect(() => {
+    if (isOpen && showSearch && placement) searchInputRef.current?.focus();
+  }, [isOpen, showSearch, placement]);
 
   useLayoutEffect(() => {
     if (!isOpen) return undefined;
@@ -118,7 +150,24 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
               boxShadow: "var(--glass-shadow)",
             }}
           >
-            {options.map((option) => {
+            {showSearch && (
+              <div className="sticky -top-1.5 z-10 mb-1 -mx-1.5 -mt-1.5 flex items-center gap-1.5 border-b bg-[var(--popover)] px-3 py-2" style={{ borderColor: "var(--border)" }}>
+                <Search size={13} className="shrink-0 text-muted-foreground" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Type to search..."
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                />
+              </div>
+            )}
+            {visibleOptions.length === 0 && (
+              <p className="px-3 py-2 text-sm text-muted-foreground">No matches</p>
+            )}
+            {visibleOptions.map((option) => {
               const isActive = option.value === value;
               return (
                 <button
