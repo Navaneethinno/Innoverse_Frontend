@@ -24,17 +24,38 @@ import loginIllustrationDark from "@/assets/login-illustration-dark.png";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <div
+      {/* A slow, independent breathing loop on each blob — the ambient
+          "still alive" idle motion the entrance choreography hands off to
+          once its own one-shot animations finish, without competing for
+          attention with the login form itself. */}
+      <motion.div
         className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl"
         style={{ background: "radial-gradient(circle, #7C8CFF, transparent 70%)" }}
+        animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.18, 0.12] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div
+      <motion.div
         className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl"
         style={{ background: "radial-gradient(circle, #7FE0C2, transparent 70%)" }}
+        animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
       />
     </div>
   );
 }
+
+// Card content reveals top-to-bottom in one coordinated stagger (logo row,
+// heading, subtext, then the form) rather than everything appearing at
+// once — mirrors the "background, then branding, then form" phased
+// choreography without needing separate illustration layers to animate.
+const cardStagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
+const cardItem = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+};
 export function LoginPage() {
   const { t } = useTranslation("login");
   const [username, setUsername] = useState(
@@ -97,22 +118,41 @@ export function LoginPage() {
         className="absolute inset-0 z-0 overflow-hidden"
         style={{ background: mode === "dark" ? "#0b1220" : "#eef2fb" }}
       >
-        {/* Both illustrations share identical sizing/position — only opacity
-            crossfades, so the image geometry never changes between themes. */}
-        <img
-          src={loginIllustrationLight}
-          alt="Innoverse — Innovate. Secure. Empower."
-          aria-hidden={mode === "dark"}
-          className="login-illustration absolute inset-0 h-full w-full object-cover object-right"
-          style={{ opacity: mode === "dark" ? 0 : 1 }}
-        />
-        <img
-          src={loginIllustrationDark}
-          alt="Innoverse — Innovate. Secure. Empower."
-          aria-hidden={mode !== "dark"}
-          className="login-illustration absolute inset-0 h-full w-full object-cover object-right"
-          style={{ opacity: mode === "dark" ? 1 : 0 }}
-        />
+        {/* Entrance: the illustration settles in first (a beat before the
+            branding/form card), then keeps a very slow ambient "breathing"
+            scale loop going — the idle life the strategy's globe-rotation/
+            floating-shield loops give a fully layered scene, adapted to a
+            single flat illustration instead of separate animatable layers. */}
+        <motion.div
+          className="absolute inset-0"
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
+        >
+          <motion.div
+            className="absolute inset-0"
+            animate={{ scale: [1, 1.015, 1] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 0.9 }}
+          >
+            {/* Both illustrations share identical sizing/position — only
+                opacity crossfades, so the image geometry never changes
+                between themes. */}
+            <img
+              src={loginIllustrationLight}
+              alt="Innoverse — Innovate. Secure. Empower."
+              aria-hidden={mode === "dark"}
+              className="login-illustration absolute inset-0 h-full w-full object-cover object-right"
+              style={{ opacity: mode === "dark" ? 0 : 1 }}
+            />
+            <img
+              src={loginIllustrationDark}
+              alt="Innoverse — Innovate. Secure. Empower."
+              aria-hidden={mode !== "dark"}
+              className="login-illustration absolute inset-0 h-full w-full object-cover object-right"
+              style={{ opacity: mode === "dark" ? 1 : 0 }}
+            />
+          </motion.div>
+        </motion.div>
         <div
           className="absolute inset-0"
           style={{
@@ -128,9 +168,13 @@ export function LoginPage() {
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           className="relative z-10 w-full max-w-xl"
         >
-          <div
+          <motion.div
+            variants={cardStagger}
+            initial="hidden"
+            animate="visible"
             className="rounded-[2rem] border p-7 shadow-[0_32px_90px_rgba(30,64,125,0.24),0_14px_28px_rgba(15,23,42,0.1)] sm:p-10"
             style={{
               background: "color-mix(in srgb, var(--card) 90%, transparent)",
@@ -139,16 +183,20 @@ export function LoginPage() {
               borderColor: "var(--glass-border)",
             }}
           >
-            <div className="mb-8 flex items-center gap-3">
+            <motion.div variants={cardItem} className="mb-8 flex items-center gap-3">
               <Logo size="md" />
               <div>
                 <p className="text-sm font-bold tracking-tight text-foreground">Innoverse</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{t("tagline")}</p>
               </div>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("welcomeBack")}</h1>
-            <p className="mt-1 mb-7 text-sm text-muted-foreground">Sign in to manage your secure workspace.</p>
-            <form onSubmit={submit} noValidate className="space-y-4">
+            </motion.div>
+            <motion.h1 variants={cardItem} className="text-2xl font-bold tracking-tight text-foreground">
+              {t("welcomeBack")}
+            </motion.h1>
+            <motion.p variants={cardItem} className="mt-1 mb-7 text-sm text-muted-foreground">
+              Sign in to manage your secure workspace.
+            </motion.p>
+            <motion.form variants={cardItem} onSubmit={submit} noValidate className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">{t("username")}</label>
                 <div className="relative">
@@ -219,8 +267,8 @@ export function LoginPage() {
                   </>
                 )}
               </button>
-            </form>
-          </div>
+            </motion.form>
+          </motion.div>
         </motion.div>
       </div>
     </div>
