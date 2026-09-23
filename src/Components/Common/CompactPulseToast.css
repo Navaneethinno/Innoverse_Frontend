@@ -1,0 +1,101 @@
+.cpt-layer {
+  position: fixed;
+  top: 14px;
+  left: 0;
+  right: 0;
+  z-index: 2147483000; /* stays above modal overlays; raise further if needed */
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cpt-toast {
+  --ink: #0f1b33;
+  --royal: #2856e8;
+  --cyan: #20b8d8;
+  --error: #e0393e;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 12px;
+  padding: 9px 14px 9px 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  font-family: "Manrope", -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  opacity: 0;
+  transform: translateY(-14px) scale(0.9);
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cpt-toast.cpt-show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.cpt-ring {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--royal), var(--cyan));
+}
+
+.cpt-error .cpt-ring {
+  background: radial-gradient(circle, var(--error), #ff7a7e);
+}
+
+.cpt-ring svg {
+  width: 11px;
+  height: 11px;
+  stroke: #fff;
+}
+
+.cpt-ring::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cyan);
+  opacity: 0;
+}
+
+.cpt-error .cpt-ring::before {
+  border-color: #ff7a7e;
+}
+
+.cpt-show .cpt-ring::before {
+  animation: cpt-ring-pulse 1.4s ease-out 0.1s 2;
+}
+
+@keyframes cpt-ring-pulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cpt-toast,
+  .cpt-ring::before {
+    transition: none !important;
+    animation: none !important;
+  }
+  .cpt-toast.cpt-show {
+    opacity: 1;
+    transform: none;
+  }
+}

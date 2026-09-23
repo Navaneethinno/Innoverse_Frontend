@@ -1,18 +1,12 @@
-import { toast } from "react-toastify";
-import { Toast } from "@/Components/Common/Toast";
+import { showPulseToast } from "@/Components/Common/CompactPulseToast";
 
-function show(type, message, options) {
-  return toast(<Toast type={type} message={message} title={options?.title} />, {
-    icon: false,
-    // Without this, react-toastify never adds its own
-    // Toastify__toast--success/--error/--warning/--info modifier class to
-    // the outer container, so theme.css's per-type background/left-border
-    // styling (see .Toastify__toast--success etc.) silently never applied —
-    // every toast rendered as the same neutral card regardless of type,
-    // with only the inner <Toast> icon's color hinting at which one it was.
-    type,
-    ...options,
-  });
+// CompactPulseToast only has two visual variants (a neutral dark pill with
+// either a check ring or an error ring) — no separate warning/info
+// styling of its own. error keeps its own red ring; every other type
+// (success/warning/info — only "info" is ever actually called anywhere in
+// the app today) shares the same check-ring styling.
+function show(type, message) {
+  showPulseToast(message, { variant: type === "error" ? "error" : "success" });
 }
 
 export const notifications = {

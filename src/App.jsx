@@ -1,8 +1,7 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { Provider } from "react-redux";
 import { RouterProvider } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { ToastProvider } from "@/Components/Common/CompactPulseToast";
 import { I18nProvider } from "@/Hooks/Providers/I18nProvider";
 import { ColorModeProvider } from "@/Hooks/Providers/ColorModeProvider";
 import { BrandThemeProvider } from "@/Hooks/Providers/BrandThemeProvider";
@@ -36,19 +35,15 @@ export function App() {
         <BrandThemeProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              limit={5}
-              style={{ top: "76px" }}
-            />
-            <div className="App">
-              <LoadingScreen>
-                <I18nProvider>
-                  <RouterProvider router={appRouter} />
-                </I18nProvider>
-              </LoadingScreen>
-            </div>
+            <ToastProvider>
+              <div className="App">
+                <LoadingScreen>
+                  <I18nProvider>
+                    <RouterProvider router={appRouter} />
+                  </I18nProvider>
+                </LoadingScreen>
+              </div>
+            </ToastProvider>
           </ThemeProvider>
         </BrandThemeProvider>
       </ColorModeProvider>
