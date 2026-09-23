@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { Plus, Trash2, ArrowLeft, ArrowRight, Check, ChevronDown, Send, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
-import { customerOnboardingApi, startOnboarding, loadWizard, saveSection } from "@/Services/Onboarding/customerOnboarding.api";
+import { corpCustomerOnboardingApi, startCorpOnboarding, loadCorpWizard, saveCorpSection } from "@/Services/Onboarding/corporateCustomerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
 
-// State model per Customer_Onboarding_API.md §1.2: a plain "Draft"
-// (status/process_status 9/9) needs no banner — the form itself makes that
-// obvious. Everything else (pending, rejected, active, draft edit of an
-// approved customer, inactive...) gets one, built from the row's own
-// status_name/process_status_name rather than a hand-maintained code map,
-// since the API now sends those labels translated.
+// Corporate mirror of CustomerOnboardingWizard.jsx (Customer Onboarding
+// (Corporate) — Frontend Guide, 2026-09): "it works exactly like the
+// individual wizard... this guide covers only what is different" — so this
+// keeps the same generic, nothing-hard-coded rendering (sections/fields/
+// options/rules all come from wizard.sections) and only changes what the
+// guide says changed: the picker is party type -> company type (no
+// ownership/sub-type axis), there is no KYC-levels panel or level_no on
+// submit, and everything hits /customer/corporate/* instead of
+// /customer/individual/*.
 const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
   if (!onboarding) return null;
@@ -35,175 +38,48 @@ function StatusNotice({ onboarding }) {
   );
 }
 
-// The KYC-level checklist (Customer_Onboarding_API.md §4.3 /
-// Frontend_Changes §3): a customer type pointed at a KYC scheme can be
-// onboarded level by level — the customer reaches the first level with
-// only what it asks, and can come back later for a higher one.
-// Requirements are cumulative (level 3 needs 1-3); limits/capabilities/
-// processes are per level, shown as "what you can do" at the level
-// currently reached.
-function KycLevelPanel({ kyc, onJumpToSection }) {
-  // Collapsed by default — each level card is just its own accordion
-  // section (name + Met/Not yet met), expanding on click to reveal the
-  // description and missing-requirements list. All that detail sitting
-  // open by default (especially a long "Not yet met" reasons list) ate a
-  // lot of vertical space above the actual step content for something the
-  // user only needs to check occasionally.
-  const [expanded, setExpanded] = useState(() => new Set());
-  const toggle = (id) =>
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  if (!kyc) return null;
-  const levels = kyc.levels ?? [];
-  return (
-    <div className="mb-4 rounded-xl border border-border p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-bold text-slate-700">{kyc.kyc_group_name ?? "KYC levels"}</span>
-        <span className="text-[11px] text-muted-foreground">
-          Reached: Level {kyc.current_level_no || 0} · Achieved now: Level {kyc.achieved_level_no || 0}
-        </span>
-      </div>
-      <div className="grid gap-2">
-        {levels.map((level) => {
-          const isOpen = expanded.has(level.kyc_level_id);
-          const hasDetail = Boolean(level.description) || level.missing?.length > 0;
-          return (
-            <div
-              key={level.kyc_level_id}
-              className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-card"}`}
-            >
-              <button
-                type="button"
-                onClick={() => hasDetail && toggle(level.kyc_level_id)}
-                disabled={!hasDetail}
-                className="flex w-full items-center justify-between gap-2 text-left disabled:cursor-default"
-              >
-                <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                  {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
-                  Level {level.level_no} — {level.kyc_level_name}
-                  {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Entry</span>}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
-                  {hasDetail && (
-                    <ChevronDown size={13} className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                  )}
-                </span>
-              </button>
-              {isOpen && (
-                <>
-                  {level.description && <p className="mt-1 text-[11px] text-muted-foreground">{level.description}</p>}
-                  {level.missing?.length > 0 && (
-                    <ul className="mt-2 grid gap-1">
-                      {level.missing.map((m, i) => (
-                        <li key={i}>
-                          <button
-                            type="button"
-                            onClick={() => m.section_code && onJumpToSection(m.section_code)}
-                            className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
-                          >
-                            <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
-                            {m.message}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// "needed for Basic" badge — kyc_level_no on a section/field/document type
-// is the level that first requires it (guide §3.3); `mandatory` on the
-// field itself still means required by the whole form regardless of level.
-function KycLevelBadge({ levelNo, levels }) {
-  if (!levelNo) return null;
-  const level = levels?.find((l) => l.level_no === levelNo);
-  return (
-    <span className="ml-1.5 rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600">
-      needed for {level?.kyc_level_name ?? `Level ${levelNo}`}
-    </span>
-  );
-}
-
-// Runs a customer through the institution's published onboarding
-// configuration, one section at a time, exactly as
-// "Customer Onboarding (Individual) — Frontend Guide" describes it (§1).
-// Nothing about the form is hard-coded: sections, fields, options and
-// rules all come from `wizard.sections`, and every save re-renders from
-// the server's recomputed reply rather than patching local state (§1, §5).
-//
-// `referenceId` (optional) resumes an existing onboarding straight into
-// the section view; otherwise the picker (§2-3) runs first.
-export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
+// `referenceId` (optional) resumes an existing onboarding straight into the
+// section view; otherwise the party type / company type picker runs first.
+export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
   const [options, setOptions] = useState(null);
-  const [pick, setPick] = useState({ party_type_id: "", ownership_id: "", ownership_sub_type_id: "", email: "", phone_number: "" });
+  const [pick, setPick] = useState({ party_type_id: "", company_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
   const [wizard, setWizard] = useState(null);
   const [loading, setLoading] = useState(Boolean(referenceId));
   const [activeSection, setActiveSection] = useState(0);
-  // Local edits for the section on screen, seeded from `wizard.values` on
-  // every load/save so a re-render from the server never loses what the
-  // user just typed (this only ever holds THIS section's draft, replaced
-  // wholesale each time the section changes).
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submitLevel, setSubmitLevel] = useState("");
 
   useEffect(() => {
     if (referenceId) return;
-    customerOnboardingApi
+    corpCustomerOnboardingApi
       .options({})
       .then((r) => setOptions((Array.isArray(r?.data) ? r.data[0] : r?.data) ?? { party_types: [] }))
       .catch((error) => notifications.error(error.message));
   }, [referenceId]);
 
-  // Every reply that changes `progress` also re-suggests the level the
-  // customer would be submitted at right now (submit_level_no) — keep the
-  // picker in sync with it rather than a stale choice from before the edit.
-  const applyWizard = (w) => {
-    setWizard(w);
-    if (w?.progress?.submit_level_no) setSubmitLevel(String(w.progress.submit_level_no));
-  };
-
   useEffect(() => {
     if (!referenceId) return;
     setLoading(true);
-    loadWizard(referenceId)
-      .then(applyWizard)
+    loadCorpWizard(referenceId)
+      .then(setWizard)
       .catch((error) => notifications.error(error.message))
       .finally(() => setLoading(false));
   }, [referenceId]);
 
   const sections = wizard?.sections ?? [];
   const section = sections[activeSection];
-  // Opened via the row's View action — no Save/Submit/Add-row controls at
-  // all, regardless of what the onboarding's own editable flag allows.
   const editable = !forceReadOnly && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly
     ? "Viewing only — nothing here can be changed."
     : "This record can't be edited right now.";
 
   // Reseed the section draft whenever the active section or the wizard
-  // itself changes (a fresh reply after save, or switching tabs) — done
-  // synchronously during render, not in an effect. An effect only runs
-  // AFTER the first render of the new section, so a single -> multi-row
-  // step change (Contact -> Identification) would render once with
-  // `draft` still holding the previous section's plain object, and
-  // `draft.map(...)` on a non-array threw ("Oops! You're lost"). Deriving
-  // it here means the very first render of a new section already has the
-  // right shape.
+  // itself changes — done synchronously during render (see
+  // CustomerOnboardingWizard.jsx for why an effect is too late here: a
+  // single -> multi-row step change would render once with `draft` still
+  // holding the previous section's shape).
   const seedKey = section ? `${section.code}:${wizard?.onboarding?.updated_time}` : null;
   const seedKeyRef = useRef(null);
   let effectiveDraft = draft;
@@ -221,16 +97,11 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
 
   const partyTypes = options?.party_types ?? [];
   const chosenParty = partyTypes.find((p) => String(p.id) === String(pick.party_type_id));
-  const ownerships = chosenParty?.ownerships ?? [];
-  const chosenOwnership = ownerships.find((o) => String(o.id) === String(pick.ownership_id));
-  const subTypes = chosenOwnership?.sub_types ?? [];
+  const companyTypes = chosenParty?.company_types ?? [];
 
   const beginOnboarding = async () => {
-    // Sub type is optional now (guide §4) — the backend refuses with "This
-    // Ownership Has Sub Types: Choose One" when the ownership actually
-    // requires picking one; the client no longer forces it up front.
-    if (!pick.party_type_id || !pick.ownership_id) {
-      notifications.error("Choose the party type and ownership");
+    if (!pick.party_type_id || !pick.company_type_id) {
+      notifications.error("Choose the party type and company type");
       return;
     }
     if (!pick.email.trim() && !pick.phone_number.trim()) {
@@ -239,15 +110,14 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     }
     setStarting(true);
     try {
-      const w = await startOnboarding({
+      const w = await startCorpOnboarding({
         party_type_id: Number(pick.party_type_id),
-        ownership_id: Number(pick.ownership_id),
-        ...(pick.ownership_sub_type_id ? { ownership_sub_type_id: Number(pick.ownership_sub_type_id) } : {}),
+        company_type_id: Number(pick.company_type_id),
         ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
         ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
       });
       if (w?.notice) notifications.info(w.notice);
-      applyWizard(w);
+      setWizard(w);
       setActiveSection(0);
       onChanged?.();
     } catch (error) {
@@ -263,9 +133,6 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const setRowValue = (rowIndex, fieldKey, value) => {
     setDraft((prev) => prev.map((row, i) => (i === rowIndex ? { ...row, [fieldKey]: value } : row)));
   };
-  // Single-row sections update the one draft object; multi-row sections
-  // update the row at `rowIndex`. Shared by renderRow so a section's type
-  // picker and duplicate-field skip apply identically either way.
   const setValue = (rowIndex, fieldKey, value) =>
     rowIndex === undefined ? setFieldValue(fieldKey, value) : setRowValue(rowIndex, fieldKey, value);
   const addRow = () => setDraft((prev) => [...prev, {}]);
@@ -274,25 +141,19 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const issueFor = (fieldKey, rowIndex) =>
     section?.issues?.find((i) => i.field === fieldKey && (rowIndex === undefined || i.row === rowIndex))?.message;
 
-  const jumpToSection = (code) => {
-    const idx = sections.findIndex((s) => s.code === code);
-    if (idx >= 0) setActiveSection(idx);
-  };
-
   const persistSection = async () => {
     if (!section) return;
     setSaving(true);
     try {
-      const w = await saveSection({
+      const w = await saveCorpSection({
         reference_id: wizard.onboarding.reference_id,
         section_code: section.code,
         data: effectiveDraft,
         expected_updated_time: wizard.onboarding.updated_time,
       });
-      applyWizard(w);
+      setWizard(w);
       notifications.success("Saved");
       onChanged?.();
-      // Jump to wherever the server says to go next, when it isn't this one.
       const nextCode = w?.progress?.next_section;
       if (nextCode && nextCode !== section.code) {
         const idx = (w.sections ?? []).findIndex((s) => s.code === nextCode);
@@ -301,8 +162,8 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     } catch (error) {
       if (error.conflict) {
         notifications.error(error.message);
-        const fresh = await loadWizard(wizard.onboarding.reference_id).catch(() => null);
-        if (fresh) applyWizard(fresh);
+        const fresh = await loadCorpWizard(wizard.onboarding.reference_id).catch(() => null);
+        if (fresh) setWizard(fresh);
       } else {
         notifications.error(error.message);
       }
@@ -314,15 +175,12 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const submitForApproval = async () => {
     setSubmitting(true);
     try {
-      const response = await customerOnboardingApi.submit({
-        reference_id: wizard.onboarding.reference_id,
-        ...(wizard.kyc && submitLevel ? { level_no: Number(submitLevel) } : {}),
-      });
+      const response = await corpCustomerOnboardingApi.submit({ reference_id: wizard.onboarding.reference_id });
       const w = Array.isArray(response?.data) ? response.data[0] : response?.data;
-      if (w) applyWizard(w);
+      if (w) setWizard(w);
       else {
-        const fresh = await loadWizard(wizard.onboarding.reference_id).catch(() => null);
-        if (fresh) applyWizard(fresh);
+        const fresh = await loadCorpWizard(wizard.onboarding.reference_id).catch(() => null);
+        if (fresh) setWizard(fresh);
       }
       notifications.success("Submitted for approval");
       onChanged?.();
@@ -339,27 +197,22 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     return (field.options ?? []).filter((o) => String(o.parent_id) === String(parentValue));
   };
 
-  // The API sends the row's type both as `type_field`/`types` (the picker
-  // below) and as an ordinary select inside `fields` with the same key —
-  // rendering both asked for the same thing twice.
   const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? "Type";
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
 
-  // Address rows may carry "same_as" on their chosen type (Customer_
-  // Onboarding_API.md §4.1/§5): instead of repeating an address's fields,
-  // the row is marked same_as_address_type_id and takes that other
-  // address's values at approval. Only offered when the current type's
-  // own `same_as` list is non-empty (the configuration's allow_same_as).
+  // Addresses may carry "same as" (guide §4): instead of repeating an
+  // address's fields, the row is marked same_as_address_type_id and takes
+  // that other address's values at approval. A related party's own
+  // "same as the company's address" is a plain boolean field
+  // (same_as_company_address) the server already sends as an ordinary
+  // field — no special-case wiring needed for that one, OnboardingField's
+  // checkbox handles it like any other field.
   const sameAsTargets = (row) => {
     const currentType = section.types?.find((t) => t.id === row?.[section.type_field]);
     const eligible = currentType?.same_as ?? [];
     return (section.types ?? []).filter((t) => eligible.includes(t.id));
   };
 
-  // Renders one row's fields — a multi-row section's row (with `rowIndex`)
-  // or a single-row section's one-and-only "row" (`rowIndex` undefined).
-  // Handles both the same way so the type picker and the skip-the-
-  // duplicate-field rule (item 2) apply regardless of `multi_row`.
   const renderRow = (fields, row, rowIndex) => {
     const sameAsOptions = sameAsTargets(row);
     const sameAsId = row?.same_as_address_type_id;
@@ -380,15 +233,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               disabledReason={notEditableReason}
               options={[
                 { value: "", label: "Select type" },
-                ...(section.types ?? []).map((t) => ({
-                  value: t.id,
-                  label: (
-                    <span className="flex items-center">
-                      {t.name}
-                      <KycLevelBadge levelNo={t.kyc_level_no} levels={wizard?.kyc?.levels} />
-                    </span>
-                  ),
-                })),
+                ...(section.types ?? []).map((t) => ({ value: t.id, label: t.name })),
               ]}
             />
           </label>
@@ -427,7 +272,6 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             options={fieldOptionsFor(field, row)}
             error={issueFor(field.key, rowIndex)}
             onChange={(v) => setValue(rowIndex, field.key, v)}
-            badge={<KycLevelBadge levelNo={field.kyc_level_no} levels={wizard?.kyc?.levels} />}
           />
         ))}
       {rowIndex !== undefined && editable && (
@@ -454,30 +298,19 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             <FilterSelect
               className="mt-1.5"
               value={pick.party_type_id}
-              onChange={(v) => setPick({ ...pick, party_type_id: v, ownership_id: "", ownership_sub_type_id: "" })}
+              onChange={(v) => setPick({ ...pick, party_type_id: v, company_type_id: "" })}
               options={[{ value: "", label: "Select party type" }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
             />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Ownership
+            Company type
             <FilterSelect
               className="mt-1.5"
-              value={pick.ownership_id}
-              onChange={(v) => setPick({ ...pick, ownership_id: v, ownership_sub_type_id: "" })}
-              options={[{ value: "", label: "Select ownership" }, ...ownerships.map((o) => ({ value: o.id, label: o.name }))]}
+              value={pick.company_type_id}
+              onChange={(v) => setPick({ ...pick, company_type_id: v })}
+              options={[{ value: "", label: "Select company type" }, ...companyTypes.map((c) => ({ value: c.id, label: c.name }))]}
             />
           </label>
-          {subTypes.length > 0 && (
-            <label className="text-sm font-semibold text-slate-700">
-              Sub type
-              <FilterSelect
-                className="mt-1.5"
-                value={pick.ownership_sub_type_id}
-                onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })}
-                options={[{ value: "", label: "No sub type" }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
-              />
-            </label>
-          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
               Email
@@ -515,7 +348,6 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress.percent}%` }} />
           </div>
         </div>
-        <KycLevelPanel kyc={wizard.kyc} onJumpToSection={jumpToSection} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}
@@ -523,10 +355,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           onStepClick={(index) => setActiveSection(index)}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
-        <h2 className="mb-3 flex items-center text-sm font-bold text-slate-700">
-          {section.label ?? section.name}
-          <KycLevelBadge levelNo={section.kyc_level_no} levels={wizard?.kyc?.levels} />
-        </h2>
+        <h2 className="mb-3 text-sm font-bold text-slate-700">{section.label ?? section.name}</h2>
         {section.document_groups?.length > 0 && (
           <div className="mb-3 rounded-lg bg-muted p-2.5 text-[11px] text-muted-foreground">
             {section.document_groups.map((g) => (
@@ -551,49 +380,23 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
         <StatusNotice onboarding={wizard.onboarding} />
-        {/* With a KYC scheme, ready_to_submit means the level the customer
-            must at least reach is met — not that the whole form is done
-            (guide §3.4). complete=false then just means there's more the
-            customer COULD fill in for a higher level, not that submitting
-            now is blocked. */}
         {editable && wizard.progress.ready_to_submit && (
           <div className="mt-4 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Check size={14} />
-                {wizard.kyc
-                  ? wizard.progress.complete
-                    ? "The whole form is complete."
-                    : "The required KYC level is reached. More can still be filled in for a higher level."
-                  : "All required sections are complete."}
+                All required sections are complete.
               </span>
-              <div className="flex items-center gap-2">
-                {wizard.kyc && (
-                  <FilterSelect
-                    className="w-40"
-                    value={submitLevel}
-                    onChange={setSubmitLevel}
-                    options={(wizard.kyc.levels ?? [])
-                      .filter((l) => l.achieved)
-                      .map((l) => ({ value: String(l.level_no), label: `Level ${l.level_no} — ${l.kyc_level_name}` }))}
-                  />
-                )}
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => void submitForApproval()}
-                  className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
-                >
-                  {submitting ? <Spinner size={12} /> : <Send size={13} />}
-                  Submit for approval
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => void submitForApproval()}
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+              >
+                {submitting ? <Spinner size={12} /> : <Send size={13} />}
+                Submit for approval
+              </button>
             </div>
-          </div>
-        )}
-        {editable && wizard.kyc && !wizard.progress.ready_to_submit && (
-          <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">
-            The required KYC level hasn't been reached yet — fill in what the level stepper above still lists as missing.
           </div>
         )}
       </div>
@@ -660,7 +463,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
       title={
         wizard
           ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
-          : "Start customer onboarding"
+          : "Start corporate onboarding"
       }
       size="xl"
       growWithContent

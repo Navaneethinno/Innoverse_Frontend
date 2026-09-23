@@ -32,3 +32,17 @@ customerRoutes.push(
   { path: "onboardingconfiguration", element: pageElement(CustomerTypes) },
   { path: "onboardingconfiguration/:id", element: pageElement(CustomerTypes) },
 );
+
+// Corporate mirror of the "customer"/"onboardingwizard" entry points above
+// (Customer Onboarding (Corporate) — Frontend Guide, 2026-09) — real
+// menu_name not confirmed yet, same "answer on a few plausible slugs" hedge
+// used throughout this app's menu-driven routing.
+const CorpResource = lazy(() =>
+  import("@/Components/Customer/CorporateCustomerOnboardingResource.jsx").then((m) => ({ default: m.CorporateCustomerOnboardingResource })),
+);
+customerRoutes.push(
+  { path: "corporatecustomer", element: pageElement(CorpResource) },
+  { path: "corporatecustomer/:id", element: pageElement(CorpResource) },
+  { path: "corporateonboardingwizard", element: pageElement(CorpResource) },
+  { path: "corporateonboardingwizard/:id", element: pageElement(CorpResource) },
+);
