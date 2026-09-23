@@ -558,6 +558,30 @@ textarea:not(:disabled) {
   color: var(--foreground);
 }
 
+/* Every disabled field across the app (View-mode wizards, a locked field
+   while its parent is saving, an id already committed and no longer
+   editable, ...) used whatever bg-muted/text-muted-foreground each
+   component's own className happened to set, which is var(--muted)
+   (#dedfdf light / a dark navy in dark mode) at full opacity — a flat,
+   fairly heavy fill that read as "broken" more often than "read-only"
+   (this exact shade is what several "why is this field gray" reports
+   turned out to be, on screens where it was actually the intended
+   disabled look). One global, softer treatment — lighter than --muted,
+   just enough contrast with an active field to read as intentionally
+   non-editable, not broken — replaces every component's own bg-muted/
+   text-muted-foreground disabled styling at once. !important is
+   deliberate: it needs to outrank each component's own disabled:bg-muted
+   utility class, not lose to it. */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background-color: color-mix(in srgb, var(--muted) 45%, var(--card)) !important;
+  color: var(--muted-foreground) !important;
+  border-color: var(--border) !important;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,
 .dark textarea {
