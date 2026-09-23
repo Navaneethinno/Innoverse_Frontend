@@ -12,9 +12,10 @@ import { cn } from "@/Utils/Lib/utils";
 // wraps inside a `min-w-0` cell rather than truncating, so a long label
 // makes the pill taller/wider instead of squeezing the circle or
 // overflowing.
-export function CheckboxPill({ checked, onChange, label, disabled = false, className }) {
+export function CheckboxPill({ checked, onChange, label, disabled = false, disabledReason, className }) {
   return (
     <label
+      title={disabled ? disabledReason : undefined}
       className={cn(
         "inline-flex max-w-full cursor-pointer select-none items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
         checked ? "border-primary bg-primary-light text-slate-800" : "border-border bg-card text-slate-600 hover:border-slate-300",

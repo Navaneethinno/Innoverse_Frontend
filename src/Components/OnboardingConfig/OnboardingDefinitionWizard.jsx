@@ -177,6 +177,9 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
   // Opened via the row's View action — no Edit/Save-draft/Submit at all,
   // regardless of what the record's own status would otherwise allow.
   const readOnly = forceReadOnly || (Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus));
+  const readOnlyReason = forceReadOnly
+    ? "Viewing only."
+    : `This configuration is ${def?.process_status_name ?? "frozen"} and cannot be changed right now.`;
   const isRejected = processStatus === 5;
 
   useEffect(() => {
@@ -586,32 +589,28 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
         <>
           <h2 className="mb-3 text-sm font-bold text-slate-800">{step.label}</h2>
           {readOnly && (
-            <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">
-              {forceReadOnly
-                ? "Viewing only."
-                : `This configuration is ${def?.process_status_name ?? "frozen"} and cannot be changed right now.`}
-            </p>
+            <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>
           )}
           {step.id === "basics" && (
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">
                 Minor age (years)
-                <input type="number" min={0} disabled={readOnly} value={basics.minor_age_years} onChange={(e) => setBasic("minor_age_years", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
+                <input type="number" min={0} disabled={readOnly} title={readOnly ? readOnlyReason : undefined} value={basics.minor_age_years} onChange={(e) => setBasic("minor_age_years", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Below this age the IS_MINOR rule fact is true.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 Home country
-                <FilterSelect className="mt-1.5" disabled={readOnly} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if any rule uses RESIDENCY_STATUS.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 KYC scheme
-                <FilterSelect className="mt-1.5" disabled={readOnly} addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Must be an approved (Active) scheme by the time you submit.</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 Effective from
-                <input type="date" disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
+                <input type="date" disabled={readOnly} title={readOnly ? readOnlyReason : undefined} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">
@@ -622,37 +621,37 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
             </div>
           )}
           {step.id === "sections" && (
-            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel="Add section" readOnly={readOnly} itemTitle={(s) => s.section_code || "New section"} seed={{ label: "Add all standard sections", onClick: seedSections }} emptyText="No sections yet. PERSONAL must be enabled." />
+            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel="Add section" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.section_code || "New section"} seed={{ label: "Add all standard sections", onClick: seedSections }} emptyText="No sections yet. PERSONAL must be enabled." />
           )}
           {step.id === "fields" && (
-            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel="Add field" readOnly={readOnly} itemTitle={(f) => f.field_code || "New field"} seed={{ label: "Add all fields of enabled sections", onClick: seedFields }} emptyText="Only fields of enabled sections can be added." />
+            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel="Add field" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(f) => f.field_code || "New field"} seed={{ label: "Add all fields of enabled sections", onClick: seedFields }} emptyText="Only fields of enabled sections can be added." />
           )}
           {step.id === "documents" && (
             <div className="flex flex-col gap-6">
               <div>
                 <h3 className="mb-2 text-sm font-bold text-slate-700">Document groups ("any N of these")</h3>
-                <ListEditor items={config.document_groups} onChange={setList("document_groups")} spec={specs.document_groups} addLabel="Add group" readOnly={readOnly} itemTitle={(g) => g.name || g.code || "New group"} />
+                <ListEditor items={config.document_groups} onChange={setList("document_groups")} spec={specs.document_groups} addLabel="Add group" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(g) => g.name || g.code || "New group"} />
               </div>
               <div>
                 <h3 className="mb-2 text-sm font-bold text-slate-700">Documents</h3>
-                <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel="Add document" readOnly={readOnly} itemTitle={(d) => d.document_type_code || "New document"} />
+                <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel="Add document" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(d) => d.document_type_code || "New document"} />
               </div>
             </div>
           )}
           {step.id === "addresses" && (
-            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel="Add address type" readOnly={readOnly} itemTitle={(a) => a.address_type_code || "New address type"} />
+            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel="Add address type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(a) => a.address_type_code || "New address type"} />
           )}
           {step.id === "employment" && (
-            <ListEditor items={config.employments} onChange={setList("employments")} spec={specs.employments} addLabel="Add employment status" readOnly={readOnly} itemTitle={(e) => e.employment_code || "New employment status"} />
+            <ListEditor items={config.employments} onChange={setList("employments")} spec={specs.employments} addLabel="Add employment status" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(e) => e.employment_code || "New employment status"} />
           )}
           {step.id === "relationships" && (
-            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel="Add relationship type" readOnly={readOnly} itemTitle={(r) => r.relationship_type_code || "New relationship type"} />
+            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel="Add relationship type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.relationship_type_code || "New relationship type"} />
           )}
           {step.id === "sources" && (
-            <ListEditor items={config.sources_of_fund} onChange={setList("sources_of_fund")} spec={specs.sources_of_fund} addLabel="Add source of funds" readOnly={readOnly} itemTitle={(s) => s.source_of_fund_code || "New source of funds"} />
+            <ListEditor items={config.sources_of_fund} onChange={setList("sources_of_fund")} spec={specs.sources_of_fund} addLabel="Add source of funds" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.source_of_fund_code || "New source of funds"} />
           )}
           {step.id === "rules" && (
-            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel="Add rule" readOnly={readOnly} itemTitle={(r) => r.name || r.code || "New rule"} emptyText="No rules. Rules adapt the configuration, e.g. require a guardian for a minor." />
+            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel="Add rule" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.name || r.code || "New rule"} emptyText="No rules. Rules adapt the configuration, e.g. require a guardian for a minor." />
           )}
           {step.id === "review" && (
             <div className="flex flex-col gap-4">

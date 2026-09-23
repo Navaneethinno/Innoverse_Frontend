@@ -16,10 +16,20 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 // be built in memory and sent once (guide §8.2).
 const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted disabled:text-muted-foreground";
 
-export function FieldInput({ field, item, setItem, readOnly }) {
+export function FieldInput({ field, item, setItem, readOnly, readOnlyReason }) {
   const navigate = useNavigate();
   const value = item[field.key];
-  const disabled = readOnly || Boolean(field.disabled?.(item));
+  const fieldDisabled = Boolean(field.disabled?.(item));
+  const disabled = readOnly || fieldDisabled;
+  // readOnly (the whole editor is frozen/view-only) takes precedence over a
+  // single field's own `disabled` rule (e.g. "Mandatory" locked once this
+  // document has a group_code) — whichever one actually applied is the
+  // reason worth showing.
+  const disabledReason = readOnly
+    ? readOnlyReason
+    : fieldDisabled
+      ? (typeof field.disabledReason === "function" ? field.disabledReason(item) : field.disabledReason)
+      : undefined;
   const set = (next) => setItem({ ...item, [field.key]: next });
   const options = typeof field.options === "function" ? field.options(item) : (field.options ?? []);
 
@@ -30,6 +40,7 @@ export function FieldInput({ field, item, setItem, readOnly }) {
         onChange={set}
         label={field.label}
         disabled={disabled}
+        disabledReason={disabledReason}
         className="self-start"
       />
     );
@@ -45,6 +56,7 @@ export function FieldInput({ field, item, setItem, readOnly }) {
           addLabel={field.addLabel}
           itemTitle={field.itemTitle}
           readOnly={disabled}
+          readOnlyReason={disabledReason}
           nested
         />
       </div>
@@ -63,11 +75,12 @@ export function FieldInput({ field, item, setItem, readOnly }) {
           value={value ?? ""}
           onChange={set}
           disabled={disabled}
+          disabledReason={disabledReason}
           addAction={field.addTo ? { label: `Add ${field.addTo[1]}`, onClick: () => navigate(field.addTo[0]) } : undefined}
           options={[{ value: "", label: field.placeholder ?? "Select..." }, ...options]}
         />
       ) : field.type === "multi" ? (
-        <div className="mt-1.5">
+        <div className="mt-1.5" title={disabled ? disabledReason : undefined}>
           <CheckboxPillGroup options={options} value={value ?? []} onChange={set} disabled={disabled} className="flex-row flex-wrap" />
         </div>
       ) : (
@@ -76,6 +89,7 @@ export function FieldInput({ field, item, setItem, readOnly }) {
           min={field.type === "number" ? 0 : undefined}
           value={value ?? ""}
           disabled={disabled}
+          title={disabled ? disabledReason : undefined}
           onChange={(e) => set(field.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value)}
           className={inputClass}
         />
@@ -141,7 +155,7 @@ function splitIntoColumns(fields) {
   return columns;
 }
 
-export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, emptyText, seed, nested = false }) {
+export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, readOnlyReason, emptyText, seed, nested = false }) {
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
   const add = () => {
@@ -181,7 +195,7 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
                 {leading.length > 0 && (
                   <div className="grid items-start gap-x-6 gap-y-4 md:grid-cols-2">
                     {leading.map((field) => (
-                      <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
+                      <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} readOnlyReason={readOnlyReason} />
                     ))}
                   </div>
                 )}
@@ -190,7 +204,7 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
                     {columns.map((column, c) => (
                       <div key={c} className="flex flex-col gap-4">
                         {column.map((field) => (
-                          <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} />
+                          <FieldInput key={field.key} field={field} item={item} setItem={(next) => update(index, next)} readOnly={readOnly} readOnlyReason={readOnlyReason} />
                         ))}
                       </div>
                     ))}

@@ -252,6 +252,7 @@ export function MasterResource({ entity }) {
               <input
                 value={form.code ?? ""}
                 disabled={Boolean(editing)}
+                title={editing ? "Code can't be changed after creation." : undefined}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
                 className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm disabled:bg-muted"
               />
@@ -271,7 +272,11 @@ export function MasterResource({ entity }) {
               .map((field) => (
                 <FieldInput
                   key={field.key}
-                  field={{ ...field, disabled: () => Boolean(editing && field.lockedOnEdit) }}
+                  field={{
+                    ...field,
+                    disabled: () => Boolean(editing && field.lockedOnEdit),
+                    disabledReason: "Can't be changed after creation.",
+                  }}
                   item={form}
                   setItem={setForm}
                 />

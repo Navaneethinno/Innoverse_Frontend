@@ -190,6 +190,9 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   // Opened via the row's View action — no Save/Submit/Add-row controls at
   // all, regardless of what the onboarding's own editable flag allows.
   const editable = !forceReadOnly && wizard?.onboarding?.editable !== false;
+  const notEditableReason = forceReadOnly
+    ? "Viewing only — nothing here can be changed."
+    : "This record can't be edited right now.";
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes (a fresh reply after save, or switching tabs) — done
@@ -373,6 +376,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               value={row?.[section.type_field] ?? ""}
               onChange={(v) => setValue(rowIndex, section.type_field, Number(v))}
               disabled={!editable}
+              disabledReason={notEditableReason}
               options={[
                 { value: "", label: "Select type" },
                 ...(section.types ?? []).map((t) => ({
@@ -394,6 +398,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           <CheckboxPill
             checked={Boolean(sameAsId)}
             disabled={!editable}
+            disabledReason={notEditableReason}
             label="Same as another address"
             onChange={(checked) => setValue(rowIndex, "same_as_address_type_id", checked ? sameAsOptions[0].id : undefined)}
           />
@@ -403,6 +408,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               <FilterSelect
                 className="mt-1.5"
                 disabled={!editable}
+                disabledReason={notEditableReason}
                 value={sameAsId}
                 onChange={(v) => setValue(rowIndex, "same_as_address_type_id", Number(v))}
                 options={sameAsOptions.map((t) => ({ value: t.id, label: t.name }))}
@@ -415,7 +421,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         visibleFields(fields).map((field) => (
           <OnboardingField
             key={field.key}
-            field={editable ? field : { ...field, read_only: true }}
+            field={editable ? field : { ...field, read_only: true, read_only_reason: notEditableReason }}
             value={row?.[field.key]}
             options={fieldOptionsFor(field, row)}
             error={issueFor(field.key, rowIndex)}

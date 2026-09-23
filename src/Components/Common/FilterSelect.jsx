@@ -31,7 +31,7 @@ const SEARCH_THRESHOLD = 8;
 // `addAction` ({ label, onClick }) pins an "Add ..." row at the end of the
 // list — for dropdowns fed by a master, so an empty (or incomplete) list can
 // send the user straight to that master to create the missing value.
-export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, addAction }) {
+export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction }) {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
   const [query, setQuery] = useState("");
@@ -115,6 +115,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       <button
         type="button"
         disabled={disabled}
+        title={disabled ? disabledReason : undefined}
         onClick={() => !disabled && setIsOpen((open) => !open)}
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",

@@ -257,7 +257,7 @@ export function useDigitalProductLookups(currentEntity) {
 // circular indicator), so it no longer needs the "only right-align when
 // another checkbox shares this column" workaround the old plain-checkbox
 // layout required.
-export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false }) {
+export function DigitalProductStepFields({ entity, values, onFieldChange, lookups, disabled = false, disabledReason }) {
   const tr = useConfigLabel();
   const columns = splitFieldsIntoColumns(
     orderedFields(CONFIGS[entity].fields).filter(([, , , showIf]) => !showIf || showIf(values)),
@@ -279,6 +279,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                 onChange={(next) => onFieldChange(key, next)}
                 label={tr(label)}
                 disabled={disabled}
+                disabledReason={disabledReason}
                 className="self-start"
               />
             ) : (
@@ -291,6 +292,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
                   onChange={(next) => onFieldChange(key, next)}
                   lookups={lookups}
                   disabled={disabled}
+                  disabledReason={disabledReason}
                 />
               </label>
             ),

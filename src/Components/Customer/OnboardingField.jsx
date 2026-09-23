@@ -8,6 +8,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 // field the institution configures tomorrow renders correctly today.
 export function OnboardingField({ field, value, onChange, error, options, badge }) {
   const disabled = field.read_only;
+  const disabledReason = disabled ? (field.read_only_reason ?? "This can't be edited right now.") : undefined;
   const commonInput =
     "w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted disabled:text-muted-foreground" +
     (error ? " border-red-400" : " border-border");
@@ -21,6 +22,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             onChange={(checked) => onChange(checked)}
             label={field.label}
             disabled={disabled}
+            disabledReason={disabledReason}
           />
         );
       case "select": {
@@ -30,6 +32,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             value={value ?? ""}
             onChange={onChange}
             disabled={disabled}
+            disabledReason={disabledReason}
             options={[{ value: "", label: `Select ${field.label}` }, ...opts.map((o) => ({ value: o.id, label: o.name }))]}
           />
         );
@@ -41,6 +44,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             className={commonInput}
             value={value ?? ""}
             disabled={disabled}
+            title={disabled ? disabledReason : undefined}
             onChange={(e) => onChange(e.target.value)}
           />
         );
@@ -51,6 +55,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             className={commonInput}
             value={value ?? ""}
             disabled={disabled}
+            title={disabled ? disabledReason : undefined}
             onChange={(e) => onChange(e.target.value)}
           />
         );
@@ -63,6 +68,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             className={commonInput}
             value={value ?? ""}
             disabled={disabled}
+            title={disabled ? disabledReason : undefined}
             onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
           />
         );
@@ -83,6 +89,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
               }
               value={value ?? ""}
               disabled={disabled}
+              title={disabled ? disabledReason : undefined}
               placeholder="Upload coming soon"
               onChange={(e) => onChange(e.target.value)}
             />
@@ -95,6 +102,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             className={commonInput}
             value={value ?? ""}
             disabled={disabled}
+            title={disabled ? disabledReason : undefined}
             onChange={(e) => onChange(e.target.value)}
           />
         );

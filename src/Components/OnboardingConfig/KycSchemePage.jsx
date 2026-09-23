@@ -31,6 +31,10 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   // shortcut or Edit) must always land here read-only regardless of status,
   // same as every other maker-checker list's View action.
   const readOnly = forceReadOnly || !isEditable(record);
+  const readOnlyReason =
+    forceReadOnly && isEditable(record)
+      ? "Viewing only."
+      : `This scheme is ${record.process_status_name ?? "frozen"} and can't be changed. Clone it into a new Draft to make changes.`;
 
   useEffect(() => {
     let cancelled = false;
@@ -203,13 +207,9 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       ) : (
         <div className="flex flex-col gap-4">
           {readOnly && (
-            <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">
-              {forceReadOnly && isEditable(record)
-                ? "Viewing only."
-                : `This scheme is ${record.process_status_name ?? "frozen"} and can't be changed. Clone it into a new Draft to make changes.`}
-            </p>
+            <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>
           )}
-          <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel="Add level" readOnly={readOnly} itemTitle={(l) => `Level ${l.level_no ?? "?"}${l.name ? ` — ${l.name}` : ""}`} emptyText="No levels yet. A scheme needs at least one entry level." />
+          <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel="Add level" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(l) => `Level ${l.level_no ?? "?"}${l.name ? ` — ${l.name}` : ""}`} emptyText="No levels yet. A scheme needs at least one entry level." />
           {problems && (
             <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
               <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>{problems.length ? `${problems.length} problem(s)` : "No problems found"}</p>

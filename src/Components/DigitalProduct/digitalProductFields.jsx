@@ -107,7 +107,7 @@ export const CONFIGS = {
 // already fetches (institutions/accountProducts/kycGroups/channels/
 // transactions/residencyTypes); a caller only needs to pass the ones
 // relevant to the fields it renders.
-export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false }) {
+export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false, disabledReason }) {
   const {
     institutions = [],
     accountProducts = [],
@@ -123,6 +123,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select transaction type" },
           ...transactions.map((transaction) => ({
@@ -140,6 +141,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select channel" },
           ...channels.map((channel) => ({
@@ -157,6 +159,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select KYC group" },
           ...kycGroups.map((group) => ({
@@ -174,6 +177,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select account product" },
           ...accountProducts.map((product) => ({
@@ -191,6 +195,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select residency type" },
           ...residencyTypes.map((type) => ({
@@ -208,6 +213,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
+        disabledReason={disabledReason}
         options={[
           { value: "", label: "Select institution profile" },
           ...institutions.map((institution) => ({
@@ -224,6 +230,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
+        title={disabled ? disabledReason : undefined}
         className="mt-1.5 min-h-24 w-full rounded-xl border p-3 disabled:bg-muted disabled:text-muted-foreground"
       />
     );
@@ -242,6 +249,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
       onWheel={type === "number" ? blurOnWheel : undefined}
       onChange={(e) => onChange(type === "number" ? clampNonNegative(e.target.value) : e.target.value)}
       disabled={disabled}
+      title={disabled ? disabledReason : undefined}
       className="mt-1.5 w-full rounded-xl border px-3 py-2.5 disabled:bg-muted disabled:text-muted-foreground"
     />
   );

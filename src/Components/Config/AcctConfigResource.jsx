@@ -776,6 +776,7 @@ export function AcctConfigResource({ entity }) {
                         onChange={(next) => setForm({ ...form, [key]: next })}
                         label={tr(label)}
                         disabled={isReadOnly}
+                        disabledReason="Can't be changed after creation."
                         className="self-start"
                       />
                     );
@@ -789,12 +790,14 @@ export function AcctConfigResource({ entity }) {
                           value={form[key] ?? ""}
                           onChange={(value) => setForm({ ...form, [key]: value })}
                           disabled={isReadOnly}
+                          disabledReason="Can't be changed after creation."
                           options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...optionsFor(lookupKey)]}
                         />
                       ) : type === "textarea" ? (
                         <textarea
                           value={form[key] ?? ""}
                           disabled={isReadOnly}
+                          title={isReadOnly ? "Can't be changed after creation." : undefined}
                           onChange={(event) => setForm({ ...form, [key]: event.target.value })}
                           className="mt-1.5 min-h-24 w-full rounded-xl border px-3 py-2.5"
                         />
@@ -804,6 +807,7 @@ export function AcctConfigResource({ entity }) {
                           min={type === "number" ? 0 : undefined}
                           value={form[key] ?? ""}
                           disabled={isReadOnly}
+                          title={isReadOnly ? "Can't be changed after creation." : undefined}
                           onKeyDown={type === "number" ? blockNegativeKeyDown : undefined}
                           onWheel={type === "number" ? blurOnWheel : undefined}
                           onChange={(event) =>
