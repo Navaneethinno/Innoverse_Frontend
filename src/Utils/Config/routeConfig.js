@@ -49,7 +49,6 @@ const SEGMENT_LABELS = {
   occupation: { titleKey: "crumbOccupation", breadcrumb: ["crumbMaster", "crumbOccupation"] },
   qualification: { titleKey: "crumbQualification", breadcrumb: ["crumbMaster", "crumbQualification"] },
   religion: { titleKey: "crumbReligion", breadcrumb: ["crumbMaster", "crumbReligion"] },
-  turnover: { titleKey: "crumbTurnover", breadcrumb: ["crumbMaster", "crumbTurnover"] },
   sourceoffund: { titleKey: "crumbSourceOfFund", breadcrumb: ["crumbMaster", "crumbSourceOfFund"] },
   "source-of-fund": { titleKey: "crumbSourceOfFund", breadcrumb: ["crumbMaster", "crumbSourceOfFund"] },
   maritalstatus: { titleKey: "crumbMaritalStatus", breadcrumb: ["crumbMaster", "crumbMaritalStatus"] },
@@ -82,6 +81,35 @@ const SEGMENT_LABELS = {
   riskcategory: { titleKey: "crumbRiskCategory", breadcrumb: ["crumbMaster", "crumbRiskCategory"] },
   validationrule: { titleKey: "crumbValidationRule", breadcrumb: ["crumbMaster", "crumbValidationRule"] },
   documenttype: { titleKey: "crumbDocumentType", breadcrumb: ["crumbMaster", "crumbDocumentType"] },
+
+  // --- EPURSE > Onboarding > Onboarding Master > Corporate (corp_*) -------
+  // MenuItem.jsx's buildMenuPathForItem prefixes every child of the
+  // "Corporate" menu with "corp" (fix 3, 2026-09); the plain slugs of the
+  // nine names that don't collide with an Individual master stay valid too.
+  corpcompanytype: { titleKey: "crumbCompanyType", breadcrumb: ["crumbCorporate", "crumbCompanyType"] },
+  companytype: { titleKey: "crumbCompanyType", breadcrumb: ["crumbCorporate", "crumbCompanyType"] },
+  corpaddresstype: { titleKey: "crumbAddressType", breadcrumb: ["crumbCorporate", "crumbAddressType"] },
+  corprelationshiptype: { titleKey: "crumbRelationshipType", breadcrumb: ["crumbCorporate", "crumbRelationshipType"] },
+  corpdocumenttype: { titleKey: "crumbDocumentType", breadcrumb: ["crumbCorporate", "crumbDocumentType"] },
+  corpidentificationtype: { titleKey: "crumbIdentificationType", breadcrumb: ["crumbCorporate", "crumbIdentificationType"] },
+  identificationtype: { titleKey: "crumbIdentificationType", breadcrumb: ["crumbCorporate", "crumbIdentificationType"] },
+  corptaxtype: { titleKey: "crumbTaxType", breadcrumb: ["crumbCorporate", "crumbTaxType"] },
+  taxtype: { titleKey: "crumbTaxType", breadcrumb: ["crumbCorporate", "crumbTaxType"] },
+  corpscreeningtype: { titleKey: "crumbScreeningType", breadcrumb: ["crumbCorporate", "crumbScreeningType"] },
+  screeningtype: { titleKey: "crumbScreeningType", breadcrumb: ["crumbCorporate", "crumbScreeningType"] },
+  corpbusinessnature: { titleKey: "crumbBusinessNature", breadcrumb: ["crumbCorporate", "crumbBusinessNature"] },
+  corpindustrysector: { titleKey: "crumbIndustrySector", breadcrumb: ["crumbCorporate", "crumbIndustrySector"] },
+  industrysector: { titleKey: "crumbIndustrySector", breadcrumb: ["crumbCorporate", "crumbIndustrySector"] },
+  corpmerchantcategory: { titleKey: "crumbMerchantCategory", breadcrumb: ["crumbCorporate", "crumbMerchantCategory"] },
+  merchantcategory: { titleKey: "crumbMerchantCategory", breadcrumb: ["crumbCorporate", "crumbMerchantCategory"] },
+  corpmerchantgroup: { titleKey: "crumbMerchantGroup", breadcrumb: ["crumbCorporate", "crumbMerchantGroup"] },
+  merchantgroup: { titleKey: "crumbMerchantGroup", breadcrumb: ["crumbCorporate", "crumbMerchantGroup"] },
+  corpgstregistrationstatus: { titleKey: "crumbGstRegistrationStatus", breadcrumb: ["crumbCorporate", "crumbGstRegistrationStatus"] },
+  gstregistrationstatus: { titleKey: "crumbGstRegistrationStatus", breadcrumb: ["crumbCorporate", "crumbGstRegistrationStatus"] },
+  corptaxexemptionstatus: { titleKey: "crumbTaxExemptionStatus", breadcrumb: ["crumbCorporate", "crumbTaxExemptionStatus"] },
+  taxexemptionstatus: { titleKey: "crumbTaxExemptionStatus", breadcrumb: ["crumbCorporate", "crumbTaxExemptionStatus"] },
+  bank: { titleKey: "crumbBank", breadcrumb: ["crumbMaster", "crumbBank"] },
+  bankbranch: { titleKey: "crumbBankBranch", breadcrumb: ["crumbMaster", "crumbBankBranch"] },
 
   // --- EPURSE > Settings > Configuration > KYC (config/kyc_group*) --------
   group: { titleKey: "crumbGroup", breadcrumb: ["crumbKYC", "crumbGroup"] },
