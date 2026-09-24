@@ -51,11 +51,19 @@ customerRoutes.push(
 // below are this app's own prior guesses getting the same treatment for
 // consistency, not routes the fix document itself names.
 const redirectToCorporate = (to) => <Navigate to={`${to}?type=corporate`} replace />;
+// Sidebar links always carry a trailing /<uuid>, so an old bookmark is
+// /corporateonboardingconfiguration/<uuid> — register the :id form too.
+const corporateRedirects = {
+  corporateonboardingconfiguration: "/onboardingconfiguration",
+  corporatecustomertypes: "/onboardingconfiguration",
+  corporatecustomertype: "/onboardingconfiguration",
+  corporateonboardingdefinition: "/onboardingconfiguration",
+  corporateonboardingwizard: "/onboardingwizard",
+  corporatecustomer: "/onboardingwizard",
+};
 customerRoutes.push(
-  { path: "corporateonboardingconfiguration", element: redirectToCorporate("/onboardingconfiguration") },
-  { path: "corporatecustomertypes", element: redirectToCorporate("/onboardingconfiguration") },
-  { path: "corporatecustomertype", element: redirectToCorporate("/onboardingconfiguration") },
-  { path: "corporateonboardingdefinition", element: redirectToCorporate("/onboardingconfiguration") },
-  { path: "corporateonboardingwizard", element: redirectToCorporate("/onboardingwizard") },
-  { path: "corporatecustomer", element: redirectToCorporate("/onboardingwizard") },
+  ...Object.entries(corporateRedirects).flatMap(([path, to]) => [
+    { path, element: redirectToCorporate(to) },
+    { path: `${path}/:id`, element: redirectToCorporate(to) },
+  ]),
 );
