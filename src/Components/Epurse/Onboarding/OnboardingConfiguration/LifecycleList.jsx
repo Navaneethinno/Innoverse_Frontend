@@ -41,8 +41,8 @@ export function useMenuPermission(menuName) {
 // Onboarding, ...).
 const statusColumns = (t) => [
   { key: "status_name", label: t("common:status"), render: (row) => <StatusBadge status={String(row.status_name ?? "-")} /> },
-  { key: "process_status_name", label: t("common:processStatus"), render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} /> },
-  { key: "auth_status", label: t("common:authorizationStatus"), render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} /> },
+  { key: "process_status_name", label: t("common:processStatus"), render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" /> },
+  { key: "auth_status", label: t("common:authorizationStatus"), render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" /> },
 ];
 
 // One reusable maker-checker list for every new onboarding-configuration
@@ -200,7 +200,7 @@ export function LifecycleList({
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs
+        <StatusFilterTabs total={pagination.totalRecords}
           rows={rows}
           value={tab}
           onChange={setTab}

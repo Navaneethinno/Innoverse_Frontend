@@ -244,13 +244,13 @@ export function InstitutionProfile() {
       key: "process_status_name",
       label: t("institutions:columnProcessStatus"),
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: t("institutions:columnAuthorizationStatus"),
       sortValue: statusOf,
-      render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={statusOf(r)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",

@@ -210,12 +210,12 @@ export function CustomerOnboardingResource() {
     {
       key: "process_status_name",
       label: t("common:processStatus"),
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "-"),
     },
     {
       key: "auth_status",
       label: t("common:authorizationStatus"),
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
     },
     { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "-") },
     {
@@ -259,7 +259,7 @@ export function CustomerOnboardingResource() {
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs
+        <StatusFilterTabs total={pagination.totalRecords}
           rows={rows}
           value={tab}
           onChange={setTab}

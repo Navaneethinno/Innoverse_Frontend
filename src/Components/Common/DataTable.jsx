@@ -76,7 +76,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
               col.align === "left" ? "text-left" : "text-center",
             )}
           >
-            {col.sortable === false ? (
+            {col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
               col.label
             ) : (
               <button
@@ -469,7 +469,8 @@ export function DataTable({
               <div className="flex items-center gap-1.5 whitespace-nowrap">
                 <span>{t("showEntries")}</span>
                 <FilterSelect
-                  className="w-24"
+                  className="w-20"
+                  size="sm"
                   value={effectivePageSize}
                   onChange={(next) => handlePageSizeChange(next)}
                   options={[10, 20, 25, 50, 100].map((size) => ({ value: size, label: String(size) }))}

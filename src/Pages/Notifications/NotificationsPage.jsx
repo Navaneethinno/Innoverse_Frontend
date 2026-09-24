@@ -13,7 +13,7 @@ export function NotificationsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-[#F9FAFB] px-4 pb-12 pt-24">
+    <div className="pb-12 pt-6">
       <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/90 bg-white/85 p-6 shadow-xl sm:p-8">
         <button
           type="button"

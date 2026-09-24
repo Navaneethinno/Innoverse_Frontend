@@ -257,13 +257,13 @@ export function User() {
       key: "process_status_name",
       label: tr("Process Status"),
       sortValue: (u) => String(u.process_status_name ?? ""),
-      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} /> : "—"),
+      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: tr("Authorization Status"),
       sortValue: (u) => String(u.auth_status ?? ""),
-      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} /> : "—"),
+      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",
@@ -312,7 +312,7 @@ export function User() {
         </p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={usersQuery.pagination?.totalRecords}
           actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}

@@ -50,7 +50,7 @@ export function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen pt-24 px-4 pb-12 bg-[#F9FAFB]">
+    <div className="pb-12 pt-6">
       <div className="mx-auto max-w-lg rounded-3xl border border-white/90 bg-white/85 p-8 shadow-xl">
         <button
           type="button"

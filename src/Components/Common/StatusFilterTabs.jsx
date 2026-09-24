@@ -42,7 +42,7 @@ const TABS = [
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className }) {
+export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -52,10 +52,15 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
     },
     { all: 0, active: 0, pending: 0, inactive: 0 },
   );
+  // `rows` is only the loaded page on server-paginated lists. When the server
+  // reports more records than that, All shows the real total and the
+  // per-status counts are hidden rather than showing one page’s numbers.
+  const partial = Number.isFinite(total) && total > counts.all;
+  if (partial) counts.all = total;
   return (
     <div className={cn("flex flex-col gap-2", bare && "border-b border-border p-3", !bare && "rounded-xl border border-border bg-white p-3 shadow-sm", className)}>
-      <div className="flex min-w-0 items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
+      <div className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
         {TABS.map(([key, labelKey, Icon]) => {
           const isActive = value === key;
           return (
@@ -80,7 +85,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
                 style={isActive ? { color: "var(--primary)" } : undefined}
               />
               {t(labelKey)}
-              <span
+              {(!partial || key === "all") && <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
                   !isActive && "bg-slate-100 text-muted-foreground",
@@ -88,7 +93,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
                 style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
               >
                 {counts[key]}
-              </span>
+              </span>}
             </button>
           );
         })}
@@ -100,7 +105,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
           className matching pixel-for-pixel (a 4px mismatch was visible
           before: the tabs' icon+count-badge content stack renders taller
           than a plain label at the same padding). */}
-      {actions && <div className="shrink-0 [&>button]:h-8">{actions}</div>}
+      {actions && <div className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
 
       {onSearch && (
@@ -109,7 +114,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
           <input
             value={search}
             onChange={(event) => onSearch(event.target.value)}
-            placeholder={searchPlaceholder ?? t("searchInstitutionsPlaceholder")}
+            placeholder={searchPlaceholder ?? t("searchPlaceholder")}
             className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
         </div>

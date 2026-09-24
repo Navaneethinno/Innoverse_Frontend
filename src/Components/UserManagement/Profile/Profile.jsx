@@ -73,7 +73,7 @@ function renderProfileValue(profile, key) {
   const value = profile[key];
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (key === "auth_status" || key === "process_status_name")
-    return value == null ? "—" : <StatusBadge status={String(value)} />;
+    return value == null ? "—" : <StatusBadge status={String(value)} variant="subtle" />;
   return value == null || value === "" ? "—" : String(value);
 }
 
@@ -315,7 +315,7 @@ export function Profile() {
         </p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={profilesQuery.pagination?.totalRecords}
           actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
@@ -465,7 +465,7 @@ export function Profile() {
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("authorizationStatus")}</p>
               {viewProfile.auth_status ? (
-                <StatusBadge status={String(viewProfile.auth_status)} />
+                <StatusBadge status={String(viewProfile.auth_status)} variant="subtle" />
               ) : (
                 <p className="text-sm font-semibold text-slate-800">—</p>
               )}

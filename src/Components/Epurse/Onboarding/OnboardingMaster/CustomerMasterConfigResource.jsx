@@ -282,12 +282,12 @@ export function CustomerMasterConfigResource({ entity }) {
     {
       key: "process_status_name",
       label: t("common:processStatus"),
-      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} />,
+      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" />,
     },
     {
       key: "auth_status",
       label: t("common:authorizationStatus"),
-      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
+      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" />,
     },
     {
       key: "actions",
@@ -350,7 +350,7 @@ export function CustomerMasterConfigResource({ entity }) {
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs
+        <StatusFilterTabs total={pagination.totalRecords}
           rows={rows}
           value={tab}
           onChange={setTab}
@@ -378,7 +378,6 @@ export function CustomerMasterConfigResource({ entity }) {
             },
           }}
           bare
-          compact
         />
       </div>
       {open && (

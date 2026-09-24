@@ -66,7 +66,8 @@ export const common = {
   recordsWord: "registros",
   record: "registro",
   selectedCount: "{{count}} selecionado(s)",
-  recordsCount: "{{count}} registros",
+  recordsCount_one: "{{count}} registro",
+  recordsCount_other: "{{count}} registros",
   searchPlaceholder: "Pesquisar…",
   searchLoadedOnlyHint: "Pesquisa apenas os registros já carregados — role para baixo primeiro para carregar mais e depois pesquise.",
   failedLoadMoreRetry: "Falha ao carregar mais — tentar novamente",
@@ -463,6 +464,8 @@ export const routes = {
   crumbAlertConfiguration: "Configuração de Alerta",
   crumbCategory: "Categoria",
   crumbChangePassword: "Alterar Senha",
+  crumbIndividual: "Individual",
+  crumbNotifications: "Notificações",
   crumbChannelConfig: "Configuração de Canal",
   crumbChannelTransaction: "Transação de Canal",
   crumbCitizenship: "Cidadania",
@@ -964,6 +967,7 @@ export const onboarding = {
 };
 
 export const statusLabels = {
+  Draft: "Rascunho",
   Active: "Ativo",
   Authorized: "Autorizado",
   "Pending Add": "Inclusão Pendente",

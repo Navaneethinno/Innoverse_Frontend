@@ -638,12 +638,12 @@ export function AcctConfigResource({ entity }) {
     {
       key: "process_status_name",
       label: tr("Process Status"),
-      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} />,
+      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" />,
     },
     {
       key: "auth_status",
       label: tr("Authorization Status"),
-      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
+      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" />,
     },
     {
       key: "actions",
@@ -686,7 +686,7 @@ export function AcctConfigResource({ entity }) {
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs
+        <StatusFilterTabs total={pagination.totalRecords}
           actions={
             allowed(menus, "Add", config.menuName) && (
               <button

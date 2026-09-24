@@ -47,6 +47,11 @@ const STATUS_CONFIG = {
     dot: "bg-amber-500",
     pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
+  DRAFT: {
+    label: "Draft",
+    dot: "bg-slate-400",
+    pill: "bg-muted text-muted-foreground border-border",
+  },
   INACTIVE: {
     label: "Inactive",
     dot: "bg-slate-400",
@@ -239,12 +244,26 @@ const TEXT_COLOR_BY_PILL = {
 // Status) shown alongside the primary Status column, so three badges that
 // often carry the same value in a row don't read as three loud, identical
 // pills. Same color language as the solid pill, just lighter-weight.
+// A raw backend code that slipped through untranslated (e.g. "NEW_WAIT")
+// reads better as "New Wait" than shouted. Anything with lowercase letters
+// is already a display name (translated via x-api-lang) and is left alone.
+function humanizeCode(value) {
+  const text = String(value ?? "");
+  if (!/^[A-Z0-9_ ]+$/.test(text) || !/[A-Z]/.test(text)) return text;
+  return text
+    .toLowerCase()
+    .split(/[_ ]+/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 export function StatusBadge({ status, variant = "solid" }) {
   const { t } = useTranslation("statusLabels");
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
   const known = STATUS_CONFIG[normalizedStatus];
   const cfg = known ?? {
-    label: status,
+    label: humanizeCode(status),
     dot: "bg-slate-400",
     pill: "bg-muted text-muted-foreground border-border",
   };

@@ -185,13 +185,13 @@ export function InstitutionCurrency() {
       key: "process_status_name",
       label: tr("Process Status"),
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "—"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: tr("Authorization Status"),
       sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",

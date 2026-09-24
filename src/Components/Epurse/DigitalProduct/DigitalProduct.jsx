@@ -347,7 +347,7 @@ export function DigitalProduct({ entity }) {
       label: tr("Process Status"),
       render: (r) =>
         r.process_status_name ? (
-          <StatusBadge status={String(r.process_status_name)} />
+          <StatusBadge status={String(r.process_status_name)} variant="subtle" />
         ) : (
           "—"
         ),
@@ -356,7 +356,7 @@ export function DigitalProduct({ entity }) {
       key: "auth_status",
       label: tr("Authorization Status"),
       render: (r) =>
-        r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "—",
+        r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—",
     },
     {
       key: "actions",
@@ -452,7 +452,7 @@ export function DigitalProduct({ entity }) {
           </p>
         </div>
       </div>
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={pagination.totalRecords}
         rows={rows}
         value={tab}
         onChange={setTab}
@@ -478,7 +478,6 @@ export function DigitalProduct({ entity }) {
             },
           }}
         bare
-        compact
       /></div>
       {entity === "product" && wizardOpen && (
         <AddDigitalProductWizard

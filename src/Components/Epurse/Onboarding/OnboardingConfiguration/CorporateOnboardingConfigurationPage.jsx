@@ -266,13 +266,13 @@ export function CorporateOnboardingConfigurationPage() {
       key: "process_status_name",
       label: t("common:processStatus"),
       sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
+      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "-"),
     },
     {
       key: "auth_status",
       label: t("common:authorizationStatus"),
       sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
+      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
     },
     {
       key: "actions",
@@ -314,7 +314,7 @@ export function CorporateOnboardingConfigurationPage() {
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs
+        <StatusFilterTabs total={pagination.totalRecords}
           rows={rows}
           value={tab}
           onChange={setTab}

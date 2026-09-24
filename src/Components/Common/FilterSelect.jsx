@@ -32,7 +32,8 @@ const SEARCH_THRESHOLD = 8;
 // `addAction` ({ label, onClick }) pins an "Add ..." row at the end of the
 // list — for dropdowns fed by a master, so an empty (or incomplete) list can
 // send the user straight to that master to create the missing value.
-export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction }) {
+// size="sm" matches the 32px controls it sits beside (e.g. table pagination).
+export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction, size = "md" }) {
   const { t } = useTranslation("common");
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
@@ -123,7 +124,8 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         title={disabled ? disabledReason : undefined}
         onClick={() => !disabled && setIsOpen((open) => !open)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "flex w-full items-center justify-between gap-2 border border-border bg-card font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          size === "sm" ? "h-8 rounded-lg px-2.5 text-xs" : "rounded-xl px-4 py-2.5 text-sm",
           disabled && "cursor-not-allowed opacity-60 hover:border-border",
         )}
       >

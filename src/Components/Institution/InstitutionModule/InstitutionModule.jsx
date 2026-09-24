@@ -198,13 +198,13 @@ export function InstitutionModule() {
       key: "process_status_name",
       label: tr("Process Status"),
       sortValue: (row) => row.process_status_name ?? "",
-      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} /> : "—"),
+      render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—"),
     },
     {
       key: "auth_status",
       label: tr("Authorization Status"),
       sortValue: (row) => row.auth_status ?? "",
-      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} /> : "—"),
+      render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—"),
     },
     {
       key: "actions",
