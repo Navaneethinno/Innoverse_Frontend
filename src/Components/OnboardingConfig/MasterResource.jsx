@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -30,25 +31,25 @@ const currencyLabel = (c) => c.currency_name ?? c.alpha_code ?? String(c.id);
 const rangeConfig = (title, base) => ({
   title,
   base,
-  columns: () => [
-    { key: "code", label: "Code" },
-    { key: "name", label: "Name" },
+  columns: (ctx) => [
+    { key: "code", label: ctx.t("onboarding:code") },
+    { key: "name", label: ctx.t("onboarding:name") },
     // The row itself already carries currency_name straight from the API
     // (Net_Worth_Range's /list response, confirmed live) — no need to
     // cross-reference the separate /master/currency list at all, and it
     // stays correct even before that list has finished loading.
-    { key: "currency_id", label: "Currency", render: (r) => r.currency_name ?? r.currency_id ?? "-" },
-    { key: "min_value", label: "Min", render: (r) => r.min_value ?? "-" },
-    { key: "max_value", label: "Max", render: (r) => r.max_value ?? "and above" },
+    { key: "currency_id", label: ctx.t("onboarding:currency"), render: (r) => r.currency_name ?? r.currency_id ?? "-" },
+    { key: "min_value", label: ctx.t("onboarding:min"), render: (r) => r.min_value ?? "-" },
+    { key: "max_value", label: ctx.t("onboarding:max"), render: (r) => r.max_value ?? ctx.t("onboarding:andAbove") },
   ],
   fields: (ctx) => [
-    { key: "currency_id", label: "Currency", type: "select", required: true, options: asOptions(ctx.currencies, "id", currencyLabel), lockedOnEdit: true },
-    { key: "min_value", label: "Min value", type: "number", required: true },
-    { key: "max_value", label: "Max value", type: "number", hint: "Leave empty for “and above”. Ranges of the same currency must not overlap (checked at approval)." },
+    { key: "currency_id", label: ctx.t("onboarding:currency"), type: "select", required: true, options: asOptions(ctx.currencies, "id", currencyLabel), lockedOnEdit: true },
+    { key: "min_value", label: ctx.t("onboarding:minValue"), type: "number", required: true },
+    { key: "max_value", label: ctx.t("onboarding:maxValue"), type: "number", hint: ctx.t("onboarding:leaveEmptyForAndAboveRangesOf") },
   ],
 });
 
-const plain = (title, base) => ({ title, base, columns: () => [{ key: "code", label: "Code" }, { key: "name", label: "Name" }], fields: () => [] });
+const plain = (title, base) => ({ title, base, columns: (ctx) => [{ key: "code", label: ctx.t("onboarding:code") }, { key: "name", label: ctx.t("onboarding:name") }], fields: () => [] });
 
 // title/kinship/business_nature/the four ranges/document_type moved under
 // indv_ (2026-09 route change); risk_category/validation_rule below are
@@ -65,39 +66,39 @@ const CONFIGS = {
     title: "Document Type",
     base: "/master_config/indv_document_type",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "purpose_id", label: "Purpose", render: (r) => ctx.catalog?.document_purposes?.find((p) => p.id === r.purpose_id)?.name ?? r.purpose_id ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "purpose_id", label: ctx.t("onboarding:purpose"), render: (r) => ctx.catalog?.document_purposes?.find((p) => p.id === r.purpose_id)?.name ?? r.purpose_id ?? "-" },
     ],
     fields: (ctx) => [
-      { key: "purpose_id", label: "Purpose", type: "select", required: true, options: asOptions(ctx.catalog?.document_purposes, "id"), hint: "Decides which document group and KYC slot it can fill." },
+      { key: "purpose_id", label: ctx.t("onboarding:purpose"), type: "select", required: true, options: asOptions(ctx.catalog?.document_purposes, "id"), hint: ctx.t("onboarding:decidesWhichDocumentGroupAndKycSlot") },
     ],
   },
   risk_category: {
     title: "Risk Category",
     base: "/master_config/risk_category",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "score", label: "Score band", sortable: false, render: (r) => `${r.min_score} – ${r.max_score}` },
-      { key: "color_code", label: "Colour", sortable: false, render: (r) => (r.color_code ? <span className="inline-flex items-center gap-2"><span className="h-4 w-4 rounded border" style={{ backgroundColor: r.color_code }} />{r.color_code}</span> : "-") },
-      { key: "risk_action_id", label: "Action", render: (r) => ctx.catalog?.risk_actions?.find((a) => a.id === r.risk_action_id)?.name ?? r.risk_action_id ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "score", label: ctx.t("onboarding:scoreBand"), sortable: false, render: (r) => `${r.min_score} – ${r.max_score}` },
+      { key: "color_code", label: ctx.t("onboarding:colour"), sortable: false, render: (r) => (r.color_code ? <span className="inline-flex items-center gap-2"><span className="h-4 w-4 rounded border" style={{ backgroundColor: r.color_code }} />{r.color_code}</span> : "-") },
+      { key: "risk_action_id", label: ctx.t("onboarding:action"), render: (r) => ctx.catalog?.risk_actions?.find((a) => a.id === r.risk_action_id)?.name ?? r.risk_action_id ?? "-" },
     ],
     fields: (ctx) => [
-      { key: "min_score", label: "Min score (0–100)", type: "number", required: true },
-      { key: "max_score", label: "Max score (0–100)", type: "number", required: true, hint: "Score bands must not overlap." },
-      { key: "color_code", label: "Colour (#RRGGBB)", type: "text", hint: "e.g. #C62828" },
-      { key: "risk_action_id", label: "Risk action", type: "select", required: true, options: asOptions(ctx.catalog?.risk_actions, "id") },
+      { key: "min_score", label: ctx.t("onboarding:minScore0100"), type: "number", required: true },
+      { key: "max_score", label: ctx.t("onboarding:maxScore0100"), type: "number", required: true, hint: ctx.t("onboarding:scoreBandsMustNotOverlap") },
+      { key: "color_code", label: ctx.t("onboarding:colourRrggbb"), type: "text", hint: "e.g. #C62828" },
+      { key: "risk_action_id", label: ctx.t("onboarding:riskAction"), type: "select", required: true, options: asOptions(ctx.catalog?.risk_actions, "id") },
     ],
   },
   validation_rule: {
     title: "Validation Rule",
     base: "/master_config/validation_rule",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "validation_type_id", label: "Type", render: (r) => ctx.catalog?.validation_types?.find((t) => t.id === r.validation_type_id)?.name ?? r.validation_type_id ?? "-" },
-      { key: "error_message", label: "Error message", render: (r) => r.error_message ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "validation_type_id", label: ctx.t("onboarding:type"), render: (r) => ctx.catalog?.validation_types?.find((t) => t.id === r.validation_type_id)?.name ?? r.validation_type_id ?? "-" },
+      { key: "error_message", label: ctx.t("onboarding:errorMessage"), render: (r) => r.error_message ?? "-" },
     ],
     // Which parameters apply depends on the chosen validation type; sending
     // one the type doesn't use is refused (guide §5.4), so hide the rest.
@@ -105,19 +106,19 @@ const CONFIGS = {
       const type = (item) => ctx.catalog?.validation_types?.find((t) => t.id === item.validation_type_id);
       const is = (item, flag) => Boolean(type(item)?.[flag]);
       return [
-        { key: "validation_type_id", label: "Validation type", type: "select", required: true, options: asOptions(ctx.catalog?.validation_types, "id", (t) => `${t.name} (${t.code})`), lockedOnEdit: true, hint: "The type decides which parameters apply." },
-        { key: "fixed_length", label: "Fixed length", type: "number", showIf: (i) => is(i, "requires_fixed_length") || type(i)?.code === "NUMERIC" },
-        { key: "min_length", label: "Min length", type: "number", showIf: (i) => is(i, "requires_length_range") || LENGTH_TEXT_TYPES.has(type(i)?.code) },
-        { key: "max_length", label: "Max length", type: "number", showIf: (i) => is(i, "requires_length_range") || LENGTH_TEXT_TYPES.has(type(i)?.code) },
-        { key: "pattern", label: "Pattern (regex)", type: "text", wide: true, showIf: (i) => is(i, "requires_pattern") },
-        { key: "allowed_chars", label: "Allowed characters", type: "text", showIf: (i) => is(i, "requires_allowed_chars") },
-        { key: "min_value", label: "Min value", type: "number", showIf: (i) => is(i, "requires_value_range") },
-        { key: "max_value", label: "Max value", type: "number", showIf: (i) => is(i, "requires_value_range") },
-        { key: "min_date", label: "Min date", type: "date", showIf: (i) => is(i, "requires_date_range") },
-        { key: "max_date", label: "Max date", type: "date", showIf: (i) => is(i, "requires_date_range") },
-        { key: "min_age_years", label: "Min age (years)", type: "number", showIf: (i) => is(i, "requires_age_range") },
-        { key: "max_age_years", label: "Max age (years)", type: "number", showIf: (i) => is(i, "requires_age_range") },
-        { key: "error_message", label: "Error message shown to the customer", type: "text", required: true, wide: true },
+        { key: "validation_type_id", label: ctx.t("onboarding:validationType"), type: "select", required: true, options: asOptions(ctx.catalog?.validation_types, "id", (t) => `${t.name} (${t.code})`), lockedOnEdit: true, hint: ctx.t("onboarding:theTypeDecidesWhichParametersApply") },
+        { key: "fixed_length", label: ctx.t("onboarding:fixedLength"), type: "number", showIf: (i) => is(i, "requires_fixed_length") || type(i)?.code === "NUMERIC" },
+        { key: "min_length", label: ctx.t("onboarding:minLength"), type: "number", showIf: (i) => is(i, "requires_length_range") || LENGTH_TEXT_TYPES.has(type(i)?.code) },
+        { key: "max_length", label: ctx.t("onboarding:maxLength"), type: "number", showIf: (i) => is(i, "requires_length_range") || LENGTH_TEXT_TYPES.has(type(i)?.code) },
+        { key: "pattern", label: ctx.t("onboarding:patternRegex"), type: "text", wide: true, showIf: (i) => is(i, "requires_pattern") },
+        { key: "allowed_chars", label: ctx.t("onboarding:allowedCharacters"), type: "text", showIf: (i) => is(i, "requires_allowed_chars") },
+        { key: "min_value", label: ctx.t("onboarding:minValue"), type: "number", showIf: (i) => is(i, "requires_value_range") },
+        { key: "max_value", label: ctx.t("onboarding:maxValue"), type: "number", showIf: (i) => is(i, "requires_value_range") },
+        { key: "min_date", label: ctx.t("onboarding:minDate"), type: "date", showIf: (i) => is(i, "requires_date_range") },
+        { key: "max_date", label: ctx.t("onboarding:maxDate"), type: "date", showIf: (i) => is(i, "requires_date_range") },
+        { key: "min_age_years", label: ctx.t("onboarding:minAgeYears"), type: "number", showIf: (i) => is(i, "requires_age_range") },
+        { key: "max_age_years", label: ctx.t("onboarding:maxAgeYears"), type: "number", showIf: (i) => is(i, "requires_age_range") },
+        { key: "error_message", label: ctx.t("onboarding:errorMessageShownToTheCustomer"), type: "text", required: true, wide: true },
       ];
     },
   },
@@ -132,25 +133,25 @@ const CONFIGS = {
     title: "Identification Type",
     base: "/master_config/corp_identification_type",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "front_required", label: "Front required", render: (r) => (r.front_required ? "Yes" : "No") },
-      { key: "back_required", label: "Back required", render: (r) => (r.back_required ? "Yes" : "No") },
-      { key: "validation_rule_id", label: "Validation rule", render: (r) => ctx.validationRules?.find((v) => v.id === r.validation_rule_id)?.name ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "front_required", label: ctx.t("onboarding:frontRequired"), render: (r) => (r.front_required ? ctx.t("common:yes") : ctx.t("common:no")) },
+      { key: "back_required", label: ctx.t("onboarding:backRequired"), render: (r) => (r.back_required ? ctx.t("common:yes") : ctx.t("common:no")) },
+      { key: "validation_rule_id", label: ctx.t("onboarding:validationRule"), render: (r) => ctx.validationRules?.find((v) => v.id === r.validation_rule_id)?.name ?? "-" },
     ],
     fields: (ctx) => [
-      { key: "front_required", label: "Front required", type: "bool", defaultValue: true },
+      { key: "front_required", label: ctx.t("onboarding:frontRequired"), type: "bool", defaultValue: true },
       // Backend refuses back_required without front_required — surfaced as
       // its own error rather than blocked client-side, same as every other
       // cross-field refusal in this app (guide §2: "back_required needs
       // front_required").
-      { key: "back_required", label: "Back required", type: "bool" },
+      { key: "back_required", label: ctx.t("onboarding:backRequired"), type: "bool" },
       {
         key: "validation_rule_id",
-        label: "Validation rule",
+        label: ctx.t("onboarding:validationRule"),
         type: "select",
         options: asOptions(ctx.validationRules),
-        hint: "Must be an active rule that applies to text (decides numeric/alphanumeric/fixed length/...).",
+        hint: ctx.t("onboarding:mustBeAnActiveRuleThatApplies"),
       },
     ],
   },
@@ -163,18 +164,18 @@ const CONFIGS = {
     title: "Merchant Group",
     base: "/master_config/corp_merchant_group",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "party_type_id", label: "Party type", render: (r) => ctx.partyTypes?.find((p) => p.id === r.party_type_id)?.name ?? r.party_type_id ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "party_type_id", label: ctx.t("onboarding:partyType"), render: (r) => ctx.partyTypes?.find((p) => p.id === r.party_type_id)?.name ?? r.party_type_id ?? "-" },
     ],
     fields: (ctx) => [
       {
         key: "party_type_id",
-        label: "Party type",
+        label: ctx.t("onboarding:partyType"),
         type: "select",
         required: true,
         options: asOptions(ctx.partyTypes),
-        hint: 'Must be Merchant or Agent — refused otherwise ("a merchant group must be for the MERCHANT or AGENT party type").',
+        hint: ctx.t("onboarding:mustBeMerchantOrAgentRefusedOtherwise"),
       },
     ],
   },
@@ -187,12 +188,12 @@ const CONFIGS = {
     title: "Bank Branch",
     base: "/master_config/bank_branch",
     columns: (ctx) => [
-      { key: "code", label: "Code" },
-      { key: "name", label: "Name" },
-      { key: "bank_id", label: "Bank", render: (r) => ctx.banks?.find((b) => b.id === r.bank_id)?.name ?? r.bank_id ?? "-" },
+      { key: "code", label: ctx.t("onboarding:code") },
+      { key: "name", label: ctx.t("onboarding:name") },
+      { key: "bank_id", label: ctx.t("onboarding:bank"), render: (r) => ctx.banks?.find((b) => b.id === r.bank_id)?.name ?? r.bank_id ?? "-" },
     ],
     fields: (ctx) => [
-      { key: "bank_id", label: "Bank", type: "select", required: true, options: asOptions(ctx.banks), lockedOnEdit: true, hint: "Code and name are unique within the bank." },
+      { key: "bank_id", label: ctx.t("onboarding:bank"), type: "select", required: true, options: asOptions(ctx.banks), lockedOnEdit: true, hint: ctx.t("onboarding:codeAndNameAreUniqueWithinThe") },
     ],
   },
 };
@@ -217,7 +218,11 @@ async function draftAwareRow(api, row) {
 }
 
 export function MasterResource({ entity }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const config = CONFIGS[entity];
+  // config.title stays English: it is also the menu name the permission
+  // check matches. The heading/buttons show this translated title instead.
+  const displayTitle = t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
   const api = apiFor(entity);
   const catalog = useOnboardingCatalog();
   const { partyTypes } = usePartyTypes(entity === "corp_merchant_group");
@@ -228,8 +233,8 @@ export function MasterResource({ entity }) {
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const ctx = useMemo(
-    () => ({ catalog, currencies, validationRules, banks, partyTypes }),
-    [catalog, currencies, validationRules, banks, partyTypes],
+    () => ({ catalog, currencies, validationRules, banks, partyTypes, t }),
+    [catalog, currencies, validationRules, banks, partyTypes, t],
   );
 
   useEffect(() => {
@@ -290,7 +295,7 @@ export function MasterResource({ entity }) {
       if (wasDraft && !draft) {
         await api.submit({ id: editing.id, narration: "Submitted for review" });
       }
-      notifications.success(apiMessage(response, `${config.title} saved`));
+      notifications.success(apiMessage(response, t("onboarding:titleSaved", { title: displayTitle })));
       setForm(null);
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -309,8 +314,8 @@ export function MasterResource({ entity }) {
   return (
     <>
       <LifecycleList
-        title={config.title}
-        subtitle={`Manage ${config.title.toLowerCase()} master data.`}
+        title={displayTitle}
+        subtitle={t("onboarding:manageMasterData", { title: displayTitle.toLowerCase() })}
         api={api}
         menuName={config.title}
         columns={config.columns(ctx)}
@@ -318,7 +323,7 @@ export function MasterResource({ entity }) {
         onEdit={openEdit}
         addButton={
           <button type="button" onClick={() => setForm({ code: "", name: "", description: "" })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white">
-            <Plus size={14} /> Add {config.title}
+            <Plus size={14} /> {t("onboarding:addTitle", { title: displayTitle })}
           </button>
         }
       />
@@ -326,41 +331,41 @@ export function MasterResource({ entity }) {
         <Modal
           open
           onClose={() => setForm(null)}
-          title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          title={t(editing ? "onboarding:editTitle" : "onboarding:addTitle", { title: displayTitle })}
           footer={
             <>
               <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-                Cancel
+                {t("common:cancel")}
               </button>
               <button type="button" disabled={saving} onClick={() => void save(true)} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
                 {saving && <Spinner size={13} />}
-                Save as draft
+                {t("onboarding:saveAsDraft")}
               </button>
               <button type="button" disabled={saving} onClick={() => void save(false)} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
                 {saving && <Spinner size={13} />}
-                {editing ? "Save changes" : `Add ${config.title}`}
+                {editing ? t("onboarding:saveChanges") : t("onboarding:addTitle", { title: displayTitle })}
               </button>
             </>
           }
         >
           <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
-              Code <span className="text-red-500">*</span>
+              {t("onboarding:code")} <span className="text-red-500">*</span>
               <input
                 value={form.code ?? ""}
                 disabled={Boolean(editing)}
-                title={editing ? "Code can't be changed after creation." : undefined}
+                title={editing ? t("onboarding:codeCantBeChanged") : undefined}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
                 className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm disabled:bg-muted"
               />
-              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">A–Z, 0–9 and _. Cannot be changed later.</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:codeCharsHint")}</span>
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Name <span className="text-red-500">*</span>
+              {t("onboarding:name")} <span className="text-red-500">*</span>
               <input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
             </label>
             <label className="text-sm font-semibold text-slate-700 md:col-span-2">
-              Description
+              {t("common:description")}
               <textarea value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{(form.description ?? "").length}/250</span>
             </label>
@@ -372,7 +377,7 @@ export function MasterResource({ entity }) {
                   field={{
                     ...field,
                     disabled: () => Boolean(editing && field.lockedOnEdit),
-                    disabledReason: "Can't be changed after creation.",
+                    disabledReason: t("onboarding:cantBeChangedAfterCreation"),
                   }}
                   item={form}
                   setItem={setForm}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -31,6 +32,7 @@ const pendingApi = ({ id }) => corpOnboardingDefinitionApi.pending({ id });
 // (guide §8), so the create dialog only collects the identity plus
 // home_country_id/effective_from.
 function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const [action, setAction] = useState(null);
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -60,7 +62,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
     try {
       const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
       const response = await corpOnboardingDefinitionApi[action.method](payload);
-      notifications.success(apiMessage(response, `${action.label} successful`));
+      notifications.success(apiMessage(response, t("onboarding:actionSuccessful", { action: action.label })));
       await onRefresh();
       setAction(null);
       setNarration("");
@@ -79,16 +81,16 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
-        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
-        onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Reactivate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: t("common:submit") }) : undefined}
+        onAuthorize={() => setAction({ method: pendingMethod, label: t("common:authorize") })}
+        onDeauthorize={() => setAction({ method: "deauth", label: t("onboarding:reject") })}
+        onDeactivate={() => setAction({ method: "deactivate", label: t("common:deactivate") })}
+        onReactivate={() => setAction({ method: "reactivate", label: t("common:reactivate") })}
+        onDelete={() => setAction({ method: "delete", label: t("common:delete") })}
       />
       <ConfirmDialog
         open={!!action}
-        title={`${action?.label ?? "Action"} onboarding configuration`}
+        title={t("onboarding:actionOnboardingConfiguration", { action: action?.label ?? t("common:actions") })}
         confirmLabel={action?.label}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={working}
@@ -99,8 +101,8 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
         {action?.method === "submit" && (
           <dl className="mt-1 grid gap-2">
-            <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
-            {[["name", "Name"], ["code", "Code"], ["party_type_name", "Party type"], ["company_type_name", "Company type"]].map(([key, label]) => (
+            <p className="text-xs font-semibold text-muted-foreground">{t("onboarding:submitPreview")}</p>
+            {[["name", t("onboarding:name")], ["code", t("onboarding:code")], ["party_type_name", t("onboarding:partyType")], ["company_type_name", t("onboarding:companyType")]].map(([key, label]) => (
               <div key={key} className="rounded-xl border border-border p-2.5">
                 <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
                 <dd className="mt-0.5 text-sm font-semibold text-slate-700">{row?.[key] ?? "-"}</dd>
@@ -111,7 +113,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
-          placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
+          placeholder={action?.method === "deauth" ? t("onboarding:reasonRequired") : t("onboarding:narration")}
           className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
         />
       </ConfirmDialog>
@@ -119,8 +121,8 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         <AuditModal
           title={row.name}
           fields={[
-            ["home_country_id", "Home country"],
-            ["effective_from", "Effective from"],
+            ["home_country_id", t("onboarding:homeCountry")],
+            ["effective_from", t("onboarding:effectiveFrom")],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
@@ -147,6 +149,7 @@ const emptyForm = {
 
 export function CorporateOnboardingConfigurationPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Configuration|Corporate Type Config|Corporate Onboarding Definition|Corporate Customer Type");
   const catalog = useCorpOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
@@ -206,7 +209,7 @@ export function CorporateOnboardingConfigurationPage() {
         ...(form.effective_from ? { effective_from: form.effective_from } : {}),
         is_draft: true,
       });
-      notifications.success(apiMessage(response, "Corporate customer type created"));
+      notifications.success(apiMessage(response, t("onboarding:corporateCustomerTypeCreated")));
       setOpen(false);
       setForm(emptyForm);
       await load();
@@ -231,7 +234,7 @@ export function CorporateOnboardingConfigurationPage() {
   const columns = [
     {
       key: "name",
-      label: "Customer type",
+      label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
@@ -243,7 +246,7 @@ export function CorporateOnboardingConfigurationPage() {
     },
     {
       key: "company_type_name",
-      label: "Party × Company type",
+      label: t("onboarding:partyCompanyType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
@@ -255,25 +258,25 @@ export function CorporateOnboardingConfigurationPage() {
     },
     {
       key: "status_name",
-      label: "Status",
+      label: t("common:status"),
       sortValue: (r) => r.status_name ?? "",
       render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: t("common:authorizationStatus"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (r) => (
         <DefinitionRowActions
@@ -295,16 +298,16 @@ export function CorporateOnboardingConfigurationPage() {
       }}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
     >
-      <Plus size={14} /> Add corporate customer type
+      <Plus size={14} /> {t("onboarding:addCorporateCustomerType")}
     </button>
   ) : null;
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">Corporate Onboarding Configuration</h1>
+        <h1 className="text-xl font-black text-slate-800">{t("onboarding:corporateOnboardingConfigurationTitle")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Each corporate customer type is institution × party type × company type — its identity, configuration and maker-checker state together.
+          {t("onboarding:corporateOnboardingConfigurationSubtitle")}
         </p>
       </div>
       <div
@@ -317,7 +320,7 @@ export function CorporateOnboardingConfigurationPage() {
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder="Search corporate customer types..."
+          searchPlaceholder={t("onboarding:searchCorporateCustomerTypes")}
           actions={addAction}
           bare
         />
@@ -326,8 +329,8 @@ export function CorporateOnboardingConfigurationPage() {
           rows={visible}
           rowKey={(r) => r.id}
           isLoading={loading}
-          title="Corporate Customer Types"
-          emptyTitle="No corporate customer types yet"
+          title={t("onboarding:corporateCustomerTypes")}
+          emptyTitle={t("onboarding:noCorporateCustomerTypesYet")}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,
@@ -346,11 +349,11 @@ export function CorporateOnboardingConfigurationPage() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Add corporate customer type"
+        title={t("onboarding:addCorporateCustomerType")}
         footer={
           <>
             <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-              Cancel
+              {t("common:cancel")}
             </button>
             <button
               type="button"
@@ -359,41 +362,41 @@ export function CorporateOnboardingConfigurationPage() {
               className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               {saving && <Spinner size={13} />}
-              Create
+              {t("onboarding:create")}
             </button>
           </>
         }
       >
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            Code
+            {t("onboarding:code")}
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder="CUSTOMER_PRIVATE_LIMITED" />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Letters, digits and underscore. Cannot be changed later.</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:codeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Name
+            {t("onboarding:name")}
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Description
+            {t("common:description")}
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Party type
-            <FilterSelect className="mt-1.5" value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} options={[{ value: "", label: "Select party type" }, ...partyTypeOptions]} />
+            {t("onboarding:partyType")}
+            <FilterSelect className="mt-1.5" value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypeOptions]} />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Company type
-            <FilterSelect className="mt-1.5" addAction={{ label: "Add company type", onClick: () => navigate("/companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: "Select company type" }, ...companyTypeOptions]} />
+            {t("onboarding:companyType")}
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => navigate("/companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypeOptions]} />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Home country
-            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if a rule uses IS_FOREIGN_INCORPORATED.</span>
+            {t("onboarding:homeCountry")}
+            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:corpHomeCountryHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Effective from
+            {t("onboarding:effectiveFrom")}
             <input type="date" value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
         </div>

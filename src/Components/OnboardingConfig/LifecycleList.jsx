@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -38,10 +39,10 @@ export function useMenuPermission(menuName) {
 // the same convention every other maker-checker list in the app uses
 // (Institution Branding/Channel, Onboarding Configuration, Customer
 // Onboarding, ...).
-const STATUS_COLUMNS = [
-  { key: "status_name", label: "Status", render: (row) => <StatusBadge status={String(row.status_name ?? "-")} /> },
-  { key: "process_status_name", label: "Process Status", render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} /> },
-  { key: "auth_status", label: "Authorization Status", render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} /> },
+const statusColumns = (t) => [
+  { key: "status_name", label: t("common:status"), render: (row) => <StatusBadge status={String(row.status_name ?? "-")} /> },
+  { key: "process_status_name", label: t("common:processStatus"), render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} /> },
+  { key: "auth_status", label: t("common:authorizationStatus"), render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} /> },
 ];
 
 // One reusable maker-checker list for every new onboarding-configuration
@@ -68,10 +69,12 @@ export function LifecycleList({
   renderExtra,
   renderView,
   describeRow = (row) => row?.name ?? String(row?.id),
-  auditFields = [["code", "Code"], ["name", "Name"]],
+  auditFields: auditFieldsProp,
   emptyTitle,
   onChanged,
 }) {
+  const { t } = useTranslation(["onboarding", "common"]);
+  const auditFields = auditFieldsProp ?? [["code", t("onboarding:code")], ["name", t("onboarding:name")]];
   const can = useMenuPermission(menuName);
   const username = useAuth((state) => state.user?.username);
   const [rows, setRows] = useState([]);
@@ -125,7 +128,7 @@ export function LifecycleList({
       const payload = { id: action.row.id, narration: action.reason || "" };
       const verb = { deleteAuth: "deleteAuth" }[action.type] ?? action.type;
       const response = await api[verb](payload);
-      notifications.success(apiMessage(response, `${title} action completed`));
+      notifications.success(apiMessage(response, t("onboarding:actionCompleted", { title })));
       setAction(null);
       await load();
       onChanged?.(action.type, action.row);
@@ -138,10 +141,10 @@ export function LifecycleList({
 
   const tableColumns = [
     ...columns,
-    ...STATUS_COLUMNS,
+    ...statusColumns(t),
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
@@ -170,12 +173,12 @@ export function LifecycleList({
               onView={() => (onView ? onView(row) : setView(row))}
               onEdit={() => onEdit?.(row)}
               onAudit={() => setAudit(row)}
-              onSubmit={() => setAction({ type: "submit", row, label: "Submit", reason: "" })}
-              onAuthorize={() => setAction({ type: pendingType, row, label: "Authorize", reason: "" })}
-              onDeauthorize={() => setAction({ type: "deauth", row, label: "Reject", reason: "" })}
-              onDeactivate={() => setAction({ type: "deactivate", row, label: "Deactivate", reason: "" })}
-              onReactivate={() => setAction({ type: "reactivate", row, label: "Reactivate", reason: "" })}
-              onDelete={() => setAction({ type: "delete", row, label: "Delete", reason: "" })}
+              onSubmit={() => setAction({ type: "submit", row, label: t("common:submit"), reason: "" })}
+              onAuthorize={() => setAction({ type: pendingType, row, label: t("common:authorize"), reason: "" })}
+              onDeauthorize={() => setAction({ type: "deauth", row, label: t("onboarding:reject"), reason: "" })}
+              onDeactivate={() => setAction({ type: "deactivate", row, label: t("common:deactivate"), reason: "" })}
+              onReactivate={() => setAction({ type: "reactivate", row, label: t("common:reactivate"), reason: "" })}
+              onDelete={() => setAction({ type: "delete", row, label: t("common:delete"), reason: "" })}
             />
             {renderExtra?.(row, { reload: load, setAction })}
           </div>
@@ -203,7 +206,7 @@ export function LifecycleList({
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder={`Search ${title.toLowerCase()}...`}
+          searchPlaceholder={t("onboarding:searchTitle", { title: title.toLowerCase() })}
           actions={addButton && can("Add") ? addButton : null}
           bare
         />
@@ -213,7 +216,7 @@ export function LifecycleList({
           rowKey={(row) => row.id}
           isLoading={loading}
           title={title}
-          emptyTitle={emptyTitle ?? `No ${title.toLowerCase()} found`}
+          emptyTitle={emptyTitle ?? t("onboarding:noTitleFound", { title: title.toLowerCase() })}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,
@@ -230,7 +233,7 @@ export function LifecycleList({
       </div>
 
       {view && (
-        <Modal open onClose={() => setView(null)} title={`View ${title}`} size="sm">
+        <Modal open onClose={() => setView(null)} title={t("onboarding:viewTitle", { title })} size="sm">
           {renderView ? (
             renderView(view)
           ) : (
@@ -238,7 +241,7 @@ export function LifecycleList({
             // (CustomerMasterConfigResource, ...), not a raw JSON dump —
             // auditFields already gives every screen's own field list.
             <dl className="grid gap-3">
-              {[...auditFields, ["status_name", "Status"], ["process_status_name", "Process Status"], ["auth_status", "Authorization Status"]].map(
+              {[...auditFields, ["status_name", t("common:status")], ["process_status_name", t("common:processStatus")], ["auth_status", t("common:authorizationStatus")]].map(
                 ([key, label]) => (
                   <div key={key} className="rounded-xl border p-3">
                     <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -273,7 +276,7 @@ export function LifecycleList({
           {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
           {action.type === "submit" && (
             <dl className="mt-1 grid gap-2">
-              <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
+              <p className="text-xs font-semibold text-muted-foreground">{t("onboarding:submitPreview")}</p>
               {auditFields.map(([key, label]) => (
                 <div key={key} className="rounded-xl border border-border p-2.5">
                   <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
@@ -286,7 +289,7 @@ export function LifecycleList({
             className="mt-3 min-h-20 w-full rounded-xl border p-3"
             value={action.reason ?? ""}
             onChange={(e) => setAction({ ...action, reason: e.target.value })}
-            placeholder={action.type === "deauth" ? "Reason for rejecting (required)" : "Narration"}
+            placeholder={action.type === "deauth" ? t("onboarding:rejectReasonRequired") : t("onboarding:narration")}
           />
         </ConfirmDialog>
       )}

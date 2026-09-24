@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
@@ -17,16 +18,16 @@ import { useCorpOnboardingCatalog, useCorpOnboardingMasters } from "./corporateO
 // (guide §8), and Basics only carries home_country_id/effective_from — no
 // minor_age_years/kyc_group_id.
 const STEPS = [
-  { id: "basics", label: "Basics" },
-  { id: "sections", label: "Sections" },
-  { id: "fields", label: "Fields" },
-  { id: "addresses", label: "Addresses" },
-  { id: "related_parties", label: "Related parties" },
-  { id: "documents", label: "Documents" },
-  { id: "taxes", label: "Tax identifiers" },
-  { id: "screenings", label: "Screenings" },
-  { id: "rules", label: "Rules" },
-  { id: "review", label: "Review" },
+  { id: "basics", labelKey: "stepBasics" },
+  { id: "sections", labelKey: "stepSections" },
+  { id: "fields", labelKey: "stepFields" },
+  { id: "addresses", labelKey: "stepAddresses" },
+  { id: "related_parties", labelKey: "stepRelatedParties" },
+  { id: "documents", labelKey: "stepDocuments" },
+  { id: "taxes", labelKey: "stepTaxIdentifiers" },
+  { id: "screenings", labelKey: "stepScreenings" },
+  { id: "rules", labelKey: "stepRules" },
+  { id: "review", labelKey: "stepReview" },
 ];
 
 const EMPTY_CONFIG = {
@@ -53,10 +54,10 @@ const FACT_REF_SOURCE = {
   TAX_TYPE_ADDED: "corp_tax_type",
 };
 const REF_SOURCE_MASTER = {
-  corp_relationship_type: ["/corprelationshiptype", "corporate relationship type"],
-  corp_address_type: ["/corpaddresstype", "corporate address type"],
-  corp_document_type: ["/corpdocumenttype", "corporate document type"],
-  corp_tax_type: ["/taxtype", "tax type"],
+  corp_relationship_type: ["/corprelationshiptype", "addCorporateRelationshipType"],
+  corp_address_type: ["/corpaddresstype", "addCorporateAddressType"],
+  corp_document_type: ["/corpdocumenttype", "addCorporateDocumentType"],
+  corp_tax_type: ["/taxtype", "addTaxType"],
 };
 const BOOLEAN_FACTS = new Set(["IS_FOREIGN_INCORPORATED"]);
 const NUMBER_FACTS = new Set(["YEARS_SINCE_INCORPORATION"]);
@@ -79,23 +80,24 @@ function pruneCondition({ _value, ...c }) {
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["onboarding", "common"]);
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
   const set = (patch) => setCondition({ ...condition, ...patch });
   const input = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted";
   if (BOOLEAN_FACTS.has(fact)) {
-    return <CheckboxPill checked={Boolean(condition.value_boolean)} onChange={(v) => set({ value_boolean: v })} label="Value is true" disabled={disabled} className="self-start" />;
+    return <CheckboxPill checked={Boolean(condition.value_boolean)} onChange={(v) => set({ value_boolean: v })} label={t("onboarding:valueIsTrue")} disabled={disabled} className="self-start" />;
   }
   if (NUMBER_FACTS.has(fact)) {
     return (
       <div className="grid gap-3 md:grid-cols-2">
         <label className="text-sm font-semibold text-slate-700">
-          Value
+          {t("onboarding:value")}
           <input type="number" min={0} className={input} disabled={disabled} value={condition.value_number ?? ""} onChange={(e) => set({ value_number: e.target.value === "" ? "" : Number(e.target.value) })} />
         </label>
         {RANGE_OPERATORS.has(operator) && (
           <label className="text-sm font-semibold text-slate-700">
-            To
+            {t("onboarding:to")}
             <input type="number" min={0} className={input} disabled={disabled} value={condition.value_number_to ?? ""} onChange={(e) => set({ value_number_to: e.target.value === "" ? "" : Number(e.target.value) })} />
           </label>
         )}
@@ -108,7 +110,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
     if (LIST_OPERATORS.has(operator)) {
       return (
         <div>
-          <p className="text-sm font-semibold text-slate-700">Values</p>
+          <p className="text-sm font-semibold text-slate-700">{t("onboarding:values")}</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {options.map((o) => (
               <CheckboxPill
@@ -127,14 +129,14 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
     }
     return (
       <label className="text-sm font-semibold text-slate-700">
-        Value
+        {t("onboarding:value")}
         <FilterSelect
           className="mt-1.5"
           disabled={disabled}
           value={condition.value_ref_ids?.[0] ?? ""}
           onChange={(v) => set({ value_ref_ids: v === "" ? [] : [v] })}
-          addAction={REF_SOURCE_MASTER[refSource] ? { label: `Add ${REF_SOURCE_MASTER[refSource][1]}`, onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
-          options={[{ value: "", label: "Select..." }, ...options]}
+          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
+          options={[{ value: "", label: t("onboarding:select") }, ...options]}
         />
       </label>
     );
@@ -142,7 +144,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   // FIELD_VALUE (text) and anything else
   return (
     <label className="text-sm font-semibold text-slate-700">
-      Value
+      {t("onboarding:value")}
       <input className={input} disabled={disabled} value={condition.value_text ?? ""} onChange={(e) => set({ value_text: e.target.value })} />
     </label>
   );
@@ -153,6 +155,8 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
 const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 
 export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly = false, onClose, onSaved }) {
+  const { t } = useTranslation(["onboarding", "common"]);
+  const steps = STEPS.map((s) => ({ ...s, label: t(`onboarding:${s.labelKey}`) }));
   const catalog = useCorpOnboardingCatalog();
   const { masters, countries, loading: mastersLoading } = useCorpOnboardingMasters();
   const [validationRules, setValidationRules] = useState([]);
@@ -180,8 +184,8 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
   const processStatus = Number(def?.process_status ?? 9);
   const readOnly = forceReadOnly || (Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus));
   const readOnlyReason = forceReadOnly
-    ? "Viewing only."
-    : `This configuration is ${def?.process_status_name ?? "frozen"} and cannot be changed right now.`;
+    ? t("onboarding:viewingOnly")
+    : t("onboarding:configurationFrozenReason", { status: def?.process_status_name ?? t("onboarding:frozen") });
   const isRejected = processStatus === 5;
 
   useEffect(() => {
@@ -257,110 +261,110 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
 
   const specs = {
     sections: [
-      { key: "section_code", label: "Section", type: "select", required: true, options: asOptions((catalog?.sections ?? []).filter((s) => s.is_customer_entered !== false)) },
-      { key: "enabled", label: "Enabled", type: "bool", defaultValue: true, disabled: (i) => i.section_code === "GENERAL" },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "label_override", label: "Label override", type: "text" },
+      { key: "section_code", label: t("onboarding:section"), type: "select", required: true, options: asOptions((catalog?.sections ?? []).filter((s) => s.is_customer_entered !== false)) },
+      { key: "enabled", label: t("onboarding:enabled"), type: "bool", defaultValue: true, disabled: (i) => i.section_code === "GENERAL" },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "label_override", label: t("onboarding:labelOverride"), type: "text" },
     ],
     fields: [
       {
         key: "field_code",
-        label: "Field",
+        label: t("onboarding:field"),
         type: "select",
         required: true,
         options: asOptions(
           (catalog?.fields ?? []).filter((f) => enabledSectionCodes.has(f.section_code) && !f.is_system_populated),
         ),
       },
-      { key: "mandatory", label: "Mandatory", type: "bool", disabled: (i) => lockedFieldCodes.has(i.field_code) },
-      { key: "visible", label: "Visible", type: "bool", defaultValue: true, disabled: (i) => lockedFieldCodes.has(i.field_code) },
-      { key: "read_only", label: "Read only", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "validation_rule_code", label: "Validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(validationRules) },
-      { key: "label_override", label: "Label override", type: "text" },
-      { key: "help_text", label: "Help text", type: "text" },
-      { key: "default_value", label: "Default value", type: "text" },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool", disabled: (i) => lockedFieldCodes.has(i.field_code) },
+      { key: "visible", label: t("onboarding:visible"), type: "bool", defaultValue: true, disabled: (i) => lockedFieldCodes.has(i.field_code) },
+      { key: "read_only", label: t("onboarding:readOnly"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "validation_rule_code", label: t("onboarding:validationRule"), type: "select", addTo: ["/validationrule", t("onboarding:addValidationRule")], options: asOptions(validationRules) },
+      { key: "label_override", label: t("onboarding:labelOverride"), type: "text" },
+      { key: "help_text", label: t("onboarding:helpText"), type: "text" },
+      { key: "default_value", label: t("onboarding:defaultValue"), type: "text" },
     ],
     address_types: [
-      { key: "address_type_code", label: "Address type", type: "select", addTo: ["/corpaddresstype", "corporate address type"], required: true, options: asOptions(masters.corp_address_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "min_count", label: "Min count", type: "number" },
-      { key: "max_count", label: "Max count", type: "number", defaultValue: 1, hint: "0 = any number." },
-      { key: "proof_required", label: "Proof required", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "allow_same_as", label: 'Allow "same as" another address', type: "bool" },
+      { key: "address_type_code", label: t("onboarding:addressType"), type: "select", addTo: ["/corpaddresstype", t("onboarding:addCorporateAddressType")], required: true, options: asOptions(masters.corp_address_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "min_count", label: t("onboarding:minCount"), type: "number" },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", defaultValue: 1, hint: t("onboarding:n0AnyNumber") },
+      { key: "proof_required", label: t("onboarding:proofRequired"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "allow_same_as", label: t("onboarding:allowSameAsAnotherAddress"), type: "bool" },
       {
         key: "same_as_address_type_code",
-        label: "Same as",
+        label: t("onboarding:sameAs"),
         type: "select",
         showIf: (i) => i.allow_same_as,
         options: (i) => asOptions(masters.corp_address_type).filter((o) => o.value !== i.address_type_code),
       },
     ],
     relationships: [
-      { key: "relationship_type_code", label: "Relationship type", type: "select", addTo: ["/corprelationshiptype", "corporate relationship type"], required: true, options: asOptions(masters.corp_relationship_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "min_count", label: "Min count", type: "number" },
-      { key: "max_count", label: "Max count", type: "number", hint: "Omitted or 0 = any number." },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "share_percent_required", label: "Ownership % required", type: "bool" },
-      { key: "fixed_share_percent", label: "Fixed share %", type: "number", showIf: (i) => i.share_percent_required, hint: "e.g. 100 for a sole proprietor." },
+      { key: "relationship_type_code", label: t("onboarding:relationshipType"), type: "select", addTo: ["/corprelationshiptype", t("onboarding:addCorporateRelationshipType")], required: true, options: asOptions(masters.corp_relationship_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "min_count", label: t("onboarding:minCount"), type: "number" },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", hint: t("onboarding:omittedOr0AnyNumber") },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "share_percent_required", label: t("onboarding:ownershipRequired"), type: "bool" },
+      { key: "fixed_share_percent", label: t("onboarding:fixedShare"), type: "number", showIf: (i) => i.share_percent_required, hint: t("onboarding:eG100ForASoleProprietor") },
     ],
     documents: [
-      { key: "document_type_code", label: "Document type", type: "select", addTo: ["/corpdocumenttype", "corporate document type"], required: true, options: asOptions(masters.corp_document_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "min_count", label: "Min count", type: "number", defaultValue: 1 },
-      { key: "max_count", label: "Max count", type: "number", defaultValue: 1, hint: '0 = any number ("Multiple").' },
-      { key: "front_required", label: "Front required", type: "bool", defaultValue: true },
-      { key: "back_required", label: "Back required", type: "bool" },
-      { key: "number_required", label: "Number required", type: "bool" },
-      { key: "number_validation_rule_code", label: "Number validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(validationRules), showIf: (i) => i.number_required },
-      { key: "issue_date_required", label: "Issue date required", type: "bool" },
-      { key: "expiry_date_required", label: "Expiry date required", type: "bool" },
-      { key: "verification_required", label: "Verification required", type: "bool" },
-      { key: "verification_method_code", label: "Verification method", type: "select", addTo: ["/verificationmethod", "verification method"], options: asOptions(verificationMethods), showIf: (i) => i.verification_required },
-      { key: "max_file_size_kb", label: "Max file size (KB)", type: "number" },
-      { key: "file_formats", label: "File formats (empty = any)", type: "multi", wide: true, options: (catalog?.file_formats ?? []).map((f) => ({ value: f.code ?? f, label: f.code ?? f })) },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "document_type_code", label: t("onboarding:documentType"), type: "select", addTo: ["/corpdocumenttype", t("onboarding:addCorporateDocumentType")], required: true, options: asOptions(masters.corp_document_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "min_count", label: t("onboarding:minCount"), type: "number", defaultValue: 1 },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", defaultValue: 1, hint: t("onboarding:n0AnyNumberMultiple") },
+      { key: "front_required", label: t("onboarding:frontRequired"), type: "bool", defaultValue: true },
+      { key: "back_required", label: t("onboarding:backRequired"), type: "bool" },
+      { key: "number_required", label: t("onboarding:numberRequired"), type: "bool" },
+      { key: "number_validation_rule_code", label: t("onboarding:numberValidationRule"), type: "select", addTo: ["/validationrule", t("onboarding:addValidationRule")], options: asOptions(validationRules), showIf: (i) => i.number_required },
+      { key: "issue_date_required", label: t("onboarding:issueDateRequired"), type: "bool" },
+      { key: "expiry_date_required", label: t("onboarding:expiryDateRequired"), type: "bool" },
+      { key: "verification_required", label: t("onboarding:verificationRequired"), type: "bool" },
+      { key: "verification_method_code", label: t("onboarding:verificationMethod"), type: "select", addTo: ["/verificationmethod", t("onboarding:addVerificationMethod")], options: asOptions(verificationMethods), showIf: (i) => i.verification_required },
+      { key: "max_file_size_kb", label: t("onboarding:maxFileSizeKb"), type: "number" },
+      { key: "file_formats", label: t("onboarding:fileFormatsEmptyAny"), type: "multi", wide: true, options: (catalog?.file_formats ?? []).map((f) => ({ value: f.code ?? f, label: f.code ?? f })) },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     taxes: [
-      { key: "tax_type_code", label: "Tax type", type: "select", addTo: ["/taxtype", "tax type"], required: true, options: asOptions(masters.corp_tax_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool", hint: "A conditional tax identifier is left unmandatory here; a rule can require it." },
-      { key: "number_validation_rule_code", label: "Number validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(validationRules) },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "tax_type_code", label: t("onboarding:taxType"), type: "select", addTo: ["/taxtype", t("onboarding:addTaxType")], required: true, options: asOptions(masters.corp_tax_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool", hint: t("onboarding:aConditionalTaxIdentifierIsLeftUnmandatory") },
+      { key: "number_validation_rule_code", label: t("onboarding:numberValidationRule"), type: "select", addTo: ["/validationrule", t("onboarding:addValidationRule")], options: asOptions(validationRules) },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     screenings: [
       {
         key: "relationship_type_code",
-        label: "Related party role",
+        label: t("onboarding:relatedPartyRole"),
         type: "select",
-        placeholder: "The company itself",
+        placeholder: t("onboarding:theCompanyItself"),
         options: asOptions(masters.corp_relationship_type),
-        hint: "Leave unset to screen the company itself; otherwise the role must already be configured under Related parties.",
+        hint: t("onboarding:leaveUnsetToScreenTheCompanyItself"),
       },
-      { key: "screening_type_code", label: "Screening", type: "select", addTo: ["/screeningtype", "screening type"], required: true, options: asOptions(masters.corp_screening_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool", defaultValue: true },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "screening_type_code", label: t("onboarding:screening"), type: "select", addTo: ["/screeningtype", t("onboarding:addScreeningType")], required: true, options: asOptions(masters.corp_screening_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool", defaultValue: true },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     rules: [
-      { key: "code", label: "Rule code", type: "text", required: true },
-      { key: "name", label: "Rule name", type: "text", required: true },
-      { key: "description", label: "Description", type: "text", wide: true },
-      { key: "priority", label: "Priority (lower runs first)", type: "number", defaultValue: 100 },
-      { key: "enabled", label: "Enabled", type: "bool", defaultValue: true },
+      { key: "code", label: t("onboarding:ruleCode"), type: "text", required: true },
+      { key: "name", label: t("onboarding:ruleName"), type: "text", required: true },
+      { key: "description", label: t("common:description"), type: "text", wide: true },
+      { key: "priority", label: t("onboarding:priorityLowerRunsFirst"), type: "number", defaultValue: 100 },
+      { key: "enabled", label: t("onboarding:enabled"), type: "bool", defaultValue: true },
       {
         key: "conditions",
-        label: "WHEN all of these are true",
+        label: t("onboarding:whenAllOfTheseAreTrue"),
         type: "list",
-        addLabel: "Add condition",
-        itemTitle: (c, i) => `Condition ${i + 1}`,
+        addLabel: t("onboarding:addCondition"),
+        itemTitle: (c, i) => t("onboarding:conditionN", { n: i + 1 }),
         spec: [
-          { key: "fact_code", label: "Fact", type: "select", required: true, options: asOptions(catalog?.rule_facts) },
-          { key: "operator_code", label: "Operator", type: "select", required: true, options: asOptions(catalog?.rule_operators) },
+          { key: "fact_code", label: t("onboarding:fact"), type: "select", required: true, options: asOptions(catalog?.rule_facts) },
+          { key: "operator_code", label: t("onboarding:operator"), type: "select", required: true, options: asOptions(catalog?.rule_operators) },
           {
             key: "field_code",
-            label: "Field",
+            label: t("onboarding:field"),
             type: "select",
             showIf: (c) => c.fact_code === "FIELD_VALUE",
             options: targetOptions.field.map((code) => ({ value: code, label: code })),
@@ -377,20 +381,20 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
       },
       {
         key: "effects",
-        label: "THEN apply all of these",
+        label: t("onboarding:thenApplyAllOfThese"),
         type: "list",
-        addLabel: "Add effect",
-        itemTitle: (e, i) => `Effect ${i + 1}`,
+        addLabel: t("onboarding:addEffect"),
+        itemTitle: (e, i) => t("onboarding:effectN", { n: i + 1 }),
         spec: [
-          { key: "action_code", label: "Action", type: "select", required: true, options: asOptions(catalog?.rule_actions) },
-          { key: "target_type", label: "Target type", type: "select", required: true, options: TARGET_TYPES.map((t) => ({ value: t, label: t })) },
+          { key: "action_code", label: t("onboarding:action"), type: "select", required: true, options: asOptions(catalog?.rule_actions) },
+          { key: "target_type", label: t("onboarding:targetType"), type: "select", required: true, options: TARGET_TYPES.map((t) => ({ value: t, label: t })) },
           {
             key: "target_key",
-            label: "Target",
+            label: t("onboarding:target"),
             type: "select",
             required: true,
             options: (e) => (targetOptions[e.target_type] ?? []).map((code) => ({ value: code, label: code })),
-            hint: "Only items already in this definition's configuration can be targeted.",
+            hint: t("onboarding:onlyItemsAlreadyInThisDefinitionS"),
           },
         ],
       },
@@ -475,7 +479,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
     });
 
   const attemptClose = () => {
-    if (dirty && !readOnly && !window.confirm("You have unsaved changes. Close without saving?")) return;
+    if (dirty && !readOnly && !window.confirm(t("onboarding:unsavedChangesConfirm"))) return;
     onClose();
   };
 
@@ -484,31 +488,31 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
   const ready = catalog && !mastersLoading && !loading;
 
   const summary = [
-    ["Sections", config.sections.length],
-    ["Fields", config.fields.length],
-    ["Address types", config.address_types.length],
-    ["Related parties", config.relationships.length],
-    ["Documents", config.documents.length],
-    ["Tax identifiers", config.taxes.length],
-    ["Screenings", config.screenings.length],
-    ["Rules", config.rules.length],
+    [t("onboarding:stepSections"), config.sections.length],
+    [t("onboarding:stepFields"), config.fields.length],
+    [t("onboarding:addressTypes"), config.address_types.length],
+    [t("onboarding:stepRelatedParties"), config.relationships.length],
+    [t("onboarding:documents"), config.documents.length],
+    [t("onboarding:stepTaxIdentifiers"), config.taxes.length],
+    [t("onboarding:stepScreenings"), config.screenings.length],
+    [t("onboarding:stepRules"), config.rules.length],
   ];
 
   return (
     <Modal
       open
       onClose={attemptClose}
-      title={`${readOnly ? "View" : "Edit"} corporate onboarding configuration — ${def?.name ?? definition?.name ?? definition?.code ?? ""}`}
+      title={t(readOnly ? "onboarding:viewCorporateOnboardingConfigurationTitle" : "onboarding:editCorporateOnboardingConfigurationTitle", { name: def?.name ?? definition?.name ?? definition?.code ?? "" })}
       size="full"
       growWithContent
       footer={
         <>
           <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-            {readOnly ? "Close" : "Cancel"}
+            {readOnly ? t("common:close") : t("common:cancel")}
           </button>
           {stepIndex > 0 && (
             <button type="button" onClick={() => setStepIndex((i) => i - 1)} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">
-              Back
+              {t("common:back")}
             </button>
           )}
           {!readOnly && (
@@ -519,7 +523,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
               className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
             >
               {busy === "draft" && <Spinner size={13} />}
-              Save draft
+              {t("onboarding:saveDraft")}
             </button>
           )}
           {!isLast ? (
@@ -530,7 +534,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
               className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               {busy === "next" && <Spinner size={13} />}
-              Next
+              {t("common:next")}
             </button>
           ) : (
             !readOnly && (
@@ -542,7 +546,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
                   className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
                 >
                   {busy === "validate" && <Spinner size={13} />}
-                  Validate
+                  {t("onboarding:validate")}
                 </button>
                 <button
                   type="button"
@@ -551,7 +555,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
                   className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
                 >
                   {busy === "submit" && <Spinner size={13} />}
-                  {isRejected ? "Resubmit" : "Submit"}
+                  {isRejected ? t("onboarding:resubmit") : t("common:submit")}
                 </button>
               </>
             )
@@ -560,7 +564,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
       }
     >
       <div className="mb-5">
-        <HorizontalStepper steps={STEPS} activeIndex={stepIndex} onStepClick={(index) => setStepIndex(index)} />
+        <HorizontalStepper steps={steps} activeIndex={stepIndex} onStepClick={(index) => setStepIndex(index)} />
       </div>
       {!ready ? (
         <div className="flex justify-center py-12">
@@ -568,50 +572,50 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
         </div>
       ) : (
         <>
-          <h2 className="mb-3 text-sm font-bold text-slate-800">{step.label}</h2>
+          <h2 className="mb-3 text-sm font-bold text-slate-800">{steps[stepIndex].label}</h2>
           {readOnly && <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>}
           {step.id === "basics" && (
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">
-                Home country
-                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
-                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if a rule uses IS_FOREIGN_INCORPORATED.</span>
+                {t("onboarding:homeCountry")}
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:corpHomeCountryHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
-                Effective from
+                {t("onboarding:effectiveFrom")}
                 <input type="date" disabled={readOnly} title={readOnly ? readOnlyReason : undefined} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">
-                  Narration
+                  {t("onboarding:narration")}
                   <textarea value={basics.narration} onChange={(e) => setBasic("narration", e.target.value)} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
                 </label>
               )}
             </div>
           )}
           {step.id === "sections" && (
-            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel="Add section" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.section_code || "New section"} seed={{ label: "Add all sections", onClick: seedSections }} emptyText="No sections yet. GENERAL must be enabled." />
+            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel={t("onboarding:addSection")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.section_code || t("onboarding:newSection")} seed={{ label: t("onboarding:addAllSections"), onClick: seedSections }} emptyText={t("onboarding:noSectionsYetGeneralMustBeEnabled")} />
           )}
           {step.id === "fields" && (
-            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel="Add field" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(f) => f.field_code || "New field"} seed={{ label: "Add all fields of enabled sections", onClick: seedFields }} emptyText="Only fields of enabled sections can be added." />
+            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel={t("onboarding:addField")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(f) => f.field_code || t("onboarding:newField")} seed={{ label: t("onboarding:addAllFieldsOfEnabledSections"), onClick: seedFields }} emptyText={t("onboarding:onlyFieldsOfEnabledSectionsCanBe")} />
           )}
           {step.id === "addresses" && (
-            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel="Add address type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(a) => a.address_type_code || "New address type"} />
+            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel={t("onboarding:addAddressType")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(a) => a.address_type_code || t("onboarding:newAddressType")} />
           )}
           {step.id === "related_parties" && (
-            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel="Add related party type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.relationship_type_code || "New related party type"} />
+            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel={t("onboarding:addRelatedPartyType")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.relationship_type_code || t("onboarding:newRelatedPartyType")} />
           )}
           {step.id === "documents" && (
-            <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel="Add document" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(d) => d.document_type_code || "New document"} />
+            <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel={t("onboarding:addDocument")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(d) => d.document_type_code || t("onboarding:newDocument")} />
           )}
           {step.id === "taxes" && (
-            <ListEditor items={config.taxes} onChange={setList("taxes")} spec={specs.taxes} addLabel="Add tax identifier" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(t) => t.tax_type_code || "New tax identifier"} />
+            <ListEditor items={config.taxes} onChange={setList("taxes")} spec={specs.taxes} addLabel={t("onboarding:addTaxIdentifier")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(x) => x.tax_type_code || t("onboarding:newTaxIdentifier")} />
           )}
           {step.id === "screenings" && (
-            <ListEditor items={config.screenings} onChange={setList("screenings")} spec={specs.screenings} addLabel="Add screening" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.screening_type_code || "New screening"} emptyText="No screenings yet." />
+            <ListEditor items={config.screenings} onChange={setList("screenings")} spec={specs.screenings} addLabel={t("onboarding:addScreening")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.screening_type_code || t("onboarding:newScreening")} emptyText={t("onboarding:noScreeningsYet")} />
           )}
           {step.id === "rules" && (
-            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel="Add rule" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.name || r.code || "New rule"} emptyText="No rules. Rules adapt the configuration, e.g. require GSTIN when GST registered." />
+            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel={t("onboarding:addRule")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.name || r.code || t("onboarding:newRule")} emptyText={t("onboarding:noRulesRulesAdaptTheConfigurationE2")} />
           )}
           {step.id === "review" && (
             <div className="flex flex-col gap-4">
@@ -626,7 +630,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
               {problems && (
                 <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
                   <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>
-                    {problems.length ? `${problems.length} problem(s) to fix` : "No problems found — ready to submit"}
+                    {problems.length ? t("onboarding:problemsToFix", { count: problems.length }) : t("onboarding:noProblemsReadyToSubmit")}
                   </p>
                   {problems.length > 0 && (
                     <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
@@ -637,7 +641,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
                   )}
                 </div>
               )}
-              {!readOnly && <p className="text-xs text-muted-foreground">Validate runs the same checks as Submit. Once submitted, the configuration is frozen.</p>}
+              {!readOnly && <p className="text-xs text-muted-foreground">{t("onboarding:validateRunsTheSameChecksAsSubmit")}</p>}
             </div>
           )}
         </>

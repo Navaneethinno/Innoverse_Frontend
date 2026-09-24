@@ -37,6 +37,9 @@ void i18n
       "changePassword",
       "sidebar",
       "routes",
+      "statusLabels",
+      "onboarding",
+      "customer",
     ],
     interpolation: { escapeValue: false },
     detection: {

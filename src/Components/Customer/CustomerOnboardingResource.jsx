@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -23,6 +24,7 @@ import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 const pendingApi = ({ id }) => customerOnboardingApi.pending({ reference_id: id });
 
 function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
+  const { t } = useTranslation(["customer", "onboarding", "common"]);
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -59,7 +61,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
     try {
       const payload = { reference_id: row.reference_id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
       const response = await customerOnboardingApi[action.method](payload);
-      notifications.success(apiMessage(response, `${action.label} successful`));
+      notifications.success(apiMessage(response, t("onboarding:actionSuccessful", { action: action.label })));
       await onRefresh();
       setAction(null);
       setNarration("");
@@ -78,15 +80,15 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
-        onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Reactivate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+        onAuthorize={() => setAction({ method: pendingMethod, label: t("common:authorize") })}
+        onDeauthorize={() => setAction({ method: "deauth", label: t("onboarding:reject") })}
+        onDeactivate={() => setAction({ method: "deactivate", label: t("statusLabels:Deactivate") })}
+        onReactivate={() => setAction({ method: "reactivate", label: t("common:reactivate") })}
+        onDelete={() => setAction({ method: "delete", label: t("statusLabels:Delete") })}
       />
       <ConfirmDialog
         open={!!action}
-        title={`${action?.label ?? "Action"} onboarding`}
+        title={t("customer:actionOnboarding", { action: action?.label ?? t("common:actions") })}
         confirmLabel={action?.label}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={working}
@@ -98,7 +100,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
-          placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
+          placeholder={action?.method === "deauth" ? t("onboarding:reasonRequired") : t("onboarding:narration")}
           className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
         />
       </ConfirmDialog>
@@ -107,9 +109,9 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
           getActionLabel={portalAuditLabel}
           title={row.customer_name || row.email || row.phone_number}
           fields={[
-            ["customer_name", "Customer"],
-            ["onboarding_definition_name", "Customer type"],
-            ["current_step", "Step"],
+            ["customer_name", t("customer:customer")],
+            ["onboarding_definition_name", t("onboarding:customerType")],
+            ["current_step", t("customer:step")],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
@@ -125,6 +127,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 }
 
 export function CustomerOnboardingResource() {
+  const { t } = useTranslation(["customer", "onboarding", "common"]);
   const can = useMenuPermission("Customer|Onboarding Wizard|Customer Onboarding");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
@@ -170,7 +173,7 @@ export function CustomerOnboardingResource() {
   const columns = [
     {
       key: "customer_name",
-      label: "Customer",
+      label: t("customer:customer"),
       align: "left",
       render: (r) => (
         <div className="text-left">
@@ -183,16 +186,16 @@ export function CustomerOnboardingResource() {
     },
     {
       key: "onboarding_definition_name",
-      label: "Customer type",
+      label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
-          <div className="text-[11px] text-muted-foreground">Step: {r.current_step ?? "-"}</div>
+          <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step ?? "-" })}</div>
           {r.kyc_level_name && (
             <div className="text-[11px] text-muted-foreground">
-              KYC: {r.kyc_level_name}
-              {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? "Verified" : "Pending review"}</span>}
+              {t("customer:kycValue", { level: r.kyc_level_name })}
+              {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? t("customer:verified") : t("customer:pendingReview")}</span>}
             </div>
           )}
         </div>
@@ -200,23 +203,23 @@ export function CustomerOnboardingResource() {
     },
     {
       key: "status_name",
-      label: "Status",
+      label: t("common:status"),
       render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: t("common:authorizationStatus"),
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
     },
-    { key: "updated_time", label: "Last activity", render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "-") },
+    { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "-") },
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (r) => (
         <OnboardingActions
@@ -239,16 +242,16 @@ export function CustomerOnboardingResource() {
       onClick={() => setWizard({ referenceId: null })}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
     >
-      <Plus size={14} /> New onboarding
+      <Plus size={14} /> {t("customer:newOnboarding")}
     </button>
   ) : null;
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">Customer Onboarding</h1>
+        <h1 className="text-xl font-black text-slate-800">{t("customer:customerOnboarding")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Take an individual customer through the institution's published onboarding form — every field, option and rule comes from that configuration.
+          {t("customer:takeAnIndividualCustomerThroughTheInstitution")}
         </p>
       </div>
       <div
@@ -261,7 +264,7 @@ export function CustomerOnboardingResource() {
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder="Search customer onboarding..."
+          searchPlaceholder={t("customer:searchCustomerOnboarding")}
           actions={addAction}
           bare
         />
@@ -270,8 +273,8 @@ export function CustomerOnboardingResource() {
           rows={visible}
           rowKey={(r) => r.reference_id}
           isLoading={loading}
-          title="Customer Onboarding"
-          emptyTitle="No onboarding in progress"
+          title={t("customer:customerOnboarding")}
+          emptyTitle={t("customer:noOnboardingInProgress")}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,

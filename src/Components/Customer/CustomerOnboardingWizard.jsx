@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2, ArrowLeft, ArrowRight, Check, ChevronDown, Send, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -18,6 +19,7 @@ import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./custome
 // since the API now sends those labels translated.
 const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
+  const { t } = useTranslation("customer");
   if (!onboarding) return null;
   const status = Number(onboarding.status);
   const processStatus = Number(onboarding.process_status);
@@ -31,7 +33,7 @@ function StatusNotice({ onboarding }) {
     <div className={`mt-4 rounded-lg p-2.5 text-xs font-semibold ${tone}`}>
       {label}
       {rejected && onboarding.narration ? `: ${onboarding.narration}` : ""}
-      {rejected ? " Edit the sections above and resubmit." : ""}
+      {rejected ? ` ${t("editSectionsAndResubmit")}` : ""}
     </div>
   );
 }
@@ -44,6 +46,7 @@ function StatusNotice({ onboarding }) {
 // processes are per level, shown as "what you can do" at the level
 // currently reached.
 function KycLevelPanel({ kyc, onJumpToSection }) {
+  const { t } = useTranslation("customer");
   // Collapsed by default — each level card is just its own accordion
   // section (name + Met/Not yet met), expanding on click to reveal the
   // description and missing-requirements list. All that detail sitting
@@ -63,9 +66,9 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
   return (
     <div className="mb-4 rounded-xl border border-border p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-xs font-bold text-slate-700">{kyc.kyc_group_name ?? "KYC levels"}</span>
+        <span className="text-xs font-bold text-slate-700">{kyc.kyc_group_name ?? t("customer:kycLevels")}</span>
         <span className="text-[11px] text-muted-foreground">
-          Reached: Level {kyc.current_level_no || 0} · Achieved now: Level {kyc.achieved_level_no || 0}
+          {t("customer:kycReachedAchieved", { reached: kyc.current_level_no || 0, achieved: kyc.achieved_level_no || 0 })}
         </span>
       </div>
       <div className="grid gap-2">
@@ -85,11 +88,11 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
               >
                 <span className="flex items-center gap-1.5 font-bold text-slate-700">
                   {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
-                  Level {level.level_no} — {level.kyc_level_name}
-                  {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">Entry</span>}
+                  {t("customer:levelNamed", { n: level.level_no, name: level.kyc_level_name })}
+                  {level.is_entry_level && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">{t("customer:entry")}</span>}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? "Met" : "Not yet met"}</span>
+                  <span className={level.met ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{level.met ? t("customer:met") : t("customer:notYetMet")}</span>
                   {hasDetail && (
                     <ChevronDown size={13} className={`text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                   )}
@@ -128,11 +131,12 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
 // is the level that first requires it (guide §3.3); `mandatory` on the
 // field itself still means required by the whole form regardless of level.
 function KycLevelBadge({ levelNo, levels }) {
+  const { t } = useTranslation("customer");
   if (!levelNo) return null;
   const level = levels?.find((l) => l.level_no === levelNo);
   return (
     <span className="ml-1.5 rounded-full bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600">
-      needed for {level?.kyc_level_name ?? `Level ${levelNo}`}
+      {t("customer:neededFor", { level: level?.kyc_level_name ?? t("onboarding:levelN", { n: levelNo }) })}
     </span>
   );
 }
@@ -147,6 +151,7 @@ function KycLevelBadge({ levelNo, levels }) {
 // `referenceId` (optional) resumes an existing onboarding straight into
 // the section view; otherwise the picker (§2-3) runs first.
 export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
+  const { t } = useTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
   const [pick, setPick] = useState({ party_type_id: "", ownership_id: "", ownership_sub_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
@@ -197,10 +202,10 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const portalDraft = isPortalDraft(wizard?.onboarding);
   const editable = !forceReadOnly && !portalDraft && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly
-    ? "Viewing only — nothing here can be changed."
+    ? t("customer:viewingOnlyNothingCanBeChanged")
     : portalDraft
-      ? PORTAL_DRAFT_REASON
-      : "This record can't be edited right now.";
+      ? t(PORTAL_DRAFT_REASON)
+      : t("customer:recordCantBeEditedNow");
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes (a fresh reply after save, or switching tabs) — done
@@ -349,7 +354,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   // The API sends the row's type both as `type_field`/`types` (the picker
   // below) and as an ordinary select inside `fields` with the same key —
   // rendering both asked for the same thing twice.
-  const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? "Type";
+  const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? t("customer:type");
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
 
   // Address rows may carry "same_as" on their chosen type (Customer_
@@ -386,7 +391,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               disabled={!editable}
               disabledReason={notEditableReason}
               options={[
-                { value: "", label: "Select type" },
+                { value: "", label: t("customer:selectType") },
                 ...(section.types ?? []).map((t) => ({
                   value: t.id,
                   label: (
@@ -407,12 +412,12 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             checked={Boolean(sameAsId)}
             disabled={!editable}
             disabledReason={notEditableReason}
-            label="Same as another address"
+            label={t("customer:sameAsAnotherAddress")}
             onChange={(checked) => setValue(rowIndex, "same_as_address_type_id", checked ? sameAsOptions[0].id : undefined)}
           />
           {sameAsId && (
             <label className="mt-2 block text-sm font-semibold text-slate-700">
-              Same as
+              {t("onboarding:sameAs")}
               <FilterSelect
                 className="mt-1.5"
                 disabled={!editable}
@@ -444,7 +449,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             onClick={() => removeRow(rowIndex)}
             className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"
           >
-            <Trash2 size={13} /> Remove
+            <Trash2 size={13} /> {t("onboarding:remove")}
           </button>
         </div>
       )}
@@ -457,37 +462,37 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
       return (
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            Party type
+            {t("onboarding:partyType")}
             <FilterSelect
               className="mt-1.5"
               value={pick.party_type_id}
               onChange={(v) => setPick({ ...pick, party_type_id: v, ownership_id: "", ownership_sub_type_id: "" })}
-              options={[{ value: "", label: "Select party type" }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
+              options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
             />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Ownership
+            {t("onboarding:ownership")}
             <FilterSelect
               className="mt-1.5"
               value={pick.ownership_id}
               onChange={(v) => setPick({ ...pick, ownership_id: v, ownership_sub_type_id: "" })}
-              options={[{ value: "", label: "Select ownership" }, ...ownerships.map((o) => ({ value: o.id, label: o.name }))]}
+              options={[{ value: "", label: t("customer:selectOwnership") }, ...ownerships.map((o) => ({ value: o.id, label: o.name }))]}
             />
           </label>
           {subTypes.length > 0 && (
             <label className="text-sm font-semibold text-slate-700">
-              Sub type
+              {t("onboarding:subType")}
               <FilterSelect
                 className="mt-1.5"
                 value={pick.ownership_sub_type_id}
                 onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })}
-                options={[{ value: "", label: "No sub type" }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
+                options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
               />
             </label>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
-              Email
+              {t("customer:email")}
               <input
                 type="email"
                 className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm"
@@ -496,7 +501,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Phone number
+              {t("customer:phoneNumber")}
               <input
                 type="text"
                 className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm"
@@ -505,18 +510,18 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
               />
             </label>
           </div>
-          <p className="text-[11px] text-muted-foreground">At least one of email or phone. An existing onboarding for that contact resumes automatically.</p>
+          <p className="text-[11px] text-muted-foreground">{t("customer:atLeastOneOfEmailOrPhone")}</p>
         </div>
       );
     }
     if (loading || !wizard) return <div className="flex justify-center py-10"><Spinner size={22} /></div>;
-    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">This customer type has no configured sections.</p>;
+    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">{t("customer:thisCustomerTypeHasNoConfiguredSections")}</p>;
 
     return (
       <div>
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="text-xs text-muted-foreground">
-            {wizard.progress.sections_done}/{wizard.progress.sections_required} required sections · {wizard.progress.percent}%
+            {t("customer:requiredSectionsProgress", { done: wizard.progress.sections_done, required: wizard.progress.sections_required, percent: wizard.progress.percent })}
           </div>
           <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress.percent}%` }} />
@@ -537,7 +542,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         {section.document_groups?.length > 0 && (
           <div className="mb-3 rounded-lg bg-muted p-2.5 text-[11px] text-muted-foreground">
             {section.document_groups.map((g) => (
-              <div key={g.code}>{g.name}: at least {g.min_required} of these required{g.max_allowed ? `, up to ${g.max_allowed}` : ""}.</div>
+              <div key={g.code}>{g.max_allowed ? t("customer:documentGroupRuleUpTo", { name: g.name, min: g.min_required, max: g.max_allowed }) : t("customer:documentGroupRule", { name: g.name, min: g.min_required })}</div>
             ))}
           </div>
         )}
@@ -550,7 +555,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
                 onClick={addRow}
                 className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-primary px-3 py-1.5 text-xs font-bold text-primary"
               >
-                <Plus size={13} /> Add {(section.label ?? section.name).toLowerCase()}
+                <Plus size={13} /> {t("onboarding:addTitle", { title: (section.label ?? section.name).toLowerCase() })}
               </button>
             )}
           </div>
@@ -571,9 +576,9 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
                 <Check size={14} />
                 {wizard.kyc
                   ? wizard.progress.complete
-                    ? "The whole form is complete."
-                    : "The required KYC level is reached. More can still be filled in for a higher level."
-                  : "All required sections are complete."}
+                    ? t("customer:wholeFormComplete")
+                    : t("customer:requiredKycLevelReached")
+                  : t("customer:allRequiredSectionsAreComplete")}
               </span>
               <div className="flex items-center gap-2">
                 {wizard.kyc && (
@@ -583,7 +588,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
                     onChange={setSubmitLevel}
                     options={(wizard.kyc.levels ?? [])
                       .filter((l) => l.achieved)
-                      .map((l) => ({ value: String(l.level_no), label: `Level ${l.level_no} — ${l.kyc_level_name}` }))}
+                      .map((l) => ({ value: String(l.level_no), label: t("customer:levelNamed", { n: l.level_no, name: l.kyc_level_name }) }))}
                   />
                 )}
                 <button
@@ -593,7 +598,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
                   className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
                 >
                   {submitting ? <Spinner size={12} /> : <Send size={13} />}
-                  Submit for approval
+                  {t("customer:submitForApproval")}
                 </button>
               </div>
             </div>
@@ -601,7 +606,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         )}
         {editable && wizard.kyc && !wizard.progress.ready_to_submit && (
           <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">
-            The required KYC level hasn't been reached yet — fill in what the level stepper above still lists as missing.
+            {t("customer:theRequiredKycLevelHasnTBeen")}
           </div>
         )}
       </div>
@@ -612,7 +617,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     if (!referenceId && !wizard) {
       return (
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button>
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:cancel")}</button>
           <button
             type="button"
             disabled={starting}
@@ -620,12 +625,12 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             {starting && <Spinner size={13} />}
-            Start onboarding
+            {t("customer:startOnboarding")}
           </button>
         </>
       );
     }
-    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>;
+    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>;
     return (
       <>
         <button
@@ -634,10 +639,10 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
           className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-40"
         >
-          <ArrowLeft size={14} /> Previous
+          <ArrowLeft size={14} /> {t("customer:previous")}
         </button>
         <div className="flex-1" />
-        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>
+        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>
         {editable && (
           <button
             type="button"
@@ -646,7 +651,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             {saving && <Spinner size={13} />}
-            Save section
+            {t("customer:saveSection")}
           </button>
         )}
         <button
@@ -655,7 +660,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           onClick={() => setActiveSection((i) => Math.min(Math.max(sections.length - 1, 0), i + 1))}
           className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40"
         >
-          Next <ArrowRight size={14} />
+          {t("common:next")} <ArrowRight size={14} />
         </button>
       </>
     );
@@ -668,7 +673,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
       title={
         wizard
           ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
-          : "Start customer onboarding"
+          : t("customer:startCustomerOnboarding")
       }
       size="xl"
       growWithContent

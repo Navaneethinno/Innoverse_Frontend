@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
@@ -18,16 +19,16 @@ import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
 // definition IS the configuration, so every call here targets the
 // definition's own id directly (§8.1).
 const STEPS = [
-  { id: "basics", label: "Basics" },
-  { id: "sections", label: "Sections" },
-  { id: "fields", label: "Fields" },
-  { id: "documents", label: "Documents" },
-  { id: "addresses", label: "Addresses" },
-  { id: "employment", label: "Employment" },
-  { id: "relationships", label: "Relationships" },
-  { id: "sources", label: "Sources of fund" },
-  { id: "rules", label: "Rules" },
-  { id: "review", label: "Review" },
+  { id: "basics", labelKey: "stepBasics" },
+  { id: "sections", labelKey: "stepSections" },
+  { id: "fields", labelKey: "stepFields" },
+  { id: "documents", labelKey: "stepDocuments" },
+  { id: "addresses", labelKey: "stepAddresses" },
+  { id: "employment", labelKey: "stepEmployment" },
+  { id: "relationships", labelKey: "stepRelationships" },
+  { id: "sources", labelKey: "stepSourcesOfFund" },
+  { id: "rules", labelKey: "stepRules" },
+  { id: "review", labelKey: "stepReview" },
 ];
 
 const EMPTY_CONFIG = {
@@ -57,10 +58,10 @@ const FACT_REF_SOURCE = {
   RESIDENCY_STATUS: "residencyTypes",
 };
 const REF_SOURCE_MASTER = {
-  employment: ["/employment", "employment status"],
-  document_type: ["/documenttype", "document type"],
-  relationship_type: ["/relationshiptype", "relationship type"],
-  source_of_fund: ["/sourceoffund", "source of funds"],
+  employment: ["/employment", "addEmploymentStatus"],
+  document_type: ["/documenttype", "addDocumentType"],
+  relationship_type: ["/relationshiptype", "addRelationshipType"],
+  source_of_fund: ["/sourceoffund", "addSourceOfFunds"],
 };
 const BOOLEAN_FACTS = new Set(["IS_MINOR", "PEP_FLAG"]);
 const NUMBER_FACTS = new Set(["AGE"]);
@@ -83,23 +84,24 @@ function pruneCondition({ _value, ...c }) {
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["onboarding", "common"]);
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
   const set = (patch) => setCondition({ ...condition, ...patch });
   const input = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted";
   if (BOOLEAN_FACTS.has(fact)) {
-    return <CheckboxPill checked={Boolean(condition.value_boolean)} onChange={(v) => set({ value_boolean: v })} label="Value is true" disabled={disabled} className="self-start" />;
+    return <CheckboxPill checked={Boolean(condition.value_boolean)} onChange={(v) => set({ value_boolean: v })} label={t("onboarding:valueIsTrue")} disabled={disabled} className="self-start" />;
   }
   if (NUMBER_FACTS.has(fact)) {
     return (
       <div className="grid gap-3 md:grid-cols-2">
         <label className="text-sm font-semibold text-slate-700">
-          Value
+          {t("onboarding:value")}
           <input type="number" min={0} className={input} disabled={disabled} value={condition.value_number ?? ""} onChange={(e) => set({ value_number: e.target.value === "" ? "" : Number(e.target.value) })} />
         </label>
         {RANGE_OPERATORS.has(operator) && (
           <label className="text-sm font-semibold text-slate-700">
-            To
+            {t("onboarding:to")}
             <input type="number" min={0} className={input} disabled={disabled} value={condition.value_number_to ?? ""} onChange={(e) => set({ value_number_to: e.target.value === "" ? "" : Number(e.target.value) })} />
           </label>
         )}
@@ -112,7 +114,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
     if (LIST_OPERATORS.has(operator)) {
       return (
         <div>
-          <p className="text-sm font-semibold text-slate-700">Values</p>
+          <p className="text-sm font-semibold text-slate-700">{t("onboarding:values")}</p>
           <div className="mt-1.5 flex flex-wrap gap-2">
             {options.map((o) => (
               <CheckboxPill
@@ -131,14 +133,14 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
     }
     return (
       <label className="text-sm font-semibold text-slate-700">
-        Value
+        {t("onboarding:value")}
         <FilterSelect
           className="mt-1.5"
           disabled={disabled}
           value={condition.value_ref_ids?.[0] ?? ""}
           onChange={(v) => set({ value_ref_ids: v === "" ? [] : [v] })}
-          addAction={REF_SOURCE_MASTER[refSource] ? { label: `Add ${REF_SOURCE_MASTER[refSource][1]}`, onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
-          options={[{ value: "", label: "Select..." }, ...options]}
+          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
+          options={[{ value: "", label: t("onboarding:select") }, ...options]}
         />
       </label>
     );
@@ -146,7 +148,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   // FIELD_VALUE (text) and anything else
   return (
     <label className="text-sm font-semibold text-slate-700">
-      Value
+      {t("onboarding:value")}
       <input className={input} disabled={disabled} value={condition.value_text ?? ""} onChange={(e) => set({ value_text: e.target.value })} />
     </label>
   );
@@ -162,6 +164,8 @@ const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 
 export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, onClose, onSaved }) {
   const navigate = useNavigate();
+  const { t } = useTranslation(["onboarding", "common"]);
+  const steps = STEPS.map((s) => ({ ...s, label: t(`onboarding:${s.labelKey}`) }));
   const catalog = useOnboardingCatalog();
   const { masters, countries, residencyTypes, kycGroups, loading: mastersLoading } = useOnboardingMasters();
   const [def, setDef] = useState(definition ?? null);
@@ -178,8 +182,8 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
   // regardless of what the record's own status would otherwise allow.
   const readOnly = forceReadOnly || (Boolean(def) && !EDITABLE_PROCESS_STATUSES.has(processStatus));
   const readOnlyReason = forceReadOnly
-    ? "Viewing only."
-    : `This configuration is ${def?.process_status_name ?? "frozen"} and cannot be changed right now.`;
+    ? t("onboarding:viewingOnly")
+    : t("onboarding:configurationFrozenReason", { status: def?.process_status_name ?? t("onboarding:frozen") });
   const isRejected = processStatus === 5;
 
   useEffect(() => {
@@ -261,113 +265,113 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
 
   const specs = {
     sections: [
-      { key: "section_code", label: "Section", type: "select", required: true, options: asOptions((catalog?.sections ?? []).filter((s) => s.is_customer_entered !== false)) },
-      { key: "enabled", label: "Enabled", type: "bool", defaultValue: true, disabled: (i) => i.section_code === "PERSONAL" },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "label_override", label: "Label override", type: "text" },
+      { key: "section_code", label: t("onboarding:section"), type: "select", required: true, options: asOptions((catalog?.sections ?? []).filter((s) => s.is_customer_entered !== false)) },
+      { key: "enabled", label: t("onboarding:enabled"), type: "bool", defaultValue: true, disabled: (i) => i.section_code === "PERSONAL" },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "label_override", label: t("onboarding:labelOverride"), type: "text" },
     ],
     fields: [
       {
         key: "field_code",
-        label: "Field",
+        label: t("onboarding:field"),
         type: "select",
         required: true,
         options: asOptions(
           (catalog?.fields ?? []).filter((f) => enabledSectionCodes.has(f.section_code) && !f.is_system_populated),
         ),
       },
-      { key: "mandatory", label: "Mandatory", type: "bool", disabled: (i) => lockedFieldCodes.has(i.field_code), hint: "" },
-      { key: "visible", label: "Visible", type: "bool", defaultValue: true, disabled: (i) => lockedFieldCodes.has(i.field_code) },
-      { key: "read_only", label: "Read only", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "validation_rule_code", label: "Validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(masters.validation_rule) },
-      { key: "label_override", label: "Label override", type: "text" },
-      { key: "help_text", label: "Help text", type: "text" },
-      { key: "default_value", label: "Default value", type: "text" },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool", disabled: (i) => lockedFieldCodes.has(i.field_code), hint: "" },
+      { key: "visible", label: t("onboarding:visible"), type: "bool", defaultValue: true, disabled: (i) => lockedFieldCodes.has(i.field_code) },
+      { key: "read_only", label: t("onboarding:readOnly"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "validation_rule_code", label: t("onboarding:validationRule"), type: "select", addTo: ["/validationrule", t("onboarding:addValidationRule")], options: asOptions(masters.validation_rule) },
+      { key: "label_override", label: t("onboarding:labelOverride"), type: "text" },
+      { key: "help_text", label: t("onboarding:helpText"), type: "text" },
+      { key: "default_value", label: t("onboarding:defaultValue"), type: "text" },
     ],
     document_groups: [
-      { key: "code", label: "Group code", type: "text", required: true },
-      { key: "name", label: "Group name", type: "text", required: true },
-      { key: "purpose_code", label: "Purpose", type: "select", required: true, options: asOptions(catalog?.document_purposes) },
-      { key: "min_required", label: "Min required", type: "number", defaultValue: 1 },
-      { key: "max_allowed", label: "Max allowed", type: "number" },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "code", label: t("onboarding:groupCode"), type: "text", required: true },
+      { key: "name", label: t("onboarding:groupName"), type: "text", required: true },
+      { key: "purpose_code", label: t("onboarding:purpose"), type: "select", required: true, options: asOptions(catalog?.document_purposes) },
+      { key: "min_required", label: t("onboarding:minRequired"), type: "number", defaultValue: 1 },
+      { key: "max_allowed", label: t("onboarding:maxAllowed"), type: "number" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     documents: [
-      { key: "document_type_code", label: "Document type", type: "select", addTo: ["/documenttype", "document type"], required: true, options: asOptions(masters.document_type) },
+      { key: "document_type_code", label: t("onboarding:documentType"), type: "select", addTo: ["/documenttype", t("onboarding:addDocumentType")], required: true, options: asOptions(masters.document_type) },
       {
         key: "group_code",
-        label: "Document group",
+        label: t("onboarding:documentGroup"),
         type: "select",
-        placeholder: "None (stand-alone)",
+        placeholder: t("onboarding:noneStandAlone"),
         options: config.document_groups.filter((g) => g.code).map((g) => ({ value: g.code, label: `${g.name || g.code} (${g.code})` })),
       },
-      { key: "mandatory", label: "Mandatory (stand-alone only)", type: "bool", disabled: (i) => Boolean(i.group_code) },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "number_required", label: "Number required", type: "bool" },
-      { key: "number_validation_rule_code", label: "Number validation rule", type: "select", addTo: ["/validationrule", "validation rule"], options: asOptions(masters.validation_rule), showIf: (i) => i.number_required },
-      { key: "issue_date_required", label: "Issue date required", type: "bool" },
-      { key: "expiry_date_required", label: "Expiry date required", type: "bool" },
-      { key: "front_required", label: "Front required", type: "bool", defaultValue: true },
-      { key: "back_required", label: "Back required", type: "bool" },
-      { key: "verification_required", label: "Verification required", type: "bool" },
-      { key: "verification_method_code", label: "Verification method", type: "select", addTo: ["/verificationmethod", "verification method"], options: asOptions(masters.verification_method), showIf: (i) => i.verification_required },
-      { key: "min_count", label: "Min count", type: "number", defaultValue: 1 },
-      { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
-      { key: "max_file_size_kb", label: "Max file size (KB)", type: "number" },
-      { key: "file_formats", label: "File formats (empty = any)", type: "multi", wide: true, options: (catalog?.file_formats ?? []).map((f) => ({ value: f.code ?? f, label: f.code ?? f })) },
+      { key: "mandatory", label: t("onboarding:mandatoryStandAloneOnly"), type: "bool", disabled: (i) => Boolean(i.group_code) },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "number_required", label: t("onboarding:numberRequired"), type: "bool" },
+      { key: "number_validation_rule_code", label: t("onboarding:numberValidationRule"), type: "select", addTo: ["/validationrule", t("onboarding:addValidationRule")], options: asOptions(masters.validation_rule), showIf: (i) => i.number_required },
+      { key: "issue_date_required", label: t("onboarding:issueDateRequired"), type: "bool" },
+      { key: "expiry_date_required", label: t("onboarding:expiryDateRequired"), type: "bool" },
+      { key: "front_required", label: t("onboarding:frontRequired"), type: "bool", defaultValue: true },
+      { key: "back_required", label: t("onboarding:backRequired"), type: "bool" },
+      { key: "verification_required", label: t("onboarding:verificationRequired"), type: "bool" },
+      { key: "verification_method_code", label: t("onboarding:verificationMethod"), type: "select", addTo: ["/verificationmethod", t("onboarding:addVerificationMethod")], options: asOptions(masters.verification_method), showIf: (i) => i.verification_required },
+      { key: "min_count", label: t("onboarding:minCount"), type: "number", defaultValue: 1 },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", defaultValue: 1 },
+      { key: "max_file_size_kb", label: t("onboarding:maxFileSizeKb"), type: "number" },
+      { key: "file_formats", label: t("onboarding:fileFormatsEmptyAny"), type: "multi", wide: true, options: (catalog?.file_formats ?? []).map((f) => ({ value: f.code ?? f, label: f.code ?? f })) },
     ],
     address_types: [
-      { key: "address_type_code", label: "Address type", type: "select", addTo: ["/addresstype", "address type"], required: true, options: asOptions(masters.address_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
-      { key: "sequence_no", label: "Order", type: "number" },
-      { key: "allow_same_as", label: 'Allow "same as" another address', type: "bool" },
+      { key: "address_type_code", label: t("onboarding:addressType"), type: "select", addTo: ["/addresstype", t("onboarding:addAddressType")], required: true, options: asOptions(masters.address_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", defaultValue: 1 },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
+      { key: "allow_same_as", label: t("onboarding:allowSameAsAnotherAddress"), type: "bool" },
       {
         key: "same_as_address_type_code",
-        label: "Same as",
+        label: t("onboarding:sameAs"),
         type: "select",
         showIf: (i) => i.allow_same_as,
         options: (i) => asOptions(masters.address_type).filter((o) => o.value !== i.address_type_code),
       },
     ],
     employments: [
-      { key: "employment_code", label: "Employment status", type: "select", addTo: ["/employment", "employment status"], required: true, options: asOptions(masters.employment) },
-      { key: "employer_details_required", label: "Employer details required", type: "bool" },
-      { key: "business_details_required", label: "Business details required", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "employment_code", label: t("onboarding:employmentStatus"), type: "select", addTo: ["/employment", t("onboarding:addEmploymentStatus")], required: true, options: asOptions(masters.employment) },
+      { key: "employer_details_required", label: t("onboarding:employerDetailsRequired"), type: "bool" },
+      { key: "business_details_required", label: t("onboarding:businessDetailsRequired"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     relationships: [
-      { key: "relationship_type_code", label: "Relationship type", type: "select", addTo: ["/relationshiptype", "relationship type"], required: true, options: asOptions(masters.relationship_type) },
-      { key: "mandatory", label: "Mandatory", type: "bool" },
-      { key: "min_count", label: "Min count", type: "number", defaultValue: 0 },
-      { key: "max_count", label: "Max count", type: "number", defaultValue: 1 },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "relationship_type_code", label: t("onboarding:relationshipType"), type: "select", addTo: ["/relationshiptype", t("onboarding:addRelationshipType")], required: true, options: asOptions(masters.relationship_type) },
+      { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+      { key: "min_count", label: t("onboarding:minCount"), type: "number", defaultValue: 0 },
+      { key: "max_count", label: t("onboarding:maxCount"), type: "number", defaultValue: 1 },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     sources_of_fund: [
-      { key: "source_of_fund_code", label: "Source of funds", type: "select", addTo: ["/sourceoffund", "source of funds"], required: true, options: asOptions(masters.source_of_fund) },
-      { key: "employer_details_required", label: "Employer details required", type: "bool" },
-      { key: "sequence_no", label: "Order", type: "number" },
+      { key: "source_of_fund_code", label: t("onboarding:sourceOfFunds"), type: "select", addTo: ["/sourceoffund", t("onboarding:addSourceOfFunds")], required: true, options: asOptions(masters.source_of_fund) },
+      { key: "employer_details_required", label: t("onboarding:employerDetailsRequired"), type: "bool" },
+      { key: "sequence_no", label: t("onboarding:order"), type: "number" },
     ],
     rules: [
-      { key: "code", label: "Rule code", type: "text", required: true },
-      { key: "name", label: "Rule name", type: "text", required: true },
-      { key: "description", label: "Description", type: "text", wide: true },
-      { key: "priority", label: "Priority (lower runs first)", type: "number", defaultValue: 100 },
-      { key: "enabled", label: "Enabled", type: "bool", defaultValue: true },
+      { key: "code", label: t("onboarding:ruleCode"), type: "text", required: true },
+      { key: "name", label: t("onboarding:ruleName"), type: "text", required: true },
+      { key: "description", label: t("common:description"), type: "text", wide: true },
+      { key: "priority", label: t("onboarding:priorityLowerRunsFirst"), type: "number", defaultValue: 100 },
+      { key: "enabled", label: t("onboarding:enabled"), type: "bool", defaultValue: true },
       {
         key: "conditions",
-        label: "WHEN all of these are true",
+        label: t("onboarding:whenAllOfTheseAreTrue"),
         type: "list",
-        addLabel: "Add condition",
-        itemTitle: (c, i) => `Condition ${i + 1}`,
+        addLabel: t("onboarding:addCondition"),
+        itemTitle: (c, i) => t("onboarding:conditionN", { n: i + 1 }),
         spec: [
-          { key: "fact_code", label: "Fact", type: "select", required: true, options: asOptions(catalog?.rule_facts) },
-          { key: "operator_code", label: "Operator", type: "select", required: true, options: asOptions(catalog?.rule_operators) },
+          { key: "fact_code", label: t("onboarding:fact"), type: "select", required: true, options: asOptions(catalog?.rule_facts) },
+          { key: "operator_code", label: t("onboarding:operator"), type: "select", required: true, options: asOptions(catalog?.rule_operators) },
           {
             key: "field_code",
-            label: "Field",
+            label: t("onboarding:field"),
             type: "select",
             showIf: (c) => c.fact_code === "FIELD_VALUE",
             options: targetOptions.field.map((code) => ({ value: code, label: code })),
@@ -384,20 +388,20 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
       },
       {
         key: "effects",
-        label: "THEN apply all of these",
+        label: t("onboarding:thenApplyAllOfThese"),
         type: "list",
-        addLabel: "Add effect",
-        itemTitle: (e, i) => `Effect ${i + 1}`,
+        addLabel: t("onboarding:addEffect"),
+        itemTitle: (e, i) => t("onboarding:effectN", { n: i + 1 }),
         spec: [
-          { key: "action_code", label: "Action", type: "select", required: true, options: asOptions(catalog?.rule_actions) },
-          { key: "target_type", label: "Target type", type: "select", required: true, options: TARGET_TYPES.map((t) => ({ value: t, label: t })) },
+          { key: "action_code", label: t("onboarding:action"), type: "select", required: true, options: asOptions(catalog?.rule_actions) },
+          { key: "target_type", label: t("onboarding:targetType"), type: "select", required: true, options: TARGET_TYPES.map((t) => ({ value: t, label: t })) },
           {
             key: "target_key",
-            label: "Target",
+            label: t("onboarding:target"),
             type: "select",
             required: true,
             options: (e) => (targetOptions[e.target_type] ?? []).map((code) => ({ value: code, label: code })),
-            hint: "Only items already in this definition's configuration can be targeted.",
+            hint: t("onboarding:onlyItemsAlreadyInThisDefinitionS"),
           },
         ],
       },
@@ -489,7 +493,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
     });
 
   const attemptClose = () => {
-    if (dirty && !readOnly && !window.confirm("You have unsaved changes. Close without saving?")) return;
+    if (dirty && !readOnly && !window.confirm(t("onboarding:unsavedChangesConfirm"))) return;
     onClose();
   };
 
@@ -498,32 +502,32 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
   const ready = catalog && !mastersLoading && !loading;
 
   const summary = [
-    ["Sections", config.sections.length],
-    ["Fields", config.fields.length],
-    ["Document groups", config.document_groups.length],
-    ["Documents", config.documents.length],
-    ["Address types", config.address_types.length],
-    ["Employment statuses", config.employments.length],
-    ["Relationship types", config.relationships.length],
-    ["Sources of fund", config.sources_of_fund.length],
-    ["Rules", config.rules.length],
+    [t("onboarding:stepSections"), config.sections.length],
+    [t("onboarding:stepFields"), config.fields.length],
+    [t("onboarding:documentGroups"), config.document_groups.length],
+    [t("onboarding:documents"), config.documents.length],
+    [t("onboarding:addressTypes"), config.address_types.length],
+    [t("onboarding:employmentStatuses"), config.employments.length],
+    [t("onboarding:relationshipTypes"), config.relationships.length],
+    [t("onboarding:stepSourcesOfFund"), config.sources_of_fund.length],
+    [t("onboarding:stepRules"), config.rules.length],
   ];
 
   return (
     <Modal
       open
       onClose={attemptClose}
-      title={`${readOnly ? "View" : "Edit"} onboarding configuration — ${def?.name ?? definition?.name ?? definition?.code ?? ""}`}
+      title={t(readOnly ? "onboarding:viewOnboardingConfigurationTitle" : "onboarding:editOnboardingConfigurationTitle", { name: def?.name ?? definition?.name ?? definition?.code ?? "" })}
       size="full"
       growWithContent
       footer={
         <>
           <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-            {readOnly ? "Close" : "Cancel"}
+            {readOnly ? t("common:close") : t("common:cancel")}
           </button>
           {stepIndex > 0 && (
             <button type="button" onClick={() => setStepIndex((i) => i - 1)} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">
-              Back
+              {t("common:back")}
             </button>
           )}
           {!readOnly && (
@@ -534,7 +538,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
               className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
             >
               {busy === "draft" && <Spinner size={13} />}
-              Save draft
+              {t("onboarding:saveDraft")}
             </button>
           )}
           {!isLast ? (
@@ -545,7 +549,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
               className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               {busy === "next" && <Spinner size={13} />}
-              Next
+              {t("common:next")}
             </button>
           ) : (
             !readOnly && (
@@ -557,7 +561,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
                   className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
                 >
                   {busy === "validate" && <Spinner size={13} />}
-                  Validate
+                  {t("onboarding:validate")}
                 </button>
                 <button
                   type="button"
@@ -566,7 +570,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
                   className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
                 >
                   {busy === "submit" && <Spinner size={13} />}
-                  {isRejected ? "Resubmit" : "Submit"}
+                  {isRejected ? t("onboarding:resubmit") : t("common:submit")}
                 </button>
               </>
             )
@@ -576,7 +580,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
     >
       <div className="mb-5">
         <HorizontalStepper
-          steps={STEPS}
+          steps={steps}
           activeIndex={stepIndex}
           onStepClick={(index) => setStepIndex(index)}
         />
@@ -587,71 +591,71 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
         </div>
       ) : (
         <>
-          <h2 className="mb-3 text-sm font-bold text-slate-800">{step.label}</h2>
+          <h2 className="mb-3 text-sm font-bold text-slate-800">{steps[stepIndex].label}</h2>
           {readOnly && (
             <p className="mb-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>
           )}
           {step.id === "basics" && (
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">
-                Minor age (years)
+                {t("onboarding:minorAgeYears")}
                 <input type="number" min={0} disabled={readOnly} title={readOnly ? readOnlyReason : undefined} value={basics.minor_age_years} onChange={(e) => setBasic("minor_age_years", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
-                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Below this age the IS_MINOR rule fact is true.</span>
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:minorAgeHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
-                Home country
-                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
-                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if any rule uses RESIDENCY_STATUS.</span>
+                {t("onboarding:homeCountry")}
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:homeCountryHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
-                KYC scheme
-                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
-                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Must be an approved (Active) scheme by the time you submit.</span>
+                {t("onboarding:kycScheme")}
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} addAction={{ label: t("onboarding:addKycScheme"), onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">
-                Effective from
+                {t("onboarding:effectiveFrom")}
                 <input type="date" disabled={readOnly} title={readOnly ? readOnlyReason : undefined} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted" />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">
-                  Narration
+                  {t("onboarding:narration")}
                   <textarea value={basics.narration} onChange={(e) => setBasic("narration", e.target.value)} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
                 </label>
               )}
             </div>
           )}
           {step.id === "sections" && (
-            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel="Add section" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.section_code || "New section"} seed={{ label: "Add all standard sections", onClick: seedSections }} emptyText="No sections yet. PERSONAL must be enabled." />
+            <ListEditor items={config.sections} onChange={setList("sections")} spec={specs.sections} addLabel={t("onboarding:addSection")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.section_code || t("onboarding:newSection")} seed={{ label: t("onboarding:addAllStandardSections"), onClick: seedSections }} emptyText={t("onboarding:noSectionsYetPersonalMustBeEnabled")} />
           )}
           {step.id === "fields" && (
-            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel="Add field" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(f) => f.field_code || "New field"} seed={{ label: "Add all fields of enabled sections", onClick: seedFields }} emptyText="Only fields of enabled sections can be added." />
+            <ListEditor items={config.fields} onChange={setList("fields")} spec={specs.fields} addLabel={t("onboarding:addField")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(f) => f.field_code || t("onboarding:newField")} seed={{ label: t("onboarding:addAllFieldsOfEnabledSections"), onClick: seedFields }} emptyText={t("onboarding:onlyFieldsOfEnabledSectionsCanBe")} />
           )}
           {step.id === "documents" && (
             <div className="flex flex-col gap-6">
               <div>
-                <h3 className="mb-2 text-sm font-bold text-slate-700">Document groups ("any N of these")</h3>
-                <ListEditor items={config.document_groups} onChange={setList("document_groups")} spec={specs.document_groups} addLabel="Add group" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(g) => g.name || g.code || "New group"} />
+                <h3 className="mb-2 text-sm font-bold text-slate-700">{t("onboarding:documentGroupsAnyNOfThese")}</h3>
+                <ListEditor items={config.document_groups} onChange={setList("document_groups")} spec={specs.document_groups} addLabel={t("onboarding:addGroup")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(g) => g.name || g.code || t("onboarding:newGroup")} />
               </div>
               <div>
-                <h3 className="mb-2 text-sm font-bold text-slate-700">Documents</h3>
-                <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel="Add document" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(d) => d.document_type_code || "New document"} />
+                <h3 className="mb-2 text-sm font-bold text-slate-700">{t("onboarding:documents")}</h3>
+                <ListEditor items={config.documents} onChange={setList("documents")} spec={specs.documents} addLabel={t("onboarding:addDocument")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(d) => d.document_type_code || t("onboarding:newDocument")} />
               </div>
             </div>
           )}
           {step.id === "addresses" && (
-            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel="Add address type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(a) => a.address_type_code || "New address type"} />
+            <ListEditor items={config.address_types} onChange={setList("address_types")} spec={specs.address_types} addLabel={t("onboarding:addAddressType")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(a) => a.address_type_code || t("onboarding:newAddressType")} />
           )}
           {step.id === "employment" && (
-            <ListEditor items={config.employments} onChange={setList("employments")} spec={specs.employments} addLabel="Add employment status" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(e) => e.employment_code || "New employment status"} />
+            <ListEditor items={config.employments} onChange={setList("employments")} spec={specs.employments} addLabel={t("onboarding:addEmploymentStatus")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(e) => e.employment_code || t("onboarding:newEmploymentStatus")} />
           )}
           {step.id === "relationships" && (
-            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel="Add relationship type" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.relationship_type_code || "New relationship type"} />
+            <ListEditor items={config.relationships} onChange={setList("relationships")} spec={specs.relationships} addLabel={t("onboarding:addRelationshipType")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.relationship_type_code || t("onboarding:newRelationshipType")} />
           )}
           {step.id === "sources" && (
-            <ListEditor items={config.sources_of_fund} onChange={setList("sources_of_fund")} spec={specs.sources_of_fund} addLabel="Add source of funds" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.source_of_fund_code || "New source of funds"} />
+            <ListEditor items={config.sources_of_fund} onChange={setList("sources_of_fund")} spec={specs.sources_of_fund} addLabel={t("onboarding:addSourceOfFunds")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(s) => s.source_of_fund_code || t("onboarding:newSourceOfFunds")} />
           )}
           {step.id === "rules" && (
-            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel="Add rule" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.name || r.code || "New rule"} emptyText="No rules. Rules adapt the configuration, e.g. require a guardian for a minor." />
+            <ListEditor items={config.rules} onChange={setList("rules")} spec={specs.rules} addLabel={t("onboarding:addRule")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(r) => r.name || r.code || t("onboarding:newRule")} emptyText={t("onboarding:noRulesRulesAdaptTheConfigurationE")} />
           )}
           {step.id === "review" && (
             <div className="flex flex-col gap-4">
@@ -666,7 +670,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
               {problems && (
                 <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
                   <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>
-                    {problems.length ? `${problems.length} problem(s) to fix` : "No problems found — ready to submit"}
+                    {problems.length ? t("onboarding:problemsToFix", { count: problems.length }) : t("onboarding:noProblemsReadyToSubmit")}
                   </p>
                   {problems.length > 0 && (
                     <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
@@ -677,7 +681,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
                   )}
                 </div>
               )}
-              {!readOnly && <p className="text-xs text-muted-foreground">Validate runs the same checks as Submit. Once submitted, the configuration is frozen.</p>}
+              {!readOnly && <p className="text-xs text-muted-foreground">{t("onboarding:validateRunsTheSameChecksAsSubmit")}</p>}
             </div>
           )}
         </>

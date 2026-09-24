@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Globe } from "lucide-react";
-import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useTranslation } from "react-i18next";
 
 // "Handoff — Admin Panel (web)" (2026-09), §2: customers can now onboard
 // themselves in the separate customer portal. Such a customer is created
@@ -18,26 +18,27 @@ export const isPortalCustomer = (record) => String(record?.created_by ?? "").tri
 export const isPortalDraft = (record) =>
   isPortalCustomer(record) && Number(record?.status) === 9 && Number(record?.process_status ?? 9) === 9;
 
-export const PORTAL_DRAFT_REASON = "The customer is still filling this in on the customer portal — view only until they complete it.";
+// i18n key (customer namespace) for the portal-draft read-only reason.
+export const PORTAL_DRAFT_REASON = "customer:portalDraftReason";
 
 export function PortalSourceBadge({ record }) {
-  const tr = useConfigLabel();
+  const { t } = useTranslation("customer");
   if (!isPortalCustomer(record)) return null;
   return (
     <span
       className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
       style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
     >
-      <Globe size={10} /> {tr("Customer portal")}
+      <Globe size={10} /> {t("customerPortal")}
     </span>
   );
 }
 
 // Audit label: `SELF` on a customer = self-onboarded in the portal.
 export function usePortalAuditLabel() {
-  const tr = useConfigLabel();
+  const { t } = useTranslation("customer");
   return (entry) =>
-    String(entry?.audit_action ?? "").toUpperCase() === "SELF" ? tr("Self-onboarded (customer portal)") : entry?.audit_action;
+    String(entry?.audit_action ?? "").toUpperCase() === "SELF" ? t("selfOnboardedCustomerPortal") : entry?.audit_action;
 }
 
 // §3: a customer saving section by section in the portal produces one live
@@ -56,6 +57,6 @@ export function useDebouncedRefresh(refresh, delay = 800) {
 }
 
 export function PortalDraftBanner() {
-  const tr = useConfigLabel();
-  return <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">{tr(PORTAL_DRAFT_REASON)}</div>;
+  const { t } = useTranslation("customer");
+  return <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">{t(PORTAL_DRAFT_REASON)}</div>;
 }

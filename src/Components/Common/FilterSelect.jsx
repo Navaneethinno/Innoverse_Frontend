@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
 
 // Below this many options, scanning the list by eye is faster than typing —
@@ -32,6 +33,7 @@ const SEARCH_THRESHOLD = 8;
 // list — for dropdowns fed by a master, so an empty (or incomplete) list can
 // send the user straight to that master to create the missing value.
 export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction }) {
+  const { t } = useTranslation("common");
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
   const [query, setQuery] = useState("");
@@ -160,13 +162,13 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
-                  placeholder="Type to search..."
+                  placeholder={t("typeToSearch")}
                   className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
               </div>
             )}
             {visibleOptions.length === 0 && (
-              <p className="px-3 py-2 text-sm text-muted-foreground">No matches</p>
+              <p className="px-3 py-2 text-sm text-muted-foreground">{t("noMatches")}</p>
             )}
             {visibleOptions.map((option) => {
               const isActive = option.value === value;

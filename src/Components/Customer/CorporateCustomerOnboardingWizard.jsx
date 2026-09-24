@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -21,6 +22,7 @@ import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./custome
 // /customer/individual/*.
 const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
+  const { t } = useTranslation("customer");
   if (!onboarding) return null;
   const status = Number(onboarding.status);
   const processStatus = Number(onboarding.process_status);
@@ -34,7 +36,7 @@ function StatusNotice({ onboarding }) {
     <div className={`mt-4 rounded-lg p-2.5 text-xs font-semibold ${tone}`}>
       {label}
       {rejected && onboarding.narration ? `: ${onboarding.narration}` : ""}
-      {rejected ? " Edit the sections above and resubmit." : ""}
+      {rejected ? ` ${t("editSectionsAndResubmit")}` : ""}
     </div>
   );
 }
@@ -42,6 +44,7 @@ function StatusNotice({ onboarding }) {
 // `referenceId` (optional) resumes an existing onboarding straight into the
 // section view; otherwise the party type / company type picker runs first.
 export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
+  const { t } = useTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
   const [pick, setPick] = useState({ party_type_id: "", company_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
@@ -77,10 +80,10 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
   const portalDraft = isPortalDraft(wizard?.onboarding);
   const editable = !forceReadOnly && !portalDraft && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly
-    ? "Viewing only — nothing here can be changed."
+    ? t("customer:viewingOnlyNothingCanBeChanged")
     : portalDraft
-      ? PORTAL_DRAFT_REASON
-      : "This record can't be edited right now.";
+      ? t(PORTAL_DRAFT_REASON)
+      : t("customer:recordCantBeEditedNow");
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes — done synchronously during render (see
@@ -204,7 +207,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
     return (field.options ?? []).filter((o) => String(o.parent_id) === String(parentValue));
   };
 
-  const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? "Type";
+  const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? t("customer:type");
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
 
   // Addresses may carry "same as" (guide §4): instead of repeating an
@@ -239,7 +242,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
               disabled={!editable}
               disabledReason={notEditableReason}
               options={[
-                { value: "", label: "Select type" },
+                { value: "", label: t("customer:selectType") },
                 ...(section.types ?? []).map((t) => ({ value: t.id, label: t.name })),
               ]}
             />
@@ -252,12 +255,12 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             checked={Boolean(sameAsId)}
             disabled={!editable}
             disabledReason={notEditableReason}
-            label="Same as another address"
+            label={t("customer:sameAsAnotherAddress")}
             onChange={(checked) => setValue(rowIndex, "same_as_address_type_id", checked ? sameAsOptions[0].id : undefined)}
           />
           {sameAsId && (
             <label className="mt-2 block text-sm font-semibold text-slate-700">
-              Same as
+              {t("onboarding:sameAs")}
               <FilterSelect
                 className="mt-1.5"
                 disabled={!editable}
@@ -288,7 +291,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             onClick={() => removeRow(rowIndex)}
             className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"
           >
-            <Trash2 size={13} /> Remove
+            <Trash2 size={13} /> {t("onboarding:remove")}
           </button>
         </div>
       )}
@@ -301,26 +304,26 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       return (
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            Party type
+            {t("onboarding:partyType")}
             <FilterSelect
               className="mt-1.5"
               value={pick.party_type_id}
               onChange={(v) => setPick({ ...pick, party_type_id: v, company_type_id: "" })}
-              options={[{ value: "", label: "Select party type" }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
+              options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
             />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Company type
+            {t("onboarding:companyType")}
             <FilterSelect
               className="mt-1.5"
               value={pick.company_type_id}
               onChange={(v) => setPick({ ...pick, company_type_id: v })}
-              options={[{ value: "", label: "Select company type" }, ...companyTypes.map((c) => ({ value: c.id, label: c.name }))]}
+              options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypes.map((c) => ({ value: c.id, label: c.name }))]}
             />
           </label>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
-              Email
+              {t("customer:email")}
               <input
                 type="email"
                 className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm"
@@ -329,7 +332,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
               />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Phone number
+              {t("customer:phoneNumber")}
               <input
                 type="text"
                 className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm"
@@ -338,18 +341,18 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
               />
             </label>
           </div>
-          <p className="text-[11px] text-muted-foreground">At least one of email or phone. An existing onboarding for that contact resumes automatically.</p>
+          <p className="text-[11px] text-muted-foreground">{t("customer:atLeastOneOfEmailOrPhone")}</p>
         </div>
       );
     }
     if (loading || !wizard) return <div className="flex justify-center py-10"><Spinner size={22} /></div>;
-    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">This customer type has no configured sections.</p>;
+    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">{t("customer:thisCustomerTypeHasNoConfiguredSections")}</p>;
 
     return (
       <div>
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="text-xs text-muted-foreground">
-            {wizard.progress.sections_done}/{wizard.progress.sections_required} required sections · {wizard.progress.percent}%
+            {t("customer:requiredSectionsProgress", { done: wizard.progress.sections_done, required: wizard.progress.sections_required, percent: wizard.progress.percent })}
           </div>
           <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress.percent}%` }} />
@@ -366,7 +369,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
         {section.document_groups?.length > 0 && (
           <div className="mb-3 rounded-lg bg-muted p-2.5 text-[11px] text-muted-foreground">
             {section.document_groups.map((g) => (
-              <div key={g.code}>{g.name}: at least {g.min_required} of these required{g.max_allowed ? `, up to ${g.max_allowed}` : ""}.</div>
+              <div key={g.code}>{g.max_allowed ? t("customer:documentGroupRuleUpTo", { name: g.name, min: g.min_required, max: g.max_allowed }) : t("customer:documentGroupRule", { name: g.name, min: g.min_required })}</div>
             ))}
           </div>
         )}
@@ -379,7 +382,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
                 onClick={addRow}
                 className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-primary px-3 py-1.5 text-xs font-bold text-primary"
               >
-                <Plus size={13} /> Add {(section.label ?? section.name).toLowerCase()}
+                <Plus size={13} /> {t("onboarding:addTitle", { title: (section.label ?? section.name).toLowerCase() })}
               </button>
             )}
           </div>
@@ -393,7 +396,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="flex items-center gap-2">
                 <Check size={14} />
-                All required sections are complete.
+                {t("customer:allRequiredSectionsAreComplete")}
               </span>
               <button
                 type="button"
@@ -402,7 +405,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
               >
                 {submitting ? <Spinner size={12} /> : <Send size={13} />}
-                Submit for approval
+                {t("customer:submitForApproval")}
               </button>
             </div>
           </div>
@@ -415,7 +418,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
     if (!referenceId && !wizard) {
       return (
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button>
+          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:cancel")}</button>
           <button
             type="button"
             disabled={starting}
@@ -423,12 +426,12 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             {starting && <Spinner size={13} />}
-            Start onboarding
+            {t("customer:startOnboarding")}
           </button>
         </>
       );
     }
-    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>;
+    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>;
     return (
       <>
         <button
@@ -437,10 +440,10 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
           onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
           className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-40"
         >
-          <ArrowLeft size={14} /> Previous
+          <ArrowLeft size={14} /> {t("customer:previous")}
         </button>
         <div className="flex-1" />
-        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Close</button>
+        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>
         {editable && (
           <button
             type="button"
@@ -449,7 +452,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             {saving && <Spinner size={13} />}
-            Save section
+            {t("customer:saveSection")}
           </button>
         )}
         <button
@@ -458,7 +461,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
           onClick={() => setActiveSection((i) => Math.min(Math.max(sections.length - 1, 0), i + 1))}
           className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40"
         >
-          Next <ArrowRight size={14} />
+          {t("common:next")} <ArrowRight size={14} />
         </button>
       </>
     );
@@ -471,7 +474,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       title={
         wizard
           ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
-          : "Start corporate onboarding"
+          : t("customer:startCorporateOnboarding")
       }
       size="xl"
       growWithContent

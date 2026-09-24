@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
 const STATUS_CONFIG = {
   // Entity statuses
@@ -239,13 +240,18 @@ const TEXT_COLOR_BY_PILL = {
 // often carry the same value in a row don't read as three loud, identical
 // pills. Same color language as the solid pill, just lighter-weight.
 export function StatusBadge({ status, variant = "solid" }) {
+  const { t } = useTranslation("statusLabels");
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
-  const cfg = STATUS_CONFIG[normalizedStatus] ?? {
+  const known = STATUS_CONFIG[normalizedStatus];
+  const cfg = known ?? {
     label: status,
     dot: "bg-slate-400",
     pill: "bg-muted text-muted-foreground border-border",
   };
-  const label = cfg.label;
+  // Known status codes map to a fixed English label — translate it. An
+  // unknown value is the backend's own status_name, already translated via
+  // x-api-lang, so it is shown as-is.
+  const label = known ? t(cfg.label, { defaultValue: cfg.label }) : cfg.label;
   if (variant === "subtle") {
     return (
       <span

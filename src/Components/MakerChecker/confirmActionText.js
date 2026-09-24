@@ -4,21 +4,25 @@
 // where Institution/Profile/User's own confirm dialogs show a full,
 // grammatically correct question — this brings those three in line with
 // that same phrasing instead of duplicating it three times.
+import { i18n } from "@/Utils/I18n/i18n";
+
+// Action -> common-namespace verb key.
 const ACTION_VERB = {
-  auth: "Authorize",
-  deleteAuth: "Authorize",
-  deauth: "Deauthorize",
-  delete: "Delete",
-  deactivate: "Deactivate",
-  reactivate: "Reactivate",
-  submit: "Submit",
+  auth: "authorize",
+  deleteAuth: "authorize",
+  deauth: "deauthorize",
+  delete: "delete",
+  deactivate: "deactivate",
+  reactivate: "reactivate",
+  submit: "submit",
 };
 
-// `tr` is the same configFieldLabels.js lookup the caller already uses for
-// its field labels — passing it through here means this one sentence stays
-// in sync with the page's language instead of only the words around it
-// switching to Portuguese.
-export function describeConfirmAction(type, name, tr = (s) => s) {
-  const verb = ACTION_VERB[type] ?? type;
-  return `${tr("Are you sure you want to")} ${tr(verb).toLowerCase()} ${name}?`;
+// Built through i18n directly (not a hook) so the sentence follows the
+// selected language wherever it's called from. The old `tr` argument is
+// still accepted for existing callers but no longer needed.
+// eslint-disable-next-line no-unused-vars
+export function describeConfirmAction(type, name, tr) {
+  const verbKey = ACTION_VERB[type];
+  const verb = verbKey ? i18n.t(`common:${verbKey}`) : String(type);
+  return i18n.t("common:confirmActionQuestion", { action: verb.toLowerCase(), name });
 }

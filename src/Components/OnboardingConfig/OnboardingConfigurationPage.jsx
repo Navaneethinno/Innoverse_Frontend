@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -33,6 +34,7 @@ const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 // so it needs no special-casing here — getMakerCheckerButtons already
 // grants Edit on Active, and the wizard itself does the reopen.
 function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -64,7 +66,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
     try {
       const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
       const response = await onboardingDefinitionApi[action.method](payload);
-      notifications.success(apiMessage(response, `${action.label} successful`));
+      notifications.success(apiMessage(response, t("onboarding:actionSuccessful", { action: action.label })));
       await onRefresh();
       setAction(null);
       setNarration("");
@@ -83,16 +85,16 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
         onAudit={() => setAudit(true)}
-        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: "Submit" }) : undefined}
-        onAuthorize={() => setAction({ method: pendingMethod, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Reject" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Reactivate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
+        onSubmit={buttons.submitDraft ? () => setAction({ method: "submit", label: t("common:submit") }) : undefined}
+        onAuthorize={() => setAction({ method: pendingMethod, label: t("common:authorize") })}
+        onDeauthorize={() => setAction({ method: "deauth", label: t("onboarding:reject") })}
+        onDeactivate={() => setAction({ method: "deactivate", label: t("common:deactivate") })}
+        onReactivate={() => setAction({ method: "reactivate", label: t("common:reactivate") })}
+        onDelete={() => setAction({ method: "delete", label: t("common:delete") })}
       />
       <ConfirmDialog
         open={!!action}
-        title={`${action?.label ?? "Action"} onboarding configuration`}
+        title={t("onboarding:actionOnboardingConfiguration", { action: action?.label ?? t("common:actions") })}
         confirmLabel={action?.label}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={working}
@@ -103,8 +105,8 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
         {action?.method === "submit" && (
           <dl className="mt-1 grid gap-2">
-            <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
-            {[["name", "Name"], ["code", "Code"], ["party_type_name", "Party type"], ["ownership_name", "Ownership"], ["ownership_sub_type_name", "Sub type"]].map(([key, label]) => (
+            <p className="text-xs font-semibold text-muted-foreground">{t("onboarding:submitPreview")}</p>
+            {[["name", t("onboarding:name")], ["code", t("onboarding:code")], ["party_type_name", t("onboarding:partyType")], ["ownership_name", t("onboarding:ownership")], ["ownership_sub_type_name", t("onboarding:subType")]].map(([key, label]) => (
               <div key={key} className="rounded-xl border border-border p-2.5">
                 <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
                 <dd className="mt-0.5 text-sm font-semibold text-slate-700">{row?.[key] ?? "-"}</dd>
@@ -115,7 +117,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
-          placeholder={action?.method === "deauth" ? "Reason (required)" : "Narration"}
+          placeholder={action?.method === "deauth" ? t("onboarding:reasonRequired") : t("onboarding:narration")}
           className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
         />
       </ConfirmDialog>
@@ -123,10 +125,10 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         <AuditModal
           title={row.name}
           fields={[
-            ["minor_age_years", "Minor age"],
-            ["home_country_id", "Home country"],
-            ["kyc_group_id", "KYC scheme"],
-            ["effective_from", "Effective from"],
+            ["minor_age_years", t("onboarding:minorAge")],
+            ["home_country_id", t("onboarding:homeCountry")],
+            ["kyc_group_id", t("onboarding:kycScheme")],
+            ["effective_from", t("onboarding:effectiveFrom")],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
@@ -161,6 +163,7 @@ const emptyForm = {
 
 export function OnboardingConfigurationPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["onboarding", "common"]);
   // "Onboarding Configuration" is the menu's real, current name (confirmed
   // in the sidebar) — the other alternatives are kept only in case an
   // institution's menu still uses an older name. Without a match here,
@@ -263,7 +266,7 @@ export function OnboardingConfigurationPage() {
         ...(form.effective_from ? { effective_from: form.effective_from } : {}),
         is_draft: true,
       });
-      notifications.success(apiMessage(response, "Customer type created"));
+      notifications.success(apiMessage(response, t("onboarding:customerTypeCreated")));
       setOpen(false);
       setForm(emptyForm);
       await load();
@@ -291,7 +294,7 @@ export function OnboardingConfigurationPage() {
   const columns = [
     {
       key: "name",
-      label: "Customer type",
+      label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
@@ -303,7 +306,7 @@ export function OnboardingConfigurationPage() {
     },
     {
       key: "ownership_sub_type_name",
-      label: "Sub type",
+      label: t("onboarding:subType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
@@ -315,25 +318,25 @@ export function OnboardingConfigurationPage() {
     },
     {
       key: "status_name",
-      label: "Status",
+      label: t("common:status"),
       sortValue: (r) => r.status_name ?? "",
       render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       sortValue: (r) => r.process_status_name ?? "",
       render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} /> : "-"),
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: t("common:authorizationStatus"),
       sortValue: (r) => r.auth_status ?? "",
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} /> : "-"),
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (r) => (
         <DefinitionRowActions
@@ -355,16 +358,16 @@ export function OnboardingConfigurationPage() {
       }}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
     >
-      <Plus size={14} /> Add onboarding configuration
+      <Plus size={14} /> {t("onboarding:addOnboardingConfiguration")}
     </button>
   ) : null;
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">Onboarding Configuration</h1>
+        <h1 className="text-xl font-black text-slate-800">{t("onboarding:onboardingConfigurationTitle")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Each customer type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.
+          {t("onboarding:onboardingConfigurationSubtitle")}
         </p>
       </div>
       <div
@@ -377,7 +380,7 @@ export function OnboardingConfigurationPage() {
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder="Search onboarding configurations..."
+          searchPlaceholder={t("onboarding:searchOnboardingConfigurations")}
           actions={addAction}
           bare
         />
@@ -386,8 +389,8 @@ export function OnboardingConfigurationPage() {
           rows={visible}
           rowKey={(r) => r.id}
           isLoading={loading}
-          title="Customer Types"
-          emptyTitle="No customer types yet"
+          title={t("onboarding:customerTypes")}
+          emptyTitle={t("onboarding:noCustomerTypesYet")}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,
@@ -406,11 +409,11 @@ export function OnboardingConfigurationPage() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Add onboarding configuration"
+        title={t("onboarding:addOnboardingConfiguration")}
         footer={
           <>
             <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-              Cancel
+              {t("common:cancel")}
             </button>
             <button
               type="button"
@@ -419,54 +422,54 @@ export function OnboardingConfigurationPage() {
               className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
             >
               {saving && <Spinner size={13} />}
-              Create
+              {t("onboarding:create")}
             </button>
           </>
         }
       >
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            Code
+            {t("onboarding:code")}
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder="CUSTOMER_INDIVIDUAL_STUDENT" />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Letters, digits and underscore. Cannot be changed later.</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:codeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Name
+            {t("onboarding:name")}
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Description
+            {t("common:description")}
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Party type × Ownership
-            <FilterSelect className="mt-1.5" value={form.combination} onChange={(v) => setForm({ ...form, combination: v, ownership_sub_type_id: "" })} options={[{ value: "", label: "Select combination" }, ...combinations]} />
+            {t("onboarding:partyTypeOwnership")}
+            <FilterSelect className="mt-1.5" value={form.combination} onChange={(v) => setForm({ ...form, combination: v, ownership_sub_type_id: "" })} options={[{ value: "", label: t("onboarding:selectCombination") }, ...combinations]} />
           </label>
           {subTypeOptions.length > 0 && (
             <label className="text-sm font-semibold text-slate-700">
-              Sub type
-              <FilterSelect className="mt-1.5" addAction={{ label: "Add ownership sub type", onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: "No sub type" }, ...subTypeOptions]} />
-              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Optional — leave unset unless this combination requires one.</span>
+              {t("onboarding:subType")}
+              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypeOptions]} />
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
             </label>
           )}
           <label className="text-sm font-semibold text-slate-700">
-            Minor age (years)
+            {t("onboarding:minorAgeYears")}
             <input type="number" min={0} value={form.minor_age_years} onChange={(e) => setForm({ ...form, minor_age_years: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Below this age the IS_MINOR rule fact is true.</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:minorAgeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Home country
-            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: "Select country" }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Required if any rule uses RESIDENCY_STATUS.</span>
+            {t("onboarding:homeCountry")}
+            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:homeCountryHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            KYC scheme
-            <FilterSelect className="mt-1.5" addAction={{ label: "Add KYC scheme", onClick: () => navigate("/kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: "Select KYC scheme" }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">Must be an approved (Active) scheme by the time you submit.</span>
+            {t("onboarding:kycScheme")}
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => navigate("/kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            Effective from
+            {t("onboarding:effectiveFrom")}
             <input type="date" value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
         </div>

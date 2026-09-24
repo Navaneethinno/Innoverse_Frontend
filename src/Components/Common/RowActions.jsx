@@ -1,4 +1,5 @@
 import { Eye, Pencil, History, Send, ShieldCheck, ShieldOff, Trash2, PowerOff, Power } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 
@@ -27,38 +28,39 @@ export function RowActions({
   // "start a new version" on an Active row, which has no submitDraft
   // state of its own) — same button, same icon/color, only the label
   // changes, instead of a one-off button outside this set.
-  submitLabel = "Submit",
+  submitLabel,
   onAuthorize,
   onDeauthorize,
   onDeactivate,
   onReactivate,
   onDelete,
 }) {
+  const { t } = useTranslation("common");
   return (
     <div className="flex items-center justify-center gap-1">
       {onView && (
-        <UiTooltip label="View">
+        <UiTooltip label={t("view")}>
           <button type="button" className={actionButtonClass("view")} onClick={onView}>
             <Eye size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.edit && onEdit && (
-        <UiTooltip label="Edit">
+        <UiTooltip label={t("edit")}>
           <button type="button" className={actionButtonClass("edit")} onClick={onEdit}>
             <Pencil size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.audit && onAudit && (
-        <UiTooltip label="Audit">
+        <UiTooltip label={t("audit")}>
           <button type="button" className={actionButtonClass("audit")} onClick={onAudit}>
             <History size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.submitDraft && onSubmit && (
-        <UiTooltip label={submitLabel}>
+        <UiTooltip label={submitLabel ?? t("submit")}>
           <button type="button" className={actionButtonClass("submit")} onClick={onSubmit}>
             <Send size={14} />
           </button>
@@ -71,35 +73,35 @@ export function RowActions({
           exclusive with those and with each other (a record is either
           pending, active, or inactive — never more than one at once). */}
       {buttons.authorize && onAuthorize && (
-        <UiTooltip label="Authorize">
+        <UiTooltip label={t("authorize")}>
           <button type="button" className={actionButtonClass("auth")} onClick={onAuthorize}>
             <ShieldCheck size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.deauthorize && onDeauthorize && (
-        <UiTooltip label="Deauthorize">
+        <UiTooltip label={t("deauthorize")}>
           <button type="button" className={actionButtonClass("deauth")} onClick={onDeauthorize}>
             <ShieldOff size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.deactivate && onDeactivate && (
-        <UiTooltip label="Deactivate">
+        <UiTooltip label={t("deactivate")}>
           <button type="button" className={actionButtonClass("deauth")} onClick={onDeactivate}>
             <PowerOff size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.activate && onReactivate && (
-        <UiTooltip label="Reactivate">
+        <UiTooltip label={t("reactivate")}>
           <button type="button" className={actionButtonClass("auth")} onClick={onReactivate}>
             <Power size={14} />
           </button>
         </UiTooltip>
       )}
       {buttons.delete && onDelete && (
-        <UiTooltip label="Delete">
+        <UiTooltip label={t("delete")}>
           <button type="button" className={actionButtonClass("delete")} onClick={onDelete}>
             <Trash2 size={14} />
           </button>

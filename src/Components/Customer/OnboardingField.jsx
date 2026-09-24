@@ -1,4 +1,5 @@
 import { Paperclip } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 
@@ -7,8 +8,9 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 // picks the control; nothing here is hard-coded per field name — a new
 // field the institution configures tomorrow renders correctly today.
 export function OnboardingField({ field, value, onChange, error, options, badge }) {
+  const { t } = useTranslation("customer");
   const disabled = field.read_only;
-  const disabledReason = disabled ? (field.read_only_reason ?? "This can't be edited right now.") : undefined;
+  const disabledReason = disabled ? (field.read_only_reason ?? t("cantBeEditedNow")) : undefined;
   const commonInput =
     "w-full rounded-xl border px-3 py-2.5 text-sm disabled:bg-muted disabled:text-muted-foreground" +
     (error ? " border-red-400" : " border-border");
@@ -33,7 +35,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
             onChange={onChange}
             disabled={disabled}
             disabledReason={disabledReason}
-            options={[{ value: "", label: `Select ${field.label}` }, ...opts.map((o) => ({ value: o.id, label: o.name }))]}
+            options={[{ value: "", label: t("selectField", { label: field.label }) }, ...opts.map((o) => ({ value: o.id, label: o.name }))]}
           />
         );
       }
@@ -90,7 +92,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
               value={value ?? ""}
               disabled={disabled}
               title={disabled ? disabledReason : undefined}
-              placeholder="Upload coming soon"
+              placeholder={t("customer:uploadComingSoon")}
               onChange={(e) => onChange(e.target.value)}
             />
           </div>

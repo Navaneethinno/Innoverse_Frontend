@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Copy, Layers, Plus } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -19,6 +20,7 @@ const asOptions = (list, valueKey = "code", labelOf = (x) => `${x.name} (${x.cod
   (list ?? []).map((x) => ({ value: x[valueKey], label: labelOf(x) }));
 
 function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const catalog = useOnboardingCatalog();
   const { masters, loading: mastersLoading } = useOnboardingMasters();
   const [levels, setLevels] = useState([]);
@@ -33,8 +35,8 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   const readOnly = forceReadOnly || !isEditable(record);
   const readOnlyReason =
     forceReadOnly && isEditable(record)
-      ? "Viewing only."
-      : `This scheme is ${record.process_status_name ?? "frozen"} and can't be changed. Clone it into a new Draft to make changes.`;
+      ? t("onboarding:viewingOnly")
+      : t("onboarding:schemeFrozenReason", { status: record.process_status_name ?? t("onboarding:frozen") });
 
   useEffect(() => {
     let cancelled = false;
@@ -57,72 +59,72 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   const limitType = (code) => limitTypes.find((t) => t.code === code);
   const spec = useMemo(
     () => [
-      { key: "level_no", label: "Level number", type: "number", required: true },
-      { key: "name", label: "Name", type: "text", required: true },
-      { key: "description", label: "Description", type: "text", wide: true },
-      { key: "is_entry_level", label: "Entry level (exactly one)", type: "bool" },
-      { key: "next_level_no", label: "Next level number", type: "number", hint: "Must be higher than this level's own number." },
-      { key: "upgrade_trigger_code", label: "Upgrade trigger", type: "select", options: asOptions(catalog?.kyc_upgrade_triggers) },
+      { key: "level_no", label: t("onboarding:levelNumber"), type: "number", required: true },
+      { key: "name", label: t("onboarding:name"), type: "text", required: true },
+      { key: "description", label: t("common:description"), type: "text", wide: true },
+      { key: "is_entry_level", label: t("onboarding:entryLevelExactlyOne"), type: "bool" },
+      { key: "next_level_no", label: t("onboarding:nextLevelNumber"), type: "number", hint: t("onboarding:mustBeHigherThanThisLevelS") },
+      { key: "upgrade_trigger_code", label: t("onboarding:upgradeTrigger"), type: "select", options: asOptions(catalog?.kyc_upgrade_triggers) },
       {
         key: "fields",
-        label: "Data to collect",
+        label: t("onboarding:dataToCollect"),
         type: "list",
-        addLabel: "Add field",
-        itemTitle: (f) => f.field_code || "New field",
+        addLabel: t("onboarding:addField"),
+        itemTitle: (f) => f.field_code || t("onboarding:newField"),
         spec: [
-          { key: "field_code", label: "Field", type: "select", required: true, options: asOptions(catalog?.fields) },
-          { key: "mandatory", label: "Mandatory", type: "bool" },
-          { key: "sequence_no", label: "Order", type: "number" },
+          { key: "field_code", label: t("onboarding:field"), type: "select", required: true, options: asOptions(catalog?.fields) },
+          { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+          { key: "sequence_no", label: t("onboarding:order"), type: "number" },
         ],
       },
       {
         key: "documents",
-        label: "Documents required",
+        label: t("onboarding:documentsRequired"),
         type: "list",
-        addLabel: "Add document",
-        itemTitle: (d) => d.document_type_code || "New document",
+        addLabel: t("onboarding:addDocument"),
+        itemTitle: (d) => d.document_type_code || t("onboarding:newDocument"),
         spec: [
-          { key: "document_type_code", label: "Document type", type: "select", required: true, options: asOptions(masters.document_type) },
-          { key: "mandatory", label: "Mandatory", type: "bool" },
-          { key: "back_required", label: "Back required", type: "bool" },
-          { key: "verification_required", label: "Verification required", type: "bool" },
-          { key: "verification_method_code", label: "Verification method", type: "select", showIf: (d) => d.verification_required, options: asOptions(masters.verification_method) },
+          { key: "document_type_code", label: t("onboarding:documentType"), type: "select", required: true, options: asOptions(masters.document_type) },
+          { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+          { key: "back_required", label: t("onboarding:backRequired"), type: "bool" },
+          { key: "verification_required", label: t("onboarding:verificationRequired"), type: "bool" },
+          { key: "verification_method_code", label: t("onboarding:verificationMethod"), type: "select", showIf: (d) => d.verification_required, options: asOptions(masters.verification_method) },
         ],
       },
       {
         key: "processes",
-        label: "Checks that must pass",
+        label: t("onboarding:checksThatMustPass"),
         type: "list",
-        addLabel: "Add check",
-        itemTitle: (p) => (catalog?.kyc_processes ?? []).find((x) => x.id === p.kyc_process_id)?.name ?? "New check",
+        addLabel: t("onboarding:addCheck"),
+        itemTitle: (p) => (catalog?.kyc_processes ?? []).find((x) => x.id === p.kyc_process_id)?.name ?? t("onboarding:newCheck"),
         spec: [
-          { key: "kyc_process_id", label: "Check", type: "select", required: true, options: asOptions(catalog?.kyc_processes, "id", (x) => x.name ?? x.code) },
-          { key: "mandatory", label: "Mandatory", type: "bool" },
-          { key: "sequence_no", label: "Order", type: "number" },
+          { key: "kyc_process_id", label: t("onboarding:check"), type: "select", required: true, options: asOptions(catalog?.kyc_processes, "id", (x) => x.name ?? x.code) },
+          { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
+          { key: "sequence_no", label: t("onboarding:order"), type: "number" },
         ],
       },
       {
         key: "limits",
-        label: "Limits",
+        label: t("onboarding:limits"),
         type: "list",
-        addLabel: "Add limit",
-        itemTitle: (l) => l.limit_type_code || "New limit",
+        addLabel: t("onboarding:addLimit"),
+        itemTitle: (l) => l.limit_type_code || t("onboarding:newLimit"),
         spec: [
-          { key: "limit_type_code", label: "Limit type", type: "select", required: true, options: asOptions(limitTypes) },
-          { key: "currency_code", label: "Currency (ISO code)", type: "text", showIf: (l) => limitType(l.limit_type_code)?.has_amount, hint: 'e.g. "INR"' },
-          { key: "max_amount", label: "Max amount", type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_amount },
-          { key: "max_count", label: "Max count", type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_count },
+          { key: "limit_type_code", label: t("onboarding:limitType"), type: "select", required: true, options: asOptions(limitTypes) },
+          { key: "currency_code", label: t("onboarding:currencyIsoCode"), type: "text", showIf: (l) => limitType(l.limit_type_code)?.has_amount, hint: t("onboarding:eGInr") },
+          { key: "max_amount", label: t("onboarding:maxAmount"), type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_amount },
+          { key: "max_count", label: t("onboarding:maxCount"), type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_count },
         ],
       },
       {
         key: "capabilities",
-        label: "What the customer may do",
+        label: t("onboarding:whatTheCustomerMayDo"),
         type: "list",
-        addLabel: "Add capability",
-        itemTitle: (c) => (catalog?.transactions ?? []).find((x) => x.id === c.transaction_id)?.name ?? "New capability",
+        addLabel: t("onboarding:addCapability"),
+        itemTitle: (c) => (catalog?.transactions ?? []).find((x) => x.id === c.transaction_id)?.name ?? t("onboarding:newCapability"),
         spec: [
-          { key: "transaction_id", label: "Transaction", type: "select", required: true, options: asOptions(catalog?.transactions, "id", (x) => x.name ?? x.code) },
-          { key: "allowed", label: "Allowed", type: "bool", defaultValue: true },
+          { key: "transaction_id", label: t("onboarding:transaction"), type: "select", required: true, options: asOptions(catalog?.transactions, "id", (x) => x.name ?? x.code) },
+          { key: "allowed", label: t("onboarding:allowed"), type: "bool", defaultValue: true },
         ],
       },
     ],
@@ -177,23 +179,23 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
     <Modal
       open
       onClose={onClose}
-      title={`${readOnly ? "View" : "Edit"} KYC levels — ${record.name ?? record.code}`}
+      title={t(readOnly ? "onboarding:viewKycLevelsTitle" : "onboarding:editKycLevelsTitle", { name: record.name ?? record.code })}
       size="xl"
       growWithContent
       footer={
         <>
           <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-            Close
+            {t("common:close")}
           </button>
           {!readOnly && (
             <>
               <button type="button" disabled={Boolean(busy)} onClick={() => void validate()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
                 {busy === "validate" && <Spinner size={13} />}
-                Validate
+                {t("onboarding:validate")}
               </button>
               <button type="button" disabled={Boolean(busy)} onClick={() => void save()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
                 {busy === "save" && <Spinner size={13} />}
-                Save levels
+                {t("onboarding:saveLevels")}
               </button>
             </>
           )}
@@ -209,7 +211,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
           {readOnly && (
             <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>
           )}
-          <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel="Add level" readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(l) => `Level ${l.level_no ?? "?"}${l.name ? ` — ${l.name}` : ""}`} emptyText="No levels yet. A scheme needs at least one entry level." />
+          <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel={t("onboarding:addLevel")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(l) => `${t("onboarding:levelN", { n: l.level_no ?? "?" })}${l.name ? ` — ${l.name}` : ""}`} emptyText={t("onboarding:noLevelsYetASchemeNeedsAt")} />
           {problems && (
             <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
               <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>{problems.length ? `${problems.length} problem(s)` : "No problems found"}</p>
@@ -229,6 +231,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
 }
 
 export function KycSchemePage() {
+  const { t } = useTranslation(["onboarding", "common"]);
   const [form, setForm] = useState(null);
   const [clone, setClone] = useState(null);
   const [editor, setEditor] = useState(null);
@@ -268,7 +271,7 @@ export function KycSchemePage() {
     setSaving(true);
     try {
       const response = await kycSchemeOps.clone({ id: clone.source.id, code: clone.code.trim().toUpperCase(), name: clone.name.trim() });
-      notifications.success(apiMessage(response, "Scheme cloned into a new Draft"));
+      notifications.success(apiMessage(response, t("onboarding:schemeCloned")));
       setClone(null);
       reload();
     } catch (error) {
@@ -279,17 +282,17 @@ export function KycSchemePage() {
   };
 
   const columns = [
-    { key: "code", label: "Code", render: (r) => <span className="font-semibold">{r.code}</span> },
-    { key: "name", label: "Name" },
-    { key: "description", label: "Description", render: (r) => r.description || "-" },
+    { key: "code", label: t("onboarding:code"), render: (r) => <span className="font-semibold">{r.code}</span> },
+    { key: "name", label: t("onboarding:name") },
+    { key: "description", label: t("common:description"), render: (r) => r.description || "-" },
   ];
   const fieldClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm";
 
   return (
     <>
       <LifecycleList
-        title="KYC Schemes"
-        subtitle="A scheme is an ordered ladder of KYC levels. Approve a scheme before pointing a customer-type version at it."
+        title={t("onboarding:kycSchemes")}
+        subtitle={t("onboarding:aSchemeIsAnOrderedLadderOf")}
         api={kycSchemeApi}
         menuName="KYC Scheme|Group"
         columns={columns}
@@ -311,7 +314,7 @@ export function KycSchemePage() {
         }
         renderExtra={(row) => (
           <>
-            <UiTooltip label="Levels">
+            <UiTooltip label={t("onboarding:levels")}>
               <button
                 type="button"
                 onClick={() => {
@@ -324,7 +327,7 @@ export function KycSchemePage() {
               </button>
             </UiTooltip>
             {Number(row.status) === 1 && (
-              <UiTooltip label="Clone">
+              <UiTooltip label={t("onboarding:clone")}>
                 <button type="button" onClick={() => setClone({ source: row, code: "", name: `${row.name} (copy)` })} className="rounded-lg p-1.5 text-violet-700 hover:bg-violet-50">
                   <Copy size={14} />
                 </button>
@@ -332,37 +335,37 @@ export function KycSchemePage() {
             )}
           </>
         )}
-        emptyTitle="No KYC schemes yet"
+        emptyTitle={t("onboarding:noKycSchemesYet")}
       />
 
       {form && (
         <Modal
           open
           onClose={() => setForm(null)}
-          title="Add KYC scheme"
+          title={t("onboarding:addKycScheme")}
           footer={
             <>
               <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-                Cancel
+                {t("common:cancel")}
               </button>
               <button type="button" disabled={saving} onClick={() => void create()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
                 {saving && <Spinner size={13} />}
-                Create &amp; define levels
+                {t("onboarding:createAndDefineLevels")}
               </button>
             </>
           }
         >
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
-              Code
+              {t("onboarding:code")}
               <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className={`${fieldClass} font-mono`} placeholder="STANDARD_KYC" />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Name
+              {t("onboarding:name")}
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={fieldClass} />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Description
+              {t("common:description")}
               <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
             </label>
           </div>
@@ -372,27 +375,27 @@ export function KycSchemePage() {
         <Modal
           open
           onClose={() => setClone(null)}
-          title={`Clone ${clone.source.name}`}
+          title={t("onboarding:cloneTitle", { name: clone.source.name })}
           footer={
             <>
               <button type="button" onClick={() => setClone(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-                Cancel
+                {t("common:cancel")}
               </button>
               <button type="button" disabled={saving} onClick={() => void doClone()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
                 {saving && <Spinner size={13} />}
-                Clone
+                {t("onboarding:clone")}
               </button>
             </>
           }
         >
-          <p className="mb-3 text-xs text-muted-foreground">Copies the scheme and all its levels into a new Draft under a new code.</p>
+          <p className="mb-3 text-xs text-muted-foreground">{t("onboarding:copiesTheSchemeAndAllItsLevels")}</p>
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
-              New code
+              {t("onboarding:newCode")}
               <input value={clone.code} onChange={(e) => setClone({ ...clone, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className={`${fieldClass} font-mono`} />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              New name
+              {t("onboarding:newName")}
               <input value={clone.name} onChange={(e) => setClone({ ...clone, name: e.target.value })} className={fieldClass} />
             </label>
           </div>

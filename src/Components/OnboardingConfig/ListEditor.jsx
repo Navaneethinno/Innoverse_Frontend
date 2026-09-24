@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
 
@@ -9,7 +10,8 @@ import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPil
 //   { key, label, type: text|number|date|bool|select|multi|list|custom,
 //     options?: [{value,label}] | (item) => [...], required?, hint?,
 //     showIf?: (item) => bool, disabled?: (item) => bool, defaultValue?,
-//     addTo?: [masterPath, label] (select: "Add <label>" row opening that master),
+//     addTo?: [masterPath, label] (select: an add row with that already-
+//       translated label, e.g. t("onboarding:addValidationRule"), opening that master),
 //     spec?/addLabel? (type "list": a nested ListEditor),
 //     render?: (item, setItem) => node (type "custom"), wide?: bool }
 // Items are plain objects held by the caller, so the whole configuration can
@@ -18,6 +20,7 @@ const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled
 
 export function FieldInput({ field, item, setItem, readOnly, readOnlyReason }) {
   const navigate = useNavigate();
+  const { t } = useTranslation("onboarding");
   const value = item[field.key];
   const fieldDisabled = Boolean(field.disabled?.(item));
   const disabled = readOnly || fieldDisabled;
@@ -76,8 +79,8 @@ export function FieldInput({ field, item, setItem, readOnly, readOnlyReason }) {
           onChange={set}
           disabled={disabled}
           disabledReason={disabledReason}
-          addAction={field.addTo ? { label: `Add ${field.addTo[1]}`, onClick: () => navigate(field.addTo[0]) } : undefined}
-          options={[{ value: "", label: field.placeholder ?? "Select..." }, ...options]}
+          addAction={field.addTo ? { label: field.addTo[1], onClick: () => navigate(field.addTo[0]) } : undefined}
+          options={[{ value: "", label: field.placeholder ?? t("select") }, ...options]}
         />
       ) : field.type === "multi" ? (
         <div className="mt-1.5" title={disabled ? disabledReason : undefined}>
@@ -155,7 +158,8 @@ function splitIntoColumns(fields) {
   return columns;
 }
 
-export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle, readOnly = false, readOnlyReason, emptyText, seed, nested = false }) {
+export function ListEditor({ items, onChange, spec, addLabel, itemTitle, readOnly = false, readOnlyReason, emptyText, seed, nested = false }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
   const add = () => {
@@ -164,7 +168,7 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
   };
   return (
     <div className="flex flex-col gap-3">
-      {items.length === 0 && <p className="text-sm text-muted-foreground">{emptyText ?? "Nothing added yet."}</p>}
+      {items.length === 0 && <p className="text-sm text-muted-foreground">{emptyText ?? t("onboarding:nothingAddedYet")}</p>}
       {items.map((item, index) => (
         <div key={index} className={`rounded-2xl border p-4 ${nested ? "bg-muted/60" : ""}`}>
           <div className="mb-3 flex items-center justify-between">
@@ -174,7 +178,7 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
                 type="button"
                 onClick={() => remove(index)}
                 className="flex items-center gap-1 text-xs font-bold text-red-600"
-                aria-label="Remove"
+                aria-label={t("onboarding:remove")}
               >
                 <Trash2 size={13} /> Remove
               </button>
@@ -222,7 +226,7 @@ export function ListEditor({ items, onChange, spec, addLabel = "Add", itemTitle,
             onClick={add}
             className="flex items-center gap-1.5 self-start rounded-xl border px-4 py-2 text-sm font-bold text-primary"
           >
-            <Plus size={14} /> {addLabel}
+            <Plus size={14} /> {addLabel ?? t("common:add")}
           </button>
           {seed && (
             <button type="button" onClick={seed.onClick} className="self-start rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">

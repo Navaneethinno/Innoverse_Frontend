@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
 
 const SIZES = {
@@ -85,6 +86,7 @@ export function Modal({
   // associated only via a `form="..."` attribute, not just DOM
   // descendants), asks for confirmation, then clicks that exact button so
   // the page's own onSubmit/submitter-detection logic runs unchanged.
+  const { t } = useTranslation("common");
   const [pendingSubmit, setPendingSubmit] = useState(null);
   const confirmButtonRef = useRef(null);
 
@@ -153,7 +155,7 @@ export function Modal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close")}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X size={15} />
@@ -191,14 +193,14 @@ export function Modal({
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                 <AlertTriangle size={16} />
               </span>
-              <p className="text-sm font-bold text-slate-800">Are you sure you want to submit?</p>
+              <p className="text-sm font-bold text-slate-800">{t("confirmSubmitQuestion")}</p>
               <div className="flex w-full gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setPendingSubmit(null)}
                   className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   ref={confirmButtonRef}
@@ -210,7 +212,7 @@ export function Modal({
                   }}
                   className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white"
                 >
-                  Submit
+                  {t("submit")}
                 </button>
               </div>
             </div>

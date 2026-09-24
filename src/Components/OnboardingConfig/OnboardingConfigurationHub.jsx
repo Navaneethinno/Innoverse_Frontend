@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useTranslation } from "react-i18next";
 import { OnboardingConfigurationPage } from "./OnboardingConfigurationPage";
 import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfigurationPage";
 
@@ -12,12 +12,12 @@ import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfi
 // (?type=individual|corporate) so a refresh or a shared link reopens the
 // same view. Individual is the default.
 const TYPES = [
-  { value: "individual", label: "Individual" },
-  { value: "corporate", label: "Corporate" },
+  { value: "individual", labelKey: "customer:individual" },
+  { value: "corporate", labelKey: "customer:corporate" },
 ];
 
 export function OnboardingConfigurationHub() {
-  const tr = useConfigLabel();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const type = searchParams.get("type") === "corporate" ? "corporate" : "individual";
   const setType = (next) => {
@@ -28,7 +28,7 @@ export function OnboardingConfigurationHub() {
 
   return (
     <div>
-      <SegmentedSwitch className="mb-3" options={TYPES.map((t) => ({ ...t, label: tr(t.label) }))} value={type} onChange={setType} />
+      <SegmentedSwitch className="mb-3" options={TYPES.map((o) => ({ value: o.value, label: t(o.labelKey) }))} value={type} onChange={setType} />
       {/* key re-mounts the wrapper so each switch replays the fade-in. */}
       <div key={type} className="segmented-view-enter">
         {type === "corporate" ? <CorporateOnboardingConfigurationPage /> : <OnboardingConfigurationPage />}
