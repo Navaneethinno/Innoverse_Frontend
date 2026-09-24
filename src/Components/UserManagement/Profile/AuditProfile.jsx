@@ -1,6 +1,6 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
-import { profilesApi } from "@/Services/Profiles/profiles.api";
+import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
 
 // Audit-trail modal wrapper for a single profile — relocated from

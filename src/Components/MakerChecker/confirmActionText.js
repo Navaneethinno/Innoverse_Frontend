@@ -1,5 +1,5 @@
 // Shared "Are you sure you want to X <name>?" confirm-dialog sentence —
-// AcctConfigResource.jsx/KycConfigResource.jsx/DigitalProductResource.jsx
+// AcctConfigResource.jsx/KycConfigResource.jsx/DigitalProduct.jsx
 // each previously showed only the bare record name (no sentence at all)
 // where Institution/Profile/User's own confirm dialogs show a full,
 // grammatically correct question — this brings those three in line with

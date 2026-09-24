@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
-// Definitions now renders OnboardingConfigurationHub (Individual|Corporate
+// Definitions now renders OnboardingConfiguration (Individual|Corporate
 // switch), not the plain individual-only page — "Frontend fixes —
 // onboarding menus and corporate masters", 2026-09, fix 1: there is ONE
 // Onboarding Configuration menu/page, not a separate one per ownership
@@ -14,10 +14,10 @@ import { pageElement } from "./routeSupport";
 // CorporateOnboardingConfigurationPage here now redirect to
 // onboardingconfiguration?type=corporate instead — see customerRoutes.jsx.
 const Definitions = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingConfigurationHub.jsx").then((m) => ({ default: m.OnboardingConfigurationHub })),
+  import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
-const Master = lazy(() => import("@/Components/OnboardingConfig/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
-const KycSchemes = lazy(() => import("@/Components/OnboardingConfig/KycSchemePage.jsx").then((m) => ({ default: m.KycSchemePage })));
+const Master = lazy(() => import("@/Components/Epurse/Onboarding/OnboardingMaster/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
+const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycScheme/KycScheme.jsx").then((m) => ({ default: m.KycScheme })));
 
 const slugs = {
   Definitions: ["customertypes", "customertype", "onboardingdefinition", "onboardingdefinitions"],

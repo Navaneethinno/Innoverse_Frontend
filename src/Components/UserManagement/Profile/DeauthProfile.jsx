@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { profilesApi } from "@/Services/Profiles/profiles.api";
+import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
 
 // Deauthorize-profile confirmation (requires narration) — split out of the

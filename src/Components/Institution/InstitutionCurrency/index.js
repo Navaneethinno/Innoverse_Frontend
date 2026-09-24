@@ -1,1 +1,1 @@
-export { InstitutionCurrencyPage } from "./InstitutionCurrencyPage";
+export { InstitutionCurrency } from "./InstitutionCurrency";

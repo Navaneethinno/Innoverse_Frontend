@@ -1,1 +1,1 @@
-export { InstitutionLegalPage } from "./InstitutionLegalPage";
+export { InstitutionLegal } from "./InstitutionLegal";

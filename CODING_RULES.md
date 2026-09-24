@@ -13,3 +13,33 @@
 - Add route metadata when adding routes; keep final route composition in the
   app router boundary.
 - Run typecheck, lint, formatting, tests, and production build before merging.
+
+## Folder structure
+
+Screens mirror the sidebar, the same way payseFrontend does:
+`src/Components/<Module>/<Parent menu>/<Menu>/<Menu>.jsx`, with that menu's
+forms, wizards and helpers in the same folder.
+
+```
+src/Components/
+  Common/ UI/ Layout/ MakerChecker/        shared building blocks
+  Institution/                             Institution module
+    InstitutionProfile/ InstitutionModule/ InstitutionLegal/
+    InstitutionBranding/ InstitutionChannel/ InstitutionCurrency/
+  UserManagement/                          User Management module
+    User/ Profile/ KYC/ PasswordPolicy/ Shared/
+  Epurse/                                  EPURSE module
+    Settings/Master/<Gender|District|...>/
+    Configuration/KYC/KycScheme/
+    Configuration/Account/                 every Account > * menu (one resource)
+    DigitalProduct/DigitalProduct/
+    Onboarding/OnboardingWizard/           Individual | Corporate onboarding
+    Onboarding/OnboardingConfiguration/    customer-type definitions
+    Onboarding/OnboardingMaster/           Individual + Corporate masters
+```
+
+`src/Services/` and `src/Hooks/` group by module the same way
+(`Institution/`, `UserManagement/`, `Epurse/`); cross-cutting code stays at
+the top level (`api/`, `Auth/`, `Master/`, `useLiveChannel.js`, ...). A new
+menu gets its own folder under its sidebar parent; don't add screens to
+`Common/` or create top-level feature folders.

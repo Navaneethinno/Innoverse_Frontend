@@ -6,15 +6,15 @@ import { pageElement } from "./routeSupport";
 // fixes 1-2: ONE "Onboarding Configuration" menu (path onboardingconfiguration)
 // and ONE "Onboarding Wizard" menu (path onboardingwizard) — individual and
 // corporate share the same page behind an Individual|Corporate switch
-// (OnboardingConfigurationHub/CustomerOnboardingHub), kept in ?type=. The
+// (OnboardingConfiguration/OnboardingWizard), kept in ?type=. The
 // separate corporate menus/pages are gone; old corporate-only links redirect
 // to the unified page with ?type=corporate instead of 404ing or staying
 // pages of their own.
 const OnboardingConfigHub = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingConfigurationHub.jsx").then((m) => ({ default: m.OnboardingConfigurationHub })),
+  import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
-const CustomerOnboardingHub = lazy(() =>
-  import("@/Components/Customer/CustomerOnboardingHub.jsx").then((m) => ({ default: m.CustomerOnboardingHub })),
+const OnboardingWizard = lazy(() =>
+  import("@/Components/Epurse/Onboarding/OnboardingWizard/OnboardingWizard.jsx").then((m) => ({ default: m.OnboardingWizard })),
 );
 
 // The old `/customer/indv_profile/*` maker-checker list+wizard is gone —
@@ -23,15 +23,15 @@ const CustomerOnboardingHub = lazy(() =>
 // "Customer Onboarding (Individual) — Frontend Guide" (/customer/individual/*),
 // via the same Individual|Corporate hub as "Onboarding Wizard" below.
 export const customerRoutes = [
-  { path: "customer", element: pageElement(CustomerOnboardingHub) },
-  { path: "customer/:id", element: pageElement(CustomerOnboardingHub) },
+  { path: "customer", element: pageElement(OnboardingWizard) },
+  { path: "customer/:id", element: pageElement(OnboardingWizard) },
 ];
 
 // Sidebar menu "Onboarding Wizard" -> confirmed path "onboardingwizard"
 // (+ the per-click uuid).
 customerRoutes.push(
-  { path: "onboardingwizard", element: pageElement(CustomerOnboardingHub) },
-  { path: "onboardingwizard/:id", element: pageElement(CustomerOnboardingHub) },
+  { path: "onboardingwizard", element: pageElement(OnboardingWizard) },
+  { path: "onboardingwizard/:id", element: pageElement(OnboardingWizard) },
 );
 
 // Sidebar menu "Onboarding Configuration" -> confirmed path

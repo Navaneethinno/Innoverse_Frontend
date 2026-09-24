@@ -4,7 +4,7 @@ const ProfilesPage = lazy(() =>
   import("@/Components/UserManagement/Profile").then((m) => ({ default: m.Profile })),
 );
 const ChangePasswordPage = lazy(() =>
-  import("@/Pages/Profiles/ChangePasswordPage").then((m) => ({ default: m.ChangePasswordPage })),
+  import("@/Pages/ChangePassword/ChangePasswordPage").then((m) => ({ default: m.ChangePasswordPage })),
 );
 // Same fabricated-route fix as userRoutes.jsx: the sidebar's leaf-click
 // navigation slugifies menu_name verbatim (no pluralization) and always

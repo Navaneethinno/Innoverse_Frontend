@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 // Pill-style segmented control with a thumb that slides (and stretches to
 // the new label's width) between options, instead of the active colour
 // just jumping. Used by the Individual | Corporate hubs
-// (OnboardingConfigurationHub, CustomerOnboardingHub). Colours come from
+// (OnboardingConfiguration, OnboardingWizard). Colours come from
 // the theme tokens (--primary/--border/--card) only.
 export function SegmentedSwitch({ options, value, onChange, className = "" }) {
   const buttonRefs = useRef({});

@@ -2,7 +2,7 @@ import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
 const CustomerTypes = lazy(() =>
-  import("@/Components/OnboardingConfig/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
+  import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
 );
 // The six /config/customer/indv_* endpoints (individual type, identification
 // type, address type, employment, document requirement, document type

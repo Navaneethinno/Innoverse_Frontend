@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { pageElement } from "./routeSupport";
 
-const Resource = lazy(() => import("@/Components/Config/AcctConfigResource.jsx").then((module) => ({ default: module.AcctConfigResource })));
+const Resource = lazy(() => import("@/Components/Epurse/Configuration/Account/AcctConfigResource.jsx").then((module) => ({ default: module.AcctConfigResource })));
 // Slugs confirmed against a real /user/login menu_array: "Account"
 // (menu_id 48) is a non-clickable group header — its children are Account
 // Product (the acct_product entity itself, menu_id 49 -> slug

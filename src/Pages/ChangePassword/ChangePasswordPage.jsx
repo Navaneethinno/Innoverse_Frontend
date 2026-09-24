@@ -1,0 +1,161 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { ArrowLeft, Check, Eye, EyeOff, Lock } from "lucide-react";
+import { useAuth } from "@/Hooks/useAuth";
+import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { usePasswordPolicyQuery } from "@/Hooks/UserManagement/userHooks";
+import { checkPasswordRequirements, validatePassword } from "@/Utils/Lib/password-policy";
+
+export function ChangePasswordPage() {
+  const { t } = useTranslation("changePassword");
+  const navigate = useNavigate();
+  const changePassword = useAuth((state) => state.changePassword);
+  const { policy } = usePasswordPolicyQuery();
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [visible, setVisible] = useState({ old: false, next: false, confirm: false });
+  const [loading, setLoading] = useState(false);
+  const passwordRequirements = checkPasswordRequirements(newPassword, policy);
+
+  const toggleVisibility = (field) =>
+    setVisible((current) => ({ ...current, [field]: !current[field] }));
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      notifications.error("All password fields are required");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      notifications.error("New passwords do not match");
+      return;
+    }
+    const issues = validatePassword(newPassword, policy);
+    if (issues.length > 0) {
+      notifications.error(`Password does not meet policy: ${issues.join(", ")}`);
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await changePassword(oldPassword, newPassword);
+      notifications.success(apiMessage(result, "Password changed successfully"));
+      navigate("/dashboard");
+    } catch (error) {
+      notifications.error(error instanceof Error ? error.message : "Unable to change password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen pt-24 px-4 pb-12 bg-[#F9FAFB]">
+      <div className="mx-auto max-w-lg rounded-3xl border border-white/90 bg-white/85 p-8 shadow-xl">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
+        >
+          <ArrowLeft size={16} /> {t("common:back")}
+        </button>
+        <div className="mb-6 flex items-center gap-3">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl"
+            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+          >
+            <Lock size={18} />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-slate-800">{t("title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+          </div>
+        </div>
+        <form onSubmit={submit} className="space-y-4">
+          <label className="block text-sm font-medium text-slate-700">
+            {t("oldPassword")}
+            <div className="relative mt-1.5">
+              <input
+                type={visible.old ? "text" : "password"}
+                value={oldPassword}
+                onChange={(event) => setOldPassword(event.target.value)}
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggleVisibility("old")}
+                aria-label={visible.old ? t("hideOldPassword") : t("showOldPassword")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+              >
+                {visible.old ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            {t("newPassword")}
+            <div className="relative mt-1.5">
+              <input
+                type={visible.next ? "text" : "password"}
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggleVisibility("next")}
+                aria-label={visible.next ? t("hideNewPassword") : t("showNewPassword")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+              >
+                {visible.next ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {passwordRequirements.length > 0 && (
+              <ul className="mt-2 space-y-1">
+                {passwordRequirements.map((req) => (
+                  <li
+                    key={req.key}
+                    className={`flex items-center gap-1.5 text-xs font-normal ${req.met ? "text-emerald-600" : "text-muted-foreground"}`}
+                  >
+                    {req.met ? (
+                      <Check size={13} />
+                    ) : (
+                      <span className="h-1 w-1 rounded-full bg-current" />
+                    )}
+                    {req.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </label>
+          <label className="block text-sm font-medium text-slate-700">
+            {t("confirmNewPassword")}
+            <div className="relative mt-1.5">
+              <input
+                type={visible.confirm ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggleVisibility("confirm")}
+                aria-label={visible.confirm ? t("hideConfirmedPassword") : t("showConfirmedPassword")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+              >
+                {visible.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </label>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60"
+            style={{ background: "var(--primary)" }}
+          >
+            {loading ? t("updating") : t("updatePassword")}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

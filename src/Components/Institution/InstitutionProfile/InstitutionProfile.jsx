@@ -28,8 +28,8 @@ import {
   useInstitutionReactivateMutation,
   useInstitutionSubmitMutation,
   useInstitutionsQuery,
-} from "@/Hooks/Institutions/institutionHooks";
-import { institutionsApi } from "@/Services/Institutions/institutions.api";
+} from "@/Hooks/Institution/institutionHooks";
+import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { cn } from "@/Utils/Lib/cn";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";

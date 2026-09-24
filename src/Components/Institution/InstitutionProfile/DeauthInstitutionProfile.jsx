@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { institutionId } from "./InstitutionProfileForm";
 
 // Deauthorize-institution confirmation (requires narration — a rejection

@@ -15,7 +15,7 @@ import {
 import { cn } from "@/Utils/Lib/cn";
 import {
   useInstitutionCreateMutation,
-} from "@/Hooks/Institutions/institutionHooks";
+} from "@/Hooks/Institution/institutionHooks";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";

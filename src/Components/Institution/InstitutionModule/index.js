@@ -1,2 +1,2 @@
-export { InstitutionModulePage } from "./InstitutionModulePage";
-export { InstitutionModuleViewPage } from "./InstitutionModuleViewPage";
+export { InstitutionModule } from "./InstitutionModule";
+export { InstitutionModuleView } from "./InstitutionModuleView";

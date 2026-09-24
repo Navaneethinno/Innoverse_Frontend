@@ -1,6 +1,6 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { mapInstitutionListResponse } from "@/Hooks/Institutions/institutionHooks";
-import { institutionsApi } from "@/Services/Institutions/institutions.api";
+import { mapInstitutionListResponse } from "@/Hooks/Institution/institutionHooks";
+import { institutionsApi } from "@/Services/Institution/institutions.api";
 
 // Relocated verbatim from Components/Institutions/InstitutionAuditModal.jsx
 // to live alongside the rest of the InstitutionProfile feature files,

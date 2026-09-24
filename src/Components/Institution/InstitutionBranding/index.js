@@ -1,1 +1,1 @@
-export { InstitutionBrandingPage } from "./InstitutionBrandingPage";
+export { InstitutionBranding } from "./InstitutionBranding";

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
+import { ProfilePermissionTree } from "@/Components/UserManagement/Profile/ProfilePermissionTree";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 
 export function EMPTY_FORM() {

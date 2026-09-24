@@ -1,1 +1,1 @@
-export { InstitutionChannelPage } from "./InstitutionChannelPage";
+export { InstitutionChannel } from "./InstitutionChannel";

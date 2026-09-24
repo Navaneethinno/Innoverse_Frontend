@@ -42,7 +42,7 @@ export function splitFieldsIntoColumns(fields) {
 // CheckboxPill — see CheckboxPill.jsx) toggle: the pills read as a distinct
 // "switches" group and belong at the bottom of the form, not interleaved
 // between data-entry fields. Shared by AcctConfigResource.jsx/
-// KycConfigResource.jsx/DigitalProductResource.jsx and the Digital Product
+// KycConfigResource.jsx/DigitalProduct.jsx and the Digital Product
 // wizard — only reorders for rendering; every caller still reads/writes
 // values by field key, never by position, so this has no effect on what's
 // actually sent to the API.

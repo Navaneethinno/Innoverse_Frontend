@@ -16,10 +16,10 @@ import {
   useUserSubmitMutation,
   useUserUpdateMutation,
   useUsersQuery,
-} from "@/Hooks/Users/userHooks";
+} from "@/Hooks/UserManagement/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications } from "@/Utils/Lib/notifications";
-import { usersApi } from "@/Services/Users/users.api";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { DataTable } from "@/Components/Common/DataTable";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";

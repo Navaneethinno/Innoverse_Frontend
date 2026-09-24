@@ -9,8 +9,8 @@ import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilter
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/Users/kycHooks";
-import { usersApi } from "@/Services/Users/users.api";
+import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/UserManagement/kycHooks";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";

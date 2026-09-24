@@ -3,7 +3,7 @@ import { FileText, Upload, X } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 
 // One reusable file/image upload control — was previously duplicated as
-// InstitutionBrandingPage.jsx's local ImageUploadField (logo/favicon) and,
+// InstitutionBranding.jsx's local ImageUploadField (logo/favicon) and,
 // separately, bare <input type="file"> elements with no preview at all in
 // the Customer wizard (identification front/back images, document
 // front/back files). Every upload surface in the app should render through

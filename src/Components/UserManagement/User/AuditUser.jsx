@@ -1,6 +1,6 @@
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
-import { usersApi } from "@/Services/Users/users.api";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { nameOf, userId } from "./UserForm";
 
 const AUDIT_FIELDS = [

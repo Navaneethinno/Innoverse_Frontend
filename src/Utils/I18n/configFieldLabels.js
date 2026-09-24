@@ -206,7 +206,7 @@ const PT = {
   Version: "Versão",
 
   // Chrome text repeated across AcctConfigResource.jsx/KycConfigResource.jsx/
-  // DigitalProductResource.jsx (and the Digital Product wizard, which
+  // DigitalProduct.jsx (and the Digital Product wizard, which
   // shares the same field labels) — not a CONFIGS field/title, but plain
   // hardcoded strings the same three files never ran through t() either.
   Status: "Status",
@@ -249,7 +249,7 @@ const PT = {
   source: "fonte",
   turnover: "rotatividade",
   village: "vila",
-  // Institution sub-config pages (InstitutionModulePage.jsx and siblings)
+  // Institution sub-config pages (InstitutionModule.jsx and siblings)
   // and User/KYC/PasswordPolicy list pages — same hardcoded-column-label
   // gap as the MasterConfig entities above.
   "Effective From": "Vigência Inicial",

@@ -10,7 +10,7 @@
 // of "Authorise"/"Authorize" as covering "deauthorize" too. This was
 // previously duplicated (and inconsistently — some call sites had only the
 // one-way "authorize"->"authorise" alias, none handled "deauthorize" at
-// all) across DigitalProductResource.jsx, KycConfigResource.jsx,
+// all) across DigitalProduct.jsx, KycConfigResource.jsx,
 // userHooks.js and kycHooks.js. Centralized here so every one of them
 // (and any future page) gets the same, complete rule for free.
 const GRANT_ALIASES = {

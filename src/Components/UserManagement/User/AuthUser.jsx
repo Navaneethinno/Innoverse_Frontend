@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { usersApi } from "@/Services/Users/users.api";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { nameOf, userId } from "./UserForm";
 
 // Authorize-user confirmation — split out of the old shared ConfirmDialog

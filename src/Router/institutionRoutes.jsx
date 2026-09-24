@@ -16,12 +16,12 @@ const InstitutionDetailPage = lazy(() =>
     default: m.ViewInstitutionProfile,
   })),
 );
-const InstitutionModulePage = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModulePage })));
-const InstitutionModuleViewPage = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModuleViewPage })));
-const InstitutionLegalPage = lazy(() => import("@/Components/Institution/InstitutionLegal").then((m) => ({ default: m.InstitutionLegalPage })));
-const InstitutionBrandingPage = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBrandingPage })));
-const InstitutionChannelPage = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannelPage })));
-const InstitutionCurrencyPage = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrencyPage })));
+const InstitutionModule = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModule })));
+const InstitutionModuleView = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModuleView })));
+const InstitutionLegal = lazy(() => import("@/Components/Institution/InstitutionLegal").then((m) => ({ default: m.InstitutionLegal })));
+const InstitutionBranding = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBranding })));
+const InstitutionChannel = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannel })));
+const InstitutionCurrency = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrency })));
 export const institutionRoutes = [
   { path: "/institutions", element: pageElement(InstitutionListPage) },
   { path: "/institutions/pending", element: <Navigate to="/institutions" replace /> },
@@ -36,17 +36,17 @@ export const institutionRoutes = [
   // trailing :id, since the fabricated navigation always appends one) for
   // the click to land here instead of the app's error/not-found screen.
   { path: "/institutionprofile/:id", element: pageElement(InstitutionListPage) },
-  { path: "/institutionmodule", element: pageElement(InstitutionModulePage) },
-  { path: "/institutionmodule/view/:id", element: pageElement(InstitutionModuleViewPage) },
-  { path: "/institutionmodule/:id", element: pageElement(InstitutionModulePage) },
-  { path: "/institutionlegal", element: pageElement(InstitutionLegalPage) },
-  { path: "/institutionlegal/:id", element: pageElement(InstitutionLegalPage) },
-  { path: "/institutionbranding", element: pageElement(InstitutionBrandingPage) },
-  { path: "/institutionbranding/:id", element: pageElement(InstitutionBrandingPage) },
-  { path: "/institution/branding", element: pageElement(InstitutionBrandingPage) },
-  { path: "/institution/branding/:id", element: pageElement(InstitutionBrandingPage) },
-  { path: "/institutionchannel", element: pageElement(InstitutionChannelPage) },
-  { path: "/institutionchannel/:id", element: pageElement(InstitutionChannelPage) },
-  { path: "/institutioncurrency", element: pageElement(InstitutionCurrencyPage) },
-  { path: "/institutioncurrency/:id", element: pageElement(InstitutionCurrencyPage) },
+  { path: "/institutionmodule", element: pageElement(InstitutionModule) },
+  { path: "/institutionmodule/view/:id", element: pageElement(InstitutionModuleView) },
+  { path: "/institutionmodule/:id", element: pageElement(InstitutionModule) },
+  { path: "/institutionlegal", element: pageElement(InstitutionLegal) },
+  { path: "/institutionlegal/:id", element: pageElement(InstitutionLegal) },
+  { path: "/institutionbranding", element: pageElement(InstitutionBranding) },
+  { path: "/institutionbranding/:id", element: pageElement(InstitutionBranding) },
+  { path: "/institution/branding", element: pageElement(InstitutionBranding) },
+  { path: "/institution/branding/:id", element: pageElement(InstitutionBranding) },
+  { path: "/institutionchannel", element: pageElement(InstitutionChannel) },
+  { path: "/institutionchannel/:id", element: pageElement(InstitutionChannel) },
+  { path: "/institutioncurrency", element: pageElement(InstitutionCurrency) },
+  { path: "/institutioncurrency/:id", element: pageElement(InstitutionCurrency) },
 ];

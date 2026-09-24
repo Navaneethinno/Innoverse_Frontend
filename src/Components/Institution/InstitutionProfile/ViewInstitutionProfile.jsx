@@ -8,7 +8,7 @@ import {
   useHasInstitutionAction,
   useInstitutionUpdateMutation,
   useInstitutionsQuery,
-} from "@/Hooks/Institutions/institutionHooks";
+} from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { Field, institutionId } from "./InstitutionProfileForm";

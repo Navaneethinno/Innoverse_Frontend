@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { ProfilePermissionTree } from "@/Components/Profiles/ProfilePermissionTree";
+import { ProfilePermissionTree } from "@/Components/UserManagement/Profile/ProfilePermissionTree";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -22,9 +22,9 @@ import {
   useProfileMenuItem,
   useProfileUpdateMutation,
   useProfilesQuery,
-} from "@/Hooks/Profiles/profileHooks";
-import { profilesApi } from "@/Services/Profiles/profiles.api";
-import { useActiveInstitutionsQuery } from "@/Hooks/Institutions/institutionHooks";
+} from "@/Hooks/UserManagement/profileHooks";
+import { profilesApi } from "@/Services/UserManagement/profiles.api";
+import { useActiveInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
 import { AddProfile } from "./AddProfile";
