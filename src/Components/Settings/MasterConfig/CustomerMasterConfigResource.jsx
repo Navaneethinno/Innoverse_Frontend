@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -112,7 +113,10 @@ const allowed = (menus, action, menuName) =>
   );
 
 export function CustomerMasterConfigResource({ entity }) {
+  const { t } = useTranslation(["onboarding", "common"]);
   const config = CONFIGS[entity];
+  // config.menuName (English) drives permissions; this is only what shows.
+  const displayTitle = t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
   const menus = useSelector((state) => state.menu.menuArray);
   const { ownershipTypes = [] } = useOwnershipTypes(Boolean(config.hasOwnership));
 
@@ -214,7 +218,7 @@ export function CustomerMasterConfigResource({ entity }) {
       if (wasDraft && !draft) {
         await config.api.submit({ id: idOf(editing), narration: "Submitted for review" });
       }
-      notifications.success(apiMessage(response, `${config.title} saved`));
+      notifications.success(apiMessage(response, t("onboarding:titleSaved", { title: displayTitle })));
       setOpen(false);
       setEditing(null);
       setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });
@@ -246,7 +250,7 @@ export function CustomerMasterConfigResource({ entity }) {
                   : action.type === "reactivate"
                     ? await config.api.reactivate(payload)
                     : await config.api.deleteAuth(payload);
-      notifications.success(apiMessage(response, `${config.title} action completed`));
+      notifications.success(apiMessage(response, t("onboarding:actionCompleted", { title: displayTitle })));
       setAction(null);
       void load();
     } catch (error) {
@@ -257,37 +261,37 @@ export function CustomerMasterConfigResource({ entity }) {
   };
 
   const columns = [
-    ...(config.hasCategory ? [{ key: "category", label: "Category", render: (row) => row.category ?? "-" }] : []),
-    { key: "code", label: "Code", render: (row) => row.code ?? "-" },
-    { key: "name", label: "Name", render: (row) => row.name ?? "-" },
-    { key: "description", label: "Description", render: (row) => row.description || "-" },
+    ...(config.hasCategory ? [{ key: "category", label: t("onboarding:category"), render: (row) => row.category ?? "-" }] : []),
+    { key: "code", label: t("onboarding:code"), render: (row) => row.code ?? "-" },
+    { key: "name", label: t("onboarding:name"), render: (row) => row.name ?? "-" },
+    { key: "description", label: t("common:description"), render: (row) => row.description || "-" },
     ...(config.hasOwnership
       ? [
           {
             key: "ownership_id",
-            label: "Ownership",
+            label: t("onboarding:ownership"),
             render: (row) => ownershipTypes.find((o) => String(o.id) === String(row.ownership_id))?.name ?? row.ownership_id ?? "-",
           },
         ]
       : []),
     {
       key: "status",
-      label: "Status",
+      label: t("common:status"),
       render: (row) => <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />,
     },
     {
       key: "process_status_name",
-      label: "Process Status",
+      label: t("common:processStatus"),
       render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} />,
     },
     {
       key: "auth_status",
-      label: "Authorization Status",
+      label: t("common:authorizationStatus"),
       render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} />,
     },
     {
       key: "actions",
-      label: "Actions",
+      label: t("common:actions"),
       sortable: false,
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
@@ -311,12 +315,12 @@ export function CustomerMasterConfigResource({ entity }) {
               })()
             }
             onAudit={() => setAudit(row)}
-            onSubmit={() => setAction({ type: "submit", row, label: "Submit", reason: "" })}
-            onAuthorize={() => setAction({ type: pendingType, row, label: "Authorize", reason: "" })}
-            onDeauthorize={() => setAction({ type: "deauth", row, label: "Deauthorize", reason: "" })}
-            onDeactivate={() => setAction({ type: "deactivate", row, label: "Deactivate", reason: "" })}
-            onReactivate={() => setAction({ type: "reactivate", row, label: "Reactivate", reason: "" })}
-            onDelete={() => setAction({ type: "delete", row, label: "Delete", reason: "" })}
+            onSubmit={() => setAction({ type: "submit", row, label: t("common:submit"), reason: "" })}
+            onAuthorize={() => setAction({ type: pendingType, row, label: t("common:authorize"), reason: "" })}
+            onDeauthorize={() => setAction({ type: "deauth", row, label: t("common:deauthorize"), reason: "" })}
+            onDeactivate={() => setAction({ type: "deactivate", row, label: t("statusLabels:Deactivate"), reason: "" })}
+            onReactivate={() => setAction({ type: "reactivate", row, label: t("common:reactivate"), reason: "" })}
+            onDelete={() => setAction({ type: "delete", row, label: t("statusLabels:Delete"), reason: "" })}
           />
         );
       },
@@ -332,15 +336,15 @@ export function CustomerMasterConfigResource({ entity }) {
       }}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
     >
-      <Plus size={14} /> Add {config.title}
+      <Plus size={14} /> {t("onboarding:addTitle", { title: displayTitle })}
     </button>
   ) : null;
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{config.title}</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Manage {config.title.toLowerCase()} master data.</p>
+        <h1 className="text-xl font-black text-slate-800">{displayTitle}</h1>
+        <p className="mt-1 text-xs text-muted-foreground">{t("onboarding:manageMasterData", { title: displayTitle.toLowerCase() })}</p>
       </div>
       <div
         className="mb-4 overflow-hidden rounded-2xl"
@@ -352,7 +356,7 @@ export function CustomerMasterConfigResource({ entity }) {
           onChange={setTab}
           search={search}
           onSearch={setSearch}
-          searchPlaceholder={`Search ${config.title.toLowerCase()}...`}
+          searchPlaceholder={t("onboarding:searchTitle", { title: displayTitle.toLowerCase() })}
           actions={addAction}
           bare
         />
@@ -361,7 +365,7 @@ export function CustomerMasterConfigResource({ entity }) {
           rows={visible}
           rowKey={idOf}
           isLoading={loading}
-          title={config.title}
+          title={displayTitle}
           serverPagination={{
             page,
             totalPages: pagination.totalPages ?? 1,
@@ -381,11 +385,11 @@ export function CustomerMasterConfigResource({ entity }) {
         <Modal
           open
           onClose={() => setOpen(false)}
-          title={`${editing ? "Edit" : "Add"} ${config.title}`}
+          title={t(editing ? "onboarding:editTitle" : "onboarding:addTitle", { title: displayTitle })}
           footer={
             <>
               <button onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
-                Cancel
+                {t("common:cancel")}
               </button>
               <button
                 type="submit"
@@ -395,7 +399,7 @@ export function CustomerMasterConfigResource({ entity }) {
                 className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold"
               >
                 {saving && <Spinner size={13} />}
-                Save as draft
+                {t("onboarding:saveAsDraft")}
               </button>
               <button
                 type="submit"
@@ -405,7 +409,7 @@ export function CustomerMasterConfigResource({ entity }) {
                 className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
               >
                 {saving && <Spinner size={13} />}
-                {editing ? "Save changes" : `Add ${config.title}`}
+                {editing ? t("onboarding:saveChanges") : t("onboarding:addTitle", { title: displayTitle })}
               </button>
             </>
           }
@@ -420,14 +424,14 @@ export function CustomerMasterConfigResource({ entity }) {
           >
             {config.hasOwnership && (
               <label className="text-sm font-semibold text-slate-700">
-                Ownership
+                {t("onboarding:ownership")}
                 <FilterSelect
                   className="mt-1.5"
                   value={form.ownership_id}
                   onChange={(value) => setForm({ ...form, ownership_id: value })}
                   disabled={Boolean(editing)}
                   options={[
-                    { value: "", label: "Select ownership" },
+                    { value: "", label: t("customer:selectOwnership") },
                     ...ownershipTypes.map((o) => ({ value: o.id, label: o.name ?? String(o.id) })),
                   ]}
                 />
@@ -435,21 +439,21 @@ export function CustomerMasterConfigResource({ entity }) {
             )}
             {config.hasCategory && (
               <label className="text-sm font-semibold text-slate-700">
-                Category
+                {t("onboarding:category")}
                 <FilterSelect
                   className="mt-1.5"
                   value={form.category}
                   onChange={(value) => setForm({ ...form, category: value })}
                   disabled={Boolean(editing)}
                   options={[
-                    { value: "", label: "Select category" },
+                    { value: "", label: t("onboarding:selectCategory") },
                     ...DOCUMENT_TYPE_CATEGORIES.map((c) => ({ value: c, label: c })),
                   ]}
                 />
               </label>
             )}
             <label className="text-sm font-semibold text-slate-700">
-              Code
+              {t("onboarding:code")}
               <input
                 required
                 disabled={Boolean(editing)}
@@ -457,10 +461,10 @@ export function CustomerMasterConfigResource({ entity }) {
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })}
                 className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono disabled:bg-muted"
               />
-              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">A-Z, 0-9 and _. Cannot be changed later.</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:aZ09AndCannotBe")}</span>
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Name
+              {t("onboarding:name")}
               <input
                 required
                 value={form.name}
@@ -469,7 +473,7 @@ export function CustomerMasterConfigResource({ entity }) {
               />
             </label>
             <label className="text-sm font-semibold text-slate-700">
-              Description
+              {t("common:description")}
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -482,15 +486,15 @@ export function CustomerMasterConfigResource({ entity }) {
         </Modal>
       )}
       {view && (
-        <Modal open title={`View ${config.title}`} onClose={() => setView(null)} size="sm">
+        <Modal open title={t("onboarding:viewTitle", { title: displayTitle })} onClose={() => setView(null)} size="sm">
           <dl className="grid gap-3">
             {[
-              ...(config.hasCategory ? [["Category", view.category]] : []),
-              ["Code", view.code],
-              ["Name", view.name],
-              ["Description", view.description],
+              ...(config.hasCategory ? [[t("onboarding:category"), view.category]] : []),
+              [t("onboarding:code"), view.code],
+              [t("onboarding:name"), view.name],
+              [t("common:description"), view.description],
               ...(config.hasOwnership
-                ? [["Ownership", ownershipTypes.find((o) => String(o.id) === String(view.ownership_id))?.name ?? view.ownership_id]]
+                ? [[t("onboarding:ownership"), ownershipTypes.find((o) => String(o.id) === String(view.ownership_id))?.name ?? view.ownership_id]]
                 : []),
             ].map(([label, value]) => (
               <div key={label} className="rounded-xl border p-3">
@@ -503,16 +507,16 @@ export function CustomerMasterConfigResource({ entity }) {
       )}
       {audit && (
         <AuditModal
-          title={config.title}
+          title={displayTitle}
           onClose={() => setAudit(null)}
-          fields={[...(config.hasCategory ? [["category", "Category"]] : []), ["name", "Name"], ["description", "Description"], ...(config.hasOwnership ? [["ownership_id", "Ownership"]] : [])]}
+          fields={[...(config.hasCategory ? [["category", t("onboarding:category")]] : []), ["name", t("onboarding:name")], ["description", t("common:description")], ...(config.hasOwnership ? [["ownership_id", t("onboarding:ownership")]] : [])]}
           fetchAudit={(p, l) => config.api.audit({ id: idOf(audit), page: p, limit: l }).then(mapAuditResponse)}
         />
       )}
       {action && (
         <ConfirmDialog
           open
-          title={`${action.label} ${config.title}`}
+          title={`${action.label} ${displayTitle}`}
           description={describeConfirmAction(action.type, describeActionRow(action.row))}
           confirmLabel={action.label}
           destructive={["deauth", "delete", "deleteAuth"].includes(action.type)}
@@ -524,14 +528,14 @@ export function CustomerMasterConfigResource({ entity }) {
           {["auth", "deauth", "deleteAuth"].includes(action.type) && <PendingChangesDiff {...pendingInfo} />}
           {action.type === "submit" && (
             <dl className="mt-1 grid gap-2">
-              <p className="text-xs font-semibold text-muted-foreground">This is what will be submitted for review:</p>
+              <p className="text-xs font-semibold text-muted-foreground">{t("onboarding:submitPreview")}</p>
               {[
-                ...(config.hasCategory ? [["Category", action.row?.category]] : []),
-                ["Code", action.row?.code],
-                ["Name", action.row?.name],
-                ["Description", action.row?.description],
+                ...(config.hasCategory ? [[t("onboarding:category"), action.row?.category]] : []),
+                [t("onboarding:code"), action.row?.code],
+                [t("onboarding:name"), action.row?.name],
+                [t("common:description"), action.row?.description],
                 ...(config.hasOwnership
-                  ? [["Ownership", ownershipTypes.find((o) => String(o.id) === String(action.row?.ownership_id))?.name ?? action.row?.ownership_id]]
+                  ? [[t("onboarding:ownership"), ownershipTypes.find((o) => String(o.id) === String(action.row?.ownership_id))?.name ?? action.row?.ownership_id]]
                   : []),
               ].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-border p-2.5">
@@ -545,7 +549,7 @@ export function CustomerMasterConfigResource({ entity }) {
             className="mt-3 min-h-20 w-full rounded-xl border p-3"
             value={action.reason ?? ""}
             onChange={(e) => setAction({ ...action, reason: e.target.value })}
-            placeholder="Narration"
+            placeholder={t("onboarding:narration")}
           />
         </ConfirmDialog>
       )}

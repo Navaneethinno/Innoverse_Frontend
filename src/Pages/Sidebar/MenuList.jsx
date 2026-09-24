@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { MenuItem } from "./MenuItem";
 import { getRootMenuItems } from "./menuSearchUtils";
+import { useTranslation } from "react-i18next";
 
 // Ported from payseFrontend src/Pages/Sidebar/MenuList.jsx: root menus are
 // parent_menu_id === 0, sorted by backend priority (never alphabetically).
@@ -21,6 +22,7 @@ export function MenuList({
   autoExpandedMenuIds,
   isSearching = false,
 }) {
+  const { t } = useTranslation();
   const [activeMenuId, setActiveMenuId] = useState(null);
 
   const sortedRootMenus = useMemo(() => getRootMenuItems(menuItems), [menuItems]);
@@ -29,8 +31,8 @@ export function MenuList({
     if (searchQuery) {
       return (
         <div className="mx-2 mt-3 rounded-lg border border-border bg-white/70 px-3 py-4 text-center">
-          <p className="text-xs font-semibold text-slate-600">No menus found</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">Try a different keyword.</p>
+          <p className="text-xs font-semibold text-slate-600">{t("sidebar:noMenusFound")}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("sidebar:tryADifferentKeyword")}</p>
         </div>
       );
     }

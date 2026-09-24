@@ -102,6 +102,12 @@ export const common = {
   typeToSearch: "Digite para pesquisar...",
   confirmActionQuestion: "Tem certeza de que deseja {{action}} {{name}}?",
   working: "Processando...",
+  copyToClipboard: "Copiar para a área de transferência",
+  noData: "Sem dados",
+  copied: "Copiado!",
+  somethingWentWrong: "Algo deu errado",
+  menu: "Menu",
+  dismiss: "Dispensar",
 };
 
 export const auth = {
@@ -235,6 +241,18 @@ export const institutions = {
   emptyTitle: "Nenhuma instituição encontrada",
   emptyDescription: "Ajuste sua pesquisa ou critérios de filtro",
   retry: "Tentar novamente",
+  loadingInstitutionModule: "Carregando módulo da instituição...",
+  institutionModuleNotFound: "Módulo da instituição não encontrado",
+  backToInstitutionModules: "Voltar aos módulos da instituição",
+  viewInstitutionModuleAssignmentDetails: "Visualize os detalhes da atribuição do módulo da instituição.",
+  assignmentDetails: "Detalhes da atribuição",
+  moduleField: "Módulo",
+  institutionField: "Instituição",
+  effectiveFromField: "Vigente a partir de",
+  effectiveToField: "Vigente até",
+  configurationField: "Configuração",
+  dateFormat: "Formato de Data",
+  selectDateFormat: "Selecione um formato de data",
 };
 
 export const profiles = {
@@ -266,6 +284,15 @@ export const profiles = {
   tabActive: "Ativos",
   tabInactive: "Inativos",
   tabPending: "Pendentes",
+  loadingAvailableMenuActions: "Carregando as ações de menu disponíveis...",
+  retry: "Tentar novamente",
+  noValidMenuActionDataIsAvailable: "Não há dados válidos de menu/ação disponíveis para conceder.",
+  noPermissionsGranted: "Nenhuma permissão concedida.",
+  searchModulesOrMenus: "Pesquisar módulos ou menus…",
+  allModules: "Todos os módulos",
+  selectAll: "Selecionar tudo",
+  configurationOnly: "Somente configuração",
+  saveAsDraft: "Salvar como rascunho",
 };
 
 export const users = {
@@ -287,6 +314,7 @@ export const users = {
   selectProfile: "Selecione o perfil",
   showPassword: "Mostrar senha",
   hidePassword: "Ocultar senha",
+  saveAsDraft: "Salvar como rascunho",
 };
 
 export const dashboard = {
@@ -357,6 +385,8 @@ export const sidebar = {
   noModulesAvailable: "Nenhum módulo disponível",
   searchMenuPlaceholder: "Pesquisar menu (Ctrl+K)",
   clearSearch: "Limpar pesquisa",
+  noMenusFound: "Nenhum menu encontrado",
+  tryADifferentKeyword: "Tente outra palavra-chave.",
 };
 
 export const layout = {
@@ -368,6 +398,11 @@ export const layout = {
   switchToDarkMode: "Mudar para modo escuro",
   admin: "Admin",
   platform: "Plataforma",
+  notifications: "Notificações",
+  alertsAndActivityForYourAccount: "Alertas e atividades da sua conta.",
+  noNotificationsYet: "Nenhuma notificação ainda",
+  youReAllCaughtUpNewNotifications: "Você está em dia. Novas notificações aparecerão aqui.",
+  openMenu: "Abrir menu",
 };
 
 export const routes = {
@@ -860,6 +895,21 @@ export const onboarding = {
   submitPreview: "Isto é o que será enviado para revisão:",
   rejectReasonRequired: "Motivo da rejeição (obrigatório)",
   narration: "Narração",
+  category: "Categoria",
+  selectCategory: "Selecione a categoria",
+  aZ09AndCannotBe: "A-Z, 0-9 e _. Não pode ser alterado depois.",
+  masterTitle_marital_status: "Estado Civil",
+  masterTitle_visa_type: "Tipo de Visto",
+  masterTitle_immigration_status: "Situação Migratória",
+  masterTitle_address_type: "Tipo de Endereço",
+  masterTitle_relationship_type: "Tipo de Relacionamento",
+  masterTitle_indv_verification_status: "Status de Verificação",
+  masterTitle_indv_verification_method: "Método de Verificação",
+  masterTitle_indv_tax_status: "Situação Fiscal",
+  masterTitle_indv_tax_classification: "Classificação Fiscal",
+  masterTitle_indv_pep_status: "Status PEP",
+  masterTitle_indv_pep_category: "Categoria PEP",
+  masterTitle_ownership_sub_type: "Subtipo de Titularidade",
 };
 
 export const statusLabels = {

@@ -1,4 +1,5 @@
 import { Calendar } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -21,15 +22,16 @@ const DATE_FORMAT_OPTIONS = [
   "YYYY/MM/DD",
 ];
 
-export function DateFormatField({ label = "Date Format", value, onChange }) {
+export function DateFormatField({ label, value, onChange }) {
+  const { t } = useTranslation();
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
+      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label ?? t("institutions:dateFormat")}</label>
       <Select value={value || undefined} onValueChange={onChange}>
         <SelectTrigger className="w-full rounded-xl bg-muted border-border h-auto py-2.5 px-4">
           <div className="flex items-center gap-2 text-sm">
             <Calendar size={14} className="text-muted-foreground shrink-0" />
-            <SelectValue placeholder="Select a date format" />
+            <SelectValue placeholder={t("institutions:selectDateFormat")} />
           </div>
         </SelectTrigger>
         <SelectContent>

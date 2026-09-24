@@ -104,6 +104,12 @@ export const common = {
   typeToSearch: "Type to search...",
   confirmActionQuestion: "Are you sure you want to {{action}} {{name}}?",
   working: "Working...",
+  copyToClipboard: "Copy to clipboard",
+  noData: "No data",
+  copied: "Copied!",
+  somethingWentWrong: "Something went wrong",
+  menu: "Menu",
+  dismiss: "Dismiss",
 };
 
 export const auth = {
@@ -240,6 +246,18 @@ export const institutions = {
   emptyTitle: "No institutions found",
   emptyDescription: "Adjust your search or filter criteria",
   retry: "Retry",
+  loadingInstitutionModule: "Loading institution module...",
+  institutionModuleNotFound: "Institution module not found",
+  backToInstitutionModules: "Back to institution modules",
+  viewInstitutionModuleAssignmentDetails: "View institution module assignment details.",
+  assignmentDetails: "Assignment details",
+  moduleField: "Module",
+  institutionField: "Institution",
+  effectiveFromField: "Effective From",
+  effectiveToField: "Effective To",
+  configurationField: "Configuration",
+  dateFormat: "Date Format",
+  selectDateFormat: "Select a date format",
 };
 
 export const profiles = {
@@ -271,6 +289,15 @@ export const profiles = {
   tabActive: "Active",
   tabInactive: "Inactive",
   tabPending: "Pending",
+  loadingAvailableMenuActions: "Loading available menu actions...",
+  retry: "Retry",
+  noValidMenuActionDataIsAvailable: "No valid menu/action data is available to grant.",
+  noPermissionsGranted: "No permissions granted.",
+  searchModulesOrMenus: "Search modules or menus…",
+  allModules: "All modules",
+  selectAll: "Select all",
+  configurationOnly: "Configuration only",
+  saveAsDraft: "Save as draft",
 };
 
 export const users = {
@@ -303,6 +330,7 @@ export const users = {
   fieldMobile: "Mobile",
   fieldGender: "Gender",
   fieldAddress: "Address",
+  saveAsDraft: "Save as draft",
 };
 
 export const dashboard = {
@@ -373,6 +401,8 @@ export const sidebar = {
   noModulesAvailable: "No modules available",
   searchMenuPlaceholder: "Search menu (Ctrl+K)",
   clearSearch: "Clear search",
+  noMenusFound: "No menus found",
+  tryADifferentKeyword: "Try a different keyword.",
 };
 
 export const layout = {
@@ -384,6 +414,11 @@ export const layout = {
   switchToDarkMode: "Switch to dark mode",
   admin: "Admin",
   platform: "Platform",
+  notifications: "Notifications",
+  alertsAndActivityForYourAccount: "Alerts and activity for your account.",
+  noNotificationsYet: "No notifications yet",
+  youReAllCaughtUpNewNotifications: "You're all caught up. New notifications will appear here.",
+  openMenu: "Open menu",
 };
 
 // Every routeConfig.js breadcrumb/title segment, keyed the same way
@@ -880,6 +915,21 @@ export const onboarding = {
   submitPreview: "This is what will be submitted for review:",
   rejectReasonRequired: "Reason for rejecting (required)",
   narration: "Narration",
+  category: "Category",
+  selectCategory: "Select category",
+  aZ09AndCannotBe: "A-Z, 0-9 and _. Cannot be changed later.",
+  masterTitle_marital_status: "Marital Status",
+  masterTitle_visa_type: "Visa Type",
+  masterTitle_immigration_status: "Immigration Status",
+  masterTitle_address_type: "Address Type",
+  masterTitle_relationship_type: "Relationship Type",
+  masterTitle_indv_verification_status: "Verification Status",
+  masterTitle_indv_verification_method: "Verification Method",
+  masterTitle_indv_tax_status: "Tax Status",
+  masterTitle_indv_tax_classification: "Tax Classification",
+  masterTitle_indv_pep_status: "PEP Status",
+  masterTitle_indv_pep_category: "PEP Category",
+  masterTitle_ownership_sub_type: "Ownership Sub Type",
 };
 
 export const statusLabels = {

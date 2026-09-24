@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { createPortal } from "react-dom";
 import "./CompactPulseToast.css";
 import { PROBLEM_BULLET } from "@/Services/api/apiErrors";
+import { useTranslation } from "react-i18next";
 
 // getApiErrorMessage packs a refusal as "headline\n• problem\n• problem"
 // (message + data[0].problems) — split it back into a headline and a list.
@@ -55,6 +56,7 @@ export function showPulseToast(message, options) {
 }
 
 export function ToastProvider({ children }) {
+  const { t } = useTranslation("common");
   const [toast, setToast] = useState(null); // single active toast, matches the "compact" intent
   const timerRef = useRef(null);
 
@@ -105,7 +107,7 @@ export function ToastProvider({ children }) {
                 </svg>
               </span>
               <ToastBody message={toast.message} />
-              <button type="button" className="cpt-close" onClick={dismiss} aria-label="Dismiss">
+              <button type="button" className="cpt-close" onClick={dismiss} aria-label={t("dismiss")}>
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>

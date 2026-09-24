@@ -1,5 +1,6 @@
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import loadingAnimation from "@/assets/animations/loading.lottie";
+import { useTranslation } from "react-i18next";
 
 // The source file's own composition is 800x200 (a wide 4:1 banner, not a
 // square icon) — every call site's className must keep that 4:1 ratio, or
@@ -11,13 +12,14 @@ import loadingAnimation from "@/assets/animations/loading.lottie";
 // past the container instead of actually filling it. Matching the box's
 // aspect ratio to the source fixes the root cause; no transform needed.
 export function LoadingAnimation({ className = "h-16 w-64" }) {
+  const { t } = useTranslation();
   return (
     <DotLottieReact
       className={className}
       src={loadingAnimation}
       loop
       autoplay
-      aria-label="Loading"
+      aria-label={t("common:loading")}
     />
   );
 }

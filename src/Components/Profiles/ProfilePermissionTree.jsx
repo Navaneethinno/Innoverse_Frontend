@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { masterApi } from "@/Services/Master/master.api";
+import { useTranslation } from "react-i18next";
 
 // Base data source deliberately reused rather than inventing a new master
 // endpoint: the Postman collection has no confirmed /master/menu/list or
@@ -133,6 +134,7 @@ function normalizeGrants(grants, modules) {
  * Profiles "View" action) instead of a second, duplicated read-only tree.
  */
 export function ProfilePermissionTree({ selected, onChange, readOnly = false }) {
+  const { t } = useTranslation();
   const { modules, isLoading, error, refetch } = useMenuTreeSource();
   const [query, setQuery] = useState("");
   const [openModuleIds, setOpenModuleIds] = useState(() => new Set());
@@ -257,23 +259,23 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     : filteredModules;
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading available menu actions...</p>;
+    return <p className="text-sm text-muted-foreground">{t("profiles:loadingAvailableMenuActions")}</p>;
   }
   if (error) {
     return (
       <div className="flex items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
         <span>{error.message}</span>
         <button type="button" onClick={() => void refetch()} className="text-xs font-bold underline">
-          Retry
+          {t("profiles:retry")}
         </button>
       </div>
     );
   }
   if (modules.length === 0) {
-    return <p className="text-sm text-muted-foreground">No valid menu/action data is available to grant.</p>;
+    return <p className="text-sm text-muted-foreground">{t("profiles:noValidMenuActionDataIsAvailable")}</p>;
   }
   if (readOnly && visibleModules.length === 0) {
-    return <p className="text-sm text-muted-foreground">No permissions granted.</p>;
+    return <p className="text-sm text-muted-foreground">{t("profiles:noPermissionsGranted")}</p>;
   }
 
   // When filtering, auto-expand every matching module so results are
@@ -291,7 +293,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search modules or menus…"
+            placeholder={t("profiles:searchModulesOrMenus")}
             className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
           />
         </div>
@@ -303,7 +305,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
           style={{ borderColor: "var(--primary-light)", background: "var(--primary-light)" }}
         >
           <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>
-            All modules
+            {t("profiles:allModules")}
           </span>
           <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
             <input
@@ -313,7 +315,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
               className="h-3.5 w-3.5"
               style={{ accentColor: "var(--primary)" }}
             />
-            Select all
+            {t("profiles:selectAll")}
           </span>
         </label>
       )}
@@ -360,7 +362,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                       className="h-3.5 w-3.5"
                       style={{ accentColor: "var(--primary)" }}
                     />
-                    Select all
+                    {t("profiles:selectAll")}
                   </label>
                 )}
               </div>
@@ -432,7 +434,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                   }
                                   className="h-3.5 w-3.5 accent-[var(--primary)]"
                                 />
-                                Configuration only
+                                {t("profiles:configurationOnly")}
                               </label>
                             )}
                           </div>

@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { i18n } from "@/Utils/I18n/i18n";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, RefreshCw } from "lucide-react";
 class ErrorBoundaryContent extends Component {
@@ -26,7 +27,7 @@ class ErrorBoundaryContent extends Component {
           >
             <div className="flex items-center gap-3 text-red-500 mb-3">
               <AlertCircle className="h-5 w-5 shrink-0" />
-              <h1 className="text-sm font-bold">Something went wrong</h1>
+              <h1 className="text-sm font-bold">{i18n.t("common:somethingWentWrong")}</h1>
             </div>
             {this.state.message && (
               <p className="text-xs text-muted-foreground font-mono bg-muted rounded-xl px-3 py-2 mb-4 break-all">
