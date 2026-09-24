@@ -77,6 +77,9 @@
      touching every call site that already references the utility). */
   --gradient-start: #2266ee;
   --gradient-end: #2266ee;
+  /* Dashboard "Done" (edit-mode active) button: royal blue -> cyan. */
+  --dashboard-edit-from: #4169e1;
+  --dashboard-edit-to: #06b6d4;
 
   /* Surfaces */
   --border: #dedfdf;
@@ -169,6 +172,8 @@
 
   --gradient-start: #4c86f4;
   --gradient-end: #4c86f4;
+  --dashboard-edit-from: #5b7ff0;
+  --dashboard-edit-to: #22d3ee;
 
   --border: #33393b;
   --input: #33393b;
