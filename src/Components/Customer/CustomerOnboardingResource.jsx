@@ -12,6 +12,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Onboarding/customerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Components/OnboardingConfig/LifecycleList";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
@@ -156,7 +157,7 @@ export function CustomerOnboardingResource() {
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
   const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel("/config/customer/individual/list", liveRefresh);
+  useLiveChannel(API_ENDPOINTS.CUSTOMER.INDIVIDUAL.LIST, liveRefresh);
 
   // Same StatusFilterTabs + search filtering every other maker-checker list
   // uses, applied on top of whatever page pending_only already narrowed

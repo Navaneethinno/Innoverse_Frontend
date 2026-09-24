@@ -111,8 +111,5 @@ export const profilesApi = {
   getActive: (payload = { view: "dropdown" }) =>
     request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET_ACTIVE, payload),
   pending: (payload = {}) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.PENDING, payload),
-  // POST /profile/deactivate|reactivate, body {id, narration} — same
-  // maker-checker lifecycle every other entity in the app has.
-  deactivate: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.DEACTIVATE, payload),
-  reactivate: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.REACTIVATE, payload),
+  // No deactivate/reactivate: the server has no such routes for user profiles.
 };

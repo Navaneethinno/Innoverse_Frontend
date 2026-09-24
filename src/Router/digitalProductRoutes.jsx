@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import { Navigate } from "react-router-dom";
 import { pageElement } from "./routeSupport";
 const Resource = lazy(() => import("@/Components/DigitalProduct/DigitalProductResource.jsx").then((m) => ({ default: m.DigitalProductResource })));
 // Confirmed against a real /user/login menu_array: the "product" entity's
@@ -9,6 +10,19 @@ const Resource = lazy(() => import("@/Components/DigitalProduct/DigitalProductRe
 // that one's real name is "Account Product" -> "accountproduct" — the two
 // were never actually the same slug, just similar-looking truncated
 // sidebar labels.
-const names = ["digitalproduct", "productmap", "securityconfig", "kycconfig", "kyclevel", "channelconfig", "channeltransaction", "eligibilityconfig", "residency"];
-const entities = ["product", "product_map", "security_config", "kyc_config", "kyc_level", "channel_config", "channel_transaction", "eligibility_config", "residency"];
-export const digitalProductRoutes = names.flatMap((path, index) => [{ path, element: pageElement(Resource, { entity: entities[index] }) }, { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) }]);
+//
+// Only the product itself has routes on the server
+// (/config/digital_product/product/*). Security, KYC, channel, eligibility
+// and residency settings are sections of that one record, edited in the
+// product wizard — their old standalone menu slugs now open the Digital
+// Product page instead of a list that could only 404.
+const SECTION_SLUGS = ["productmap", "securityconfig", "kycconfig", "kyclevel", "channelconfig", "channeltransaction", "eligibilityconfig", "residency"];
+const toProduct = <Navigate to="/digitalproduct" replace />;
+export const digitalProductRoutes = [
+  { path: "digitalproduct", element: pageElement(Resource, { entity: "product" }) },
+  { path: "digitalproduct/:id", element: pageElement(Resource, { entity: "product" }) },
+  ...SECTION_SLUGS.flatMap((path) => [
+    { path, element: toProduct },
+    { path: `${path}/:id`, element: toProduct },
+  ]),
+];

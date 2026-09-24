@@ -12,6 +12,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Onboarding/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Components/OnboardingConfig/LifecycleList";
 import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboardingWizard";
@@ -153,7 +154,7 @@ export function CorporateCustomerOnboardingResource() {
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
   const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel("/config/customer/corporate/list", liveRefresh);
+  useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, liveRefresh);
 
   const visible =
     !search.trim() && tab === "all"

@@ -17,8 +17,6 @@ import {
   useProfileCreateMutation,
   useProfileSubmitMutation,
   useProfileDeauthMutation,
-  useProfileDeactivateMutation,
-  useProfileReactivateMutation,
   useProfileDeleteAuthMutation,
   useProfileDeleteMutation,
   useProfileMenuItem,
@@ -96,7 +94,6 @@ export function Profile() {
   const canDelete = useHasProfileAction("Delete");
   const canAuthorize = useHasProfileAction("Authorize");
   const canSubmit = useHasProfileAction("Submit");
-  const canChangeStatus = useHasProfileAction("Deactivate") || useHasProfileAction("Reactivate") || useHasProfileAction("Change Status");
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -119,8 +116,6 @@ export function Profile() {
   const deauthMutation = useProfileDeauthMutation();
   const deleteMutation = useProfileDeleteMutation();
   const deleteAuthMutation = useProfileDeleteAuthMutation();
-  const deactivateMutation = useProfileDeactivateMutation();
-  const reactivateMutation = useProfileReactivateMutation();
 
   const profiles = useMemo(() => profilesQuery.data ?? [], [profilesQuery.data]);
   const institutionsById = new Map(institutions.map((institution) => [String(institution.id), institution]));
@@ -237,8 +232,6 @@ export function Profile() {
         });
       if (action.type === "deleteAuth")
         result = await deleteAuthMutation.mutateAsync({ profile_id: id, inst_profile_id: instProfileId });
-      if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration });
-      if (action.type === "reactivate") result = await reactivateMutation.mutateAsync({ id, narration });
       notifications.success(apiMessage(result, "Profile action completed"));
       setAction(null);
       setNarration("");
@@ -252,9 +245,7 @@ export function Profile() {
     authMutation.isPending ||
     deauthMutation.isPending ||
     deleteMutation.isPending ||
-    deleteAuthMutation.isPending ||
-    deactivateMutation.isPending ||
-    reactivateMutation.isPending;
+    deleteAuthMutation.isPending;
 
   const columns = [
     { key: "profile_name", label: t("profileName"), align: "left", render: (p) => renderProfileValue(p, "profile_name") },
@@ -297,7 +288,7 @@ export function Profile() {
       label: t("common:actions"),
       sortable: false,
       render: (p) => {
-        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit, canChangeStatus });
+        const visibility = getMakerCheckerButtons(p, { canAdd, canEdit, canAuthorize, canDelete, canSubmit, canChangeStatus: false });
         const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
         return (
           <RowActions
@@ -308,8 +299,6 @@ export function Profile() {
             onSubmit={() => setAction({ type: "submit", profile: p, label: "Submit draft" })}
             onAuthorize={() => setAction({ type: pendingType, profile: p, label: "Authorize" })}
             onDeauthorize={() => setAction({ type: "deauth", profile: p, label: "Deauthorize" })}
-            onDeactivate={() => setAction({ type: "deactivate", profile: p, label: "Deactivate" })}
-            onReactivate={() => setAction({ type: "reactivate", profile: p, label: "Reactivate" })}
             onDelete={() => setAction({ type: "delete", profile: p, label: "Delete" })}
           />
         );
@@ -438,7 +427,7 @@ export function Profile() {
       />
 
       <ConfirmDialog
-        open={["submit", "deleteAuth", "deactivate", "reactivate"].includes(action?.type)}
+        open={["submit", "deleteAuth"].includes(action?.type)}
         title={`${action?.label ?? "Confirm action"} profile`}
         confirmLabel={action?.label ?? "Confirm"}
         destructive={action?.type === "deleteAuth"}
@@ -446,7 +435,7 @@ export function Profile() {
         onClose={closeAction}
         onConfirm={() => void runAction()}
       >
-        {["submit", "deactivate", "reactivate"].includes(action?.type) && (
+        {action?.type === "submit" && (
           <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Narration
             <textarea

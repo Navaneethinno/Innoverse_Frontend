@@ -1,5 +1,9 @@
 const configuredBaseUrl =
   import.meta.env.VITE_API_BASE_URL || "https://etakuapi.innovitegrasuite.com";
+// Host only: every path below is the FULL route. Admin routes start with
+// /config/, masters with /master/ or /master_config/ (never /config), health
+// is /health. A base ending in /config turns every master path into
+// /config/master/... and 404s it. Live channels are host + path + /live.
 
 export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, "");
 export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME || "webadmin";
@@ -36,9 +40,9 @@ export const INSTITUTION_DRAFT_STATUS_CODE = Number(
 // NOTE — there are THREE separate things named "KYC" in this app, each its
 // own backend entity with its own routes. Do not merge or alias between
 // them:
-//   1. USER_MANAGEMENT.KYC       -> /user/kyc/*             (a user's own KYC record)
-//   2. CONFIG_KYC (under EPURSE > Configuration > KYC) -> /config/kyc_group*, /config/kyc_group_level*, /config/kyc_group_level_data*, /config/kyc_group_level_process*, /config/kyc_group_level_document* (KYC group/level config used by Config - Acct)
-//   3. DIGITAL_PRODUCT's "KYC Config" / "KYC Level" menu items -> /digital_product/kyc_config/*, /digital_product/kyc_level/* (per-product KYC requirement, via digitalProductApi("kyc_config") / ("kyc_level"))
+//   1. USER_MANAGEMENT.KYC       -> /config/user/kyc/*   (a user's own KYC record)
+//   2. CONFIG_KYC.KYC_GROUP      -> /config/kyc/group/*  (a KYC scheme and its levels, one record)
+//   3. Digital product KYC       -> no routes of its own; part of /config/digital_product/product/*
 // ---------------------------------------------------------------------------
 export const API_ENDPOINTS = {
   AUTH: {
@@ -130,8 +134,6 @@ export const API_ENDPOINTS = {
       EDIT: "/config/user/profile/edit",
       DELETE: "/config/user/profile/delete",
       DELETE_AUTH: "/config/user/profile/delete_auth",
-      DEACTIVATE: "/config/user/profile/deactivate",
-      REACTIVATE: "/config/user/profile/reactivate",
     },
     USER: {
       LIST: "/config/user/list",
@@ -461,62 +463,6 @@ export const API_ENDPOINTS = {
     },
   },
 
-  // --- EPURSE > Individual Customer Onboarding Configuration ---------------
-  // 6 menu-wise, separated entities (no composite tree) that configure what
-  // an institution's individual-customer onboarding wizard shows/requires —
-  // see Individual_Customer_Onboarding_Configuration_APIs.md (2026-09).
-  // Every path configCustomerApi(entity) calls, spelled out.
-  CONFIG_CUSTOMER: {
-    INDV_TYPE_CONFIG: {
-      ADD: "/config/customer/indv_type_config/add", SUBMIT: "/config/customer/indv_type_config/submit", EDIT: "/config/customer/indv_type_config/edit",
-      AUTH: "/config/customer/indv_type_config/auth", DEAUTH: "/config/customer/indv_type_config/deauth", DELETE: "/config/customer/indv_type_config/delete",
-      DELETE_AUTH: "/config/customer/indv_type_config/delete_auth", LIST: "/config/customer/indv_type_config/list",
-      GET_ACTIVE: "/config/customer/indv_type_config/get_active", AUDIT: "/config/customer/indv_type_config/audit",
-      DEACTIVATE: "/config/customer/indv_type_config/deactivate", REACTIVATE: "/config/customer/indv_type_config/reactivate",
-      PENDING: "/config/customer/indv_type_config/pending",
-    },
-    INDV_IDENTIFICATION_TYPE: {
-      ADD: "/config/customer/indv_identification_type/add", SUBMIT: "/config/customer/indv_identification_type/submit", EDIT: "/config/customer/indv_identification_type/edit",
-      AUTH: "/config/customer/indv_identification_type/auth", DEAUTH: "/config/customer/indv_identification_type/deauth", DELETE: "/config/customer/indv_identification_type/delete",
-      DELETE_AUTH: "/config/customer/indv_identification_type/delete_auth", LIST: "/config/customer/indv_identification_type/list",
-      GET_ACTIVE: "/config/customer/indv_identification_type/get_active", AUDIT: "/config/customer/indv_identification_type/audit",
-      DEACTIVATE: "/config/customer/indv_identification_type/deactivate", REACTIVATE: "/config/customer/indv_identification_type/reactivate",
-      PENDING: "/config/customer/indv_identification_type/pending",
-    },
-    INDV_ADDRESS_TYPE: {
-      ADD: "/config/customer/indv_address_type/add", SUBMIT: "/config/customer/indv_address_type/submit", EDIT: "/config/customer/indv_address_type/edit",
-      AUTH: "/config/customer/indv_address_type/auth", DEAUTH: "/config/customer/indv_address_type/deauth", DELETE: "/config/customer/indv_address_type/delete",
-      DELETE_AUTH: "/config/customer/indv_address_type/delete_auth", LIST: "/config/customer/indv_address_type/list",
-      GET_ACTIVE: "/config/customer/indv_address_type/get_active", AUDIT: "/config/customer/indv_address_type/audit",
-      DEACTIVATE: "/config/customer/indv_address_type/deactivate", REACTIVATE: "/config/customer/indv_address_type/reactivate",
-      PENDING: "/config/customer/indv_address_type/pending",
-    },
-    INDV_EMPLOYMENT_CONFIG: {
-      ADD: "/config/customer/indv_employment_config/add", SUBMIT: "/config/customer/indv_employment_config/submit", EDIT: "/config/customer/indv_employment_config/edit",
-      AUTH: "/config/customer/indv_employment_config/auth", DEAUTH: "/config/customer/indv_employment_config/deauth", DELETE: "/config/customer/indv_employment_config/delete",
-      DELETE_AUTH: "/config/customer/indv_employment_config/delete_auth", LIST: "/config/customer/indv_employment_config/list",
-      GET_ACTIVE: "/config/customer/indv_employment_config/get_active", AUDIT: "/config/customer/indv_employment_config/audit",
-      DEACTIVATE: "/config/customer/indv_employment_config/deactivate", REACTIVATE: "/config/customer/indv_employment_config/reactivate",
-      PENDING: "/config/customer/indv_employment_config/pending",
-    },
-    INDV_DOCUMENT_REQUIREMENT_CONFIG: {
-      ADD: "/config/customer/indv_document_requirement_config/add", SUBMIT: "/config/customer/indv_document_requirement_config/submit", EDIT: "/config/customer/indv_document_requirement_config/edit",
-      AUTH: "/config/customer/indv_document_requirement_config/auth", DEAUTH: "/config/customer/indv_document_requirement_config/deauth", DELETE: "/config/customer/indv_document_requirement_config/delete",
-      DELETE_AUTH: "/config/customer/indv_document_requirement_config/delete_auth", LIST: "/config/customer/indv_document_requirement_config/list",
-      GET_ACTIVE: "/config/customer/indv_document_requirement_config/get_active", AUDIT: "/config/customer/indv_document_requirement_config/audit",
-      DEACTIVATE: "/config/customer/indv_document_requirement_config/deactivate", REACTIVATE: "/config/customer/indv_document_requirement_config/reactivate",
-      PENDING: "/config/customer/indv_document_requirement_config/pending",
-    },
-    INDV_DOCUMENT_TYPE_CONFIG: {
-      ADD: "/config/customer/indv_document_type_config/add", SUBMIT: "/config/customer/indv_document_type_config/submit", EDIT: "/config/customer/indv_document_type_config/edit",
-      AUTH: "/config/customer/indv_document_type_config/auth", DEAUTH: "/config/customer/indv_document_type_config/deauth", DELETE: "/config/customer/indv_document_type_config/delete",
-      DELETE_AUTH: "/config/customer/indv_document_type_config/delete_auth", LIST: "/config/customer/indv_document_type_config/list",
-      GET_ACTIVE: "/config/customer/indv_document_type_config/get_active", AUDIT: "/config/customer/indv_document_type_config/audit",
-      DEACTIVATE: "/config/customer/indv_document_type_config/deactivate", REACTIVATE: "/config/customer/indv_document_type_config/reactivate",
-      PENDING: "/config/customer/indv_document_type_config/pending",
-    },
-  },
-
   // --- EPURSE > Settings > Configuration > Account -------------------------
   // "Account" (acct_product) plus its 16 sub-configs, every one of them
   // scoped to a parent acct_product_id. Every path configKycApi(entity)
@@ -782,9 +728,9 @@ export const API_ENDPOINTS = {
   },
 
   // --- EPURSE > Settings > Configuration > KYC -----------------------------
-  // KYC (#2 of the three KYCs — see note at top of file): KYC group/level
-  // config consumed by Config - Acct, under /config/kyc_group*. Every path
-  // configKycApi(entity) calls for these 5 entities, spelled out.
+  // KYC (#2 of the three KYCs — see note at top of file): a KYC scheme and
+  // all its levels, one record under /config/kyc/group/* (kycSchemeApi in
+  // onboarding.api.js; configKycApi("kyc_group") for dropdowns).
   CONFIG_KYC: {
     KYC_GROUP: {
       ADD: "/config/kyc/group/add", SUBMIT: "/config/kyc/group/submit", EDIT: "/config/kyc/group/edit",
@@ -805,20 +751,9 @@ export const API_ENDPOINTS = {
   },
 
   // --- EPURSE > Digital Product ---------------------------------------------
-  // Sub-menu order (as wired today): Product, Security Config, KYC Config
-  // (#3 of the three KYCs — see note at top of file), KYC Level, Channel
-  // Config, Channel Transaction, Eligibility Config, Residency.
-  //
-  // The sidebar shows additional items under Product (Product Ownership,
-  // Product Party Type, Product Channel, Product Balance Configuration,
-  // Product Group Configuration, Interest/Joint/Lifecycle/Dormancy/Minor/
-  // Alert/Nominee/Numbering/Opening/Statement Configuration) — none of
-  // those have a wired page or confirmed endpoint yet, so no path is listed
-  // for them here; add it under this comment, following the same shape,
-  // once a real endpoint exists.
-  //
-  // Every path digitalProductApi(entity) calls for these 9 entities,
-  // spelled out — nothing built from a template string at request time.
+  // Only the product itself has routes. Security, KYC, channel, eligibility
+  // and residency settings are sections of that one record (edited in the
+  // product wizard), not separate entities.
   DIGITAL_PRODUCT: {
     PRODUCT: {
       ADD: "/config/digital_product/product/add", SUBMIT: "/config/digital_product/product/submit", EDIT: "/config/digital_product/product/edit",
@@ -829,93 +764,44 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/config/digital_product/product/deactivate", REACTIVATE: "/config/digital_product/product/reactivate",
       PENDING: "/config/digital_product/product/pending",
     },
-    PRODUCT_MAP: {
-      ADD: "/config/digital_product/product_map/add", SUBMIT: "/config/digital_product/product_map/submit", EDIT: "/config/digital_product/product_map/edit",
-      AUTH: "/config/digital_product/product_map/auth", DEAUTH: "/config/digital_product/product_map/deauth", DELETE: "/config/digital_product/product_map/delete",
-      DELETE_AUTH: "/config/digital_product/product_map/delete_auth", LIST: "/config/digital_product/product_map/list",
-      GET_ACTIVE: "/config/digital_product/product_map/get_active", AUDIT: "/config/digital_product/product_map/audit",
-      DEACTIVATE: "/config/digital_product/product_map/deactivate", REACTIVATE: "/config/digital_product/product_map/reactivate",
-      PENDING: "/config/digital_product/product_map/pending",
-    },
-    SECURITY_CONFIG: {
-      ADD: "/config/digital_product/security_config/add", SUBMIT: "/config/digital_product/security_config/submit", EDIT: "/config/digital_product/security_config/edit",
-      AUTH: "/config/digital_product/security_config/auth", DEAUTH: "/config/digital_product/security_config/deauth", DELETE: "/config/digital_product/security_config/delete",
-      DELETE_AUTH: "/config/digital_product/security_config/delete_auth", LIST: "/config/digital_product/security_config/list",
-      GET_ACTIVE: "/config/digital_product/security_config/get_active", AUDIT: "/config/digital_product/security_config/audit",
-      DEACTIVATE: "/config/digital_product/security_config/deactivate", REACTIVATE: "/config/digital_product/security_config/reactivate",
-      PENDING: "/config/digital_product/security_config/pending",
-    },
-    KYC_CONFIG: {
-      ADD: "/config/digital_product/kyc_config/add", SUBMIT: "/config/digital_product/kyc_config/submit", EDIT: "/config/digital_product/kyc_config/edit",
-      AUTH: "/config/digital_product/kyc_config/auth", DEAUTH: "/config/digital_product/kyc_config/deauth", DELETE: "/config/digital_product/kyc_config/delete",
-      DELETE_AUTH: "/config/digital_product/kyc_config/delete_auth", LIST: "/config/digital_product/kyc_config/list",
-      GET_ACTIVE: "/config/digital_product/kyc_config/get_active", AUDIT: "/config/digital_product/kyc_config/audit",
-      DEACTIVATE: "/config/digital_product/kyc_config/deactivate", REACTIVATE: "/config/digital_product/kyc_config/reactivate",
-      PENDING: "/config/digital_product/kyc_config/pending",
-    },
-    KYC_LEVEL: {
-      ADD: "/config/digital_product/kyc_level/add", SUBMIT: "/config/digital_product/kyc_level/submit", EDIT: "/config/digital_product/kyc_level/edit",
-      AUTH: "/config/digital_product/kyc_level/auth", DEAUTH: "/config/digital_product/kyc_level/deauth", DELETE: "/config/digital_product/kyc_level/delete",
-      DELETE_AUTH: "/config/digital_product/kyc_level/delete_auth", LIST: "/config/digital_product/kyc_level/list",
-      GET_ACTIVE: "/config/digital_product/kyc_level/get_active", AUDIT: "/config/digital_product/kyc_level/audit",
-      DEACTIVATE: "/config/digital_product/kyc_level/deactivate", REACTIVATE: "/config/digital_product/kyc_level/reactivate",
-      PENDING: "/config/digital_product/kyc_level/pending",
-    },
-    CHANNEL_CONFIG: {
-      ADD: "/config/digital_product/channel_config/add", SUBMIT: "/config/digital_product/channel_config/submit", EDIT: "/config/digital_product/channel_config/edit",
-      AUTH: "/config/digital_product/channel_config/auth", DEAUTH: "/config/digital_product/channel_config/deauth", DELETE: "/config/digital_product/channel_config/delete",
-      DELETE_AUTH: "/config/digital_product/channel_config/delete_auth", LIST: "/config/digital_product/channel_config/list",
-      GET_ACTIVE: "/config/digital_product/channel_config/get_active", AUDIT: "/config/digital_product/channel_config/audit",
-      DEACTIVATE: "/config/digital_product/channel_config/deactivate", REACTIVATE: "/config/digital_product/channel_config/reactivate",
-      PENDING: "/config/digital_product/channel_config/pending",
-    },
-    CHANNEL_TRANSACTION: {
-      ADD: "/config/digital_product/channel_transaction/add", SUBMIT: "/config/digital_product/channel_transaction/submit", EDIT: "/config/digital_product/channel_transaction/edit",
-      AUTH: "/config/digital_product/channel_transaction/auth", DEAUTH: "/config/digital_product/channel_transaction/deauth", DELETE: "/config/digital_product/channel_transaction/delete",
-      DELETE_AUTH: "/config/digital_product/channel_transaction/delete_auth", LIST: "/config/digital_product/channel_transaction/list",
-      GET_ACTIVE: "/config/digital_product/channel_transaction/get_active", AUDIT: "/config/digital_product/channel_transaction/audit",
-      DEACTIVATE: "/config/digital_product/channel_transaction/deactivate", REACTIVATE: "/config/digital_product/channel_transaction/reactivate",
-      PENDING: "/config/digital_product/channel_transaction/pending",
-    },
-    ELIGIBILITY_CONFIG: {
-      ADD: "/config/digital_product/eligibility_config/add", SUBMIT: "/config/digital_product/eligibility_config/submit", EDIT: "/config/digital_product/eligibility_config/edit",
-      AUTH: "/config/digital_product/eligibility_config/auth", DEAUTH: "/config/digital_product/eligibility_config/deauth", DELETE: "/config/digital_product/eligibility_config/delete",
-      DELETE_AUTH: "/config/digital_product/eligibility_config/delete_auth", LIST: "/config/digital_product/eligibility_config/list",
-      GET_ACTIVE: "/config/digital_product/eligibility_config/get_active", AUDIT: "/config/digital_product/eligibility_config/audit",
-      DEACTIVATE: "/config/digital_product/eligibility_config/deactivate", REACTIVATE: "/config/digital_product/eligibility_config/reactivate",
-      PENDING: "/config/digital_product/eligibility_config/pending",
-    },
-    RESIDENCY: {
-      ADD: "/config/digital_product/residency/add", SUBMIT: "/config/digital_product/residency/submit", EDIT: "/config/digital_product/residency/edit",
-      AUTH: "/config/digital_product/residency/auth", DEAUTH: "/config/digital_product/residency/deauth", DELETE: "/config/digital_product/residency/delete",
-      DELETE_AUTH: "/config/digital_product/residency/delete_auth", LIST: "/config/digital_product/residency/list",
-      GET_ACTIVE: "/config/digital_product/residency/get_active", AUDIT: "/config/digital_product/residency/audit",
-      DEACTIVATE: "/config/digital_product/residency/deactivate", REACTIVATE: "/config/digital_product/residency/reactivate",
-      PENDING: "/config/digital_product/residency/pending",
-    },
   },
-  // Customer domain (2026-09 API reference). indv_profile is a composite
-  // maker-checker root — same 13-route shape as DIGITAL_PRODUCT.PRODUCT,
-  // with a `sections` object on add/edit instead of separate per-section
-  // endpoints. indv_onboarding is the separate, non-maker-checker pre-profile
-  // self-serve lookup (no audit/pending/auth/deauth — 5 routes only).
+  // Customer onboarding (admin wizard), individual and corporate — the
+  // same 15 routes each (Customer_Onboarding_API.md /
+  // Corporate_Customer_Onboarding_API.md).
   CUSTOMER: {
-    INDV_PROFILE: {
-      ADD: "/config/customer/indv_profile/add", SUBMIT: "/config/customer/indv_profile/submit", EDIT: "/config/customer/indv_profile/edit",
-      GET: "/config/customer/indv_profile/get",
-      WIZARD_CONFIG: "/config/customer/indv_profile/wizard_config",
-      AUTH: "/config/customer/indv_profile/auth", DEAUTH: "/config/customer/indv_profile/deauth", DELETE: "/config/customer/indv_profile/delete",
-      DELETE_AUTH: "/config/customer/indv_profile/delete_auth", LIST: "/config/customer/indv_profile/list",
-      GET_ACTIVE: "/config/customer/indv_profile/get_active", AUDIT: "/config/customer/indv_profile/audit",
-      DEACTIVATE: "/config/customer/indv_profile/deactivate", REACTIVATE: "/config/customer/indv_profile/reactivate",
-      PENDING: "/config/customer/indv_profile/pending",
+    INDIVIDUAL: {
+      OPTIONS: "/config/customer/individual/options",
+      ADD: "/config/customer/individual/add",
+      GET: "/config/customer/individual/get",
+      EDIT: "/config/customer/individual/edit",
+      SUBMIT: "/config/customer/individual/submit",
+      LIST: "/config/customer/individual/list",
+      GET_ACTIVE: "/config/customer/individual/get_active",
+      AUDIT: "/config/customer/individual/audit",
+      PENDING: "/config/customer/individual/pending",
+      AUTH: "/config/customer/individual/auth",
+      DEAUTH: "/config/customer/individual/deauth",
+      DELETE: "/config/customer/individual/delete",
+      DELETE_AUTH: "/config/customer/individual/delete_auth",
+      DEACTIVATE: "/config/customer/individual/deactivate",
+      REACTIVATE: "/config/customer/individual/reactivate",
     },
-    INDV_ONBOARDING: {
-      START: "/config/customer/indv_onboarding/start",
-      RESUME: "/config/customer/indv_onboarding/resume",
-      UPDATE_STEP: "/config/customer/indv_onboarding/update_step",
-      GET: "/config/customer/indv_onboarding/get",
-      LIST: "/config/customer/indv_onboarding/list",
+    CORPORATE: {
+      OPTIONS: "/config/customer/corporate/options",
+      ADD: "/config/customer/corporate/add",
+      GET: "/config/customer/corporate/get",
+      EDIT: "/config/customer/corporate/edit",
+      SUBMIT: "/config/customer/corporate/submit",
+      LIST: "/config/customer/corporate/list",
+      GET_ACTIVE: "/config/customer/corporate/get_active",
+      AUDIT: "/config/customer/corporate/audit",
+      PENDING: "/config/customer/corporate/pending",
+      AUTH: "/config/customer/corporate/auth",
+      DEAUTH: "/config/customer/corporate/deauth",
+      DELETE: "/config/customer/corporate/delete",
+      DELETE_AUTH: "/config/customer/corporate/delete_auth",
+      DEACTIVATE: "/config/customer/corporate/deactivate",
+      REACTIVATE: "/config/customer/corporate/reactivate",
     },
   },
 };
