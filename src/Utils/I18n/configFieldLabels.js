@@ -13,6 +13,8 @@ import { useTranslation } from "react-i18next";
 // every place it currently renders `label`/`config.title` as visible text
 // with `tr(label)` — the CONFIGS objects themselves are untouched.
 const PT = {
+  Corporate: "Corporativo",
+  Individual: "Individual",
   "Account Product": "Produto de Conta",
   "Account number length": "Comprimento do número da conta",
   "Account product": "Produto de conta",

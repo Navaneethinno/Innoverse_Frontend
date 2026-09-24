@@ -654,3 +654,33 @@ textarea:disabled {
 }
 
 
+
+/* SegmentedSwitch (Individual | Corporate): the thumb slides and stretches
+   with a slight overshoot; the view underneath fades/lifts in on change. */
+.segmented-thumb {
+  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1), width 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.segmented-view-enter {
+  animation: segmented-view-in 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes segmented-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented-thumb {
+    transition: none;
+  }
+  .segmented-view-enter {
+    animation: none;
+  }
+}

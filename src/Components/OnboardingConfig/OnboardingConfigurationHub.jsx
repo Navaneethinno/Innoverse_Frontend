@@ -1,4 +1,6 @@
 import { useSearchParams } from "react-router-dom";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { OnboardingConfigurationPage } from "./OnboardingConfigurationPage";
 import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfigurationPage";
 
@@ -15,6 +17,7 @@ const TYPES = [
 ];
 
 export function OnboardingConfigurationHub() {
+  const tr = useConfigLabel();
   const [searchParams, setSearchParams] = useSearchParams();
   const type = searchParams.get("type") === "corporate" ? "corporate" : "individual";
   const setType = (next) => {
@@ -25,22 +28,11 @@ export function OnboardingConfigurationHub() {
 
   return (
     <div>
-      <div className="mb-3 inline-flex rounded-xl border p-1" style={{ borderColor: "var(--border)", background: "var(--card)" }}>
-        {TYPES.map((t) => (
-          <button
-            key={t.value}
-            type="button"
-            onClick={() => setType(t.value)}
-            className={
-              "rounded-lg px-4 py-1.5 text-xs font-bold transition-colors " +
-              (type === t.value ? "bg-primary text-white" : "text-muted-foreground hover:text-primary")
-            }
-          >
-            {t.label}
-          </button>
-        ))}
+      <SegmentedSwitch className="mb-3" options={TYPES.map((t) => ({ ...t, label: tr(t.label) }))} value={type} onChange={setType} />
+      {/* key re-mounts the wrapper so each switch replays the fade-in. */}
+      <div key={type} className="segmented-view-enter">
+        {type === "corporate" ? <CorporateOnboardingConfigurationPage /> : <OnboardingConfigurationPage />}
       </div>
-      {type === "corporate" ? <CorporateOnboardingConfigurationPage /> : <OnboardingConfigurationPage />}
     </div>
   );
 }

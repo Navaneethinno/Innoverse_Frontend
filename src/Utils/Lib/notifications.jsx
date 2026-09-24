@@ -1,12 +1,16 @@
 import { showPulseToast } from "@/Components/Common/CompactPulseToast";
+import { translateToast } from "@/Utils/I18n/toastMessages";
 
 // CompactPulseToast only has two visual variants (a neutral dark pill with
 // either a check ring or an error ring) — no separate warning/info
 // styling of its own. error keeps its own red ring; every other type
 // (success/warning/info — only "info" is ever actually called anywhere in
 // the app today) shares the same check-ring styling.
+// translateToast only rewrites toast text the frontend itself wrote (form
+// checks, timeouts...). A backend `message` is already translated through
+// x-api-lang and passes through unchanged. See toastMessages.js.
 function show(type, message) {
-  showPulseToast(message, { variant: type === "error" ? "error" : "success" });
+  showPulseToast(translateToast(message), { variant: type === "error" ? "error" : "success" });
 }
 
 export const notifications = {
