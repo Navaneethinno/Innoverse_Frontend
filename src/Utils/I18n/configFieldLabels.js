@@ -13,6 +13,12 @@ import { useTranslation } from "react-i18next";
 // every place it currently renders `label`/`config.title` as visible text
 // with `tr(label)` — the CONFIGS objects themselves are untouched.
 const PT = {
+  "The customer is still filling this in on the customer portal — view only until they complete it.": "O cliente ainda está preenchendo isto no portal do cliente — somente visualização até que ele conclua.",
+  "Customer portal": "Portal do cliente",
+  "Self-onboarded (customer portal)": "Autointegração (portal do cliente)",
+  "Enables customer self-onboarding on the web portal": "Ativa a autointegração de clientes no portal web",
+  "Enables customer self-onboarding in the mobile app": "Ativa a autointegração de clientes no aplicativo móvel",
+  "An Active WEB or APP channel also lets that institution's customers onboard themselves on the web portal or mobile app.": "Um canal WEB ou APP ativo também permite que os clientes dessa instituição se integrem sozinhos no portal web ou no aplicativo móvel.",
   Corporate: "Corporativo",
   Individual: "Individual",
   "Account Product": "Produto de Conta",

@@ -23,6 +23,16 @@ import {
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
+// Admin Panel handoff §4 (2026-09): an institution's WEB / APP channels now
+// also switch customer self-onboarding on the customer portal on and off
+// (web portal / mobile app), taking effect once the channel is Active.
+const PORTAL_CHANNEL_HINTS = {
+  WEB: "Enables customer self-onboarding on the web portal",
+  APP: "Enables customer self-onboarding in the mobile app",
+};
+const portalHintFor = (channel) =>
+  PORTAL_CHANNEL_HINTS[String(channel?.channel_code ?? channel?.code ?? channel?.channel_name ?? channel?.name ?? "").trim().toUpperCase()];
+
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
@@ -157,7 +167,10 @@ export function InstitutionChannelPage() {
       key: "channel_name",
       label: tr("Channel"),
       render: (r) => (
-        <span className="font-semibold text-foreground">{display(r, "channel_name")}</span>
+        <span className="inline-flex flex-col">
+          <span className="font-semibold text-foreground">{display(r, "channel_name")}</span>
+          {portalHintFor(r) && <span className="text-[11px] text-muted-foreground">{tr(portalHintFor(r))}</span>}
+        </span>
       ),
     },
     {
@@ -226,6 +239,9 @@ export function InstitutionChannelPage() {
           <h1 className="text-xl font-black tracking-tight text-foreground">{tr("Institution Channel")}</h1>
           <p className="mt-1 text-xs text-muted-foreground">
             {tr("Manage institution channel assignments.")}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {tr("An Active WEB or APP channel also lets that institution's customers onboard themselves on the web portal or mobile app.")}
           </p>
         </div>
         
@@ -350,6 +366,10 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
             })),
           ]}
         />
+        {(() => {
+          const hint = portalHintFor(channels.find((c) => String(c.channel_id ?? c.id) === String(form.channel_id)));
+          return hint ? <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{tr(hint)}</span> : null;
+        })()}
       </label>
       <label className="block text-sm font-medium">
         Narration

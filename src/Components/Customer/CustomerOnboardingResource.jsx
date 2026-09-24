@@ -11,6 +11,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Onboarding/customerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Components/OnboardingConfig/LifecycleList";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 
@@ -35,6 +36,14 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
     buttons.authorize = false;
     buttons.deauthorize = false;
   }
+  // A portal draft is the customer's own form, still being filled in on
+  // the customer portal — view only here until they complete it.
+  if (isPortalDraft(row)) {
+    buttons.edit = false;
+    buttons.submitDraft = false;
+    buttons.delete = false;
+  }
+  const portalAuditLabel = usePortalAuditLabel();
   const pendingInfo = usePendingChanges(
     pendingApi,
     row.reference_id,
@@ -95,6 +104,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
       </ConfirmDialog>
       {audit && (
         <AuditModal
+          getActionLabel={portalAuditLabel}
           title={row.customer_name || row.email || row.phone_number}
           fields={[
             ["customer_name", "Customer"],
@@ -125,8 +135,8 @@ export function CustomerOnboardingResource() {
   const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const response = await customerOnboardingApi.list({ page, limit });
       setRows(onboardingRowsOf(response));
@@ -140,7 +150,10 @@ export function CustomerOnboardingResource() {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel("/customer/individual/list", () => void load());
+  // Live pushes now include customer-portal activity (one `edit` per
+  // section the customer saves) — coalesce bursts into one quiet refetch.
+  const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
+  useLiveChannel("/customer/individual/list", liveRefresh);
 
   // Same StatusFilterTabs + search filtering every other maker-checker list
   // uses, applied on top of whatever page pending_only already narrowed
@@ -163,6 +176,8 @@ export function CustomerOnboardingResource() {
         <div className="text-left">
           <div className="font-semibold">{r.customer_name || "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
+          {r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}
+          <PortalSourceBadge record={r} />
         </div>
       ),
     },

@@ -8,6 +8,7 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, startOnboarding, loadWizard, saveSection } from "@/Services/Onboarding/customerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
+import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 
 // State model per Customer_Onboarding_API.md §1.2: a plain "Draft"
 // (status/process_status 9/9) needs no banner — the form itself makes that
@@ -190,10 +191,16 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const section = sections[activeSection];
   // Opened via the row's View action — no Save/Submit/Add-row controls at
   // all, regardless of what the onboarding's own editable flag allows.
-  const editable = !forceReadOnly && wizard?.onboarding?.editable !== false;
+  // A customer-portal draft stays view-only here even when reached via a
+  // staff `add` that resumed it (same contact) — it's the customer's own
+  // form until they complete it (Admin Panel handoff §2).
+  const portalDraft = isPortalDraft(wizard?.onboarding);
+  const editable = !forceReadOnly && !portalDraft && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly
     ? "Viewing only — nothing here can be changed."
-    : "This record can't be edited right now.";
+    : portalDraft
+      ? PORTAL_DRAFT_REASON
+      : "This record can't be edited right now.";
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes (a fresh reply after save, or switching tabs) — done
@@ -551,6 +558,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
         <StatusNotice onboarding={wizard.onboarding} />
+        {portalDraft && <PortalDraftBanner />}
         {/* With a KYC scheme, ready_to_submit means the level the customer
             must at least reach is met — not that the whole form is done
             (guide §3.4). complete=false then just means there's more the
@@ -659,7 +667,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
       onClose={onClose}
       title={
         wizard
-          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
+          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
           : "Start customer onboarding"
       }
       size="xl"

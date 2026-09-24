@@ -8,6 +8,7 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, startCorpOnboarding, loadCorpWizard, saveCorpSection } from "@/Services/Onboarding/corporateCustomerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
+import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 
 // Corporate mirror of CustomerOnboardingWizard.jsx (Customer Onboarding
 // (Corporate) — Frontend Guide, 2026-09): "it works exactly like the
@@ -70,10 +71,16 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
 
   const sections = wizard?.sections ?? [];
   const section = sections[activeSection];
-  const editable = !forceReadOnly && wizard?.onboarding?.editable !== false;
+  // A customer-portal draft stays view-only here even when reached via a
+  // staff `add` that resumed it (same contact) — it's the customer's own
+  // form until they complete it (Admin Panel handoff §2).
+  const portalDraft = isPortalDraft(wizard?.onboarding);
+  const editable = !forceReadOnly && !portalDraft && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly
     ? "Viewing only — nothing here can be changed."
-    : "This record can't be edited right now.";
+    : portalDraft
+      ? PORTAL_DRAFT_REASON
+      : "This record can't be edited right now.";
 
   // Reseed the section draft whenever the active section or the wizard
   // itself changes — done synchronously during render (see
@@ -380,6 +387,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
           renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
         <StatusNotice onboarding={wizard.onboarding} />
+        {portalDraft && <PortalDraftBanner />}
         {editable && wizard.progress.ready_to_submit && (
           <div className="mt-4 rounded-lg bg-emerald-50 p-2.5 text-xs font-semibold text-emerald-700">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -462,7 +470,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       onClose={onClose}
       title={
         wizard
-          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}`
+          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
           : "Start corporate onboarding"
       }
       size="xl"
