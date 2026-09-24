@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, LayoutGrid, RotateCcw } from "lucide-react";
 import { motion } from "motion/react";
@@ -15,11 +15,30 @@ import { useDashboardLayout } from "./layout/useDashboardLayout";
 //   layout/DashboardGrid    dnd-kit context + sortable 4-column grid
 //   layout/SortableWidget   one slot: drag handle, width toggle
 //   widgets/*               the widgets themselves
+// Greeting follows the viewer’s local clock rather than always saying
+// “Good morning”.
+function greetingKey(hour = new Date().getHours()) {
+  if (hour < 12) return "goodMorning";
+  if (hour < 17) return "goodAfternoon";
+  return "goodEvening";
+}
+
 export function ControlSpacePage() {
   const { t } = useTranslation("dashboard");
   const currentUser = useAuth((s) => s.user);
   const { layout, setLayout, resetLayout } = useDashboardLayout(currentUser?.username);
   const [editing, setEditing] = useState(false);
+
+  // Esc leaves customize mode. dnd-kit’s keyboard sensor also uses Esc to
+  // cancel a drag and marks that event handled, so a cancel doesn’t exit.
+  useEffect(() => {
+    if (!editing) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape" && !e.defaultPrevented) setEditing(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
 
   return (
     <div className="pt-4 pb-8">
@@ -34,7 +53,7 @@ export function ControlSpacePage() {
             {t("controlSpace")}
           </p>
           <h1 className="text-2xl font-black leading-none tracking-tight text-slate-800">
-            {t("goodMorning", { name: currentUser?.username ?? t("admin") })}
+            {t(greetingKey(), { name: currentUser?.username ?? t("admin") })}
           </h1>
           <p className="mt-1.5 text-sm font-medium text-muted-foreground">
             {editing ? t("customizeHint") : t("workspaceSummary")}

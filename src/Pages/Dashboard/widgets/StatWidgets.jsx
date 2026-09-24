@@ -30,8 +30,8 @@ const statWidget = (labelKey, subKey, valueKey, gradient, icon) =>
   };
 
 export const TotalInstitutionsWidget = statWidget("totalInstitutions", "registeredOnPlatform", "totalInstitutions", "bg-[var(--primary)]", Building2);
-export const ActiveInstitutionsWidget = statWidget("activeInstitutions", "fullyOperational", "activeInstitutions", "bg-gradient-to-br from-[#6EDFC4] to-[#3BBFA0]", CheckCircle);
-export const PendingRequestsWidget = statWidget("pendingRequests", "awaitingAuthorization", "pendingRequests", "bg-gradient-to-br from-[#FFB3A0] to-[#FF8C6B]", Clock);
-export const MyRequestsWidget = statWidget("myRequests", "requestsYouSubmitted", "myRequests", "bg-gradient-to-br from-[#FFCB6B] to-[#F59E0B]", FileText);
-export const ActiveCustomersWidget = statWidget("activeCustomers", "approvedAndActive", "activeCustomers", "bg-[var(--success)]", UserCheck);
+export const ActiveInstitutionsWidget = statWidget("activeInstitutions", "fullyOperational", "activeInstitutions", "bg-[var(--success)]", CheckCircle);
+export const PendingRequestsWidget = statWidget("pendingRequests", "awaitingAuthorization", "pendingRequests", "bg-[var(--pending)]", Clock);
+export const MyRequestsWidget = statWidget("myRequests", "requestsYouSubmitted", "myRequests", "bg-[var(--warning)]", FileText);
+export const ActiveCustomersWidget = statWidget("activeCustomers", "approvedAndActive", "activeCustomers", "bg-[var(--primary-hover)]", UserCheck);
 export const OnboardingInProgressWidget = statWidget("onboardingInProgress", "draftsAndPendingApproval", "onboardingInProgress", "bg-[var(--chart-3)]", UserPlus);

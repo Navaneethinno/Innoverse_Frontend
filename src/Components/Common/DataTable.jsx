@@ -61,10 +61,11 @@ function useSortedRows(rows, columns, sort) {
 }
 
 function TableHead({ columns, sort, onSort, selectable = false, allSelected = false, onToggleAll }) {
+  const { t } = useTranslation("common");
   return (
     <thead>
       <tr className="border-b-2 border-border">
-        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select all rows on this page" checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
+        {selectable && <th className="w-10 px-3 py-2.5"><input type="checkbox" aria-label={t("selectAllRowsOnPage")} checked={allSelected} onChange={onToggleAll} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></th>}
         {columns.map((col) => (
           <th
             key={col.key}
@@ -110,6 +111,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
       <tbody>
         {Array.from({ length: 5 }).map((_, i) => (
           <tr key={i} className="border-b border-slate-50">
+            {selectable && <td className="w-10 px-3 py-2" />}
             {columns.map((col) => (
             <td key={col.key} className="px-3 py-2">
                 <Skeleton className="mx-auto h-3.5 w-16" />
@@ -141,7 +143,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
           className={cn("border-b transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}
           style={{ borderColor: "color-mix(in srgb, var(--border) 40%, transparent)" }}
         >
-          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label="Select row" checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
+          {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label={t("selectRow")} checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}
           {columns.map((col) => (
             <td
               key={col.key}
@@ -316,6 +318,13 @@ export function DataTable({
     notifySelection(next);
   };
 
+  // A delete/deauth (or a live update) can shrink a client-paginated list
+  // below the current page, which would otherwise show “No records” while
+  // records still exist on earlier pages.
+  useEffect(() => {
+    if (!isServer && page > totalPages) setPage(totalPages);
+  }, [isServer, page, totalPages]);
+
   const goToPage = (next) => {
     const clamped = Math.min(Math.max(1, next), totalPages);
     if (isServer) serverPagination.onPageChange(clamped);
@@ -355,13 +364,9 @@ export function DataTable({
 
   return (
     <div className={className}>
-      {/* Standalone mode: "View all" floats above the table's own card, its
-          own margin creating a deliberate gap. Bare/merged mode (nested
-          inside a page's shared panel alongside StatusFilterTabs, see
-          InstitutionProfile.jsx): that same gap read as a second visual
-          seam splitting one intended panel into two, so it moves inside the
-          table's own border instead, flush against the header row. */}
-      {!bare && <div className="mb-2 flex items-center justify-end">{viewAllButton}</div>}
+      {/* "View all" normally sits in the table’s own header row. A compact
+          table has no header row, so there it floats above the card. */}
+      {!bare && compact && <div className="mb-2 flex items-center justify-end">{viewAllButton}</div>}
 
       <div
         className={cn("overflow-hidden", bare ? "rounded-b-2xl" : "rounded-2xl")}
