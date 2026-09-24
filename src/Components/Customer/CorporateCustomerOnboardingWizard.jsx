@@ -10,6 +10,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, startCorpOnboarding, loadCorpWizard, saveCorpSection } from "@/Services/Onboarding/corporateCustomerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
+import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 
 // Corporate mirror of CustomerOnboardingWizard.jsx (Customer Onboarding
 // (Corporate) — Frontend Guide, 2026-09): "it works exactly like the
@@ -104,6 +105,12 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       : null;
     setDraft(effectiveDraft);
   }
+
+  // Edits typed into the section on screen but not saved yet. Leaving the
+  // section or closing the wizard asks first instead of silently dropping them.
+  const sectionSeed = section ? (section.multi_row ? (section.values?.length ? section.values : [{}]) : (section.values ?? {})) : null;
+  const dirty = editable && effectiveDraft != null && JSON.stringify(effectiveDraft) !== JSON.stringify(sectionSeed);
+  const { guard, dialog: unsavedDialog } = useUnsavedChangesGuard(dirty);
 
   const partyTypes = options?.party_types ?? [];
   const chosenParty = partyTypes.find((p) => String(p.id) === String(pick.party_type_id));
@@ -362,7 +369,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}
           activeIndex={activeSection}
-          onStepClick={(index) => setActiveSection(index)}
+          onStepClick={guard((index) => setActiveSection(index))}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
         <h2 className="mb-3 text-sm font-bold text-slate-700">{section.label ?? section.name}</h2>
@@ -418,7 +425,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
     if (!referenceId && !wizard) {
       return (
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:cancel")}</button>
+          <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:cancel")}</button>
           <button
             type="button"
             disabled={starting}
@@ -431,19 +438,19 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
         </>
       );
     }
-    if (!wizard) return <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>;
+    if (!wizard) return <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>;
     return (
       <>
         <button
           type="button"
           disabled={activeSection === 0}
-          onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
+          onClick={guard(() => setActiveSection((i) => Math.max(0, i - 1)))}
           className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-40"
         >
           <ArrowLeft size={14} /> {t("customer:previous")}
         </button>
         <div className="flex-1" />
-        <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>
+        <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>
         {editable && (
           <button
             type="button"
@@ -458,7 +465,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
         <button
           type="button"
           disabled={activeSection >= sections.length - 1}
-          onClick={() => setActiveSection((i) => Math.min(Math.max(sections.length - 1, 0), i + 1))}
+          onClick={guard(() => setActiveSection((i) => Math.min(Math.max(sections.length - 1, 0), i + 1)))}
           className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40"
         >
           {t("common:next")} <ArrowRight size={14} />
@@ -470,7 +477,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={guard(onClose)}
       title={
         wizard
           ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
@@ -481,6 +488,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       footer={footer()}
     >
       {body()}
+      {unsavedDialog}
     </Modal>
   );
 }

@@ -6,6 +6,7 @@ import { NoDataAnimation } from "@/Components/Common/NoDataAnimation";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cn } from "@/Utils/Lib/cn";
+import { useSessionState } from "@/Hooks/useSessionState";
 
 // Shared sort-arrow: stacked/dim ChevronUp+ChevronDown when a column isn't
 // the active sort, a single solid colored arrow (direction-matched) when it
@@ -192,6 +193,9 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  *   modal falls back to listing whatever's already in `rows` (unchanged
  *   behavior for tables too small to matter).
  * - infiniteScrollLimit: page size used by fetchMore, default 50.
+ * - persistKey: when set, the sort and (client-side) page / page size are
+ *   kept for the browser-tab session under this key, so returning to the
+ *   list after opening a record on its own route restores the same view.
  */
 export function DataTable({
   columns,
@@ -220,13 +224,15 @@ export function DataTable({
   selectable = false,
   onSelectionChange,
   compact = false,
+  persistKey = null,
 }) {
   const { t } = useTranslation("common");
   // Keep the newest record visible first on every table. Users can still
   // click any sortable header to override this default for the current view.
-  const [sort, setSort] = useState({ key: "updated_time", direction: "desc" });
-  const [page, setPage] = useState(1);
-  const [clientPageSize, setClientPageSize] = useState(pageSize);
+  const stateKey = (name) => (persistKey ? `${persistKey}:${name}` : null);
+  const [sort, setSort] = useSessionState(stateKey("sort"), { key: "updated_time", direction: "desc" });
+  const [page, setPage] = useSessionState(stateKey("tablePage"), 1);
+  const [clientPageSize, setClientPageSize] = useSessionState(stateKey("tablePageSize"), pageSize);
   const [viewAllOpen, setViewAllOpen] = useState(false);
   const [viewAllSearch, setViewAllSearch] = useState("");
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
@@ -323,7 +329,7 @@ export function DataTable({
   // records still exist on earlier pages.
   useEffect(() => {
     if (!isServer && page > totalPages) setPage(totalPages);
-  }, [isServer, page, totalPages]);
+  }, [isServer, page, totalPages, setPage]);
 
   const goToPage = (next) => {
     const clamped = Math.min(Math.max(1, next), totalPages);

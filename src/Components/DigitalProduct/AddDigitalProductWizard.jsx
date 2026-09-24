@@ -14,6 +14,7 @@ import {
 } from "./digitalProductWizardShared";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 
 // The single Add-flow entry point for Digital Product: a 9-step wizard
 // (Digital Product, Product Map, Security Config, KYC Config, KYC Level,
@@ -33,9 +34,12 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   const [maxVisited, setMaxVisited] = useState(0);
   const [productId, setProductId] = useState(null);
   const [recordIds, setRecordIds] = useState(() => Object.fromEntries(steps.map((step) => [step.entity, null])));
-  const [values, setValues] = useState(() =>
-    Object.fromEntries(steps.map((step) => [step.entity, emptyValuesFor(step.entity)])),
-  );
+  const emptyValues = () => Object.fromEntries(steps.map((step) => [step.entity, emptyValuesFor(step.entity)]));
+  const [values, setValues] = useState(emptyValues);
+  // What the server last accepted for each step, so Cancel can tell whether
+  // anything typed would be lost.
+  const [savedValues, setSavedValues] = useState(emptyValues);
+  const { guard, dialog: unsavedDialog } = useUnsavedChangesGuard(JSON.stringify(values) !== JSON.stringify(savedValues));
   const [submitting, setSubmitting] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [savingStep, setSavingStep] = useState(false);
@@ -54,6 +58,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   const saveStep = async (isDraft) => {
     const id = await saveDigitalProductStep({ id: productId, entity: currentEntity, values, recordIds, isDraft });
     if (id !== productId) setProductId(id);
+    setSavedValues((prev) => ({ ...prev, [currentEntity]: values[currentEntity] }));
     if (currentEntity !== "product" && id != null) {
       const response = await digitalProductApi("product").get({ id });
       const data = response?.data?.[0] ?? {};
@@ -131,13 +136,13 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   return (
     <Modal
       open
-      onClose={onClose}
+      onClose={guard(onClose)}
       title={tr("Add Digital Product")}
       size="xl"
       growWithContent
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
             {tr("Cancel")}
           </button>
           {stepIndex > 0 && (
@@ -196,6 +201,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
         onFieldChange={setFieldValue}
         lookups={lookups}
       />
+      {unsavedDialog}
     </Modal>
   );
 }

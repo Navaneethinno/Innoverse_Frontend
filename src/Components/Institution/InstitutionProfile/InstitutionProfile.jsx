@@ -16,6 +16,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
+import { useSessionState } from "@/Hooks/useSessionState";
 import {
   mapInstitutionListResponse,
   useHasInstitutionAction,
@@ -121,14 +122,16 @@ export function InstitutionProfile() {
   const canAuthorise = useHasInstitutionAction("Authorize");
   const canChangeStatus = useHasInstitutionAction("Change Status");
   const canDelete = useHasInstitutionAction("Delete");
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  // Kept for the tab session: View/Edit open the institution on its own
+  // route, and coming back should land on the same page, tab and search.
+  const [search, setSearch] = useSessionState("institutions:search", "");
+  const [activeTab, setActiveTab] = useSessionState("institutions:tab", "all");
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useSessionState("institutions:page", 1);
+  const [limit, setLimit] = useSessionState("institutions:limit", 10);
 
   // /institution/profile/list has no status-filter or search param
   // (confirmed via Postman) — unlike /user/list, which does and so can
@@ -384,6 +387,7 @@ export function InstitutionProfile() {
 
       <DataTable
         bare
+        persistKey="institutions"
         columns={columns}
         rows={filtered}
         rowKey={(inst) => institutionId(inst)}
