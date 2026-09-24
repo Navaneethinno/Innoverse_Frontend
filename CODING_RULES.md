@@ -16,7 +16,8 @@
 
 ## Folder structure
 
-Screens mirror the sidebar, the same way payseFrontend does:
+Screens mirror the live sidebar (checked against the SuperAdmin menu_array,
+2026-09-24), the same way payseFrontend does:
 `src/Components/<Module>/<Parent menu>/<Menu>/<Menu>.jsx`, with that menu's
 forms, wizards and helpers in the same folder.
 
@@ -29,13 +30,14 @@ src/Components/
   UserManagement/                          User Management module
     User/ Profile/ KYC/ PasswordPolicy/ Shared/
   Epurse/                                  EPURSE module
-    Settings/Master/<Gender|District|...>/
-    Configuration/KYC/KycScheme/
+    Settings/Master/<Gender|Province|District|Village>/
     Configuration/Account/                 every Account > * menu (one resource)
-    DigitalProduct/DigitalProduct/
+    Configuration/KYC/KycSchemes/
+    DigitalProduct/
+    Onboarding/OnboardingMaster/           MasterResource + CustomerMasterConfigResource
+      Individual/<Religion|Designation|...>/   (serve the remaining master menus)
+    Onboarding/OnboardingConfiguration/
     Onboarding/OnboardingWizard/           Individual | Corporate onboarding
-    Onboarding/OnboardingConfiguration/    customer-type definitions
-    Onboarding/OnboardingMaster/           Individual + Corporate masters
 ```
 
 `src/Services/` and `src/Hooks/` group by module the same way

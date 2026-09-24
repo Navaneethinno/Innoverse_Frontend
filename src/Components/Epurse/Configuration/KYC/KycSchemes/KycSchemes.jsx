@@ -230,7 +230,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   );
 }
 
-export function KycScheme() {
+export function KycSchemes() {
   const { t } = useTranslation(["onboarding", "common"]);
   const [form, setForm] = useState(null);
   const [clone, setClone] = useState(null);

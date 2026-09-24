@@ -17,7 +17,7 @@ const Definitions = lazy(() =>
   import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
 const Master = lazy(() => import("@/Components/Epurse/Onboarding/OnboardingMaster/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
-const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycScheme/KycScheme.jsx").then((m) => ({ default: m.KycScheme })));
+const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
 
 const slugs = {
   Definitions: ["customertypes", "customertype", "onboardingdefinition", "onboardingdefinitions"],

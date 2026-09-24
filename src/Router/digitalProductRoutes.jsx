@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { pageElement } from "./routeSupport";
-const Resource = lazy(() => import("@/Components/Epurse/DigitalProduct/DigitalProduct/DigitalProduct.jsx").then((m) => ({ default: m.DigitalProduct })));
+const Resource = lazy(() => import("@/Components/Epurse/DigitalProduct/DigitalProduct.jsx").then((m) => ({ default: m.DigitalProduct })));
 // Confirmed against a real /user/login menu_array: the "product" entity's
 // own menu_name is literally "Digital Product" (menu_id 31, a child of the
 // top-level "Digital Product" folder, menu_id 30 — same name, different
