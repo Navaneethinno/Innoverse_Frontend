@@ -239,7 +239,7 @@ export function DigitalProductResource({ entity }) {
   // comment for why the in-place reconcile this replaced silently dropped
   // brand-new records pushed by another user/tab.
   useLiveChannel(
-    `/config/digital_product/${entity}/list`,
+    `/digital_product/${entity}/list`,
     () => void load(),
   );
   const visible = useMemo(

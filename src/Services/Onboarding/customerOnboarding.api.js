@@ -62,7 +62,7 @@ export const onboardingRowsOf = (response) => (Array.isArray(response?.data) ? r
 // instead of the old start/save_section/wizard verbs, plus get_active,
 // delete_auth, deactivate, reactivate that didn't exist before. There is
 // no backwards-compatibility alias for the old names — they 404 now.
-const base = "/config/customer/individual";
+const base = "/customer/individual";
 export const customerOnboardingApi = {
   options: (payload = {}) => request(`${base}/options`, payload),
   add: (payload) => request(`${base}/add`, payload),
