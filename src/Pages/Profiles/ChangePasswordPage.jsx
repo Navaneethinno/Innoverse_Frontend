@@ -67,7 +67,7 @@ export function ChangePasswordPage() {
             <Lock size={18} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>
+            <h1 className="text-xl font-black text-slate-800">{t("title")}</h1>
             <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>

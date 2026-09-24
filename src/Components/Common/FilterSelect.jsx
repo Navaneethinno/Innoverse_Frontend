@@ -102,7 +102,10 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       if (!insideTrigger && !insidePanel) setIsOpen(false);
     }
     function handleKey(e) {
-      if (e.key === "Escape") setIsOpen(false);
+      if (e.key !== "Escape") return;
+      // Handled here, so an enclosing Modal doesn’t also close on the same Esc.
+      e.preventDefault();
+      setIsOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKey);

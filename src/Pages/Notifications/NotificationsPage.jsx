@@ -30,7 +30,7 @@ export function NotificationsPage() {
             <Bell size={18} />
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-slate-800">{t("layout:notifications")}</h1>
+            <h1 className="text-xl font-black text-slate-800">{t("layout:notifications")}</h1>
             <p className="text-sm text-muted-foreground">{t("layout:alertsAndActivityForYourAccount")}</p>
           </div>
         </div>

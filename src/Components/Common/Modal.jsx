@@ -17,6 +17,10 @@ const SIZES = {
 // circular close button, and a tinted footer bar — so every dialog in the
 // app (audit history, confirm-action, add/edit forms, "view all" tables)
 // shares the same chrome instead of each hand-rolling a flat white box.
+// Open modals, innermost last, so Esc only closes the one on top (e.g. a
+// confirm opened over a wizard).
+const openModals = [];
+
 // Entrance animation matches the fade+scale already used by
 // InstitutionAuditModal/ProfileAuditModal (motion/react's initial/animate).
 export function Modal({
@@ -96,6 +100,33 @@ export function Modal({
 
   useEffect(() => {
     if (!open) setPendingSubmit(null);
+  }, [open]);
+
+  // Esc closes the top-most modal (or just dismisses its Enter-to-submit
+  // confirm when that’s showing). Skipped when something inside already
+  // handled the key, such as an open dropdown or date picker.
+  const onCloseRef = useRef(onClose);
+  const pendingSubmitRef = useRef(pendingSubmit);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    pendingSubmitRef.current = pendingSubmit;
+  });
+  useEffect(() => {
+    if (!open) return undefined;
+    const token = {};
+    openModals.push(token);
+    const onKey = (e) => {
+      if (e.key !== "Escape" || e.defaultPrevented || openModals[openModals.length - 1] !== token) return;
+      if (document.querySelector("[data-radix-popper-content-wrapper]")) return;
+      e.preventDefault();
+      if (pendingSubmitRef.current) setPendingSubmit(null);
+      else onCloseRef.current?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      openModals.splice(openModals.indexOf(token), 1);
+    };
   }, [open]);
 
   function handleKeyDown(event) {

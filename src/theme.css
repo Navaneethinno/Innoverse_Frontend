@@ -290,6 +290,35 @@
 }
 
 /*
+ * Shared interaction feedback. Most primary buttons across the app are
+ * plain `bg-primary` with no hover or press state, so they felt inert.
+ * :where() keeps specificity at utility level, and this layer comes before
+ * utilities, so any button with its own hover:/focus-visible: classes
+ * still wins.
+ */
+@layer components {
+  :where(button).bg-primary {
+    transition:
+      background-color 150ms ease,
+      box-shadow 150ms ease,
+      transform 100ms ease;
+  }
+  :where(button).bg-primary:where(:not(:disabled)):hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+  :where(button).bg-primary:where(:not(:disabled)):active {
+    transform: translateY(1px);
+    box-shadow: none;
+  }
+  /* Visible keyboard focus everywhere, without a ring on mouse clicks. */
+  :where(button, a, [role="button"], [role="tab"]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/*
  * Login page: every theme-dependent visual (panel backgrounds, card,
  * inputs, text, borders, shadows, the illustration crossfade, the toggle)
  * shares this single transition so light/dark switches as one synchronized

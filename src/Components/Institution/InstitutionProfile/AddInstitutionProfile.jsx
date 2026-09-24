@@ -356,7 +356,7 @@ export function AddInstitutionProfile() {
         </button>
 
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">{t("createInstitutionTitle")}</h1>
+          <h1 className="text-xl font-black text-slate-800">{t("createInstitutionTitle")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {t("stepOfTotal", { step: step + 1, total: STEPS.length })}
           </p>
