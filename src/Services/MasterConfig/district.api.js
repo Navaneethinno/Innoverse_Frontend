@@ -18,7 +18,7 @@ async function request(path, body = {}) {
     if (response.status === 401) { clearAuthSession(); window.dispatchEvent(new Event("auth:unauthorized")); throw new Error("Session expired. Please sign in again."); }
     const statusError = getStatusErrorMessage(response.status);
     if (statusError) throw new Error(statusError);
-    if (!response.ok || String(payload?.status).toLowerCase() === "fail") throw new Error(getApiErrorMessage(payload, payload?.remark || "Request failed"));
+    if (!response.ok || String(payload?.status).toLowerCase() === "fail") throw new Error(getApiErrorMessage(payload, "Request failed"));
     return payload;
   } finally { window.clearTimeout(timeout); }
 }

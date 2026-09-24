@@ -8,7 +8,8 @@ import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 // KYC scheme (/config/kyc/group) and the customer-type definition
 // wizard (/master_config/onboarding_*). Every call is a POST with a JSON body
 // and the standard {status, message, remark, data[]} envelope; a failure
-// throws an Error whose message prefers the specific `remark`.
+// throws an Error built by getApiErrorMessage (`message` + `problems`,
+// never `remark` — see apiErrors.js).
 async function request(path, body = {}) {
   const controller = new AbortController();
   // save_config carries a whole configuration tree — allow more than the 10s
@@ -36,7 +37,7 @@ async function request(path, body = {}) {
       throw new Error("Session expired. Please sign in again.");
     }
     const statusError = getStatusErrorMessage(response.status);
-    // getApiErrorMessage already prefers payload.message over remark/error/
+    // getApiErrorMessage shows payload.message (+ data problems), never remark/
     // etc internally — checking payload?.remark first, as this used to,
     // bypassed that priority and always surfaced the backend's internal
     // field-name remark ("field 'max_value' must be...") in the toast

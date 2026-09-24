@@ -138,3 +138,34 @@
     transform: none;
   }
 }
+
+/* Refusal with several reasons (data[0].problems): headline + list. The
+   single-line pill stays nowrap; a list wraps within a readable width. */
+.cpt-toast:has(.cpt-text-list) {
+  align-items: flex-start;
+  white-space: normal;
+  max-width: min(560px, calc(100vw - 32px));
+}
+
+.cpt-text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cpt-problems {
+  margin: 0;
+  padding-left: 16px;
+  list-style: disc;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.cpt-problems li + li {
+  margin-top: 3px;
+}

@@ -40,7 +40,7 @@ async function request(path, body = {}) {
       throw error;
     }
     const statusError = getStatusErrorMessage(response.status);
-    // getApiErrorMessage already prefers payload.message over remark/error/
+    // getApiErrorMessage shows payload.message (+ data problems), never remark/
     // etc internally — checking payload?.remark first, as this used to,
     // bypassed that priority and always surfaced the backend's internal
     // field-name remark instead of its own user-facing message.

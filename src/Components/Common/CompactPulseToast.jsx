@@ -1,6 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./CompactPulseToast.css";
+import { PROBLEM_BULLET } from "@/Services/api/apiErrors";
+
+// getApiErrorMessage packs a refusal as "headline\n• problem\n• problem"
+// (message + data[0].problems) — split it back into a headline and a list.
+function splitMessage(message) {
+  const [headline, ...rest] = String(message ?? "").split("\n");
+  const problems = rest.map((line) => (line.startsWith(PROBLEM_BULLET) ? line.slice(PROBLEM_BULLET.length) : line)).filter((line) => line.trim());
+  return { headline, problems };
+}
 
 /**
  * Compact Pulse Badge toast system.
@@ -50,7 +59,10 @@ export function ToastProvider({ children }) {
   const timerRef = useRef(null);
 
   const show = useCallback((message, options = {}) => {
-    const { duration = 4000, variant = "success" } = options;
+    const { variant = "success" } = options;
+    // A problem list needs time to read: +2.5s per reason, capped at 20s.
+    const problemCount = splitMessage(message).problems.length;
+    const duration = options.duration ?? Math.min(4000 + problemCount * 2500, 20000);
 
     clearTimeout(timerRef.current);
     const id = ++idCounter;
@@ -92,7 +104,7 @@ export function ToastProvider({ children }) {
                   )}
                 </svg>
               </span>
-              <span className="cpt-text">{toast.message}</span>
+              <ToastBody message={toast.message} />
               <button type="button" className="cpt-close" onClick={dismiss} aria-label="Dismiss">
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 6 6 18M6 6l12 12" />
@@ -104,6 +116,21 @@ export function ToastProvider({ children }) {
         document.body
       )}
     </ToastContext.Provider>
+  );
+}
+
+function ToastBody({ message }) {
+  const { headline, problems } = splitMessage(message);
+  if (!problems.length) return <span className="cpt-text">{headline}</span>;
+  return (
+    <span className="cpt-text cpt-text-list">
+      <span className="cpt-headline">{headline}</span>
+      <ul className="cpt-problems">
+        {problems.map((problem, index) => (
+          <li key={index}>{problem}</li>
+        ))}
+      </ul>
+    </span>
   );
 }
 
