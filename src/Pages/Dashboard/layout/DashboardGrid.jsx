@@ -56,7 +56,8 @@ export function DashboardGrid({ layout, setLayout, editing }) {
       }}
     >
       <SortableContext items={layout.map((w) => w.id)} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        {/* Extra row gap while editing leaves room for each card’s control pill. */}
+        <div className={`grid grid-cols-1 gap-x-4 md:grid-cols-4 ${editing ? "gap-y-9 pt-3" : "gap-y-4"}`}>
           {layout.map((w) => (
             <SortableWidget key={w.id} id={w.id} span={w.span} editing={editing} onToggleSpan={onToggleSpan} />
           ))}

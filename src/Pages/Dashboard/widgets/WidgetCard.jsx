@@ -15,7 +15,7 @@ export function WidgetCard({ title, icon: Icon, action, className, children }) {
   return (
     <div className={cn("relative flex h-full flex-col overflow-hidden rounded-2xl border p-5", className)} style={glass}>
       {title && (
-        <div className="mb-4 flex items-center justify-between gap-2 pr-16">
+        <div className="mb-4 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             {Icon && (
               <span

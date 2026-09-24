@@ -7,7 +7,7 @@ import { glass } from "./WidgetCard";
 function StatCard({ label, value, sub, gradient, icon: Icon }) {
   return (
     <div className="relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border p-5" style={glass}>
-      <div className="flex items-center justify-between pr-16">
+      <div className="flex items-center justify-between pr-10">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
       </div>
       <span className={cn("absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-xl text-white shadow-md", gradient)}>

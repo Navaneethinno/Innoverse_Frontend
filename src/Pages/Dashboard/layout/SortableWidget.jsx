@@ -35,15 +35,17 @@ export function SortableWidget({ id, span, editing, onToggleSpan }) {
       )}
     >
       <Widget />
+      {/* Centred on the card’s top border (in the grid gap), so the controls
+          never cover the widget’s own content such as the stat icon. */}
       {editing && (
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-1">
+        <div className="absolute -top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-xl border border-border bg-card p-0.5 shadow-md">
           {resizable && (
             <button
               type="button"
               onClick={() => onToggleSpan(id)}
               aria-label={t(span === 2 ? "narrowWidget" : "widenWidget", { name: title })}
               title={t(span === 2 ? "narrowWidget" : "widenWidget", { name: title })}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm hover:text-primary"
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary"
             >
               {span === 2 ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </button>
@@ -56,7 +58,7 @@ export function SortableWidget({ id, span, editing, onToggleSpan }) {
             aria-label={t("dragWidget", { name: title })}
             title={t("dragWidget", { name: title })}
             className={cn(
-              "flex h-8 w-8 touch-none items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm hover:text-primary focus-visible:outline-2 focus-visible:outline-[var(--primary)]",
+              "flex h-7 w-7 touch-none items-center justify-center rounded-lg text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary focus-visible:outline-2 focus-visible:outline-[var(--primary)]",
               isDragging ? "cursor-grabbing" : "cursor-grab",
             )}
           >
