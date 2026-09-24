@@ -1,5 +1,5 @@
 const configuredBaseUrl =
-  import.meta.env.VITE_API_BASE_URL || "https://innoverse-api.innovitegra.in";
+  import.meta.env.VITE_API_BASE_URL || "https://etakuapi.innovitegrasuite.com";
 
 export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, "");
 export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME || "webadmin";
