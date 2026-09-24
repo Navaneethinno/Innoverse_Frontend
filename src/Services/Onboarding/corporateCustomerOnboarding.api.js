@@ -54,7 +54,7 @@ async function request(path, body = {}) {
 const first = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 export const corpOnboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
-const base = "/customer/corporate";
+const base = "/config/customer/corporate";
 export const corpCustomerOnboardingApi = {
   options: (payload = {}) => request(`${base}/options`, payload),
   add: (payload) => request(`${base}/add`, payload),

@@ -153,7 +153,7 @@ export function CustomerOnboardingResource() {
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
   const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel("/customer/individual/list", liveRefresh);
+  useLiveChannel("/config/customer/individual/list", liveRefresh);
 
   // Same StatusFilterTabs + search filtering every other maker-checker list
   // uses, applied on top of whatever page pending_only already narrowed

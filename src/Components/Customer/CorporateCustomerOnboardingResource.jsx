@@ -150,7 +150,7 @@ export function CorporateCustomerOnboardingResource() {
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
   const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel("/customer/corporate/list", liveRefresh);
+  useLiveChannel("/config/customer/corporate/list", liveRefresh);
 
   const visible =
     !search.trim() && tab === "all"

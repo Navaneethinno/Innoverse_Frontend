@@ -87,7 +87,7 @@ export const usersApi = {
   kycGet: (payload) => request(KYC.GET, payload),
   kycGetActive: (payload = {}) => request(KYC.GET_ACTIVE, payload),
   kycAdd: (payload) => request(KYC.ADD, payload),
-  kycSubmit: (payload) => request(KYC.SUBMIT ?? "/user/kyc/submit", payload),
+  kycSubmit: (payload) => request(KYC.SUBMIT ?? "/config/user/kyc/submit", payload),
   kycEdit: (payload) => request(KYC.EDIT, payload),
   kycAuth: (payload) => request(KYC.AUTH, payload),
   kycDeauth: (payload) => request(KYC.DEAUTH, payload),
