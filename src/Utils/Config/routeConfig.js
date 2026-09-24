@@ -63,7 +63,7 @@ const SEGMENT_LABELS = {
   indvpepstatus: { titleKey: "crumbIndvPepStatus", breadcrumb: ["crumbMaster", "crumbIndvPepStatus"] },
   indvpepcategory: { titleKey: "crumbIndvPepCategory", breadcrumb: ["crumbMaster", "crumbIndvPepCategory"] },
   // Sidebar menu names for these slugify without the "indv" prefix (see
-  // masterConfigRoutes.jsx) — same page, same breadcrumb as the indv* slug.
+  // masterRoutes.jsx) — same page, same breadcrumb as the indv* slug.
   verificationstatus: { titleKey: "crumbIndvVerificationStatus", breadcrumb: ["crumbMaster", "crumbIndvVerificationStatus"] },
   verificationmethod: { titleKey: "crumbIndvVerificationMethod", breadcrumb: ["crumbMaster", "crumbIndvVerificationMethod"] },
   taxstatus: { titleKey: "crumbIndvTaxStatus", breadcrumb: ["crumbMaster", "crumbIndvTaxStatus"] },
@@ -156,7 +156,7 @@ const SEGMENT_LABELS = {
   // Product — see MenuItem.jsx's DISAMBIGUATE_BY_PARENT. "Account" is
   // usually a non-clickable group header in the sidebar, not a real route —
   // except when a session's menu_array has none of Account's children
-  // populated (see acctConfigRoutes.jsx's "account" fallback route), where
+  // populated (see accountRoutes.jsx's "account" fallback route), where
   // MenuItem.jsx treats it as an ordinary leaf and navigates to /account
   // directly; that needs its own breadcrumb entry too, or it falls through
   // to the generic "Dashboard" default.

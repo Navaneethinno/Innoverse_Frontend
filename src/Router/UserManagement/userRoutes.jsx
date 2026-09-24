@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 import { PasswordPolicy } from "@/Components/UserManagement/PasswordPolicy";
 const UsersPage = lazy(() =>
   import("@/Components/UserManagement/User").then((m) => ({ default: m.User })),

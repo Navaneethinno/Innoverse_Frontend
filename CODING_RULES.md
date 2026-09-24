@@ -40,6 +40,11 @@ src/Components/
     Onboarding/OnboardingWizard/           Individual | Corporate onboarding
 ```
 
+`src/Router/` follows it too: `index.js` builds one route list per module
+(`institutionRoutes`, `userManagementRoutes`, `epurseRoutes`) from the files
+in `Router/UserManagement/` and `Router/Epurse/`. Header pieces (top bar,
+change password) live in `src/Pages/Header/`, as in payse.
+
 `src/Services/` and `src/Hooks/` group by module the same way
 (`Institution/`, `UserManagement/`, `Epurse/`); cross-cutting code stays at
 the top level (`api/`, `Auth/`, `Master/`, `useLiveChannel.js`, ...). A new

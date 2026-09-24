@@ -1,18 +1,18 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 
 // Definitions now renders OnboardingConfiguration (Individual|Corporate
 // switch), not the plain individual-only page — "Frontend fixes —
 // onboarding menus and corporate masters", 2026-09, fix 1: there is ONE
 // Onboarding Configuration menu/page, not a separate one per ownership
 // type. The confirmed real path (onboardingconfiguration) is registered in
-// customerRoutes.jsx; the guesses below are this app's own earlier
+// onboardingRoutes.jsx; the guesses below are this app's own earlier
 // best-guess aliases for the individual-flavored menu names, kept as
 // aliases into the same unified hub (defaulting to Individual) rather than
 // removed outright, in case any of them is actually still in use. The
 // corporate-only slug guesses that used to point at a separate
 // CorporateOnboardingConfigurationPage here now redirect to
-// onboardingconfiguration?type=corporate instead — see customerRoutes.jsx.
+// onboardingconfiguration?type=corporate instead — see onboardingRoutes.jsx.
 const Definitions = lazy(() =>
   import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
@@ -29,7 +29,7 @@ const components = { Definitions, KycSchemes };
 // OnboardingConfigurationPage/OnboardingDefinitionWizard's FilterSelect) —
 // needs the same `path` + `path/:id` pair masterSlugs registers below, or
 // navigate(`/kycschemes/${id}`) 404s with no route matching the id segment.
-export const onboardingConfigRoutes = Object.entries(slugs).flatMap(([name, paths]) =>
+export const onboardingMasterRoutes = Object.entries(slugs).flatMap(([name, paths]) =>
   paths.flatMap((path) => [
     { path, element: pageElement(components[name]) },
     { path: `${path}/:id`, element: pageElement(components[name]) },
@@ -79,7 +79,7 @@ const masterSlugs = {
   bank: ["bank", "banks"],
   bank_branch: ["bankbranch", "bank-branch"],
 };
-onboardingConfigRoutes.push(
+onboardingMasterRoutes.push(
   ...Object.entries(masterSlugs).flatMap(([entity, paths]) =>
     paths.flatMap((path) => [
       { path, element: pageElement(Master, { entity }) },

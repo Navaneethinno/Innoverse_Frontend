@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/Components/Layout/AppLayout";
 import { RouteError } from "@/Components/Common/RouteError";
 import { ProtectRoute } from "./ProtectRoute";
-import { acctConfigRoutes, configKycRoutes, customerRoutes, customerOnboardingConfigRoutes, onboardingConfigRoutes, dashboardRoutes, digitalProductRoutes, institutionRoutes, masterConfigRoutes, profileRoutes, publicRoutes, userRoutes } from "./index";
+import { dashboardRoutes, epurseRoutes, institutionRoutes, publicRoutes, userManagementRoutes } from "./index";
 export const appRouter = createBrowserRouter([
   ...publicRoutes.map((route) => ({ errorElement: <RouteError />, ...route })),
   {
@@ -12,7 +12,7 @@ export const appRouter = createBrowserRouter([
       </ProtectRoute>
     ),
     errorElement: <RouteError />,
-    children: [...dashboardRoutes, ...institutionRoutes, ...userRoutes, ...profileRoutes, ...masterConfigRoutes, ...digitalProductRoutes, ...configKycRoutes, ...acctConfigRoutes, ...customerRoutes, ...customerOnboardingConfigRoutes, ...onboardingConfigRoutes],
+    children: [...dashboardRoutes, ...institutionRoutes, ...userManagementRoutes, ...epurseRoutes],
   },
 ]);
 export default appRouter;

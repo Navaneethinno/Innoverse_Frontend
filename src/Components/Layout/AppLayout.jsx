@@ -6,7 +6,7 @@ import { clearToken } from "@/Redux/AuthToken";
 import { clearMenuState } from "@/Redux/MenuSlice";
 import store from "@/Redux/Store";
 import { clearAuthSession } from "@/Services/api/authStorage";
-import { TopBar } from "./TopBar";
+import { TopBar } from "../../Pages/Header/TopBar";
 import { WorkspaceContainer } from "./WorkspaceContainer";
 import { SidebarStateProvider, useSidebar } from "./SidebarContext";
 import { DynamicSidebar, SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";

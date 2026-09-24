@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 
 const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
 // The old KYC Group / Group Level / Level Data / Level Process / Level
@@ -9,7 +9,7 @@ const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycS
 // valid and all open the scheme screen, whose levels editor covers what the
 // four child pages used to.
 const paths = ["group", "grouplevel", "groupleveldata", "grouplevelprocess", "groupleveldocument"];
-export const configKycRoutes = paths.flatMap((path) => [
+export const kycSchemesRoutes = paths.flatMap((path) => [
   { path, element: pageElement(KycSchemes) },
   { path: `${path}/:id`, element: pageElement(KycSchemes) },
 ]);

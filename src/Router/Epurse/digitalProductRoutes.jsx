@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 const Resource = lazy(() => import("@/Components/Epurse/DigitalProduct/DigitalProduct.jsx").then((m) => ({ default: m.DigitalProduct })));
 // Confirmed against a real /user/login menu_array: the "product" entity's
 // own menu_name is literally "Digital Product" (menu_id 31, a child of the

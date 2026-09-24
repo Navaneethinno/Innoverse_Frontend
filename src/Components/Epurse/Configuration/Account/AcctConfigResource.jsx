@@ -56,7 +56,7 @@ const CONFIGS = {
     // Confirmed straight from a real /user/login menu_array: this entity's
     // menu_name is literally "Account Product" (menu_id 49, parent_menu_id
     // 48 = "Account", the non-clickable group header — see
-    // acctConfigRoutes.jsx). menuName MUST match that exactly, or every
+    // accountRoutes.jsx). menuName MUST match that exactly, or every
     // allowed(menus, ..., menuName) permission check below silently
     // evaluates false and every action button (Add/Edit/Authorize/Delete)
     // stays hidden regardless of the user's actual grants — this is NOT

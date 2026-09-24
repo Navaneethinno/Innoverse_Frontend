@@ -16,12 +16,12 @@ import {
   UserSquare2,
   Wallet,
 } from "lucide-react";
-import { ACCT_CONFIG_ROUTE_BY_ENTITY } from "@/Router/acctConfigRoutes";
+import { ACCT_CONFIG_ROUTE_BY_ENTITY } from "@/Router/Epurse/accountRoutes";
 
 // Drives the Account Product "Configure" card grid (see
 // AccountConfigurationCards.jsx) — every entry here is a THIN pointer to an
 // already-existing config page, never a new form. `route` is sourced from
-// acctConfigRoutes.jsx (the single place that pairing is defined) rather
+// accountRoutes.jsx (the single place that pairing is defined) rather
 // than duplicated here. `label` is copied verbatim from AcctConfigResource
 // .jsx's own CONFIGS[entity].title — kept as a plain string instead of
 // importing CONFIGS to avoid a circular import (AcctConfigResource.jsx is

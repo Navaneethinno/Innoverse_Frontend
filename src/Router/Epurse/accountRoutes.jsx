@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 
 const Resource = lazy(() => import("@/Components/Epurse/Configuration/Account/AcctConfigResource.jsx").then((module) => ({ default: module.AcctConfigResource })));
 // Slugs confirmed against a real /user/login menu_array: "Account"
@@ -55,7 +55,7 @@ const entities = [
   "acct_product_opening_config",
   "acct_product_statement_config",
 ];
-export const acctConfigRoutes = [
+export const accountRoutes = [
   ...paths.flatMap((path, index) => [
     { path, element: pageElement(Resource, { entity: entities[index] }) },
     { path: `${path}/:id`, element: pageElement(Resource, { entity: entities[index] }) },

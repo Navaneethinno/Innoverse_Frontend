@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 const CustomerMasterConfigPage = lazy(() =>
   import("@/Components/Epurse/Onboarding/OnboardingMaster/CustomerMasterConfigResource.jsx").then((m) => ({ default: m.CustomerMasterConfigResource })),
 );
@@ -23,8 +23,8 @@ const SourceOfFundPage = lazy(() => import("@/Components/Epurse/Onboarding/Onboa
 // MasterResource.jsx's own turnover_range entry (slug turnoverrange) with
 // the currency_id/min/max shape that endpoint actually requires — this
 // plain name+min+max form was never that.
-export const masterConfigRoutes = [{ path: "gender", element: pageElement(GenderPage) }, { path: "gender/:id", element: pageElement(GenderPage) }, { path: "district", element: pageElement(DistrictPage) }, { path: "district/:id", element: pageElement(DistrictPage) }, { path: "province", element: pageElement(ProvincePage) }, { path: "province/:id", element: pageElement(ProvincePage) }, { path: "village", element: pageElement(VillagePage) }, { path: "village/:id", element: pageElement(VillagePage) }, { path: "accountpurpose", element: pageElement(AccountPurposePage) }, { path: "accountpurpose/:id", element: pageElement(AccountPurposePage) }, { path: "account-purpose", element: pageElement(AccountPurposePage) }, { path: "account-purpose/:id", element: pageElement(AccountPurposePage) }, { path: "designation", element: pageElement(DesignationPage) }, { path: "designation/:id", element: pageElement(DesignationPage) }, { path: "disability", element: pageElement(DisabilityPage) }, { path: "disability/:id", element: pageElement(DisabilityPage) }, { path: "employment", element: pageElement(EmploymentPage) }, { path: "employment/:id", element: pageElement(EmploymentPage) }, { path: "occupation", element: pageElement(OccupationPage) }, { path: "occupation/:id", element: pageElement(OccupationPage) }, { path: "qualification", element: pageElement(QualificationPage) }, { path: "qualification/:id", element: pageElement(QualificationPage) }, { path: "religion", element: pageElement(ReligionPage) }, { path: "religion/:id", element: pageElement(ReligionPage) }];
-masterConfigRoutes.unshift({ path: "sourceoffund", element: pageElement(SourceOfFundPage) }, { path: "sourceoffund/:id", element: pageElement(SourceOfFundPage) }, { path: "source-of-fund", element: pageElement(SourceOfFundPage) }, { path: "source-of-fund/:id", element: pageElement(SourceOfFundPage) });
+export const masterRoutes = [{ path: "gender", element: pageElement(GenderPage) }, { path: "gender/:id", element: pageElement(GenderPage) }, { path: "district", element: pageElement(DistrictPage) }, { path: "district/:id", element: pageElement(DistrictPage) }, { path: "province", element: pageElement(ProvincePage) }, { path: "province/:id", element: pageElement(ProvincePage) }, { path: "village", element: pageElement(VillagePage) }, { path: "village/:id", element: pageElement(VillagePage) }, { path: "accountpurpose", element: pageElement(AccountPurposePage) }, { path: "accountpurpose/:id", element: pageElement(AccountPurposePage) }, { path: "account-purpose", element: pageElement(AccountPurposePage) }, { path: "account-purpose/:id", element: pageElement(AccountPurposePage) }, { path: "designation", element: pageElement(DesignationPage) }, { path: "designation/:id", element: pageElement(DesignationPage) }, { path: "disability", element: pageElement(DisabilityPage) }, { path: "disability/:id", element: pageElement(DisabilityPage) }, { path: "employment", element: pageElement(EmploymentPage) }, { path: "employment/:id", element: pageElement(EmploymentPage) }, { path: "occupation", element: pageElement(OccupationPage) }, { path: "occupation/:id", element: pageElement(OccupationPage) }, { path: "qualification", element: pageElement(QualificationPage) }, { path: "qualification/:id", element: pageElement(QualificationPage) }, { path: "religion", element: pageElement(ReligionPage) }, { path: "religion/:id", element: pageElement(ReligionPage) }];
+masterRoutes.unshift({ path: "sourceoffund", element: pageElement(SourceOfFundPage) }, { path: "sourceoffund/:id", element: pageElement(SourceOfFundPage) }, { path: "source-of-fund", element: pageElement(SourceOfFundPage) }, { path: "source-of-fund/:id", element: pageElement(SourceOfFundPage) });
 
 // The 12 new Individual Customer domain masters (2026-09), all served by
 // one generic CustomerMasterConfigResource (see that file's own comment for
@@ -53,7 +53,7 @@ CUSTOMER_MASTER_CONFIG_ENTITIES.push(
   ["pepstatus", "indv_pep_status"],
   ["pepcategory", "indv_pep_category"],
 );
-masterConfigRoutes.push(
+masterRoutes.push(
   ...CUSTOMER_MASTER_CONFIG_ENTITIES.flatMap(([slug, entity]) => [
     { path: slug, element: pageElement(CustomerMasterConfigPage, { entity }) },
     { path: `${slug}/:id`, element: pageElement(CustomerMasterConfigPage, { entity }) },

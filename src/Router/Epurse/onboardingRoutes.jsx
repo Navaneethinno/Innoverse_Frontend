@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 
 // "Frontend fixes — onboarding menus and corporate masters", 2026-09,
 // fixes 1-2: ONE "Onboarding Configuration" menu (path onboardingconfiguration)
@@ -22,14 +22,14 @@ const OnboardingWizard = lazy(() =>
 // (slug "customer") now opens the real runtime onboarding work list from
 // "Customer Onboarding (Individual) — Frontend Guide" (/customer/individual/*),
 // via the same Individual|Corporate hub as "Onboarding Wizard" below.
-export const customerRoutes = [
+export const onboardingRoutes = [
   { path: "customer", element: pageElement(OnboardingWizard) },
   { path: "customer/:id", element: pageElement(OnboardingWizard) },
 ];
 
 // Sidebar menu "Onboarding Wizard" -> confirmed path "onboardingwizard"
 // (+ the per-click uuid).
-customerRoutes.push(
+onboardingRoutes.push(
   { path: "onboardingwizard", element: pageElement(OnboardingWizard) },
   { path: "onboardingwizard/:id", element: pageElement(OnboardingWizard) },
 );
@@ -38,7 +38,7 @@ customerRoutes.push(
 // "onboardingconfiguration" (+ the per-click uuid). The CONFIGURATION entry
 // point (customer types and their maker-checker state), not the
 // customer-facing onboarding itself.
-customerRoutes.push(
+onboardingRoutes.push(
   { path: "onboardingconfiguration", element: pageElement(OnboardingConfigHub) },
   { path: "onboardingconfiguration/:id", element: pageElement(OnboardingConfigHub) },
 );
@@ -61,7 +61,7 @@ const corporateRedirects = {
   corporateonboardingwizard: "/onboardingwizard",
   corporatecustomer: "/onboardingwizard",
 };
-customerRoutes.push(
+onboardingRoutes.push(
   ...Object.entries(corporateRedirects).flatMap(([path, to]) => [
     { path, element: redirectToCorporate(to) },
     { path: `${path}/:id`, element: redirectToCorporate(to) },

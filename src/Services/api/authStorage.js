@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from "@/Utils/Constant/storage";
+import { STORAGE_KEYS } from "@/Services/api/storageKeys";
 
 // A JWT's payload (the middle base64url segment) carries `exp` as a Unix
 // timestamp in seconds. Decoded locally, without a library, purely to check

@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { pageElement } from "./routeSupport";
+import { pageElement } from "../routeSupport";
 
 const CustomerTypes = lazy(() =>
   import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfigurationPage.jsx").then((m) => ({ default: m.OnboardingConfigurationPage })),
@@ -18,7 +18,7 @@ const paths = [
   "documentrequirementconfig",
   "documenttypeconfig",
 ];
-export const customerOnboardingConfigRoutes = paths.flatMap((path) => [
+export const onboardingAliasRoutes = paths.flatMap((path) => [
   { path, element: pageElement(CustomerTypes) },
   { path: `${path}/:id`, element: pageElement(CustomerTypes) },
 ]);
