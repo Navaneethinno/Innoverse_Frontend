@@ -145,6 +145,8 @@ const SEGMENT_LABELS = {
   kycschemes: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   notificationgroup: { titleKey: "crumbNotificationGroup", breadcrumb: ["crumbNotificationCenter", "crumbNotificationGroup"] },
   notificationalerts: { titleKey: "crumbNotificationAlerts", breadcrumb: ["crumbNotificationCenter", "crumbNotificationAlerts"] },
+  individualrisk: { titleKey: "crumbIndividualRisk", breadcrumb: ["crumbRiskAssessment", "crumbIndividualRisk"] },
+  corporaterisk: { titleKey: "crumbCorporateRisk", breadcrumb: ["crumbRiskAssessment", "crumbCorporateRisk"] },
   kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   kycschemeconfig: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },

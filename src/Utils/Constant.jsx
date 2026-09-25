@@ -812,4 +812,10 @@ export const API_ENDPOINTS = {
     ALERT: "/config/notification/alert",
     OUTBOX_LIST: "/config/notification/outbox/list",
   },
+  // EPURSE > Risk Assessment (Risk Assessment handoff, 2026-09): standard
+  // maker-checker verbs plus `options` (form) and `score` (try a setup).
+  RISK: {
+    INDIVIDUAL: "/config/risk/individual",
+    CORPORATE: "/config/risk/corporate",
+  },
 };

@@ -42,6 +42,7 @@ void i18n
       "customer",
       "myProfile",
       "notification",
+      "risk",
     ],
     interpolation: { escapeValue: false },
     detection: {

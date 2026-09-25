@@ -11,6 +11,7 @@ import { onboardingRoutes } from "./Epurse/onboardingRoutes";
 import { onboardingMasterRoutes } from "./Epurse/onboardingMasterRoutes";
 import { onboardingAliasRoutes } from "./Epurse/onboardingAliasRoutes";
 import { notificationRoutes } from "./Epurse/notificationRoutes";
+import { riskRoutes } from "./Epurse/riskRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -27,4 +28,5 @@ export const epurseRoutes = [
   ...onboardingMasterRoutes, // Onboarding > Onboarding Master
   ...onboardingAliasRoutes, // retired onboarding slugs
   ...notificationRoutes, // Notification Center
+  ...riskRoutes, // Risk Assessment
 ];
