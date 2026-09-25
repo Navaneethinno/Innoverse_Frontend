@@ -1,22 +1,13 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { motion } from "motion/react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock3,
-  Filter,
-  ListChecks,
-  PauseCircle,
-  Plus,
-  FilePen,
-} from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
+import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
 import { useSessionState } from "@/Hooks/useSessionState";
 import {
   mapInstitutionListResponse,
@@ -32,7 +23,6 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { cn } from "@/Utils/Lib/cn";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { institutionId } from "./InstitutionProfileForm";
 import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
@@ -42,21 +32,6 @@ import { DeactivateInstitutionProfile } from "./DeactivateInstitutionProfile";
 import { ReactivateInstitutionProfile } from "./ReactivateInstitutionProfile";
 import { SubmitInstitutionProfile } from "./SubmitInstitutionProfile";
 import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
-
-// Every non-active, non-terminal auth_status groups into the "Pending" tab.
-// The real, specific value (NEW_AUTH / EDIT_AUTH / DEL_WAIT_AUTH / ...) is
-// still shown per-row via StatusBadge — only the tab grouping simplifies.
-const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
-const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED", "DEAUTH", "DELETED"];
-const TABS = ["all", "active", "pending", "draft", "inactive"];
-const TAB_LABEL_KEY = {
-  all: "statusAll",
-  active: "statusActive",
-  pending: "statusPending",
-  draft: "statusDraft",
-  inactive: "statusInactive",
-};
-const TAB_ICON = { all: ListChecks, active: CheckCircle2, pending: Clock3, draft: FilePen, inactive: PauseCircle };
 
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
@@ -81,13 +56,6 @@ function isInstitutionDraft(inst) {
 // only check silently misses (confirmed live in UserManagement/Profile).
 function isPendingDelete(inst) {
   return deriveStatusFlags(inst).pendingDelete;
-}
-function tabOf(inst) {
-  if (isInstitutionDraft(inst)) return "draft";
-  const status = statusOf(inst);
-  if (ACTIVE_STATUSES.includes(status)) return "active";
-  if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
-  return "pending";
 }
 function timestampOf(inst) {
   const raw = inst.updated_time ?? inst.created_time;
@@ -164,13 +132,7 @@ export function InstitutionProfile() {
 
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
-  const counts = useMemo(() => {
-    const result = { all: institutions.length, active: 0, pending: 0, draft: 0, inactive: 0 };
-    institutions.forEach((inst) => {
-      result[tabOf(inst)] += 1;
-    });
-    return result;
-  }, [institutions]);
+  const activeCount = useMemo(() => institutions.filter((inst) => statusBucket(inst) === "active").length, [institutions]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -179,7 +141,7 @@ export function InstitutionProfile() {
         !q ||
         String(inst.name ?? "").toLowerCase().includes(q) ||
         String(inst.code ?? "").toLowerCase().includes(q);
-      const matchTab = activeTab === "all" || tabOf(inst) === activeTab;
+      const matchTab = activeTab === "all" || statusBucket(inst) === activeTab;
       return matchSearch && matchTab;
     });
     if (activeTab === "pending" || activeTab === "all") {
@@ -294,7 +256,7 @@ export function InstitutionProfile() {
       <div className="mb-3">
         <h1 className="text-xl font-black leading-none tracking-tight text-slate-800">{t("institutions:listTitle")}</h1>
         <p className="mt-1 text-xs font-medium text-muted-foreground">
-          {t("institutions:listSubtitle", { total: institutions.length, active: counts.active })}
+          {t("institutions:listSubtitle", { total: institutions.length, active: activeCount })}
         </p>
       </div>
 
@@ -307,77 +269,33 @@ export function InstitutionProfile() {
           boxShadow: "var(--glass-shadow)",
         }}
       >
-      <div className="flex flex-col gap-2 border-b border-border p-3">
-        <div className="flex min-w-0 items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
-          {TABS.map((value) => {
-            const Icon = TAB_ICON[value];
-            const isActive = activeTab === value;
-            return (
-              <button
-                key={value}
-                onClick={() => {
-                  setActiveTab(value);
-                  setPage(1);
-                }}
-                className={cn(
-                  "flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors",
-                  !isActive && "text-muted-foreground hover:bg-muted hover:text-slate-700",
-                )}
-                style={
-                  isActive
-                    ? { background: "var(--primary-light)", color: "var(--primary)" }
-                    : undefined
-                }
-              >
-                <Icon
-                  size={14}
-                  strokeWidth={2}
-                  className={isActive ? undefined : "text-muted-foreground"}
-                  style={isActive ? { color: "var(--primary)" } : undefined}
-                />
-                {t(`common:${TAB_LABEL_KEY[value]}`)}
-                <span
-                  className={cn(
-                    "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
-                    !isActive && "bg-slate-100 text-muted-foreground",
-                  )}
-                  style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
-                >
-                  {counts[value]}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        {canAdd && (
-          <motion.button
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/institutions/create")}
-            className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white"
-            style={{ background: "var(--primary)" }}
-          >
-            <Plus size={14} />
-            <span className="hidden sm:inline">{t("institutions:newInstitution")}</span>
-            <span className="sm:hidden">{t("institutions:newInstitutionShort")}</span>
-          </motion.button>
-        )}
-        </div>
-        <div className="relative w-full max-w-sm sm:max-w-none">
-          <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            type="text"
-            placeholder={t("institutions:searchInstitutionsPlaceholder")}
-            className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-          />
-        </div>
-      </div>
+      <StatusFilterTabs
+        bare
+        rows={institutions}
+        total={needsFullBatch ? undefined : institutionsQuery.pagination?.totalRecords}
+        value={activeTab}
+        onChange={(next) => {
+          setActiveTab(next);
+          setPage(1);
+        }}
+        search={search}
+        onSearch={(next) => {
+          setSearch(next);
+          setPage(1);
+        }}
+        searchPlaceholder={t("institutions:searchInstitutionsPlaceholder")}
+        actions={
+          canAdd && (
+            <button
+              type="button"
+              onClick={() => navigate("/institutions/create")}
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+            >
+              <Plus size={14} /> {t("institutions:newInstitution")}
+            </button>
+          )
+        }
+      />
 
       {institutionsQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
