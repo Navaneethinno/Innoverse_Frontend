@@ -17,7 +17,7 @@ export function CheckboxPill({ checked, onChange, label, disabled = false, disab
     <label
       title={disabled ? disabledReason : undefined}
       className={cn(
-        "inline-flex max-w-full cursor-pointer select-none items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+        "relative inline-flex max-w-full cursor-pointer select-none items-center gap-2.5 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
         checked ? "border-primary bg-primary-light text-slate-800" : "border-border bg-card text-slate-600 hover:border-slate-300",
         disabled && "cursor-not-allowed opacity-60",
         className,
