@@ -10,6 +10,7 @@ import {
   ListChecks,
   PauseCircle,
   Plus,
+  FilePen,
 } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -47,14 +48,15 @@ import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 // still shown per-row via StatusBadge — only the tab grouping simplifies.
 const ACTIVE_STATUSES = ["ACTIVE", "AUTHORIZED"];
 const TERMINAL_INACTIVE_STATUSES = ["INACTIVE", "DEACTIVATED", "DEAUTH", "DELETED"];
-const TABS = ["all", "active", "pending", "inactive"];
+const TABS = ["all", "active", "pending", "draft", "inactive"];
 const TAB_LABEL_KEY = {
   all: "statusAll",
   active: "statusActive",
   pending: "statusPending",
+  draft: "statusDraft",
   inactive: "statusInactive",
 };
-const TAB_ICON = { all: ListChecks, active: CheckCircle2, pending: Clock3, inactive: PauseCircle };
+const TAB_ICON = { all: ListChecks, active: CheckCircle2, pending: Clock3, draft: FilePen, inactive: PauseCircle };
 
 function statusOf(inst) {
   return String(inst.auth_status ?? inst.status ?? "").toUpperCase();
@@ -81,6 +83,7 @@ function isPendingDelete(inst) {
   return deriveStatusFlags(inst).pendingDelete;
 }
 function tabOf(inst) {
+  if (isInstitutionDraft(inst)) return "draft";
   const status = statusOf(inst);
   if (ACTIVE_STATUSES.includes(status)) return "active";
   if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
@@ -162,7 +165,7 @@ export function InstitutionProfile() {
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
   const counts = useMemo(() => {
-    const result = { all: institutions.length, active: 0, pending: 0, inactive: 0 };
+    const result = { all: institutions.length, active: 0, pending: 0, draft: 0, inactive: 0 };
     institutions.forEach((inst) => {
       result[tabOf(inst)] += 1;
     });

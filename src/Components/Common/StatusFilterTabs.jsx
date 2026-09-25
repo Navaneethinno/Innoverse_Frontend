@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
-import { CheckCircle2, Clock3, Filter, ListChecks, PauseCircle } from "lucide-react";
+import { CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle } from "lucide-react";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
 // INSTITUTION_DRAFT_STATUS_CODE is env-overridable (defaults to 9) rather
@@ -18,14 +18,10 @@ export const statusBucket = (row) => {
   // while a delete is pending. Checking status first made every pending
   // row on an otherwise-active record bucket into "Active" instead of
   // "Pending", silently zeroing out the Pending tab's count.
-  if (
-    status.includes("pending") ||
-    process.includes("pending") ||
-    status.includes("draft") ||
-    process.includes("draft") ||
-    Number(row?.status) === INSTITUTION_DRAFT_STATUS_CODE
-  )
-    return "pending";
+  // Drafts (saved but never submitted) get their own tab, ahead of the
+  // pending check since a draft may also carry a pending-looking process.
+  if (status.includes("draft") || process.includes("draft") || Number(row?.status) === INSTITUTION_DRAFT_STATUS_CODE) return "draft";
+  if (status.includes("pending") || process.includes("pending")) return "pending";
   if (status.includes("inactive") || process.includes("inactive")) return "inactive";
   if (status.includes("active") || status === "authorized" || row?.status === 1) return "active";
   return "inactive";
@@ -35,6 +31,7 @@ const TABS = [
   ["all", "statusAll", ListChecks],
   ["active", "statusActive", CheckCircle2],
   ["pending", "statusPending", Clock3],
+  ["draft", "statusDraft", FilePen],
   ["inactive", "statusInactive", PauseCircle],
 ];
 
@@ -50,7 +47,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
       result[statusBucket(row)] += 1;
       return result;
     },
-    { all: 0, active: 0, pending: 0, inactive: 0 },
+    { all: 0, active: 0, pending: 0, draft: 0, inactive: 0 },
   );
   // `rows` is only the loaded page on server-paginated lists. When the server
   // reports more records than that, All shows the real total and the

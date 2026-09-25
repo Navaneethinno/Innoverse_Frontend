@@ -38,6 +38,7 @@ export const common = {
   statusAll: "All",
   statusActive: "Active",
   statusPending: "Pending",
+  statusDraft: "Draft",
   statusInactive: "Inactive",
   searchInstitutionsPlaceholder: "Search institutions...",
   accessDenied: "Access Denied!",

@@ -51,6 +51,8 @@ function statusOf(p) {
   return String(p.auth_status ?? p.status ?? "").toUpperCase();
 }
 function tabOf(p) {
+  const draft = [p.status_name, p.process_status_name, p.auth_status].some((v) => String(v ?? "").toLowerCase().includes("draft"));
+  if (draft) return "draft";
   const status = statusOf(p);
   if (ACTIVE_STATUSES.includes(status)) return "active";
   if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
@@ -121,7 +123,7 @@ export function Profile() {
   const institutionsById = new Map(institutions.map((institution) => [String(institution.id), institution]));
 
   const counts = useMemo(() => {
-    const result = { all: profiles.length, active: 0, pending: 0, inactive: 0 };
+    const result = { all: profiles.length, active: 0, pending: 0, draft: 0, inactive: 0 };
     profiles.forEach((p) => {
       result[tabOf(p)] += 1;
     });
