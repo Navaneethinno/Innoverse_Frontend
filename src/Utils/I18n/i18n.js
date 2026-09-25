@@ -41,6 +41,7 @@ void i18n
       "onboarding",
       "customer",
       "myProfile",
+      "notification",
     ],
     interpolation: { escapeValue: false },
     detection: {

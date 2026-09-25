@@ -10,6 +10,7 @@ import { digitalProductRoutes } from "./Epurse/digitalProductRoutes";
 import { onboardingRoutes } from "./Epurse/onboardingRoutes";
 import { onboardingMasterRoutes } from "./Epurse/onboardingMasterRoutes";
 import { onboardingAliasRoutes } from "./Epurse/onboardingAliasRoutes";
+import { notificationRoutes } from "./Epurse/notificationRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -25,4 +26,5 @@ export const epurseRoutes = [
   ...onboardingRoutes, // Onboarding > Onboarding Wizard / Configuration
   ...onboardingMasterRoutes, // Onboarding > Onboarding Master
   ...onboardingAliasRoutes, // retired onboarding slugs
+  ...notificationRoutes, // Notification Center
 ];

@@ -143,6 +143,8 @@ const SEGMENT_LABELS = {
   onboardingdefinition: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
   onboardingdefinitions: { titleKey: "crumbCustomerTypes", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbCustomerTypes"] },
   kycschemes: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
+  notificationgroup: { titleKey: "crumbNotificationGroup", breadcrumb: ["crumbNotificationCenter", "crumbNotificationGroup"] },
+  notificationalerts: { titleKey: "crumbNotificationAlerts", breadcrumb: ["crumbNotificationCenter", "crumbNotificationAlerts"] },
   kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   kycschemeconfig: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },

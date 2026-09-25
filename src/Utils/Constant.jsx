@@ -804,4 +804,11 @@ export const API_ENDPOINTS = {
       REACTIVATE: "/config/customer/corporate/reactivate",
     },
   },
+  // EPURSE > Notification Center (Notification Center handoff, 2026-09):
+  // both are standard maker-checker entities — the 13 verbs under each base
+  // (see createLifecycle); alerts also have `options` for the form.
+  NOTIFICATION: {
+    GROUP: "/config/notification/group",
+    ALERT: "/config/notification/alert",
+  },
 };
