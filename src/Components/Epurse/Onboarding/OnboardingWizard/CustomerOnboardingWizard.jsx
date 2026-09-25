@@ -108,7 +108,7 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
                         <li key={i}>
                           <button
                             type="button"
-                            onClick={() => m.section_code && onJumpToSection(m.section_code)}
+                            onClick={() => m.section_code && onJumpToSection(m.section_code, m)}
                             className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
                           >
                             <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
@@ -151,6 +151,20 @@ function KycLevelBadge({ levelNo, levels }) {
 //
 // `referenceId` (optional) resumes an existing onboarding straight into
 // the section view; otherwise the picker (§2-3) runs first.
+// Which field a KYC requirement points at: its own field key when the API
+// sends one, else the field whose label appears in the message (longest
+// match wins, so "Last name" beats "Name").
+function fieldKeyForRequirement(section, item) {
+  const explicit = item?.field ?? item?.field_key;
+  if (explicit) return explicit;
+  const message = String(item?.message ?? "").toLowerCase();
+  if (!message) return null;
+  const match = (section?.fields ?? [])
+    .filter((f) => f.label && message.includes(String(f.label).toLowerCase()))
+    .sort((a, b) => String(b.label).length - String(a.label).length)[0];
+  return match?.key ?? null;
+}
+
 export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
   const { t } = useTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
@@ -293,10 +307,38 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const issueFor = (fieldKey, rowIndex) =>
     section?.issues?.find((i) => i.field === fieldKey && (rowIndex === undefined || i.row === rowIndex))?.message;
 
-  const jumpToSection = guard((code) => {
+  // The section form sits below the KYC panel, so switching section alone
+  // changed nothing visible. A KYC link switches section, then scrolls to the
+  // field it names (focused + briefly highlighted), else to the section title.
+  const sectionTitleRef = useRef(null);
+  const formRef = useRef(null);
+  const [scrollTarget, setScrollTarget] = useState(null);
+  const jumpToSection = guard((code, item) => {
     const idx = sections.findIndex((s) => s.code === code);
-    if (idx >= 0) setActiveSection(idx);
+    if (idx < 0) return;
+    setActiveSection(idx);
+    setScrollTarget({ field: fieldKeyForRequirement(sections[idx], item) });
   });
+  useEffect(() => {
+    if (!scrollTarget) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const fieldEl = scrollTarget.field
+        ? formRef.current?.querySelector(`[data-field="${CSS.escape(scrollTarget.field)}"]`)
+        : null;
+      const target = fieldEl ?? sectionTitleRef.current;
+      target?.scrollIntoView({ behavior: "smooth", block: fieldEl ? "center" : "start" });
+      if (fieldEl) {
+        fieldEl
+          .querySelector("input:not([disabled]), textarea:not([disabled]), button:not([disabled])")
+          ?.focus({ preventScroll: true });
+        fieldEl.classList.remove("field-flash");
+        void fieldEl.offsetWidth; // restart the highlight if it's the same field again
+        fieldEl.classList.add("field-flash");
+      }
+      setScrollTarget(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrollTarget, activeSection]);
 
   const persistSection = async () => {
     if (!section) return;
@@ -542,7 +584,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
           onStepClick={guard((index) => setActiveSection(index))}
           isStepCompleted={(_, i) => sections[i]?.state === "complete"}
         />
-        <h2 className="mb-3 flex items-center text-sm font-bold text-slate-700">
+        <h2 ref={sectionTitleRef} className="mb-3 flex scroll-mt-4 items-center text-sm font-bold text-slate-700">
           {section.label ?? section.name}
           <KycLevelBadge levelNo={section.kyc_level_no} levels={wizard?.kyc?.levels} />
         </h2>
@@ -553,6 +595,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             ))}
           </div>
         )}
+        <div ref={formRef}>
         {section.multi_row ? (
           <div className="grid gap-3">
             {(Array.isArray(effectiveDraft) ? effectiveDraft : []).map((row, i) => renderRow(section.fields, row, i))}
@@ -569,6 +612,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         ) : (
           renderRow(section.fields, effectiveDraft ?? {}, undefined)
         )}
+        </div>
         <StatusNotice onboarding={wizard.onboarding} />
         {portalDraft && <PortalDraftBanner />}
         {/* With a KYC scheme, ready_to_submit means the level the customer

@@ -718,3 +718,25 @@ textarea:disabled {
     animation: none;
   }
 }
+
+/* Field a KYC requirement link scrolled to (CustomerOnboardingWizard). */
+.field-flash {
+  border-radius: 0.75rem;
+  animation: field-flash 1.6s ease-out;
+}
+@keyframes field-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 35%, transparent);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 4px transparent;
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-flash {
+    animation: none;
+  }
+}

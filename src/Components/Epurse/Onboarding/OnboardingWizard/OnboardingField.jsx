@@ -111,9 +111,11 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
     }
   })();
 
+  // data-field lets the wizard scroll to / focus a field by its key (e.g.
+  // from a KYC "Last name is required" link).
   if (field.input === "checkbox") {
     return (
-      <div>
+      <div data-field={field.key}>
         {control}
         {badge}
         {field.help_text && <p className="mt-1 text-[11px] text-muted-foreground">{field.help_text}</p>}
@@ -123,7 +125,7 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
   }
 
   return (
-    <label className="block text-sm font-semibold text-slate-700">
+    <label data-field={field.key} className="block text-sm font-semibold text-slate-700">
       {field.label}
       {field.mandatory && <span className="text-red-500"> *</span>}
       {badge}
