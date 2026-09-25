@@ -10,6 +10,7 @@ import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { triggerKey, useAlertOptions } from "./useAlertOptions";
+import { TriggerGrid } from "./TriggerGrid";
 
 const SMS_MAX = 640;
 
@@ -61,14 +62,6 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
     onFocus: () => setActiveField(key),
     onChange: (e) => setForm({ ...form, [key]: e.target.value }),
   });
-
-  const toggleTrigger = (key) =>
-    setForm((f) => {
-      const next = new Set(f.triggers);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return { ...f, triggers: next };
-    });
 
   // Menus grouped under their parent, filtered by the search box.
   const menuGroups = useMemo(() => {
@@ -232,37 +225,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
               <LoadingAnimation />
             </div>
           ) : (
-            <div className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1">
-              {menuGroups.map(([parent, menus]) => (
-                <div key={parent || "-"}>
-                  {parent && <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{parent}</p>}
-                  <div className="divide-y rounded-xl border">
-                    {menus.map((menu) => (
-                      <div key={menu.menu_id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                        <span className="text-sm font-semibold text-slate-700">{menu.menu_name}</span>
-                        <div className="flex flex-wrap gap-1">
-                          {(menu.actions ?? []).map((action) => {
-                            const key = triggerKey(menu.menu_id, action.action_id);
-                            const on = form.triggers.has(key);
-                            return (
-                              <button
-                                key={key}
-                                type="button"
-                                aria-pressed={on}
-                                onClick={() => toggleTrigger(key)}
-                                className={`rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ${on ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground hover:border-primary hover:text-primary"}`}
-                              >
-                                {action.action_name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TriggerGrid groups={menuGroups} selected={form.triggers} onChange={(triggers) => setForm((f) => ({ ...f, triggers }))} />
           )}
         </div>
       </div>

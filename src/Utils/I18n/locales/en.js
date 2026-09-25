@@ -1056,6 +1056,11 @@ export const myProfile = {
 };
 
 export const notification = {
+  menu: "Menu",
+  all: "All",
+  selectAll: "Select all",
+  selectAllAction: "Select {{action}} on every menu",
+  selectAllMenu: "Select every action on {{menu}}",
   groupTitle: "Notification Group",
   groupSubtitle: "Named lists of people who receive notification alerts.",
   alertTitle: "Notification Alerts",
