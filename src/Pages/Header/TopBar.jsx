@@ -84,6 +84,10 @@ export function TopBar() {
 
         <div className="w-px h-4 bg-border shrink-0" />
 
+        <span className="hidden sm:block truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          {t("layout:adminPortal")}
+        </span>
+
         <div className="flex-1 min-w-0" />
 
         {/* Actions */}

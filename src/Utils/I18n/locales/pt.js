@@ -461,6 +461,7 @@ export const layout = {
   noNotificationsYet: "Nenhuma notificação ainda",
   youReAllCaughtUpNewNotifications: "Você está em dia. Novas notificações aparecerão aqui.",
   openMenu: "Abrir menu",
+  adminPortal: "Portal administrativo",
 };
 
 export const routes = {

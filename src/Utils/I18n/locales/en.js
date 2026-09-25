@@ -477,6 +477,7 @@ export const layout = {
   noNotificationsYet: "No notifications yet",
   youReAllCaughtUpNewNotifications: "You're all caught up. New notifications will appear here.",
   openMenu: "Open menu",
+  adminPortal: "Admin portal",
 };
 
 // Every routeConfig.js breadcrumb/title segment, keyed the same way
