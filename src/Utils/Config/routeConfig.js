@@ -34,6 +34,7 @@ const SEGMENT_LABELS = {
   "password-policy": { titleKey: "crumbPasswordPolicy", breadcrumb: ["crumbUserManagement", "crumbPasswordPolicy"] },
   "change-password": { titleKey: "crumbChangePassword", breadcrumb: ["crumbChangePassword"] },
   notifications: { titleKey: "crumbNotifications", breadcrumb: ["crumbNotifications"] },
+  "my-profile": { titleKey: "crumbMyProfile", breadcrumb: ["crumbMyProfile"] },
 
   // --- EPURSE > Settings > Master (master_config maker-checker CRUD) ------
   gender: { titleKey: "crumbGender", breadcrumb: ["crumbMaster", "crumbGender"] },

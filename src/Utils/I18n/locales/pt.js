@@ -443,6 +443,8 @@ export const sidebar = {
 };
 
 export const layout = {
+  myProfile: "Meu perfil",
+  changePassword: "Alterar senha",
   dashboard: "Painel",
   breadcrumb: "Trilha de navegação",
   keyboardShortcuts: "Atalhos de teclado",
@@ -467,6 +469,7 @@ export const routes = {
   crumbChangePassword: "Alterar Senha",
   crumbIndividual: "Individual",
   crumbNotifications: "Notificações",
+  crumbMyProfile: "Meu perfil",
   crumbChannelConfig: "Configuração de Canal",
   crumbChannelTransaction: "Transação de Canal",
   crumbCitizenship: "Cidadania",
@@ -997,7 +1000,32 @@ export const statusLabels = {
   Deactivate: "Desativação",
 };
 
+export const myProfile = {
+  changePassword: "Alterar senha",
+  personalDetails: "Dados pessoais",
+  contactDetails: "Contato",
+  account: "Conta",
+  firstName: "Nome",
+  middleName: "Nome do meio",
+  lastName: "Sobrenome",
+  gender: "Gênero",
+  employeeId: "ID do funcionário",
+  email: "E-mail",
+  mobile: "Celular",
+  alternateEmail: "E-mail alternativo",
+  alternateMobile: "Celular alternativo",
+  address: "Endereço",
+  username: "Nome de usuário",
+  role: "Perfil",
+  institution: "Instituição",
+  passwordPolicy: "Política de senha",
+  authorization: "Autorização",
+  memberSince: "Membro desde",
+  editHint: "Para atualizar estes dados, peça a um administrador para editar o seu cadastro de usuário.",
+};
+
 export default {
+  myProfile,
   common,
   auth,
   login,

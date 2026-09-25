@@ -40,6 +40,7 @@ void i18n
       "statusLabels",
       "onboarding",
       "customer",
+      "myProfile",
     ],
     interpolation: { escapeValue: false },
     detection: {

@@ -3,6 +3,9 @@ import { pageElement } from "../routeSupport";
 const ProfilesPage = lazy(() =>
   import("@/Components/UserManagement/Profile").then((m) => ({ default: m.Profile })),
 );
+const MyProfilePage = lazy(() =>
+  import("@/Pages/Header/MyProfilePage").then((m) => ({ default: m.MyProfilePage })),
+);
 const ChangePasswordPage = lazy(() =>
   import("@/Pages/Header/ChangePasswordPage").then((m) => ({ default: m.ChangePasswordPage })),
 );
@@ -19,4 +22,5 @@ export const profileRoutes = [
   { path: "/profiles/:id", element: pageElement(ProfilesPage) },
   { path: "/profile/:id", element: pageElement(ProfilesPage) },
   { path: "/change-password", element: pageElement(ChangePasswordPage) },
+  { path: "/my-profile", element: pageElement(MyProfilePage) },
 ];

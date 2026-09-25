@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Command, LogOut, Menu, Moon, Settings, Sun } from "lucide-react";
+import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
@@ -176,11 +176,20 @@ export function TopBar() {
                   <button
                     onClick={() => {
                       setMenuOpen(false);
+                      navigate("/my-profile");
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary-light transition-colors"
+                  >
+                    <UserRound size={13} /> {t("layout:myProfile")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
                       navigate("/change-password");
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary-light transition-colors"
                   >
-                    <Settings size={13} /> {t("common:settings")}
+                    <KeyRound size={13} /> {t("layout:changePassword")}
                   </button>
                   <button
                     onClick={() => {

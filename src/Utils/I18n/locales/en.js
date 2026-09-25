@@ -459,6 +459,8 @@ export const sidebar = {
 };
 
 export const layout = {
+  myProfile: "My profile",
+  changePassword: "Change password",
   dashboard: "Dashboard",
   breadcrumb: "Breadcrumb",
   keyboardShortcuts: "Keyboard shortcuts",
@@ -487,6 +489,7 @@ export const routes = {
   crumbChangePassword: "Change Password",
   crumbIndividual: "Individual",
   crumbNotifications: "Notifications",
+  crumbMyProfile: "My profile",
   crumbChannelConfig: "Channel Config",
   crumbChannelTransaction: "Channel Transaction",
   crumbCitizenship: "Citizenship",
@@ -1017,7 +1020,32 @@ export const statusLabels = {
   Deactivate: "Deactivate",
 };
 
+export const myProfile = {
+  changePassword: "Change password",
+  personalDetails: "Personal details",
+  contactDetails: "Contact details",
+  account: "Account",
+  firstName: "First name",
+  middleName: "Middle name",
+  lastName: "Last name",
+  gender: "Gender",
+  employeeId: "Employee ID",
+  email: "Email",
+  mobile: "Mobile",
+  alternateEmail: "Alternate email",
+  alternateMobile: "Alternate mobile",
+  address: "Address",
+  username: "Username",
+  role: "Role",
+  institution: "Institution",
+  passwordPolicy: "Password policy",
+  authorization: "Authorization",
+  memberSince: "Member since",
+  editHint: "To update these details, ask an administrator to edit your user record.",
+};
+
 export default {
+  myProfile,
   common,
   auth,
   login,
