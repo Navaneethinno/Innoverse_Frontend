@@ -1,21 +1,30 @@
 import { useMemo } from "react";
+import { Check, Minus } from "lucide-react";
+import { cn } from "@/Utils/Lib/cn";
 import { useTranslation } from "react-i18next";
 import { triggerKey } from "./useAlertOptions";
 
-// Tri-state checkbox: checked, unchecked, or partly (indeterminate).
-function Tick({ state, onChange, label }) {
+// Tri-state checkbox in the theme's colours: ticked, empty, or partly (dash).
+function Tick({ state, onChange, label, size = "md" }) {
+  const on = state !== "none";
+  const box = size === "sm" ? "h-4 w-4 rounded-[4px]" : "h-[18px] w-[18px] rounded-[5px]";
   return (
-    <input
-      type="checkbox"
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={state === "some" ? "mixed" : state === "all"}
       aria-label={label}
       title={label}
-      checked={state === "all"}
-      ref={(el) => {
-        if (el) el.indeterminate = state === "some";
-      }}
-      onChange={onChange}
-      className="h-4 w-4 cursor-pointer accent-[var(--primary)]"
-    />
+      onClick={onChange}
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center border-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        box,
+        on ? "border-primary bg-primary text-primary-foreground" : "border-slate-300 bg-card hover:border-primary",
+      )}
+    >
+      {state === "all" && <Check size={12} strokeWidth={3.5} />}
+      {state === "some" && <Minus size={12} strokeWidth={3.5} />}
+    </button>
   );
 }
 
@@ -55,25 +64,34 @@ export function TriggerGrid({ groups, selected, onChange }) {
 
   if (!menus.length) return null;
 
-  const cell = "px-2 py-2 text-center";
+  const colWidth = "w-[92px]";
   return (
-    <div className="mt-3 max-h-96 overflow-auto rounded-xl border">
-      <table className="w-full min-w-[640px] border-collapse text-sm">
-        <thead className="sticky top-0 z-10 bg-card shadow-[0_1px_0_var(--border)]">
-          <tr>
-            <th className="px-3 py-2 text-left text-xs font-bold text-muted-foreground">{t("menu")}</th>
-            <th className={cell}>
-              <label className="flex flex-col items-center gap-1 text-[11px] font-bold text-primary">
-                {t("all")}
-                <Tick state={stateOf(allKeys, selected)} onChange={() => toggle(allKeys)} label={t("selectAll")} />
-              </label>
+    <div className="mt-3 max-h-[26rem] overflow-auto rounded-xl border bg-card">
+      <table className="w-full min-w-[680px] table-fixed border-separate border-spacing-0 text-sm">
+        <colgroup>
+          <col />
+          <col className="w-[72px]" />
+          {columns.map((col) => (
+            <col key={col.id} className={colWidth} />
+          ))}
+        </colgroup>
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-muted">
+            <th className="border-b px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t("menu")}</th>
+            <th className="border-b border-l bg-primary-light px-2 py-2">
+              <div className="flex flex-col items-center gap-1.5">
+                <span className="text-[11px] font-black uppercase tracking-wide text-slate-700">{t("all")}</span>
+                <Tick size="sm" state={stateOf(allKeys, selected)} onChange={() => toggle(allKeys)} label={t("selectAll")} />
+              </div>
             </th>
             {columns.map((col) => (
-              <th key={col.id} className={cell}>
-                <label className="flex flex-col items-center gap-1 whitespace-nowrap text-[11px] font-bold text-slate-600">
-                  {col.name}
-                  <Tick state={stateOf(columnKeys(col.id), selected)} onChange={() => toggle(columnKeys(col.id))} label={t("selectAllAction", { action: col.name })} />
-                </label>
+              <th key={col.id} className="border-b px-1 py-2">
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="truncate text-[11px] font-bold text-slate-600" title={col.name}>
+                    {col.name}
+                  </span>
+                  <Tick size="sm" state={stateOf(columnKeys(col.id), selected)} onChange={() => toggle(columnKeys(col.id))} label={t("selectAllAction", { action: col.name })} />
+                </div>
               </th>
             ))}
           </tr>
@@ -81,29 +99,40 @@ export function TriggerGrid({ groups, selected, onChange }) {
         <tbody>
           {groups.map(([parent, list]) => [
             parent && (
-              <tr key={`p:${parent}`} className="border-t bg-primary-light/50">
-                <td colSpan={columns.length + 2} className="px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+              <tr key={`p:${parent}`}>
+                <td colSpan={columns.length + 2} className="border-b bg-card px-4 pb-1.5 pt-3 text-[10px] font-bold uppercase tracking-wider text-primary">
                   {parent}
                 </td>
               </tr>
             ),
             ...list.map((menu) => {
               const rowKeys = keysOf(menu);
+              const rowState = stateOf(rowKeys, selected);
+              const picked = rowKeys.filter((k) => selected.has(k)).length;
               return (
-                <tr key={menu.menu_id} className="border-t hover:bg-primary-light/40">
-                  <td className="px-3 py-2 font-semibold text-slate-700">{menu.menu_name}</td>
-                  <td className={cell}>
-                    <Tick state={stateOf(rowKeys, selected)} onChange={() => toggle(rowKeys)} label={t("selectAllMenu", { menu: menu.menu_name })} />
+                <tr key={menu.menu_id} className={cn("group transition-colors", rowState !== "none" ? "bg-primary-light" : "hover:bg-muted")}>
+                  <td className="border-b px-4 py-2">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate font-medium text-slate-700">{menu.menu_name}</span>
+                      {picked > 0 && (
+                        <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-bold text-primary-foreground">
+                          {picked}/{rowKeys.length}
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="border-b border-l px-2 py-2 text-center">
+                    <Tick size="sm" state={rowState} onChange={() => toggle(rowKeys)} label={t("selectAllMenu", { menu: menu.menu_name })} />
                   </td>
                   {columns.map((col) => {
                     const has = (menu.actions ?? []).some((a) => a.action_id === col.id);
                     const key = triggerKey(menu.menu_id, col.id);
                     return (
-                      <td key={col.id} className={cell}>
+                      <td key={col.id} className="border-b px-1 py-2 text-center">
                         {has ? (
-                          <Tick state={selected.has(key) ? "all" : "none"} onChange={() => toggle([key])} label={`${menu.menu_name} · ${col.name}`} />
+                          <Tick size="sm" state={selected.has(key) ? "all" : "none"} onChange={() => toggle([key])} label={`${menu.menu_name} · ${col.name}`} />
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-xs text-slate-300">—</span>
                         )}
                       </td>
                     );
