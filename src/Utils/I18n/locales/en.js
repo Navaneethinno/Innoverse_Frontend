@@ -1022,6 +1022,8 @@ export const statusLabels = {
 };
 
 export const myProfile = {
+  editProfile: "Edit profile",
+  editApprovalHint: "Changes you make go for approval before they apply.",
   changePassword: "Change password",
   personalDetails: "Personal details",
   contactDetails: "Contact details",

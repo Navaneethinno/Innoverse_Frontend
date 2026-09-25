@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -123,6 +124,33 @@ export function User() {
       );
     }
   };
+
+  // "Edit profile" on My profile links here as /users?edit=<user_id>: load
+  // that record and open the normal (maker-checker) edit form, then drop the
+  // param so a refresh or Back doesn't reopen it.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editParam = searchParams.get("edit");
+  const handledEditParam = useRef(null);
+  useEffect(() => {
+    if (!editParam || handledEditParam.current === editParam) return;
+    handledEditParam.current = editParam;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("edit");
+      return next;
+    }, { replace: true });
+    if (!canEdit) return;
+    usersApi
+      .get({ user_id: Number(editParam) })
+      .then((response) => {
+        const record = Array.isArray(response?.data) ? response.data[0] : response?.data;
+        if (record) void openEdit(record);
+      })
+      .catch((error) => notifications.error(error instanceof Error ? error.message : String(error)));
+    // openEdit is recreated each render; running once per param is the intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editParam, canEdit]);
+
   const submit = async (event) => {
     event.preventDefault();
     if (viewingOnly) return;

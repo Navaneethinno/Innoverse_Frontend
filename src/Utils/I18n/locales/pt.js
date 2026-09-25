@@ -1002,6 +1002,8 @@ export const statusLabels = {
 };
 
 export const myProfile = {
+  editProfile: "Editar perfil",
+  editApprovalHint: "As alterações que você fizer passam por aprovação antes de serem aplicadas.",
   changePassword: "Alterar senha",
   personalDetails: "Dados pessoais",
   contactDetails: "Contato",

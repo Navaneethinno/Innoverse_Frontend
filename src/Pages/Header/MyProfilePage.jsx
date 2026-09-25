@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "motion/react";
-import { AlertCircle, ArrowLeft, Building2, Contact, IdCard, KeyRound, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
+import { AlertCircle, ArrowLeft, Building2, Contact, IdCard, KeyRound, Pencil, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
-import { useMyProfileQuery } from "@/Hooks/UserManagement/userHooks";
+import { useHasUserAction, useMyProfileQuery } from "@/Hooks/UserManagement/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { Skeleton } from "@/Components/UI/skeleton";
@@ -101,6 +101,9 @@ export function MyProfilePage() {
   const sessionUser = useAuth((s) => s.user);
   const userId = sessionUser?.id ?? sessionUser?.user_id;
   const { data, isLoading, error, refetch } = useMyProfileQuery(userId);
+  // Editing reuses the User screen's own edit form (maker-checker), so it's
+  // only offered to users who hold Edit on the User menu.
+  const canEdit = useHasUserAction("Edit");
   // Fall back to the session's own fields while loading or if the call fails,
   // so the header block never renders empty.
   const u = data ?? sessionUser ?? {};
@@ -162,13 +165,24 @@ export function MyProfilePage() {
                   {u.status_name && <StatusBadge status={u.status_name} />}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => navigate("/change-password")}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white sm:w-auto"
-              >
-                <KeyRound size={14} /> {t("changePassword")}
-              </button>
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                {canEdit && userId && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/users?edit=${userId}`)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white sm:flex-none"
+                  >
+                    <Pencil size={14} /> {t("editProfile")}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate("/change-password")}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary sm:flex-none"
+                >
+                  <KeyRound size={14} /> {t("changePassword")}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -205,7 +219,7 @@ export function MyProfilePage() {
           </Section>
 
           <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
-            {t("editHint")}
+            {canEdit ? t("editApprovalHint") : t("editHint")}
           </p>
         </motion.div>
       )}

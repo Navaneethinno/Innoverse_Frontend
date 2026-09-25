@@ -56,7 +56,7 @@ export function fieldValue(user, key) {
     user_name: ["user_name", "auth_username", "username"],
     user_fname: ["user_fname", "first_name", "firstname", "fname", "user_first_name"],
     user_lname: ["user_lname", "last_name", "lastname", "lname", "user_last_name"],
-    inst_id: ["inst_id", "institution_id"],
+    inst_id: ["inst_id", "institution_id", "inst_profile_id"],
     profile_id: ["profile_id"],
     password_policy_id: ["password_policy_id", "pwd_policy"],
     employee_id: ["employee_id", "employeeId"],
