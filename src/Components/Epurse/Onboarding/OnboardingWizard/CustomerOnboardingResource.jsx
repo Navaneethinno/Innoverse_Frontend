@@ -14,7 +14,7 @@ import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Epurse/custo
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
-import { useMenuPermission } from "@/Components/Epurse/Onboarding/OnboardingConfiguration/LifecycleList";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 
 // Customer onboarding — now the same 13-call maker-checker lifecycle as
@@ -129,7 +129,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 
 export function CustomerOnboardingResource() {
   const { t } = useTranslation(["customer", "onboarding", "common"]);
-  const can = useMenuPermission("Customer|Onboarding Wizard|Customer Onboarding");
+  const can = usePagePermission("Onboarding Wizard");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);

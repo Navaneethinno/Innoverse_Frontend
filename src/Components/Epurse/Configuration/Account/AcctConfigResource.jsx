@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/Utils/Lib/cn";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { useSelector } from "react-redux";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -32,7 +32,6 @@ import {
   usePartyTypes,
   useTransactions,
 } from "@/Hooks/Master/masterHooks";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
@@ -56,8 +55,8 @@ const CONFIGS = {
     // Confirmed straight from a real /user/login menu_array: this entity's
     // menu_name is literally "Account Product" (menu_id 49, parent_menu_id
     // 48 = "Account", the non-clickable group header — see
-    // accountRoutes.jsx). menuName MUST match that exactly, or every
-    // allowed(menus, ..., menuName) permission check below silently
+    // accountRoutes.jsx). menuName MUST match that exactly (it's the
+    // permission fallback name), or every permission check silently
     // evaluates false and every action button (Add/Edit/Authorize/Delete)
     // stays hidden regardless of the user's actual grants — this is NOT
     // the same as Digital Product's own child, which really is named just
@@ -345,24 +344,10 @@ const CONFIGS = {
 
 const idOf = (row) => row?.id;
 const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
-// Confirmed live (2026-09): the backend now sends ONE umbrella "Account"
-// menu node (menu_id 48) carrying every action (Add/View/Edit/Delete/
-// Authorise/Change Status) directly on itself, with none of the 17
-// per-entity children (Account Product/Product Ownership/.../Statement
-// Configuration) this file was originally built against actually present
-// in a real /user/login menu_array — every allowed(menus, action,
-// config.menuName) check below silently evaluated false for every action
-// on every entity, leaving Add/Edit/Authorize/etc. all invisible. Checking
-// the specific per-entity name first (kept in case the backend ever does
-// split it out again) and falling back to the umbrella "Account" node
-// covers both shapes without guessing which one is live.
-const allowed = (menus, action, menuName) =>
-  (menus ?? []).some(
-    (m) =>
-      (new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) ||
-        String(m?.menu_name).trim().toLowerCase() === "account") &&
-      (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
-  );
+// Permissions: usePagePermission() — the current page's own menu (Account
+// Product, Product Ownership, ...) from menu_array, fail-closed. The parent
+// "Account" menu's grants no longer stand in for its children.
+
 // Master (reference data) endpoints don't share one consistent field naming
 // convention — confirmed live shapes include plain {code, name} for some
 // entities but {currency_code, currency_name} / {channel_id, channel_name}
@@ -405,7 +390,7 @@ export function AcctConfigResource({ entity }) {
   // page untranslated — tr() looks each one up in a flat EN->PT table
   // instead; see configFieldLabels.js for why.
   const tr = useConfigLabel();
-  const menus = useSelector((state) => state.menu.menuArray);
+  const can = usePagePermission(config.menuName ?? config.title);
   const service = useMemo(() => configKycApi(entity), [entity]);
   const needsAcctProducts = entity !== "acct_product";
   const { data: institutions = [] } = useActiveInstitutionsQuery();
@@ -649,11 +634,11 @@ export function AcctConfigResource({ entity }) {
       label: tr("Actions"),
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
-          canAdd: allowed(menus, "Add", config.menuName),
-          canEdit: allowed(menus, "Edit", config.menuName),
-          canAuthorize: allowed(menus, "Authorize", config.menuName),
-          canDelete: allowed(menus, "Delete", config.menuName),
-          canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
+          canAdd: can("Add"),
+          canEdit: can("Edit"),
+          canAuthorize: can("Authorize"),
+          canDelete: can("Delete"),
+          canChangeStatus: can("Change Status"),
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
         return (
@@ -687,7 +672,7 @@ export function AcctConfigResource({ entity }) {
       >
         <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           actions={
-            allowed(menus, "Add", config.menuName) && (
+            can("Add") && (
               <button
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
                 onClick={() => {

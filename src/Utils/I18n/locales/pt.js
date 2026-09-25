@@ -4,6 +4,8 @@
 export const common = {
   appName: "Innoverse",
   cancel: "Cancelar",
+  noAccessTitle: "Você não tem acesso a esta tela",
+  noAccessHint: "Seu perfil não concede Visualizar neste menu. Peça acesso a um administrador.",
   retry: "Tentar novamente",
   settings: "Configurações",
   signOut: "Sair",

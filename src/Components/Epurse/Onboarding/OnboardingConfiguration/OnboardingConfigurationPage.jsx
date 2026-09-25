@@ -18,7 +18,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
-import { useMenuPermission } from "./LifecycleList";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
@@ -170,7 +170,7 @@ export function OnboardingConfigurationPage() {
   // useMenuPermission falls back to permissive (every button shown to
   // everyone), which is what was silently happening before this menu name
   // was added: none of the old alternatives matched it.
-  const can = useMenuPermission("Onboarding Configuration|Individual Type Config|Onboarding Definition|Customer Type");
+  const can = usePagePermission("Onboarding Configuration");
   const catalog = useOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
   const { ownershipTypes = [] } = useOwnershipTypes(true);

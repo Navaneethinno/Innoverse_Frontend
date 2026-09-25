@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { useSelector } from "react-redux";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useTranslation } from "react-i18next";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -16,7 +16,6 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
@@ -105,19 +104,14 @@ async function draftAwareRow(api, row) {
     return row;
   }
 }
-const allowed = (menus, action, menuName) =>
-  (menus ?? []).some(
-    (m) =>
-      new RegExp(`^${menuName}$`, "i").test(String(m?.menu_name).trim()) &&
-      (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
-  );
+
 
 export function CustomerMasterConfigResource({ entity }) {
   const { t } = useTranslation(["onboarding", "common"]);
   const config = CONFIGS[entity];
   // config.menuName (English) drives permissions; this is only what shows.
   const displayTitle = t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
-  const menus = useSelector((state) => state.menu.menuArray);
+  const can = usePagePermission(config.menuName ?? config.title);
   const { ownershipTypes = [] } = useOwnershipTypes(Boolean(config.hasOwnership));
 
   const [rows, setRows] = useState([]),
@@ -294,11 +288,11 @@ export function CustomerMasterConfigResource({ entity }) {
       sortable: false,
       render: (row) => {
         const buttons = getMakerCheckerButtons(row, {
-          canAdd: allowed(menus, "Add", config.menuName),
-          canEdit: allowed(menus, "Edit", config.menuName),
-          canAuthorize: allowed(menus, "Authorize", config.menuName),
-          canDelete: allowed(menus, "Delete", config.menuName),
-          canChangeStatus: allowed(menus, "Deactivate", config.menuName) || allowed(menus, "Reactivate", config.menuName),
+          canAdd: can("Add"),
+          canEdit: can("Edit"),
+          canAuthorize: can("Authorize"),
+          canDelete: can("Delete"),
+          canChangeStatus: can("Change Status"),
         });
         const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
         return (
@@ -326,7 +320,7 @@ export function CustomerMasterConfigResource({ entity }) {
     },
   ];
 
-  const addAction = allowed(menus, "Add", config.menuName) ? (
+  const addAction = can("Add") ? (
     <button
       onClick={() => {
         setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });

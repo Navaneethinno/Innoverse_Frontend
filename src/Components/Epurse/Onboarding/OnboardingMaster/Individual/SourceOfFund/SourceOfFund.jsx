@@ -4,7 +4,6 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -16,7 +15,7 @@ import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { sourceOfFundApi } from "@/Services/Epurse/district.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // While a Draft edit is staged, the live /list row is intentionally left
@@ -38,12 +37,11 @@ async function draftAwareRow(row) {
 const empty = () => ({ name: "", description: "", has_employer: false });
 const idOf = (row) => row?.id ?? row?.source_of_fund_id;
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.source_of_fund_array ?? [];
-const allowed = (menus, action) => (menus ?? []).some((menu) => /source.?of.?fund/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action)));
 function FundForm({ open, value, setValue, editing, saving, onClose, onSave }) { if (!open) return null; return <Modal open onClose={onClose} title={editing ? "Edit Source of Fund" : "Add Source of Fund"} footer={<><button type="button" onClick={onClose} disabled={saving} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button><button type="submit" form="fund-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="fund-form" data-mode="submit" disabled={saving} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{saving && <Spinner size={13} />}{editing ? "Save changes" : "Add source"}</button></>}><form id="fund-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Source of fund<input required value={value.name} onChange={(event) => setValue({ ...value, name: event.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(event) => setValue({ ...value, description: event.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 outline-none focus:border-primary" /></label><label className="flex items-center gap-2 text-sm font-semibold text-slate-700"><input type="checkbox" checked={Boolean(value.has_employer)} onChange={(event) => setValue({ ...value, has_employer: event.target.checked })} /> Has employer</label></form></Modal>; }
 export function SourceOfFund() {
   const tr = useConfigLabel();
-  const menus = useSelector((state) => state.menu.menuArray); const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
-  const can = (name) => allowed(menus, name); const load = useCallback(async () => { setLoading(true); try { const response = await sourceOfFundApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
+  const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
+  const can = usePagePermission("Source of Fund"); const load = useCallback(async () => { setLoading(true); try { const response = await sourceOfFundApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
   useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.SOURCE_OF_FUND.LIST, () => void load());
   const pendingInfo = usePendingChanges(sourceOfFundApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((row) => `${row.name ?? ""} ${row.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);

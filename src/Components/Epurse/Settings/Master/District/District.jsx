@@ -2,7 +2,6 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -17,7 +16,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { districtApi } from "@/Services/Epurse/district.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // While a Draft edit is staged, the live /list row is intentionally left
@@ -40,11 +39,7 @@ const EMPTY = { province_id: "", name: "", description: "" };
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.district_array ?? [];
 const idOf = (row) => row?.id ?? row?.district_id;
 
-function useDistrictPermission(action) {
-  const menus = useSelector((state) => state.menu.menuArray);
-  return useMemo(() => (menus ?? []).some((menu) => /district/i.test(String(menu?.menu_name)) &&
-    (menu.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action))), [menus, action]);
-}
+function useDistrictPermission(action) { return usePagePermission("District")(action); }
 
 function DistrictForm({ open, form, setForm, provinces, editing, saving, onClose, onSave }) {
   const tr = useConfigLabel();

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -13,27 +12,11 @@ import { Modal } from "@/Components/Common/Modal";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useAuth } from "@/Hooks/useAuth";
 
-// Permission gate off the login menu_array, matched by menu name. The new
-// onboarding screens' menu names aren't registered in the sidebar data yet;
-// when no menu of that name exists at all we don't hide the buttons (the
-// server still enforces every permission) — once a menu IS registered, its
-// actions decide.
-export function useMenuPermission(menuName) {
-  const menus = useSelector((state) => state.menu.menuArray);
-  return useCallback(
-    (action) => {
-      const matching = (menus ?? []).filter((m) => new RegExp(`^(?:${menuName})$`, "i").test(String(m?.menu_name).trim()));
-      if (matching.length === 0) return true;
-      return matching.some((m) => (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)));
-    },
-    [menus, menuName],
-  );
-}
 
 // Status/Process Status/Authorization Status as three separate columns —
 // the same convention every other maker-checker list in the app uses
@@ -75,7 +58,7 @@ export function LifecycleList({
 }) {
   const { t } = useTranslation(["onboarding", "common"]);
   const auditFields = auditFieldsProp ?? [["code", t("onboarding:code")], ["name", t("onboarding:name")]];
-  const can = useMenuPermission(menuName);
+  const can = usePagePermission(menuName);
   const username = useAuth((state) => state.user?.username);
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});

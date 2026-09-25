@@ -294,7 +294,7 @@ export function KycSchemes() {
         title={t("onboarding:kycSchemes")}
         subtitle={t("onboarding:aSchemeIsAnOrderedLadderOf")}
         api={kycSchemeApi}
-        menuName="KYC Scheme|Group"
+        menuName="KYC Schemes"
         columns={columns}
         reloadKey={reloadKey}
         onEdit={(row) => {

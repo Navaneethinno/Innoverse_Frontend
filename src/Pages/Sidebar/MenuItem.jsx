@@ -1,7 +1,7 @@
 import { createElement, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
-import { buildMenuPath, buildMenuPathForItem } from "./menuRouteMap";
+import { buildMenuPathForItem } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { getMenuIcon } from "./moduleIcons";
@@ -30,13 +30,6 @@ function subtreeContainsId(menuItems, parentId, targetId) {
     (child) => String(child.menu_id) === String(targetId) || subtreeContainsId(menuItems, child.menu_id, targetId),
   );
 }
-
-// Leaf menu names confirmed to appear more than once in the tree under
-// different parents. Add to this set only for a name actually seen to
-// collide — never speculatively — since qualifying an otherwise-unique
-// name would just as easily break its existing working route.
-//
-const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
 
 export function MenuItem({
   item,
@@ -78,37 +71,10 @@ export function MenuItem({
       return;
     }
     onNavigate(item?.menu_id);
-    // Matches payseFrontend's handleNavigation exactly: slugify menu_name and
-    // navigate there via React Router, regardless of whether a page is
-    // registered for it. Unmatched slugs surface the app's errorElement
-    // (RouteError), same as payse's own "/body" errorElement does for it.
-    //
-    // payse's own handleNavigation slugifies the leaf name only, with no
-    // parent context at all — fine for payse's flatter menus. Innoverse has
-    // several real 2+-level-deep menus now (Epurse > Configuration > KYC >
-    // *, Epurse > Settings > Master Config > *), and going by depth alone
-    // to decide when to fold the parent name in was wrong: most of those
-    // deep menus (Province, District, Gender, ...) have unique names and
-    // already work fine unprefixed, so qualifying them would have broken
-    // their existing routes instead of fixing anything. Only fold the
-    // parent name in for a menu name actually known to collide with an
-    // unrelated menu elsewhere in the tree (see DISAMBIGUATE_BY_PARENT) —
-    // e.g. Epurse > Configuration > KYC > "Profile" collides with the
-    // top-level User Management > "Profile" (both slugify to "profile"),
-    // and only that one needs "KYC" folded in to become "kycprofile".
-    const parent = menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id));
-    // A menu directly under "Corporate" (Onboarding Master > Corporate)
-    // wins first — Address Type/Relationship Type/Document Type/Business
-    // Nature share a name with an Individual menu and would otherwise
-    // collide on the same slug and open Individual's page (Frontend fixes
-    // — onboarding menus and corporate masters, 2026-09, fix 3).
-    if (String(parent?.menu_name ?? "").trim() === "Corporate") {
-      navigate(buildMenuPathForItem(item, menuItems));
-      return;
-    }
-    const needsParentQualification = DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim());
-    const qualifiedName = needsParentQualification && parent?.menu_name ? `${parent.menu_name} ${item?.menu_name}` : item?.menu_name;
-    navigate(buildMenuPath(qualifiedName));
+    // Matches payseFrontend's handleNavigation: slugify menu_name and
+    // navigate there. The slug rule (corp prefix, parent-qualified names)
+    // lives in menuSlugForItem so usePagePermission can reverse it.
+    navigate(buildMenuPathForItem(item, menuItems));
   };
 
   const isRoot = depth === 0;

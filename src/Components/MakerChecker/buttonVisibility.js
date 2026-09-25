@@ -101,9 +101,12 @@ export function getMakerCheckerButtons(row, perms = {}) {
   const canAuthorize = perms.canAuthorize ?? false;
   const canChangeStatus = perms.canChangeStatus ?? false;
   const canDelete = perms.canDelete ?? false;
+  // View/Audit follow the View grant when the page passes one; RowActions
+  // also enforces it from the current menu.
+  const canView = perms.canView ?? true;
   return {
-    view: v.view,
-    audit: v.audit,
+    view: v.view && canView,
+    audit: v.audit && canView,
     edit: v.edit && canEdit,
     submitDraft: v.submitDraft && canSubmit,
     authorize: v.authorize && canAuthorize,

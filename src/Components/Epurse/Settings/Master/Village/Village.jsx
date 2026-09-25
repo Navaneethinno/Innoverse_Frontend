@@ -1,9 +1,8 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -39,7 +38,7 @@ async function draftAwareRow(row) {
 const empty = () => ({ district_id: "", name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.village_array ?? [];
 const idOf = (r) => r?.id ?? r?.village_id;
-function usePermission(action) { const menus = useSelector((s) => s.menu.menuArray); return useMemo(() => (menus ?? []).some((m) => /village/i.test(String(m?.menu_name)) && (m.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action))), [menus, action]); }
+function usePermission(action) { return usePagePermission("Village")(action); }
 function VillageForm({ open, value, setValue, districts, editing, saving, onClose, onSave }) { const tr = useConfigLabel(); return <Modal open={open} onClose={onClose} title={editing ? "Edit village" : "Add village"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-50">Cancel</button><button type="submit" form="village-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">Save as draft</button><button type="submit" form="village-form" data-mode="submit" disabled={saving} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving && <Spinner size={13} />}{saving ? "Saving..." : editing ? "Save changes" : "Add village"}</button></>}><form id="village-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">District<FilterSelect className="mt-1.5" value={value.district_id} onChange={(next) => setValue({ ...value, district_id: next })} options={[{ value: "", label: tr("Select district") }, ...districts.map((d) => ({ value: idOf(d), label: d.name ?? d.district_name ?? `District #${idOf(d)}` }))]} /></label><label className="text-sm font-semibold text-slate-700">Village name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 export function Village() {
   const tr = useConfigLabel();

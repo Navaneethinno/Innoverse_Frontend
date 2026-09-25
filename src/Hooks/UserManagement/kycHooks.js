@@ -1,22 +1,17 @@
+import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useState } from "react";
-import { useMemo } from "react";
-import { useSelector } from "react-redux";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { genderApi } from "@/Services/Epurse/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 const KYC_CHANGED = "user-kyc:data-changed";
 const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
 
+// Delegates to the one permission source (exact menu, fail-closed).
 export function useHasKycAction(actionName) {
-  const menuArray = useSelector((store) => store.menu.menuArray);
-  return useMemo(() => (menuArray ?? []).some((item) =>
-    /kyc/i.test(String(item?.menu_name ?? "")) &&
-    (item.actions ?? []).some((action) => matchesAction(action?.action_name ?? action?.name, actionName)),
-  ), [menuArray, actionName]);
+  return useMenuPermission("KYC")(actionName);
 }
 
 function useQuery(queryFn) {

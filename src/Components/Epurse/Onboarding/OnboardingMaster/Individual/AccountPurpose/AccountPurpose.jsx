@@ -1,11 +1,10 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -39,13 +38,12 @@ const empty = () => ({ name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.account_purpose_array ?? [];
 const idOf = (r) => r?.id ?? r?.account_purpose_id;
 
-function hasPermission(menus, action) { return (menus ?? []).some((m) => /account.?purpose/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action))); }
 function PurposeForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit account purpose" : "Add account purpose"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button><button type="submit" form="account-purpose-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="account-purpose-form" data-mode="submit" disabled={saving} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{saving && <Spinner size={13} />}{saving ? "Saving..." : editing ? "Save changes" : "Add purpose"}</button></>}><form id="account-purpose-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Account purpose name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 
 export function AccountPurpose() {
   const tr = useConfigLabel();
-  const menus = useSelector((s) => s.menu.menuArray); const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
-  const can = (a) => hasPermission(menus, a); const load = useCallback(async () => { setLoading(true); try { const r = await accountPurposeApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
+  const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
+  const can = usePagePermission("Account Purpose"); const load = useCallback(async () => { setLoading(true); try { const r = await accountPurposeApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
   useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.ACCOUNT_PURPOSE.LIST, () => void load());
   const pendingInfo = usePendingChanges(accountPurposeApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((r) => `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);

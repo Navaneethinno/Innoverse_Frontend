@@ -1,11 +1,10 @@
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -38,12 +37,11 @@ async function draftAwareRow(row) {
 const empty = () => ({ name: "", description: "" });
 const rowsOf = (r) => Array.isArray(r?.data) ? r.data : r?.data?.data ?? r?.data?.Qualification_array ?? [];
 const idOf = (r) => r?.id ?? r?.Qualification_id;
-const allowed = (menus, action) => (menus ?? []).some((m) => /Qualification/i.test(String(m?.menu_name)) && (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)));
 function QualificationForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit Qualification" : "Add Qualification"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">Cancel</button><button type="submit" form="Qualification-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">Save as draft</button><button type="submit" form="Qualification-form" data-mode="submit" disabled={saving} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white">{saving && <Spinner size={13} />}{saving ? "Saving..." : editing ? "Save changes" : "Add Qualification"}</button></>}><form id="Qualification-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Qualification name<input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 export function Qualification() {
   const tr = useConfigLabel();
-  const menus = useSelector((s) => s.menu.menuArray); const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
-  const can = (a) => allowed(menus, a); const load = useCallback(async () => { setLoading(true); try { const r = await qualificationApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
+  const [page, setPage] = useState(1), [limit, setLimit] = useState(10), [rows, setRows] = useState([]), [pagination, setPagination] = useState({}), [loading, setLoading] = useState(true), [search, setSearch] = useState(""), [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"), [form, setForm] = useState(empty), [editing, setEditing] = useState(null), [open, setOpen] = useState(false), [view, setView] = useState(null), [audit, setAudit] = useState(null), [action, setAction] = useState(null), [saving, setSaving] = useState(false), [actionPending, setActionPending] = useState(false);
+  const can = usePagePermission("Qualification"); const load = useCallback(async () => { setLoading(true); try { const r = await qualificationApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(r)); setPagination(r?.pagination ?? r?.data?.pagination ?? {}); } catch (e) { notifications.error(e.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
   useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.QUALIFICATION.LIST, () => void load());
   const pendingInfo = usePendingChanges(qualificationApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((r) => `${r.name ?? ""} ${r.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);

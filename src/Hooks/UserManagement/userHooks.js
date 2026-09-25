@@ -1,30 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { useMenuPermission } from "@/Hooks/usePermission";
+import { useCallback, useEffect, useState } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login) — the
 // exact same data the sidebar itself uses to decide what to show, matching
 // useHasInstitutionAction/useHasProfileAction's pattern. Matched against
 // the "User" menu specifically so it isn't confused by "User Management"
 // (the module name) or "Profile" (the sibling menu under the same module).
+// Delegates to the one permission source (exact menu, fail-closed).
 export function useHasUserAction(actionName) {
-  const menuArray = useSelector((store) => store.menu.menuArray);
-  return useMemo(
-    () =>
-      (menuArray || []).some(
-        (item) =>
-          String(item?.menu_name ?? "")
-            .trim()
-            .toLowerCase() === "user" &&
-          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
-      ),
-    [menuArray, actionName],
-  );
+  return useMenuPermission("User")(actionName);
 }
 
 const USERS_CHANGED_EVENT = "users:data-changed";

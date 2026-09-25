@@ -6,6 +6,8 @@
 export const common = {
   appName: "Innoverse",
   cancel: "Cancel",
+  noAccessTitle: "You don't have access to this screen",
+  noAccessHint: "Your profile doesn't grant View on this menu. Ask an administrator for access.",
   retry: "Retry",
   settings: "Settings",
   signOut: "Sign out",

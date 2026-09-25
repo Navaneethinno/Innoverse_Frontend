@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
-import { useSelector } from "react-redux";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -19,7 +19,6 @@ import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionTe
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { configKycApi } from "@/Services/Epurse/config.api";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { useChannels } from "@/Hooks/Master/masterHooks";
 import { useTransactions } from "@/Hooks/Master/masterHooks";
 import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
@@ -55,12 +54,7 @@ function resolveLookupLabel(key, value, lookups) {
   const match = list.find((item) => String(item.id) === String(value));
   return match ? (match.name ?? match.code ?? String(value)) : String(value);
 }
-const allowed = (menus, action, title) =>
-  (menus ?? []).some(
-    (m) =>
-      new RegExp(title, "i").test(String(m?.menu_name)) &&
-      (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action)),
-  );
+
 function Editor({ open, config, value, setValue, editing, saving, onClose, onSave, institutions, accountProducts, kycGroups, channels, transactions, residencyTypes, tr }) {
   if (!open) return null;
   const lookups = { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
@@ -136,7 +130,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
 export function DigitalProduct({ entity }) {
   const config = CONFIGS[entity];
   const tr = useConfigLabel();
-  const menus = useSelector((s) => s.menu.menuArray);
+  const can = usePagePermission(config.menuName ?? config.title);
   const api = useMemo(() => digitalProductApi(entity), [entity]);
   const { data: institutions = [], error: institutionsError } = useActiveInstitutionsQuery();
   const [accountProducts, setAccountProducts] = useState([]);
@@ -368,13 +362,12 @@ export function DigitalProduct({ entity }) {
         // a pending-delete (that goes through the dedicated Delete Auth
         // endpoint instead, since /auth never covers delete per the API docs).
         const visibility = getMakerCheckerButtons(r, {
-          canAdd: allowed(menus, "Add", config.menuName ?? config.title),
-          canEdit: allowed(menus, "Edit", config.menuName ?? config.title),
-          canAuthorize: allowed(menus, "Authorize", config.menuName ?? config.title),
-          canDelete: allowed(menus, "Delete", config.menuName ?? config.title),
+          canAdd: can("Add"),
+          canEdit: can("Edit"),
+          canAuthorize: can("Authorize"),
+          canDelete: can("Delete"),
           canChangeStatus:
-            allowed(menus, "Deactivate", config.menuName ?? config.title) ||
-            allowed(menus, "Reactivate", config.menuName ?? config.title),
+            can("Change Status"),
         });
         const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
         return (
@@ -424,7 +417,7 @@ export function DigitalProduct({ entity }) {
   // its own still-existing route, since the sidebar no longer links to it
   // directly) keeps the original single Editor modal + individual API,
   // completely unchanged.
-  const addAction = allowed(menus, "Add", config.menuName ?? config.title) ? (
+  const addAction = can("Add") ? (
     <button
       onClick={() => {
         if (entity === "product") {

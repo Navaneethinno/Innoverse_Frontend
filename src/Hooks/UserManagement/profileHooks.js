@@ -1,30 +1,13 @@
+import { findMenuByName, useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 
-// Real permission source: the user's own menu_array (from login), following
-// useHasInstitutionAction's exact pattern (src/Hooks/Institution/institutionHooks.js).
-// Users and Profiles can share a module in the login response, so
-// module_id alone can't tell them apart the way it does for Institution
-// (module_id 14, one menu item). Distinguished by menu_name instead —
-// tolerant-matched against /profile/i so it still works if the backend's
-// exact casing/wording ("Profiles", "Profile", "PROFILE") differs, mirroring
-// the tolerant-alias approach already used for auth_status in
-// InstitutionListPage.jsx's TAB_STATUS_ALIASES.
+// Delegates to the one permission source (exact menu, fail-closed).
 export function useHasProfileAction(actionName) {
-  const menuArray = useSelector((store) => store.menu.menuArray);
-  return useMemo(
-    () =>
-      (menuArray || []).some(
-        (item) =>
-          /profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
-      ),
-    [menuArray, actionName],
-  );
+  return useMenuPermission("Profile")(actionName);
 }
 
 // The current user's own "Profiles" menu item — used as the checker context
@@ -34,10 +17,8 @@ export function useProfileMenuItem() {
   const menuArray = useSelector((store) => store.menu.menuArray);
   return useMemo(
     () =>
-      (menuArray || []).find(
-        (item) =>
-          /profile/i.test(String(item?.menu_name ?? "")),
-      ) ?? null,
+      // Exact "Profile" — a loose /profile/i hit "Institution Profile" first.
+      findMenuByName(menuArray, "Profile"),
     [menuArray],
   );
 }

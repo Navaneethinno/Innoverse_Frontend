@@ -39,8 +39,21 @@ export function buildMenuPath(menuName) {
 // menu named "Corporate" nested deeper wouldn't currently occur in this
 // menu tree, so this doesn't recurse up past the immediate parent.
 export function buildMenuPathForItem(item, menuItems) {
+  return withUniqueId(menuSlugForItem(item, menuItems));
+}
+
+// Menu names known to collide with an unrelated menu elsewhere in the tree;
+// only these get their parent's name folded into the slug.
+const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
+
+// The one slug rule for a menu item — the sidebar builds its URL with it and
+// usePagePermission reverses it to find which menu the current page is.
+export function menuSlugForItem(item, menuItems) {
   const parent = menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id));
-  const isCorporateChild = String(parent?.menu_name ?? "").trim() === "Corporate";
-  const slug = isCorporateChild ? `corp${slugifyMenuName(item?.menu_name)}` : slugifyMenuName(item?.menu_name);
-  return withUniqueId(slug);
+  const parentName = String(parent?.menu_name ?? "").trim();
+  if (parentName === "Corporate") return `corp${slugifyMenuName(item?.menu_name)}`;
+  if (parentName && DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim())) {
+    return slugifyMenuName(`${parentName} ${item?.menu_name}`);
+  }
+  return slugifyMenuName(item?.menu_name);
 }

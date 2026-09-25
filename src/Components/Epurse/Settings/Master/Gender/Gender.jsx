@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { useSelector } from "react-redux";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -16,7 +15,7 @@ import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { genderApi } from "@/Services/Epurse/district.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // While a Draft edit is staged, the live /list row is intentionally left
@@ -38,7 +37,6 @@ async function draftAwareRow(row) {
 const empty = () => ({ name: "", description: "" });
 const idOf = (row) => row?.id ?? row?.gender_id;
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.gender_array ?? [];
-const canAction = (menus, action) => (menus ?? []).some((menu) => /gender/i.test(String(menu?.menu_name)) && (menu.actions ?? []).some((item) => matchesAction(item?.action_name ?? item?.name, action)));
 
 function GenderForm({ open, value, setValue, editing, saving, onClose, onSave }) {
   if (!open) return null;
@@ -47,8 +45,8 @@ function GenderForm({ open, value, setValue, editing, saving, onClose, onSave })
 
 export function Gender() {
   const tr = useConfigLabel();
-  const menus = useSelector((state) => state.menu.menuArray); const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
-  const can = (name) => canAction(menus, name); const load = useCallback(async () => { setLoading(true); try { const response = await genderApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
+  const [page, setPage] = useState(1); const [limit, setLimit] = useState(10); const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({}); const [loading, setLoading] = useState(true); const [search, setSearch] = useState(""); const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc"); const [form, setForm] = useState(empty); const [editing, setEditing] = useState(null); const [open, setOpen] = useState(false); const [view, setView] = useState(null); const [audit, setAudit] = useState(null); const [action, setAction] = useState(null); const [saving, setSaving] = useState(false); const [actionPending, setActionPending] = useState(false);
+  const can = usePagePermission("Gender"); const load = useCallback(async () => { setLoading(true); try { const response = await genderApi.list({ page, limit, filter: tab, sort_by: sortBy }); setRows(rowsOf(response)); setPagination(response?.pagination ?? response?.data?.pagination ?? {}); } catch (error) { notifications.error(error.message); } finally { setLoading(false); } }, [page, limit, tab, sortBy]); useEffect(() => { void load(); }, [load]);
   useLiveChannel(API_ENDPOINTS.MASTER_CONFIG.GENDER.LIST, () => void load());
   const pendingInfo = usePendingChanges(genderApi.pending, action ? idOf(action.row) : null, Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type));
   const visible = useMemo(() => rows.filter((row) => `${row.name ?? ""} ${row.description ?? ""}`.toLowerCase().includes(search.toLowerCase())), [rows, tab, search]);

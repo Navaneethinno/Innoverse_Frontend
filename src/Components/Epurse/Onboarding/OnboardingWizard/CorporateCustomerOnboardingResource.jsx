@@ -14,7 +14,7 @@ import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epur
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
-import { useMenuPermission } from "@/Components/Epurse/Onboarding/OnboardingConfiguration/LifecycleList";
+import { useMenuPermission } from "@/Hooks/usePermission";
 import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboardingWizard";
 
 // Corporate mirror of CustomerOnboardingResource.jsx (Customer Onboarding
@@ -30,6 +30,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
   const [working, setWorking] = useState(false);
+  const corpCan = useMenuPermission("Corporate Onboarding Wizard");
   const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
   if (row.can_authorise === false) {
     buttons.authorize = false;
@@ -73,6 +74,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   return (
     <>
       <RowActions
+        permission={corpCan}
         buttons={buttons}
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
@@ -126,7 +128,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 
 export function CorporateCustomerOnboardingResource() {
   const { t } = useTranslation(["customer", "onboarding", "common"]);
-  const can = useMenuPermission("Corporate Customer|Corporate Onboarding Wizard|Corporate Customer Onboarding");
+  const can = useMenuPermission("Corporate Onboarding Wizard");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);

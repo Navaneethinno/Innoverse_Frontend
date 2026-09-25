@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { usePagePermission } from "@/Hooks/usePermission";
+import { useCallback, useEffect, useState } from "react";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // Real permission source: the user's own menu_array (from login), NOT a
 // fabricated `user.institution.type` field — nothing in the auth flow ever
@@ -11,17 +10,9 @@ import { matchesAction } from "@/Utils/Lib/actionAliases";
 // false. Module 14 is Institution; if any menu item under it carries the
 // named action, the user is permitted. Same actions[] data the sidebar
 // itself already uses (DynamicSidebar.jsx, Phase 24C).
+// Delegates to the one permission source (current page's menu, fail-closed).
 export function useHasInstitutionAction(actionName) {
-  const menuArray = useSelector((store) => store.menu.menuArray);
-  return useMemo(
-    () =>
-      (menuArray || []).some(
-        (item) =>
-          /institution\s*profile/i.test(String(item?.menu_name ?? "")) &&
-          (item?.actions || []).some((a) => matchesAction(a?.action_name ?? a?.name, actionName)),
-      ),
-    [menuArray, actionName],
-  );
+  return usePagePermission("Institution Profile")(actionName);
 }
 
 const INSTITUTIONS_CHANGED_EVENT = "institutions:data-changed";

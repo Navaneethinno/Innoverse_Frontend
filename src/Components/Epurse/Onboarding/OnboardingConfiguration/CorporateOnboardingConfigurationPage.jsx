@@ -18,7 +18,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePartyTypes } from "@/Hooks/Master/masterHooks";
 import { corpOnboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
-import { useMenuPermission } from "./LifecycleList";
+import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCorpOnboardingCatalog, useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
 
@@ -77,6 +77,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
   return (
     <div className="flex items-center justify-center gap-1">
       <RowActions
+        permission={can}
         buttons={buttons}
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
@@ -150,7 +151,7 @@ const emptyForm = {
 export function CorporateOnboardingConfigurationPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(["onboarding", "common"]);
-  const can = useMenuPermission("Corporate Onboarding Configuration|Corporate Type Config|Corporate Onboarding Definition|Corporate Customer Type");
+  const can = useMenuPermission("Corporate Onboarding Configuration");
   const catalog = useCorpOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
   const [rows, setRows] = useState([]);
