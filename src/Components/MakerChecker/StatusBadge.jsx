@@ -171,6 +171,9 @@ const STATUS_CONFIG = {
     dot: "bg-amber-500",
     pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
+  // Notification outbox delivery_status
+  SENT: { label: "Sent", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  FAILED: { label: "Failed", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
   VERIFIED: {
     label: "Verified",
     dot: "bg-emerald-500",

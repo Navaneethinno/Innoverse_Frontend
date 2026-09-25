@@ -10,7 +10,7 @@ import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 // and the standard {status, message, remark, data[]} envelope; a failure
 // throws an Error built by getApiErrorMessage (`message` + `problems`,
 // never `remark` — see apiErrors.js).
-async function request(path, body = {}) {
+export async function request(path, body = {}) {
   const controller = new AbortController();
   // save_config carries a whole configuration tree — allow more than the 10s
   // the small master calls use.

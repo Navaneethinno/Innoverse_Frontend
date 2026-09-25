@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Mail, MessageSquare, Plus } from "lucide-react";
+import { Inbox, Mail, MessageSquare, Plus } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { LifecycleList } from "../../Onboarding/OnboardingConfiguration/LifecycleList";
 import { ViewItem, draftAwareRow } from "../notificationShared";
 import { NotificationAlertForm } from "./NotificationAlertForm";
 import { describeTrigger, useAlertOptions } from "./useAlertOptions";
+import { NotificationOutbox } from "./NotificationOutbox";
 
 const ChannelChips = ({ row, t }) => (
   <span className="inline-flex gap-1">
@@ -22,9 +25,46 @@ const ChannelChips = ({ row, t }) => (
   </span>
 );
 
-// EPURSE > Notification Center > Notification Alerts (menu 94): what to send
-// (email / SMS), to which groups, on which menu actions.
+// EPURSE > Notification Center > Notification Alerts (menu 94). Hosts the
+// alerts list and the read-only Outbox (the messages alerts produced), which
+// has no menu of its own and needs View on this one — switched in ?view=,
+// with ?alert=<id> narrowing the outbox to one alert.
 export function NotificationAlerts() {
+  const { t } = useTranslation("notification");
+  const [params, setParams] = useSearchParams();
+  const view = params.get("view") === "outbox" ? "outbox" : "alerts";
+  const alertId = params.get("alert") ?? "";
+  const show = (next, alert = "") => setParams(next === "outbox" ? { view: "outbox", ...(alert ? { alert } : {}) } : {}, { replace: true });
+
+  return (
+    <div>
+      <SegmentedSwitch
+        className="mb-3"
+        options={[
+          { value: "alerts", label: t("alertTitle") },
+          { value: "outbox", label: t("outbox") },
+        ]}
+        value={view}
+        onChange={(next) => show(next)}
+      />
+      <div key={view} className="segmented-view-enter">
+        {view === "outbox" ? (
+          <>
+            <div className="mb-3">
+              <h1 className="text-xl font-black text-slate-800">{t("outbox")}</h1>
+              <p className="mt-1 text-xs text-muted-foreground">{t("outboxSubtitle")}</p>
+            </div>
+            <NotificationOutbox alertId={alertId} onAlertChange={(id) => show("outbox", id)} />
+          </>
+        ) : (
+          <AlertsList onShowMessages={(id) => show("outbox", String(id))} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AlertsList({ onShowMessages }) {
   const { t } = useTranslation(["notification", "common"]);
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -90,6 +130,13 @@ export function NotificationAlerts() {
               </ul>
             </ViewItem>
             <ViewItem label={t("common:status")}>{row.process_status_name ?? row.status_name}</ViewItem>
+            <button
+              type="button"
+              onClick={() => onShowMessages(row.id)}
+              className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-primary hover:bg-primary-light"
+            >
+              <Inbox size={14} /> {t("notification:viewMessages")}
+            </button>
           </dl>
         )}
       />

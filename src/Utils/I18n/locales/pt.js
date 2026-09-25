@@ -980,6 +980,8 @@ export const onboarding = {
 };
 
 export const statusLabels = {
+  Sent: "Enviado",
+  Failed: "Falhou",
   Draft: "Rascunho",
   Active: "Ativo",
   Authorized: "Autorizado",
@@ -1036,6 +1038,28 @@ export const myProfile = {
 };
 
 export const notification = {
+  outbox: "Caixa de saída",
+  outboxSubtitle: "Mensagens geradas pelos seus alertas, uma por destinatário e canal. Ficam aqui como Pendentes até o gateway de e-mail/SMS ser conectado.",
+  viewMessages: "Ver mensagens",
+  tabAll: "Todas",
+  tabPending: "Pendentes",
+  tabSent: "Enviadas",
+  tabFailed: "Com falha",
+  searchOutbox: "Pesquisar mensagens...",
+  allChannels: "Todos os canais",
+  allAlerts: "Todos os alertas",
+  noMessages: "Ainda não há mensagens",
+  time: "Data/hora",
+  alert: "Alerta",
+  channel: "Canal",
+  recipient: "Destinatário",
+  subjectOrMessage: "Assunto / mensagem",
+  actionOnMenu: "Ação",
+  user: "Usuário",
+  deliveryStatus: "Status de entrega",
+  lastError: "Último erro",
+  attempts: "Tentativas",
+  sentTime: "Enviado em",
   menu: "Menu",
   all: "Todos",
   selectAll: "Selecionar todos",

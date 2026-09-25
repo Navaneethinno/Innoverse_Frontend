@@ -35,11 +35,13 @@ const TABS = [
   ["inactive", "statusInactive", PauseCircle],
 ];
 
+// `tabs`: [key, i18n key, Icon][] for a list whose tabs aren't the
+// maker-checker statuses (e.g. the notification outbox's delivery status).
 // `bare`: skip this component's own card chrome (border/shadow/padding) so
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
+export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -65,7 +67,7 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
     <div className={cn("flex flex-col gap-2", bare && "border-b border-border p-3", !bare && "rounded-xl border border-border bg-white p-3 shadow-sm", className)}>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
       <div className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
-        {TABS.map(([key, labelKey, Icon]) => {
+        {tabs.map(([key, labelKey, Icon]) => {
           const isActive = value === key;
           return (
             <button

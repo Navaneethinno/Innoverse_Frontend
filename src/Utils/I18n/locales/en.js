@@ -1000,6 +1000,8 @@ export const onboarding = {
 };
 
 export const statusLabels = {
+  Sent: "Sent",
+  Failed: "Failed",
   Draft: "Draft",
   Active: "Active",
   Authorized: "Authorized",
@@ -1056,6 +1058,28 @@ export const myProfile = {
 };
 
 export const notification = {
+  outbox: "Outbox",
+  outboxSubtitle: "Messages your alerts produced, one per recipient and channel. They wait here as Pending until the email/SMS gateway is connected.",
+  viewMessages: "View messages",
+  tabAll: "All",
+  tabPending: "Pending",
+  tabSent: "Sent",
+  tabFailed: "Failed",
+  searchOutbox: "Search messages...",
+  allChannels: "All channels",
+  allAlerts: "All alerts",
+  noMessages: "No messages yet",
+  time: "Time",
+  alert: "Alert",
+  channel: "Channel",
+  recipient: "Recipient",
+  subjectOrMessage: "Subject / message",
+  actionOnMenu: "Action",
+  user: "User",
+  deliveryStatus: "Delivery status",
+  lastError: "Last error",
+  attempts: "Attempts",
+  sentTime: "Sent at",
   menu: "Menu",
   all: "All",
   selectAll: "Select all",

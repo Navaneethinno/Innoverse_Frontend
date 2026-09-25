@@ -810,5 +810,6 @@ export const API_ENDPOINTS = {
   NOTIFICATION: {
     GROUP: "/config/notification/group",
     ALERT: "/config/notification/alert",
+    OUTBOX_LIST: "/config/notification/outbox/list",
   },
 };
