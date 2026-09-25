@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Plus, X } from "lucide-react";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { codeOf } from "../NotificationCenter/notificationShared";
 import { LevelBar } from "./riskShared";
@@ -13,13 +14,6 @@ export const chainLevels = (levels) =>
 // Colours offered to a newly added level, after the default three.
 const NEXT_COLOURS = ["#2196F3", "#9C27B0", "#795548", "#607D8B"];
 
-// Selected-chip tint per standard risk action; any other action is neutral.
-const ACTION_TONE = {
-  ALLOW: "border-emerald-300 bg-emerald-50 text-emerald-700",
-  REVIEW: "border-amber-300 bg-amber-50 text-amber-700",
-  BLOCK: "border-red-300 bg-red-50 text-red-700",
-};
-
 export function LevelsEditor({ levels, riskActions, onChange }) {
   const { t } = useTranslation("risk");
   const chained = chainLevels(levels);
@@ -29,6 +23,8 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
     const colour = NEXT_COLOURS.find((c) => !levels.some((l) => l.color_code === c)) ?? "";
     onChange(chainLevels([...levels, { code: "", name: "", min_score: last?.max_score ?? 0, max_score: 100, color_code: colour, risk_action_id: "" }]));
   };
+
+  const actionOptions = [{ value: "", label: t("selectAction") }, ...riskActions.map((a) => ({ value: a.id, label: a.name }))];
 
   return (
     <section>
@@ -64,30 +60,15 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
               <input value={l.code} onChange={(e) => set(index, { code: codeOf(e.target.value) })} placeholder="CODE" aria-label={t("code")} className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground hover:border-border focus:border-border focus:outline-none" />
             </div>
 
-            {/* Range: From follows the previous level; only To is typed. */}
-            <div className="flex items-center gap-1 rounded-lg bg-muted/60 px-2 py-1 text-sm tabular-nums" aria-label={t("scoreRange")}>
-              <span className="w-7 text-right text-muted-foreground">{l.min_score}</span>
+            {/* Range: From follows the previous level; only To is typed. One
+                oval holds both, the To number editable in place. */}
+            <label className="flex h-8 shrink-0 cursor-text items-center gap-1 rounded-full border bg-background pl-3 pr-1 text-sm tabular-nums focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15" aria-label={t("scoreRange")}>
+              <span className="text-muted-foreground">{l.min_score}</span>
               <span className="text-muted-foreground">–</span>
-              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: e.target.value })} className="w-14 rounded-md border bg-background px-1.5 py-0.5 text-right" />
-            </div>
+              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: e.target.value })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-right font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+            </label>
 
-            <div className="flex gap-1" role="radiogroup" aria-label={t("riskAction")}>
-              {riskActions.map((a) => {
-                const on = l.risk_action_id === a.id;
-                return (
-                  <button
-                    key={a.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={on}
-                    onClick={() => set(index, { risk_action_id: a.id })}
-                    className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ${on ? (ACTION_TONE[a.code] ?? "border-primary bg-primary-light text-primary") : "border-border text-muted-foreground hover:text-slate-700"}`}
-                  >
-                    {a.name}
-                  </button>
-                );
-              })}
-            </div>
+            <FilterSelect size="sm" className="w-40 shrink-0" value={l.risk_action_id} onChange={(v) => set(index, { risk_action_id: v === "" ? "" : Number(v) })} options={actionOptions} />
 
             <UiTooltip label={t("removeLevel")}>
               <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
