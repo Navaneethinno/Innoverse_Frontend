@@ -5,7 +5,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -225,13 +225,14 @@ export function KYC() {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(EMPTY);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = useKycQuery({ page, limit });
+  const query = useKycQuery({ page, limit, filter: tab, sort_by: sortBy });
   const activeUsersQuery = useActiveUsersForKycQuery();
   const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
@@ -242,11 +243,10 @@ export function KYC() {
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((row) => {
-      const matchesTab = tab === "all" || statusBucket(row) === tab;
       const matchesSearch = !q || textOf(row).toLowerCase().includes(q);
-      return matchesTab && matchesSearch;
+      return matchesSearch;
     });
-  }, [rows, search, tab]);
+  }, [rows, search]);
 
   const save = async (draft) => {
     const userId = Number(form.user_id);
@@ -305,7 +305,7 @@ export function KYC() {
         <p className="mt-1 text-xs font-medium text-muted-foreground">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -337,7 +337,7 @@ export function KYC() {
           },
         }}
         fetchMore={async (nextPage, limit) => {
-          const result = await usersApi.kycList({ page: nextPage, limit });
+          const result = await usersApi.kycList({ page: nextPage, limit, filter: tab, sort_by: sortBy });
           return {
             rows: Array.isArray(result?.data) ? result.data : [],
             totalPages: result?.pagination?.totalPages ?? 1,

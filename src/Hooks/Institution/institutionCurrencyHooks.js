@@ -4,10 +4,12 @@ import { useEntityListQuery } from "@/Hooks/Institution/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { masterApi } from "@/Services/Master/master.api";
-export function useInstitutionCurrenciesQuery() {
+export function useInstitutionCurrenciesQuery(params = {}) {
   // Live-reconciled in place (Live Updates guide §3) — see
   // useEntityListQuery.js's `livePath` option.
   return useEntityListQuery(institutionCurrencyApi.list, {
+    filter: params.filter,
+    sortBy: params.sort_by,
     livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_CURRENCY.LIST,
   });
 }

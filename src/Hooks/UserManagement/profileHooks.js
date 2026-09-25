@@ -126,7 +126,7 @@ export function useProfilesQuery(params) {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 100;
   const query = useProfileAsyncQuery(
-    useCallback(() => profilesApi.list({ page, limit }), [page, limit]),
+    useCallback(() => profilesApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }), [page, limit, params?.filter, params?.sort_by]),
   );
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by

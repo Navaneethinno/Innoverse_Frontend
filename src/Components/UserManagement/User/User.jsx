@@ -24,7 +24,7 @@ import { usersApi } from "@/Services/UserManagement/users.api";
 import { DataTable } from "@/Components/Common/DataTable";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
@@ -61,7 +61,7 @@ export function User() {
   const canChangeStatus = useHasUserAction("Change Status");
   const canSubmit = useHasUserAction("Submit");
 
-  const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0 });
+  const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0, filter: "all", sort_by: "desc" });
   const [activeTab, setActiveTab] = useState("all");
   const [form, setForm] = useState(EMPTY_FORM);
   const [editing, setEditing] = useState(null);
@@ -87,7 +87,9 @@ export function User() {
   const reactivateMutation = useUserReactivateMutation();
 
   const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
-  const visibleUsers = useMemo(() => rawUsers.filter((user) => activeTab === "all" || statusBucket(user) === activeTab), [rawUsers, activeTab]);
+  // The server filters by tab (`filter`) and orders (`sort_by`) across all
+  // records, so the loaded page is shown as-is.
+  const visibleUsers = rawUsers;
   const pendingInfo = usePendingChanges(
     ({ id }) => usersApi.pending({ user_id: id }),
     numericId(action?.user ? userId(action.user) : null),
@@ -340,7 +342,7 @@ export function User() {
         </p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={usersQuery.pagination?.totalRecords}
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={params.sort_by} onSortChange={(sort_by) => setParams((current) => ({ ...current, page: 1, sort_by }))} total={usersQuery.pagination?.totalRecords}
           actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
@@ -356,7 +358,7 @@ export function User() {
           value={activeTab}
           onChange={(tab) => {
             setActiveTab(tab);
-            setParams((current) => ({ ...current, page: 1, status: tab === "active" ? 1 : 0 }));
+            setParams((current) => ({ ...current, page: 1, filter: tab }));
           }}
           search={params.search}
           onSearch={(search) => setParams((current) => ({ ...current, page: 1, search }))}
@@ -378,13 +380,12 @@ export function User() {
         emptyTitle={tr("No users found")}
         fetchMore={async (page, limit) => {
           const mapped = mapUserListResponse(
-            await usersApi.list({ page, limit, search: "", status: 0 }),
+            await usersApi.list({ page, limit, search: "", status: 0, filter: params.filter, sort_by: params.sort_by }),
           );
           return { rows: mapped.users, totalPages: mapped.pagination.totalPages };
         }}
         serverPagination={
-          activeTab === "all"
-            ? {
+          {
                 page: usersQuery.pagination?.currentPage ?? params.page,
                 totalPages: usersQuery.pagination?.totalPages ?? 1,
                 totalRecords: usersQuery.pagination?.totalRecords ?? visibleUsers.length,
@@ -392,7 +393,6 @@ export function User() {
                 limit: params.limit,
                 onLimitChange: (limit) => setParams((p) => ({ ...p, limit, page: 1 })),
               }
-            : null
         }
       bare /></div>
 

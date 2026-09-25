@@ -61,7 +61,7 @@ function useSortedRows(rows, columns, sort) {
   }, [rows, columns, sort]);
 }
 
-function TableHead({ columns, sort, onSort, selectable = false, allSelected = false, onToggleAll }) {
+function TableHead({ columns, sort, onSort, selectable = false, allSelected = false, onToggleAll, sortable = true }) {
   const { t } = useTranslation("common");
   return (
     <thead>
@@ -76,7 +76,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
               col.align === "left" ? "text-left" : "text-center",
             )}
           >
-            {col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
+            {!sortable || col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
               col.label
             ) : (
               <button
@@ -225,6 +225,9 @@ export function DataTable({
   onSelectionChange,
   compact = false,
   persistKey = null,
+  // The rows arrive already filtered and ordered by the server (sort_by);
+  // don't re-sort them in the browser.
+  serverSorted = false,
 }) {
   const { t } = useTranslation("common");
   // Keep the newest record visible first on every table. Users can still
@@ -295,7 +298,8 @@ export function DataTable({
     });
   };
 
-  const sortedRows = useSortedRows(rows, columns, sort);
+  const serverOrdered = Boolean(serverPagination) || serverSorted;
+  const sortedRows = useSortedRows(rows, columns, serverOrdered ? { key: null, direction: null } : sort);
   const isServer = !!serverPagination;
   const effectivePageSize = isServer ? serverPagination.limit ?? pageSize : clientPageSize;
 
@@ -397,7 +401,7 @@ export function DataTable({
         </div>}
         <div className="overflow-x-auto">
           <table className="w-full min-w-max">
-            <TableHead columns={columns} sort={sort} onSort={onSort} selectable={selectable} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} />
+            <TableHead columns={columns} sort={serverOrdered ? {} : sort} onSort={onSort} selectable={selectable} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} sortable={!serverOrdered} />
             <TableBody
               columns={columns}
               rows={pageRows}

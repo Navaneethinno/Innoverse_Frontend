@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { institutionChannelApi } from "@/Services/Institution/institutionChannel.api";
 import {
   useInstitutionChannelMutation,
@@ -146,10 +146,11 @@ export function InstitutionChannel() {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionChannelsQuery();
+  const query = useInstitutionChannelsQuery({ filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
   const { channels } = useMasterChannels();
   const add = useInstitutionChannelMutation("add");
@@ -159,7 +160,6 @@ export function InstitutionChannel() {
       ? query.data
       : query.data.filter(
           (row) =>
-            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
   const columns = [
@@ -251,7 +251,7 @@ export function InstitutionChannel() {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={setSortBy}
         rows={query.data}
         value={statusFilter}
         search={search}
@@ -269,7 +269,7 @@ export function InstitutionChannel() {
             <Plus size={14} /> {tr("Add")} {tr("channel")}
           </button>
         )}
-      bare /><DataTable
+      bare /><DataTable serverSorted
         columns={columns}
         rows={filteredRows}
         rowKey={(r) => r.id}

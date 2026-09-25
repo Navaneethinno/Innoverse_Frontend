@@ -39,7 +39,7 @@ function useQuery(queryFn) {
 }
 
 export function useKycQuery(params = {}) {
-  const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10 }), [params.page, params.limit]));
+  const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }), [params.page, params.limit, params.filter, params.sort_by]));
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by
   // another user/tab entirely. See userHooks.js's identical fix.

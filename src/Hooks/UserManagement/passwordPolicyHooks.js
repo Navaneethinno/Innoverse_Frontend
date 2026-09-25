@@ -21,9 +21,9 @@ export function usePasswordPoliciesQuery(params = {}) {
   const [state, setState] = useState({ data: [], pagination: null, error: null, isLoading: true });
   const refetch = useCallback(async () => {
     setState((old) => ({ ...old, isLoading: true, error: null }));
-    try { const result = await usersApi.passwordPolicyList({ page: params.page ?? 1, limit: params.limit ?? 10 }); setState({ data: Array.isArray(result?.data) ? result.data : [], pagination: result?.pagination, error: null, isLoading: false }); }
+    try { const result = await usersApi.passwordPolicyList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }); setState({ data: Array.isArray(result?.data) ? result.data : [], pagination: result?.pagination, error: null, isLoading: false }); }
     catch (error) { setState((old) => ({ ...old, error: error instanceof Error ? error : new Error("Request failed"), isLoading: false })); }
-  }, [params.page, params.limit]);
+  }, [params.page, params.limit, params.filter, params.sort_by]);
   useEffect(() => { void refetch(); window.addEventListener(CHANGED, refetch); return () => window.removeEventListener(CHANGED, refetch); }, [refetch]);
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by

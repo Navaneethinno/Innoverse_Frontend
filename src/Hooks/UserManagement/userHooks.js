@@ -105,8 +105,8 @@ export function useUsersQuery(params) {
   const status = params?.status ?? 0;
   const query = useUserAsyncQuery(
     useCallback(
-      () => usersApi.list({ page, limit, search, status }),
-      [page, limit, search, status],
+      () => usersApi.list({ page, limit, search, status, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }),
+      [page, limit, search, status, params?.filter, params?.sort_by],
     ),
   );
   // Refetch on every live push rather than reconciling in place — the

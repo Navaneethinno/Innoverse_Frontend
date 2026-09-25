@@ -13,7 +13,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -126,7 +126,7 @@ export function CustomerMasterConfigResource({ entity }) {
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(""),
-    [tab, setTab] = useState("all"),
+    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({ code: "", name: "", description: "", ownership_id: "", category: "" }),
     [editing, setEditing] = useState(null),
     [open, setOpen] = useState(false),
@@ -145,7 +145,7 @@ export function CustomerMasterConfigResource({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await config.api.list({ page, limit });
+      const response = await config.api.list({ page, limit, filter: tab, sort_by: sortBy });
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? response?.data?.pagination ?? {});
     } catch (error) {
@@ -153,7 +153,7 @@ export function CustomerMasterConfigResource({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [config, page, limit]);
+  }, [config, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -163,7 +163,6 @@ export function CustomerMasterConfigResource({ entity }) {
     () =>
       rows.filter(
         (row) =>
-          (tab === "all" || statusBucket(row) === tab) &&
           JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
       ),
     [rows, tab, search],
@@ -350,10 +349,10 @@ export function CustomerMasterConfigResource({ entity }) {
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs total={pagination.totalRecords}
+        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           rows={rows}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => { setTab(next); setPage(1); }}
           search={search}
           onSearch={setSearch}
           searchPlaceholder={t("onboarding:searchTitle", { title: displayTitle.toLowerCase() })}

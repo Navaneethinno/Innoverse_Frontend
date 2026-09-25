@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
-import { CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle } from "lucide-react";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
 // INSTITUTION_DRAFT_STATUS_CODE is env-overridable (defaults to 9) rather
@@ -39,7 +39,7 @@ const TABS = [
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total }) {
+export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -54,6 +54,13 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
   // per-status counts are hidden rather than showing one page’s numbers.
   const partial = Number.isFinite(total) && total > counts.all;
   if (partial) counts.all = total;
+  // serverFiltered: the list API already filtered by the selected tab
+  // (`filter`), so `rows` holds only that tab and the server's total is only
+  // that tab's count. Show a number on the selected tab alone.
+  const countFor = (key) => {
+    if (serverFiltered) return key === value ? (Number.isFinite(total) ? total : rows.length) : null;
+    return partial && key !== "all" ? null : counts[key];
+  };
   return (
     <div className={cn("flex flex-col gap-2", bare && "border-b border-border p-3", !bare && "rounded-xl border border-border bg-white p-3 shadow-sm", className)}>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
@@ -82,14 +89,14 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
                 style={isActive ? { color: "var(--primary)" } : undefined}
               />
               {t(labelKey)}
-              {(!partial || key === "all") && <span
+              {countFor(key) != null && <span
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-bold",
                   !isActive && "bg-slate-100 text-muted-foreground",
                 )}
                 style={isActive ? { background: "var(--primary)", color: "var(--primary-foreground)" } : undefined}
               >
-                {counts[key]}
+                {countFor(key)}
               </span>}
             </button>
           );
@@ -105,8 +112,10 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
       {actions && <div className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
 
+      {(onSearch || onSortChange) && (
+      <div className="flex w-full items-center gap-2">
       {onSearch && (
-        <div className="relative w-full max-w-sm sm:max-w-none">
+        <div className="relative w-full min-w-0 flex-1">
           <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
@@ -115,6 +124,21 @@ export function StatusFilterTabs({ rows = [], value, onChange, search = "", onSe
             className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
           />
         </div>
+      )}
+      {/* sort_by: newest (desc) or oldest (asc) change first, applied by the
+          server across every record, not just the loaded page. */}
+      {onSortChange && (
+        <button
+          type="button"
+          onClick={() => onSortChange(sortBy === "asc" ? "desc" : "asc")}
+          title={t(sortBy === "asc" ? "sortOldestFirst" : "sortNewestFirst")}
+          className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-white px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+        >
+          {sortBy === "asc" ? <ArrowUpNarrowWide size={14} /> : <ArrowDownWideNarrow size={14} />}
+          <span className="hidden sm:inline">{t(sortBy === "asc" ? "sortOldestFirst" : "sortNewestFirst")}</span>
+        </button>
+      )}
+      </div>
       )}
     </div>
   );

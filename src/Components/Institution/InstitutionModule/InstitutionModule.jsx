@@ -8,7 +8,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import {
   useInstitutionModuleMutation,
   useInstitutionModulesQuery,
@@ -146,10 +146,11 @@ export function InstitutionModule() {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionModulesQuery();
+  const query = useInstitutionModulesQuery({ filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
   const { masterModules } = useMasterModules();
   const addMutation = useInstitutionModuleMutation("add");
@@ -159,7 +160,6 @@ export function InstitutionModule() {
       ? query.data
       : query.data.filter(
           (row) =>
-            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
   const columns = [
@@ -247,7 +247,7 @@ export function InstitutionModule() {
           </button>
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={setSortBy}
         rows={query.data}
         value={statusFilter}
         search={search}
@@ -265,7 +265,7 @@ export function InstitutionModule() {
             <Plus size={14} /> {tr("Add")} {tr("module")}
           </button>
         )}
-      bare /><DataTable
+      bare /><DataTable serverSorted
         columns={columns}
         rows={filteredRows}
         rowKey={(row) => row.id}

@@ -3,10 +3,12 @@ import { institutionLegalApi } from "@/Services/Institution/institutionLegal.api
 import { useEntityListQuery } from "@/Hooks/Institution/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-export function useInstitutionLegalsQuery() {
+export function useInstitutionLegalsQuery(params = {}) {
   // Live-reconciled in place (Live Updates guide §3) — see
   // useEntityListQuery.js's `livePath` option.
   return useEntityListQuery(institutionLegalApi.list, {
+    filter: params.filter,
+    sortBy: params.sort_by,
     livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_LEGAL.LIST,
   });
 }

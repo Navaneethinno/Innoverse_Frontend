@@ -58,11 +58,6 @@ function tabOf(p) {
   if (TERMINAL_INACTIVE_STATUSES.includes(status)) return "inactive";
   return "pending";
 }
-function timestampOf(p) {
-  const raw = p.updated_time ?? p.created_time;
-  const time = raw ? new Date(raw).getTime() : NaN;
-  return Number.isNaN(time) ? 0 : time;
-}
 
 // Native select values are always strings. The Profile API expects numeric
 // identifiers, so normalize them before building any request payload.
@@ -83,6 +78,7 @@ export function Profile() {
   const { t } = useTranslation("profiles");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditProfile, setAuditProfile] = useState(null);
@@ -106,8 +102,11 @@ export function Profile() {
   // genuinely unfiltered view. "All" with no search fetches real pages
   // from the server (scales to any record count); a tab or search
   // switches to a larger single fetch, filtered client-side.
-  const needsFullBatch = activeTab !== "all" || search.trim() !== "";
-  const profilesQuery = useProfilesQuery(needsFullBatch ? { page: 1, limit: 500 } : { page, limit });
+  // Tabs and order are applied by the server (`filter`, `sort_by`) across all
+  // records. /profile/list still has no search param, so only a search needs
+  // the larger batch filtered in the browser.
+  const needsFullBatch = search.trim() !== "";
+  const profilesQuery = useProfilesQuery({ ...(needsFullBatch ? { page: 1, limit: 500 } : { page, limit }), filter: activeTab, sort_by: sortBy });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -134,14 +133,10 @@ export function Profile() {
     const q = search.trim().toLowerCase();
     const rows = profiles.filter((p) => {
       const matchSearch = !q || String(p.profile_name ?? "").toLowerCase().includes(q);
-      const matchTab = activeTab === "all" || tabOf(p) === activeTab;
-      return matchSearch && matchTab;
+      return matchSearch;
     });
-    if (activeTab === "pending" || activeTab === "all") {
-      return [...rows].sort((a, b) => timestampOf(b) - timestampOf(a));
-    }
     return rows;
-  }, [profiles, search, activeTab]);
+  }, [profiles, search]);
 
   const openCreate = () => {
     setEditing(null);
@@ -317,7 +312,7 @@ export function Profile() {
         </p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={profilesQuery.pagination?.totalRecords}
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={profilesQuery.pagination?.totalRecords}
           actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
@@ -360,7 +355,7 @@ export function Profile() {
         emptyTitle={t("noProfilesFound")}
         emptyDescription={t("adjustSearchOrFilter")}
         fetchMore={async (page, limit) => {
-          const mapped = mapProfileListResponse(await profilesApi.list({ page, limit }));
+          const mapped = mapProfileListResponse(await profilesApi.list({ page, limit, filter: activeTab, sort_by: sortBy }));
           return { rows: mapped.profiles, totalPages: mapped.pagination.totalPages };
         }}
         serverPagination={

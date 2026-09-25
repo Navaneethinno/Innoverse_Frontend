@@ -9,7 +9,7 @@ import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
@@ -491,7 +491,7 @@ export function AcctConfigResource({ entity }) {
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(""),
-    [tab, setTab] = useState("all"),
+    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({}),
     [editing, setEditing] = useState(null),
     [view, setView] = useState(null),
@@ -511,7 +511,7 @@ export function AcctConfigResource({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await service.list({ page, limit });
+      const response = await service.list({ page, limit, filter: tab, sort_by: sortBy });
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? response?.data?.pagination ?? {});
     } catch (error) {
@@ -519,7 +519,7 @@ export function AcctConfigResource({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [service, page, limit]);
+  }, [service, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -536,7 +536,6 @@ export function AcctConfigResource({ entity }) {
     () =>
       rows.filter(
         (row) =>
-          (tab === "all" || statusBucket(row) === tab) &&
           JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
       ),
     [rows, tab, search],
@@ -686,7 +685,7 @@ export function AcctConfigResource({ entity }) {
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs total={pagination.totalRecords}
+        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           actions={
             allowed(menus, "Add", config.menuName) && (
               <button
@@ -702,7 +701,7 @@ export function AcctConfigResource({ entity }) {
           }
           rows={rows}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => { setTab(next); setPage(1); }}
           search={search}
           onSearch={setSearch}
           searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}

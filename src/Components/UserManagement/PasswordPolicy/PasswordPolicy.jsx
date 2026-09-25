@@ -5,7 +5,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Switch } from "@/Components/UI/switch";
@@ -384,13 +384,14 @@ export function PasswordPolicy() {
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = usePasswordPoliciesQuery({ page, limit });
+  const query = usePasswordPoliciesQuery({ page, limit, filter: tab, sort_by: sortBy });
   const rows = Array.isArray(query.data) ? query.data : [];
   const canAdd = useHasPasswordPolicyAction("Add");
   const methods = usePasswordPolicyActions();
@@ -398,11 +399,10 @@ export function PasswordPolicy() {
   const visibleRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((row) => {
-      const matchesTab = tab === "all" || statusBucket(row) === tab;
       const matchesSearch = !q || searchText(row).toLowerCase().includes(q);
-      return matchesTab && matchesSearch;
+      return matchesSearch;
     });
-  }, [rows, search, tab]);
+  }, [rows, search]);
 
   const save = async (draft) => {
     if (!form.policy_name.trim()) {
@@ -457,7 +457,7 @@ export function PasswordPolicy() {
         <p className="mt-1 text-xs font-medium text-muted-foreground">Manage password rules, lockout, and session security.</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={setTab} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -489,7 +489,7 @@ export function PasswordPolicy() {
           },
         }}
         fetchMore={async (nextPage, limit) => {
-          const result = await usersApi.passwordPolicyList({ page: nextPage, limit });
+          const result = await usersApi.passwordPolicyList({ page: nextPage, limit, filter: tab, sort_by: sortBy });
           return {
             rows: Array.isArray(result?.data) ? result.data : [],
             totalPages: result?.pagination?.totalPages ?? 1,

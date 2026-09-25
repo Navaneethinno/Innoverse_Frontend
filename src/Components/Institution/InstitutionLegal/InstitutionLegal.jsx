@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { institutionLegalApi } from "@/Services/Institution/institutionLegal.api";
 import {
   useInstitutionLegalMutation,
@@ -149,10 +149,11 @@ export function InstitutionLegal() {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionLegalsQuery();
+  const query = useInstitutionLegalsQuery({ filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionLegalMutation("add");
   const edit = useInstitutionLegalMutation("edit");
@@ -161,7 +162,6 @@ export function InstitutionLegal() {
       ? query.data
       : query.data.filter(
           (row) =>
-            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
   const columns = [
@@ -253,7 +253,7 @@ export function InstitutionLegal() {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={setSortBy}
         rows={query.data}
         value={statusFilter}
         search={search}
@@ -271,7 +271,7 @@ export function InstitutionLegal() {
             <Plus size={14} /> {tr("Add")} {tr("legal profile")}
           </button>
         )}
-      bare /><DataTable
+      bare /><DataTable serverSorted
         columns={columns}
         rows={filteredRows}
         rowKey={(r) => r.id}

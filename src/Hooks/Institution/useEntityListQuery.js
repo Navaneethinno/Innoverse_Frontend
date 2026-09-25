@@ -37,7 +37,12 @@ function mapPage(payload) {
 // already loads every page up to maxPages into memory rather than one
 // server page at a time, so there's no "which page does this belong on"
 // ambiguity.
-export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePath } = {}) {
+// `filter` / `sortBy` (optional): the list API's status tab and order,
+// applied server-side across all records (list filter/sort handoff).
+export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePath, filter, sortBy } = {}) {
+  // With a tab other than All, a pushed or saved record may no longer belong
+  // in this view, so refetch instead of merging it in place.
+  const narrowed = Boolean(filter) && filter !== "all";
   const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null });
   const refetch = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
@@ -46,7 +51,7 @@ export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePat
       let all = [];
       let pagination = {};
       while (page <= maxPages) {
-        const result = mapPage(await listFn({ page, limit }));
+        const result = mapPage(await listFn({ page, limit, ...(filter ? { filter } : {}), ...(sortBy ? { sort_by: sortBy } : {}) }));
         all = all.concat(result.records);
         pagination = result.pagination;
         const totalPages = pagination.totalPages ?? 1;
@@ -57,7 +62,7 @@ export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePat
     } catch (error) {
       setState((current) => ({ ...current, isLoading: false, error }));
     }
-  }, [listFn, limit, maxPages]);
+  }, [listFn, limit, maxPages, filter, sortBy]);
   useEffect(() => {
     void refetch();
   }, [refetch]);
@@ -66,8 +71,12 @@ export function useEntityListQuery(listFn, { limit = 100, maxPages = 10, livePat
   // way, so a locally-triggered change and a same-shaped push from another
   // tab/user behave identically.
   const applyRecords = useCallback((records) => {
+    if (narrowed) {
+      void refetch();
+      return;
+    }
     setState((current) => ({ ...current, data: reconcileRecords(current.data, records) }));
-  }, []);
+  }, [narrowed, refetch]);
   useLiveChannel(livePath, (_action, records) => applyRecords(records));
   // For a caller that just performed its own add/edit: reconcile the
   // mutation's own response record(s) straight into state instead of

@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Spinner } from "@/Components/Common/Spinner";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -199,7 +199,7 @@ export function DigitalProduct({ entity }) {
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
     [search, setSearch] = useState(""),
-    [tab, setTab] = useState("all"),
+    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({}),
     [editing, setEditing] = useState(null),
     [open, setOpen] = useState(false),
@@ -223,7 +223,7 @@ export function DigitalProduct({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.list({ page, limit });
+      const r = await api.list({ page, limit, filter: tab, sort_by: sortBy });
       setRows(rowsOf(r));
       setPagination(r?.pagination ?? r?.data?.pagination ?? {});
     } catch (e) {
@@ -231,7 +231,7 @@ export function DigitalProduct({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [api, page, limit]);
+  }, [api, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -246,7 +246,6 @@ export function DigitalProduct({ entity }) {
     () =>
       rows.filter(
         (r) =>
-          (tab === "all" || statusBucket(r) === tab) &&
           JSON.stringify(r).toLowerCase().includes(search.toLowerCase()),
       ),
     [rows, tab, search],
@@ -452,10 +451,10 @@ export function DigitalProduct({ entity }) {
           </p>
         </div>
       </div>
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs total={pagination.totalRecords}
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
         rows={rows}
         value={tab}
-        onChange={setTab}
+        onChange={(next) => { setTab(next); setPage(1); }}
         search={search}
         onSearch={setSearch}
         searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}

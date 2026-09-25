@@ -37,6 +37,8 @@ export const common = {
   statusActive: "Ativo",
   statusPending: "Pendente",
   statusDraft: "Rascunho",
+  sortNewestFirst: "Mais recentes primeiro",
+  sortOldestFirst: "Mais antigos primeiro",
   statusInactive: "Inativo",
   searchInstitutionsPlaceholder: "Pesquisar instituições...",
   accessDenied: "Acesso Negado!",

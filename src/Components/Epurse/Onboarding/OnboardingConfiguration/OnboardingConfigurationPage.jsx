@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -183,7 +183,7 @@ export function OnboardingConfigurationPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("all");
+  const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [subTypes, setSubTypes] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -193,7 +193,7 @@ export function OnboardingConfigurationPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await onboardingDefinitionApi.list({ page, limit });
+      const response = await onboardingDefinitionApi.list({ page, limit, filter: tab, sort_by: sortBy });
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -201,7 +201,7 @@ export function OnboardingConfigurationPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -287,7 +287,6 @@ export function OnboardingConfigurationPage() {
       ? rows
       : rows.filter(
           (row) =>
-            (tab === "all" || statusBucket(row) === tab) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
 
@@ -374,10 +373,10 @@ export function OnboardingConfigurationPage() {
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs total={pagination.totalRecords}
+        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           rows={rows}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => { setTab(next); setPage(1); }}
           search={search}
           onSearch={setSearch}
           searchPlaceholder={t("onboarding:searchOnboardingConfigurations")}

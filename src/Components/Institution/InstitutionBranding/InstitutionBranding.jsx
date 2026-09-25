@@ -10,7 +10,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { institutionBrandingApi } from "@/Services/Institution/institutionBranding.api";
 import {
   useInstitutionBrandingMutation,
@@ -193,10 +193,11 @@ export function InstitutionBranding() {
   const { colors: liveBrandColors, setBrandTheme } = useBrandTheme();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionBrandingsQuery();
+  const query = useInstitutionBrandingsQuery({ filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionBrandingMutation("add");
   const edit = useInstitutionBrandingMutation("edit");
@@ -206,7 +207,6 @@ export function InstitutionBranding() {
       ? query.data
       : query.data.filter(
           (row) =>
-            (statusFilter === "all" || statusBucket(row) === statusFilter) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
   const columns = [
@@ -338,7 +338,7 @@ export function InstitutionBranding() {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={setSortBy}
         rows={query.data}
         value={statusFilter}
         search={search}
@@ -356,7 +356,7 @@ export function InstitutionBranding() {
             <Plus size={14} /> {tr("Add")} {tr("branding")}
           </button>
         )}
-      bare /><DataTable
+      bare /><DataTable serverSorted
         columns={columns}
         rows={filteredRows}
         rowKey={(r) => r.id}

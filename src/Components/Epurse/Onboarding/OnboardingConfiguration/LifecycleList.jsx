@@ -10,7 +10,7 @@ import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionTe
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
@@ -84,6 +84,7 @@ export function LifecycleList({
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [sortBy, setSortBy] = useState("desc");
   const [view, setView] = useState(null);
   const [audit, setAudit] = useState(null);
   const [action, setAction] = useState(null);
@@ -99,7 +100,7 @@ export function LifecycleList({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.list({ page, limit, ...JSON.parse(filterKey) });
+      const response = await api.list({ page, limit, ...JSON.parse(filterKey), filter: tab, sort_by: sortBy });
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -107,7 +108,7 @@ export function LifecycleList({
     } finally {
       setLoading(false);
     }
-  }, [api, page, limit, filterKey]);
+  }, [api, page, limit, filterKey, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load, reloadKey]);
@@ -117,9 +118,9 @@ export function LifecycleList({
     () =>
       rows.filter(
         (row) =>
-          (tab === "all" || statusBucket(row) === tab) && JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
+          JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
       ),
-    [rows, tab, search],
+    [rows, search],
   );
 
   const run = async () => {
@@ -200,10 +201,10 @@ export function LifecycleList({
         className="mb-4 overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs total={pagination.totalRecords}
+        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           rows={rows}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => { setTab(next); setPage(1); }}
           search={search}
           onSearch={setSearch}
           searchPlaceholder={t("onboarding:searchTitle", { title: title.toLowerCase() })}

@@ -57,11 +57,6 @@ function isInstitutionDraft(inst) {
 function isPendingDelete(inst) {
   return deriveStatusFlags(inst).pendingDelete;
 }
-function timestampOf(inst) {
-  const raw = inst.updated_time ?? inst.created_time;
-  const time = raw ? new Date(raw).getTime() : NaN;
-  return Number.isNaN(time) ? 0 : time;
-}
 
 // PendingInstitutionsPage.jsx (formerly a separate route) used a different,
 // request-based maker-checker data model (usePendingInstitutionsQuery /
@@ -97,6 +92,7 @@ export function InstitutionProfile() {
   // route, and coming back should land on the same page, tab and search.
   const [search, setSearch] = useSessionState("institutions:search", "");
   const [activeTab, setActiveTab] = useSessionState("institutions:tab", "all");
+  const [sortBy, setSortBy] = useSessionState("institutions:sort", "desc");
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
@@ -118,9 +114,12 @@ export function InstitutionProfile() {
   // client-side instead — same tradeoff already accepted for the "Active"/
   // "Pending" tabs in Profile.jsx, whose backend also can't filter
   // everything the UI exposes.
-  const needsFullBatch = activeTab !== "all" || search.trim() !== "";
+  // Tabs and order now come from the server (`filter`, `sort_by`) across all
+  // records; only a search (no search param on /list) still needs the larger
+  // batch filtered in the browser.
+  const needsFullBatch = search.trim() !== "";
   const institutionsQuery = useInstitutionsQuery(
-    needsFullBatch ? { page: 1, limit: 500 } : { page, limit },
+    { ...(needsFullBatch ? { page: 1, limit: 500 } : { page, limit }), filter: activeTab, sort_by: sortBy },
   );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
@@ -141,14 +140,10 @@ export function InstitutionProfile() {
         !q ||
         String(inst.name ?? "").toLowerCase().includes(q) ||
         String(inst.code ?? "").toLowerCase().includes(q);
-      const matchTab = activeTab === "all" || statusBucket(inst) === activeTab;
-      return matchSearch && matchTab;
+      return matchSearch;
     });
-    if (activeTab === "pending" || activeTab === "all") {
-      return [...rows].sort((a, b) => timestampOf(b) - timestampOf(a));
-    }
     return rows;
-  }, [institutions, search, activeTab]);
+  }, [institutions, search]);
 
   const closeAction = () => {
     setAction(null);
@@ -271,6 +266,12 @@ export function InstitutionProfile() {
       >
       <StatusFilterTabs
         bare
+        serverFiltered
+        sortBy={sortBy}
+        onSortChange={(next) => {
+          setSortBy(next);
+          setPage(1);
+        }}
         rows={institutions}
         total={needsFullBatch ? undefined : institutionsQuery.pagination?.totalRecords}
         value={activeTab}
@@ -318,7 +319,7 @@ export function InstitutionProfile() {
         emptyTitle={t("institutions:emptyTitle")}
         emptyDescription={t("institutions:emptyDescription")}
         fetchMore={async (page, limit) => {
-          const mapped = mapInstitutionListResponse(await institutionsApi.list({ page, limit }));
+          const mapped = mapInstitutionListResponse(await institutionsApi.list({ page, limit, filter: activeTab, sort_by: sortBy }));
           return { rows: mapped.institutions, totalPages: mapped.pagination.totalPages };
         }}
         serverPagination={

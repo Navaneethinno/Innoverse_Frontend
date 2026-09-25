@@ -3,10 +3,12 @@ import { institutionBrandingApi } from "@/Services/Institution/institutionBrandi
 import { useEntityListQuery } from "@/Hooks/Institution/useEntityListQuery";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-export function useInstitutionBrandingsQuery() {
+export function useInstitutionBrandingsQuery(params = {}) {
   // Live-reconciled in place (Live Updates guide §3) — see
   // useEntityListQuery.js's `livePath` option.
   return useEntityListQuery(institutionBrandingApi.list, {
+    filter: params.filter,
+    sortBy: params.sort_by,
     livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_BRANDING.LIST,
   });
 }

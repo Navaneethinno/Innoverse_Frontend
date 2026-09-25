@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -131,7 +131,7 @@ export function CorporateCustomerOnboardingResource() {
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [tab, setTab] = useState("all");
+  const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
@@ -139,7 +139,7 @@ export function CorporateCustomerOnboardingResource() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const response = await corpCustomerOnboardingApi.list({ page, limit });
+      const response = await corpCustomerOnboardingApi.list({ page, limit, filter: tab, sort_by: sortBy });
       setRows(corpOnboardingRowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -147,7 +147,7 @@ export function CorporateCustomerOnboardingResource() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -161,7 +161,6 @@ export function CorporateCustomerOnboardingResource() {
       ? rows
       : rows.filter(
           (row) =>
-            (tab === "all" || statusBucket(row) === tab) &&
             JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
         );
 
@@ -247,10 +246,10 @@ export function CorporateCustomerOnboardingResource() {
         className="overflow-hidden rounded-2xl"
         style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
       >
-        <StatusFilterTabs total={pagination.totalRecords}
+        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
           rows={rows}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => { setTab(next); setPage(1); }}
           search={search}
           onSearch={setSearch}
           searchPlaceholder={t("customer:searchCorporateOnboarding")}
