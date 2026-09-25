@@ -1,11 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Plus, X } from "lucide-react";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { codeOf } from "../NotificationCenter/notificationShared";
 import { LevelBar } from "./riskShared";
-
-const cell = "w-full rounded-lg border px-2 py-1.5 text-sm";
 
 // Levels must cover 0–100 with no gaps or overlaps, so only each level's
 // maximum is edited: the first starts at 0 and every other starts where the
@@ -13,16 +10,25 @@ const cell = "w-full rounded-lg border px-2 py-1.5 text-sm";
 export const chainLevels = (levels) =>
   levels.map((l, i) => ({ ...l, min_score: i === 0 ? 0 : levels[i - 1].max_score }));
 
+// Colours offered to a newly added level, after the default three.
+const NEXT_COLOURS = ["#2196F3", "#9C27B0", "#795548", "#607D8B"];
+
+// Selected-chip tint per standard risk action; any other action is neutral.
+const ACTION_TONE = {
+  ALLOW: "border-emerald-300 bg-emerald-50 text-emerald-700",
+  REVIEW: "border-amber-300 bg-amber-50 text-amber-700",
+  BLOCK: "border-red-300 bg-red-50 text-red-700",
+};
+
 export function LevelsEditor({ levels, riskActions, onChange }) {
   const { t } = useTranslation("risk");
   const chained = chainLevels(levels);
   const last = chained[chained.length - 1];
   const set = (index, patch) => onChange(chainLevels(levels.map((l, i) => (i === index ? { ...l, ...patch } : l))));
   const add = () => {
-    const from = Number(last?.max_score ?? 0);
-    onChange(chainLevels([...levels, { code: "", name: "", min_score: from, max_score: 100, color_code: "", risk_action_id: "" }]));
+    const colour = NEXT_COLOURS.find((c) => !levels.some((l) => l.color_code === c)) ?? "";
+    onChange(chainLevels([...levels, { code: "", name: "", min_score: last?.max_score ?? 0, max_score: 100, color_code: colour, risk_action_id: "" }]));
   };
-  const actionOptions = [{ value: "", label: t("selectAction") }, ...riskActions.map((a) => ({ value: a.id, label: a.name }))];
 
   return (
     <section>
@@ -33,71 +39,64 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
           </p>
           <p className="text-[11px] text-muted-foreground">{t("levelsHint")}</p>
         </div>
-        <button type="button" onClick={add} className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary">
+        <button type="button" onClick={add} className="flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary">
           <Plus size={13} /> {t("addLevel")}
         </button>
       </div>
 
-      <div className="mt-2">
+      <div className="mt-3">
         <LevelBar levels={chained} />
       </div>
       {last && Number(last.max_score) !== 100 && <p className="mt-1 text-[11px] font-semibold text-amber-700">{t("lastLevelMustEnd")}</p>}
 
-      <div className="mt-2 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="text-left text-[11px] font-semibold text-muted-foreground">
-              <th className="px-1 pb-1">{t("code")}</th>
-              <th className="px-1 pb-1">{t("name")}</th>
-              <th className="w-16 px-1 pb-1 text-right">{t("minScore")}</th>
-              <th className="w-20 px-1 pb-1">{t("maxScore")}</th>
-              <th className="w-24 px-1 pb-1">{t("colour")}</th>
-              <th className="w-40 px-1 pb-1">{t("riskAction")}</th>
-              <th className="w-8" />
-            </tr>
-          </thead>
-          <tbody>
-            {chained.map((l, index) => (
-              <tr key={index}>
-                <td className="p-1">
-                  <input value={l.code} onChange={(e) => set(index, { code: codeOf(e.target.value) })} className={`${cell} font-mono`} placeholder="LOW" />
-                </td>
-                <td className="p-1">
-                  <input value={l.name} onChange={(e) => set(index, { name: e.target.value })} className={cell} placeholder={t("levelNamePlaceholder")} />
-                </td>
-                <td className="p-1 text-right tabular-nums text-muted-foreground">{l.min_score}</td>
-                <td className="p-1">
-                  <input type="number" min="0" max="100" step="any" value={l.max_score} onChange={(e) => set(index, { max_score: e.target.value })} className={`${cell} text-right tabular-nums`} />
-                </td>
-                <td className="p-1">
-                  <div className="flex items-center gap-1">
-                    <input type="color" aria-label={t("colour")} value={l.color_code || "#9E9E9E"} onChange={(e) => set(index, { color_code: e.target.value.toUpperCase() })} className="h-8 w-9 cursor-pointer rounded border bg-transparent p-0.5" />
-                    {l.color_code ? (
-                      <UiTooltip label={t("clearColour")}>
-                        <button type="button" onClick={() => set(index, { color_code: "" })} className="rounded p-1 text-muted-foreground hover:text-destructive">
-                          <X size={12} />
-                        </button>
-                      </UiTooltip>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">{t("noColour")}</span>
-                    )}
-                  </div>
-                </td>
-                <td className="p-1">
-                  <FilterSelect size="sm" value={l.risk_action_id} onChange={(v) => set(index, { risk_action_id: v === "" ? "" : Number(v) })} options={actionOptions} />
-                </td>
-                <td className="p-1">
-                  <UiTooltip label={t("removeLevel")}>
-                    <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
-                      <X size={14} />
-                    </button>
-                  </UiTooltip>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ul className="mt-3 divide-y rounded-xl border">
+        {chained.map((l, index) => (
+          <li key={index} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5" style={{ boxShadow: `inset 3px 0 0 ${l.color_code || "transparent"}` }}>
+            {/* Colour: the dot is the picker. */}
+            <UiTooltip label={t("colour")}>
+              <label className="relative ml-1 h-7 w-7 shrink-0 cursor-pointer rounded-full border-2 border-background shadow ring-1 ring-border" style={{ background: l.color_code || "var(--muted)" }}>
+                <input type="color" aria-label={t("colour")} value={l.color_code || "#9E9E9E"} onChange={(e) => set(index, { color_code: e.target.value.toUpperCase() })} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+              </label>
+            </UiTooltip>
+
+            <div className="min-w-[10rem] flex-1">
+              <input value={l.name} onChange={(e) => set(index, { name: e.target.value })} placeholder={t("levelNamePlaceholder")} aria-label={t("name")} className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-0.5 text-sm font-semibold hover:border-border focus:border-border focus:outline-none" />
+              <input value={l.code} onChange={(e) => set(index, { code: codeOf(e.target.value) })} placeholder="CODE" aria-label={t("code")} className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground hover:border-border focus:border-border focus:outline-none" />
+            </div>
+
+            {/* Range: From follows the previous level; only To is typed. */}
+            <div className="flex items-center gap-1 rounded-lg bg-muted/60 px-2 py-1 text-sm tabular-nums" aria-label={t("scoreRange")}>
+              <span className="w-7 text-right text-muted-foreground">{l.min_score}</span>
+              <span className="text-muted-foreground">–</span>
+              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: e.target.value })} className="w-14 rounded-md border bg-background px-1.5 py-0.5 text-right" />
+            </div>
+
+            <div className="flex gap-1" role="radiogroup" aria-label={t("riskAction")}>
+              {riskActions.map((a) => {
+                const on = l.risk_action_id === a.id;
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => set(index, { risk_action_id: a.id })}
+                    className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ${on ? (ACTION_TONE[a.code] ?? "border-primary bg-primary-light text-primary") : "border-border text-muted-foreground hover:text-slate-700"}`}
+                  >
+                    {a.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            <UiTooltip label={t("removeLevel")}>
+              <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
+                <X size={14} />
+              </button>
+            </UiTooltip>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

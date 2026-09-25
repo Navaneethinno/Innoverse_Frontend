@@ -71,17 +71,32 @@ export function LevelChip({ level }) {
 export function LevelBar({ levels }) {
   const { t } = useTranslation("risk");
   const sorted = [...(levels ?? [])].sort((a, b) => Number(a.min_score) - Number(b.min_score));
+  const clamp = (n) => Math.max(0, Math.min(100, Number(n) || 0));
+  // 0, every boundary, and the end — each tick sits under its own position.
+  const ticks = [...new Set([0, ...sorted.map((l) => clamp(l.max_score))])];
   return (
     <div>
-      <div className="flex h-3 overflow-hidden rounded-full border bg-muted" aria-label={t("levelsCoverage")}>
+      <div className="flex h-6 gap-0.5 overflow-hidden rounded-lg bg-muted" aria-label={t("levelsCoverage")}>
         {sorted.map((l, i) => {
-          const width = Math.max(0, Math.min(100, Number(l.max_score) || 0) - Math.max(0, Number(l.min_score) || 0));
-          return <span key={i} title={`${l.name || l.code}: ${l.min_score}–${l.max_score}`} style={{ width: `${width}%`, background: l.color_code || "var(--muted-foreground)" }} className="h-full border-r border-background last:border-r-0" />;
+          const width = Math.max(0, clamp(l.max_score) - clamp(l.min_score));
+          return (
+            <span
+              key={i}
+              title={`${l.name || l.code}: ${l.min_score}–${l.max_score}`}
+              style={{ width: `${width}%`, background: l.color_code || "var(--muted-foreground)" }}
+              className="flex h-full min-w-0 items-center justify-center truncate px-1 text-[10px] font-bold text-white [text-shadow:0_1px_1px_rgb(0_0_0/0.35)]"
+            >
+              {width >= 12 ? l.name || l.code : ""}
+            </span>
+          );
         })}
       </div>
-      <div className="mt-0.5 flex justify-between text-[10px] text-muted-foreground">
-        <span>0</span>
-        <span>100</span>
+      <div className="relative mt-1 h-3 text-[10px] tabular-nums text-muted-foreground">
+        {ticks.map((n) => (
+          <span key={n} className="absolute -translate-x-1/2 first:translate-x-0 last:-translate-x-full" style={{ left: `${n}%` }}>
+            {n}
+          </span>
+        ))}
       </div>
     </div>
   );
