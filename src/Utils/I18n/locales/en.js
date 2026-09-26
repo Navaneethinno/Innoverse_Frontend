@@ -1278,6 +1278,15 @@ export const tour = {
   formSaveBody: "When you're done, save here. Cancel closes the form without saving. That's the end of the tour: the form stays open with anything you've typed.",
   formLoadingTitle: "Opening the form",
   formLoadingBody: "One moment…",
+  and: "and",
+  viewSwitchTitle: "{{options}}",
+  viewSwitchBody: "This page has a separate list for each of {{options}}. You're on {{current}} now; click another to switch. Each has its own records and its own Add form, so start the tour again there to see its fields.",
+  viewAllTitle: "View all",
+  viewAllBody: "Opens every record in one large, searchable window, without paging.",
+  paginationTitle: "Pages",
+  paginationBody: "Move between pages of records with Prev, Next or a page number.",
+  pageSizeTitle: "Rows per page",
+  pageSizeBody: "Choose how many records each page shows: 10, 20, 25, 50 or 100.",
 };
 
 export default {

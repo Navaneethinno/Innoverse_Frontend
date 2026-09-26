@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { notifications } from "@/Utils/Lib/notifications";
 import { TourTooltip } from "./TourTooltip";
 import { discoverFieldSteps, formRoot } from "./discoverFields";
-import { ACTION_STEPS, ADD_STEP, FOOTER_STEPS, LIST_STEPS, MAKER_CHECKER_STEP, PAGE_TOURS, sel } from "./tourSteps";
+import { ACTION_STEPS, ADD_STEP, FOOTER_STEPS, LIST_STEPS, MAKER_CHECKER_STEP, PAGE_TITLE, PAGE_TOURS, sel } from "./tourSteps";
 
 const TourContext = createContext({ start: () => {}, running: false });
 export const useTour = () => useContext(TourContext);
@@ -61,13 +61,14 @@ export function TourProvider({ children }) {
 
   const toJoyride = useCallback(
     (step, extra = {}) => {
-      const header = document.querySelector(sel("page-title"));
+      const header = document.querySelector(PAGE_TITLE);
       const page = (header?.querySelector("h1,h2") ?? header)?.textContent?.trim() || t("thisPage");
+      const vars = { page, ...(step.vars?.() ?? {}) };
       return {
         target: step.center ? "body" : step.target,
         placement: step.center ? "center" : (step.placement ?? "auto"),
-        title: step.title ?? t(`${step.id}Title`, { page }),
-        content: step.content ?? t(`${step.id}Body`, { page }),
+        title: step.title ?? t(`${step.id}Title`, vars),
+        content: step.content ?? t(`${step.id}Body`, vars),
         disableBeacon: true,
         data: { click: step.click },
         ...extra,

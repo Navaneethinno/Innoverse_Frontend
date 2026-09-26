@@ -365,6 +365,7 @@ export function DataTable({
   const viewAllButton = (
     <button
       type="button"
+      data-tour="view-all"
       onClick={() => setViewAllOpen(true)}
       className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--primary)] hover:bg-[var(--primary-light)]"
     >
@@ -428,7 +429,7 @@ export function DataTable({
               })}
             </span>
 
-            <div className="flex items-center gap-1">
+            <div data-tour="pagination" className="flex items-center gap-1">
               <button
                 type="button"
                 disabled={currentPage <= 1}
@@ -470,7 +471,7 @@ export function DataTable({
             </div>
 
             {(!isServer || serverPagination.onLimitChange) && (
-              <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <div data-tour="page-size" className="flex items-center gap-1.5 whitespace-nowrap">
                 <span>{t("showEntries")}</span>
                 <FilterSelect
                   className="w-20"

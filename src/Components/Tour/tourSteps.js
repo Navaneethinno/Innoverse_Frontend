@@ -12,15 +12,37 @@
 //    kept even though their markers only appear once the form opens.
 //  - center: a free-standing explainer card with no target.
 
+import i18n from "i18next";
+
 export const sel = (name) => `[data-tour="${name}"]`;
 
-// The list: header, tabs, search, sort, table, the first row's actions.
+// The page's own header block, or — on a page with its own layout — its
+// main heading.
+export const PAGE_TITLE = `${sel("page-title")}, ${sel("workspace")} h1`;
+
+// The options of the page's Individual | Corporate (or Alerts | Outbox)
+// switch, read from the page so the text names them.
+function switchVars() {
+  const tabs = [...document.querySelectorAll(`${sel("view-switch")} [role=tab]`)];
+  const names = tabs.map((b) => b.textContent.trim());
+  return {
+    options: names.length > 1 ? `${names.slice(0, -1).join(", ")} ${i18n.t("tour:and")} ${names[names.length - 1]}` : (names[0] ?? ""),
+    current: tabs.find((b) => b.getAttribute("aria-selected") === "true")?.textContent.trim() ?? names[0] ?? "",
+  };
+}
+
+// The list: view switch, header, tabs, search, sort, table and its
+// paging, the first row's actions.
 export const LIST_STEPS = [
-  { id: "pageIntro", target: sel("page-title"), placement: "bottom-start" },
+  { id: "viewSwitch", target: sel("view-switch"), placement: "bottom-start", vars: switchVars },
+  { id: "pageIntro", target: PAGE_TITLE, placement: "bottom-start" },
   { id: "statusTabs", target: sel("status-tabs"), placement: "bottom-start" },
   { id: "search", target: sel("search"), placement: "bottom" },
   { id: "sort", target: sel("sort"), placement: "bottom-end" },
   { id: "table", target: sel("table"), placement: "top" },
+  { id: "viewAll", target: sel("view-all"), placement: "bottom-end" },
+  { id: "pagination", target: sel("pagination"), placement: "top" },
+  { id: "pageSize", target: sel("page-size"), placement: "top-end" },
   { id: "rowActions", target: sel("row-actions"), placement: "left" },
 ];
 

@@ -1258,6 +1258,15 @@ export const tour = {
   formSaveBody: "Quando terminar, guarde aqui. Cancelar fecha o formulário sem guardar. Fim do tour: o formulário continua aberto com o que escreveu.",
   formLoadingTitle: "A abrir o formulário",
   formLoadingBody: "Um momento…",
+  and: "e",
+  viewSwitchTitle: "{{options}}",
+  viewSwitchBody: "Esta página tem uma lista separada para cada um de {{options}}. Está agora em {{current}}; clique noutro para mudar. Cada um tem os seus registos e o seu formulário de adição, por isso inicie o tour de novo lá para ver os campos.",
+  viewAllTitle: "Ver todos",
+  viewAllBody: "Abre todos os registos numa janela grande com pesquisa, sem paginação.",
+  paginationTitle: "Páginas",
+  paginationBody: "Passe de uma página de registos para outra com Anterior, Seguinte ou o número da página.",
+  pageSizeTitle: "Linhas por página",
+  pageSizeBody: "Escolha quantos registos cada página mostra: 10, 20, 25, 50 ou 100.",
 };
 
 export default {

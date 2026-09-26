@@ -27,6 +27,7 @@ export function SegmentedSwitch({ options, value, onChange, className = "" }) {
   return (
     <div
       role="tablist"
+      data-tour="view-switch"
       className={"relative inline-flex rounded-full border p-1 " + className}
       style={{ borderColor: "var(--border)", background: "var(--card)" }}
     >
