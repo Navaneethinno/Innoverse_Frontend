@@ -45,9 +45,9 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
       </div>
       {last && Number(last.max_score) !== 100 && <p className="mt-1 text-[11px] font-semibold text-amber-700">{t("lastLevelMustEnd")}</p>}
 
-      <ul data-tour="risk-level-rows" className="mt-3 divide-y rounded-xl border">
+      <ul className="mt-3 divide-y rounded-xl border">
         {chained.map((l, index) => (
-          <li key={index} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5" style={{ boxShadow: `inset 3px 0 0 ${l.color_code || "transparent"}` }}>
+          <li key={index} data-tour={index === 0 ? "risk-level-rows" : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5" style={{ boxShadow: `inset 3px 0 0 ${l.color_code || "transparent"}` }}>
             {/* Colour: the dot is the picker. */}
             <UiTooltip label={t("colour")}>
               <label className="relative ml-1 h-7 w-7 shrink-0 cursor-pointer rounded-full border-2 border-background shadow ring-1 ring-border" style={{ background: l.color_code || "var(--muted)" }}>

@@ -1,24 +1,40 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import Joyride, { ACTIONS, EVENTS, STATUS } from "react-joyride";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { notifications } from "@/Utils/Lib/notifications";
 import { TourTooltip } from "./TourTooltip";
-import { ACTION_STEPS, ADD_STEP, FOOTER_STEPS, LIST_STEPS, MAKER_CHECKER_STEP, PAGE_TOURS } from "./tourSteps";
+import { discoverFieldSteps, formRoot } from "./discoverFields";
+import { ACTION_STEPS, ADD_STEP, FOOTER_STEPS, LIST_STEPS, MAKER_CHECKER_STEP, PAGE_TOURS, sel } from "./tourSteps";
 
 const TourContext = createContext({ start: () => {}, running: false });
 export const useTour = () => useContext(TourContext);
 
-const present = (selector) => Boolean(selector && document.querySelector(selector));
+const find = (target) => (typeof target === "string" ? (target === "body" ? null : document.querySelector(target)) : target);
+const present = (target) => Boolean(find(target));
+const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
+const nextFrame = () => new Promise((r) => window.requestAnimationFrame(() => window.requestAnimationFrame(r)));
+const slugOf = (path) => path.split("/").filter(Boolean)[0] ?? "";
+const modalCount = () => document.querySelectorAll(sel("modal-body")).length;
 
-// Resolves once `selector` is on the page (the form has opened), or after
-// `timeout` ms either way.
-function waitFor(selector, timeout = 3000) {
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const tick = () => (present(selector) || Date.now() - started > timeout ? resolve() : window.setTimeout(tick, 80));
-    tick();
-  });
+// Joyride measures a target once, before its own smooth scroll ends, and
+// doesn't follow a scrolling modal body — the spotlight lands off target.
+// So scroll the target to the middle of its own scroll container instantly
+// first, then let Joyride measure a target that is already still.
+async function bringIntoView(target) {
+  const el = find(target);
+  if (!el) return;
+  el.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  await nextFrame();
+}
+
+// After clicking Add: resolves once a new modal is open or the page has
+// changed (a wizard on its own route), plus time for it to render and
+// finish its entry animation.
+async function waitForForm(modalsBefore, pathBefore) {
+  const started = Date.now();
+  while (Date.now() - started < 3000 && modalCount() <= modalsBefore && window.location.pathname === pathBefore) await sleep(80);
+  await sleep(400);
 }
 
 // One tour for whatever page is open, started only from "Take a tour" —
@@ -30,22 +46,28 @@ export function TourProvider({ children }) {
   const [steps, setSteps] = useState([]);
   const [index, setIndex] = useState(0);
   const [run, setRun] = useState(false);
+  // Set while the tour itself moves to another page (Add opens a wizard).
+  const followingRef = useRef(false);
 
   const stop = useCallback(() => {
     setRun(false);
     setIndex(0);
   }, []);
-  // A tour belongs to its page.
-  useEffect(stop, [pathname, stop]);
+  // A tour belongs to its page — unless the tour itself navigated.
+  useEffect(() => {
+    if (followingRef.current) followingRef.current = false;
+    else stop();
+  }, [pathname, stop]);
 
   const toJoyride = useCallback(
     (step, extra = {}) => {
-      const page = document.querySelector('[data-tour="page-title"]')?.textContent?.trim() || t("thisPage");
+      const header = document.querySelector(sel("page-title"));
+      const page = (header?.querySelector("h1,h2") ?? header)?.textContent?.trim() || t("thisPage");
       return {
         target: step.center ? "body" : step.target,
         placement: step.center ? "center" : (step.placement ?? "auto"),
-        title: t(`${step.id}Title`),
-        content: t(`${step.id}Body`, { page }),
+        title: step.title ?? t(`${step.id}Title`, { page }),
+        content: step.content ?? t(`${step.id}Body`, { page }),
         disableBeacon: true,
         data: { click: step.click },
         ...extra,
@@ -54,44 +76,80 @@ export function TourProvider({ children }) {
     [t],
   );
 
-  const start = useCallback(() => {
-    const slug = pathname.split("/").filter(Boolean)[0] ?? "";
+  // The steps for the form now open: the page's own walkthrough if it has
+  // one, else one step per field found; then how to save.
+  const formSteps = useCallback(
+    (slug) => {
+      const own = PAGE_TOURS[slug]?.form;
+      const fields = own?.length ? own.filter((s) => present(s.target)) : discoverFieldSteps(t);
+      const footer = FOOTER_STEPS.filter((s) => present(s.target));
+      const saveSteps = footer.length ? footer : present(sel("modal-footer")) ? [{ id: "formSave", target: sel("modal-footer"), placement: "top" }] : [];
+      const all = [...fields, ...saveSteps].map((s) => toJoyride(s));
+      if (all.length) all[0].hideBackButton = true;
+      return all;
+    },
+    [t, toJoyride],
+  );
+
+  const goTo = useCallback(async (next, list) => {
+    await bringIntoView(list[next]?.target);
+    setIndex(next);
+  }, []);
+
+  const start = useCallback(async () => {
+    const slug = slugOf(pathname);
     const page = PAGE_TOURS[slug] ?? {};
-    const list = [...LIST_STEPS, ...ACTION_STEPS].filter((s) => present(s.target));
-    const pageList = (page.list ?? []).filter((s) => present(s.target));
-    const built = [...list, ...pageList].map((s) => toJoyride(s));
+    const list = [...LIST_STEPS, ...ACTION_STEPS, ...(page.list ?? [])].filter((s) => present(s.target));
+    let built = list.map((s) => toJoyride(s));
     if (built.length) built.push(toJoyride(MAKER_CHECKER_STEP));
     if (present(ADD_STEP.target)) {
-      const form = page.form ?? [];
-      // With a form tour, Next on Add opens the form and walks it.
-      built.push(toJoyride({ ...ADD_STEP, id: form.length ? "addOpens" : "add", click: form.length ? `${ADD_STEP.target} button` : undefined }));
-      [...form, ...(form.length ? FOOTER_STEPS : [])].forEach((s, i) => built.push(toJoyride(s, i === 0 ? { hideBackButton: true } : {})));
+      // Next on Add opens the form; its steps are built once it's open.
+      // A placeholder keeps Add from being the last step (Joyride would end
+      // the tour on it); it's replaced by the form's steps.
+      built.push(toJoyride({ ...ADD_STEP, id: "addOpens", click: `${ADD_STEP.target} button` }), toJoyride({ id: "formLoading", center: true }));
+    } else if (!built.length && formRoot()) {
+      // A page that is itself a form (settings, a wizard step).
+      built = formSteps(slug);
+      if (built[0]) built[0].hideBackButton = false;
     }
     if (!built.length) {
       notifications.info(t("noTour"));
       return;
     }
     setSteps(built);
+    await bringIntoView(built[0].target);
     setIndex(0);
     setRun(true);
-  }, [pathname, t, toJoyride]);
+  }, [formSteps, pathname, t, toJoyride]);
 
   const onEvent = useCallback(
     async ({ action, index: at, status, type }) => {
       if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status) || action === ACTIONS.CLOSE) return stop();
-      if (type === EVENTS.TARGET_NOT_FOUND) return setIndex(at + (action === ACTIONS.PREV ? -1 : 1));
+      if (type === EVENTS.TARGET_NOT_FOUND) return goTo(at + (action === ACTIONS.PREV ? -1 : 1), steps);
       if (type !== EVENTS.STEP_AFTER) return;
-      if (action === ACTIONS.PREV) return setIndex(at - 1);
+      if (action === ACTIONS.PREV) return goTo(at - 1, steps);
       const click = steps[at]?.data?.click;
-      if (click) {
-        document.querySelector(click)?.click();
-        await waitFor(steps[at + 1]?.target);
-        // Let the modal finish its entry animation before measuring.
-        await new Promise((r) => window.setTimeout(r, 250));
-      }
-      setIndex(at + 1);
+      if (!click) return goTo(at + 1, steps);
+
+      // Pause while the form opens, then swap in its steps and resume on
+      // the first one — changing steps and index while running makes
+      // Joyride flash the previous tooltip where the next one belongs.
+      const modalsBefore = modalCount();
+      const pathBefore = window.location.pathname;
+      setRun(false);
+      followingRef.current = true;
+      document.querySelector(click)?.click();
+      await waitForForm(modalsBefore, pathBefore);
+      if (window.location.pathname === pathBefore) followingRef.current = false;
+      const form = formSteps(slugOf(window.location.pathname));
+      if (!form.length) return stop();
+      const next = [...steps.slice(0, at + 1), ...form];
+      setSteps(next);
+      await goTo(at + 1, next);
+      await nextFrame();
+      setRun(true);
     },
-    [steps, stop],
+    [formSteps, goTo, steps, stop],
   );
 
   const value = useMemo(() => ({ start, running: run }), [start, run]);
@@ -105,8 +163,8 @@ export function TourProvider({ children }) {
         run={run}
         continuous
         showSkipButton
-        scrollToFirstStep
-        scrollOffset={96}
+        disableScrolling
+        disableScrollParentFix
         disableOverlayClose
         spotlightPadding={6}
         tooltipComponent={TourTooltip}

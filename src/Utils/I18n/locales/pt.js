@@ -1242,6 +1242,22 @@ export const tour = {
   risk_levelBarBody: "Os níveis dividem a pontuação de 0 a 100 em faixas, como Baixo, Médio e Alto. Esta barra mostra como cobrem o intervalo.",
   risk_levelRowsTitle: "Configurar um nível",
   risk_levelRowsBody: "Clique no círculo para escolher uma cor, escreva nome e código, defina onde termina (começa onde o anterior termina) e escolha a ação: Permitir, Revisão manual ou Bloquear. O último nível tem de terminar em 100.",
+  field_text: "Escreva o valor.",
+  field_textarea: "Escreva o texto; pode ocupar várias linhas.",
+  field_number: "Introduza um número.",
+  field_select: "Escolha um da lista. Listas longas têm uma caixa de pesquisa no topo.",
+  field_date: "Use o seletor de data para que a data fique sempre no formato certo.",
+  field_checkbox: "Marque para ativar.",
+  field_file: "Escolha um ficheiro do seu computador para carregar.",
+  field_color: "Clique para escolher uma cor.",
+  field_group: "Estes campos vão juntos; preencha cada um deles.",
+  fieldRequired: "Obrigatório: os campos com * vermelho têm de ser preenchidos antes de guardar.",
+  fieldOptional: "Opcional.",
+  fieldLocked: "Não pode ser alterado aqui.",
+  formSaveTitle: "Guardar",
+  formSaveBody: "Quando terminar, guarde aqui. Cancelar fecha o formulário sem guardar. Fim do tour: o formulário continua aberto com o que escreveu.",
+  formLoadingTitle: "A abrir o formulário",
+  formLoadingBody: "Um momento…",
 };
 
 export default {

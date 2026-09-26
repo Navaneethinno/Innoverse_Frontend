@@ -174,8 +174,8 @@ export function LifecycleList({
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <h1 data-tour="page-title" className="text-xl font-black text-slate-800">{title}</h1>
+        <div data-tour="page-title">
+          <h1 className="text-xl font-black text-slate-800">{title}</h1>
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {toolbar}

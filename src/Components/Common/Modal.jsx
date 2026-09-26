@@ -194,6 +194,7 @@ export function Modal({
         </div>
 
         <div
+          data-tour="modal-body"
           className={cn(
             "thin-scrollbar px-5 py-4",
             growWithContent ? "overflow-visible" : "min-h-0 flex-1 overflow-y-auto",
@@ -206,6 +207,7 @@ export function Modal({
 
         {footer && (
           <div
+            data-tour="modal-footer"
             className={cn(
               "flex shrink-0 items-center justify-end gap-2 border-t border-border bg-muted/80 px-5 py-3",
               !growWithContent && "sticky bottom-0",

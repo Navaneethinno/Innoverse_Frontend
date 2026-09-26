@@ -11,6 +11,7 @@ export function TourButton() {
     <button
       type="button"
       onClick={start}
+      aria-label={t("takeTour")}
       disabled={running}
       className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-60"
     >

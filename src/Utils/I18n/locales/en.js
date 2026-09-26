@@ -1262,6 +1262,22 @@ export const tour = {
   risk_levelBarBody: "The levels split the 0–100 score into bands, such as Low, Medium and High. This bar shows how they cover the range.",
   risk_levelRowsTitle: "Setting up a level",
   risk_levelRowsBody: "Click the dot to pick a colour, type a name and code, set where it ends (it starts where the previous level ends) and choose the action: Allow, Manual review or Block. The last level must end at 100.",
+  field_text: "Type the value.",
+  field_textarea: "Type the text; it can run over several lines.",
+  field_number: "Enter a number.",
+  field_select: "Pick one from the list. Long lists have a search box at the top.",
+  field_date: "Use the date picker so the date is always in the right format.",
+  field_checkbox: "Tick it to turn this on.",
+  field_file: "Choose a file from your computer to upload.",
+  field_color: "Click to pick a colour.",
+  field_group: "These fields go together; fill in each of them.",
+  fieldRequired: "Required: fields with a red * must be filled in before you can save.",
+  fieldOptional: "Optional.",
+  fieldLocked: "It can't be changed here.",
+  formSaveTitle: "Save",
+  formSaveBody: "When you're done, save here. Cancel closes the form without saving. That's the end of the tour: the form stays open with anything you've typed.",
+  formLoadingTitle: "Opening the form",
+  formLoadingBody: "One moment…",
 };
 
 export default {
