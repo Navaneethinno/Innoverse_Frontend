@@ -27,7 +27,7 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
   const actionOptions = [{ value: "", label: t("selectAction") }, ...riskActions.map((a) => ({ value: a.id, label: a.name }))];
 
   return (
-    <section>
+    <section data-tour="risk-levels">
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-700">
@@ -40,12 +40,12 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
         </button>
       </div>
 
-      <div className="mt-3">
+      <div data-tour="risk-level-bar" className="mt-3">
         <LevelBar levels={chained} />
       </div>
       {last && Number(last.max_score) !== 100 && <p className="mt-1 text-[11px] font-semibold text-amber-700">{t("lastLevelMustEnd")}</p>}
 
-      <ul className="mt-3 divide-y rounded-xl border">
+      <ul data-tour="risk-level-rows" className="mt-3 divide-y rounded-xl border">
         {chained.map((l, index) => (
           <li key={index} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5" style={{ boxShadow: `inset 3px 0 0 ${l.color_code || "transparent"}` }}>
             {/* Colour: the dot is the picker. */}

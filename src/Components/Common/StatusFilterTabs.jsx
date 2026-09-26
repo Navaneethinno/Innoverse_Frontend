@@ -66,7 +66,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
   return (
     <div className={cn("flex flex-col gap-2", bare && "border-b border-border p-3", !bare && "rounded-xl border border-border bg-white p-3 shadow-sm", className)}>
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
-      <div className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
+      <div data-tour="status-tabs" className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
         {tabs.map(([key, labelKey, Icon]) => {
           const isActive = value === key;
           return (
@@ -111,13 +111,13 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
           className matching pixel-for-pixel (a 4px mismatch was visible
           before: the tabs' icon+count-badge content stack renders taller
           than a plain label at the same padding). */}
-      {actions && <div className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
+      {actions && <div data-tour="add" className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
 
       {(onSearch || onSortChange) && (
       <div className="flex w-full items-center gap-2">
       {onSearch && (
-        <div className="relative w-full min-w-0 flex-1">
+        <div data-tour="search" className="relative w-full min-w-0 flex-1">
           <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
@@ -132,6 +132,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
       {onSortChange && (
         <button
           type="button"
+          data-tour="sort"
           onClick={() => onSortChange(sortBy === "asc" ? "desc" : "asc")}
           title={t(sortBy === "asc" ? "sortOldestFirst" : "sortNewestFirst")}
           className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-white px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"

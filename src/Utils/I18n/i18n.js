@@ -43,6 +43,7 @@ void i18n
       "myProfile",
       "notification",
       "risk",
+      "tour",
     ],
     interpolation: { escapeValue: false },
     detection: {

@@ -14,6 +14,7 @@ import { PageBreadcrumbs } from "./PageBreadcrumbs";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { NoAccess } from "@/Components/Common/NoAccess";
+import { TourProvider } from "@/Components/Tour/TourProvider";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
   // (pinned-open OR currently hovered) rather than the pinned preference
@@ -121,7 +122,9 @@ export function AppLayout() {
     <SidebarStateProvider>
       <AuthEvents />
       <InactivityLogout />
-      <Layout />
+      <TourProvider>
+        <Layout />
+      </TourProvider>
     </SidebarStateProvider>
   );
 }

@@ -61,11 +61,11 @@ export function FormFooter({ saving, editing, addLabel, onCancel, onSave }) {
       <button type="button" onClick={onCancel} className="px-3 py-2 text-sm font-bold text-muted-foreground">
         {t("common:cancel")}
       </button>
-      <button type="button" data-mode="draft" disabled={saving} onClick={() => onSave(true)} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
+      <button type="button" data-mode="draft" data-tour="save-draft" disabled={saving} onClick={() => onSave(true)} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
         {saving && <Spinner size={13} />}
         {t("notification:saveAsDraft")}
       </button>
-      <button type="button" disabled={saving} onClick={() => onSave(false)} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">
+      <button type="button" data-tour="save-submit" disabled={saving} onClick={() => onSave(false)} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">
         {saving && <Spinner size={13} />}
         {editing ? t("notification:saveChanges") : addLabel}
       </button>

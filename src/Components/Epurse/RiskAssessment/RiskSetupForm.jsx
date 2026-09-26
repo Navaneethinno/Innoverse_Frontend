@@ -123,8 +123,10 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
       footer={<FormFooter saving={saving} editing={editing} addLabel={addLabel} onCancel={onClose} onSave={(draft) => void save(draft)} />}
     >
       <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-        <InstitutionField value={form.inst_profile_id} disabled={locked} onChange={(v) => setForm({ ...form, inst_profile_id: v, criteria: [] })} />
-        <label className={labelClass}>
+        <div data-tour="field-institution">
+          <InstitutionField value={form.inst_profile_id} disabled={locked} onChange={(v) => setForm({ ...form, inst_profile_id: v, criteria: [] })} />
+        </div>
+        <label data-tour="field-code" className={labelClass}>
           {t("risk:code")} <span className="text-red-500">*</span>
           <input value={form.code} disabled={locked} onChange={(e) => setForm({ ...form, code: codeOf(e.target.value) })} className={`${inputClass} font-mono`} placeholder="INDV_STD" />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("risk:codeHint")}</span>
@@ -138,7 +140,7 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputClass} min-h-16`} />
         </label>
 
-        <fieldset className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-3">
+        <fieldset data-tour="risk-customer-type" className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-3">
           <legend className="px-1 text-sm font-semibold text-slate-700">{t("risk:customerType")}</legend>
           <label className={labelClass}>
             {t("risk:partyType")} <span className="text-red-500">*</span>

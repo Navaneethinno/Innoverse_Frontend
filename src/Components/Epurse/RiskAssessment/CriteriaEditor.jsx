@@ -37,7 +37,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
   };
 
   return (
-    <section>
+    <section data-tour="risk-criteria">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-700">
@@ -46,7 +46,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
           <p className="text-[11px] text-muted-foreground">{t("criteriaHint")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${total === 100 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+          <span data-tour="risk-weight-total" className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${total === 100 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
             {t("weightTotal", { total })}
           </span>
           {criteria.length > 1 && (
@@ -54,6 +54,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
               {t("spreadEvenly")}
             </button>
           )}
+          <div data-tour="risk-add-criterion">
           <FilterSelect
             size="sm"
             className="w-56"
@@ -62,6 +63,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
             onChange={add}
             options={[{ value: "", label: t("addCriterion") }, ...available.map((f) => ({ value: f.field_code, label: f.name }))]}
           />
+          </div>
         </div>
       </div>
 

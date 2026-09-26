@@ -400,7 +400,7 @@ export function DataTable({
           {viewAllButton}
         </div>}
         <div className="overflow-x-auto">
-          <table className="w-full min-w-max">
+          <table data-tour="table" className="w-full min-w-max">
             <TableHead columns={columns} sort={serverOrdered ? {} : sort} onSort={onSort} selectable={selectable} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} sortable={!serverOrdered} />
             <TableBody
               columns={columns}
@@ -516,7 +516,7 @@ export function DataTable({
           </div>
         )}
         <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto overflow-x-auto px-5 py-3">
-          <table className="w-full min-w-max">
+          <table data-tour="table" className="w-full min-w-max">
             <TableHead columns={columns} sort={sort} onSort={onSort} />
             <TableBody
               columns={columns}
