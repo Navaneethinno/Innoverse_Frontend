@@ -20,6 +20,8 @@ const headers = () => {
   };
 };
 
+const STATUS_FALLBACK = { 404: "The File Was Not Found", 409: "This customer can't be changed right now", 413: "The file is too large" };
+
 async function send(path, init) {
   const controller = new AbortController();
   // A 10 MB file on a slow link needs more than the JSON calls' timeout.
@@ -37,7 +39,9 @@ async function send(path, init) {
     const statusError = getStatusErrorMessage(response.status);
     if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
-      throw new Error(getApiErrorMessage(payload, "Request failed"));
+      // A proxy in front of the API can refuse an oversized upload with an
+      // HTML page instead of the JSON envelope; keep the reason readable.
+      throw new Error(getApiErrorMessage(payload, STATUS_FALLBACK[response.status] ?? "Request failed"));
     }
     return { response, payload };
   } catch (error) {

@@ -301,7 +301,6 @@ const PT = {
   "Upload image": "Enviar imagem",
   "Replace image": "Substituir imagem",
   "Remove image": "Remover imagem",
-  "PNG, JPG, or SVG, up to 500KB": "PNG, JPG ou SVG, até 500KB",
   "PNG, JPG or WebP, up to 2MB": "PNG, JPG ou WebP, até 2MB",
   "Select an institution first": "Selecione uma instituição primeiro",
   // MasterConfig list pages' page title / subtitle / search placeholder /
