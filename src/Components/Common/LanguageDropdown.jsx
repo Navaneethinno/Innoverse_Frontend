@@ -5,7 +5,6 @@ import { useLanguages } from "@/Hooks/Master/masterHooks";
 import { getApiLanguage, onApiLanguageChange, setApiLanguage } from "@/Utils/Lib/apiLanguage";
 import { i18n } from "@/Utils/I18n/i18n";
 import { cn } from "@/Utils/Lib/cn";
-import { platformFileUrl } from "@/Services/Master/master.api";
 
 // Same tolerant field-name fallback already used for /master/language
 // elsewhere (AddInstitutionProfile.jsx) — the confirmed response shape
@@ -17,25 +16,6 @@ function languageLabel(language) {
   return typeof language === "string"
     ? language
     : (language.name ?? language.language_name ?? languageCode(language));
-}
-
-// A language's flag: its own stored image_src if the API sends one, else the
-// platform country flag (public, no login — works on the login page too)
-// of the country the language is usually shown with.
-const LANGUAGE_COUNTRY = { en: "gb", pt: "pt", es: "es", fr: "fr", id: "id", tet: "tl" };
-function languageFlag(language) {
-  if (typeof language === "object" && language.image_src) return platformFileUrl(language.image_src);
-  const country = LANGUAGE_COUNTRY[String(languageCode(language) ?? "").toLowerCase()];
-  return country ? platformFileUrl(`platform/country/${country}.png`) : null;
-}
-
-// Flag, or the globe when there is none or it fails to load.
-function LanguageIcon({ language }) {
-  const [failed, setFailed] = useState(false);
-  const src = languageFlag(language);
-  useEffect(() => setFailed(false), [src]);
-  if (!src || failed) return <Globe size={13} className="shrink-0 text-muted-foreground" />;
-  return <img src={src} alt="" className="h-3 w-4 shrink-0 rounded-[2px] object-cover" onError={() => setFailed(true)} />;
 }
 
 // The two languages actually confirmed working against the backend so far
@@ -85,7 +65,7 @@ export function LanguageDropdown({ className }) {
         className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100"
         style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)" }}
       >
-        <LanguageIcon language={current} />
+        <Globe size={13} className="shrink-0 text-muted-foreground" />
         <span className="max-w-[6rem] truncate">{languageLabel(current)}</span>
         <ChevronDown size={12} className="shrink-0 text-muted-foreground" />
       </button>
@@ -123,10 +103,7 @@ export function LanguageDropdown({ className }) {
                   )}
                   style={active ? { color: "var(--primary)" } : undefined}
                 >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <LanguageIcon language={language} />
-                    <span className="truncate">{languageLabel(language)}</span>
-                  </span>
+                  {languageLabel(language)}
                   {active && <Check size={13} className="shrink-0" />}
                 </button>
               );
