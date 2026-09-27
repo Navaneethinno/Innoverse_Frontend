@@ -10,8 +10,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 // stored path it returns; the record is then saved with that path. A stored
 // path can't be an <img src> (the download needs the bearer token), so
 // `download(path)` fetches it as a Blob for the preview and "View".
-// Without `upload` (favicon, still a plain string field) the file is read
-// client-side into a data: URL as before. Values that are already data:/
+// Without `upload` the file is read client-side into a data: URL. Values that are already data:/
 // http(s) URLs (older records) are shown directly.
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {

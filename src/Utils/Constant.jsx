@@ -218,6 +218,9 @@ export const API_ENDPOINTS = {
     OWNERSHIP_LIST: "/master/ownership",
     RESIDENCY_TYPE_LIST: "/master/residency_type",
     COUNTRY_LIST: "/master/country",
+    // Public platform files (GET, no login, cacheable): FILE + "/" + stored
+    // path, e.g. a country's image_src "platform/country/ad.png".
+    FILE: "/master/file",
     CURRENCY_LIST: "/master/currency",
     LANGUAGE_LIST: "/master/language",
     // Confirmed live 2026-09: POST /master/timezone (no trailing "/list",

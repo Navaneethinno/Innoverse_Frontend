@@ -50,14 +50,12 @@ const COLOR_NAMES = {
   "#000000": "Black",
 };
 const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "Custom color";
-// The logo is stored on the server (File upload handoff, 2026-09): it is
-// uploaded on its own for the institution (PNG, JPEG or WebP, up to 2 MB)
-// and saved as the returned path; showing it downloads it through
-// /branding/file. The favicon is still a plain string, read client-side
-// into a data: URL. Both render through the shared FileUploadField.
-const MAX_IMAGE_BYTES = 500 * 1024;
-const MAX_LOGO_BYTES = 2 * 1024 * 1024;
-const logoDownload = (instProfileId) => (path) => institutionBrandingApi.file({ inst_profile_id: Number(instProfileId), path });
+// Logo and favicon are stored on the server (File upload / File paths
+// handoffs, 2026-09): each is uploaded on its own for the institution (the
+// upload's `field` says which; PNG, JPEG or WebP, up to 2 MB) and saved as
+// the returned path; showing one downloads it through /branding/file.
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const brandingDownload = (instProfileId) => (path) => institutionBrandingApi.file({ inst_profile_id: Number(instProfileId), path });
 function ColorValue({ color }) {
   if (!color) return <span>—</span>;
   return (
@@ -150,7 +148,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
                 {key.includes("color") ? (
                   <ColorValue color={details?.[key]} />
                 ) : key === "logo" || key === "favicon" ? (
-                  <StoredFilePreview value={details?.[key]} download={key === "logo" ? logoDownload(details?.inst_profile_id) : undefined} />
+                  <StoredFilePreview value={details?.[key]} download={brandingDownload(details?.inst_profile_id)} />
                 ) : (
                   value(details, key)
                 )}
@@ -439,7 +437,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           <FilterSelect
             className="mt-1.5"
             value={form.inst_profile_id}
-            onChange={(next) => setForm((f) => ({ ...f, inst_profile_id: next, logo: "" }))}
+            onChange={(next) => setForm((f) => ({ ...f, inst_profile_id: next, logo: "", favicon: "" }))}
             options={[
               { value: "", label: tr("Select institution") },
               ...institutions.map((i) => ({
@@ -482,7 +480,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             </label>
           );
         }
-        if (key === "logo") {
+        if (key === "logo" || key === "favicon") {
           return (
             <label key={key} className="text-sm font-medium">
               {label}
@@ -490,29 +488,13 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                 tr={tr}
                 value={form[key]}
                 onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
-                upload={(file) => institutionBrandingApi.upload({ inst_profile_id: Number(form.inst_profile_id), file })}
-                download={logoDownload(form.inst_profile_id)}
+                upload={(file) => institutionBrandingApi.upload({ inst_profile_id: Number(form.inst_profile_id), field: key, file })}
+                download={brandingDownload(form.inst_profile_id)}
                 disabled={!form.inst_profile_id}
                 accept="image/png,image/jpeg,image/webp"
-                maxBytes={MAX_LOGO_BYTES}
+                maxBytes={MAX_IMAGE_BYTES}
                 uploadLabel={form.inst_profile_id ? "Upload image" : "Select an institution first"}
                 hint="PNG, JPG or WebP, up to 2MB"
-              />
-            </label>
-          );
-        }
-        if (key === "favicon") {
-          return (
-            <label key={key} className="text-sm font-medium">
-              {label}
-              <FileUploadField
-                tr={tr}
-                value={form[key]}
-                onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
-                accept="image/*"
-                maxBytes={MAX_IMAGE_BYTES}
-                uploadLabel="Upload image"
-                hint="PNG, JPG, or SVG, up to 500KB"
               />
             </label>
           );

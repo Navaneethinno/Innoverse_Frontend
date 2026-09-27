@@ -109,6 +109,11 @@ function normalizeModule(raw) {
   };
 }
 
+// A platform file's public URL (File paths handoff, 2026-09): the stored
+// path is passed back unchanged — never add to or strip from it. Plain
+// <img src> works: no login needed, and the browser caches it.
+export const platformFileUrl = (path) => (path ? `${API_BASE_URL}${API_ENDPOINTS.MASTER.FILE}/${path}` : null);
+
 export const masterApi = {
   // POST /master/module/list, body {} — the official generic module
   // reference-data source (NOT /institution/module/list or

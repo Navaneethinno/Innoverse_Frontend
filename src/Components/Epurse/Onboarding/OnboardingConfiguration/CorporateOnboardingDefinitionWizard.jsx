@@ -10,6 +10,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { notifications } from "@/Utils/Lib/notifications";
 import { corpOnboardingDefinitionApi, corpOnboardingDefinitionOps, masterApis, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { ListEditor, cleanConfig } from "./ListEditor";
+import { countryOption } from "@/Components/Common/countryOption";
 import { useCorpOnboardingCatalog, useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 
 // Corporate mirror of OnboardingDefinitionWizard.jsx (Corporate_Onboarding_
@@ -578,7 +579,7 @@ export function CorporateOnboardingDefinitionWizard({ definition, forceReadOnly 
             <div className="grid gap-x-8 gap-y-4 md:grid-cols-2">
               <label className="text-sm font-semibold text-slate-700">
                 {t("onboarding:homeCountry")}
-                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} value={basics.home_country_id} onChange={(v) => setBasic("home_country_id", v)} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map(countryOption)]} />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:corpHomeCountryHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">

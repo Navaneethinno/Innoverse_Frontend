@@ -20,6 +20,7 @@ import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
 import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
+import { countryOption } from "@/Components/Common/countryOption";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
 const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
@@ -459,7 +460,7 @@ export function OnboardingConfigurationPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:homeCountry")}
-            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map((c) => ({ value: c.id, label: c.name }))]} />
+            <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map(countryOption)]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:homeCountryHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
