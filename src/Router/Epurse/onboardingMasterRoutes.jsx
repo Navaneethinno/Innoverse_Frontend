@@ -46,7 +46,6 @@ const masterSlugs = {
   monthly_income_range: ["monthlyincomerange", "monthly-income-range"],
   net_worth_range: ["networthrange", "net-worth-range"],
   turnover_range: ["turnoverrange", "turnover-range"],
-  risk_category: ["riskcategory", "risk-category"],
   validation_rule: ["validationrule", "validation-rule"],
   document_type: ["documenttype", "document-type"],
   // Corporate Onboarding Master (Corporate_Onboarding_Configuration_API.md

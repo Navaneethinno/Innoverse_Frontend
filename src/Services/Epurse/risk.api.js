@@ -9,7 +9,8 @@ function riskApi(base) {
   const lifecycle = createLifecycle(base);
   return {
     ...lifecycle,
-    // Without field_code: the usable fields and the risk actions. With one:
+    // Without field_code: the usable fields and the institution's active
+    // risk actions ({id, code, name}). With one:
     // that field's options (fields[0].values).
     options: (payload = {}) => lifecycle.call("options", payload),
     // Score a sample customer: { id, values: { [field_code]: value_id } }.
@@ -21,3 +22,8 @@ function riskApi(base) {
 
 export const individualRiskApi = riskApi(API_ENDPOINTS.RISK.INDIVIDUAL);
 export const corporateRiskApi = riskApi(API_ENDPOINTS.RISK.CORPORATE);
+
+// The institution's own risk actions (e.g. Onboard, Enhanced due diligence,
+// Reject) that each risk level points at. `get_active` with view=dropdown
+// and inst_profile_id returns [{id, name}].
+export const riskActionApi = createLifecycle(API_ENDPOINTS.RISK.ACTION);

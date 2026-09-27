@@ -817,5 +817,8 @@ export const API_ENDPOINTS = {
   RISK: {
     INDIVIDUAL: "/config/risk/individual",
     CORPORATE: "/config/risk/corporate",
+    // Risk Action master (menu 36, replaced Risk Category): an ordinary
+    // institution master — the 13 maker-checker verbs under this base.
+    ACTION: "/master_config/risk_action",
   },
 };

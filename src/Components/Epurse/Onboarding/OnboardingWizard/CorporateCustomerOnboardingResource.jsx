@@ -15,6 +15,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Hooks/usePermission";
+import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboardingWizard";
 
 // Corporate mirror of CustomerOnboardingResource.jsx (Customer Onboarding
@@ -96,6 +97,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         onConfirm={() => void execute()}
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="corporate" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}

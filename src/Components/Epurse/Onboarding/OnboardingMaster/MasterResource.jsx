@@ -13,11 +13,10 @@ import { useOnboardingCatalog } from "../OnboardingConfiguration/onboardingHooks
 
 // One schema-driven page for the institution masters that carry extra fields
 // beyond name/description (guide §5): validation rules, income / net-worth /
-// turnover ranges, risk categories, document types, plus the plain
+// turnover ranges, document types, plus the plain
 // code+name masters (title, kinship, business nature). Every master shares
 // the maker-checker lifecycle, so each just declares its API base, its
 // columns and the fields of its add/edit form.
-const HEX = /^#[0-9a-fA-F]{6}$/;
 const LENGTH_TEXT_TYPES = new Set(["ANY_TEXT", "NUMERIC", "ALPHABETIC", "ALPHANUMERIC"]);
 const asOptions = (list, valueKey = "id", labelOf = (x) => x.name ?? x.code) => (list ?? []).map((x) => ({ value: x[valueKey], label: labelOf(x) }));
 
@@ -52,8 +51,8 @@ const rangeConfig = (title, base) => ({
 const plain = (title, base) => ({ title, base, columns: (ctx) => [{ key: "code", label: ctx.t("onboarding:code") }, { key: "name", label: ctx.t("onboarding:name") }], fields: () => [] });
 
 // title/kinship/business_nature/the four ranges/document_type moved under
-// indv_ (2026-09 route change); risk_category/validation_rule below are
-// shared masters that kept their old routes.
+// indv_ (2026-09 route change); validation_rule below is a shared master
+// that kept its old route. risk_category is gone (Risk Action replaced it).
 const CONFIGS = {
   title: plain("Title", "/master_config/indv_title"),
   kinship: plain("Kinship", "/master_config/indv_kinship"),
@@ -72,23 +71,6 @@ const CONFIGS = {
     ],
     fields: (ctx) => [
       { key: "purpose_id", label: ctx.t("onboarding:purpose"), type: "select", required: true, options: asOptions(ctx.catalog?.document_purposes, "id"), hint: ctx.t("onboarding:decidesWhichDocumentGroupAndKycSlot") },
-    ],
-  },
-  risk_category: {
-    title: "Risk Category",
-    base: "/master_config/risk_category",
-    columns: (ctx) => [
-      { key: "code", label: ctx.t("onboarding:code") },
-      { key: "name", label: ctx.t("onboarding:name") },
-      { key: "score", label: ctx.t("onboarding:scoreBand"), sortable: false, render: (r) => `${r.min_score} – ${r.max_score}` },
-      { key: "color_code", label: ctx.t("onboarding:colour"), sortable: false, render: (r) => (r.color_code ? <span className="inline-flex items-center gap-2"><span className="h-4 w-4 rounded border" style={{ backgroundColor: r.color_code }} />{r.color_code}</span> : "-") },
-      { key: "risk_action_id", label: ctx.t("onboarding:action"), render: (r) => ctx.catalog?.risk_actions?.find((a) => a.id === r.risk_action_id)?.name ?? r.risk_action_id ?? "-" },
-    ],
-    fields: (ctx) => [
-      { key: "min_score", label: ctx.t("onboarding:minScore0100"), type: "number", required: true },
-      { key: "max_score", label: ctx.t("onboarding:maxScore0100"), type: "number", required: true, hint: ctx.t("onboarding:scoreBandsMustNotOverlap") },
-      { key: "color_code", label: ctx.t("onboarding:colourRrggbb"), type: "text", hint: "e.g. #C62828" },
-      { key: "risk_action_id", label: ctx.t("onboarding:riskAction"), type: "select", required: true, options: asOptions(ctx.catalog?.risk_actions, "id") },
     ],
   },
   validation_rule: {
@@ -264,10 +246,6 @@ export function MasterResource({ entity }) {
   const save = async (draft) => {
     if (!form.code?.trim() || !form.name?.trim()) {
       notifications.error("Code and name are required");
-      return;
-    }
-    if (form.color_code && !HEX.test(form.color_code)) {
-      notifications.error("Colour must be a hex value like #C62828");
       return;
     }
     setSaving(true);

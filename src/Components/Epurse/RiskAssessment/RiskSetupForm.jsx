@@ -54,14 +54,17 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
   const types = useCustomerTypeOptions(kind);
   const locked = Boolean(editing);
 
-  // Default the new setup's levels to Allow / Review / Block once known.
+  // Risk actions are the institution's own (Risk Action master). When it
+  // still has the ones carried over from the old platform list (Allow /
+  // Manual review / Block), pre-fill the new setup's three levels with them.
   useEffect(() => {
     if (editing || !risk.options.risk_actions.length) return;
     const byCode = Object.fromEntries(risk.options.risk_actions.map((a) => [a.code, a.id]));
-    const defaults = ["ALLOW", "REVIEW", "BLOCK"];
+    const defaults = [["ALLOW"], ["MANUAL_REVIEW", "REVIEW"], ["BLOCK"]];
+    const idFor = (i) => (defaults[i] ?? []).map((code) => byCode[code]).find(Boolean);
     setForm((f) => ({
       ...f,
-      levels: f.levels.map((l, i) => (l.risk_action_id === "" && byCode[defaults[i]] ? { ...l, risk_action_id: byCode[defaults[i]] } : l)),
+      levels: f.levels.map((l, i) => (l.risk_action_id === "" && idFor(i) ? { ...l, risk_action_id: idFor(i) } : l)),
     }));
   }, [editing, risk.options.risk_actions]);
 

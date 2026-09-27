@@ -102,5 +102,37 @@ export function LevelBar({ levels }) {
   );
 }
 
+// The per-criterion breakdown of a score ({field_code, value_id, score,
+// weight, points}), named from the setup's `options` (see useRiskOptions).
+// value_id 0 means the customer gave no answer for that field.
+export function RiskPointsTable({ points, risk }) {
+  const { t } = useTranslation("risk");
+  return (
+    <table className="mt-2 w-full text-xs">
+      <thead>
+        <tr className="text-left text-muted-foreground">
+          <th className="font-semibold">{t("criterion")}</th>
+          <th className="text-right font-semibold">{t("scoreCol")}</th>
+          <th className="text-right font-semibold">{t("weight")}</th>
+          <th className="text-right font-semibold">{t("points")}</th>
+        </tr>
+      </thead>
+      <tbody className="tabular-nums">
+        {(points ?? []).map((p) => (
+          <tr key={p.field_code}>
+            <td className="py-0.5">
+              {risk.fieldName(p.field_code)}
+              {p.value_id != null && <span className="text-muted-foreground"> · {p.value_id === 0 ? t("noAnswer") : risk.valueName(p.field_code, p.value_id)}</span>}
+            </td>
+            <td className="text-right">{p.score}</td>
+            <td className="text-right">{p.weight}%</td>
+            <td className="text-right font-bold">{p.points}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 // Weights are decimals; keep sums free of float noise (33.3 + 33.3 + 33.4).
 export const round2 = (n) => Math.round(Number(n) * 100) / 100;

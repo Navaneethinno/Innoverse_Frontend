@@ -11,6 +11,7 @@ import { corpCustomerOnboardingApi, startCorpOnboarding, loadCorpWizard, saveCor
 import { OnboardingField } from "./OnboardingField";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
+import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 
 // Corporate mirror of CustomerOnboardingWizard.jsx (Customer Onboarding
 // (Corporate) — Frontend Guide, 2026-09): "it works exactly like the
@@ -365,6 +366,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress.percent}%` }} />
           </div>
         </div>
+        <CustomerRiskPanel kind="corporate" instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}

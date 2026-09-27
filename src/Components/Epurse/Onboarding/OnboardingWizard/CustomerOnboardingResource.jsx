@@ -15,6 +15,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 
 // Customer onboarding — now the same 13-call maker-checker lifecycle as
@@ -98,6 +99,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         onConfirm={() => void execute()}
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="individual" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}

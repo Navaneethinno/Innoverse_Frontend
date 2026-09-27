@@ -80,7 +80,7 @@ const SEGMENT_LABELS = {
   monthlyincomerange: { titleKey: "crumbMonthlyIncomeRange", breadcrumb: ["crumbIndividual", "crumbMonthlyIncomeRange"] },
   networthrange: { titleKey: "crumbNetWorthRange", breadcrumb: ["crumbIndividual", "crumbNetWorthRange"] },
   turnoverrange: { titleKey: "crumbTurnoverRange", breadcrumb: ["crumbIndividual", "crumbTurnoverRange"] },
-  riskcategory: { titleKey: "crumbRiskCategory", breadcrumb: ["crumbMaster", "crumbRiskCategory"] },
+  riskaction: { titleKey: "crumbRiskAction", breadcrumb: ["crumbMaster", "crumbRiskAction"] },
   validationrule: { titleKey: "crumbValidationRule", breadcrumb: ["crumbMaster", "crumbValidationRule"] },
   documenttype: { titleKey: "crumbDocumentType", breadcrumb: ["crumbIndividual", "crumbDocumentType"] },
 

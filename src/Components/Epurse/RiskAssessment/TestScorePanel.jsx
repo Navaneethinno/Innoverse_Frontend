@@ -5,7 +5,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { LevelChip } from "./riskShared";
+import { LevelChip, RiskPointsTable } from "./riskShared";
 
 // "Test score": one dropdown per criterion, POST <base>/score. Scores the
 // setup as saved (a pending edit isn't used until approved); nothing is saved.
@@ -67,29 +67,7 @@ export function TestScorePanel({ api, row, risk }) {
               <p className="mt-0.5 text-[11px] text-muted-foreground">{risk.actionName(result.level?.risk_action_id)}</p>
             </div>
           </div>
-          <table className="mt-2 w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="font-semibold">{t("criterion")}</th>
-                <th className="text-right font-semibold">{t("scoreCol")}</th>
-                <th className="text-right font-semibold">{t("weight")}</th>
-                <th className="text-right font-semibold">{t("points")}</th>
-              </tr>
-            </thead>
-            <tbody className="tabular-nums">
-              {(result.points ?? []).map((p) => (
-                <tr key={p.field_code}>
-                  <td className="py-0.5">
-                    {risk.fieldName(p.field_code)}
-                    {p.value_id != null && <span className="text-muted-foreground"> · {risk.valueName(p.field_code, p.value_id)}</span>}
-                  </td>
-                  <td className="text-right">{p.score}</td>
-                  <td className="text-right">{p.weight}%</td>
-                  <td className="text-right font-bold">{p.points}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <RiskPointsTable points={result.points} risk={risk} />
         </div>
       )}
     </div>
