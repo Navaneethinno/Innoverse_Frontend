@@ -1,24 +1,18 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FileText, Upload, X } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 
-// One reusable file/image upload control — was previously duplicated as
-// InstitutionBranding.jsx's local ImageUploadField (logo/favicon) and,
-// separately, bare <input type="file"> elements with no preview at all in
-// the Customer wizard (identification front/back images, document
-// front/back files). Every upload surface in the app should render through
-// here so they look and behave identically, and so the "uploading"
-// animation / "view what I uploaded" behavior only needs building once.
+// One reusable file/image upload control — every upload surface in the app
+// renders through here so they look and behave identically.
 //
-// No real upload/asset-storage endpoint exists anywhere in the app yet —
-// confirmed dead end across every API this codebase talks to — so `value`
-// is a plain `data:` URL string produced by reading the file client-side,
-// stored directly on whatever field the caller is filling in (branding's
-// logo/favicon columns, or a document/identification row's front_image/
-// back_image/file_front/file_back). Once a real upload endpoint exists,
-// `value` becoming a real hosted URL instead of a data: URL needs no
-// change here — the "View"/thumbnail logic already treats both the same
-// way, since both are just strings a browser can load.
+// Files are stored on the server (File upload handoff, 2026-09): with
+// `upload(file)` the chosen file is sent on its own and `value` becomes the
+// stored path it returns; the record is then saved with that path. A stored
+// path can't be an <img src> (the download needs the bearer token), so
+// `download(path)` fetches it as a Blob for the preview and "View".
+// Without `upload` (favicon, still a plain string field) the file is read
+// client-side into a data: URL as before. Values that are already data:/
+// http(s) URLs (older records) are shown directly.
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -28,16 +22,63 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function isImageValue(value, accept) {
-  if (!value) return false;
-  if (value.startsWith("data:image/")) return true;
-  if (accept?.startsWith("image/")) return true;
-  return /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(value.split("?")[0] ?? "");
+const isDirectUrl = (value) => /^(data:|blob:|https?:)/i.test(value);
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|bmp)$/i;
+// TIFF is accepted for upload but browsers can't render it — icon instead.
+const isPreviewableImage = (type) => type?.startsWith("image/") && type !== "image/tiff";
+
+// A browser-loadable URL (+ whether it is an image) for a stored value.
+// Stored paths are downloaded once per value; the object URL is revoked
+// when the value changes or the component unmounts.
+export function useStoredFileUrl(value, download) {
+  const [state, setState] = useState({ url: null, isImage: false, loading: false, error: "" });
+  useEffect(() => {
+    if (!value) {
+      setState({ url: null, isImage: false, loading: false, error: "" });
+      return undefined;
+    }
+    if (isDirectUrl(value) || !download) {
+      setState({ url: value, isImage: value.startsWith("data:image/") || IMAGE_EXT.test(value.split("?")[0]), loading: false, error: "" });
+      return undefined;
+    }
+    let url = null;
+    let cancelled = false;
+    setState({ url: null, isImage: IMAGE_EXT.test(value), loading: true, error: "" });
+    download(value)
+      .then((blob) => {
+        if (cancelled) return;
+        url = URL.createObjectURL(blob);
+        setState({ url, isImage: isPreviewableImage(blob.type), loading: false, error: "" });
+      })
+      .catch((error) => !cancelled && setState({ url: null, isImage: false, loading: false, error: error.message }));
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+    // `download` is rebuilt by callers each render; the value decides.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return state;
+}
+
+// Read-only thumbnail of a stored file (view screens).
+export function StoredFilePreview({ value, download, className = "h-10 w-10" }) {
+  const file = useStoredFileUrl(value, download);
+  if (!value) return "—";
+  const box = `flex ${className} shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white`;
+  if (file.loading) return <span className={box}><Spinner size={14} /></span>;
+  return (
+    <a href={file.url ?? undefined} target="_blank" rel="noreferrer" title={file.error || undefined} className={box}>
+      {file.url && file.isImage ? <img src={file.url} alt="" className="h-full w-full object-contain" /> : <FileText size={18} className="text-muted-foreground" />}
+    </a>
+  );
 }
 
 export function FileUploadField({
   value,
   onChange,
+  upload,
+  download,
   accept = "image/*",
   maxBytes = 500 * 1024,
   tr = (s) => s,
@@ -48,27 +89,30 @@ export function FileUploadField({
   const inputRef = useRef(null);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const file = useStoredFileUrl(value, download);
 
-  const handleFile = async (file) => {
-    if (!file) return;
-    if (accept.startsWith("image/") && !file.type.startsWith("image/")) {
+  const handleFile = async (chosen) => {
+    if (!chosen) return;
+    if (accept.startsWith("image/") && !chosen.type.startsWith("image/")) {
       setError(tr("Please choose an image file"));
       return;
     }
-    if (file.size > maxBytes) {
-      setError(`${tr("File must be under")} ${Math.round(maxBytes / 1024)}KB`);
+    // Early check only; the server has the final say on size and format.
+    if (chosen.size > maxBytes) {
+      setError(`${tr("File must be under")} ${maxBytes >= 1024 * 1024 ? `${Math.round(maxBytes / (1024 * 1024))}MB` : `${Math.round(maxBytes / 1024)}KB`}`);
       return;
     }
     setError("");
     setUploading(true);
     try {
-      onChange(await readFileAsDataUrl(file));
+      onChange(upload ? (await upload(chosen)).path : await readFileAsDataUrl(chosen));
+    } catch (uploadError) {
+      setError(uploadError.message);
     } finally {
       setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
     }
   };
-
-  const previewIsImage = isImageValue(value, accept);
 
   return (
     <div className="mt-1.5">
@@ -88,15 +132,17 @@ export function FileUploadField({
       ) : value ? (
         <div className="flex items-center gap-3 rounded-xl border border-border p-2.5">
           <a
-            href={value}
+            href={file.url ?? undefined}
             target="_blank"
             rel="noreferrer"
-            title={tr("View uploaded file")}
+            title={file.error || tr("View uploaded file")}
             className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted"
           >
-            {previewIsImage ? (
+            {file.loading ? (
+              <Spinner size={14} />
+            ) : file.url && file.isImage ? (
               <img
-                src={value}
+                src={file.url}
                 alt=""
                 className="h-full w-full object-contain"
                 onError={(e) => {
@@ -107,14 +153,16 @@ export function FileUploadField({
               <FileText size={20} className="text-muted-foreground" />
             )}
           </a>
-          <a
-            href={value}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted"
-          >
-            {tr("View")}
-          </a>
+          {file.url && (
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted"
+            >
+              {tr("View")}
+            </a>
+          )}
           {!disabled && (
             <button
               type="button"
@@ -147,7 +195,7 @@ export function FileUploadField({
         </button>
       )}
       {hint && !uploading && <p className="mt-1 text-[11px] text-muted-foreground">{tr(hint)}</p>}
-      {error && <p className="mt-1 text-[11px] font-medium text-red-500">{error}</p>}
+      {(error || file.error) && <p className="mt-1 text-[11px] font-medium text-red-500">{error || file.error}</p>}
     </div>
   );
 }

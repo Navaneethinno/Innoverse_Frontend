@@ -623,7 +623,7 @@ export const customer = {
   theRequiredKycLevelHasnTBeen: "O nível KYC exigido ainda não foi atingido — preencha o que a lista de níveis acima ainda indica como pendente.",
   startOnboarding: "Iniciar integração",
   saveSection: "Salvar seção",
-  uploadComingSoon: "Envio em breve",
+  fileHint: "{{formats}}, até {{size}}",
   editSectionsAndResubmit: "Edite as seções acima e reenvie.",
   viewingOnlyNothingCanBeChanged: "Somente visualização — nada aqui pode ser alterado.",
   recordCantBeEditedNow: "Este registro não pode ser editado agora.",

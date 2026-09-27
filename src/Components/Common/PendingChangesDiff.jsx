@@ -147,8 +147,11 @@ function groupRowSpans(rows) {
   return spans;
 }
 
-export function PendingChangesDiff({ data, isLoading, error }) {
+// `renderValue(value)` may return a node for a value the caller knows how
+// to show better (e.g. a stored file's preview); undefined = plain text.
+export function PendingChangesDiff({ data, isLoading, error, renderValue }) {
   const { t } = useTranslation("common");
+  const show = (value) => renderValue?.(value) ?? displayValue(value);
   if (isLoading) {
     return <p className="mt-3 text-xs text-muted-foreground">{t("loadingRequestedChanges")}</p>;
   }
@@ -204,10 +207,10 @@ export function PendingChangesDiff({ data, isLoading, error }) {
                   )}
                   <td className="px-3 py-1.5 font-semibold text-slate-600">{fieldLabel(change.field)}</td>
                   {!isAdd && (
-                    <td className="whitespace-pre-line px-3 py-1.5 text-muted-foreground">{displayValue(change.current)}</td>
+                    <td className="whitespace-pre-line px-3 py-1.5 text-muted-foreground">{show(change.current)}</td>
                   )}
                   {!isDelete && (
-                    <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary)" }}>{displayValue(change.proposed)}</td>
+                    <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary)" }}>{show(change.proposed)}</td>
                   )}
                 </tr>
               );

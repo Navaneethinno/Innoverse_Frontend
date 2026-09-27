@@ -16,6 +16,8 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
+import { StoredFilePreview } from "@/Components/Common/FileUploadField";
+import { isStoredCustomerFile } from "./customerFiles";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
 
 // Customer onboarding — now the same 13-call maker-checker lifecycle as
@@ -75,6 +77,9 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   };
 
   const pendingMethod = buttons.isPendingDelete ? "deleteAuth" : "auth";
+  // Uploaded files in the requested changes open through /file (blob).
+  const showFile = (value) =>
+    isStoredCustomerFile(value) ? <StoredFilePreview value={value} download={(path) => customerOnboardingApi.file({ reference_id: row.reference_id, path })} /> : undefined;
   return (
     <>
       <RowActions
@@ -98,7 +103,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         onClose={() => setAction(null)}
         onConfirm={() => void execute()}
       >
-        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
+        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} renderValue={showFile} />}
         {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="individual" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
         <textarea
           value={narration}

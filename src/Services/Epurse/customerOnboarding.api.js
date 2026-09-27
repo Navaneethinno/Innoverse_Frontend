@@ -3,6 +3,7 @@ import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
+import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // Customer Onboarding (Individual) runtime API — "Customer Onboarding
 // (Individual) — Frontend Guide", 2026-09. This drives the actual wizard a
@@ -79,6 +80,11 @@ export const customerOnboardingApi = {
   getActive: (payload = { view: "dropdown" }) => request(routes.GET_ACTIVE, payload),
   pending: (payload) => request(routes.PENDING, payload),
   audit: (payload) => request(routes.AUDIT, payload),
+  // { reference_id, section_code, field, type_id?, file } -> { path, ... };
+  // the path is then saved as the field's value by `edit`.
+  upload: (fields) => uploadFile(routes.UPLOAD, fields),
+  // { reference_id, path } -> Blob of the stored file.
+  file: (payload) => downloadFile(routes.FILE, payload),
 };
 
 export const startOnboarding = async (payload) => first(await customerOnboardingApi.add(payload));

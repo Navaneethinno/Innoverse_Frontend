@@ -9,6 +9,7 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, startOnboarding, loadWizard, saveSection } from "@/Services/Epurse/customerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
+import { customerFileProps } from "./customerFiles";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
@@ -406,6 +407,17 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   // rendering both asked for the same thing twice.
   const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? t("customer:type");
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
+  const fileProps = (field, row) =>
+    field.input === "file"
+      ? customerFileProps({
+          api: customerOnboardingApi,
+          referenceId: wizard.onboarding.reference_id,
+          sectionCode: section.code,
+          fieldKey: field.key,
+          type: section.types?.find((ty) => ty.id === row?.[section.type_field]),
+          t,
+        })
+      : undefined;
 
   // Address rows may carry "same_as" on their chosen type (Customer_
   // Onboarding_API.md §4.1/§5): instead of repeating an address's fields,
@@ -489,6 +501,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
             options={fieldOptionsFor(field, row)}
             error={issueFor(field.key, rowIndex)}
             onChange={(v) => setValue(rowIndex, field.key, v)}
+            file={fileProps(field, row)}
             badge={<KycLevelBadge levelNo={field.kyc_level_no} levels={wizard?.kyc?.levels} />}
           />
         ))}

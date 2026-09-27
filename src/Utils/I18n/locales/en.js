@@ -643,7 +643,7 @@ export const customer = {
   theRequiredKycLevelHasnTBeen: "The required KYC level hasn't been reached yet — fill in what the level stepper above still lists as missing.",
   startOnboarding: "Start onboarding",
   saveSection: "Save section",
-  uploadComingSoon: "Upload coming soon",
+  fileHint: "{{formats}}, up to {{size}}",
   editSectionsAndResubmit: "Edit the sections above and resubmit.",
   viewingOnlyNothingCanBeChanged: "Viewing only — nothing here can be changed.",
   recordCantBeEditedNow: "This record can't be edited right now.",

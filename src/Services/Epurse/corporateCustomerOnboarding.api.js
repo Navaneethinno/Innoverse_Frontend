@@ -3,6 +3,7 @@ import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
+import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // Customer Onboarding (Corporate) runtime API — "Customer Onboarding
 // (Corporate) — Frontend Guide", 2026-09. Identical shape to
@@ -71,6 +72,9 @@ export const corpCustomerOnboardingApi = {
   getActive: (payload = { view: "dropdown" }) => request(routes.GET_ACTIVE, payload),
   pending: (payload) => request(routes.PENDING, payload),
   audit: (payload) => request(routes.AUDIT, payload),
+  // Same file calls as the individual API (see customerOnboarding.api.js).
+  upload: (fields) => uploadFile(routes.UPLOAD, fields),
+  file: (payload) => downloadFile(routes.FILE, payload),
 };
 
 export const startCorpOnboarding = async (payload) => first(await corpCustomerOnboardingApi.add(payload));

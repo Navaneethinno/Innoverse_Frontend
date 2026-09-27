@@ -13,6 +13,16 @@ import { useTranslation } from "react-i18next";
 // every place it currently renders `label`/`config.title` as visible text
 // with `tr(label)` — the CONFIGS objects themselves are untouched.
 const PT = {
+  // FileUploadField (every upload control).
+  "Upload file": "Enviar arquivo",
+  "Upload image": "Enviar imagem",
+  "Uploading...": "Enviando...",
+  "View uploaded file": "Ver arquivo enviado",
+  View: "Ver",
+  Replace: "Substituir",
+  "Remove file": "Remover arquivo",
+  "File must be under": "O arquivo deve ter menos de",
+  "Please choose an image file": "Escolha um arquivo de imagem",
   "The customer is still filling this in on the customer portal — view only until they complete it.": "O cliente ainda está preenchendo isto no portal do cliente — somente visualização até que ele conclua.",
   "Customer portal": "Portal do cliente",
   "Self-onboarded (customer portal)": "Autointegração (portal do cliente)",
@@ -292,6 +302,8 @@ const PT = {
   "Replace image": "Substituir imagem",
   "Remove image": "Remover imagem",
   "PNG, JPG, or SVG, up to 500KB": "PNG, JPG ou SVG, até 500KB",
+  "PNG, JPG or WebP, up to 2MB": "PNG, JPG ou WebP, até 2MB",
+  "Select an institution first": "Selecione uma instituição primeiro",
   // MasterConfig list pages' page title / subtitle / search placeholder /
   // DataTable+view-modal titles / empty state — the "top part" of each
   // page, still hardcoded English even after the column headers and Add

@@ -9,6 +9,7 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { notifications } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, startCorpOnboarding, loadCorpWizard, saveCorpSection } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { OnboardingField } from "./OnboardingField";
+import { customerFileProps } from "./customerFiles";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
@@ -217,6 +218,17 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
 
   const typeFieldCaption = (fields) => fields.find((f) => f.key === section.type_field)?.label ?? t("customer:type");
   const visibleFields = (fields) => (section.type_field ? fields.filter((f) => f.key !== section.type_field) : fields);
+  const fileProps = (field, row) =>
+    field.input === "file"
+      ? customerFileProps({
+          api: corpCustomerOnboardingApi,
+          referenceId: wizard.onboarding.reference_id,
+          sectionCode: section.code,
+          fieldKey: field.key,
+          type: section.types?.find((ty) => ty.id === row?.[section.type_field]),
+          t,
+        })
+      : undefined;
 
   // Addresses may carry "same as" (guide §4): instead of repeating an
   // address's fields, the row is marked same_as_address_type_id and takes
@@ -290,6 +302,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
             options={fieldOptionsFor(field, row)}
             error={issueFor(field.key, rowIndex)}
             onChange={(v) => setValue(rowIndex, field.key, v)}
+            file={fileProps(field, row)}
           />
         ))}
       {rowIndex !== undefined && editable && (

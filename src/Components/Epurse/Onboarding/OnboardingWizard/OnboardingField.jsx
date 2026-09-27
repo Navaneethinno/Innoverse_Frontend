@@ -1,14 +1,18 @@
-import { Paperclip } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
+import { FileUploadField } from "@/Components/Common/FileUploadField";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Renders one wizard field exactly as the configuration describes it
 // (Customer Onboarding (Individual) — Frontend Guide §4.2). `field.input`
 // picks the control; nothing here is hard-coded per field name — a new
 // field the institution configures tomorrow renders correctly today.
-export function OnboardingField({ field, value, onChange, error, options, badge }) {
+// `file` (FILE fields): upload/download/accept/maxBytes/hint for
+// FileUploadField — see customerFiles.js.
+export function OnboardingField({ field, value, onChange, error, options, badge, file }) {
   const { t } = useTranslation("customer");
+  const tr = useConfigLabel();
   const disabled = field.read_only;
   const disabledReason = disabled ? (field.read_only_reason ?? t("cantBeEditedNow")) : undefined;
   const commonInput =
@@ -75,28 +79,8 @@ export function OnboardingField({ field, value, onChange, error, options, badge 
           />
         );
       case "file":
-        // Real upload isn't wired up yet — a plain text input with a dense
-        // placeholder read as a broken/unstyled field rather than an
-        // intentionally-stubbed one. Styling it like a dashed drop-zone
-        // (icon + short label) reads as "coming soon", not broken, while
-        // still taking the same plain-text file-reference value.
-        return (
-          <div className="relative">
-            <Paperclip size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              className={
-                "w-full rounded-xl border border-dashed px-3 py-2.5 pl-8 text-sm placeholder:italic placeholder:text-muted-foreground disabled:bg-muted disabled:text-muted-foreground" +
-                (error ? " border-red-400" : " border-border")
-              }
-              value={value ?? ""}
-              disabled={disabled}
-              title={disabled ? disabledReason : undefined}
-              placeholder={t("customer:uploadComingSoon")}
-              onChange={(e) => onChange(e.target.value)}
-            />
-          </div>
-        );
+        // Uploaded on its own; the value is the stored path it returns.
+        return <FileUploadField {...file} tr={tr} value={value ?? ""} onChange={onChange} disabled={disabled} />;
       default:
         return (
           <input
