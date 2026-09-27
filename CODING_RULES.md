@@ -38,15 +38,19 @@ src/Components/
       Individual/<Religion|Designation|...>/   (serve the remaining master menus)
     Onboarding/OnboardingConfiguration/
     Onboarding/OnboardingWizard/           Individual | Corporate onboarding
+  InnoAML/                                 InnoAML module
+    AMLConfiguration/<AMLSetup|InternalWatchlists>/
+    AMLScreening/<Screenings|NameLookup|MatchReview>/
+    Shared/                                screening detail, badges, customer result
 ```
 
 `src/Router/` follows it too: `index.js` builds one route list per module
-(`institutionRoutes`, `userManagementRoutes`, `epurseRoutes`) from the files
-in `Router/UserManagement/` and `Router/Epurse/`. Header pieces (top bar,
+(`institutionRoutes`, `userManagementRoutes`, `epurseRoutes`, `innoAmlRoutes`)
+from the files in `Router/UserManagement/`, `Router/Epurse/` and `Router/InnoAML/`. Header pieces (top bar,
 change password) live in `src/Pages/Header/`, as in payse.
 
 `src/Services/` and `src/Hooks/` group by module the same way
-(`Institution/`, `UserManagement/`, `Epurse/`); cross-cutting code stays at
+(`Institution/`, `UserManagement/`, `Epurse/`, `InnoAML/`); cross-cutting code stays at
 the top level (`api/`, `Auth/`, `Master/`, `useLiveChannel.js`, ...). A new
 menu gets its own folder under its sidebar parent; don't add screens to
 `Common/` or create top-level feature folders.

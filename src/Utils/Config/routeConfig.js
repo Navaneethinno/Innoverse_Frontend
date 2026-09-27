@@ -147,6 +147,12 @@ const SEGMENT_LABELS = {
   notificationalerts: { titleKey: "crumbNotificationAlerts", breadcrumb: ["crumbNotificationCenter", "crumbNotificationAlerts"] },
   individualrisk: { titleKey: "crumbIndividualRisk", breadcrumb: ["crumbRiskAssessment", "crumbIndividualRisk"] },
   corporaterisk: { titleKey: "crumbCorporateRisk", breadcrumb: ["crumbRiskAssessment", "crumbCorporateRisk"] },
+  // --- InnoAML ---------------------------------------------------------------
+  amlsetup: { titleKey: "crumbAmlSetup", breadcrumb: ["crumbAmlConfiguration", "crumbAmlSetup"] },
+  internalwatchlists: { titleKey: "crumbInternalWatchlists", breadcrumb: ["crumbAmlConfiguration", "crumbInternalWatchlists"] },
+  screenings: { titleKey: "crumbScreenings", breadcrumb: ["crumbAmlScreening", "crumbScreenings"] },
+  namelookup: { titleKey: "crumbNameLookup", breadcrumb: ["crumbAmlScreening", "crumbNameLookup"] },
+  matchreview: { titleKey: "crumbMatchReview", breadcrumb: ["crumbAmlScreening", "crumbMatchReview"] },
   kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   kycschemeconfig: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },

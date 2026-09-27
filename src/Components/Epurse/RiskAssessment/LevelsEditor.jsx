@@ -14,7 +14,9 @@ export const chainLevels = (levels) =>
 // Colours offered to a newly added level, after the default three.
 const NEXT_COLOURS = ["#2196F3", "#9C27B0", "#795548", "#607D8B"];
 
-export function LevelsEditor({ levels, riskActions, onChange }) {
+// `title`/`hint` let another screen with the same shape (AML Setup's score
+// bands) label it its own way.
+export function LevelsEditor({ levels, riskActions, onChange, title, hint }) {
   const { t } = useTranslation("risk");
   const chained = chainLevels(levels);
   const last = chained[chained.length - 1];
@@ -31,9 +33,9 @@ export function LevelsEditor({ levels, riskActions, onChange }) {
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-slate-700">
-            {t("levels")} <span className="text-red-500">*</span>
+            {title ?? t("levels")} <span className="text-red-500">*</span>
           </p>
-          <p className="text-[11px] text-muted-foreground">{t("levelsHint")}</p>
+          <p className="text-[11px] text-muted-foreground">{hint ?? t("levelsHint")}</p>
         </div>
         <button type="button" onClick={add} className="flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary">
           <Plus size={13} /> {t("addLevel")}

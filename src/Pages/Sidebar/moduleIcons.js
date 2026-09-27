@@ -1,4 +1,8 @@
 import {
+  ClipboardCheck,
+  ListChecks,
+  ScanSearch,
+  UserSearch,
   AlertTriangle,
   BadgeCheck,
   Boxes,
@@ -66,6 +70,12 @@ export function getModuleIcon(moduleName = "") {
 // fallback below them — otherwise they'd all resolve to the same Landmark
 // icon (which is exactly what was happening before this list was reordered).
 const MENU_ICON_RULES = [
+  // InnoAML menus, before the generic "configuration"/"review" style rules.
+  [/aml configuration|aml setup/i, SlidersHorizontal],
+  [/watchlist/i, ListChecks],
+  [/aml screening|^screenings$/i, ScanSearch],
+  [/name lookup/i, UserSearch],
+  [/match review/i, ClipboardCheck],
   [/legal|compliance/i, Gavel],
   [/branding|brand/i, Palette],
   [/channel/i, Radio],

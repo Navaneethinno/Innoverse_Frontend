@@ -834,4 +834,13 @@ export const API_ENDPOINTS = {
     // institution master — the 13 maker-checker verbs under this base.
     ACTION: "/master_config/risk_action",
   },
+  // InnoAML (module 4, AML handoffs 03–07, 2026-09). setup/internal_list are
+  // the 13 maker-checker verbs; the rest are plain calls under their base.
+  AML: {
+    SETUP: "/config/aml/setup",
+    INTERNAL_LIST: "/config/aml/internal_list",
+    SCREENING: "/config/aml/screening",
+    LOOKUP: "/config/aml/lookup",
+    REVIEW: "/config/aml/review",
+  },
 };

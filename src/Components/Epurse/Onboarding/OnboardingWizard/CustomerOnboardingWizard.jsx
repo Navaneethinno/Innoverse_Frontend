@@ -13,6 +13,7 @@ import { customerFileProps } from "./customerFiles";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
+import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 
 // State model per Customer_Onboarding_API.md §1.2: a plain "Draft"
 // (status/process_status 9/9) needs no banner — the form itself makes that
@@ -592,6 +593,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
         </div>
         <KycLevelPanel kyc={wizard.kyc} onJumpToSection={jumpToSection} />
         <CustomerRiskPanel kind="individual" instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
+        <CustomerAmlBadge aml={wizard.aml} customerKind="INDIVIDUAL" referenceId={wizard.onboarding?.reference_id} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}

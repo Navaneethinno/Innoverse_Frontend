@@ -36,8 +36,14 @@ export function useStoredFileUrl(value, download) {
       setState({ url: null, isImage: false, loading: false, error: "" });
       return undefined;
     }
-    if (isDirectUrl(value) || !download) {
+    if (isDirectUrl(value)) {
       setState({ url: value, isImage: value.startsWith("data:image/") || IMAGE_EXT.test(value.split("?")[0]), loading: false, error: "" });
+      return undefined;
+    }
+    // A stored path with no way to download it (e.g. an AML list file):
+    // nothing to link to, just the file icon.
+    if (!download) {
+      setState({ url: null, isImage: false, loading: false, error: "" });
       return undefined;
     }
     let url = null;

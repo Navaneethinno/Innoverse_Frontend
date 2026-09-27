@@ -43,6 +43,7 @@ void i18n
       "myProfile",
       "notification",
       "risk",
+      "aml",
       "tour",
     ],
     interpolation: { escapeValue: false },

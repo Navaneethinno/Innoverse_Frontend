@@ -13,6 +13,7 @@ import { customerFileProps } from "./customerFiles";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
+import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 
 // Corporate mirror of CustomerOnboardingWizard.jsx (Customer Onboarding
 // (Corporate) — Frontend Guide, 2026-09): "it works exactly like the
@@ -380,6 +381,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
           </div>
         </div>
         <CustomerRiskPanel kind="corporate" instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
+        <CustomerAmlBadge aml={wizard.aml} customerKind="CORPORATE" referenceId={wizard.onboarding?.reference_id} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.code, label: s.label ?? s.name }))}

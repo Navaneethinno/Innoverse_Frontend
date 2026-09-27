@@ -1,5 +1,5 @@
 // Routes grouped by sidebar module, like payseFrontend's Router: one entry
-// per module (INSTITUTION, USER MANAGEMENT, EPURSE), each built from the
+// per module (INSTITUTION, USER MANAGEMENT, EPURSE, INNOAML), each built from the
 // route files in that module's folder.
 import { userRoutes } from "./UserManagement/userRoutes";
 import { profileRoutes } from "./UserManagement/profileRoutes";
@@ -12,6 +12,7 @@ import { onboardingMasterRoutes } from "./Epurse/onboardingMasterRoutes";
 import { onboardingAliasRoutes } from "./Epurse/onboardingAliasRoutes";
 import { notificationRoutes } from "./Epurse/notificationRoutes";
 import { riskRoutes } from "./Epurse/riskRoutes";
+import { amlRoutes } from "./InnoAML/amlRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -30,3 +31,7 @@ export const epurseRoutes = [
   ...notificationRoutes, // Notification Center
   ...riskRoutes, // Risk Assessment
 ];
+
+// InnoAML: AML Configuration (Setup, Internal Watchlists) and AML Screening
+// (Screenings, Name Lookup, Match Review).
+export const innoAmlRoutes = [...amlRoutes];

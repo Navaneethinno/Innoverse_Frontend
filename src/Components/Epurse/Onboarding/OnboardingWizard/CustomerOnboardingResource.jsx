@@ -16,6 +16,7 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
+import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
 import { isStoredCustomerFile } from "./customerFiles";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
@@ -105,6 +106,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} renderValue={showFile} />}
         {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="individual" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
+        {["auth", "deauth"].includes(action?.method) && <CustomerAmlBadge className="mt-3" aml={pendingInfo.data?.aml} customerKind="INDIVIDUAL" referenceId={row.reference_id} />}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
