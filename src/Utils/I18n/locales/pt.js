@@ -1382,6 +1382,7 @@ export const aml = {
 
 // Reports (handoff 08).
 export const reports = {
+  back: "Voltar",
   title: "Atividade do Utilizador",
   subtitle: "Tudo o que um utilizador fez no fluxo criador-verificador num período: como criador, como verificador ou diretamente.",
   pickUser: "Selecione um utilizador",

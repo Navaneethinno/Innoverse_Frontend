@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Info } from "lucide-react";
-import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { riskBreakdownApi } from "@/Services/Reports/riskBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/RiskAssessment/riskShared";
-import { BandChip, atIst } from "../Shared/reportShared";
+import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 
 function Section({ title, children }) {
   return (
@@ -93,7 +92,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
   const bandChanged = item?.previous && item.previous.level_code !== item.level_code;
 
   return (
-    <Modal open onClose={onClose} size="xl" title={item ? item.customer_name : t("breakdownTitle")}>
+    <ReportDetailPage onBack={onClose} title={item ? item.customer_name : t("breakdownTitle")}>
       {!item ? (
         <div className="flex justify-center py-10">
           <Spinner size={22} />
@@ -219,6 +218,6 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
           )}
         </div>
       )}
-    </Modal>
+    </ReportDetailPage>
   );
 }

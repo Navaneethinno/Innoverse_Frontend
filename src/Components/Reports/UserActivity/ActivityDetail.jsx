@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { userActivityApi } from "@/Services/Reports/userActivity.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { atIst } from "../Shared/reportShared";
+import { ReportDetailPage, atIst } from "../Shared/reportShared";
 import { fieldLabel, useIdNames } from "../Shared/idNames";
 import { Fields, Value } from "../Shared/RecordValues";
 import { RoleBadge, recordText } from "./activityFormat";
@@ -44,7 +43,7 @@ export function ActivityDetail({ activityId, onClose }) {
   }, [activityId]);
 
   return (
-    <Modal open onClose={onClose} size="lg" title={item ? `${item.action_name} · ${recordText(item)}` : t("activity")}>
+    <ReportDetailPage onBack={onClose} title={item ? `${item.action_name} · ${recordText(item)}` : t("activity")}>
       {!item ? (
         <div className="flex justify-center py-10">
           <Spinner size={22} />
@@ -127,6 +126,6 @@ export function ActivityDetail({ activityId, onClose }) {
           )}
         </div>
       )}
-    </Modal>
+    </ReportDetailPage>
   );
 }

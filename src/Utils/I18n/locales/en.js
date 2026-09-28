@@ -1402,6 +1402,7 @@ export const aml = {
 
 // Reports (handoff 08).
 export const reports = {
+  back: "Back",
   title: "User Activity",
   subtitle: "Everything one user did in the maker-checker flow over a period: as maker, as checker, or directly.",
   pickUser: "Select a user",

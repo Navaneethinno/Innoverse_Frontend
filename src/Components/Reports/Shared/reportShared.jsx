@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Download } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -105,4 +105,50 @@ export function BandChip({ name, color }) {
       {name || "-"}
     </span>
   );
+}
+
+// A report row's detail as a full page instead of a pop-up: Back (or Esc)
+// returns to the list. The list stays mounted (hidden) behind it — see
+// useReportDetail — so its filters, page and scroll position survive.
+export function ReportDetailPage({ title, onBack, children }) {
+  const { t } = useTranslation("reports");
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+    const onKey = (e) => e.key === "Escape" && onBack();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onBack]);
+  return (
+    <div className="pt-1 pb-6">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+        >
+          <ArrowLeft size={14} /> {t("back")}
+        </button>
+        <h1 className="min-w-0 truncate text-xl font-black text-slate-800">{title}</h1>
+      </div>
+      <div className="rounded-2xl p-5" style={glassCard}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Which row's detail is open, remembering the list's scroll position so
+// Back lands where the user was.
+export function useReportDetail() {
+  const [open, setOpen] = useState(null);
+  const scrollY = useRef(0);
+  const show = useCallback((row) => {
+    scrollY.current = window.scrollY;
+    setOpen(row);
+  }, []);
+  const back = useCallback(() => {
+    setOpen(null);
+    window.requestAnimationFrame(() => window.scrollTo({ top: scrollY.current }));
+  }, []);
+  return { open, show, back };
 }
