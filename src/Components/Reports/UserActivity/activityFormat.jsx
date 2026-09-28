@@ -1,21 +1,6 @@
-// Shared by the User Activity page and its detail panel.
+// Shared by the User Activity page and its detail panel (IST times, ranges,
+// periods and downloads are in ../Shared/reportShared).
 
-// JSON times are UTC; the report shows them in platform time (IST).
-const PLATFORM_TZ = "Asia/Kolkata";
-export const atIst = (value) =>
-  value ? new Date(value).toLocaleString("en-IN", { timeZone: PLATFORM_TZ, day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-";
-
-// "22 Sep – 28 Sep 2026" for the resolved range (YYYY-MM-DD days).
-const day = (iso, withYear) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { timeZone: "UTC", day: "numeric", month: "short", ...(withYear ? { year: "numeric" } : {}) });
-export const rangeLabel = (range) => {
-  if (!range?.from) return "";
-  const to = range.to ?? range.from;
-  const sameYear = range.from.slice(0, 4) === to.slice(0, 4);
-  return range.from === to ? day(to, true) : `${day(range.from, !sameYear)} – ${day(to, true)}`;
-};
-
-export const PERIODS = ["TODAY", "YESTERDAY", "THIS_WEEK", "LAST_WEEK", "THIS_MONTH", "LAST_MONTH", "THIS_YEAR", "CUSTOM"];
 export const ROLES = ["MAKER", "CHECKER", "DIRECT"];
 
 const ROLE_TONES = {

@@ -840,6 +840,8 @@ export const API_ENDPOINTS = {
   // summary, list, get, export under this base.
   REPORT: {
     USER_ACTIVITY: "/config/report/user_activity",
+    // Risk Score Breakdown (menu 107): list, get, export.
+    RISK_BREAKDOWN: "/config/report/risk_breakdown",
   },
   AML: {
     SETUP: "/config/aml/setup",

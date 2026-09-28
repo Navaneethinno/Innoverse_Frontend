@@ -37,5 +37,5 @@ export const epurseRoutes = [
 // (Screenings, Name Lookup, Match Review).
 export const innoAmlRoutes = [...amlRoutes];
 
-// Reports: User Activity.
+// Reports: User Activity, Risk Score Breakdown.
 export const reportsRoutes = [...reportRoutes];

@@ -149,6 +149,7 @@ const SEGMENT_LABELS = {
   corporaterisk: { titleKey: "crumbCorporateRisk", breadcrumb: ["crumbRiskAssessment", "crumbCorporateRisk"] },
   // --- Reports -------------------------------------------------------------
   useractivity: { titleKey: "crumbUserActivity", breadcrumb: ["crumbReports", "crumbUserActivity"] },
+  riskscorebreakdown: { titleKey: "crumbRiskScoreBreakdown", breadcrumb: ["crumbReports", "crumbRiskScoreBreakdown"] },
   // --- InnoAML ---------------------------------------------------------------
   amlsetup: { titleKey: "crumbAmlSetup", breadcrumb: ["crumbAmlConfiguration", "crumbAmlSetup"] },
   internalwatchlists: { titleKey: "crumbInternalWatchlists", breadcrumb: ["crumbAmlConfiguration", "crumbInternalWatchlists"] },

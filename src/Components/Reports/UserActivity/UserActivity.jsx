@@ -1,19 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownUp, Download, UserRoundSearch } from "lucide-react";
+import { ArrowDownUp, UserRoundSearch } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
-import { Spinner } from "@/Components/Common/Spinner";
 import { userActivityApi } from "@/Services/Reports/userActivity.api";
-import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { PERIODS, ROLES, RoleBadge, atIst, rangeLabel, recordText } from "./activityFormat";
+import { ExportButtons, PeriodChips, atIst, glassCard, periodBody, rangeLabel } from "../Shared/reportShared";
+import { ROLES, RoleBadge, recordText } from "./activityFormat";
 import { ActivityDetail } from "./ActivityDetail";
 
-const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
-const dateInput = "rounded-lg border px-2.5 py-1.5 text-xs";
 
 // Reports > User Activity (menu 106, View only): everything one admin user
 // did in the maker-checker flow over a period — as maker, checker, or
@@ -32,7 +29,6 @@ export function UserActivity() {
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("desc");
   const [openId, setOpenId] = useState(null);
-  const [exporting, setExporting] = useState("");
 
   useEffect(() => {
     userActivityApi
@@ -49,11 +45,11 @@ export function UserActivity() {
   // is picked and the period is complete (Custom needs a From day).
   const body = useMemo(() => {
     const f = filters;
-    if (!f.user_id || (f.period === "CUSTOM" && !f.from)) return null;
+    const period = periodBody(f);
+    if (!f.user_id || !period) return null;
     return {
       user_id: Number(f.user_id),
-      period: f.period,
-      ...(f.period === "CUSTOM" ? { from: f.from, ...(f.to ? { to: f.to } : {}) } : {}),
+      ...period,
       ...(f.role ? { roles: [f.role] } : {}),
       ...(f.group ? { groups: [f.group] } : {}),
       ...(f.entity ? { entities: [f.entity] } : {}),
@@ -104,18 +100,6 @@ export function UserActivity() {
     setPage(1);
   };
 
-  const download = async (format) => {
-    setExporting(format);
-    try {
-      const { blob, fileName } = await userActivityApi.export({ ...body, sort_by: sortBy, format });
-      saveBlob(blob, fileName);
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setExporting("");
-    }
-  };
-
   const selectedUser = users.find((u) => String(u.user_id) === String(filters.user_id));
   const groups = [...new Map(entities.map((e) => [e.group, e.group_name])).entries()];
   const entityOptions = entities.filter((e) => !filters.group || e.group === filters.group);
@@ -159,19 +143,7 @@ export function UserActivity() {
           <h1 className="text-xl font-black text-slate-800">{t("title")}</h1>
           <p className="mt-1 text-xs font-medium text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          {["XLSX", "CSV"].map((format) => (
-            <button
-              key={format}
-              type="button"
-              disabled={!body || Boolean(exporting)}
-              onClick={() => void download(format)}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary disabled:opacity-50"
-            >
-              {exporting === format ? <Spinner size={12} /> : <Download size={13} />} {t(format === "XLSX" ? "excel" : "csv")}
-            </button>
-          ))}
-        </div>
+        <ExportButtons disabled={!body} exportFile={(format) => userActivityApi.export({ ...body, sort_by: sortBy, format })} />
       </div>
 
       <div className="mb-3 space-y-3 rounded-2xl p-3" style={glassCard}>
@@ -198,25 +170,7 @@ export function UserActivity() {
           <FilterSelect size="sm" className="w-48" value={filters.group} onChange={(v) => set({ group: v, entity: "" })} options={[{ value: "", label: t("allAreas") }, ...groups.map(([code, name]) => ({ value: code, label: name }))]} />
           <FilterSelect size="sm" className="w-56" value={filters.entity} onChange={(v) => set({ entity: v })} options={[{ value: "", label: t("allRecordTypes") }, ...entityOptions.map((e) => ({ value: e.entity, label: e.entity_name }))]} />
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {PERIODS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              aria-pressed={filters.period === p}
-              onClick={() => set({ period: p })}
-              className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${filters.period === p ? "border-primary bg-primary text-primary-foreground" : "text-muted-foreground hover:border-primary hover:text-primary"}`}
-            >
-              {t(`period_${p}`)}
-            </button>
-          ))}
-          {filters.period === "CUSTOM" && (
-            <span className="ml-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-              {t("from")} <input type="date" value={filters.from} onChange={(e) => set({ from: e.target.value })} className={dateInput} />
-              {t("to")} <input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} className={dateInput} />
-            </span>
-          )}
-        </div>
+        <PeriodChips value={filters} onChange={set} />
       </div>
 
       {!body ? (

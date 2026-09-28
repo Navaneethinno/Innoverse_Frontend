@@ -5,7 +5,8 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { userActivityApi } from "@/Services/Reports/userActivity.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { RoleBadge, ValueCell, atIst, fieldWords, recordText } from "./activityFormat";
+import { atIst } from "../Shared/reportShared";
+import { RoleBadge, ValueCell, fieldWords, recordText } from "./activityFormat";
 
 function Section({ title, children }) {
   return (
