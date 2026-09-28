@@ -54,16 +54,16 @@ const plain = (title, base) => ({ title, base, columns: (ctx) => [{ key: "code",
 // indv_ (2026-09 route change); validation_rule below is a shared master
 // that kept its old route. risk_category is gone (Risk Action replaced it).
 const CONFIGS = {
-  title: plain("Title", "/master_config/indv_title"),
-  kinship: plain("Kinship", "/master_config/indv_kinship"),
-  business_nature: plain("Business Nature", "/master_config/indv_business_nature"),
-  annual_income_range: rangeConfig("Annual Income Range", "/master_config/indv_annual_income_range"),
-  monthly_income_range: rangeConfig("Monthly Income Range", "/master_config/indv_monthly_income_range"),
-  net_worth_range: rangeConfig("Net Worth Range", "/master_config/indv_net_worth_range"),
-  turnover_range: rangeConfig("Turnover Range", "/master_config/indv_turnover_range"),
+  title: plain("Title", "/customer/master_config/indv_title"),
+  kinship: plain("Kinship", "/customer/master_config/indv_kinship"),
+  business_nature: plain("Business Nature", "/customer/master_config/indv_business_nature"),
+  annual_income_range: rangeConfig("Annual Income Range", "/customer/master_config/indv_annual_income_range"),
+  monthly_income_range: rangeConfig("Monthly Income Range", "/customer/master_config/indv_monthly_income_range"),
+  net_worth_range: rangeConfig("Net Worth Range", "/customer/master_config/indv_net_worth_range"),
+  turnover_range: rangeConfig("Turnover Range", "/customer/master_config/indv_turnover_range"),
   document_type: {
     title: "Document Type",
-    base: "/master_config/indv_document_type",
+    base: "/customer/master_config/indv_document_type",
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -75,7 +75,7 @@ const CONFIGS = {
   },
   validation_rule: {
     title: "Validation Rule",
-    base: "/master_config/validation_rule",
+    base: "/customer/master_config/validation_rule",
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -107,13 +107,13 @@ const CONFIGS = {
   // --- Corporate Onboarding Configuration masters (Corporate_Onboarding_
   // Configuration_API.md §2, 2026-09) — same maker-checker CRUD shape as
   // the individual masters above, under their own corp_ base paths.
-  corp_company_type: plain("Company Type", "/master_config/corp_company_type"),
-  corp_address_type: plain("Corporate Address Type", "/master_config/corp_address_type"),
-  corp_relationship_type: plain("Corporate Relationship Type", "/master_config/corp_relationship_type"),
-  corp_document_type: plain("Corporate Document Type", "/master_config/corp_document_type"),
+  corp_company_type: plain("Company Type", "/customer/master_config/corp_company_type"),
+  corp_address_type: plain("Corporate Address Type", "/customer/master_config/corp_address_type"),
+  corp_relationship_type: plain("Corporate Relationship Type", "/customer/master_config/corp_relationship_type"),
+  corp_document_type: plain("Corporate Document Type", "/customer/master_config/corp_document_type"),
   corp_identification_type: {
     title: "Identification Type",
-    base: "/master_config/corp_identification_type",
+    base: "/customer/master_config/corp_identification_type",
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -137,14 +137,14 @@ const CONFIGS = {
       },
     ],
   },
-  corp_tax_type: plain("Tax Type", "/master_config/corp_tax_type"),
-  corp_screening_type: plain("Screening Type", "/master_config/corp_screening_type"),
-  corp_business_nature: plain("Corporate Business Nature", "/master_config/corp_business_nature"),
-  corp_industry_sector: plain("Industry Sector", "/master_config/corp_industry_sector"),
-  corp_merchant_category: plain("Merchant Category", "/master_config/corp_merchant_category"),
+  corp_tax_type: plain("Tax Type", "/customer/master_config/corp_tax_type"),
+  corp_screening_type: plain("Screening Type", "/customer/master_config/corp_screening_type"),
+  corp_business_nature: plain("Corporate Business Nature", "/customer/master_config/corp_business_nature"),
+  corp_industry_sector: plain("Industry Sector", "/customer/master_config/corp_industry_sector"),
+  corp_merchant_category: plain("Merchant Category", "/customer/master_config/corp_merchant_category"),
   corp_merchant_group: {
     title: "Merchant Group",
-    base: "/master_config/corp_merchant_group",
+    base: "/customer/master_config/corp_merchant_group",
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -161,14 +161,14 @@ const CONFIGS = {
       },
     ],
   },
-  corp_gst_registration_status: plain("GST Registration Status", "/master_config/corp_gst_registration_status"),
-  corp_tax_exemption_status: plain("Tax Exemption Status", "/master_config/corp_tax_exemption_status"),
+  corp_gst_registration_status: plain("GST Registration Status", "/customer/master_config/corp_gst_registration_status"),
+  corp_tax_exemption_status: plain("Tax Exemption Status", "/customer/master_config/corp_tax_exemption_status"),
   // Shared by every customer type (not corp_-prefixed) — the settlement
   // account bank/branch masters (guide §2).
-  bank: plain("Bank", "/master_config/bank"),
+  bank: plain("Bank", "/customer/master_config/bank"),
   bank_branch: {
     title: "Bank Branch",
-    base: "/master_config/bank_branch",
+    base: "/customer/master_config/bank_branch",
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },

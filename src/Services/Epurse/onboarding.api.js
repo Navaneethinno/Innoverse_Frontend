@@ -83,9 +83,9 @@ export function createLifecycle(base) {
 // paths (2026-09) — the old /master_config/onboarding_* routes now 404.
 // Request/response bodies, field names and the maker-checker verb set are
 // unchanged; only the path segment changed.
-export const onboardingCatalog = () => request("/master_config/indv_onboarding_catalog", {});
+export const onboardingCatalog = () => request("/customer/master_config/indv_onboarding_catalog", {});
 
-export const onboardingDefinitionApi = { ...createLifecycle("/master_config/indv_onboarding_definition") };
+export const onboardingDefinitionApi = { ...createLifecycle("/customer/master_config/indv_onboarding_definition") };
 export const kycSchemeApi = createLifecycle("/config/kyc/group");
 
 // The definition itself IS the whole customer-type configuration now — no
@@ -112,14 +112,14 @@ export const kycSchemeOps = {
 // that kept their old routes; the rest moved under indv_ (2026-09 route
 // change — see onboardingCatalog/onboardingDefinitionApi above).
 export const masterApis = {
-  ownership_sub_type: createLifecycle("/master_config/ownership_sub_type"),
-  document_type: createLifecycle("/master_config/indv_document_type"),
-  address_type: createLifecycle("/master_config/indv_address_type"),
-  employment: createLifecycle("/master_config/indv_employment"),
-  relationship_type: createLifecycle("/master_config/indv_relationship_type"),
-  source_of_fund: createLifecycle("/master_config/indv_source_of_fund"),
-  validation_rule: createLifecycle("/master_config/validation_rule"),
-  verification_method: createLifecycle("/master_config/verification_method"),
+  ownership_sub_type: createLifecycle("/customer/master_config/ownership_sub_type"),
+  document_type: createLifecycle("/customer/master_config/indv_document_type"),
+  address_type: createLifecycle("/customer/master_config/indv_address_type"),
+  employment: createLifecycle("/customer/master_config/indv_employment"),
+  relationship_type: createLifecycle("/customer/master_config/indv_relationship_type"),
+  source_of_fund: createLifecycle("/customer/master_config/indv_source_of_fund"),
+  validation_rule: createLifecycle("/customer/master_config/validation_rule"),
+  verification_method: createLifecycle("/customer/master_config/verification_method"),
 };
 
 export async function activeMasterOptions(name) {
@@ -136,8 +136,8 @@ export async function activeMasterOptions(name) {
 // corp_-prefixed masters. province/district/gender/validation_rule/
 // verification_method/verification_status keep their existing (individual/
 // shared) routes — not duplicated here.
-export const corpOnboardingCatalog = () => request("/master_config/corp_onboarding_catalog", {});
-export const corpOnboardingDefinitionApi = { ...createLifecycle("/master_config/corp_onboarding_definition") };
+export const corpOnboardingCatalog = () => request("/customer/master_config/corp_onboarding_catalog", {});
+export const corpOnboardingDefinitionApi = { ...createLifecycle("/customer/master_config/corp_onboarding_definition") };
 export const corpOnboardingDefinitionOps = {
   get: (payload) => corpOnboardingDefinitionApi.call("get", payload),
   saveConfig: (payload) => corpOnboardingDefinitionApi.call("save_config", payload),
@@ -145,21 +145,21 @@ export const corpOnboardingDefinitionOps = {
 };
 
 export const corpMasterApis = {
-  corp_company_type: createLifecycle("/master_config/corp_company_type"),
-  corp_address_type: createLifecycle("/master_config/corp_address_type"),
-  corp_relationship_type: createLifecycle("/master_config/corp_relationship_type"),
-  corp_document_type: createLifecycle("/master_config/corp_document_type"),
-  corp_identification_type: createLifecycle("/master_config/corp_identification_type"),
-  corp_tax_type: createLifecycle("/master_config/corp_tax_type"),
-  corp_screening_type: createLifecycle("/master_config/corp_screening_type"),
-  corp_business_nature: createLifecycle("/master_config/corp_business_nature"),
-  corp_industry_sector: createLifecycle("/master_config/corp_industry_sector"),
-  corp_merchant_category: createLifecycle("/master_config/corp_merchant_category"),
-  corp_merchant_group: createLifecycle("/master_config/corp_merchant_group"),
-  corp_gst_registration_status: createLifecycle("/master_config/corp_gst_registration_status"),
-  corp_tax_exemption_status: createLifecycle("/master_config/corp_tax_exemption_status"),
-  bank: createLifecycle("/master_config/bank"),
-  bank_branch: createLifecycle("/master_config/bank_branch"),
+  corp_company_type: createLifecycle("/customer/master_config/corp_company_type"),
+  corp_address_type: createLifecycle("/customer/master_config/corp_address_type"),
+  corp_relationship_type: createLifecycle("/customer/master_config/corp_relationship_type"),
+  corp_document_type: createLifecycle("/customer/master_config/corp_document_type"),
+  corp_identification_type: createLifecycle("/customer/master_config/corp_identification_type"),
+  corp_tax_type: createLifecycle("/customer/master_config/corp_tax_type"),
+  corp_screening_type: createLifecycle("/customer/master_config/corp_screening_type"),
+  corp_business_nature: createLifecycle("/customer/master_config/corp_business_nature"),
+  corp_industry_sector: createLifecycle("/customer/master_config/corp_industry_sector"),
+  corp_merchant_category: createLifecycle("/customer/master_config/corp_merchant_category"),
+  corp_merchant_group: createLifecycle("/customer/master_config/corp_merchant_group"),
+  corp_gst_registration_status: createLifecycle("/customer/master_config/corp_gst_registration_status"),
+  corp_tax_exemption_status: createLifecycle("/customer/master_config/corp_tax_exemption_status"),
+  bank: createLifecycle("/customer/master_config/bank"),
+  bank_branch: createLifecycle("/customer/master_config/bank_branch"),
 };
 
 export async function activeCorpMasterOptions(name) {
