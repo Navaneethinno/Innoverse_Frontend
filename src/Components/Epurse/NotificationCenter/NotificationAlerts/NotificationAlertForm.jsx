@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Braces, Info, Search } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
+import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { useAuth } from "@/Hooks/useAuth";
@@ -10,6 +10,7 @@ import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { triggerKey, useAlertOptions } from "./useAlertOptions";
+import { GroupPicker } from "./GroupPicker";
 import { TriggerGrid } from "./TriggerGrid";
 
 const SMS_MAX = 640;
@@ -191,12 +192,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
         <div className={section}>
           <p className={sectionTitle}>{t("notification:recipients")}</p>
           {options.groups.length ? (
-            <CheckboxPillGroup
-              className="mt-2 flex-row flex-wrap"
-              value={form.group_ids}
-              onChange={(ids) => setForm({ ...form, group_ids: ids })}
-              options={options.groups.map((g) => ({ value: g.id, label: g.name }))}
-            />
+            <GroupPicker groups={options.groups} value={form.group_ids} onChange={(ids) => setForm((f) => ({ ...f, group_ids: ids }))} />
           ) : (
             !loading && <p className="mt-2 text-xs text-muted-foreground">{t("notification:noActiveGroups")}</p>
           )}

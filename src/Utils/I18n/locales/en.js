@@ -1065,6 +1065,12 @@ export const myProfile = {
 };
 
 export const notification = {
+  searchGroups: "Search groups",
+  groupsSelected: "{{count}} of {{total}} selected",
+  selectShown: "Select shown",
+  clearSelection: "Clear",
+  noGroupsMatch: "No group matches",
+  removeGroup: "Remove group",
   outbox: "Outbox",
   outboxSubtitle: "Messages your alerts produced, one per recipient and channel. They wait here as Pending until the email/SMS gateway is connected.",
   viewMessages: "View messages",

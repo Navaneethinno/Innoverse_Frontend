@@ -1045,6 +1045,12 @@ export const myProfile = {
 };
 
 export const notification = {
+  searchGroups: "Pesquisar grupos",
+  groupsSelected: "{{count}} de {{total}} selecionados",
+  selectShown: "Selecionar visíveis",
+  clearSelection: "Limpar",
+  noGroupsMatch: "Nenhum grupo corresponde",
+  removeGroup: "Remover grupo",
   outbox: "Caixa de saída",
   outboxSubtitle: "Mensagens geradas pelos seus alertas, uma por destinatário e canal. Ficam aqui como Pendentes até o gateway de e-mail/SMS ser conectado.",
   viewMessages: "Ver mensagens",
