@@ -262,3 +262,16 @@ export function useResidencyTypes(enabled = true) {
   useEffect(() => { void load(); }, [load]);
   return { residencyTypes, error };
 }
+
+// {id, name} options of a master's get_active {view: "dropdown"}.
+export function useDropdownRows(lifecycle, enabled = true) {
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    if (!enabled) return;
+    lifecycle
+      .getActive({ view: "dropdown" })
+      .then((r) => setRows(Array.isArray(r?.data) ? r.data : r?.data?.data ?? []))
+      .catch(() => setRows([]));
+  }, [lifecycle, enabled]);
+  return rows;
+}

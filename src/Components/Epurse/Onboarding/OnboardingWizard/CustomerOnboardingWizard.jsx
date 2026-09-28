@@ -171,7 +171,8 @@ function fieldKeyForRequirement(section, item) {
 export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
-  const [pick, setPick] = useState({ party_type_id: "", ownership_id: "", ownership_sub_type_id: "", email: "", phone_number: "" });
+  // ownership_sub_type_id: null until chosen; "" is "No sub type" (default).
+  const [pick, setPick] = useState({ ownership_sub_type_id: null, email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
   const [wizard, setWizard] = useState(null);
   const [loading, setLoading] = useState(Boolean(referenceId));
@@ -255,18 +256,20 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
   const dirty = editable && effectiveDraft != null && JSON.stringify(effectiveDraft) !== JSON.stringify(sectionSeed);
   const { guard, dialog: unsavedDialog } = useUnsavedChangesGuard(dirty);
 
-  const partyTypes = options?.party_types ?? [];
-  const chosenParty = partyTypes.find((p) => String(p.id) === String(pick.party_type_id));
-  const ownerships = chosenParty?.ownerships ?? [];
-  const chosenOwnership = ownerships.find((o) => String(o.id) === String(pick.ownership_id));
-  const subTypes = chosenOwnership?.sub_types ?? [];
+  // Party type comes from the module (the API prefix) and ownership from the
+  // menu, handoff 17: /options has exactly one of each. Offered are the sub
+  // types with a published definition, and "No sub type" only when the
+  // default definition (the ownership's own definition_id) is published.
+  const ownership = options?.party_types?.[0]?.ownerships?.[0];
+  const subTypeOptions = [
+    ...(ownership?.definition_id ? [{ value: "", label: t("onboarding:noSubTypeDefault") }] : []),
+    ...(ownership?.sub_types ?? []).map((s) => ({ value: String(s.id), label: s.name })),
+  ];
+  const subType = pick.ownership_sub_type_id ?? subTypeOptions[0]?.value ?? null;
 
   const beginOnboarding = async () => {
-    // Sub type is optional now (guide §4) — the backend refuses with "This
-    // Ownership Has Sub Types: Choose One" when the ownership actually
-    // requires picking one; the client no longer forces it up front.
-    if (!pick.party_type_id || !pick.ownership_id) {
-      notifications.error("Choose the party type and ownership");
+    if (subType === null) {
+      notifications.error(t("onboarding:noPublishedDefinition"));
       return;
     }
     if (!pick.email.trim() && !pick.phone_number.trim()) {
@@ -276,9 +279,7 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
     setStarting(true);
     try {
       const w = await startOnboarding({
-        party_type_id: Number(pick.party_type_id),
-        ownership_id: Number(pick.ownership_id),
-        ...(pick.ownership_sub_type_id ? { ownership_sub_type_id: Number(pick.ownership_sub_type_id) } : {}),
+        ownership_sub_type_id: subType ? Number(subType) : null,
         ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
         ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
       });
@@ -526,34 +527,13 @@ export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, o
       return (
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:partyType")}
-            <FilterSelect
-              className="mt-1.5"
-              value={pick.party_type_id}
-              onChange={(v) => setPick({ ...pick, party_type_id: v, ownership_id: "", ownership_sub_type_id: "" })}
-              options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
-            />
+            {t("onboarding:subType")} <span className="text-red-500">*</span>
+            {options && !subTypeOptions.length ? (
+              <p className="mt-1.5 rounded-xl border border-dashed p-3 text-xs font-normal text-muted-foreground">{t("onboarding:noPublishedDefinition")}</p>
+            ) : (
+              <FilterSelect className="mt-1.5" value={subType ?? ""} onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })} options={subTypeOptions} />
+            )}
           </label>
-          <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:ownership")}
-            <FilterSelect
-              className="mt-1.5"
-              value={pick.ownership_id}
-              onChange={(v) => setPick({ ...pick, ownership_id: v, ownership_sub_type_id: "" })}
-              options={[{ value: "", label: t("customer:selectOwnership") }, ...ownerships.map((o) => ({ value: o.id, label: o.name }))]}
-            />
-          </label>
-          {subTypes.length > 0 && (
-            <label className="text-sm font-semibold text-slate-700">
-              {t("onboarding:subType")}
-              <FilterSelect
-                className="mt-1.5"
-                value={pick.ownership_sub_type_id}
-                onChange={(v) => setPick({ ...pick, ownership_sub_type_id: v })}
-                options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypes.map((s) => ({ value: s.id, label: s.name }))]}
-              />
-            </label>
-          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-semibold text-slate-700">
               {t("customer:email")}

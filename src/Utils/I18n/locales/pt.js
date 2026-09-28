@@ -844,6 +844,7 @@ export const onboarding = {
   selectCombination: "Selecione a combinação",
   addOwnershipSubType: "Adicionar subtipo de titularidade",
   noSubType: "Sem subtipo",
+  noSubTypeDefault: "Sem subtipo (padrão)",
   subTypeHint: "Opcional — deixe em branco a menos que esta combinação exija um.",
   minorAgeYears: "Idade de menoridade (anos)",
   minorAgeHint: "Abaixo desta idade o fato de regra IS_MINOR é verdadeiro.",
@@ -1005,6 +1006,7 @@ export const onboarding = {
   customerTypes_merchant: "Tipos de Comerciante",
   onboardingConfigurationSubtitle_merchant: "Cada tipo de comerciante é um único registro — sua identidade, sua configuração e seu estado de aprovação juntos. Reabrir um aprovado para alterações o devolve a Rascunho no mesmo registro; não há versão separada.",
   noCustomerTypesYet_merchant: "Nenhum tipo de comerciante ainda",
+  noPublishedDefinition: "Ainda não há configuração de integração publicada. Publique uma em Configuração de Integração primeiro.",
 };
 
 export const statusLabels = {
@@ -1161,7 +1163,7 @@ export const risk = {
   codeHint: "Letras maiúsculas, dígitos e _. Não pode ser alterado depois de adicionado.",
   name: "Nome",
   customerType: "Tipo de cliente",
-  customerTypeHint: "Uma configuração por tipo de cliente em cada instituição.",
+  customerTypeHint: "Uma configuração por subtipo, e uma padrão, em cada instituição.",
   customerTypeLocked: "O tipo de cliente não pode ser alterado depois de adicionado.",
   partyType: "Tipo de parte",
   selectPartyType: "Selecione o tipo de parte",
@@ -1169,6 +1171,7 @@ export const risk = {
   selectOwnership: "Selecione a titularidade",
   subType: "Subtipo de titularidade",
   noSubType: "Sem subtipo",
+  noSubTypeDefault: "Sem subtipo (padrão)",
   companyType: "Tipo de empresa",
   selectCompanyType: "Selecione o tipo de empresa",
   criteria: "Critérios",

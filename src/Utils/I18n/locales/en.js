@@ -864,6 +864,7 @@ export const onboarding = {
   selectCombination: "Select combination",
   addOwnershipSubType: "Add ownership sub type",
   noSubType: "No sub type",
+  noSubTypeDefault: "No sub type (default)",
   subTypeHint: "Optional — leave unset unless this combination requires one.",
   minorAgeYears: "Minor age (years)",
   minorAgeHint: "Below this age the IS_MINOR rule fact is true.",
@@ -1025,6 +1026,7 @@ export const onboarding = {
   customerTypes_merchant: "Merchant Types",
   onboardingConfigurationSubtitle_merchant: "Each merchant type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.",
   noCustomerTypesYet_merchant: "No merchant types yet",
+  noPublishedDefinition: "No published onboarding configuration yet. Publish one under Onboarding Configuration first.",
 };
 
 export const statusLabels = {
@@ -1181,7 +1183,7 @@ export const risk = {
   codeHint: "Capital letters, digits and _. Can't be changed after adding.",
   name: "Name",
   customerType: "Customer type",
-  customerTypeHint: "One setup per customer type in an institution.",
+  customerTypeHint: "One setup per sub type, and one default, in each institution.",
   customerTypeLocked: "The customer type can't be changed after adding.",
   partyType: "Party type",
   selectPartyType: "Select party type",
@@ -1189,6 +1191,7 @@ export const risk = {
   selectOwnership: "Select ownership",
   subType: "Ownership sub type",
   noSubType: "No sub type",
+  noSubTypeDefault: "No sub type (default)",
   companyType: "Company type",
   selectCompanyType: "Select company type",
   criteria: "Criteria",

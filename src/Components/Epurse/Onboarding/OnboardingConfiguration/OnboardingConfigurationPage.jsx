@@ -1,5 +1,5 @@
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
@@ -16,10 +16,10 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { usePartyTypes, useOwnershipTypes } from "@/Hooks/Master/masterHooks";
+import { useDropdownRows } from "@/Hooks/Master/masterHooks";
 import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { useOnboardingCatalog, useOnboardingMasters } from "./onboardingHooks";
+import { useOnboardingMasters } from "./onboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
@@ -154,7 +154,6 @@ const emptyForm = {
   code: "",
   name: "",
   description: "",
-  combination: "",
   ownership_sub_type_id: "",
   minor_age_years: 18,
   home_country_id: "",
@@ -172,9 +171,6 @@ export function OnboardingConfigurationPage() {
   // everyone), which is what was silently happening before this menu name
   // was added: none of the old alternatives matched it.
   const can = usePagePermission("Onboarding Configuration");
-  const catalog = useOnboardingCatalog();
-  const { partyTypes = [] } = usePartyTypes(true);
-  const { ownershipTypes = [] } = useOwnershipTypes(true);
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   // Only loaded while the create dialog is actually open — same masters
@@ -186,7 +182,6 @@ export function OnboardingConfigurationPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
   const [search, setSearch] = useState("");
-  const [subTypes, setSubTypes] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
@@ -208,39 +203,16 @@ export function OnboardingConfigurationPage() {
   }, [load]);
   useLiveChannel(onboardingDefinitionApi.listPath, () => void load());
 
-  useEffect(() => {
-    masterApis.ownership_sub_type
-      .list({ page: 1, limit: 200 })
-      .then((r) => setSubTypes(rowsOf(r).filter((s) => Number(s.status) === 1)))
-      .catch(() => setSubTypes([]));
-  }, []);
+  // Party type comes from the module (the API prefix) and ownership from
+  // the menu (Individual), handoff 17: the one choice is the sub type, with
+  // "No sub type" (null) as the default definition.
+  const subTypes = useDropdownRows(masterApis.ownership_sub_type, open);
 
-  // Only the combinations the platform has enabled can be configured — today
-  // just Customer × Individual (guide §6).
-  const combinations = useMemo(
-    () =>
-      (catalog?.onboarding_combinations ?? [])
-        .filter((c) => c.is_enabled)
-        .map((c) => ({
-          value: `${c.party_type_id}:${c.ownership_id}`,
-          label: `${partyTypes.find((p) => String(p.id) === String(c.party_type_id))?.name ?? c.party_type_id} × ${ownershipTypes.find((o) => String(o.id) === String(c.ownership_id))?.name ?? c.ownership_id}`,
-          party_type_id: c.party_type_id,
-          ownership_id: c.ownership_id,
-        })),
-    [catalog, partyTypes, ownershipTypes],
-  );
-  const chosen = combinations.find((c) => c.value === form.combination);
-  const subTypeOptions = subTypes
-    .filter((s) => !chosen || String(s.ownership_id) === String(chosen.ownership_id))
-    .map((s) => ({ value: s.id, label: s.name }));
+  const subTypeOptions = subTypes.map((s) => ({ value: s.id, label: s.name }));
 
   const create = async () => {
-    // Sub type is optional now (guide §4) — an ownership without sub-typed
-    // customer types has none to pick, and even one that does may allow
-    // "no sub type". The backend still refuses with its own message
-    // ("This Ownership Has Sub Types: Choose One") when one is required.
-    if (!form.code.trim() || !form.name.trim() || !chosen) {
-      notifications.error("Code, name and combination are required");
+    if (!form.code.trim() || !form.name.trim()) {
+      notifications.error("Code and name are required");
       return;
     }
     if (!form.minor_age_years || Number(form.minor_age_years) <= 0) {
@@ -258,9 +230,7 @@ export function OnboardingConfigurationPage() {
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
-        party_type_id: chosen.party_type_id,
-        ownership_id: chosen.ownership_id,
-        ...(form.ownership_sub_type_id ? { ownership_sub_type_id: Number(form.ownership_sub_type_id) } : {}),
+        ownership_sub_type_id: form.ownership_sub_type_id ? Number(form.ownership_sub_type_id) : null,
         minor_age_years: Number(form.minor_age_years),
         ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
         ...(form.kyc_group_id ? { kyc_group_id: Number(form.kyc_group_id) } : {}),
@@ -443,16 +413,10 @@ export function OnboardingConfigurationPage() {
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:partyTypeOwnership")}
-            <FilterSelect className="mt-1.5" value={form.combination} onChange={(v) => setForm({ ...form, combination: v, ownership_sub_type_id: "" })} options={[{ value: "", label: t("onboarding:selectCombination") }, ...combinations]} />
+            {t("onboarding:subType")} <span className="text-red-500">*</span>
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...subTypeOptions]} />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
           </label>
-          {subTypeOptions.length > 0 && (
-            <label className="text-sm font-semibold text-slate-700">
-              {t("onboarding:subType")}
-              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypeOptions]} />
-              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
-            </label>
-          )}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:minorAgeYears")}
             <input type="number" min={0} value={form.minor_age_years} onChange={(e) => setForm({ ...form, minor_age_years: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />

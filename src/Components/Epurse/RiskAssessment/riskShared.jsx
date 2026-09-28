@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOwnershipTypes, usePartyTypes } from "@/Hooks/Master/masterHooks";
-import { corpMasterApis, masterApis, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { useDropdownRows } from "@/Hooks/Master/masterHooks";
+import { corpMasterApis, masterApis } from "@/Services/Epurse/onboarding.api";
 import { corporateRiskApi, individualRiskApi } from "@/Services/Epurse/risk.api";
 
 // What differs between Individual Risk (menu 97) and Corporate Risk (98):
@@ -13,41 +12,24 @@ export const RISK_KINDS = {
     menuName: "Individual Risk",
     titleKey: "individualTitle",
     subtitleKey: "individualSubtitle",
-    typeFields: ["party_type_id", "ownership_id", "ownership_sub_type_id"],
-    requiredTypeFields: ["party_type_id", "ownership_id"],
   },
   corporate: {
     api: corporateRiskApi,
     menuName: "Corporate Risk",
     titleKey: "corporateTitle",
     subtitleKey: "corporateSubtitle",
-    typeFields: ["party_type_id", "company_type_id"],
-    requiredTypeFields: ["party_type_id", "company_type_id"],
   },
 };
 
-// Active rows of a lifecycle master, keeping every column (sub types need
-// their ownership_id to be filtered by the chosen ownership).
-function useActiveRows(lifecycle, enabled) {
-  const [rows, setRows] = useState([]);
-  useEffect(() => {
-    if (!enabled) return;
-    lifecycle
-      .list({ page: 1, limit: 200 })
-      .then((r) => setRows(rowsOf(r).filter((row) => Number(row.status) === 1)))
-      .catch(() => setRows([]));
-  }, [lifecycle, enabled]);
-  return rows;
-}
-
-// Picker options for each customer-type field of a kind.
+// The one choice a setup or definition asks for (handoff 17): party type
+// comes from the module (the API prefix) and ownership from the menu, so an
+// Individual one picks an Ownership Sub Type (or "No sub type", the default)
+// and a Corporate one a Company Type.
 export function useCustomerTypeOptions(kind) {
   const individual = kind === "individual";
-  const { partyTypes = [] } = usePartyTypes(true);
-  const { ownershipTypes = [] } = useOwnershipTypes(individual);
-  const subTypes = useActiveRows(masterApis.ownership_sub_type, individual);
-  const companyTypes = useActiveRows(corpMasterApis.corp_company_type, !individual);
-  return { partyTypes, ownershipTypes, subTypes, companyTypes };
+  const subTypes = useDropdownRows(masterApis.ownership_sub_type, individual);
+  const companyTypes = useDropdownRows(corpMasterApis.corp_company_type, !individual);
+  return { subTypes, companyTypes };
 }
 
 // "Customer × Individual › Student" / "Customer × Private company" for a row.

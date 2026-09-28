@@ -16,10 +16,10 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { usePartyTypes } from "@/Hooks/Master/masterHooks";
-import { corpOnboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { useDropdownRows } from "@/Hooks/Master/masterHooks";
+import { corpMasterApis, corpOnboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { useCorpOnboardingCatalog, useCorpOnboardingMasters } from "./corporateOnboardingHooks";
+import { useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
 
@@ -143,7 +143,6 @@ const emptyForm = {
   code: "",
   name: "",
   description: "",
-  party_type_id: "",
   company_type_id: "",
   home_country_id: "",
   effective_from: "",
@@ -153,11 +152,9 @@ export function CorporateOnboardingConfigurationPage() {
   const openMenu = useOpenMenu();
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Configuration");
-  const catalog = useCorpOnboardingCatalog();
-  const { partyTypes = [] } = usePartyTypes(true);
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
-  const { masters, countries } = useCorpOnboardingMasters(open);
+  const { countries } = useCorpOnboardingMasters(open);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -185,18 +182,14 @@ export function CorporateOnboardingConfigurationPage() {
   }, [load]);
   useLiveChannel(corpOnboardingDefinitionApi.listPath, () => void load());
 
-  // Only Customer/Merchant/Agent party types the platform has enabled can be
-  // configured (guide §6's onboarding_combinations), same idea as the
-  // individual page's combinations list but corporate has no ownership axis.
-  const enabledPartyTypeIds = new Set((catalog?.onboarding_combinations ?? []).filter((c) => c.is_enabled).map((c) => String(c.party_type_id)));
-  const partyTypeOptions = partyTypes
-    .filter((p) => enabledPartyTypeIds.has(String(p.id)))
-    .map((p) => ({ value: p.id, label: p.name }));
-  const companyTypeOptions = (masters.corp_company_type ?? []).map((c) => ({ value: c.id, label: c.name }));
+  // Party type comes from the module (the API prefix), handoff 17: the one
+  // choice is the company type.
+  const companyTypes = useDropdownRows(corpMasterApis.corp_company_type, open);
+  const companyTypeOptions = companyTypes.map((c) => ({ value: c.id, label: c.name }));
 
   const create = async () => {
-    if (!form.code.trim() || !form.name.trim() || !form.party_type_id || !form.company_type_id) {
-      notifications.error("Code, name, party type and company type are required");
+    if (!form.code.trim() || !form.name.trim() || !form.company_type_id) {
+      notifications.error("Code, name and company type are required");
       return;
     }
     setSaving(true);
@@ -205,7 +198,6 @@ export function CorporateOnboardingConfigurationPage() {
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
-        party_type_id: Number(form.party_type_id),
         company_type_id: Number(form.company_type_id),
         ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
         ...(form.effective_from ? { effective_from: form.effective_from } : {}),
@@ -384,11 +376,7 @@ export function CorporateOnboardingConfigurationPage() {
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:partyType")}
-            <FilterSelect className="mt-1.5" value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypeOptions]} />
-          </label>
-          <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:companyType")}
+            {t("onboarding:companyType")} <span className="text-red-500">*</span>
             <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypeOptions]} />
           </label>
           <label className="text-sm font-semibold text-slate-700">

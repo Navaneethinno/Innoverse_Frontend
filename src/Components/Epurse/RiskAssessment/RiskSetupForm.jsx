@@ -40,8 +40,6 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
     code: editing?.code ?? "",
     name: editing?.name ?? "",
     description: editing?.description ?? "",
-    party_type_id: idOrEmpty(editing?.party_type_id),
-    ownership_id: idOrEmpty(editing?.ownership_id),
     ownership_sub_type_id: idOrEmpty(editing?.ownership_sub_type_id),
     company_type_id: idOrEmpty(editing?.company_type_id),
     criteria: criteriaOf(editing?.criteria),
@@ -68,10 +66,14 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
     }));
   }, [editing, risk.options.risk_actions]);
 
-  const pick = (key) => (v) => setForm((f) => ({ ...f, [key]: v === "" ? "" : Number(v), ...(key === "ownership_id" ? { ownership_sub_type_id: "" } : {}) }));
+  const pick = (key) => (v) => setForm((f) => ({ ...f, [key]: v === "" ? "" : Number(v) }));
   const num = (v) => (v === "" || v === null ? null : Number(v));
 
   const save = async (draft) => {
+    if (!editing && kind === "corporate" && form.company_type_id === "") {
+      notifications.error(t("risk:selectCompanyType"));
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -97,9 +99,10 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
           : {
               inst_profile_id: form.inst_profile_id,
               code: form.code,
-              party_type_id: num(form.party_type_id),
+              // Party type and ownership come from the module and menu
+              // (handoff 17); "No sub type" is the default setup (null).
               ...(kind === "individual"
-                ? { ownership_id: num(form.ownership_id), ownership_sub_type_id: num(form.ownership_sub_type_id) }
+                ? { ownership_sub_type_id: num(form.ownership_sub_type_id) }
                 : { company_type_id: num(form.company_type_id) }),
             }),
       };
@@ -113,8 +116,9 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
     }
   };
 
-  const optionList = (rows, placeholder) => [{ value: "", label: placeholder }, ...rows.map((r) => ({ value: r.id, label: r.name ?? r.code }))];
-  const subTypes = types.subTypes.filter((s) => !form.ownership_id || String(s.ownership_id) === String(form.ownership_id));
+  // A locked (edit) value may no longer be active: keep its own name listed.
+  const withCurrent = (rows, id, name) => (id !== "" && name && !rows.some((r) => String(r.id) === String(id)) ? [...rows, { id, name }] : rows);
+  const optionList = (rows, first) => [first, ...rows.map((r) => ({ value: r.id, label: r.name ?? r.code }))];
   const addLabel = t("risk:addSetup");
 
   return (
@@ -143,30 +147,32 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputClass} min-h-16`} />
         </label>
 
-        <fieldset data-tour="risk-customer-type" className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-3">
+        <fieldset data-tour="risk-customer-type" className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-2">
           <legend className="px-1 text-sm font-semibold text-slate-700">{t("risk:customerType")}</legend>
-          <label className={labelClass}>
-            {t("risk:partyType")} <span className="text-red-500">*</span>
-            <FilterSelect className="mt-1.5" disabled={locked} value={form.party_type_id} onChange={pick("party_type_id")} options={optionList(types.partyTypes, t("risk:selectPartyType"))} />
-          </label>
           {kind === "individual" ? (
-            <>
-              <label className={labelClass}>
-                {t("risk:ownership")} <span className="text-red-500">*</span>
-                <FilterSelect className="mt-1.5" disabled={locked} value={form.ownership_id} onChange={pick("ownership_id")} options={optionList(types.ownershipTypes, t("risk:selectOwnership"))} />
-              </label>
-              <label className={labelClass}>
-                {t("risk:subType")}
-                <FilterSelect className="mt-1.5" disabled={locked} value={form.ownership_sub_type_id} onChange={pick("ownership_sub_type_id")} options={optionList(subTypes, t("risk:noSubType"))} />
-              </label>
-            </>
+            <label className={labelClass}>
+              {t("risk:subType")} <span className="text-red-500">*</span>
+              <FilterSelect
+                className="mt-1.5"
+                disabled={locked}
+                value={form.ownership_sub_type_id}
+                onChange={pick("ownership_sub_type_id")}
+                options={optionList(withCurrent(types.subTypes, form.ownership_sub_type_id, editing?.ownership_sub_type_name), { value: "", label: t("risk:noSubTypeDefault") })}
+              />
+            </label>
           ) : (
             <label className={labelClass}>
               {t("risk:companyType")} <span className="text-red-500">*</span>
-              <FilterSelect className="mt-1.5" disabled={locked} value={form.company_type_id} onChange={pick("company_type_id")} options={optionList(types.companyTypes, t("risk:selectCompanyType"))} />
+              <FilterSelect
+                className="mt-1.5"
+                disabled={locked}
+                value={form.company_type_id}
+                onChange={pick("company_type_id")}
+                options={optionList(withCurrent(types.companyTypes, form.company_type_id, editing?.company_type_name), { value: "", label: t("risk:selectCompanyType") })}
+              />
             </label>
           )}
-          <p className="text-[11px] text-muted-foreground md:col-span-3">{locked ? t("risk:customerTypeLocked") : t("risk:customerTypeHint")}</p>
+          <p className="self-end text-[11px] text-muted-foreground">{locked ? t("risk:customerTypeLocked") : t("risk:customerTypeHint")}</p>
         </fieldset>
 
         <div className="md:col-span-2">

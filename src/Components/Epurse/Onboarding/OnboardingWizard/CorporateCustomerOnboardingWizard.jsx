@@ -50,7 +50,7 @@ function StatusNotice({ onboarding }) {
 export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
-  const [pick, setPick] = useState({ party_type_id: "", company_type_id: "", email: "", phone_number: "" });
+  const [pick, setPick] = useState({ company_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);
   const [wizard, setWizard] = useState(null);
   const [loading, setLoading] = useState(Boolean(referenceId));
@@ -115,13 +115,13 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
   const dirty = editable && effectiveDraft != null && JSON.stringify(effectiveDraft) !== JSON.stringify(sectionSeed);
   const { guard, dialog: unsavedDialog } = useUnsavedChangesGuard(dirty);
 
-  const partyTypes = options?.party_types ?? [];
-  const chosenParty = partyTypes.find((p) => String(p.id) === String(pick.party_type_id));
-  const companyTypes = chosenParty?.company_types ?? [];
+  // Party type comes from the module (the API prefix), handoff 17: /options
+  // has exactly one, with the company types that have a published definition.
+  const companyTypes = options?.party_types?.[0]?.company_types ?? [];
 
   const beginOnboarding = async () => {
-    if (!pick.party_type_id || !pick.company_type_id) {
-      notifications.error("Choose the party type and company type");
+    if (!pick.company_type_id) {
+      notifications.error(t("onboarding:selectCompanyType"));
       return;
     }
     if (!pick.email.trim() && !pick.phone_number.trim()) {
@@ -131,7 +131,6 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
     setStarting(true);
     try {
       const w = await startCorpOnboarding({
-        party_type_id: Number(pick.party_type_id),
         company_type_id: Number(pick.company_type_id),
         ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
         ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
@@ -326,16 +325,10 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       return (
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:partyType")}
-            <FilterSelect
-              className="mt-1.5"
-              value={pick.party_type_id}
-              onChange={(v) => setPick({ ...pick, party_type_id: v, company_type_id: "" })}
-              options={[{ value: "", label: t("onboarding:selectPartyType") }, ...partyTypes.map((p) => ({ value: p.id, label: p.name }))]}
-            />
-          </label>
-          <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:companyType")}
+            {t("onboarding:companyType")} <span className="text-red-500">*</span>
+            {options && !companyTypes.length && (
+              <p className="mt-1.5 rounded-xl border border-dashed p-3 text-xs font-normal text-muted-foreground">{t("onboarding:noPublishedDefinition")}</p>
+            )}
             <FilterSelect
               className="mt-1.5"
               value={pick.company_type_id}

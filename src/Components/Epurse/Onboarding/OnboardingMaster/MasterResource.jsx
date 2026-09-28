@@ -6,7 +6,6 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { masterApi } from "@/Services/Master/master.api";
 import { masterApis as baseMasterApis, createLifecycle, rowsOf } from "@/Services/Epurse/onboarding.api";
-import { usePartyTypes } from "@/Hooks/Master/masterHooks";
 import { LifecycleList } from "../OnboardingConfiguration/LifecycleList";
 import { FieldInput, cleanConfig } from "../OnboardingConfiguration/ListEditor";
 import { useOnboardingCatalog } from "../OnboardingConfiguration/onboardingHooks";
@@ -142,23 +141,14 @@ const CONFIGS = {
   corp_business_nature: plain("Corporate Business Nature", "/customer/master_config/corp_business_nature"),
   corp_industry_sector: plain("Industry Sector", "/customer/master_config/corp_industry_sector"),
   corp_merchant_category: plain("Merchant Category", "/customer/master_config/corp_merchant_category"),
+  // MMS only (handoff 17): a merchant group is always MERCHANT, set by the
+  // server, so there's no party type to ask. The list can still show it.
   corp_merchant_group: {
-    title: "Merchant Group",
-    base: "/customer/master_config/corp_merchant_group",
+    ...plain("Merchant Group", "/customer/master_config/corp_merchant_group"),
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
-      { key: "party_type_id", label: ctx.t("onboarding:partyType"), render: (r) => ctx.partyTypes?.find((p) => p.id === r.party_type_id)?.name ?? r.party_type_id ?? "-" },
-    ],
-    fields: (ctx) => [
-      {
-        key: "party_type_id",
-        label: ctx.t("onboarding:partyType"),
-        type: "select",
-        required: true,
-        options: asOptions(ctx.partyTypes),
-        hint: ctx.t("onboarding:mustBeMerchantOrAgentRefusedOtherwise"),
-      },
+      { key: "party_type_name", label: ctx.t("onboarding:partyType"), render: (r) => r.party_type_name ?? "-" },
     ],
   },
   corp_gst_registration_status: plain("GST Registration Status", "/customer/master_config/corp_gst_registration_status"),
@@ -192,7 +182,6 @@ export function MasterResource({ entity }) {
   const displayTitle = t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
   const api = apiFor(entity);
   const catalog = useOnboardingCatalog();
-  const { partyTypes } = usePartyTypes(entity === "corp_merchant_group");
   const [currencies, setCurrencies] = useState([]);
   const [validationRules, setValidationRules] = useState([]);
   const [banks, setBanks] = useState([]);
@@ -200,8 +189,8 @@ export function MasterResource({ entity }) {
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const ctx = useMemo(
-    () => ({ catalog, currencies, validationRules, banks, partyTypes, t }),
-    [catalog, currencies, validationRules, banks, partyTypes, t],
+    () => ({ catalog, currencies, validationRules, banks, t }),
+    [catalog, currencies, validationRules, banks, t],
   );
 
   useEffect(() => {
