@@ -100,26 +100,11 @@ export function InstitutionProfile() {
   const [page, setPage] = useSessionState("institutions:page", 1);
   const [limit, setLimit] = useSessionState("institutions:limit", 10);
 
-  // /institution/profile/list has no status-filter or search param
-  // (confirmed via Postman) — unlike /user/list, which does and so can
-  // paginate correctly under any tab/search. Real per-page server requests
-  // ({page, limit:10}, reading pagination.totalRecords) only produce
-  // correct results here for the genuinely unfiltered view: page 2 of
-  // "Active" wouldn't correspond to anything real if the server did the
-  // slicing before any status filtering happened on our end. So: when
-  // viewing "All" with no search, fetch real pages from the server (fast,
-  // scales to any record count). The moment a tab or search narrows the
-  // view, we need the fuller working set in memory to filter correctly,
-  // so switch to a larger single fetch and let DataTable paginate that
-  // client-side instead — same tradeoff already accepted for the "Active"/
-  // "Pending" tabs in Profile.jsx, whose backend also can't filter
-  // everything the UI exposes.
-  // Tabs and order now come from the server (`filter`, `sort_by`) across all
-  // records; only a search (no search param on /list) still needs the larger
-  // batch filtered in the browser.
-  const needsFullBatch = search.trim() !== "";
+  // The request carries only what the screen shows (page, page size, tab,
+  // order). /institution/profile/list has no search param yet, so search
+  // narrows the current page only.
   const institutionsQuery = useInstitutionsQuery(
-    { ...(needsFullBatch ? { page: 1, limit: 500 } : { page, limit }), filter: activeTab, sort_by: sortBy },
+    { page, limit, filter: activeTab, sort_by: sortBy },
   );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
@@ -273,7 +258,7 @@ export function InstitutionProfile() {
           setPage(1);
         }}
         rows={institutions}
-        total={needsFullBatch ? undefined : institutionsQuery.pagination?.totalRecords}
+        total={institutionsQuery.pagination?.totalRecords}
         value={activeTab}
         onChange={(next) => {
           setActiveTab(next);
@@ -323,9 +308,7 @@ export function InstitutionProfile() {
           return { rows: mapped.institutions, totalPages: mapped.pagination.totalPages };
         }}
         serverPagination={
-          needsFullBatch
-            ? null
-            : {
+              {
                 page: institutionsQuery.pagination?.currentPage ?? page,
                 totalPages: institutionsQuery.pagination?.totalPages ?? 1,
                 totalRecords: institutionsQuery.pagination?.totalRecords ?? filtered.length,

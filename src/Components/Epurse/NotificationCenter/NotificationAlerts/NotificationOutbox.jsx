@@ -41,7 +41,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
 
   useEffect(() => {
     notificationAlertApi
-      .list({ page: 1, limit: 100, filter: "all", sort_by: "asc" })
+      .getActive({ view: "dropdown" })
       .then((response) => setAlerts(rowsOf(response)))
       .catch(() => setAlerts([]));
   }, []);

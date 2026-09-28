@@ -8,6 +8,8 @@ export function useInstitutionCurrenciesQuery(params = {}) {
   // Live-reconciled in place (Live Updates guide §3) — see
   // useEntityListQuery.js's `livePath` option.
   return useEntityListQuery(institutionCurrencyApi.list, {
+    page: params.page,
+    limit: params.limit,
     filter: params.filter,
     sortBy: params.sort_by,
     livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_CURRENCY.LIST,

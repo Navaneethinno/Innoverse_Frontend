@@ -189,13 +189,16 @@ export function InstitutionBranding() {
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const query = useInstitutionBrandingsQuery({ filter: statusFilter, sort_by: sortBy });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const query = useInstitutionBrandingsQuery({ page, limit, filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionBrandingMutation("add");
   const edit = useInstitutionBrandingMutation("edit");
   const submitDraft = useInstitutionBrandingMutation("submit");
+  // The list has no search param yet: search narrows the current page.
   const filteredRows =
-    !search.trim() && statusFilter === "all"
+    !search.trim()
       ? query.data
       : query.data.filter(
           (row) =>
@@ -330,12 +333,13 @@ export function InstitutionBranding() {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={setSortBy}
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }}
         rows={query.data}
+        total={query.pagination?.totalRecords}
         value={statusFilter}
         search={search}
         onSearch={setSearch}
-        onChange={setStatusFilter}
+        onChange={(next) => { setStatusFilter(next); setPage(1); }}
         actions={canAdd && (
           <button
             type="button"
@@ -351,6 +355,17 @@ export function InstitutionBranding() {
       bare /><DataTable serverSorted
         columns={columns}
         rows={filteredRows}
+        serverPagination={{
+          page,
+          totalPages: query.pagination?.totalPages ?? 1,
+          totalRecords: query.pagination?.totalRecords ?? filteredRows.length,
+          onPageChange: setPage,
+          limit,
+          onLimitChange: (next) => {
+            setLimit(next);
+            setPage(1);
+          },
+        }}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr("Institution Branding")}

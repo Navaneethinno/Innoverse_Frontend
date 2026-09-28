@@ -96,17 +96,10 @@ export function Profile() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
-  // Same reasoning as InstitutionProfile.jsx: /profile/list has no
-  // status-filter or search param (confirmed via Postman), so real
-  // per-page server requests only produce correct results for the
-  // genuinely unfiltered view. "All" with no search fetches real pages
-  // from the server (scales to any record count); a tab or search
-  // switches to a larger single fetch, filtered client-side.
-  // Tabs and order are applied by the server (`filter`, `sort_by`) across all
-  // records. /profile/list still has no search param, so only a search needs
-  // the larger batch filtered in the browser.
-  const needsFullBatch = search.trim() !== "";
-  const profilesQuery = useProfilesQuery({ ...(needsFullBatch ? { page: 1, limit: 500 } : { page, limit }), filter: activeTab, sort_by: sortBy });
+  // The request carries only what the screen shows (page, page size, tab,
+  // order). /profile/list has no search param yet, so search narrows the
+  // current page only.
+  const profilesQuery = useProfilesQuery({ page, limit, filter: activeTab, sort_by: sortBy });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -359,9 +352,7 @@ export function Profile() {
           return { rows: mapped.profiles, totalPages: mapped.pagination.totalPages };
         }}
         serverPagination={
-          needsFullBatch
-            ? null
-            : {
+              {
                 page: profilesQuery.pagination?.currentPage ?? page,
                 totalPages: profilesQuery.pagination?.totalPages ?? 1,
                 totalRecords: profilesQuery.pagination?.totalRecords ?? filtered.length,
