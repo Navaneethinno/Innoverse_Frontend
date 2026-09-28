@@ -14,17 +14,3 @@ export function RoleBadge({ role, name }) {
 
 // A record's label, or #id, or just its type.
 export const recordText = (row) => row?.record_label ?? (row?.record_id != null ? `#${row.record_id}` : row?.entity_name ?? "-");
-
-// Database field names as words: min_match_score -> "Min match score".
-export const fieldWords = (field) => {
-  const text = String(field ?? "").replace(/_/g, " ").trim();
-  return text ? text[0].toUpperCase() + text.slice(1) : "";
-};
-
-// Text, numbers, booleans, null, or lists/objects (as indented JSON).
-export function ValueCell({ value }) {
-  if (value === null || value === undefined || value === "") return <span className="text-muted-foreground">—</span>;
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (typeof value === "object") return <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded bg-muted/60 p-1.5 text-[11px]">{JSON.stringify(value, null, 2)}</pre>;
-  return <span className="break-words">{String(value)}</span>;
-}

@@ -6,7 +6,9 @@ import { userActivityApi } from "@/Services/Reports/userActivity.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { atIst } from "../Shared/reportShared";
-import { RoleBadge, ValueCell, fieldWords, recordText } from "./activityFormat";
+import { fieldLabel, useIdNames } from "../Shared/idNames";
+import { Fields, Value } from "../Shared/RecordValues";
+import { RoleBadge, recordText } from "./activityFormat";
 
 function Section({ title, children }) {
   return (
@@ -23,6 +25,8 @@ function Section({ title, children }) {
 export function ActivityDetail({ activityId, onClose }) {
   const { t } = useTranslation("reports");
   const [item, setItem] = useState(null);
+  // ids in the values/changes shown as their names.
+  const name = useIdNames(item?.entity, item?.values, (item?.changes ?? []).flatMap((c) => [{ [c.field]: c.before }, { [c.field]: c.after }]));
 
   useEffect(() => {
     let cancelled = false;
@@ -79,12 +83,12 @@ export function ActivityDetail({ activityId, onClose }) {
                 <tbody>
                   {item.changes.map((c) => (
                     <tr key={c.field} className="border-b align-top last:border-0">
-                      <td className="py-1.5 pr-2 font-semibold text-slate-600">{fieldWords(c.field)}</td>
+                      <td className="py-1.5 pr-2 font-semibold text-slate-600">{fieldLabel(c.field)}</td>
                       <td className="py-1.5 pr-2 text-muted-foreground">
-                        <ValueCell value={c.before} />
+                        <Value field={c.field} value={c.before} name={name} />
                       </td>
                       <td className="py-1.5 font-medium text-primary">
-                        <ValueCell value={c.after} />
+                        <Value field={c.field} value={c.after} name={name} />
                       </td>
                     </tr>
                   ))}
@@ -97,16 +101,7 @@ export function ActivityDetail({ activityId, onClose }) {
 
           {item.values && Object.keys(item.values).length > 0 && (
             <Section title={t("values")}>
-              <dl className="grid gap-x-4 gap-y-2 text-xs sm:grid-cols-2">
-                {Object.entries(item.values).map(([field, value]) => (
-                  <div key={field} className={typeof value === "object" && value !== null ? "sm:col-span-2" : undefined}>
-                    <dt className="text-muted-foreground">{fieldWords(field)}</dt>
-                    <dd className="font-medium text-slate-700">
-                      <ValueCell value={value} />
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <Fields values={item.values} name={name} />
             </Section>
           )}
 
