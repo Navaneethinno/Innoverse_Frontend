@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { FileUploadField } from "@/Components/Common/FileUploadField";
@@ -11,7 +11,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 // `file` (FILE fields): upload/download/accept/maxBytes/hint for
 // FileUploadField — see customerFiles.js.
 export function OnboardingField({ field, value, onChange, error, options, badge, file }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   const tr = useConfigLabel();
   const disabled = field.read_only;
   const disabledReason = disabled ? (field.read_only_reason ?? t("cantBeEditedNow")) : undefined;

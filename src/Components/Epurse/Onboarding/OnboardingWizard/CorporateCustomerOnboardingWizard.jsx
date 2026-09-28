@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -26,7 +26,7 @@ import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 // /customer/individual/*.
 const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   if (!onboarding) return null;
   const status = Number(onboarding.status);
   const processStatus = Number(onboarding.process_status);
@@ -48,7 +48,7 @@ function StatusNotice({ onboarding }) {
 // `referenceId` (optional) resumes an existing onboarding straight into the
 // section view; otherwise the party type / company type picker runs first.
 export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
-  const { t } = useTranslation(["customer", "onboarding", "common"]);
+  const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
   const [pick, setPick] = useState({ party_type_id: "", company_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);

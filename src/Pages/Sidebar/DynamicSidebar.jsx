@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
@@ -14,6 +14,7 @@ import { ModuleDropdown } from "./ModuleDropdown";
 import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { MenuList } from "./MenuList";
+import { findMenuByPath } from "./menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
 const SIDEBAR_EXPANDED_W = 256;
@@ -47,8 +48,8 @@ export function DynamicSidebar() {
   // MenuItem.jsx's own navigation logic — it already calls this `navigate`
   // prop, this just also closes the drawer on mobile so picking a menu item
   // doesn't leave the overlay covering the page it just navigated to.
-  const handleNavigate = (path) => {
-    navigate(path);
+  const handleNavigate = (path, options) => {
+    navigate(path, options);
     if (isMobile) closeMobile();
   };
 
@@ -77,6 +78,17 @@ export function DynamicSidebar() {
     () => (menuArray || []).filter((item) => item?.status === 1),
     [menuArray],
   );
+
+  // The page in the URL (/<module>/<menu path>): after a refresh or a
+  // direct link, select its module and highlight it, as if it had been
+  // clicked through the sidebar. The user can still switch module by hand.
+  const { pathname } = useLocation();
+  const routeMenu = useMemo(() => findMenuByPath(activeMenuArray, pathname), [activeMenuArray, pathname]);
+  const [syncedMenuId, setSyncedMenuId] = useState(null);
+  if (routeMenu && routeMenu.menu_id !== syncedMenuId) {
+    setSyncedMenuId(routeMenu.menu_id);
+    setSelectedModuleId(Number(routeMenu.module_id));
+  }
 
   // Dev-time diagnostic only: a menu whose parent_menu_id points at nothing
   // in the payload is a malformed menu_array from the backend, not something
@@ -302,6 +314,7 @@ export function DynamicSidebar() {
         <div className="px-2 min-w-0">
           <MenuList
             menuItems={filteredMenuItems}
+            routeMenuId={routeMenu?.menu_id ?? null}
             navigate={handleNavigate}
             isCollapsed={!isExpanded}
             searchQuery={trimmedSearch}

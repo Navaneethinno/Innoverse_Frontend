@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -29,7 +29,7 @@ import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboarding
 const pendingApi = ({ id }) => corpCustomerOnboardingApi.pending({ reference_id: id });
 
 function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
-  const { t } = useTranslation(["customer", "onboarding", "common"]);
+  const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [action, setAction] = useState(null);
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -136,7 +136,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 }
 
 export function CorporateCustomerOnboardingResource() {
-  const { t } = useTranslation(["customer", "onboarding", "common"]);
+  const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Wizard");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});

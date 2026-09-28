@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 // both paths removes that discrepancy.
 export function MenuList({
   menuItems,
+  routeMenuId = null,
   navigate,
   isCollapsed,
   searchQuery = "",
@@ -23,7 +24,9 @@ export function MenuList({
   isSearching = false,
 }) {
   const { t } = useTranslation();
-  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [clickedMenuId, setActiveMenuId] = useState(null);
+  // The page in the URL wins; a click highlights until the route catches up.
+  const activeMenuId = routeMenuId ?? clickedMenuId;
 
   const sortedRootMenus = useMemo(() => getRootMenuItems(menuItems), [menuItems]);
 

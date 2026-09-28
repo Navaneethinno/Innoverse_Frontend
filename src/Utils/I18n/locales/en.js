@@ -680,6 +680,16 @@ export const customer = {
   selfOnboardedCustomerPortal: "Self-onboarded (customer portal)",
   individual: "Individual",
   corporate: "Corporate",
+  corporateCustomerOnboarding_merchant: "Corporate Merchant Onboarding",
+  customer_merchant: "Merchant",
+  customerOnboarding_merchant: "Merchant Onboarding",
+  takeAnIndividualCustomerThroughTheInstitution_merchant: "Take an individual merchant through the institution's published onboarding form — every field, option and rule comes from that configuration.",
+  searchCustomerOnboarding_merchant: "Search merchant onboarding...",
+  thisCustomerTypeHasNoConfiguredSections_merchant: "This merchant type has no configured sections.",
+  startCustomerOnboarding_merchant: "Start merchant onboarding",
+  portalDraftReason_merchant: "The merchant is still filling this in on the merchant portal — view only until they complete it.",
+  customerPortal_merchant: "Merchant portal",
+  selfOnboardedCustomerPortal_merchant: "Self-onboarded (merchant portal)",
 };
 
 export const onboarding = {
@@ -816,13 +826,13 @@ export const onboarding = {
   masterTitle_document_type: "Document Type",
   masterTitle_validation_rule: "Validation Rule",
   masterTitle_corp_company_type: "Company Type",
-  masterTitle_corp_address_type: "Corporate Address Type",
-  masterTitle_corp_relationship_type: "Corporate Relationship Type",
-  masterTitle_corp_document_type: "Corporate Document Type",
+  masterTitle_corp_address_type: "Address Type",
+  masterTitle_corp_relationship_type: "Relationship Type",
+  masterTitle_corp_document_type: "Document Type",
   masterTitle_corp_identification_type: "Identification Type",
   masterTitle_corp_tax_type: "Tax Type",
   masterTitle_corp_screening_type: "Screening Type",
-  masterTitle_corp_business_nature: "Corporate Business Nature",
+  masterTitle_corp_business_nature: "Business Nature",
   masterTitle_corp_industry_sector: "Industry Sector",
   masterTitle_corp_merchant_category: "Merchant Category",
   masterTitle_corp_merchant_group: "Merchant Group",
@@ -1004,6 +1014,7 @@ export const onboarding = {
   masterTitle_indv_pep_status: "PEP Status",
   masterTitle_indv_pep_category: "PEP Category",
   masterTitle_ownership_sub_type: "Ownership Sub Type",
+  customerType_merchant: "Merchant type",
 };
 
 export const statusLabels = {

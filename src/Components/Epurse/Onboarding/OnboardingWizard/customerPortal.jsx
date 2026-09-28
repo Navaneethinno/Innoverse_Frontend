@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Globe } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 
 // "Handoff — Admin Panel (web)" (2026-09), §2: customers can now onboard
 // themselves in the separate customer portal. Such a customer is created
@@ -22,7 +22,7 @@ export const isPortalDraft = (record) =>
 export const PORTAL_DRAFT_REASON = "customer:portalDraftReason";
 
 export function PortalSourceBadge({ record }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   if (!isPortalCustomer(record)) return null;
   return (
     <span
@@ -36,7 +36,7 @@ export function PortalSourceBadge({ record }) {
 
 // Audit label: `SELF` on a customer = self-onboarded in the portal.
 export function usePortalAuditLabel() {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   return (entry) =>
     String(entry?.audit_action ?? "").toUpperCase() === "SELF" ? t("selfOnboardedCustomerPortal") : entry?.audit_action;
 }
@@ -57,6 +57,6 @@ export function useDebouncedRefresh(refresh, delay = 800) {
 }
 
 export function PortalDraftBanner() {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   return <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">{t(PORTAL_DRAFT_REASON)}</div>;
 }

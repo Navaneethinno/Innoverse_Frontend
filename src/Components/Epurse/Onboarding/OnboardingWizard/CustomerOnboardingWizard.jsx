@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus, Trash2, ArrowLeft, ArrowRight, Check, ChevronDown, Send, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -23,7 +23,7 @@ import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 // since the API now sends those labels translated.
 const REJECTED_PROCESS_STATUSES = new Set([5, 6, 7, 12, 15]);
 function StatusNotice({ onboarding }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   if (!onboarding) return null;
   const status = Number(onboarding.status);
   const processStatus = Number(onboarding.process_status);
@@ -50,7 +50,7 @@ function StatusNotice({ onboarding }) {
 // processes are per level, shown as "what you can do" at the level
 // currently reached.
 function KycLevelPanel({ kyc, onJumpToSection }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   // Collapsed by default — each level card is just its own accordion
   // section (name + Met/Not yet met), expanding on click to reveal the
   // description and missing-requirements list. All that detail sitting
@@ -135,7 +135,7 @@ function KycLevelPanel({ kyc, onJumpToSection }) {
 // is the level that first requires it (guide §3.3); `mandatory` on the
 // field itself still means required by the whole form regardless of level.
 function KycLevelBadge({ levelNo, levels }) {
-  const { t } = useTranslation("customer");
+  const { t } = useAudienceTranslation("customer");
   if (!levelNo) return null;
   const level = levels?.find((l) => l.level_no === levelNo);
   return (
@@ -169,7 +169,7 @@ function fieldKeyForRequirement(section, item) {
 }
 
 export function CustomerOnboardingWizard({ referenceId, forceReadOnly = false, onClose, onChanged }) {
-  const { t } = useTranslation(["customer", "onboarding", "common"]);
+  const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [options, setOptions] = useState(null);
   const [pick, setPick] = useState({ party_type_id: "", ownership_id: "", ownership_sub_type_id: "", email: "", phone_number: "" });
   const [starting, setStarting] = useState(false);

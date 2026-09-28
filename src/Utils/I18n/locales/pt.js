@@ -660,6 +660,16 @@ export const customer = {
   selfOnboardedCustomerPortal: "Autointegração (portal do cliente)",
   individual: "Individual",
   corporate: "Corporativo",
+  corporateCustomerOnboarding_merchant: "Integração de Comerciantes Corporativos",
+  customer_merchant: "Comerciante",
+  customerOnboarding_merchant: "Integração de Comerciantes",
+  takeAnIndividualCustomerThroughTheInstitution_merchant: "Conduza um comerciante pessoa física pelo formulário de integração publicado pela instituição — cada campo, opção e regra vem dessa configuração.",
+  searchCustomerOnboarding_merchant: "Pesquisar integração de comerciantes...",
+  thisCustomerTypeHasNoConfiguredSections_merchant: "Este tipo de comerciante não tem seções configuradas.",
+  startCustomerOnboarding_merchant: "Iniciar integração de comerciante",
+  portalDraftReason_merchant: "O comerciante ainda está preenchendo isto no portal do comerciante — somente visualização até que ele conclua.",
+  customerPortal_merchant: "Portal do comerciante",
+  selfOnboardedCustomerPortal_merchant: "Autointegração (portal do comerciante)",
 };
 
 export const onboarding = {
@@ -796,13 +806,13 @@ export const onboarding = {
   masterTitle_document_type: "Tipo de Documento",
   masterTitle_validation_rule: "Regra de Validação",
   masterTitle_corp_company_type: "Tipo de Empresa",
-  masterTitle_corp_address_type: "Tipo de Endereço Corporativo",
-  masterTitle_corp_relationship_type: "Tipo de Relacionamento Corporativo",
-  masterTitle_corp_document_type: "Tipo de Documento Corporativo",
+  masterTitle_corp_address_type: "Tipo de Endereço",
+  masterTitle_corp_relationship_type: "Tipo de Relacionamento",
+  masterTitle_corp_document_type: "Tipo de Documento",
   masterTitle_corp_identification_type: "Tipo de Identificação",
   masterTitle_corp_tax_type: "Tipo de Imposto",
   masterTitle_corp_screening_type: "Tipo de Triagem",
-  masterTitle_corp_business_nature: "Natureza do Negócio Corporativo",
+  masterTitle_corp_business_nature: "Natureza do Negócio",
   masterTitle_corp_industry_sector: "Setor da Indústria",
   masterTitle_corp_merchant_category: "Categoria de Comerciante",
   masterTitle_corp_merchant_group: "Grupo de Comerciante",
@@ -984,6 +994,7 @@ export const onboarding = {
   masterTitle_indv_pep_status: "Status PEP",
   masterTitle_indv_pep_category: "Categoria PEP",
   masterTitle_ownership_sub_type: "Subtipo de Titularidade",
+  customerType_merchant: "Tipo de comerciante",
 };
 
 export const statusLabels = {
