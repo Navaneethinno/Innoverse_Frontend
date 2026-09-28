@@ -43,7 +43,7 @@ src/Components/
     AMLScreening/<Screenings|NameLookup|MatchReview>/
     Shared/                                screening detail, badges, customer result
   Reports/                                 Reports module
-    <UserActivity|RiskScoreBreakdown>/  Shared/ (periods, IST, downloads)
+    <UserActivity|RiskScoreBreakdown|AMLScoreBreakdown>/  Shared/ (periods, IST, downloads)
 ```
 
 `src/Router/` follows it too: `index.js` builds one route list per module
