@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
@@ -20,7 +20,7 @@ const TYPES = [
 ];
 
 export function OnboardingConfiguration() {
-  const { t } = useTranslation();
+  const { t } = useAudienceTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   // Individual and Corporate are separate menus; each half shows only when
   // the user's profile grants View on it.

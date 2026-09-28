@@ -995,6 +995,16 @@ export const onboarding = {
   masterTitle_indv_pep_category: "Categoria PEP",
   masterTitle_ownership_sub_type: "Subtipo de Titularidade",
   customerType_merchant: "Tipo de comerciante",
+  corporateCustomerTypeCreated_merchant: "Tipo de comerciante corporativo criado",
+  addCorporateCustomerType_merchant: "Adicionar tipo de comerciante corporativo",
+  corporateOnboardingConfigurationSubtitle_merchant: "Cada tipo de comerciante corporativo é instituição × tipo de parte × tipo de empresa — sua identidade, configuração e estado de aprovação juntos.",
+  searchCorporateCustomerTypes_merchant: "Pesquisar tipos de comerciante corporativo...",
+  corporateCustomerTypes_merchant: "Tipos de Comerciante Corporativo",
+  noCorporateCustomerTypesYet_merchant: "Nenhum tipo de comerciante corporativo ainda",
+  customerTypeCreated_merchant: "Tipo de comerciante criado",
+  customerTypes_merchant: "Tipos de Comerciante",
+  onboardingConfigurationSubtitle_merchant: "Cada tipo de comerciante é um único registro — sua identidade, sua configuração e seu estado de aprovação juntos. Reabrir um aprovado para alterações o devolve a Rascunho no mesmo registro; não há versão separada.",
+  noCustomerTypesYet_merchant: "Nenhum tipo de comerciante ainda",
 };
 
 export const statusLabels = {

@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
 
@@ -20,7 +20,7 @@ const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm disabled
 
 export function FieldInput({ field, item, setItem, readOnly, readOnlyReason }) {
   const navigate = useNavigate();
-  const { t } = useTranslation("onboarding");
+  const { t } = useAudienceTranslation("onboarding");
   const value = item[field.key];
   const fieldDisabled = Boolean(field.disabled?.(item));
   const disabled = readOnly || fieldDisabled;
@@ -159,7 +159,7 @@ function splitIntoColumns(fields) {
 }
 
 export function ListEditor({ items, onChange, spec, addLabel, itemTitle, readOnly = false, readOnlyReason, emptyText, seed, nested = false }) {
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
   const add = () => {

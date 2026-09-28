@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { AuditModal } from "@/Components/Common/AuditModal";
@@ -56,7 +56,7 @@ export function LifecycleList({
   emptyTitle,
   onChanged,
 }) {
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const auditFields = auditFieldsProp ?? [["code", t("onboarding:code")], ["name", t("onboarding:name")]];
   const can = usePagePermission(menuName);
   const username = useAuth((state) => state.user?.username);

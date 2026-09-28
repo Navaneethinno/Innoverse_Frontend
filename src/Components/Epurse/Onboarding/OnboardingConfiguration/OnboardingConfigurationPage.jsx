@@ -1,6 +1,6 @@
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -35,7 +35,7 @@ const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 // so it needs no special-casing here — getMakerCheckerButtons already
 // grants Edit on Active, and the wizard itself does the reopen.
 function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -164,7 +164,7 @@ const emptyForm = {
 
 export function OnboardingConfigurationPage() {
   const openMenu = useOpenMenu();
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   // "Onboarding Configuration" is the menu's real, current name (confirmed
   // in the sidebar) — the other alternatives are kept only in case an
   // institution's menu still uses an older name. Without a match here,

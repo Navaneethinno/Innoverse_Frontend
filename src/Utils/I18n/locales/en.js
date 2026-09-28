@@ -1015,6 +1015,16 @@ export const onboarding = {
   masterTitle_indv_pep_category: "PEP Category",
   masterTitle_ownership_sub_type: "Ownership Sub Type",
   customerType_merchant: "Merchant type",
+  corporateCustomerTypeCreated_merchant: "Corporate merchant type created",
+  addCorporateCustomerType_merchant: "Add corporate merchant type",
+  corporateOnboardingConfigurationSubtitle_merchant: "Each corporate merchant type is institution × party type × company type — its identity, configuration and maker-checker state together.",
+  searchCorporateCustomerTypes_merchant: "Search corporate merchant types...",
+  corporateCustomerTypes_merchant: "Corporate Merchant Types",
+  noCorporateCustomerTypesYet_merchant: "No corporate merchant types yet",
+  customerTypeCreated_merchant: "Merchant type created",
+  customerTypes_merchant: "Merchant Types",
+  onboardingConfigurationSubtitle_merchant: "Each merchant type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.",
+  noCustomerTypesYet_merchant: "No merchant types yet",
 };
 
 export const statusLabels = {

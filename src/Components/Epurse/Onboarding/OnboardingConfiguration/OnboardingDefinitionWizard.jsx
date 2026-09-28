@@ -1,6 +1,6 @@
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
@@ -85,7 +85,7 @@ function pruneCondition({ _value, ...c }) {
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
   const openMenu = useOpenMenu();
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
   const set = (patch) => setCondition({ ...condition, ...patch });
@@ -165,7 +165,7 @@ const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 
 export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, onClose, onSaved }) {
   const openMenu = useOpenMenu();
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const steps = STEPS.map((s) => ({ ...s, label: t(`onboarding:${s.labelKey}`) }));
   const catalog = useOnboardingCatalog();
   const { masters, countries, residencyTypes, kycGroups, loading: mastersLoading } = useOnboardingMasters();

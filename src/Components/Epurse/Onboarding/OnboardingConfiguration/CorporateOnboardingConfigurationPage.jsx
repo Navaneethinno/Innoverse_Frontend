@@ -1,6 +1,6 @@
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -33,7 +33,7 @@ const pendingApi = ({ id }) => corpOnboardingDefinitionApi.pending({ id });
 // (guide §8), so the create dialog only collects the identity plus
 // home_country_id/effective_from.
 function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const [action, setAction] = useState(null);
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
@@ -151,7 +151,7 @@ const emptyForm = {
 
 export function CorporateOnboardingConfigurationPage() {
   const openMenu = useOpenMenu();
-  const { t } = useTranslation(["onboarding", "common"]);
+  const { t } = useAudienceTranslation(["onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Configuration");
   const catalog = useCorpOnboardingCatalog();
   const { partyTypes = [] } = usePartyTypes(true);
