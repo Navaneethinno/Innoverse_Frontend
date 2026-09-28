@@ -16,7 +16,6 @@ import {
 import { useAuth } from "../../Hooks/useAuth";
 import { apiMessage, notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
-import { Logo } from "@/Components/Common/Logo";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import loginIllustrationLight from "@/assets/login-illustration.png";
@@ -183,12 +182,9 @@ export function LoginPage() {
               borderColor: "var(--glass-border)",
             }}
           >
-            <motion.div variants={cardItem} className="mb-8 flex items-center gap-3">
-              <Logo size="md" />
-              <div>
-                <p className="text-sm font-bold tracking-tight text-foreground">Innoverse</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{t("tagline")}</p>
-              </div>
+            <motion.div variants={cardItem} className="mb-8 text-center">
+              <p className="text-2xl font-black tracking-tight text-foreground">InnoVerse</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("tagline")}</p>
             </motion.div>
             <motion.h1 variants={cardItem} className="text-2xl font-bold tracking-tight text-foreground">
               {t("welcomeBack")}
