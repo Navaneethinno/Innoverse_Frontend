@@ -99,7 +99,7 @@ export function ScreeningsList({ bands, initial = {} }) {
       <div className="overflow-hidden rounded-2xl" style={glassCard}>
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
           <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder={t("aml:searchName")} className={`${filterInput} w-44`} />
-          <FilterSelect size="sm" className="w-36" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
+          <FilterSelect size="sm" className="w-44" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
           <FilterSelect size="sm" className="w-36" value={filters.trigger} onChange={set("trigger")} options={opt(TRIGGERS, "trigger_", "allTriggers")} />
           <FilterSelect size="sm" className="w-32" value={filters.status} onChange={set("status")} options={opt(["DONE", "ERROR"], "status_", "allStatuses")} />
           <FilterSelect

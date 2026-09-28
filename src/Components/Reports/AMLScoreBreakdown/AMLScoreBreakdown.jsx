@@ -23,7 +23,7 @@ import {
 } from "../Shared/reportShared";
 import { AmlRunDetail } from "./AmlRunDetail";
 
-const KINDS = ["INDIVIDUAL", "CORPORATE"];
+const KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];
 const TRIGGERS = ["SUBMIT", "RESCREEN", "ONGOING"];
 const numberInput = "w-20 rounded-lg border px-2.5 py-1.5 text-xs";
 
@@ -291,7 +291,7 @@ export function AMLScoreBreakdown() {
           <div className="flex flex-wrap items-center gap-2">
             <FilterSelect
               size="sm"
-              className="w-36"
+              className="w-44"
               value={filters.customer_kind}
               onChange={(v) => set({ customer_kind: v })}
               options={opt(KINDS, "kind_", "allTypes")}

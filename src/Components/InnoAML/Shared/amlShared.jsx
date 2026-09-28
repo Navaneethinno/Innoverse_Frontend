@@ -146,5 +146,6 @@ export function EntityRecord({ entity }) {
 // "Director · Vladimir Putin" style party label for a screening row.
 export const partyLabel = (row) => [row?.name, row?.party_role].filter(Boolean).join(" · ") || "-";
 
-export const CUSTOMER_KINDS = ["INDIVIDUAL", "CORPORATE"];
+// Customers and merchants are screened by the same AML (merchant APIs handoff).
+export const CUSTOMER_KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];
 export const TRIGGERS = ["SUBMIT", "RESCREEN", "ONGOING"];
