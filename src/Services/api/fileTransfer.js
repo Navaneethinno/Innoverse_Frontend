@@ -1,3 +1,4 @@
+import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
@@ -27,7 +28,7 @@ async function send(path, init) {
   // A 10 MB file on a slow link needs more than the JSON calls' timeout.
   const timeout = window.setTimeout(() => controller.abort(), 120000);
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, { method: "POST", ...init, signal: controller.signal });
+    const response = await fetch(`${API_BASE_URL}${scopedPath(path)}`, { method: "POST", ...init, signal: controller.signal });
     const isJson = (response.headers.get("content-type") ?? "").includes("application/json");
     if (response.ok && !isJson) return { response, payload: null };
     const payload = isJson ? await response.json().catch(() => null) : null;

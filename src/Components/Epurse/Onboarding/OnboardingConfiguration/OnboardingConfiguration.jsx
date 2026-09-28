@@ -3,6 +3,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
+import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { OnboardingConfigurationPage } from "./OnboardingConfigurationPage";
 import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfigurationPage";
 
@@ -25,8 +26,11 @@ export function OnboardingConfiguration() {
   // the user's profile grants View on it.
   const individualCan = usePagePermission("Onboarding Configuration");
   const corporateCan = useMenuPermission("Corporate Onboarding Configuration");
-  const allowed = TYPES.filter((o) => (o.value === "corporate" ? corporateCan : individualCan)("View"));
-  const requested = searchParams.get("type") === "corporate" ? "corporate" : "individual";
+  // Opened from Onboarding > Individual|Corporate > Onboarding Configuration: that
+  // half only, no switch.
+  const branch = useMenuContext()?.branch;
+  const allowed = TYPES.filter((o) => (!branch || o.value === branch) && (o.value === "corporate" ? corporateCan : individualCan)("View"));
+  const requested = branch ?? (searchParams.get("type") === "corporate" ? "corporate" : "individual");
   const type = allowed.some((o) => o.value === requested) ? requested : allowed[0]?.value;
   const setType = (next) => {
     // Individual has no ?type= at all (the plain, default URL) rather than

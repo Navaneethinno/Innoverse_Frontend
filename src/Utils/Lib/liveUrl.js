@@ -1,3 +1,4 @@
+import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL } from "@/Utils/Constant";
 
 // Every backend list endpoint has a matching live-push WebSocket channel at
@@ -17,8 +18,9 @@ import { API_BASE_URL } from "@/Utils/Constant";
 // API host, it is not proxied through the Vercel-hosted frontend.
 export function buildLiveUrl(listPath) {
   const wsBase = API_BASE_URL.replace(/^http/, "ws");
-  const livePath = listPath.endsWith("/list")
-    ? listPath.replace(/\/list$/, "/live")
-    : `${listPath}/live`;
+  const path = scopedPath(listPath);
+  const livePath = path.endsWith("/list")
+    ? path.replace(/\/list$/, "/live")
+    : `${path}/live`;
   return `${wsBase}${livePath}`;
 }

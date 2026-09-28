@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
@@ -80,7 +80,7 @@ function pruneCondition({ _value, ...c }) {
 }
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
-  const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const { t } = useTranslation(["onboarding", "common"]);
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
@@ -136,7 +136,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
           disabled={disabled}
           value={condition.value_ref_ids?.[0] ?? ""}
           onChange={(v) => set({ value_ref_ids: v === "" ? [] : [v] })}
-          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
+          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => openMenu(REF_SOURCE_MASTER[refSource][0].slice(1)) } : undefined}
           options={[{ value: "", label: t("onboarding:select") }, ...options]}
         />
       </label>

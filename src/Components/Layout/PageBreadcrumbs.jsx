@@ -1,5 +1,8 @@
 import { ChevronRight } from "lucide-react";
+import { useMemo } from "react";
+import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { findMenuByPath, menuChain } from "@/Pages/Sidebar/menuRouteMap";
 import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
@@ -22,6 +25,29 @@ export function PageBreadcrumbs() {
   const { pathname } = useLocation();
   const { t } = useTranslation("routes");
   const crumbKeys = getRouteMetadata(pathname)?.breadcrumb ?? ["crumbDashboard"];
+  const menus = useSelector((state) => state.menu.menuArray);
+  // A sidebar menu page (/<module>/<menu path>): its module and menu chain,
+  // as the backend names them. Only the page itself is a link.
+  const menuCrumbs = useMemo(() => {
+    const active = (menus ?? []).filter((m) => m?.status === 1);
+    const menu = findMenuByPath(active, pathname);
+    return menu ? [menu.module_name, ...menuChain(menu, active).map((m) => m.menu_name)].filter(Boolean) : null;
+  }, [menus, pathname]);
+
+  if (menuCrumbs) {
+    return (
+      <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
+        {menuCrumbs.map((name, index) => (
+          <span key={`${name}-${index}`} className="flex min-w-0 items-center gap-1">
+            {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />}
+            <span className={index === menuCrumbs.length - 1 ? "truncate font-semibold text-foreground" : "truncate font-medium text-muted-foreground"}>
+              {name}
+            </span>
+          </span>
+        ))}
+      </nav>
+    );
+  }
 
   return (
     <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">

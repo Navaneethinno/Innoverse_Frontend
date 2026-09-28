@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
@@ -84,7 +84,7 @@ function pruneCondition({ _value, ...c }) {
 }
 
 function ValueMembers({ condition, setCondition, refOptions, disabled }) {
-  const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const { t } = useTranslation(["onboarding", "common"]);
   const { fact_code: fact, operator_code: operator } = condition;
   if (!fact || !operator || NO_VALUE_OPERATORS.has(operator)) return null;
@@ -140,7 +140,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
           disabled={disabled}
           value={condition.value_ref_ids?.[0] ?? ""}
           onChange={(v) => set({ value_ref_ids: v === "" ? [] : [v] })}
-          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => navigate(REF_SOURCE_MASTER[refSource][0]) } : undefined}
+          addAction={REF_SOURCE_MASTER[refSource] ? { label: t(`onboarding:${REF_SOURCE_MASTER[refSource][1]}`), onClick: () => openMenu(REF_SOURCE_MASTER[refSource][0].slice(1)) } : undefined}
           options={[{ value: "", label: t("onboarding:select") }, ...options]}
         />
       </label>
@@ -164,7 +164,7 @@ function ValueMembers({ condition, setCondition, refOptions, disabled }) {
 const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 
 export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, onClose, onSaved }) {
-  const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const { t } = useTranslation(["onboarding", "common"]);
   const steps = STEPS.map((s) => ({ ...s, label: t(`onboarding:${s.labelKey}`) }));
   const catalog = useOnboardingCatalog();
@@ -610,7 +610,7 @@ export function OnboardingDefinitionWizard({ definition, forceReadOnly = false, 
               </label>
               <label className="text-sm font-semibold text-slate-700">
                 {t("onboarding:kycScheme")}
-                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} addAction={{ label: t("onboarding:addKycScheme"), onClick: () => navigate("/kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+                <FilterSelect className="mt-1.5" disabled={readOnly} disabledReason={readOnlyReason} addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes") }} value={basics.kyc_group_id} onChange={(v) => setBasic("kyc_group_id", v)} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
               </label>
               <label className="text-sm font-semibold text-slate-700">

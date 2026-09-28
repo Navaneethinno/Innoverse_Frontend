@@ -12,48 +12,80 @@ export function slugifyMenuName(menuName) {
     .toLowerCase();
 }
 
-// payse appends a fresh uuidv4 as a route param purely to force a remount
-// when the same menu is clicked again; crypto.randomUUID() is the browser-
-// native equivalent and avoids adding the `uuid` package as a new dependency
-// for what is otherwise identical behavior.
-function withUniqueId(slug) {
-  const uniqueId =
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}`;
-  return `/${slug}/${uniqueId}`;
-}
-
-export function buildMenuPath(menuName) {
-  return withUniqueId(slugifyMenuName(menuName));
-}
-
-// The path is built from the menu name alone, so a menu's PARENT is
-// invisible to it — two menus sharing a name (Address Type under both
-// Onboarding Master > Individual and > Corporate) collide on the same slug
-// and open whichever page happens to be registered for it (Frontend fixes —
-// onboarding menus and corporate masters, 2026-09, fix 3). Every leaf under
-// a menu literally named "Corporate" gets its slug prefixed with "corp" —
-// Address Type -> corpaddresstype — instead of colliding with Individual's
-// own addresstype. This only fires for a DIRECT child of "Corporate"; a
-// menu named "Corporate" nested deeper wouldn't currently occur in this
-// menu tree, so this doesn't recurse up past the immediate parent.
+// Menu names repeat — Onboarding Master/Configuration/Wizard under both
+// Individual and Corporate, and every EPURSE menu copied into MMS — so the
+// sidebar routes by module + full menu path (Menus handoff 12):
+// EPURSE > Onboarding > Corporate > Onboarding Wizard ->
+// /epurse/onboarding/corporate/onboarding-wizard. MenuPage resolves the
+// path back to its menu. A per-click nonce in history state remounts the
+// page when the same menu is clicked again.
 export function buildMenuPathForItem(item, menuItems) {
-  return withUniqueId(menuSlugForItem(item, menuItems));
+  return menuPathForItem(item, menuItems);
+}
+
+export const kebab = (text) =>
+  String(text ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const byId = (menuItems, id) => menuItems?.find((m) => String(m?.menu_id) === String(id));
+
+// The menu and its ancestors, top-level first.
+export function menuChain(item, menuItems) {
+  const chain = [];
+  const seen = new Set();
+  for (let m = item; m && !seen.has(String(m.menu_id)); m = byId(menuItems, m.parent_menu_id)) {
+    seen.add(String(m.menu_id));
+    chain.unshift(m);
+  }
+  return chain;
+}
+
+export function menuPathForItem(item, menuItems) {
+  const segments = [item?.module_name, ...menuChain(item, menuItems).map((m) => m.menu_name)].map(kebab).filter(Boolean);
+  return `/${segments.join("/")}`;
+}
+
+// The menu a /<module>/<menu>/<...> path names, or null.
+export function findMenuByPath(menuItems, pathname) {
+  const target = `/${String(pathname ?? "").split("/").filter(Boolean).map((s) => decodeURIComponent(s).toLowerCase()).join("/")}`;
+  return (menuItems ?? []).find((m) => menuPathForItem(m, menuItems) === target) ?? null;
+}
+
+// "individual" / "corporate" when the menu sits under an Individual or
+// Corporate branch (the nearest one up the chain), else null.
+export function menuBranch(item, menuItems) {
+  const branch = menuChain(item, menuItems)
+    .reverse()
+    .slice(1)
+    .find((m) => ["individual", "corporate"].includes(kebab(m.menu_name)));
+  return branch ? kebab(branch.menu_name) : null;
 }
 
 // Menu names known to collide with an unrelated menu elsewhere in the tree;
 // only these get their parent's name folded into the slug.
 const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
 
-// The one slug rule for a menu item — the sidebar builds its URL with it and
-// usePagePermission reverses it to find which menu the current page is.
+// The page registry key for a menu: the legacy one-segment slug its page is
+// registered under (routes by menu name). Menus under a Corporate branch
+// get "corp" in front (Address Type -> corpaddresstype) so they don't open
+// Individual's page; the reorganized Corporate Onboarding Configuration /
+// Wizard open their corporate pages. usePagePermission also reverses this
+// for the legacy one-segment URLs.
+const CORPORATE_PAGES = {
+  onboardingconfiguration: "corporateonboardingconfiguration",
+  onboardingwizard: "corporateonboardingwizard",
+};
+
 export function menuSlugForItem(item, menuItems) {
-  const parent = menuItems?.find((m) => String(m?.menu_id) === String(item?.parent_menu_id));
+  const parent = byId(menuItems, item?.parent_menu_id);
   const parentName = String(parent?.menu_name ?? "").trim();
-  if (parentName === "Corporate") return `corp${slugifyMenuName(item?.menu_name)}`;
+  const slug = slugifyMenuName(item?.menu_name);
+  if (menuBranch(item, menuItems) === "corporate") return CORPORATE_PAGES[slug] ?? `corp${slug}`;
   if (parentName && DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim())) {
     return slugifyMenuName(`${parentName} ${item?.menu_name}`);
   }
-  return slugifyMenuName(item?.menu_name);
+  return slug;
 }

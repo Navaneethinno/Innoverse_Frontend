@@ -71,10 +71,9 @@ export function MenuItem({
       return;
     }
     onNavigate(item?.menu_id);
-    // Matches payseFrontend's handleNavigation: slugify menu_name and
-    // navigate there. The slug rule (corp prefix, parent-qualified names)
-    // lives in menuSlugForItem so usePagePermission can reverse it.
-    navigate(buildMenuPathForItem(item, menuItems));
+    // /<module>/<menu path> (menuRouteMap); the nonce remounts the page when
+    // the same menu is clicked again (MenuPage).
+    navigate(buildMenuPathForItem(item, menuItems), { state: { menuClick: Date.now() } });
   };
 
   const isRoot = depth === 0;

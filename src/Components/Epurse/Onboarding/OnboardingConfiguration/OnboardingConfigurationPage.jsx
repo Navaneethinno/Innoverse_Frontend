@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/Hooks/useAuth";
@@ -163,7 +163,7 @@ const emptyForm = {
 };
 
 export function OnboardingConfigurationPage() {
-  const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const { t } = useTranslation(["onboarding", "common"]);
   // "Onboarding Configuration" is the menu's real, current name (confirmed
   // in the sidebar) — the other alternatives are kept only in case an
@@ -449,7 +449,7 @@ export function OnboardingConfigurationPage() {
           {subTypeOptions.length > 0 && (
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:subType")}
-              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => navigate("/ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypeOptions]} />
+              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubType") }, ...subTypeOptions]} />
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
             </label>
           )}
@@ -465,7 +465,7 @@ export function OnboardingConfigurationPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:kycScheme")}
-            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => navigate("/kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">

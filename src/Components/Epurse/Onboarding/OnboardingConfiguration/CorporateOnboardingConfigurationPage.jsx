@@ -1,5 +1,5 @@
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
@@ -150,7 +150,7 @@ const emptyForm = {
 };
 
 export function CorporateOnboardingConfigurationPage() {
-  const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const { t } = useTranslation(["onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Configuration");
   const catalog = useCorpOnboardingCatalog();
@@ -389,7 +389,7 @@ export function CorporateOnboardingConfigurationPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:companyType")}
-            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => navigate("/companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypeOptions]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypeOptions]} />
           </label>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:homeCountry")}

@@ -52,6 +52,18 @@ src/Components/
 `Router/InnoAML/` and `Router/Reports/`. Header pieces (top bar,
 change password) live in `src/Pages/Header/`, as in payse.
 
+Sidebar menus open at `/<module>/<menu path>` (e.g.
+`/mms/onboarding/corporate/onboarding-wizard`), because menu names repeat
+across modules and branches. `Pages/Sidebar/MenuPage.jsx` resolves the path
+to its menu and renders the page registered under the menu's slug
+(`menuSlugForItem`), inside `MenuContext` (menu, module, Individual/Corporate
+branch). Register a new page under its slug as before; read permissions with
+`usePagePermission()`, and open another menu with `useOpenMenu()` so the user
+stays in the same module. The module also picks the API prefix for the
+customer screens (`Utils/Lib/apiScope.js`: EPURSE `/customer`, MMS
+`/merchant`); write service paths with `/customer/...` and let requests be
+rewritten.
+
 `src/Services/` and `src/Hooks/` group by module the same way
 (`Institution/`, `UserManagement/`, `Epurse/`, `InnoAML/`, `Reports/`); cross-cutting code stays at
 the top level (`api/`, `Auth/`, `Master/`, `useLiveChannel.js`, ...). A new
