@@ -44,6 +44,7 @@ void i18n
       "notification",
       "risk",
       "aml",
+      "reports",
       "tour",
     ],
     interpolation: { escapeValue: false },

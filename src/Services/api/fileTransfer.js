@@ -75,3 +75,27 @@ export async function downloadFile(path, body) {
   if (payload) throw new Error(getApiErrorMessage(payload, "The File Was Not Found"));
   return response.blob();
 }
+
+// A generated download (e.g. a report export): the file plus the name the
+// server gave it in Content-Disposition (exposed by the gateway), or
+// `fallbackName` when there is none.
+export async function downloadAttachment(path, body, fallbackName = "download") {
+  const { response, payload } = await send(path, {
+    headers: { ...headers(), "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (payload) throw new Error(getApiErrorMessage(payload, "Download failed"));
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const fileName = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition)?.[1];
+  return { blob: await response.blob(), fileName: fileName ? decodeURIComponent(fileName) : fallbackName };
+}
+
+// Hands a Blob to the browser as a file download.
+export function saveBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement("a"), { href: url, download: fileName });
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

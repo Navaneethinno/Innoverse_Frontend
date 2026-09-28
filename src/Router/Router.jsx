@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/Components/Layout/AppLayout";
 import { RouteError } from "@/Components/Common/RouteError";
 import { ProtectRoute } from "./ProtectRoute";
-import { dashboardRoutes, epurseRoutes, innoAmlRoutes, institutionRoutes, publicRoutes, userManagementRoutes } from "./index";
+import { dashboardRoutes, epurseRoutes, innoAmlRoutes, institutionRoutes, publicRoutes, reportsRoutes, userManagementRoutes } from "./index";
 export const appRouter = createBrowserRouter([
   ...publicRoutes.map((route) => ({ errorElement: <RouteError />, ...route })),
   {
@@ -12,7 +12,7 @@ export const appRouter = createBrowserRouter([
       </ProtectRoute>
     ),
     errorElement: <RouteError />,
-    children: [...dashboardRoutes, ...institutionRoutes, ...userManagementRoutes, ...epurseRoutes, ...innoAmlRoutes],
+    children: [...dashboardRoutes, ...institutionRoutes, ...userManagementRoutes, ...epurseRoutes, ...innoAmlRoutes, ...reportsRoutes],
   },
 ]);
 export default appRouter;

@@ -836,6 +836,11 @@ export const API_ENDPOINTS = {
   },
   // InnoAML (module 4, AML handoffs 03–07, 2026-09). setup/internal_list are
   // the 13 maker-checker verbs; the rest are plain calls under their base.
+  // Reports (read-only). User Activity (menu 106): users, entities,
+  // summary, list, get, export under this base.
+  REPORT: {
+    USER_ACTIVITY: "/config/report/user_activity",
+  },
   AML: {
     SETUP: "/config/aml/setup",
     INTERNAL_LIST: "/config/aml/internal_list",

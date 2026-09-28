@@ -1,4 +1,6 @@
 import {
+  Activity,
+  FileBarChart,
   ClipboardCheck,
   ListChecks,
   ScanSearch,
@@ -41,6 +43,7 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/report/i, FileBarChart],
   [/institution/i, Landmark],
   [/user management|users?$/i, UsersRound],
   [/purse|wallet/i, Wallet],
@@ -70,6 +73,7 @@ export function getModuleIcon(moduleName = "") {
 // fallback below them — otherwise they'd all resolve to the same Landmark
 // icon (which is exactly what was happening before this list was reordered).
 const MENU_ICON_RULES = [
+  [/user activity/i, Activity],
   // InnoAML menus, before the generic "configuration"/"review" style rules.
   [/aml configuration|aml setup/i, SlidersHorizontal],
   [/watchlist/i, ListChecks],

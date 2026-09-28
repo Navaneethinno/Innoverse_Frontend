@@ -147,6 +147,8 @@ const SEGMENT_LABELS = {
   notificationalerts: { titleKey: "crumbNotificationAlerts", breadcrumb: ["crumbNotificationCenter", "crumbNotificationAlerts"] },
   individualrisk: { titleKey: "crumbIndividualRisk", breadcrumb: ["crumbRiskAssessment", "crumbIndividualRisk"] },
   corporaterisk: { titleKey: "crumbCorporateRisk", breadcrumb: ["crumbRiskAssessment", "crumbCorporateRisk"] },
+  // --- Reports -------------------------------------------------------------
+  useractivity: { titleKey: "crumbUserActivity", breadcrumb: ["crumbReports", "crumbUserActivity"] },
   // --- InnoAML ---------------------------------------------------------------
   amlsetup: { titleKey: "crumbAmlSetup", breadcrumb: ["crumbAmlConfiguration", "crumbAmlSetup"] },
   internalwatchlists: { titleKey: "crumbInternalWatchlists", breadcrumb: ["crumbAmlConfiguration", "crumbInternalWatchlists"] },

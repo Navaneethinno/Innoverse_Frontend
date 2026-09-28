@@ -42,15 +42,18 @@ src/Components/
     AMLConfiguration/<AMLSetup|InternalWatchlists>/
     AMLScreening/<Screenings|NameLookup|MatchReview>/
     Shared/                                screening detail, badges, customer result
+  Reports/                                 Reports module
+    UserActivity/
 ```
 
 `src/Router/` follows it too: `index.js` builds one route list per module
-(`institutionRoutes`, `userManagementRoutes`, `epurseRoutes`, `innoAmlRoutes`)
-from the files in `Router/UserManagement/`, `Router/Epurse/` and `Router/InnoAML/`. Header pieces (top bar,
+(`institutionRoutes`, `userManagementRoutes`, `epurseRoutes`, `innoAmlRoutes`,
+`reportsRoutes`) from the files in `Router/UserManagement/`, `Router/Epurse/`,
+`Router/InnoAML/` and `Router/Reports/`. Header pieces (top bar,
 change password) live in `src/Pages/Header/`, as in payse.
 
 `src/Services/` and `src/Hooks/` group by module the same way
-(`Institution/`, `UserManagement/`, `Epurse/`, `InnoAML/`); cross-cutting code stays at
+(`Institution/`, `UserManagement/`, `Epurse/`, `InnoAML/`, `Reports/`); cross-cutting code stays at
 the top level (`api/`, `Auth/`, `Master/`, `useLiveChannel.js`, ...). A new
 menu gets its own folder under its sidebar parent; don't add screens to
 `Common/` or create top-level feature folders.
