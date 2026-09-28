@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { LifecycleList } from "../Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "../NotificationCenter/notificationShared";
+import { ViewItem } from "../NotificationCenter/notificationShared";
 import { LevelBar, LevelChip, RISK_KINDS, customerTypeLabel } from "./riskShared";
 import { useRiskOptions } from "./useRiskOptions";
 import { RiskSetupForm } from "./RiskSetupForm";
@@ -16,7 +16,7 @@ export function RiskSetupList({ kind }) {
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(api, row) });
+  const openEdit = async (row) => setForm({ editing: row });
 
   const columns = [
     { key: "code", label: t("risk:code"), render: (row) => <span className="font-mono text-xs">{row.code ?? "-"}</span> },

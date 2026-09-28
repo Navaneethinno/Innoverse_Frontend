@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { riskActionApi } from "@/Services/Epurse/risk.api";
 import { LifecycleList } from "../../../Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "../../../NotificationCenter/notificationShared";
+import { ViewItem } from "../../../NotificationCenter/notificationShared";
 import { RiskActionForm } from "./RiskActionForm";
 
 // EPURSE > Settings > Master > Risk Action (menu 36, replaced Risk Category):
@@ -14,7 +14,7 @@ export function RiskAction() {
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(riskActionApi, row) });
+  const openEdit = async (row) => setForm({ editing: row });
 
   const columns = [
     {

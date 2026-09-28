@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Mail, Plus, Smartphone } from "lucide-react";
 import { notificationGroupApi } from "@/Services/Epurse/notification.api";
 import { LifecycleList } from "../../Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "../notificationShared";
+import { ViewItem } from "../notificationShared";
 import { NotificationGroupForm } from "./NotificationGroupForm";
 
 // EPURSE > Notification Center > Notification Group (menu 95): named lists of
@@ -13,7 +13,7 @@ export function NotificationGroup() {
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(notificationGroupApi, row) });
+  const openEdit = async (row) => setForm({ editing: row });
 
   const columns = [
     { key: "code", label: t("notification:code"), render: (row) => <span className="font-mono text-xs">{row.code ?? "-"}</span> },

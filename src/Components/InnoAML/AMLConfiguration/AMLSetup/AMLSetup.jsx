@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { amlSetupApi } from "@/Services/InnoAML/aml.api";
 import { LifecycleList } from "@/Components/Epurse/Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "@/Components/Epurse/NotificationCenter/notificationShared";
+import { ViewItem } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { LevelBar, LevelChip } from "@/Components/Epurse/RiskAssessment/riskShared";
 import { AMLSetupForm } from "./AMLSetupForm";
 
@@ -16,7 +16,7 @@ export function AMLSetup() {
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(amlSetupApi, row) });
+  const openEdit = async (row) => setForm({ editing: row });
   const bands = (row) => (
     <span className="inline-flex flex-wrap gap-1">
       {(row.levels ?? []).map((l) => (

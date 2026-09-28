@@ -6,7 +6,7 @@ import { amlInternalListApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LifecycleList } from "@/Components/Epurse/Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "@/Components/Epurse/NotificationCenter/notificationShared";
+import { ViewItem } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { InternalWatchlistForm } from "./InternalWatchlistForm";
 import { ValidationResult } from "./ValidationResult";
 
@@ -59,7 +59,7 @@ export function InternalWatchlists() {
   const [form, setForm] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(amlInternalListApi, row) });
+  const openEdit = async (row) => setForm({ editing: row });
 
   const columns = [
     { key: "code", label: t("aml:code"), render: (row) => <span className="font-mono text-xs">{row.code ?? "-"}</span> },

@@ -10,17 +10,6 @@ export const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm d
 export const labelClass = "block text-sm font-semibold text-slate-700";
 export const codeOf = (value) => String(value ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
 
-// A Draft row's latest saved values live in its audit trail, not the list
-// row (same as MasterResource) — load them so Edit opens what was saved.
-export async function draftAwareRow(api, row) {
-  if (String(row?.process_status_name ?? "").trim().toUpperCase() !== "DRAFT") return row;
-  try {
-    const latest = rowsOf(await api.audit({ id: row.id, page: 1, limit: 1 }))[0];
-    return latest ? { ...row, ...latest } : row;
-  } catch {
-    return row;
-  }
-}
 
 // Add or edit (edit sends the whole record), then submit an edited Draft on
 // the primary save — /edit alone never moves a Draft forward.

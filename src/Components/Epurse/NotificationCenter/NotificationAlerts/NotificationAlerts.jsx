@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { LifecycleList } from "../../Onboarding/OnboardingConfiguration/LifecycleList";
-import { ViewItem, draftAwareRow } from "../notificationShared";
+import { ViewItem } from "../notificationShared";
 import { NotificationAlertForm } from "./NotificationAlertForm";
 import { describeTrigger, useAlertOptions } from "./useAlertOptions";
 import { NotificationOutbox } from "./NotificationOutbox";
@@ -72,7 +72,7 @@ function AlertsList({ onShowMessages }) {
   const { options } = useAlertOptions();
   const groupName = (id) => options.groups.find((g) => g.id === id)?.name ?? `#${id}`;
 
-  const openEdit = async (row) => setForm({ editing: await draftAwareRow(notificationAlertApi, row) });
+  const openEdit = async (row) => setForm({ editing: row });
 
   const columns = [
     { key: "code", label: t("notification:code"), render: (row) => <span className="font-mono text-xs">{row.code ?? "-"}</span> },
