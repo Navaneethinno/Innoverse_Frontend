@@ -1265,6 +1265,7 @@ export const aml = {
   aliases: "Aliases",
   birthDates: "Birth dates",
   countries: "Countries",
+  selectCountries: "Select countries",
   identifiers: "Identifiers",
   programs: "Programmes",
   listedOn: "Listed on",

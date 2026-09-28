@@ -2,9 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
+import { CountryMultiSelect } from "@/Components/Common/CountryMultiSelect";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
+import { useCountries } from "@/Hooks/Master/masterHooks";
 import { useAuth } from "@/Hooks/useAuth";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -15,12 +17,7 @@ import { InstitutionField, inputClass, labelClass } from "@/Components/Epurse/No
 import { EffectiveResult, glassCard, partyLabel, useInstitutionScope, when } from "../../Shared/amlShared";
 import { ScreeningDetail, ScreeningDetailModal } from "../../Shared/ScreeningDetail";
 
-const splitList = (text) =>
-  String(text ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: "", gender: "", reason: "" });
+const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: [], gender: "", reason: "" });
 
 // InnoAML > AML Screening > Name Lookup (menu 103): screen a name that isn't
 // a customer (e.g. a payment beneficiary) against the platform lists and
@@ -39,6 +36,7 @@ export function NameLookup() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [openId, setOpenId] = useState(null);
+  const { countries } = useCountries();
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
@@ -72,7 +70,7 @@ export function NameLookup() {
         name: form.name.trim(),
         ...(form.entity_type ? { entity_type: form.entity_type } : {}),
         ...(form.birth_date.trim() ? { birth_date: form.birth_date.trim() } : {}),
-        ...(splitList(form.countries).length ? { countries: splitList(form.countries) } : {}),
+        ...(form.countries.length ? { countries: form.countries } : {}),
         ...(form.gender ? { gender: form.gender } : {}),
         ...(form.reason.trim() ? { reason: form.reason.trim() } : {}),
         ...scope(form.inst_profile_id),
@@ -132,7 +130,7 @@ export function NameLookup() {
           </label>
           <label className={labelClass}>
             {t("aml:countries")}
-            <input value={form.countries} onChange={(e) => set("countries")(e.target.value)} className={inputClass} placeholder="Saudi Arabia, YE" />
+            <CountryMultiSelect className="mt-1.5" countries={countries} value={form.countries} onChange={set("countries")} placeholder={t("aml:selectCountries")} />
           </label>
           <label className={`${labelClass} md:col-span-2`}>
             {t("aml:reason")}
