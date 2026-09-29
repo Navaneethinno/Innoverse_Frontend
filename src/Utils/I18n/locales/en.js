@@ -135,6 +135,7 @@ export const auth = {
 export const login = {
   tagline: "Fintech Administration Platform",
   welcomeBack: "Welcome back",
+  institutionCode: "Institution code",
   username: "Username",
   password: "Password",
   forgotPassword: "Forgot Password?",
@@ -142,7 +143,7 @@ export const login = {
   authenticating: "Authenticating…",
   showPassword: "Show password",
   hidePassword: "Hide password",
-  enterCredentials: "Please enter your username and password",
+  enterCredentials: "Please enter your institution code, username and password",
   invalidCredentials: "Invalid credentials. Please try again.",
 };
 

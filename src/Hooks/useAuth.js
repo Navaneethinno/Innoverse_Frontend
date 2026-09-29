@@ -12,9 +12,9 @@ export function useAuth(selector) {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.token);
   const { setBrandTheme, clearBrandTheme } = useBrandTheme();
-  const login = async ({ username, password }) => {
+  const login = async ({ institutionCode, username, password }) => {
     try {
-      const response = await loginRequest(username, password);
+      const response = await loginRequest(institutionCode, username, password);
       persistAuthSession(response.user, response.access_token, response.refresh_token);
       dispatch(
         setSession({

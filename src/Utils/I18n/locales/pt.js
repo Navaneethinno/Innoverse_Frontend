@@ -130,6 +130,7 @@ export const auth = {
 export const login = {
   tagline: "Plataforma de Administração Fintech",
   welcomeBack: "Bem-vindo de volta",
+  institutionCode: "Código da instituição",
   username: "Usuário",
   password: "Senha",
   forgotPassword: "Esqueceu a senha?",
@@ -137,7 +138,7 @@ export const login = {
   authenticating: "Autenticando…",
   showPassword: "Mostrar senha",
   hidePassword: "Ocultar senha",
-  enterCredentials: "Por favor, insira seu usuário e senha",
+  enterCredentials: "Por favor, insira o código da instituição, seu usuário e senha",
   invalidCredentials: "Credenciais inválidas. Tente novamente.",
 };
 

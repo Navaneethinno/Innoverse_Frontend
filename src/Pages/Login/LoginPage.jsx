@@ -12,6 +12,7 @@ import {
   Moon,
   RefreshCw,
   Sun,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "../../Hooks/useAuth";
 import { apiMessage, notifications } from "../../Utils/Lib/notifications";
@@ -55,8 +56,21 @@ const cardItem = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
+// The last institution code used, so a returning user needn't retype it.
+const INSTITUTION_CODE_KEY = "innoverse-admin:institution-code";
+const readInstitutionCode = () => {
+  try {
+    return window.localStorage.getItem(INSTITUTION_CODE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+
 export function LoginPage() {
   const { t } = useTranslation("login");
+  const [institutionCode, setInstitutionCode] = useState(
+    () => readInstitutionCode() || import.meta.env.VITE_DEFAULT_LOGIN_INSTITUTION_CODE || "",
+  );
   const [username, setUsername] = useState(
     import.meta.env.VITE_DEFAULT_LOGIN_USERNAME || "SuperAdmin1",
   );
@@ -69,15 +83,21 @@ export function LoginPage() {
   const { mode, toggleMode } = useColorMode();
   const submit = async (e) => {
     e.preventDefault();
-    if (!username || !password) {
+    const code = institutionCode.trim();
+    if (!code || !username || !password) {
       setError(t("enterCredentials"));
       return;
     }
     setError("");
     setLoading(true);
-    const result = await login({ username, password });
+    const result = await login({ institutionCode: code, username, password });
     setLoading(false);
     if (result.success) {
+      try {
+        window.localStorage.setItem(INSTITUTION_CODE_KEY, code);
+      } catch {
+        /* Only a convenience. */
+      }
       notifications.success(apiMessage(result, "Signed in successfully"));
       navigate("/dashboard");
     } else {
@@ -193,6 +213,23 @@ export function LoginPage() {
               Sign in to manage your secure workspace.
             </motion.p>
             <motion.form variants={cardItem} onSubmit={submit} noValidate className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-foreground">{t("institutionCode")}</label>
+                <div className="relative">
+                  <Building2
+                    size={14}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                  />
+                  <input
+                    value={institutionCode}
+                    onChange={(e) => setInstitutionCode(e.target.value)}
+                    autoComplete="organization"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-4 text-sm uppercase text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-foreground">{t("username")}</label>
                 <div className="relative">

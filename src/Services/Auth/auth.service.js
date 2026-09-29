@@ -99,7 +99,9 @@ async function request(endpoint, init) {
   }
 }
 
-export async function loginRequest(username, password) {
+// Usernames are unique only within an institution, so the login names it
+// by its code (case does not matter).
+export async function loginRequest(institutionCode, username, password) {
   const payload = await request(API_ENDPOINTS.AUTH.LOGIN, {
     method: "POST",
     headers: {
@@ -108,7 +110,7 @@ export async function loginRequest(username, password) {
       Authorization: getBasicAuthorization(),
       ...apiLanguageHeader(),
     },
-    body: JSON.stringify({ user_name: username, password }),
+    body: JSON.stringify({ institution_code: institutionCode, user_name: username, password }),
   });
   return parseSessionResponse(payload);
 }
