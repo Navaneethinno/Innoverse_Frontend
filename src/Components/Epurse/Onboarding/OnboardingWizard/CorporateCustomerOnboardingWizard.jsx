@@ -1,3 +1,4 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useEffect, useRef, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus, Trash2, ArrowLeft, ArrowRight, Check, Send } from "lucide-react";
@@ -490,7 +491,7 @@ export function CorporateCustomerOnboardingWizard({ referenceId, forceReadOnly =
       onClose={guard(onClose)}
       title={
         wizard
-          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
+          ? `${wizard.customer_type.name ?? wizard.customer_type.onboarding_definition_name} — ${wizard.onboarding.email || wizard.onboarding.phone_number}${wizard.onboarding.inst_profile_name && canChooseInstitution() ? ` · ${wizard.onboarding.inst_profile_name}` : ""}`
           : t("customer:startCorporateOnboarding")
       }
       size="xl"

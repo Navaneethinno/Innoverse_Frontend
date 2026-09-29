@@ -1,3 +1,6 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
+import { useAuth } from "@/Hooks/useAuth";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -85,6 +88,8 @@ export function Profile() {
   const [viewProfile, setViewProfile] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const canChooseInstitution = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState(EMPTY_FORM());
 
   const canAdd = useHasProfileAction("Add");
@@ -148,7 +153,8 @@ export function Profile() {
 
   const submitForm = async (event) => {
     event.preventDefault();
-    const institutionId = numericId(form.inst_profile_id);
+    // A bank / fintech user has no picker: its own institution.
+    const institutionId = numericId(form.inst_profile_id) || (canChooseInstitution ? null : numericId(ownInstitution));
     if (!institutionId) {
       notifications.error("Please select a valid institution");
       return;
@@ -444,12 +450,14 @@ export function Profile() {
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("profileName")}</p>
               <p className="text-sm font-semibold text-slate-800">{viewProfile.profile_name ?? "—"}</p>
             </div>
+            <InstitutionOnly>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("institution")}</p>
               <p className="text-sm font-semibold text-slate-800">
                 {viewProfile.institution_name ?? institutionsById.get(String(viewProfile.inst_profile_id))?.name ?? "—"}
               </p>
             </div>
+            </InstitutionOnly>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("authorizationStatus")}</p>
               {viewProfile.auth_status ? (

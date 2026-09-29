@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 // Institution/Profile endpoints — per the backend's confirmed spec
 // (2026-09 "Institution Profile API Requests" doc): list, get_active, add,
 // submit, edit, auth, deauth, delete, delete_auth, deactivate, reactivate,
@@ -40,7 +41,7 @@ async function request(path, body) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify(body ?? {}),
+      body: JSON.stringify(scopedBody(body ?? {})),
       signal: controller.signal,
     });
     const contentType = response.headers.get("content-type") ?? "";

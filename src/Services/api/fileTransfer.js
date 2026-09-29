@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -70,7 +71,7 @@ export async function uploadFile(path, fields) {
 export async function downloadFile(path, body) {
   const { response, payload } = await send(path, {
     headers: { ...headers(), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(scopedBody(body)),
   });
   // A JSON reply is never the file, even with a 200.
   if (payload) throw new Error(getApiErrorMessage(payload, "The File Was Not Found"));
@@ -83,7 +84,7 @@ export async function downloadFile(path, body) {
 export async function downloadAttachment(path, body, fallbackName = "download") {
   const { response, payload } = await send(path, {
     headers: { ...headers(), "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(scopedBody(body)),
   });
   if (payload) throw new Error(getApiErrorMessage(payload, "Download failed"));
   const disposition = response.headers.get("content-disposition") ?? "";

@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -392,8 +393,11 @@ export function InstitutionBranding() {
 
 function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit }) {
   const tr = useConfigLabel();
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChoose = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
-    inst_profile_id: editing?.inst_profile_id ?? "",
+    inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
     // A color field's existing value might already be malformed on the
     // record (e.g. a 5-digit hex saved before this form validated hex
     // input at all) — loading it as-is into a field that now hard-blocks
@@ -446,7 +450,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         );
       }}
     >
-      {!editing && (
+      {!editing && canChoose && (
         <label className="text-sm font-medium sm:col-span-2">
           Institution
           <FilterSelect

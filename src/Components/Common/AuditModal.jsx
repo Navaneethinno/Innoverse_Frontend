@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, CalendarClock, History, User } from "lucide-react";
@@ -254,7 +255,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
 // no scrolling required, and scrolling reveals progressively older pages.
 export function AuditModal({
   title,
-  fields,
+  fields: allFields,
   onClose,
   getActionLabel = (entry) => entry.audit_action,
   getEntryKey = (entry, index) => entry.id ?? entry.audit_key ?? index,
@@ -263,6 +264,10 @@ export function AuditModal({
   auditLimit = 10,
 }) {
   const { t } = useTranslation();
+  // A bank / fintech user only ever sees its own institution: no
+  // institution line in the history.
+  const canChoose = useCanChooseInstitution();
+  const fields = canChoose ? allFields : (allFields ?? []).filter(([key]) => !["inst_profile_name", "inst_profile_id"].includes(key));
   const [entries, setEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

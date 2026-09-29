@@ -1,3 +1,5 @@
+import { useAuth } from "@/Hooks/useAuth";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
@@ -63,6 +65,8 @@ export function User() {
 
   const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0, filter: "all", sort_by: "desc" });
   const [activeTab, setActiveTab] = useState("all");
+  const canChooseInstitution = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -165,7 +169,8 @@ export function User() {
       }
     }
     try {
-      const institutionId = numericId(form.inst_id);
+      // A bank / fintech user has no picker: its own institution.
+      const institutionId = numericId(form.inst_id) || (canChooseInstitution ? null : numericId(ownInstitution));
       const profileId = numericId(form.profile_id);
       if (!institutionId || !profileId) {
         notifications.error("Please select a valid institution and profile");

@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 // Profile (URMG) endpoints — per the official Postman collection
 // ("InnoVerse_ConfigProcessor" -> "Profile (URMG)"). "Profile" here means a
 // role/permission profile (a named set of menu_id/action_id grants), NOT
@@ -33,7 +34,7 @@ async function request(path, body) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify(body ?? {}),
+      body: JSON.stringify(scopedBody(body ?? {})),
       signal: controller.signal,
     });
     const contentType = response.headers.get("content-type") ?? "";

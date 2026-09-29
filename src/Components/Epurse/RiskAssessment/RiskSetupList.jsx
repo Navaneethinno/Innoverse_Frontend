@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
@@ -81,7 +82,7 @@ function SetupView({ kind, row }) {
     <dl className="grid gap-3">
       <ViewItem label={t("risk:code")}>{row.code}</ViewItem>
       <ViewItem label={t("risk:name")}>{row.name}</ViewItem>
-      <ViewItem label={t("risk:institution")}>{row.inst_profile_name}</ViewItem>
+      <InstitutionOnly><ViewItem label={t("risk:institution")}>{row.inst_profile_name}</ViewItem></InstitutionOnly>
       <ViewItem label={t("risk:customerType")}>{customerTypeLabel(row)}</ViewItem>
       {row.description && <ViewItem label={t("common:description")}>{row.description}</ViewItem>}
       <ViewItem label={t("risk:criteria")}>

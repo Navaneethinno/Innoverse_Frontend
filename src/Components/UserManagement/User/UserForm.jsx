@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Check, Eye, EyeOff } from "lucide-react";
@@ -127,6 +128,7 @@ export function UserForm({
   readOnly = false,
 }) {
   const { t } = useTranslation("users");
+  const canChooseInstitution = useCanChooseInstitution();
   const [showPassword, setShowPassword] = useState(false);
   const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
   const policyRequirements = checkPasswordRequirements("", selectedPolicy);
@@ -135,6 +137,8 @@ export function UserForm({
     <form onSubmit={onSubmit} id="user-form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {fields
         .filter(([key]) => !(readOnly && key === "user_pwd"))
+        // A bank / fintech user is always in its own institution: no picker.
+        .filter(([key]) => canChooseInstitution || key !== "inst_id")
         .map(([key]) => (
         <label key={key} className="text-sm text-slate-700">
           <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key], fields.find(([field]) => field === key)?.[1] ?? key)}</span>

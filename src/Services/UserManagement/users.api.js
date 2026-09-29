@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
@@ -26,7 +27,7 @@ async function request(path, body) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(scopedBody(body)),
       signal: controller.signal,
     });
     const contentType = response.headers.get("content-type") ?? "";

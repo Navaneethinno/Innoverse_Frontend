@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus } from "lucide-react";
@@ -184,7 +185,7 @@ export function CorporateCustomerOnboardingResource() {
         <div className="text-left">
           <div className="font-semibold">{r.company_name || "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.registration_number || r.email || r.phone_number}</div>
-          {r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}
+          <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
           <PortalSourceBadge record={r} />
         </div>
       ),

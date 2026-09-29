@@ -48,7 +48,9 @@ export function useAuth(selector) {
   const refresh = async () => {
     try {
       const response = await refreshTokenRequest();
-      const user = response.user ?? readAuthUser();
+      // Refresh may not re-send scope: keep the one from login.
+      const stored = readAuthUser();
+      const user = response.user ? { ...response.user, scope: response.user.scope ?? stored?.scope } : stored;
       persistAuthSession(user, response.access_token, response.refresh_token);
       dispatch(
         setSession({

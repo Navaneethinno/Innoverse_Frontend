@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 // Master (Reference Data) endpoints — per the official Postman collection
 // ("InnoVerse_ConfigProcessor"), these live under the "Master (Reference
 // Data)" folder and are distinct from the Institution/Module CONFIGURATION
@@ -51,7 +52,7 @@ async function masterPost(path, body, { basicAuthFallback = false } = {}) {
         ...(authorization ? { Authorization: authorization } : {}),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify(body ?? {}),
+      body: JSON.stringify(scopedBody(body ?? {})),
       signal: controller.signal,
     });
     if (response.status === 401) {

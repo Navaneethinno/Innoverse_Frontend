@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
@@ -56,7 +57,7 @@ export function AMLSetup() {
         }
         renderView={(row) => (
           <dl className="grid gap-3">
-            <ViewItem label={t("aml:institution")}>{row.inst_profile_name}</ViewItem>
+            <InstitutionOnly><ViewItem label={t("aml:institution")}>{row.inst_profile_name}</ViewItem></InstitutionOnly>
             {row.description && <ViewItem label={t("common:description")}>{row.description}</ViewItem>}
             <ViewItem label={t("aml:minMatchScore")}>{row.min_match_score}</ViewItem>
             <ViewItem label={t("aml:ongoingRescreen")}>{row.ongoing_rescreen ? t("common:yes") : t("common:no")}</ViewItem>

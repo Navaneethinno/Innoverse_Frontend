@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Mail, Plus, Smartphone } from "lucide-react";
@@ -43,7 +44,7 @@ export function NotificationGroup() {
           <dl className="grid gap-3">
             <ViewItem label={t("notification:code")}>{row.code}</ViewItem>
             <ViewItem label={t("notification:name")}>{row.name}</ViewItem>
-            <ViewItem label={t("notification:institution")}>{row.inst_profile_name}</ViewItem>
+            <InstitutionOnly><ViewItem label={t("notification:institution")}>{row.inst_profile_name}</ViewItem></InstitutionOnly>
             {row.description && <ViewItem label={t("common:description")}>{row.description}</ViewItem>}
             <ViewItem label={t("notification:recipientCount", { count: row.members?.length ?? 0 })}>
               <ul className="mt-1 space-y-1">

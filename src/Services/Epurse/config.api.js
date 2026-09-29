@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -15,7 +16,7 @@ async function request(path, body = {}) {
     const response = await fetch(`${API_BASE_URL}${scopedPath(path)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() },
-      body: JSON.stringify(body),
+      body: JSON.stringify(scopedBody(body)),
       signal: controller.signal,
     });
     const type = response.headers.get("content-type") ?? "";

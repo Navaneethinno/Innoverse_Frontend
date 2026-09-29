@@ -1,3 +1,5 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { scopeInstitutionFields } from "@/Utils/Lib/institutionScope";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cn } from "@/Utils/Lib/cn";
 import { Plus } from "lucide-react";
@@ -341,6 +343,8 @@ const CONFIGS = {
     ],
   },
 };
+scopeInstitutionFields(CONFIGS);
+
 
 const idOf = (row) => row?.id;
 const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
@@ -832,7 +836,7 @@ export function AcctConfigResource({ entity }) {
             <>
               <dl className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {[
-                  ["Institution profile", labelFor("institutions", view.inst_profile_id)],
+                  ...(canChooseInstitution() ? [["Institution profile", labelFor("institutions", view.inst_profile_id)]] : []),
                   ["Product code", view.product_code ?? "-"],
                   ["Product name", view.product_name ?? "-"],
                   ["Description", view.description || "-"],

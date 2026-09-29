@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -23,7 +24,14 @@ export async function saveRecord(api, { editing, body, draft }) {
 }
 
 // Institution picker; locked after add (inst_profile_id can't change).
-export function InstitutionField({ value, onChange, disabled }) {
+// The institution a record belongs to. Only a service provider picks it; a
+// bank / fintech user is always in its own institution, so nothing shows
+// and the request carries no inst_profile_id (institution scope handoff).
+export function InstitutionField(props) {
+  return useCanChooseInstitution() ? <InstitutionPicker {...props} /> : null;
+}
+
+function InstitutionPicker({ value, onChange, disabled }) {
   const { t } = useTranslation("notification");
   const institutions = useActiveInstitutionsQuery();
   return (

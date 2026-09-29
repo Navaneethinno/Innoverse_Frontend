@@ -1,3 +1,4 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -55,7 +56,7 @@ export function ActivityDetail({ activityId, onClose }) {
               [t("when"), atIst(item.at)],
               [t("role"), <RoleBadge key="r" role={item.role} name={item.role_name} />],
               [t("recordType"), `${item.entity_name} · ${item.group_name}`],
-              [t("institution"), item.inst_profile_name ?? "-"],
+              ...(canChooseInstitution() ? [[t("institution"), item.inst_profile_name ?? "-"]] : []),
               [t("maker"), item.maker ?? "-"],
               [t("statusAfter"), item.process_status_name ?? "-"],
               ...(item.narration ? [[t("narration"), item.narration]] : []),

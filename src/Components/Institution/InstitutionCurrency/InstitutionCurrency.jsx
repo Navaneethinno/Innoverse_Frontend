@@ -1,3 +1,6 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -97,7 +100,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
         <div className="space-y-3">
           {[
             ["Currency", row.currency_name ?? row.currency_code],
-            ["Institution", row.inst_profile_name ?? row.inst_profile_id],
+            ...(canChooseInstitution() ? [["Institution", row.inst_profile_name ?? row.inst_profile_id]] : []),
             ["Base currency", row.is_base_currency ? "Yes" : "No"],
           ].map(([label, val]) => (
             <div key={label}>
@@ -311,8 +314,11 @@ function CurrencyForm({
   onSubmit,
 }) {
   const tr = useConfigLabel();
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChoose = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
-    inst_profile_id: editing?.inst_profile_id ?? "",
+    inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
     currency_code: editing?.currency_code ?? "",
     is_base_currency: Boolean(editing?.is_base_currency),
     narration: "",
@@ -351,7 +357,7 @@ function CurrencyForm({
       }}
     >
       <label className="block text-sm font-medium">
-        {!editing && (
+        {!editing && canChoose && (
           <>
             Institution
             <FilterSelect

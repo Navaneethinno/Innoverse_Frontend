@@ -1,3 +1,5 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -316,8 +318,11 @@ export function InstitutionLegal() {
 function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) {
   const tr = useConfigLabel();
   const initial = Object.fromEntries(FIELDS.map(([key]) => [key, editing?.[key] ?? ""]));
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChoose = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
-    inst_profile_id: editing?.inst_profile_id ?? "",
+    inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
     ...initial,
     narration: "",
     is_draft: false,
@@ -338,7 +343,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
         void onSubmit(editing ? legal : { inst_profile_id: Number(inst_profile_id), ...legal });
       }}
     >
-      {!editing && (
+      {!editing && canChoose && (
         <label className="text-sm font-medium sm:col-span-2">
           Institution
           <FilterSelect

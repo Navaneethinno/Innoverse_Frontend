@@ -1,3 +1,6 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus, X } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -102,7 +105,7 @@ function ModuleActions({ row, onRefresh, onEdit }) {
         <div className="space-y-4">
           {[
             ["Module", details?.module_name ?? details?.module_id],
-            ["Institution", details?.inst_profile_name ?? details?.inst_profile_id],
+            ...(canChooseInstitution() ? [["Institution", details?.inst_profile_name ?? details?.inst_profile_id]] : []),
             ["Effective from", details?.effective_from],
             ["Effective to", details?.effective_to],
           ].map(([label, value]) => (
@@ -350,8 +353,11 @@ function ModuleForm({
   onSubmit,
 }) {
   const tr = useConfigLabel();
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChoose = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
-    inst_profile_id: editing?.inst_profile_id ?? "",
+    inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
     module_id: editing?.module_id ?? "",
     effective_from: editing?.effective_from ?? "",
     effective_to: editing?.effective_to ?? "",
@@ -411,7 +417,7 @@ function ModuleForm({
         void onSubmit(buildPayload(form.is_draft));
       }}
     >
-      {!editing && (
+      {!editing && canChoose && (
         <label className="block text-sm font-medium">
           Institution
           <FilterSelect

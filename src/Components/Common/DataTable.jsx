@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Search } from "lucide-react";
@@ -197,8 +198,10 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  *   kept for the browser-tab session under this key, so returning to the
  *   list after opening a record on its own route restores the same view.
  */
+const INSTITUTION_COLUMNS = new Set(["inst_profile_name", "inst_profile_id", "institution", "institution_name"]);
+
 export function DataTable({
-  columns,
+  columns: allColumns,
   rows,
   rowKey = (row, i) => row.id ?? i,
   isLoading = false,
@@ -230,6 +233,13 @@ export function DataTable({
   serverSorted = false,
 }) {
   const { t } = useTranslation("common");
+  // A bank / fintech user only ever sees its own institution: no
+  // institution column (institution scope handoff).
+  const canChoose = useCanChooseInstitution();
+  const columns = useMemo(
+    () => (canChoose ? allColumns : allColumns.filter((c) => !INSTITUTION_COLUMNS.has(c.key))),
+    [allColumns, canChoose],
+  );
   // Keep the newest record visible first on every table. Users can still
   // click any sortable header to override this default for the current view.
   const stateKey = (name) => (persistKey ? `${persistKey}:${name}` : null);

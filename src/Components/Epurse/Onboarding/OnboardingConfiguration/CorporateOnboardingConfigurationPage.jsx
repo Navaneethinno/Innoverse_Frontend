@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -245,7 +246,7 @@ export function CorporateOnboardingConfigurationPage() {
         <div className="text-left">
           <div>{r.company_type_name ?? "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.party_type_name ?? "-"}</div>
-          <div className="text-[11px] text-muted-foreground">{r.inst_profile_name ?? "-"}</div>
+          <InstitutionOnly><div className="text-[11px] text-muted-foreground">{r.inst_profile_name ?? "-"}</div></InstitutionOnly>
         </div>
       ),
     },

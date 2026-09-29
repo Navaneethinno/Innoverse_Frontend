@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useTranslation } from "react-i18next";
 import { ProfilePermissionTree } from "@/Components/UserManagement/Profile/ProfilePermissionTree";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -16,6 +17,8 @@ export function profileId(profile) {
 // for the menu/action grant tree (not duplicated here).
 export function ProfileForm({ form, setForm, institutions, onSubmit }) {
   const { t } = useTranslation("profiles");
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChooseInstitution = useCanChooseInstitution();
   return (
     <form onSubmit={onSubmit} className="space-y-4" id="profile-form">
       <label className="block text-sm text-slate-700">
@@ -27,6 +30,7 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
           className="w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
         />
       </label>
+      {canChooseInstitution && (
       <label className="block text-sm text-slate-700">
         <span className="mb-1.5 block font-medium">{t("institution")}</span>
         <FilterSelect
@@ -42,6 +46,7 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
           ]}
         />
       </label>
+      )}
       <div>
         <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
         <ProfilePermissionTree

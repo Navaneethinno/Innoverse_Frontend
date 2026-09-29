@@ -1,3 +1,6 @@
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -108,7 +111,7 @@ function ChannelActions({ row, onRefresh, onEdit }) {
         <div className="space-y-3">
           {[
             ["Channel", row.channel_name ?? row.channel_id],
-            ["Institution", row.inst_profile_name ?? row.inst_profile_id],
+            ...(canChooseInstitution() ? [["Institution", row.inst_profile_name ?? row.inst_profile_id]] : []),
           ].map(([label, val]) => (
             <div key={label}>
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
@@ -313,8 +316,11 @@ export function InstitutionChannel() {
 }
 function ChannelForm({ editing, institutions = [], channels = [], pending, onCancel, onSubmit }) {
   const tr = useConfigLabel();
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChoose = useCanChooseInstitution();
+  const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
-    inst_profile_id: editing?.inst_profile_id ?? "",
+    inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
     channel_id: editing?.channel_id ?? "",
     narration: "",
     is_draft: false,
@@ -349,7 +355,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
       }}
     >
       <label className="block text-sm font-medium">
-        {!editing && (
+        {!editing && canChoose && (
           <>
             Institution
             <FilterSelect

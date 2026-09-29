@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -13,7 +14,7 @@ async function request(path, body = {}) {
     const response = await fetch(`${API_BASE_URL}${scopedPath(path)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() },
-      body: JSON.stringify(body), signal: controller.signal,
+      body: JSON.stringify(scopedBody(body)), signal: controller.signal,
     });
     const payload = (response.headers.get("content-type") ?? "").includes("application/json") ? await response.json().catch(() => null) : null;
     if (response.status === 401) { clearAuthSession(); window.dispatchEvent(new Event("auth:unauthorized")); throw new Error("Session expired. Please sign in again."); }

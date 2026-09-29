@@ -1,3 +1,4 @@
+import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ListChecks, Plus } from "lucide-react";
@@ -95,7 +96,7 @@ export function InternalWatchlists() {
           <dl className="grid gap-3">
             <ViewItem label={t("aml:code")}>{row.code}</ViewItem>
             <ViewItem label={t("aml:name")}>{row.name}</ViewItem>
-            <ViewItem label={t("aml:institution")}>{row.inst_profile_name}</ViewItem>
+            <InstitutionOnly><ViewItem label={t("aml:institution")}>{row.inst_profile_name}</ViewItem></InstitutionOnly>
             {row.description && <ViewItem label={t("common:description")}>{row.description}</ViewItem>}
             <ViewItem label={t("aml:listFile")}>{row.file_name ? `${row.file_name} · ${row.file_format ?? ""}` : "-"}</ViewItem>
             <ViewItem label={t("aml:defaultEntityType")}>{row.default_entity_type ? t(`aml:entity_${row.default_entity_type}`) : "-"}</ViewItem>

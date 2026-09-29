@@ -51,7 +51,9 @@ function parseSessionResponse(payload) {
   return {
     access_token: accessToken,
     refresh_token: sessionInfo?.refresh_token ?? null,
-    user: data?.user_details ?? null,
+    // `scope` (institution scope handoff) rides on the stored user: tier,
+    // type_code, institution_id, can_choose_institution.
+    user: data?.user_details ? { ...data.user_details, ...(data?.scope ? { scope: data.scope } : {}) } : null,
     theme: theme.primary || theme.secondary ? theme : null,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).

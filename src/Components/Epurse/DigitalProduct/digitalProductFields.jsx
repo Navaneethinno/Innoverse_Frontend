@@ -1,3 +1,4 @@
+import { scopeInstitutionFields } from "@/Utils/Lib/institutionScope";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
@@ -101,6 +102,8 @@ export const CONFIGS = {
     ],
   },
 };
+scopeInstitutionFields(CONFIGS);
+
 
 // The dropdown-driven control (or plain input/textarea/checkbox) for one
 // field of one CONFIGS entry. `lookups` bundles every list either caller

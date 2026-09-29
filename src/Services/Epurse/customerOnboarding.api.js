@@ -1,3 +1,4 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -25,7 +26,7 @@ async function request(path, body = {}) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(scopedBody(body)),
       signal: controller.signal,
     });
     const payload = (response.headers.get("content-type") ?? "").includes("application/json")
