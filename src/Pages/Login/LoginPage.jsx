@@ -265,6 +265,7 @@ export function LoginPage() {
               </button>
             </motion.form>
           </motion.div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">© 2026 Innovitegra Solutions Private Limited</p>
         </motion.div>
       </div>
     </div>
