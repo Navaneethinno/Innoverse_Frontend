@@ -57,9 +57,8 @@ const CONFIGS = {
   indv_tax_classification: { title: "Tax Classification", menuName: "Tax Classification", api: indvTaxClassificationApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_TAX_CLASSIFICATION },
   indv_pep_status: { title: "PEP Status", menuName: "PEP Status", api: indvPepStatusApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_STATUS },
   indv_pep_category: { title: "PEP Category", menuName: "PEP Category", api: indvPepCategoryApi, endpoint: API_ENDPOINTS.MASTER_CONFIG.INDV_PEP_CATEGORY },
-  // ownership_id is set once on add and never editable — same
-  // readOnlyOnEdit convention every other CONFIGS-driven resource in the
-  // app uses (see AcctConfigResource.jsx's own acct_product.readOnlyOnEdit).
+  // Ownership is always INDIVIDUAL, set by the server (handoff 17): not
+  // asked on add; the list and view still show it.
   ownership_sub_type: {
     title: "Ownership Sub Type",
     menuName: "Ownership Sub Type",
@@ -155,10 +154,6 @@ export function CustomerMasterConfigResource({ entity }) {
       notifications.error("Code is required");
       return;
     }
-    if (config.hasOwnership && !editing && (form.ownership_id === "" || form.ownership_id == null)) {
-      notifications.error("Please select an ownership");
-      return;
-    }
     if (config.hasCategory && !editing && !form.category) {
       notifications.error("Please select a category");
       return;
@@ -175,7 +170,6 @@ export function CustomerMasterConfigResource({ entity }) {
         // maxLength stops new ones, but this also cleans up anything typed
         // before that limit was added.
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
-        ...(config.hasOwnership && !editing ? { ownership_id: form.ownership_id } : {}),
         ...(config.hasCategory && !editing ? { category: form.category } : {}),
         is_draft: draft,
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
@@ -396,21 +390,6 @@ export function CustomerMasterConfigResource({ entity }) {
             }}
             className="grid gap-4"
           >
-            {config.hasOwnership && (
-              <label className="text-sm font-semibold text-slate-700">
-                {t("onboarding:ownership")}
-                <FilterSelect
-                  className="mt-1.5"
-                  value={form.ownership_id}
-                  onChange={(value) => setForm({ ...form, ownership_id: value })}
-                  disabled={Boolean(editing)}
-                  options={[
-                    { value: "", label: t("customer:selectOwnership") },
-                    ...ownershipTypes.map((o) => ({ value: o.id, label: o.name ?? String(o.id) })),
-                  ]}
-                />
-              </label>
-            )}
             {config.hasCategory && (
               <label className="text-sm font-semibold text-slate-700">
                 {t("onboarding:category")}
