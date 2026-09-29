@@ -152,18 +152,16 @@ export function UserForm({
                 options={[
                   { value: "", label: key === "inst_id" ? t("selectInstitution") : t("selectProfile") },
                   ...(key === "inst_id" ? institutions : profiles).map((option) => {
+                    // A profile row also carries its institution's
+                    // inst_profile_id, so each list reads its own id first.
                     const id =
-                      option.inst_profile_id ??
-                      option.institution_id ??
-                      option.inst_id ??
-                      option.profile_id ??
-                      option.id;
+                      key === "inst_id"
+                        ? option.inst_profile_id ?? option.institution_id ?? option.inst_id ?? option.id
+                        : option.profile_id ?? option.id;
                     const label =
-                      option.institution_name ??
-                      option.inst_name ??
-                      option.profile_name ??
-                      option.name ??
-                      id;
+                      key === "inst_id"
+                        ? option.institution_name ?? option.inst_name ?? option.name ?? id
+                        : option.profile_name ?? option.name ?? id;
                     return { value: id, label };
                   }),
                 ]}
