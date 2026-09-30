@@ -14,6 +14,7 @@ import { notificationRoutes } from "./Epurse/notificationRoutes";
 import { riskRoutes } from "./Epurse/riskRoutes";
 import { amlRoutes } from "./InnoAML/amlRoutes";
 import { reportRoutes } from "./Reports/reportRoutes";
+import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -39,3 +40,6 @@ export const innoAmlRoutes = [...amlRoutes];
 
 // Reports: User Activity, Risk Score Breakdown, AML Score Breakdown.
 export const reportsRoutes = [...reportRoutes];
+
+// Global Settings: Limit.
+export { globalSettingsRoutes };

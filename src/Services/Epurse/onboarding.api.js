@@ -173,3 +173,20 @@ export async function activeCorpMasterOptions(name) {
     .filter((row) => Number(row.status) === 1)
     .map((row) => ({ id: row.id, code: row.code, name: row.name ?? row.code }));
 }
+
+// Global Settings > Limit (limit groups): the usual maker-checker verbs plus
+// the rules (`config`, replaced whole by save_config), clone, moving
+// customers / merchants between groups, and a dry-run `evaluate`.
+export const limitGroupApi = createLifecycle("/config/global/limit");
+export const limitGroupOps = {
+  get: (payload) => limitGroupApi.call("get", payload),
+  saveConfig: (payload) => limitGroupApi.call("save_config", payload),
+  validate: (payload) => limitGroupApi.call("validate", payload),
+  clone: (payload) => limitGroupApi.call("clone", payload),
+  assign: (payload) => limitGroupApi.call("assign", payload),
+  members: (payload) => limitGroupApi.call("members", payload),
+  evaluate: (payload) => limitGroupApi.call("evaluate", payload),
+};
+
+// Platform lists the limit screens pick from (no menu permission needed).
+export const masterRows = (path) => request(path, {}).then(rowsOf);

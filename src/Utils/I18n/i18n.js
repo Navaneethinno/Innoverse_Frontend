@@ -47,6 +47,7 @@ void i18n
       "reports",
       "tour",
       "formBuilder",
+      "limits",
     ],
     interpolation: { escapeValue: false },
     detection: {

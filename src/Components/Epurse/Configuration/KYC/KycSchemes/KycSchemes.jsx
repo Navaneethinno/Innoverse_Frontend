@@ -59,8 +59,6 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
     };
   }, [scheme]);
 
-  const limitTypes = catalog?.limit_types ?? [];
-  const limitType = (code) => limitTypes.find((t) => t.code === code);
   const spec = useMemo(
     () => [
       { key: "level_no", label: t("onboarding:levelNumber"), type: "number", required: true },
@@ -108,19 +106,6 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
         ],
       },
       {
-        key: "limits",
-        label: t("onboarding:limits"),
-        type: "list",
-        addLabel: t("onboarding:addLimit"),
-        itemTitle: (l) => l.limit_type_code || t("onboarding:newLimit"),
-        spec: [
-          { key: "limit_type_code", label: t("onboarding:limitType"), type: limitTypes.length ? "select" : "text", required: true, options: asOptions(limitTypes) },
-          { key: "currency_code", label: t("onboarding:currencyIsoCode"), type: "text", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_amount, hint: t("onboarding:eGInr") },
-          { key: "max_amount", label: t("onboarding:maxAmount"), type: "number", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_amount },
-          { key: "max_count", label: t("onboarding:maxCount"), type: "number", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_count },
-        ],
-      },
-      {
         key: "capabilities",
         label: t("onboarding:whatTheCustomerMayDo"),
         type: "list",
@@ -147,23 +132,9 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       setBusy(null);
     }
   };
-  // Amount limits carry a currency and no count; count limits the reverse
-  // (guide §7) — drop whichever the chosen type doesn't take.
-  const payloadLevels = () =>
-    cleanConfig(
-      levels.map((level) => ({
-        ...level,
-        limits: (level.limits ?? []).map((l) => {
-          const type = limitType(l.limit_type_code);
-          return {
-            limit_type_code: l.limit_type_code,
-            // Without the type list (not published yet) send what was entered.
-            ...(!type || type.has_amount ? { currency_code: l.currency_code, max_amount: l.max_amount } : {}),
-            ...(!type || type.has_count ? { max_count: l.max_count } : {}),
-          };
-        }),
-      })),
-    );
+  // Limits moved to Global Settings > Limit (a rule with a KYC_LEVEL
+  // condition): a level no longer carries them, so none are sent.
+  const payloadLevels = () => cleanConfig(levels.map(({ limits: _limits, ...level }) => level));
 
   const save = () =>
     run("save", async () => {
