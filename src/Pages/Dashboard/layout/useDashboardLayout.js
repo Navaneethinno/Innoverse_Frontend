@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { dashboardApi } from "@/Services/Dashboard/dashboard.api";
+import { notifications } from "@/Utils/Lib/notifications";
 import { WIDGET_REGISTRY, clampSpan, defaultLayout } from "./widgetRegistry";
 
-// Per-user widget layout, persisted in localStorage (there is no
-// user-settings endpoint yet). Stored as [{ id, span }] — order + width
-// only, never pixel positions, so a saved layout can't produce overlap.
+// Per-user widget layout, saved on the server (/config/user/dashboard_layout)
+// as [{ id, span }]: order and width only, never pixel positions. A copy is
+// kept in localStorage so the page draws the user's layout before the
+// server answers. Changes are saved a moment after the last one.
 const STORAGE_PREFIX = "innoverse:dashboard-layout:";
+const SAVE_DELAY = 800;
 
-// A saved layout is reconciled with the current registry on load: widgets
-// that no longer exist are dropped, spans are clamped to each widget's
-// min/max, and widgets added since the user last saved are appended in their
-// default position order — so shipping a new widget needs no migration.
+// A saved layout is reconciled with the current registry: unknown widgets
+// are dropped, spans clamped, and widgets added since are appended.
 function reconcile(saved) {
   if (!Array.isArray(saved)) return defaultLayout();
   const seen = new Set();
@@ -20,51 +22,67 @@ function reconcile(saved) {
   return [...kept, ...added];
 }
 
-function read(key) {
+const readCache = (key) => {
   try {
     const raw = window.localStorage.getItem(key);
-    return raw ? reconcile(JSON.parse(raw)) : defaultLayout();
+    return raw ? reconcile(JSON.parse(raw)) : null;
   } catch {
-    return defaultLayout();
+    return null;
   }
-}
-
-function write(key, layout) {
+};
+const writeCache = (key, layout) => {
   try {
-    window.localStorage.setItem(key, JSON.stringify(layout));
+    if (layout) window.localStorage.setItem(key, JSON.stringify(layout));
+    else window.localStorage.removeItem(key);
   } catch {
-    // Storage unavailable (private mode, quota) — the layout still works
-    // for this session, it just won't survive a reload.
+    // Storage unavailable: the server copy still holds.
   }
-}
+};
 
-export function useDashboardLayout(userKey) {
-  const storageKey = STORAGE_PREFIX + (userKey || "anonymous");
-  const [layout, setLayoutState] = useState(() => read(storageKey));
+// `serverLayout`: the layout the summary returned (undefined until it has
+// answered, null when the user never customised).
+export function useDashboardLayout(user, serverLayout) {
+  const storageKey = STORAGE_PREFIX + (user?.id ?? user?.username ?? "anonymous");
+  const [layout, setLayoutState] = useState(() => readCache(storageKey) ?? defaultLayout());
+  const timer = useRef(null);
 
-  // A different user signing in on the same browser gets their own layout.
+  // The server's copy wins once it arrives.
   useEffect(() => {
-    setLayoutState(read(storageKey));
-  }, [storageKey]);
+    if (serverLayout === undefined) return;
+    const next = serverLayout?.layout ? reconcile(serverLayout.layout) : defaultLayout();
+    setLayoutState(next);
+    writeCache(storageKey, serverLayout?.layout ? next : null);
+  }, [serverLayout, storageKey]);
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  const save = useCallback(
+    (value) => {
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => {
+        if (!user?.id) return;
+        dashboardApi.saveLayout(user, value).catch((error) => notifications.error(error.message));
+      }, SAVE_DELAY);
+    },
+    [user],
+  );
 
   const setLayout = useCallback(
     (next) =>
       setLayoutState((prev) => {
         const value = typeof next === "function" ? next(prev) : next;
-        write(storageKey, value);
+        writeCache(storageKey, value);
+        save(value);
         return value;
       }),
-    [storageKey],
+    [storageKey, save],
   );
 
   const resetLayout = useCallback(() => {
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch {
-      // ignore — falls back to the default below either way
-    }
+    writeCache(storageKey, null);
     setLayoutState(defaultLayout());
-  }, [storageKey]);
+    save(null);
+  }, [storageKey, save]);
 
   return { layout, setLayout, resetLayout };
 }

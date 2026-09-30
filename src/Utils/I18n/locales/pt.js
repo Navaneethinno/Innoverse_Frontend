@@ -393,6 +393,18 @@ export const dashboard = {
   resetLayout: "Restaurar layout",
   done: "Concluído",
   customizeLayout: "Personalizar layout",
+  refresh: "Atualizar",
+  byParty: "{{customers}} clientes · {{merchants}} comerciantes",
+  openAndPending: "{{open}} em curso · {{pending}} a aguardar aprovação",
+  totalN: "Total {{count}}",
+  noKycLevels: "Ainda sem níveis KYC",
+  portalUnrecorded: "Portal do cliente (canal não registado)",
+  couldNotLoad: "Não foi possível carregar. Tente Atualizar.",
+  nothingYet: "Ainda nada",
+  nothingWaiting: "Nada pendente",
+  noNameYet: "(ainda sem nome)",
+  merchant: "Comerciante",
+  customerParty: "Cliente",
 };
 
 export const forgotPassword = {

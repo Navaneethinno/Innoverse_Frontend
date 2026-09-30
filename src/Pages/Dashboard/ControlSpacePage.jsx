@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, LayoutGrid, RotateCcw } from "lucide-react";
+import { Check, LayoutGrid, RefreshCw, RotateCcw } from "lucide-react";
 import { motion } from "motion/react";
 import { useAuth } from "../../Hooks/useAuth";
 import { DashboardGrid } from "./layout/DashboardGrid";
 import { useDashboardLayout } from "./layout/useDashboardLayout";
+import { DashboardDataContext, isHidden, useDashboardSummary } from "./layout/dashboardData";
+import { WIDGET_REGISTRY } from "./layout/widgetRegistry";
 
-// Control Space: a customizable widget dashboard. Static dummy data only (no
-// API — see widgets/dummyData.js), so it always renders instantly.
+// Control Space: a customizable widget dashboard. One summary call brings
+// the saved layout and every widget's data (layout/dashboardData); a widget
+// the user may not see comes back unavailable and is hidden.
 //
 //   ControlSpacePage        header + "Customize layout"/"Done" toggle
 //   layout/widgetRegistry   id -> component, default/min/max span
-//   layout/useDashboardLayout  per-user saved order + widths (localStorage)
+//   layout/useDashboardLayout  per-user saved order + widths (server)
 //   layout/DashboardGrid    dnd-kit context + sortable 4-column grid
 //   layout/SortableWidget   one slot: drag handle, width toggle
 //   widgets/*               the widgets themselves
@@ -26,7 +29,9 @@ function greetingKey(hour = new Date().getHours()) {
 export function ControlSpacePage() {
   const { t } = useTranslation("dashboard");
   const currentUser = useAuth((s) => s.user);
-  const { layout, setLayout, resetLayout } = useDashboardLayout(currentUser?.username);
+  const summary = useDashboardSummary();
+  const { layout, setLayout, resetLayout } = useDashboardLayout(currentUser, summary.layout);
+  const visible = layout.filter((w) => !isHidden(summary.widgets, w.id));
   const [editing, setEditing] = useState(false);
 
   // Esc leaves customize mode. dnd-kit’s keyboard sensor also uses Esc to
@@ -60,6 +65,18 @@ export function ControlSpacePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {!editing && (
+            <button
+              type="button"
+              disabled={summary.loading}
+              onClick={() => void summary.refresh(Object.keys(WIDGET_REGISTRY))}
+              aria-label={t("refresh")}
+              title={t("refresh")}
+              className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-primary disabled:opacity-50"
+            >
+              <RefreshCw size={13} className={summary.loading ? "animate-spin" : ""} /> {t("refresh")}
+            </button>
+          )}
           {editing && (
             <button
               type="button"
@@ -90,7 +107,9 @@ export function ControlSpacePage() {
         </div>
       </motion.div>
 
-      <DashboardGrid layout={layout} setLayout={setLayout} editing={editing} />
+      <DashboardDataContext.Provider value={summary}>
+        <DashboardGrid layout={visible} setLayout={setLayout} editing={editing} />
+      </DashboardDataContext.Provider>
     </div>
   );
 }
