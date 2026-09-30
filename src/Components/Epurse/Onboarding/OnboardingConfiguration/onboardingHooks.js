@@ -1,21 +1,32 @@
 import { useEffect, useState } from "react";
-import { activeMasterOptions, kycSchemeApi, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { activeMasterOptions, kycSchemeApi, request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { masterApi } from "@/Services/Master/master.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // The onboarding catalogue (/indv_onboarding_catalog) is gone with the form
-// builder. What KYC schemes still pick from it comes from the platform
-// masters now (KYC checks, transactions); limit types and upgrade triggers
-// have no replacement list yet, so those pickers stay empty until the
-// backend publishes one. Fetched once per page load and shared.
+// builder; its lists are platform masters now (Admin portal update: master
+// lists). A list that fails to load comes back empty, and the KYC scheme
+// then falls back to free text for it. Fetched once per page load, shared.
+const masterList = (path) => request(path, {}).then(rowsOf).catch(() => []);
 let catalogPromise = null;
 export function useOnboardingCatalog() {
   const [catalog, setCatalog] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    catalogPromise ??= Promise.all([masterApi.kycProcessList().catch(() => []), masterApi.transactionList().catch(() => [])]).then(([kycProcesses, transactions]) => ({
+    catalogPromise ??= Promise.all([
+      masterApi.kycProcessList().catch(() => []),
+      masterApi.transactionList().catch(() => []),
+      masterList("/master/limit_type"),
+      masterList("/master/kyc_upgrade_trigger"),
+      masterList("/master/document_purpose"),
+      masterList("/master/validation_type"),
+    ]).then(([kycProcesses, transactions, limitTypes, upgradeTriggers, documentPurposes, validationTypes]) => ({
       kyc_processes: kycProcesses,
       transactions,
+      limit_types: limitTypes,
+      kyc_upgrade_triggers: upgradeTriggers,
+      document_purposes: documentPurposes,
+      validation_types: validationTypes,
     }));
     catalogPromise
       .then((data) => {
