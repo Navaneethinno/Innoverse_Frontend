@@ -25,8 +25,8 @@ import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboarding
 // Corporate mirror of CustomerOnboardingResource.jsx (Customer Onboarding
 // (Corporate) — Frontend Guide §6): same 13-call maker-checker lifecycle,
 // same getMakerCheckerButtons()-driven RowActions, just against
-// /customer/corporate/* and the row's own company_name/registration_number
-// instead of customer_name/kyc fields (no KYC levels for corporate).
+// /customer/admin/corporate/*; the name is the definition's display_name
+// (customer_name), and there are no KYC levels for corporate.
 const pendingApi = ({ id }) => corpCustomerOnboardingApi.pending({ reference_id: id });
 
 function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
@@ -116,10 +116,9 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
       {audit && (
         <AuditModal
           getActionLabel={portalAuditLabel}
-          title={row.company_name || row.email || row.phone_number}
+          title={row.customer_name || row.company_name || row.email || row.phone_number}
           fields={[
-            ["company_name", t("customer:company")],
-            ["registration_number", t("customer:registrationNumber")],
+            ["customer_name", t("customer:company")],
             ["onboarding_definition_name", t("onboarding:customerType")],
             ["current_step", t("customer:step")],
           ]}
@@ -178,13 +177,13 @@ export function CorporateCustomerOnboardingResource() {
 
   const columns = [
     {
-      key: "company_name",
+      key: "customer_name",
       label: t("customer:company"),
       align: "left",
       render: (r) => (
         <div className="text-left">
-          <div className="font-semibold">{r.company_name || "-"}</div>
-          <div className="text-[11px] text-muted-foreground">{r.registration_number || r.email || r.phone_number}</div>
+          <div className="font-semibold">{r.customer_name || r.company_name || "-"}</div>
+          <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
           <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
           <PortalSourceBadge record={r} />
         </div>

@@ -81,23 +81,27 @@ export function createLifecycle(base) {
   };
 }
 
-// Individual-customer masters and onboarding config moved to /indv_* base
-// paths (2026-09) — the old /master_config/onboarding_* routes now 404.
-// Request/response bodies, field names and the maker-checker verb set are
-// unchanged; only the path segment changed.
-export const onboardingCatalog = () => request("/customer/master_config/indv_onboarding_catalog", {});
+// Form builder (Admin portal handoff: onboarding form builder): the
+// institution's own field library and sections. Plain create / edit /
+// delete, no maker-checker: they are approved as part of the definition
+// that uses them. The /customer prefix becomes /merchant on MMS pages
+// (apiScope).
+function createBuilderApi(base) {
+  const call = (verb) => (payload = {}) => request(`${base}/${verb}`, payload);
+  return { add: call("add"), edit: call("edit"), get: call("get"), list: call("list"), delete: call("delete"), types: call("types") };
+}
+export const formFieldApi = createBuilderApi("/customer/master_config/form_field");
+export const formSectionApi = createBuilderApi("/customer/master_config/form_section");
 
 export const onboardingDefinitionApi = { ...createLifecycle("/customer/master_config/indv_onboarding_definition") };
 export const kycSchemeApi = createLifecycle("/config/kyc/group");
 
-// The definition itself IS the whole customer-type configuration now — no
-// more separate "version" entity (Onboarding_Configuration_API.md §8.1).
-// `config` (sections/fields/documents/...) is edited as one object and
-// replaced whole by save_config (§8.11), directly on the definition's own
-// id, while it is Draft or Rejected Add.
+// The definition holds a `form` (ordered sections, rules, uses) saved by
+// save_form while it is Draft or Rejected; `get` returns the form and the
+// resolved `snapshot` the customer is asked.
 export const onboardingDefinitionOps = {
   get: (payload) => onboardingDefinitionApi.call("get", payload),
-  saveConfig: (payload) => onboardingDefinitionApi.call("save_config", payload),
+  saveForm: (payload) => onboardingDefinitionApi.call("save_form", payload),
   validate: (payload) => onboardingDefinitionApi.call("validate", payload),
 };
 export const kycSchemeOps = {
@@ -138,11 +142,10 @@ export async function activeMasterOptions(name) {
 // corp_-prefixed masters. province/district/gender/validation_rule/
 // verification_method/verification_status keep their existing (individual/
 // shared) routes — not duplicated here.
-export const corpOnboardingCatalog = () => request("/customer/master_config/corp_onboarding_catalog", {});
 export const corpOnboardingDefinitionApi = { ...createLifecycle("/customer/master_config/corp_onboarding_definition") };
 export const corpOnboardingDefinitionOps = {
   get: (payload) => corpOnboardingDefinitionApi.call("get", payload),
-  saveConfig: (payload) => corpOnboardingDefinitionApi.call("save_config", payload),
+  saveForm: (payload) => corpOnboardingDefinitionApi.call("save_form", payload),
   validate: (payload) => corpOnboardingDefinitionApi.call("validate", payload),
 };
 

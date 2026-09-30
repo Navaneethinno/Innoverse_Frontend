@@ -43,6 +43,17 @@ onboardingRoutes.push(
   { path: "onboardingconfiguration/:id", element: pageElement(OnboardingConfigHub) },
 );
 
+// Onboarding form builder: the institution's field library and sections
+// (menus "Form Fields" / "Form Sections", customers and merchants).
+const FormFields = lazy(() => import("@/Components/Epurse/Onboarding/FormBuilder/FormFields.jsx").then((m) => ({ default: m.FormFields })));
+const FormSections = lazy(() => import("@/Components/Epurse/Onboarding/FormBuilder/FormSections.jsx").then((m) => ({ default: m.FormSections })));
+onboardingRoutes.push(
+  { path: "formfields", element: pageElement(FormFields) },
+  { path: "formfields/:id", element: pageElement(FormFields) },
+  { path: "formsections", element: pageElement(FormSections) },
+  { path: "formsections/:id", element: pageElement(FormSections) },
+);
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages

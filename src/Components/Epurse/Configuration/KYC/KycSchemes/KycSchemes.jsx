@@ -10,6 +10,7 @@ import { kycSchemeApi, kycSchemeOps, rowsOf } from "@/Services/Epurse/onboarding
 import { LifecycleList } from "../../../Onboarding/OnboardingConfiguration/LifecycleList";
 import { ListEditor, cleanConfig } from "../../../Onboarding/OnboardingConfiguration/ListEditor";
 import { useOnboardingCatalog, useOnboardingMasters } from "../../../Onboarding/OnboardingConfiguration/onboardingHooks";
+import { useFieldLibrary } from "../../../Onboarding/FormBuilder/formBuilderHooks";
 
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
 // replaces ALL levels atomically, validate is a dry run of the submit checks,
@@ -23,6 +24,9 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   const { t } = useTranslation(["onboarding", "common"]);
   const catalog = useOnboardingCatalog();
   const { masters, loading: mastersLoading } = useOnboardingMasters();
+  // A level asks for fields of the institution's form library, by key
+  // (onboarding form builder handoff §6).
+  const library = useFieldLibrary();
   const [levels, setLevels] = useState([]);
   const [record, setRecord] = useState(scheme);
   const [loading, setLoading] = useState(true);
@@ -64,15 +68,15 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       { key: "description", label: t("common:description"), type: "text", wide: true },
       { key: "is_entry_level", label: t("onboarding:entryLevelExactlyOne"), type: "bool" },
       { key: "next_level_no", label: t("onboarding:nextLevelNumber"), type: "number", hint: t("onboarding:mustBeHigherThanThisLevelS") },
-      { key: "upgrade_trigger_code", label: t("onboarding:upgradeTrigger"), type: "select", options: asOptions(catalog?.kyc_upgrade_triggers) },
+      { key: "upgrade_trigger_code", label: t("onboarding:upgradeTrigger"), type: catalog?.kyc_upgrade_triggers?.length ? "select" : "text", options: asOptions(catalog?.kyc_upgrade_triggers) },
       {
         key: "fields",
         label: t("onboarding:dataToCollect"),
         type: "list",
         addLabel: t("onboarding:addField"),
-        itemTitle: (f) => f.field_code || t("onboarding:newField"),
+        itemTitle: (f) => library.rows.find((x) => x.key === f.field_key)?.name ?? (f.field_key || t("onboarding:newField")),
         spec: [
-          { key: "field_code", label: t("onboarding:field"), type: "select", required: true, options: asOptions(catalog?.fields) },
+          { key: "field_key", label: t("onboarding:field"), type: "select", required: true, options: asOptions(library.rows, "key", (x) => `${x.name} (${x.key})`) },
           { key: "mandatory", label: t("onboarding:mandatory"), type: "bool" },
           { key: "sequence_no", label: t("onboarding:order"), type: "number" },
         ],
@@ -110,10 +114,10 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
         addLabel: t("onboarding:addLimit"),
         itemTitle: (l) => l.limit_type_code || t("onboarding:newLimit"),
         spec: [
-          { key: "limit_type_code", label: t("onboarding:limitType"), type: "select", required: true, options: asOptions(limitTypes) },
-          { key: "currency_code", label: t("onboarding:currencyIsoCode"), type: "text", showIf: (l) => limitType(l.limit_type_code)?.has_amount, hint: t("onboarding:eGInr") },
-          { key: "max_amount", label: t("onboarding:maxAmount"), type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_amount },
-          { key: "max_count", label: t("onboarding:maxCount"), type: "number", showIf: (l) => limitType(l.limit_type_code)?.has_count },
+          { key: "limit_type_code", label: t("onboarding:limitType"), type: limitTypes.length ? "select" : "text", required: true, options: asOptions(limitTypes) },
+          { key: "currency_code", label: t("onboarding:currencyIsoCode"), type: "text", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_amount, hint: t("onboarding:eGInr") },
+          { key: "max_amount", label: t("onboarding:maxAmount"), type: "number", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_amount },
+          { key: "max_count", label: t("onboarding:maxCount"), type: "number", showIf: (l) => !limitType(l.limit_type_code) || limitType(l.limit_type_code).has_count },
         ],
       },
       {
@@ -129,7 +133,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [catalog, masters],
+    [catalog, masters, library.rows],
   );
 
   const run = async (label, work) => {
@@ -153,8 +157,9 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
           const type = limitType(l.limit_type_code);
           return {
             limit_type_code: l.limit_type_code,
-            ...(type?.has_amount ? { currency_code: l.currency_code, max_amount: l.max_amount } : {}),
-            ...(type?.has_count ? { max_count: l.max_count } : {}),
+            // Without the type list (not published yet) send what was entered.
+            ...(!type || type.has_amount ? { currency_code: l.currency_code, max_amount: l.max_amount } : {}),
+            ...(!type || type.has_count ? { max_count: l.max_count } : {}),
           };
         }),
       })),
@@ -174,7 +179,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       if (result.valid) notifications.success("Scheme is valid");
     });
 
-  const ready = !loading && catalog && !mastersLoading;
+  const ready = !loading && catalog && !mastersLoading && !library.loading;
   return (
     <Modal
       open

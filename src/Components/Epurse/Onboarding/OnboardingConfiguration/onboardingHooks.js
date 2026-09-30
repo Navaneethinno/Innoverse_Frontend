@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
-import { activeMasterOptions, kycSchemeApi, onboardingCatalog, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { activeMasterOptions, kycSchemeApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { masterApi } from "@/Services/Master/master.api";
 import { notifications } from "@/Utils/Lib/notifications";
 
-// The platform catalog is identical for every institution and only changes
-// with a release — fetched once per page load and shared (guide §6).
+// The onboarding catalogue (/indv_onboarding_catalog) is gone with the form
+// builder. What KYC schemes still pick from it comes from the platform
+// masters now (KYC checks, transactions); limit types and upgrade triggers
+// have no replacement list yet, so those pickers stay empty until the
+// backend publishes one. Fetched once per page load and shared.
 let catalogPromise = null;
 export function useOnboardingCatalog() {
   const [catalog, setCatalog] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    catalogPromise ??= onboardingCatalog().then((r) => rowsOf(r)[0] ?? {});
+    catalogPromise ??= Promise.all([masterApi.kycProcessList().catch(() => []), masterApi.transactionList().catch(() => [])]).then(([kycProcesses, transactions]) => ({
+      kyc_processes: kycProcesses,
+      transactions,
+    }));
     catalogPromise
       .then((data) => {
         if (!cancelled) setCatalog(data);

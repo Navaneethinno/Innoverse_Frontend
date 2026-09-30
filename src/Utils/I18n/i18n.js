@@ -46,6 +46,7 @@ void i18n
       "aml",
       "reports",
       "tour",
+      "formBuilder",
     ],
     interpolation: { escapeValue: false },
     detection: {

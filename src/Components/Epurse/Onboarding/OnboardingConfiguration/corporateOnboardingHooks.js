@@ -1,34 +1,6 @@
 import { useEffect, useState } from "react";
-import { activeCorpMasterOptions, corpOnboardingCatalog, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { activeCorpMasterOptions } from "@/Services/Epurse/onboarding.api";
 import { masterApi } from "@/Services/Master/master.api";
-import { notifications } from "@/Utils/Lib/notifications";
-
-// Corporate mirror of onboardingHooks.js's useOnboardingCatalog/
-// useOnboardingMasters (Corporate_Onboarding_Configuration_API.md §3) — same
-// "fetch once per page load, shared across every open wizard" reasoning,
-// kept as a separate cache/hook pair since the corporate catalog is a
-// distinct call (/master_config/corp_onboarding_catalog) from the
-// individual one.
-let corpCatalogPromise = null;
-export function useCorpOnboardingCatalog() {
-  const [catalog, setCatalog] = useState(null);
-  useEffect(() => {
-    let cancelled = false;
-    corpCatalogPromise ??= corpOnboardingCatalog().then((r) => rowsOf(r)[0] ?? {});
-    corpCatalogPromise
-      .then((data) => {
-        if (!cancelled) setCatalog(data);
-      })
-      .catch((error) => {
-        corpCatalogPromise = null;
-        if (!cancelled) notifications.error(error.message);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  return catalog;
-}
 
 const CORP_MASTER_NAMES = [
   "corp_address_type",

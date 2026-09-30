@@ -11,6 +11,10 @@ import { MenuContext } from "./menuContext";
 const HUB_FOR = {
   corporateonboardingconfiguration: "onboardingconfiguration",
   corporateonboardingwizard: "onboardingwizard",
+  // One field library / section list per institution, whichever branch
+  // the menu sits under.
+  corpformfields: "formfields",
+  corpformsections: "formsections",
 };
 
 // A sidebar menu's page at /<module>/<menu path> (Menus handoff 12). The
