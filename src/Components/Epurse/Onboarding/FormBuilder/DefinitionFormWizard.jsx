@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
@@ -14,6 +14,7 @@ import { kycSchemeApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { inputClass } from "./FieldOptionsEditor";
 import { useFieldLibrary, useSectionLibrary } from "./formBuilderHooks";
+import { UsesStep } from "./UsesStep";
 
 // The form on a definition (Admin portal handoff: onboarding form builder,
 // §5), shared by individual and corporate: Basics (the definition's own
@@ -29,31 +30,6 @@ const LIST_OPERATORS = new Set(["IN", "NOT_IN", "BETWEEN"]);
 const NO_VALUE = new Set(["IS_SET", "IS_EMPTY"]);
 const ACTIONS = ["SHOW", "HIDE", "REQUIRE", "OPTIONAL"];
 
-const TEXT = ["TEXT"];
-const LISTS = ["DROPDOWN", "RADIO", "CHECKBOXES"];
-const DUPLICATE = ["TEXT", "NUMBER", "DATE", "PHONE", "EMAIL", "DROPDOWN", "RADIO"];
-// The roles a form can give its fields (§5 "Uses"), with the field types
-// each accepts and who they apply to.
-const ROLES = [
-  { role: "display_name", types: TEXT, multi: true },
-  { role: "contact_phone", types: ["PHONE"] },
-  { role: "contact_email", types: ["EMAIL"] },
-  { role: "screening_name", types: TEXT, multi: true },
-  { role: "screening_birth_date", types: ["DATE"] },
-  { role: "screening_country", types: LISTS },
-  { role: "screening_gender", types: LISTS },
-  { role: "screening_alt_name", types: TEXT, only: "corporate" },
-  { role: "related_party_name", types: TEXT, only: "corporate" },
-  { role: "related_party_role", types: [...TEXT, ...LISTS], only: "corporate" },
-  { role: "related_party_birth_date", types: ["DATE"], only: "corporate" },
-  { role: "related_party_country", types: LISTS, only: "corporate" },
-  { role: "duplicate_key", types: DUPLICATE, multi: true },
-  { role: "duplicate_key_2", types: DUPLICATE, multi: true },
-  { role: "duplicate_key_3", types: DUPLICATE, multi: true },
-  { role: "kyc_document_type", types: LISTS, only: "individual" },
-  { role: "kyc_document_front", types: ["FILE"], only: "individual" },
-  { role: "kyc_document_back", types: ["FILE"], only: "individual" },
-];
 
 // Condition values are typed as text; numbers go back as numbers (a list
 // field is compared with the chosen row's id).
@@ -258,6 +234,11 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
     setForm((f) => ({ ...f, ...patch }));
     setDirty(true);
   };
+  // Stable, so the Uses step's one-time suggestion effect doesn't re-run.
+  const setUses = useCallback((uses) => {
+    setForm((f) => ({ ...f, uses }));
+    setDirty(true);
+  }, []);
   const setBasic = (key, value) => {
     setBasics((b) => ({ ...b, [key]: value }));
     setDirty(true);
@@ -284,7 +265,16 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
         if (!key || seen.has(key)) continue;
         seen.add(key);
         const known = snapshotFields.get(key) ?? {};
-        out.push({ key, label: placementLabel(f) ?? known.label ?? key, field_type: f.field_type ?? known.field_type, section: section_key });
+        out.push({
+          key,
+          label: placementLabel(f) ?? known.label ?? key,
+          name: known.name ?? f.name ?? "",
+          field_type: f.field_type ?? known.field_type,
+          source_table: f.options?.source_table ?? known.options?.source_table ?? "",
+          section: section_key,
+          sectionName: section?.name ?? section?.heading ?? section_key,
+          multiRow: Boolean(section?.multi_row),
+        });
       }
     }
     return out;
@@ -292,10 +282,6 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
   const fieldOptions = formFields.map((f) => ({ value: f.key, label: `${f.label} (${f.key})` }));
   const sectionOptions = form.sections.map((s) => ({ value: s.section_key, label: `${sectionByKey.get(s.section_key)?.name ?? s.section_key} (${s.section_key})` }));
 
-  // Types of fields the library sections don't resolve (a section without
-  // resolved_fields on list) come from the snapshot; unknown ones stay
-  // pickable for every role rather than hidden.
-  const fitsRole = (field, types) => !field.field_type || types.includes(field.field_type);
 
   const payloadForm = () => ({
     sections: form.sections.map((s) => ({ section_key: s.section_key, required: s.required !== false })),
@@ -387,7 +373,6 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
     return next;
   };
   const placedSections = new Set(form.sections.map((s) => s.section_key));
-  const roles = ROLES.filter((r) => !r.only || r.only === kind);
 
   return (
     <Modal
@@ -561,44 +546,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           )}
 
           {step === "uses" && (
-            <div className="flex flex-col gap-3">
-              <p className="text-xs text-muted-foreground">{t("formBuilder:usesStepHint")}</p>
-              {formFields.length === 0 && <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{t("formBuilder:addSectionsFirst")}</p>}
-              <div className="grid gap-3 lg:grid-cols-2">
-                {roles.map(({ role, types, multi }) => {
-                  const chosen = form.uses?.[role] ?? [];
-                  const candidates = formFields.filter((f) => fitsRole(f, types));
-                  const setChosen = (next) => change({ uses: { ...form.uses, [role]: next } });
-                  return (
-                    <div key={role} className="rounded-xl border bg-white/70 p-3">
-                      <p className="text-sm font-bold text-slate-800">{t(`formBuilder:role_${role}`)}</p>
-                      <p className="mb-2 text-[11px] text-muted-foreground">{t(`formBuilder:roleHint_${role}`)}</p>
-                      {multi ? (
-                        <div className="flex flex-wrap gap-2">
-                          {candidates.length === 0 && <span className="text-xs text-muted-foreground">{t("formBuilder:noFittingFields")}</span>}
-                          {candidates.map((f) => (
-                            <CheckboxPill
-                              key={f.key}
-                              label={f.label}
-                              disabled={readOnly}
-                              checked={chosen.includes(f.key)}
-                              onChange={(on) => setChosen(on ? [...chosen, f.key] : chosen.filter((k) => k !== f.key))}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <FilterSelect
-                          disabled={readOnly}
-                          value={chosen[0] ?? ""}
-                          onChange={(v) => setChosen(v ? [v] : [])}
-                          options={[{ value: "", label: t("formBuilder:notUsed") }, ...candidates.map((f) => ({ value: f.key, label: `${f.label} (${f.key})` }))]}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} />
           )}
 
           {step === "review" && (
