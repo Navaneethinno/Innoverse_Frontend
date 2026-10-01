@@ -1,3 +1,4 @@
+import { trimPayload } from "@/Utils/Lib/trimPayload";
 import { readAuthUser } from "@/Services/api/authStorage";
 
 // Institution scope (Admin portal: institution scope handoff). The login
@@ -15,9 +16,12 @@ export const canChooseInstitution = (scope = readScope()) => scope?.can_choose_i
 
 // A request body without inst_profile_id for a TENANT user. Every request
 // helper passes its JSON body through here.
+// Also trims every text value except passwords (trimPayload), so this is the
+// one place all request bodies pass through before they are sent.
 export function scopedBody(body) {
-  if (canChooseInstitution() || !body || typeof body !== "object" || Array.isArray(body) || !("inst_profile_id" in body)) return body;
-  const { inst_profile_id: _own, ...rest } = body;
+  const trimmed = trimPayload(body);
+  if (canChooseInstitution() || !trimmed || typeof trimmed !== "object" || Array.isArray(trimmed) || !("inst_profile_id" in trimmed)) return trimmed;
+  const { inst_profile_id: _own, ...rest } = trimmed;
   return rest;
 }
 

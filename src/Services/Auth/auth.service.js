@@ -1,3 +1,4 @@
+import { trimPayload } from "@/Utils/Lib/trimPayload";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
 import { getAccessToken, getRefreshToken } from "@/Services/api/authStorage";
@@ -110,7 +111,7 @@ export async function loginRequest(institutionCode, username, password) {
       Authorization: getBasicAuthorization(),
       ...apiLanguageHeader(),
     },
-    body: JSON.stringify({ institution_code: institutionCode, user_name: String(username ?? "").replace(/\s/g, ""), password }),
+    body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password }),
   });
   return parseSessionResponse(payload);
 }
