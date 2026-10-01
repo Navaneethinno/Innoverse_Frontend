@@ -9,7 +9,6 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { NoAccess } from "@/Components/Common/NoAccess";
-import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { actionButtonClass } from "@/Components/Common/actionStyles";
 import { formSectionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -19,6 +18,7 @@ import { inputClass } from "./FieldOptionsEditor";
 import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./formBuilderHooks";
 import { FieldPreview } from "./FieldPreview";
 
+import { Button } from "@/Components/Common/Button";
 const EMPTY = { key: "", name: "", heading: "", subheading: "", multi_row: false, max_rows: "", fields: [] };
 const OVERRIDES = ["label", "hint", "help_text", "default_value"];
 const glass = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
@@ -34,7 +34,7 @@ function cleanPlacement(p) {
 
 // What the customer is asked: library values with the placement's
 // overrides on top (the server's resolved_fields, computed live here).
-export const resolvePlacement = (placement, libraryField) => ({ ...(libraryField ?? { key: placement.field_key, label: placement.field_key }), ...cleanPlacement(placement), key: placement.field_key });
+const resolvePlacement = (placement, libraryField) => ({ ...(libraryField ?? { key: placement.field_key, label: placement.field_key }), ...cleanPlacement(placement), key: placement.field_key });
 
 function PlacementRow({ placement, index, count, libraryField, typeName, disabled, onChange, onMove, onRemove }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
@@ -180,13 +180,13 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
       title={readOnly ? t("formBuilder:viewSection") : editing ? t("formBuilder:editSection") : t("formBuilder:addSection")}
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={onClose}>
             {readOnly ? t("common:close") : t("common:cancel")}
-          </button>
+          </Button>
           {!readOnly && (
-            <button type="button" disabled={!canSave || busy} onClick={() => void save()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-              {busy && <Spinner size={13} />} {t("common:save")}
-            </button>
+            <Button disabled={!canSave || busy} onClick={() => void save()} loading={busy}>
+              {t("common:save")}
+            </Button>
           )}
         </>
       }
@@ -390,9 +390,9 @@ export function FormSections() {
             />
           </div>
           {can("Add") && (
-            <button type="button" onClick={() => setEditing({ record: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white">
+            <Button size="sm" onClick={() => setEditing({ record: null })}>
               <Plus size={14} /> {t("formBuilder:addSection")}
-            </button>
+            </Button>
           )}
         </div>
         <DataTable

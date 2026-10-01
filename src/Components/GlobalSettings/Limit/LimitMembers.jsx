@@ -7,6 +7,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { limitGroupApi, limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
+import { Button } from "@/Components/Common/Button";
 // Who is in a limit group, and moving people to another group (handoff:
 // "Moving customers and merchants between groups"). A move takes effect at
 // once, no checker; it needs Edit. People not listed here (e.g. from the
@@ -143,9 +144,9 @@ export function LimitMembers({ group, canMove, onClose }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm">{t("moveSelected", { count: selected.size })}</span>
               <FilterSelect className="min-w-[200px] flex-1" value={target} onChange={setTarget} options={[{ value: "", label: t("pickGroup") }, ...otherGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})${g.is_default ? ` · ${t("default")}` : ""}` }))]} />
-              <button type="button" disabled={busy || !selected.size || !target} onClick={() => void move([...selected], target)} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white disabled:opacity-50">
+              <Button size="sm" disabled={busy || !selected.size || !target} onClick={() => void move([...selected], target)}>
                 {busy ? <Spinner size={12} /> : <ArrowRightLeft size={13} />} {t("move")}
-              </button>
+              </Button>
             </div>
             <div className="border-t pt-3">
               <p className="mb-1.5 text-xs text-muted-foreground">{t("moveInHint", { name: group.name ?? group.code })}</p>

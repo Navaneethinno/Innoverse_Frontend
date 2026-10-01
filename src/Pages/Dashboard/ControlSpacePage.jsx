@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, LayoutGrid, RefreshCw, RotateCcw } from "lucide-react";
 import { motion } from "motion/react";
+import { Button } from "@/Components/Common/Button";
 import { useAuth } from "../../Hooks/useAuth";
 import { DashboardGrid } from "./layout/DashboardGrid";
 import { useDashboardLayout } from "./layout/useDashboardLayout";
@@ -65,44 +66,18 @@ export function ControlSpacePage() {
         </div>
         <div className="flex items-center gap-2">
           {!editing && (
-            <button
-              type="button"
-              disabled={summary.loading}
-              onClick={() => void summary.refresh(Object.keys(WIDGET_REGISTRY))}
-              aria-label={t("refresh")}
-              title={t("refresh")}
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-primary disabled:opacity-50"
-            >
+            <Button variant="secondary" size="sm" disabled={summary.loading} onClick={() => void summary.refresh(Object.keys(WIDGET_REGISTRY))}>
               <RefreshCw size={13} className={summary.loading ? "animate-spin" : ""} /> {t("refresh")}
-            </button>
+            </Button>
           )}
           {editing && layout && (
-            <button
-              type="button"
-              onClick={resetLayout}
-              className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-primary"
-            >
-              <RotateCcw size={13} /> {t("resetLayout")}
-            </button>
+            <Button variant="secondary" size="sm" icon={RotateCcw} onClick={resetLayout}>
+              {t("resetLayout")}
+            </Button>
           )}
-          <button
-            type="button"
-            onClick={() => setEditing((v) => !v)}
-            aria-pressed={editing}
-            className={
-              editing
-                ? "flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-md transition-all hover:bg-[var(--primary-hover)]"
-                : "flex items-center gap-1.5 rounded-xl border bg-card px-4 py-2 text-xs font-bold transition-colors hover:bg-[var(--primary-light)]"
-            }
-            style={
-              editing
-                ? undefined
-                : { color: "var(--primary)", borderColor: "var(--primary-light)" }
-            }
-          >
-            {editing ? <Check size={14} /> : <LayoutGrid size={14} />}
+          <Button variant={editing ? "primary" : "outline"} size="sm" icon={editing ? Check : LayoutGrid} aria-pressed={editing} onClick={() => setEditing((v) => !v)}>
             {editing ? t("done") : t("customizeLayout")}
-          </button>
+          </Button>
         </div>
       </motion.div>
 

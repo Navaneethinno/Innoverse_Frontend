@@ -7,7 +7,6 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { Spinner } from "@/Components/Common/Spinner";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
@@ -20,6 +19,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 
+import { Button } from "@/Components/Common/Button";
 const EMPTY = { province_id: "", name: "", description: "" };
 const rowsOf = (response) => Array.isArray(response?.data) ? response.data : response?.data?.data ?? response?.data?.district_array ?? [];
 const idOf = (row) => row?.id ?? row?.district_id;
@@ -28,7 +28,7 @@ function useDistrictPermission(action) { return usePagePermission("District")(ac
 
 function DistrictForm({ open, form, setForm, provinces, editing, saving, onClose, onSave }) {
   const tr = useConfigLabel();
-  return <Modal open={open} onClose={onClose} title={editing ? "Edit district" : "Add district"} size="md" footer={<><button type="button" disabled={saving} onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-50">Cancel</button><button type="submit" form="district-form" data-mode="draft" disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">Save as draft</button><button type="submit" form="district-form" data-mode="submit" disabled={saving} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{saving && <Spinner size={13} />}{saving ? "Saving..." : editing ? "Save changes" : "Add district"}</button></>}>
+  return <Modal open={open} onClose={onClose} title={editing ? "Edit district" : "Add district"} size="md" footer={<><Button variant="ghost" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="secondary" type="submit" form="district-form" data-mode="draft" disabled={saving}>Save as draft</Button><Button type="submit" form="district-form" data-mode="submit" disabled={saving} loading={saving}>{saving ? "Saving..." : editing ? "Save changes" : "Add district"}</Button></>}>
     <form id="district-form" onSubmit={(event) => { event.preventDefault(); onSave(event.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4">
       <label className="text-sm font-semibold text-slate-700">Province<FilterSelect className="mt-1.5" value={form.province_id} onChange={(next) => setForm({ ...form, province_id: next })} options={[{ value: "", label: tr("Select province") }, ...provinces.map((p) => ({ value: idOf(p), label: p.name ?? p.province_name ?? `Province #${idOf(p)}` }))]} /></label>
       <label className="text-sm font-semibold text-slate-700">Code<input required={!editing} disabled={Boolean(editing)} title={editing ? "The code can't be changed" : undefined} value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 font-mono uppercase outline-none focus:border-primary disabled:bg-muted" /><span className="mt-1 block text-[11px] font-normal text-muted-foreground">A-Z, 0-9 and _ only. Unique in the institution; it can't be changed later.</span></label><label className="text-sm font-semibold text-slate-700">District name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label>

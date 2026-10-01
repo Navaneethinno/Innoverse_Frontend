@@ -736,3 +736,30 @@ textarea:disabled {
     animation: none;
   }
 }
+
+/* Every button, from Sign in onward: a short colour/shadow ease and a slight
+   press. Uses the individual `scale` property so it composes with Tailwind
+   translate/transform classes; utilities still win over this base rule. */
+@layer base {
+  button,
+  [role="button"],
+  a.btn {
+    transition-property: color, background-color, border-color, box-shadow, opacity, scale, translate;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  button:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active {
+    scale: 0.97;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button,
+  [role="button"] {
+    transition-duration: 0ms;
+  }
+  button:not(:disabled):active,
+  [role="button"]:active {
+    scale: none;
+  }
+}

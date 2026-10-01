@@ -16,6 +16,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 
+import { Button } from "@/Components/Common/Button";
 // The single Add-flow entry point for Digital Product: a 9-step wizard
 // (Digital Product, Product Map, Security Config, KYC Config, KYC Level,
 // Channel Config, Channel Transaction, Eligibility Config, Residency).
@@ -142,9 +143,9 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
       growWithContent
       footer={
         <>
-          <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={guard(onClose)}>
             {tr("Cancel")}
-          </button>
+          </Button>
           {stepIndex > 0 && (
             <button
               type="button"

@@ -24,6 +24,7 @@ import { useOnboardingMasters } from "./onboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
+import { Button } from "@/Components/Common/Button";
 const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 
 // A customer type = the definition, full stop (Onboarding_Configuration_
@@ -383,9 +384,9 @@ export function OnboardingConfigurationPage() {
         title={t("onboarding:addOnboardingConfiguration")}
         footer={
           <>
-            <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               {t("common:cancel")}
-            </button>
+            </Button>
             <button
               type="button"
               disabled={saving}

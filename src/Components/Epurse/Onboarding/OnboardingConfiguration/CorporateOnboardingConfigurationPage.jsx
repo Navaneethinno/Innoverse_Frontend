@@ -24,6 +24,7 @@ import { useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
 
+import { Button } from "@/Components/Common/Button";
 const pendingApi = ({ id }) => corpOnboardingDefinitionApi.pending({ id });
 
 // Corporate mirror of OnboardingConfigurationPage.jsx (Corporate_Onboarding_
@@ -346,9 +347,9 @@ export function CorporateOnboardingConfigurationPage() {
         title={t("onboarding:addCorporateCustomerType")}
         footer={
           <>
-            <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               {t("common:cancel")}
-            </button>
+            </Button>
             <button
               type="button"
               disabled={saving}

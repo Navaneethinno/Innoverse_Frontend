@@ -10,6 +10,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, EffectiveResult, partyLabel, when } from "./amlShared";
 import { ScreeningDetailModal } from "./ScreeningDetail";
 
+import { Button } from "@/Components/Common/Button";
 const first = (response) => rowsOf(response)[0] ?? null;
 
 // A customer's current AML result (screening/customer shape, also the `aml`
@@ -86,9 +87,9 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
       title={t("customerResult")}
       footer={
         canRescreen && (
-          <button type="button" disabled={busy} onClick={() => void rescreen()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">
+          <Button disabled={busy} onClick={() => void rescreen()}>
             {busy ? <Spinner size={13} /> : <RefreshCw size={14} />} {t("rescreen")}
-          </button>
+          </Button>
         )
       }
     >

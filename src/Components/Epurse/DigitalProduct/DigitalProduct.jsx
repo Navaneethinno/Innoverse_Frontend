@@ -29,6 +29,7 @@ import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
 import { orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
+import { Button } from "@/Components/Common/Button";
 const idOf = (r) => r?.id;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 // Same key -> lookup-list mapping DigitalProductFieldInput uses for its
@@ -65,9 +66,9 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
       title={`${editing ? tr("Edit") : tr("Add")} ${tr(config.title)}`}
       footer={
         <>
-          <button onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={onClose}>
             {tr("Cancel")}
-          </button>
+          </Button>
           <button
             type="submit"
             form="digital-product-form"

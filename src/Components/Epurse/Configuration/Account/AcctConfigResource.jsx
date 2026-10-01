@@ -39,6 +39,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
+import { Button } from "@/Components/Common/Button";
 // "Account" (acct_product) plus its 16 sub-configs — every sub-config below
 // is scoped to a parent via acct_product_id (see fields), matching the
 // backend's config/acct reference (2026-09). Every field here maps 1:1 to
@@ -731,9 +732,9 @@ export function AcctConfigResource({ entity }) {
               <button onClick={() => void save(true)} disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50">
                 {tr("Save draft")}
               </button>
-              <button onClick={() => void save(false)} disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+              <Button onClick={() => void save(false)} disabled={saving}>
                 {tr("Save")}
-              </button>
+              </Button>
             </>
           }
         >

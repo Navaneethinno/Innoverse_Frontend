@@ -86,7 +86,7 @@ function FileSide({ label, value, onChange, disabled, file, side }) {
 // the answer shapes are the ones `edit` takes. `choices` are the field's
 // inline choices already narrowed by its parent's answer. Without
 // `onChange` it is a read-only preview (the section editor's live preview).
-export function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
+function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
   const { t } = useAudienceTranslation("formBuilder");
   const preview = !onChange;
   const off = disabled || preview || field.read_only;

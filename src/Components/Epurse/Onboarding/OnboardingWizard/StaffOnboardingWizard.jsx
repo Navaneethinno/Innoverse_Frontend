@@ -13,6 +13,7 @@ import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { FieldPreview } from "../FormBuilder/FieldPreview";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 
+import { Button } from "@/Components/Common/Button";
 // The staff onboarding wizard on the institution's own form (Admin portal
 // handoff: onboarding form builder, §8), for individual and corporate.
 // Every section the customer is asked comes at once (a section a rule
@@ -489,27 +490,25 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     if (!referenceId && !wizard) {
       return (
         <>
-          <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:cancel")}</button>
-          <button type="button" disabled={starting} onClick={() => void beginOnboarding()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-            {starting && <Spinner size={13} />}
+          <Button variant="ghost" onClick={guard(onClose)}>{t("common:cancel")}</Button>
+          <Button disabled={starting} onClick={() => void beginOnboarding()} loading={starting}>
             {t("customer:startOnboarding")}
-          </button>
+          </Button>
         </>
       );
     }
-    if (!wizard) return <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>;
+    if (!wizard) return <Button variant="ghost" onClick={guard(onClose)}>{t("common:close")}</Button>;
     return (
       <>
-        <button type="button" disabled={activeIndex === 0} onClick={guard(() => setActiveKey(sections[activeIndex - 1]?.key))} className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-muted-foreground disabled:opacity-40">
+        <Button variant="ghost" disabled={activeIndex === 0} onClick={guard(() => setActiveKey(sections[activeIndex - 1]?.key))}>
           <ArrowLeft size={14} /> {t("customer:previous")}
-        </button>
+        </Button>
         <div className="flex-1" />
-        <button type="button" onClick={guard(onClose)} className="px-3 py-2 text-sm font-bold text-muted-foreground">{t("common:close")}</button>
+        <Button variant="ghost" onClick={guard(onClose)}>{t("common:close")}</Button>
         {editable && (
-          <button type="button" disabled={saving} onClick={() => void persistSection()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-            {saving && <Spinner size={13} />}
+          <Button disabled={saving} onClick={() => void persistSection()} loading={saving}>
             {t("customer:saveSection")}
-          </button>
+          </Button>
         )}
         <button type="button" disabled={activeIndex >= sections.length - 1} onClick={guard(() => setActiveKey(sections[activeIndex + 1]?.key))} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40">
           {t("common:next")} <ArrowRight size={14} />

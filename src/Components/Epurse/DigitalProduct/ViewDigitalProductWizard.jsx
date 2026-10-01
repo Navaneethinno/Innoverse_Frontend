@@ -6,6 +6,7 @@ import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { DigitalProductStepFields, isStepConfigured, useDigitalProductExistingData, useDigitalProductLookups } from "./digitalProductWizardShared";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
+import { Button } from "@/Components/Common/Button";
 // Read-only counterpart to AddDigitalProductWizard.jsx/
 // EditDigitalProductWizard.jsx: same 9-step stepper and the exact same
 // field/dropdown rendering (DigitalProductStepFields, so a selected
@@ -34,9 +35,9 @@ export function ViewDigitalProductWizard({ product, onClose }) {
       growWithContent
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={onClose}>
             {tr("Close")}
-          </button>
+          </Button>
           {stepIndex > 0 && (
             <button
               type="button"

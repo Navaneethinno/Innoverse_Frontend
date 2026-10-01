@@ -5,7 +5,6 @@ import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
-import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { countryOption } from "@/Components/Common/countryOption";
@@ -16,6 +15,7 @@ import { inputClass } from "./FieldOptionsEditor";
 import { useFieldLibrary, useSectionLibrary } from "./formBuilderHooks";
 import { UsesStep } from "./UsesStep";
 
+import { Button } from "@/Components/Common/Button";
 // The form on a definition (Admin portal handoff: onboarding form builder,
 // §5), shared by individual and corporate: Basics (the definition's own
 // columns), the ordered sections, the rules, the uses (which fields serve
@@ -383,32 +383,32 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       growWithContent
       footer={
         <>
-          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={attemptClose}>
             {readOnly ? t("common:close") : t("common:cancel")}
-          </button>
+          </Button>
           {stepIndex > 0 && (
-            <button type="button" onClick={() => setStepIndex((i) => i - 1)} className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">
+            <Button variant="secondary" onClick={() => setStepIndex((i) => i - 1)}>
               {t("common:back")}
-            </button>
+            </Button>
           )}
           {!readOnly && (
-            <button type="button" disabled={Boolean(busy) || !ready} onClick={() => void saveDraft()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-              {busy === "draft" && <Spinner size={13} />} {t("onboarding:saveDraft")}
-            </button>
+            <Button variant="secondary" disabled={Boolean(busy) || !ready} onClick={() => void saveDraft()} loading={Boolean(busy === "draft")}>
+              {t("onboarding:saveDraft")}
+            </Button>
           )}
           {!isLast ? (
-            <button type="button" disabled={!ready} onClick={() => setStepIndex((i) => i + 1)} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+            <Button disabled={!ready} onClick={() => setStepIndex((i) => i + 1)}>
               {t("common:next")}
-            </button>
+            </Button>
           ) : (
             !readOnly && (
               <>
-                <button type="button" disabled={Boolean(busy)} onClick={() => void validate()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-                  {busy === "validate" && <Spinner size={13} />} {t("onboarding:validate")}
-                </button>
-                <button type="button" disabled={Boolean(busy)} onClick={() => void submit()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                  {busy === "submit" && <Spinner size={13} />} {isRejected ? t("onboarding:resubmit") : t("common:submit")}
-                </button>
+                <Button variant="secondary" disabled={Boolean(busy)} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
+                  {t("onboarding:validate")}
+                </Button>
+                <Button disabled={Boolean(busy)} onClick={() => void submit()} loading={Boolean(busy === "submit")}>
+                  {isRejected ? t("onboarding:resubmit") : t("common:submit")}
+                </Button>
               </>
             )
           )}

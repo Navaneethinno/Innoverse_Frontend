@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { Spinner } from "@/Components/Common/Spinner";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
@@ -11,6 +10,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/cn";
 import { currencyCode, useLimitLists } from "./useLimitLists";
 
+import { Button } from "@/Components/Common/Button";
 // The rules of one limit group (Global Settings > Limit handoff, "The rules
 // (config)"). The whole list is sent every time: save_config replaces it.
 // A draft / rejected group saves with save_config; an approved one opens a
@@ -439,20 +439,20 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
       title={t(readOnly ? "viewRulesTitle" : "editRulesTitle", { name: record.name ?? record.code })}
       footer={
         <>
-          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={attemptClose}>
             {t("close")}
-          </button>
+          </Button>
           {!readOnly && (
             <>
-              <button type="button" disabled={Boolean(busy) || !lists} onClick={() => void save()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-                {busy === "save" && <Spinner size={13} />} {t("saveDraft")}
-              </button>
-              <button type="button" disabled={Boolean(busy) || !lists} onClick={() => void validate()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-                {busy === "validate" && <Spinner size={13} />} {t("validate")}
-              </button>
-              <button type="button" disabled={Boolean(busy) || !lists} onClick={() => void submit()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {busy === "submit" && <Spinner size={13} />} {status === REJECTED ? t("resubmit") : t("submit")}
-              </button>
+              <Button variant="secondary" disabled={Boolean(busy) || !lists} onClick={() => void save()} loading={Boolean(busy === "save")}>
+                {t("saveDraft")}
+              </Button>
+              <Button variant="secondary" disabled={Boolean(busy) || !lists} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
+                {t("validate")}
+              </Button>
+              <Button disabled={Boolean(busy) || !lists} onClick={() => void submit()} loading={Boolean(busy === "submit")}>
+                {status === REJECTED ? t("resubmit") : t("submit")}
+              </Button>
             </>
           )}
         </>

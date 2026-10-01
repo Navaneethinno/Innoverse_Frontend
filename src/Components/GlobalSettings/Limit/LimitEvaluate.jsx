@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Plus, Trash2, XCircle } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { Spinner } from "@/Components/Common/Spinner";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { currencyCode, useLimitLists } from "./useLimitLists";
 
+import { Button } from "@/Components/Common/Button";
 // "Test a customer" (handoff: Try it, evaluate): what limits would apply to
 // a customer / merchant, or to a group with the values typed in, and
 // whether an amount would pass given what's already used this period.
@@ -58,12 +58,12 @@ export function LimitEvaluate({ group, onClose }) {
       title={t("evaluateTitle", { name: group?.name ?? "" })}
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={onClose}>
             {t("close")}
-          </button>
-          <button type="button" disabled={busy} onClick={() => void run()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-            {busy && <Spinner size={13} />} {t("evaluate")}
-          </button>
+          </Button>
+          <Button disabled={busy} onClick={() => void run()} loading={busy}>
+            {t("evaluate")}
+          </Button>
         </>
       }
     >

@@ -176,9 +176,8 @@ export function User() {
         notifications.error("Please select a valid institution and profile");
         return;
       }
-      let result;
       if (editing)
-        result = await updateMutation.mutateAsync({
+        await updateMutation.mutateAsync({
           user_id: numericId(userId(editing)),
           user_name: form.user_name,
           inst_id: institutionId,
@@ -189,7 +188,7 @@ export function User() {
         });
       else {
         const { password_policy_id, ...userPayload } = form;
-        result = await createMutation.mutateAsync({
+        await createMutation.mutateAsync({
           ...userPayload,
           inst_id: institutionId,
           profile_id: profileId,
@@ -198,7 +197,7 @@ export function User() {
         });
       }
       setShowForm(false);
-    } catch (error) {
+    } catch {
       // Mutation hooks already show the API error toast.
     }
   };
@@ -211,21 +210,20 @@ export function User() {
         return;
       }
       const payload = { user_id: id };
-      let result;
-      if (action.type === "submit") result = await submitMutation.mutateAsync({ ...payload, narration });
-      if (action.type === "auth") result = await authMutation.mutateAsync(payload);
+      if (action.type === "submit") await submitMutation.mutateAsync({ ...payload, narration });
+      if (action.type === "auth") await authMutation.mutateAsync(payload);
       if (action.type === "deauth")
-        result = await deauthMutation.mutateAsync({ ...payload, narration: narration });
+        await deauthMutation.mutateAsync({ ...payload, narration: narration });
       if (action.type === "delete")
-        result = await deleteMutation.mutateAsync({ ...payload, narration });
-      if (action.type === "deleteAuth") result = await deleteAuthMutation.mutateAsync(payload);
+        await deleteMutation.mutateAsync({ ...payload, narration });
+      if (action.type === "deleteAuth") await deleteAuthMutation.mutateAsync(payload);
       if (action.type === "deactivate")
-        result = await deactivateMutation.mutateAsync({ id, narration });
+        await deactivateMutation.mutateAsync({ id, narration });
       if (action.type === "reactivate")
-        result = await reactivateMutation.mutateAsync({ id, narration });
+        await reactivateMutation.mutateAsync({ id, narration });
       setAction(null);
       setNarration("");
-    } catch (error) {
+    } catch {
       // Mutation hooks already show the API error toast.
     }
   };

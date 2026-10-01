@@ -15,10 +15,8 @@ import { useTranslation } from "react-i18next";
 const PT = {
   // FileUploadField (every upload control).
   "Upload file": "Enviar arquivo",
-  "Upload image": "Enviar imagem",
   "Uploading...": "Enviando...",
   "View uploaded file": "Ver arquivo enviado",
-  View: "Ver",
   Replace: "Substituir",
   "Remove file": "Remover arquivo",
   "File must be under": "O arquivo deve ter menos de",
@@ -52,7 +50,6 @@ const PT = {
   "Branch required": "Agência obrigatória",
   "Calculation frequency": "Frequência de cálculo",
   "Calculation method": "Método de cálculo",
-  Channel: "Canal",
   "Channel Config": "Configuração de Canal",
   "Channel Transaction": "Transação de Canal",
   "Channel config enabled": "Configuração de canal habilitada",
@@ -64,7 +61,6 @@ const PT = {
   "Conversion age": "Idade de conversão",
   "Conversion product": "Produto de conversão",
   "Credit alert": "Alerta de crédito",
-  Currency: "Moeda",
   "Currency code included": "Código da moeda incluído",
   "Currency config enabled": "Configuração de moeda habilitada",
   "Data Field": "Campo de Dados",

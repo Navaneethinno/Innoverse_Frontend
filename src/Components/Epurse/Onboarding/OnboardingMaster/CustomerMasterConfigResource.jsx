@@ -35,6 +35,7 @@ import {
   documentTypeApi,
 } from "@/Services/Epurse/district.api";
 
+import { Button } from "@/Components/Common/Button";
 // document_type's only real static enum, per Individual Customer Onboarding
 // Configuration reference (2026-09).
 const DOCUMENT_TYPE_CATEGORIES = ["TAX", "ADDRESS", "FINANCIAL"];
@@ -356,9 +357,9 @@ export function CustomerMasterConfigResource({ entity }) {
           title={t(editing ? "onboarding:editTitle" : "onboarding:addTitle", { title: displayTitle })}
           footer={
             <>
-              <button onClick={() => setOpen(false)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setOpen(false)}>
                 {t("common:cancel")}
-              </button>
+              </Button>
               <button
                 type="submit"
                 form="customer-master-config-form"

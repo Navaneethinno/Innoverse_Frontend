@@ -18,6 +18,7 @@ import {
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
+import { Button } from "@/Components/Common/Button";
 // Same 9-step horizontal stepper and field/dropdown plumbing as
 // AddDigitalProductWizard.jsx/ViewDigitalProductWizard.jsx (all three share
 // digitalProductWizardShared.jsx), but a fundamentally different mode: EDIT
@@ -123,9 +124,9 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     <Modal open onClose={attemptClose} title={tr("Edit Digital Product")} size="xl" growWithContent
       footer={
         <>
-          <button type="button" onClick={attemptClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={attemptClose}>
             {tr("Cancel")}
-          </button>
+          </Button>
           {stepIndex > 0 && (
             <button
               type="button"

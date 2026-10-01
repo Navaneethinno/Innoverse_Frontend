@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, FlaskConical, ListChecks, Plus, Users } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { limitGroupApi, limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -12,6 +11,7 @@ import { LimitRulesEditor } from "./LimitRulesEditor";
 import { LimitMembers } from "./LimitMembers";
 import { LimitEvaluate } from "./LimitEvaluate";
 
+import { Button } from "@/Components/Common/Button";
 // Global Settings > Limit: limit groups (maker-checker), their rules, who
 // is in them and a "test a customer" panel. The Default group can't be
 // deleted or deactivated.
@@ -108,9 +108,9 @@ export function LimitGroups() {
         }
         addButton={
           can("Add") && (
-            <button type="button" onClick={() => setForm({ code: "", name: "", description: "" })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white">
+            <Button size="sm" onClick={() => setForm({ code: "", name: "", description: "" })}>
               <Plus size={14} /> {t("limits:addGroup")}
-            </button>
+            </Button>
           )
         }
         renderExtra={(row) => (
@@ -131,12 +131,12 @@ export function LimitGroups() {
           title={t("limits:addGroup")}
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setForm(null)}>
                 {t("common:cancel")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void create()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {saving && <Spinner size={13} />} {t("limits:createAndAddRules")}
-              </button>
+              </Button>
+              <Button disabled={saving} onClick={() => void create()} loading={saving}>
+                {t("limits:createAndAddRules")}
+              </Button>
             </>
           }
         >
@@ -164,12 +164,12 @@ export function LimitGroups() {
           title={t("limits:cloneTitle", { name: clone.source.name })}
           footer={
             <>
-              <button type="button" onClick={() => setClone(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setClone(null)}>
                 {t("common:cancel")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void doClone()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {saving && <Spinner size={13} />} {t("limits:clone")}
-              </button>
+              </Button>
+              <Button disabled={saving} onClick={() => void doClone()} loading={saving}>
+                {t("limits:clone")}
+              </Button>
             </>
           }
         >

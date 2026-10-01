@@ -17,6 +17,7 @@ import { InstitutionField, inputClass, labelClass } from "@/Components/Epurse/No
 import { EffectiveResult, glassCard, partyLabel, useInstitutionScope, when } from "../../Shared/amlShared";
 import { ScreeningDetail, ScreeningDetailModal } from "../../Shared/ScreeningDetail";
 
+import { Button } from "@/Components/Common/Button";
 const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: [], gender: "", reason: "" });
 
 // InnoAML > AML Screening > Name Lookup (menu 103): screen a name that isn't
@@ -137,9 +138,9 @@ export function NameLookup() {
             <input value={form.reason} onChange={(e) => set("reason")(e.target.value)} className={inputClass} placeholder={t("aml:reasonPlaceholder")} />
           </label>
           <div className="flex justify-end md:col-span-3">
-            <button type="submit" disabled={running} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">
+            <Button type="submit" disabled={running}>
               {running ? <Spinner size={13} /> : <Search size={14} />} {t("aml:screenName")}
-            </button>
+            </Button>
           </div>
         </form>
       )}

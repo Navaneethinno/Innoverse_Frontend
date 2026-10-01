@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, Layers, Plus } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { Spinner } from "@/Components/Common/Spinner";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
@@ -12,6 +11,7 @@ import { ListEditor, cleanConfig } from "../../../Onboarding/OnboardingConfigura
 import { useOnboardingCatalog, useOnboardingMasters } from "../../../Onboarding/OnboardingConfiguration/onboardingHooks";
 import { useFieldLibrary } from "../../../Onboarding/FormBuilder/formBuilderHooks";
 
+import { Button } from "@/Components/Common/Button";
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
 // replaces ALL levels atomically, validate is a dry run of the submit checks,
 // clone copies an approved (frozen) scheme into a new Draft under a new code.
@@ -160,19 +160,17 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       growWithContent
       footer={
         <>
-          <button type="button" onClick={onClose} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+          <Button variant="ghost" onClick={onClose}>
             {t("common:close")}
-          </button>
+          </Button>
           {!readOnly && (
             <>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void validate()} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-                {busy === "validate" && <Spinner size={13} />}
+              <Button variant="secondary" disabled={Boolean(busy)} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
                 {t("onboarding:validate")}
-              </button>
-              <button type="button" disabled={Boolean(busy)} onClick={() => void save()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {busy === "save" && <Spinner size={13} />}
+              </Button>
+              <Button disabled={Boolean(busy)} onClick={() => void save()} loading={Boolean(busy === "save")}>
                 {t("onboarding:saveLevels")}
-              </button>
+              </Button>
             </>
           )}
         </>
@@ -284,9 +282,9 @@ export function KycSchemes() {
         canEditRow={isEditable}
         canDeleteRow={isEditable}
         addButton={
-          <button type="button" onClick={() => setForm({ code: "", name: "", description: "" })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white">
+          <Button size="sm" onClick={() => setForm({ code: "", name: "", description: "" })}>
             <Plus size={14} /> Add KYC scheme
-          </button>
+          </Button>
         }
         renderExtra={(row) => (
           <>
@@ -321,13 +319,12 @@ export function KycSchemes() {
           title={t("onboarding:addKycScheme")}
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setForm(null)}>
                 {t("common:cancel")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void create()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {saving && <Spinner size={13} />}
+              </Button>
+              <Button disabled={saving} onClick={() => void create()} loading={saving}>
                 {t("onboarding:createAndDefineLevels")}
-              </button>
+              </Button>
             </>
           }
         >
@@ -354,13 +351,12 @@ export function KycSchemes() {
           title={t("onboarding:cloneTitle", { name: clone.source.name })}
           footer={
             <>
-              <button type="button" onClick={() => setClone(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setClone(null)}>
                 {t("common:cancel")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void doClone()} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {saving && <Spinner size={13} />}
+              </Button>
+              <Button disabled={saving} onClick={() => void doClone()} loading={saving}>
                 {t("onboarding:clone")}
-              </button>
+              </Button>
             </>
           }
         >

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { Spinner } from "@/Components/Common/Spinner";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { masterApi } from "@/Services/Master/master.api";
 import { masterApis as baseMasterApis, createLifecycle, rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -10,6 +9,7 @@ import { LifecycleList } from "../OnboardingConfiguration/LifecycleList";
 import { FieldInput, cleanConfig } from "../OnboardingConfiguration/ListEditor";
 import { useOnboardingCatalog } from "../OnboardingConfiguration/onboardingHooks";
 
+import { Button } from "@/Components/Common/Button";
 // One schema-driven page for the institution masters that carry extra fields
 // beyond name/description (guide §5): validation rules, income / net-worth /
 // turnover ranges, document types, plus the plain
@@ -274,9 +274,9 @@ export function MasterResource({ entity }) {
         reloadKey={reloadKey}
         onEdit={openEdit}
         addButton={
-          <button type="button" onClick={() => setForm({ code: "", name: "", description: "" })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white">
+          <Button size="sm" onClick={() => setForm({ code: "", name: "", description: "" })}>
             <Plus size={14} /> {t("onboarding:addTitle", { title: displayTitle })}
-          </button>
+          </Button>
         }
       />
       {form && (
@@ -286,17 +286,15 @@ export function MasterResource({ entity }) {
           title={t(editing ? "onboarding:editTitle" : "onboarding:addTitle", { title: displayTitle })}
           footer={
             <>
-              <button type="button" onClick={() => setForm(null)} className="px-3 py-2 text-sm font-bold text-muted-foreground">
+              <Button variant="ghost" onClick={() => setForm(null)}>
                 {t("common:cancel")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void save(true)} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50">
-                {saving && <Spinner size={13} />}
+              </Button>
+              <Button variant="secondary" disabled={saving} onClick={() => void save(true)} loading={saving}>
                 {t("onboarding:saveAsDraft")}
-              </button>
-              <button type="button" disabled={saving} onClick={() => void save(false)} className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
-                {saving && <Spinner size={13} />}
+              </Button>
+              <Button disabled={saving} onClick={() => void save(false)} loading={saving}>
                 {editing ? t("onboarding:saveChanges") : t("onboarding:addTitle", { title: displayTitle })}
-              </button>
+              </Button>
             </>
           }
         >
