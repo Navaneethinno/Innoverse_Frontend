@@ -271,6 +271,7 @@ export function DigitalProduct({ entity }) {
             .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
             .map(([key]) => [key, form[key] === "" ? null : form[key]]),
         ),
+        ...config.fixed,
         is_draft,
         ...(editing ? { id: idOf(editing), expected_updated_time: editing.updated_time } : {}),
       };

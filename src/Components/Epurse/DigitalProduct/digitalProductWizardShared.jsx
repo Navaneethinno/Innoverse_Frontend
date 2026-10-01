@@ -67,9 +67,10 @@ export function isStepConfigured(entity, values) {
 // API should see an actual "nothing entered" rather than a literal empty
 // string, so this is only ever converted at the point a payload is built.
 function pickPayload(entity, values) {
-  return Object.fromEntries(
-    CONFIGS[entity].fields.map(([key]) => [key, values[entity][key] === "" ? null : values[entity][key]]),
-  );
+  return {
+    ...Object.fromEntries(CONFIGS[entity].fields.map(([key]) => [key, values[entity][key] === "" ? null : values[entity][key]])),
+    ...CONFIGS[entity].fixed,
+  };
 }
 
 // Builds the `sections` object for ONE wizard step's edit call — only the

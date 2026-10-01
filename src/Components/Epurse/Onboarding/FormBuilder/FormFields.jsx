@@ -8,8 +8,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { NoAccess } from "@/Components/Common/NoAccess";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { formFieldApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { FieldOptionsEditor, inputClass } from "./FieldOptionsEditor";
@@ -239,17 +238,9 @@ export function FormFields() {
       sortable: false,
       render: (r) => (
         <div className="flex items-center justify-center gap-1">
-          <UiTooltip label={can("Edit") ? t("common:edit") : t("common:view")}>
-            <button type="button" className={actionButtonClass("edit")} onClick={() => setEditing({ record: r, readOnly: !can("Edit") })}>
-              <Pencil size={15} />
-            </button>
-          </UiTooltip>
+          <ActionIconButton label={can("Edit") ? t("common:edit") : t("common:view")} intent="edit" icon={Pencil} onClick={() => setEditing({ record: r, readOnly: !can("Edit") })} />
           {can("Delete") && (
-            <UiTooltip label={t("common:delete")}>
-              <button type="button" className={actionButtonClass("delete")} onClick={() => setDeleting(r)}>
-                <Trash2 size={15} />
-              </button>
-            </UiTooltip>
+            <ActionIconButton label={t("common:delete")} intent="delete" icon={Trash2} onClick={() => setDeleting(r)} />
           )}
         </div>
       ),

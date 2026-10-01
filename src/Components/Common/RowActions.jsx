@@ -1,7 +1,6 @@
 import { Eye, Pencil, History, Send, ShieldCheck, ShieldOff, Trash2, PowerOff, Power } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { actionButtonClass } from "@/Components/Common/actionStyles";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { usePagePermission } from "@/Hooks/usePermission";
 
 // The one reusable Actions-column renderer for every maker-checker list
@@ -57,32 +56,16 @@ export function RowActions({
   return (
     <div data-tour="row-actions" className="flex items-center justify-center gap-1">
       {buttons.view !== false && allow.view && onView && (
-        <UiTooltip label={t("view")}>
-          <button type="button" className={actionButtonClass("view")} data-tour="action-view" onClick={onView}>
-            <Eye size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("view")} intent="view" data-tour="action-view" icon={Eye} onClick={onView} />
       )}
       {buttons.edit && allow.edit && onEdit && (
-        <UiTooltip label={t("edit")}>
-          <button type="button" className={actionButtonClass("edit")} data-tour="action-edit" onClick={onEdit}>
-            <Pencil size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("edit")} intent="edit" data-tour="action-edit" icon={Pencil} onClick={onEdit} />
       )}
       {buttons.audit && allow.view && onAudit && (
-        <UiTooltip label={t("audit")}>
-          <button type="button" className={actionButtonClass("audit")} data-tour="action-audit" onClick={onAudit}>
-            <History size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("audit")} intent="audit" data-tour="action-audit" icon={History} onClick={onAudit} />
       )}
       {buttons.submitDraft && allow.submit && onSubmit && (
-        <UiTooltip label={submitLabel ?? t("submit")}>
-          <button type="button" className={actionButtonClass("submit")} data-tour="action-submit" onClick={onSubmit}>
-            <Send size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={submitLabel ?? t("submit")} intent="submit" data-tour="action-submit" icon={Send} onClick={onSubmit} />
       )}
       {/* A pending row (PENDING ADD/EDIT/DELETE/...) grants BOTH authorize
           and deauthorize at once — approve or reject are both valid next
@@ -91,39 +74,19 @@ export function RowActions({
           exclusive with those and with each other (a record is either
           pending, active, or inactive — never more than one at once). */}
       {buttons.authorize && allow.authorize && onAuthorize && (
-        <UiTooltip label={t("authorize")}>
-          <button type="button" className={actionButtonClass("auth")} data-tour="action-authorize" onClick={onAuthorize}>
-            <ShieldCheck size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("authorize")} intent="auth" data-tour="action-authorize" icon={ShieldCheck} onClick={onAuthorize} />
       )}
       {buttons.deauthorize && allow.authorize && onDeauthorize && (
-        <UiTooltip label={t("deauthorize")}>
-          <button type="button" className={actionButtonClass("deauth")} data-tour="action-reject" onClick={onDeauthorize}>
-            <ShieldOff size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("deauthorize")} intent="deauth" data-tour="action-reject" icon={ShieldOff} onClick={onDeauthorize} />
       )}
       {buttons.deactivate && allow.changeStatus && onDeactivate && (
-        <UiTooltip label={t("deactivate")}>
-          <button type="button" className={actionButtonClass("deauth")} data-tour="action-deactivate" onClick={onDeactivate}>
-            <PowerOff size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("deactivate")} intent="deauth" data-tour="action-deactivate" icon={PowerOff} onClick={onDeactivate} />
       )}
       {buttons.activate && allow.changeStatus && onReactivate && (
-        <UiTooltip label={t("reactivate")}>
-          <button type="button" className={actionButtonClass("auth")} data-tour="action-reactivate" onClick={onReactivate}>
-            <Power size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("reactivate")} intent="auth" data-tour="action-reactivate" icon={Power} onClick={onReactivate} />
       )}
       {buttons.delete && allow.delete && onDelete && (
-        <UiTooltip label={t("delete")}>
-          <button type="button" className={actionButtonClass("delete")} data-tour="action-delete" onClick={onDelete}>
-            <Trash2 size={14} />
-          </button>
-        </UiTooltip>
+        <ActionIconButton label={t("delete")} intent="delete" data-tour="action-delete" icon={Trash2} onClick={onDelete} />
       )}
     </div>
   );

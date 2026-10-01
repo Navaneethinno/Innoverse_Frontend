@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, FlaskConical, ListChecks, Plus, Users } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { limitGroupApi, limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -77,13 +77,6 @@ export function LimitGroups() {
     { key: "description", label: t("limits:description"), render: (r) => r.description || "-" },
   ];
 
-  const iconButton = (label, className, onClick, Icon) => (
-    <UiTooltip label={label}>
-      <button type="button" onClick={onClick} className={`rounded-lg p-1.5 ${className}`}>
-        <Icon size={14} />
-      </button>
-    </UiTooltip>
-  );
 
   return (
     <>
@@ -115,10 +108,10 @@ export function LimitGroups() {
         }
         renderExtra={(row) => (
           <>
-            {iconButton(t("limits:rules"), "text-cyan-700 hover:bg-cyan-50", () => setEditor({ group: row, readOnly: !can("Edit") || !EDITABLE.has(Number(row.process_status)) }), ListChecks)}
-            {iconButton(t("limits:members"), "text-indigo-700 hover:bg-indigo-50", () => setMembers(row), Users)}
-            {iconButton(t("limits:test"), "text-amber-700 hover:bg-amber-50", () => setEvaluate({ group: row }), FlaskConical)}
-            {can("Add") && Number(row.status) === 1 && iconButton(t("limits:clone"), "text-violet-700 hover:bg-violet-50", () => setClone({ source: row, code: "", name: `${row.name} (copy)` }), Copy)}
+            <ActionIconButton label={t("limits:rules")} intent="rules" icon={ListChecks} onClick={() => setEditor({ group: row, readOnly: !can("Edit") || !EDITABLE.has(Number(row.process_status)) })} />
+            <ActionIconButton label={t("limits:members")} intent="members" icon={Users} onClick={() => setMembers(row)} />
+            <ActionIconButton label={t("limits:test")} intent="test" icon={FlaskConical} onClick={() => setEvaluate({ group: row })} />
+            {can("Add") && Number(row.status) === 1 && <ActionIconButton label={t("limits:clone")} intent="clone" icon={Copy} onClick={() => setClone({ source: row, code: "", name: `${row.name} (copy)` })} />}
           </>
         )}
         emptyTitle={t("limits:noGroups")}

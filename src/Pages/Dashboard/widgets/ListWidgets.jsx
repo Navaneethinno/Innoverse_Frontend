@@ -51,7 +51,7 @@ export function RecentOnboardingWidget() {
       }
     >
       <WidgetBody loading={loading} failed={failed} empty={!items.length}>
-        <div className="-mx-1 overflow-x-auto">
+        <div>
           <table className="w-full min-w-[520px] text-left text-xs">
             <thead>
               <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

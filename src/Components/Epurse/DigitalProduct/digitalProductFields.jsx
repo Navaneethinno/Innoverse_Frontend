@@ -33,10 +33,11 @@ export const CONFIGS = {
     title: "Product Map",
     fields: [
       ["acct_product_id", "Account product", "number"],
-      ["allowed", "Allowed", "boolean"],
       ["primary_account_product", "Primary account product", "boolean"],
       ["priority", "Priority", "number"],
     ],
+    // Not shown: a mapped account product is always allowed.
+    fixed: { allowed: true },
   },
   security_config: {
     title: "Security Config",
