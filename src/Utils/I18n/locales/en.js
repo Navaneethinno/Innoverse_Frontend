@@ -1693,6 +1693,18 @@ export const tour = {
 };
 
 export const formBuilder = {
+  usesIdvTitle: "Identity verification",
+  usesIdvOff: "Not used",
+  usesIdvIntro: "Reads the document (front and back) and compares the selfie with the document photo when the photo section is saved. A failed check isn't saved and the customer retakes the photos. The photos and the side choice must be in one section with a single row.",
+  usesIdvFront: "Document front",
+  usesIdvBack: "Document back",
+  usesIdvSelfie: "Selfie",
+  usesIdvFaceSide: "Side with the photo",
+  usesIdvFaceFront: "The front",
+  usesIdvNumber: "Document number",
+  usesIdvNeedsBoth: "Identity verification needs at least the document front and the selfie.",
+  usesIdvLivenessTip: "Tip: set the selfie field's Capture to Liveness so the app takes a live picture.",
+  usesIdvClear: "Don't verify identity",
   enum_liveness: "Liveness",
   opt_confirm: "Type it twice",
   opt_block_simple: "Refuse simple PINs",

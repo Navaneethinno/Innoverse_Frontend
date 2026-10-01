@@ -19,6 +19,15 @@ const SCREENING = ["screening_name", "screening_birth_date", "screening_country"
 const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
 const KYC = ["kyc_document_type", "kyc_document_front", "kyc_document_back"];
 const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country"];
+const IDV = ["idv_front", "idv_back", "idv_selfie", "idv_face_side", "idv_id_number"];
+
+// Identity verification: the photos are single-image files in a one-row
+// section; the side choice is a list whose fixed choices include the values
+// front and back.
+const isSingleFile = (f) => f.field_type === "FILE" && !f.multiRow && f.options?.sides !== "front_back";
+const isLiveness = (f) => f.options?.capture === "liveness";
+const choiceValues = (f) => (f.choices ?? f.options?.choices ?? []).map((c) => String(c?.value ?? c?.code ?? c).toLowerCase());
+const isSideChoice = (f) => (f.field_type === "RADIO" || f.field_type === "DROPDOWN") && !f.multiRow && ["front", "back"].every((v) => choiceValues(f).includes(v));
 
 const text = (f) => `${f.key} ${f.name ?? ""} ${f.label ?? ""}`.toLowerCase();
 const isList = (f) => LISTS.includes(f.field_type);
@@ -84,10 +93,10 @@ function kycFor(fields, section) {
 }
 
 // Problems name the role they are about ("display_name" or "display name").
-const problemsFor = (problems, roles) =>
+const problemsFor = (problems, roles, phrase) =>
   (problems ?? [])
     .map((p) => (typeof p === "string" ? p : (p?.message ?? "")))
-    .filter((p) => roles.some((r) => p.toLowerCase().includes(r) || p.toLowerCase().includes(r.replace(/_/g, " "))));
+    .filter((p) => roles.some((r) => p.toLowerCase().includes(r) || p.toLowerCase().includes(r.replace(/_/g, " "))) || (phrase && p.toLowerCase().includes(phrase)));
 
 function Card({ title, summary, open, onToggle, problems, children }) {
   return (
@@ -426,6 +435,35 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
     </Card>
   );
 
+  // Identity verification: OCR of the document and a face match with the
+  // selfie, run when the photo section is saved. Front and selfie are
+  // required once any role is set; the photos and the side choice share one
+  // single-row section (the first photo picked decides which).
+  const singleFiles = fields.filter(isSingleFile);
+  const idvSection = byKey.get(get("idv_front")[0] ?? get("idv_selfie")[0] ?? get("idv_back")[0])?.section ?? null;
+  const sameSection = (list) => (idvSection ? list.filter((f) => f.section === idvSection) : list);
+  const idvSet = IDV.some((r) => get(r).length);
+  const idvSummary = idvSet ? [get("idv_front"), get("idv_selfie")].map((k) => labels(k) || "—").join(" + ") : t("usesIdvOff");
+  const idvCard = singleFiles.length > 0 && (
+    <Card key="idv" title={t("usesIdvTitle")} summary={idvSummary} open={open.has("idv")} onToggle={() => toggle("idv")} problems={problemsFor(problems, IDV, "identity verification")}>
+      <p className="text-xs text-muted-foreground">{t("usesIdvIntro")}</p>
+      <div className="grid gap-3 md:grid-cols-3">
+        <Pick label={t("usesIdvFront")} fields={sameSection(singleFiles)} value={get("idv_front")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ idv_front: keys })} />
+        <Pick label={t("usesIdvBack")} fields={sameSection(singleFiles)} value={get("idv_back")[0]} disabled={readOnly} emptyLabel={t("usesNoBack")} onChange={(keys) => set({ idv_back: keys })} optional={t("usesOptional")} />
+        <Pick label={t("usesIdvSelfie")} fields={sameSection(singleFiles)} value={get("idv_selfie")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ idv_selfie: keys })} />
+        <Pick label={t("usesIdvFaceSide")} fields={sameSection(fields.filter(isSideChoice))} value={get("idv_face_side")[0]} disabled={readOnly} emptyLabel={t("usesIdvFaceFront")} onChange={(keys) => set({ idv_face_side: keys })} optional={t("usesOptional")} />
+        <Pick label={t("usesIdvNumber")} fields={ofType(["TEXT"], fields)} value={get("idv_id_number")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ idv_id_number: keys })} optional={t("usesOptional")} />
+      </div>
+      {idvSet && (!get("idv_front").length || !get("idv_selfie").length) && <p className="text-xs font-semibold text-amber-700">{t("usesIdvNeedsBoth")}</p>}
+      {get("idv_selfie").length > 0 && !isLiveness(byKey.get(get("idv_selfie")[0]) ?? {}) && <p className="text-xs text-amber-700">{t("usesIdvLivenessTip")}</p>}
+      {idvSet && !readOnly && (
+        <button type="button" onClick={() => set(Object.fromEntries(IDV.map((r) => [r, []])))} className="w-fit text-xs font-bold text-red-600 hover:underline">
+          {t("usesIdvClear")}
+        </button>
+      )}
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">{t("usesIntro")}</p>
@@ -433,6 +471,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
       {screeningCard}
       {duplicateCard}
       {kycCard}
+      {idvCard}
       {relatedCard}
     </div>
   );

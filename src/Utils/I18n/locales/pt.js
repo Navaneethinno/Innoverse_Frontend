@@ -1679,6 +1679,18 @@ export const tour = {
 };
 
 export const formBuilder = {
+  usesIdvTitle: "Verificação de identidade",
+  usesIdvOff: "Não usada",
+  usesIdvIntro: "Lê o documento (frente e verso) e compara a selfie com a foto do documento quando a seção de fotos é salva. Uma verificação com falha não é salva e o cliente tira as fotos novamente. As fotos e a escolha do lado devem estar em uma seção de uma única linha.",
+  usesIdvFront: "Frente do documento",
+  usesIdvBack: "Verso do documento",
+  usesIdvSelfie: "Selfie",
+  usesIdvFaceSide: "Lado com a foto",
+  usesIdvFaceFront: "A frente",
+  usesIdvNumber: "Número do documento",
+  usesIdvNeedsBoth: "A verificação de identidade precisa pelo menos da frente do documento e da selfie.",
+  usesIdvLivenessTip: "Dica: defina a Captura do campo da selfie como Prova de vida para o app tirar uma foto ao vivo.",
+  usesIdvClear: "Não verificar a identidade",
   enum_liveness: "Prova de vida",
   opt_confirm: "Digitar duas vezes",
   opt_block_simple: "Recusar PINs simples",

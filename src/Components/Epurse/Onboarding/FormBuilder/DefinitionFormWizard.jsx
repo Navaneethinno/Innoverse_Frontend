@@ -271,6 +271,8 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           name: known.name ?? f.name ?? "",
           field_type: f.field_type ?? known.field_type,
           source_table: f.options?.source_table ?? known.options?.source_table ?? "",
+          options: f.options ?? known.options ?? {},
+          choices: f.choices ?? known.choices,
           section: section_key,
           sectionName: section?.name ?? section?.heading ?? section_key,
           multiRow: Boolean(section?.multi_row),
