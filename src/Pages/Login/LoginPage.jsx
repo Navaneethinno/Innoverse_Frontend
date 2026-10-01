@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../../Hooks/useAuth";
 import { apiMessage, notifications } from "../../Utils/Lib/notifications";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import loginIllustrationLight from "@/assets/login-illustration.png";
@@ -81,6 +82,9 @@ export function LoginPage() {
   const navigate = useNavigate();
   const login = useAuth((state) => state.login);
   const { mode, toggleMode } = useColorMode();
+  // The institution's own login background, once it has signed in here
+  // before with the code now typed.
+  const brandBackground = useBrandTheme().loginAssetsFor(institutionCode)?.loginBackground;
   const submit = async (e) => {
     e.preventDefault();
     const code = institutionCode.trim();
@@ -170,6 +174,7 @@ export function LoginPage() {
               className="login-illustration absolute inset-0 h-full w-full object-cover object-right"
               style={{ opacity: mode === "dark" ? 1 : 0 }}
             />
+            {brandBackground && <img src={brandBackground} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />}
           </motion.div>
         </motion.div>
         <div

@@ -12,7 +12,9 @@ import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { TourButton } from "@/Components/Tour/TourButton";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 export function TopBar() {
+  const { displayName } = useBrandTheme();
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -79,7 +81,7 @@ export function TopBar() {
         >
           <Logo size="sm" />
           <span className="hidden sm:block text-xs font-bold text-transparent bg-clip-text bg-brand-gradient leading-none tracking-tight">
-            Innoverse
+            {displayName ?? "Innoverse"}
           </span>
         </button>
 

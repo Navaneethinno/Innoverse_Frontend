@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 
 // The single place the brand mark (icon + gradient) is defined. Previously
 // this was reinvented twice with two different icons (Sparkles in TopBar,
@@ -17,8 +18,14 @@ const SIZES = {
   lg: { box: "w-14 h-14 rounded-[18px]", icon: 26, shadow: "shadow-xl", boxShadow: "0 20px 25px -5px var(--primary-light)" },
 };
 
+// The institution's own logo (branding) replaces the default mark when it
+// has one.
 export function Logo({ size = "md", className }) {
   const { box, icon, shadow, boxShadow } = SIZES[size] ?? SIZES.md;
+  const { logoUrl, displayName } = useBrandTheme();
+  if (logoUrl) {
+    return <img src={logoUrl} alt={displayName ?? ""} className={cn("shrink-0 object-contain", box, className)} />;
+  }
   return (
     <div
       className={cn("shrink-0 flex items-center justify-center bg-brand-gradient", box, shadow, className)}
