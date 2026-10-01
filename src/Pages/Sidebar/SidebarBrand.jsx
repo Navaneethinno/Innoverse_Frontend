@@ -1,13 +1,12 @@
 import { motion } from "motion/react";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // The signed-in institution's logo and display name (login branding), at the
-// top of the sidebar. Nothing shows until the branding has either; the
-// collapsed rail shows the logo alone (or the name's first letter).
+// top of the sidebar while it is open. Nothing shows until the branding has
+// either; with the sidebar collapsed they show in the top bar instead.
 export function SidebarBrand({ isCollapsed }) {
   const { logoUrl, displayName } = useBrandTheme();
-  if (!logoUrl && !displayName) return null;
+  if (isCollapsed || (!logoUrl && !displayName)) return null;
 
   const mark = logoUrl ? (
     <img src={logoUrl} alt={displayName ?? ""} className="h-10 w-10 shrink-0 rounded-xl bg-white object-contain p-1 shadow-sm" />
@@ -16,14 +15,6 @@ export function SidebarBrand({ isCollapsed }) {
       {displayName.charAt(0).toUpperCase()}
     </span>
   );
-
-  if (isCollapsed) {
-    return (
-      <UiTooltip label={displayName ?? ""}>
-        <div className="mx-auto">{mark}</div>
-      </UiTooltip>
-    );
-  }
 
   return (
     <motion.div

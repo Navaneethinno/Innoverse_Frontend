@@ -12,6 +12,7 @@ import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { TourButton } from "@/Components/Tour/TourButton";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,6 +31,11 @@ export function TopBar() {
   const logout = useAuth((s) => s.logout);
   const user = useAuth((s) => s.user);
   const isMobile = useIsMobile();
+  // The institution's logo and name show once: in the sidebar while it is
+  // pinned open (desktop), otherwise here.
+  const { logoUrl, displayName } = useBrandTheme();
+  const branded = Boolean(logoUrl || displayName);
+  const brandInSidebar = branded && !isMobile && !collapsed;
   // Was keyed off `collapsed` alone, so it never reacted while the sidebar
   // was only hover-expanded (not pinned open) — the header stayed put at
   // the collapsed offset while the sidebar rail grew past it underneath,
@@ -73,17 +79,19 @@ export function TopBar() {
         </button>
 
         {/* Brand */}
+        {!brandInSidebar && (
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-primary-light transition-colors shrink-0 group"
         >
-          <Logo size="sm" brand={false} />
-          <span className="hidden sm:block text-xs font-bold text-transparent bg-clip-text bg-brand-gradient leading-none tracking-tight">
-            Innoverse
+          <Logo size="sm" />
+          <span className="hidden sm:block max-w-[12rem] truncate text-xs font-bold text-transparent bg-clip-text bg-brand-gradient leading-none tracking-tight">
+            {displayName ?? "Innoverse"}
           </span>
         </button>
+        )}
 
-        <div className="w-px h-4 bg-border shrink-0" />
+        {!brandInSidebar && <div className="w-px h-4 bg-border shrink-0" />}
 
         <span className="hidden sm:block truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           {t("layout:adminPortal")}
