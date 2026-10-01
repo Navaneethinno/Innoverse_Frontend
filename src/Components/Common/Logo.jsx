@@ -19,11 +19,11 @@ const SIZES = {
 };
 
 // The institution's own logo (branding) replaces the default mark when it
-// has one.
-export function Logo({ size = "md", className }) {
+// has one, unless `brand` is false (the product's own mark).
+export function Logo({ size = "md", className, brand = true }) {
   const { box, icon, shadow, boxShadow } = SIZES[size] ?? SIZES.md;
   const { logoUrl, displayName } = useBrandTheme();
-  if (logoUrl) {
+  if (brand && logoUrl) {
     return <img src={logoUrl} alt={displayName ?? ""} className={cn("shrink-0 object-contain", box, className)} />;
   }
   return (

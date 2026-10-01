@@ -13,6 +13,7 @@ import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
 import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
+import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
 import { findMenuByPath } from "./menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
@@ -275,6 +276,7 @@ export function DynamicSidebar() {
           is selected, the module list is open, or the menu tree below
           scrolls/grows. */}
       <div className="shrink-0 flex flex-col gap-3">
+        <SidebarBrand isCollapsed={!isExpanded} />
         <SidebarSearch
           ref={searchInputRef}
           value={menuSearch}

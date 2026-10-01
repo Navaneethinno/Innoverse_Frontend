@@ -12,9 +12,7 @@ import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { TourButton } from "@/Components/Tour/TourButton";
-import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 export function TopBar() {
-  const { displayName } = useBrandTheme();
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -79,9 +77,9 @@ export function TopBar() {
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-primary-light transition-colors shrink-0 group"
         >
-          <Logo size="sm" />
+          <Logo size="sm" brand={false} />
           <span className="hidden sm:block text-xs font-bold text-transparent bg-clip-text bg-brand-gradient leading-none tracking-tight">
-            {displayName ?? "Innoverse"}
+            Innoverse
           </span>
         </button>
 
