@@ -35,6 +35,11 @@ export function RiskAction() {
       render: (row) => row.inst_profile_name ?? "-",
     },
     {
+      key: "onboarding_outcome",
+      label: t("risk:onboardingOutcome"),
+      render: (row) => (row.onboarding_outcome ? t(`risk:outcome_${row.onboarding_outcome}`) : "-"),
+    },
+    {
       key: "description",
       label: t("common:description"),
       sortable: false,
@@ -55,6 +60,7 @@ export function RiskAction() {
         auditFields={[
           ["code", t("risk:code")],
           ["name", t("risk:name")],
+          ["onboarding_outcome", t("risk:onboardingOutcome")],
           ["description", t("common:description")],
         ]}
         emptyTitle={t("risk:noActionsFound")}
@@ -71,6 +77,7 @@ export function RiskAction() {
           <dl className="grid gap-3">
             <ViewItem label={t("risk:code")}>{row.code}</ViewItem>
             <ViewItem label={t("risk:name")}>{row.name}</ViewItem>
+            <ViewItem label={t("risk:onboardingOutcome")}>{row.onboarding_outcome ? t(`risk:outcome_${row.onboarding_outcome}`) : "-"}</ViewItem>
             <InstitutionOnly><ViewItem label={t("risk:institution")}>{row.inst_profile_name}</ViewItem></InstitutionOnly>
             {row.description && (
               <ViewItem label={t("common:description")}>{row.description}</ViewItem>

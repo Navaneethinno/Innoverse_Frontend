@@ -1,4 +1,5 @@
 import {
+  Briefcase,
   Gauge,
   Activity,
   FileBarChart,
@@ -44,6 +45,7 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/case management/i, Briefcase],
   [/global settings/i, Settings2],
   [/report/i, FileBarChart],
   [/institution/i, Landmark],
@@ -77,6 +79,7 @@ export function getModuleIcon(moduleName = "") {
 const MENU_ICON_RULES = [
   [/^limits?$/i, Gauge],
   [/^accounts$/i, Wallet],
+  [/onboarding cases/i, ClipboardCheck],
   [/user activity/i, Activity],
   [/score breakdown/i, Gauge],
   // InnoAML menus, before the generic "configuration"/"review" style rules.

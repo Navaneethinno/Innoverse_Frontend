@@ -49,6 +49,7 @@ void i18n
       "formBuilder",
       "limits",
       "accounts",
+      "cases",
     ],
     interpolation: { escapeValue: false },
     detection: {

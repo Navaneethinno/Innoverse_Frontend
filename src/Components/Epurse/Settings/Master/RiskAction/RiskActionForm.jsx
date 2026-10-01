@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { outcomesForCode } from "./onboardingOutcome";
 import { useAuth } from "@/Hooks/useAuth";
 import { riskActionApi } from "@/Services/Epurse/risk.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
@@ -23,6 +25,7 @@ export function RiskActionForm({ editing, onClose, onSaved }) {
     code: editing?.code ?? "",
     name: editing?.name ?? "",
     description: editing?.description ?? "",
+    onboarding_outcome: editing?.onboarding_outcome ?? "",
   }));
   const [saving, setSaving] = useState(false);
 
@@ -32,6 +35,8 @@ export function RiskActionForm({ editing, onClose, onSaved }) {
       const body = {
         name: form.name.trim(),
         description: form.description.trim(),
+        // Empty: add uses the code's default, edit keeps the current one.
+        ...(form.onboarding_outcome ? { onboarding_outcome: form.onboarding_outcome } : {}),
         ...(editing ? {} : { inst_profile_id: form.inst_profile_id, code: form.code }),
       };
       const response = await saveRecord(riskActionApi, { editing, body, draft });
@@ -90,6 +95,19 @@ export function RiskActionForm({ editing, onClose, onSaved }) {
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
             {t("risk:actionNameHint")}
           </span>
+        </label>
+        <label className={`${labelClass} md:col-span-2`}>
+          {t("risk:onboardingOutcome")}
+          <FilterSelect
+            className="mt-1.5"
+            value={outcomesForCode(form.code).includes(form.onboarding_outcome) ? form.onboarding_outcome : ""}
+            onChange={(v) => setForm({ ...form, onboarding_outcome: v })}
+            options={[
+              { value: "", label: editing ? t("risk:outcomeKeep") : t("risk:outcomeDefault") },
+              ...outcomesForCode(form.code).map((o) => ({ value: o, label: t(`risk:outcome_${o}`) })),
+            ]}
+          />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("risk:onboardingOutcomeHint")}</span>
         </label>
         <label className={`${labelClass} md:col-span-2`}>
           {t("common:description")}

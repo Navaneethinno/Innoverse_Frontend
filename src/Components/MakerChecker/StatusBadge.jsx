@@ -227,6 +227,14 @@ const STATUS_CONFIG = {
     dot: "bg-red-500",
     pill: "bg-red-50 text-red-700 border-red-200",
   },
+  // Onboarding under Case Management: customer status 16 (17 Rejected is
+  // above) and the case statuses.
+  "PENDING REVIEW": { label: "Pending Review", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  OPEN: { label: "Open", dot: "bg-blue-500", pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  IN_REVIEW: { label: "In Review", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  AWAITING_CUSTOMER: { label: "Awaiting Customer", dot: "bg-orange-500", pill: "bg-orange-50 text-orange-700 border-orange-200" },
+  PENDING_DECISION: { label: "Pending Decision", dot: "bg-amber-600", pill: "bg-amber-50 text-amber-900 border-amber-300" },
+  CLOSED: { label: "Closed", dot: "bg-slate-400", pill: "bg-muted text-muted-foreground border-border" },
 };
 // Maps each pill's background/border classes to the equivalent bare text
 // color, for the "subtle" variant below — same color language, no filled

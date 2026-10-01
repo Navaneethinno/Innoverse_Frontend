@@ -6,6 +6,7 @@ import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErr
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
+import { merchantRoutes } from "@/Utils/Lib/apiScope";
 
 // Customer Onboarding (Individual) runtime API — "Customer Onboarding
 // (Individual) — Frontend Guide", 2026-09. This drives the actual wizard a
@@ -66,8 +67,7 @@ export const onboardingRowsOf = (response) => (Array.isArray(response?.data) ? r
 // instead of the old start/save_section/wizard verbs, plus get_active,
 // delete_auth, deactivate, reactivate that didn't exist before. There is
 // no backwards-compatibility alias for the old names — they 404 now.
-const routes = API_ENDPOINTS.CUSTOMER.INDIVIDUAL;
-export const customerOnboardingApi = {
+const buildApi = (routes) => ({
   options: (payload = {}) => request(routes.OPTIONS, payload),
   // The digital product the onboarding belongs to (its primary account
   // product is the account opened on approval). Needed when the
@@ -92,7 +92,11 @@ export const customerOnboardingApi = {
   upload: (fields) => uploadFile(routes.UPLOAD, fields),
   // { reference_id, path } -> Blob of the stored file.
   file: (payload) => downloadFile(routes.FILE, payload),
-};
+});
+export const customerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.INDIVIDUAL);
+// The same calls under /merchant (a case or account whose owner is a
+// merchant, opened from an EPURSE page).
+export const merchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.INDIVIDUAL));
 
 export const startOnboarding = async (payload) => first(await customerOnboardingApi.add(payload));
 export const loadWizard = async (referenceId) => first(await customerOnboardingApi.get(referenceId));

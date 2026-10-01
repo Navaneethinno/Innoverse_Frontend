@@ -58,6 +58,10 @@ onboardingRoutes.push(
 const Accounts = lazy(() => import("@/Components/Epurse/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
 onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { path: "accounts/:id", element: pageElement(Accounts) });
 
+// CASE MANAGEMENT > Onboarding Cases (menu 179).
+const OnboardingCases = lazy(() => import("@/Components/CaseManagement/OnboardingCases/OnboardingCases.jsx").then((m) => ({ default: m.OnboardingCases })));
+onboardingRoutes.push({ path: "onboardingcases", element: pageElement(OnboardingCases) }, { path: "onboardingcases/:id", element: pageElement(OnboardingCases) });
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages

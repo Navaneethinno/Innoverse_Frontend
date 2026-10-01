@@ -6,6 +6,7 @@ import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErr
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
+import { merchantRoutes } from "@/Utils/Lib/apiScope";
 
 // Customer Onboarding (Corporate) runtime API — "Customer Onboarding
 // (Corporate) — Frontend Guide", 2026-09. Identical shape to
@@ -58,8 +59,7 @@ async function request(path, body = {}, extraHeaders = {}) {
 const first = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 export const corpOnboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
-const routes = API_ENDPOINTS.CUSTOMER.CORPORATE;
-export const corpCustomerOnboardingApi = {
+const buildApi = (routes) => ({
   options: (payload = {}) => request(routes.OPTIONS, payload),
   // The digital product the onboarding belongs to (its primary account
   // product is the account opened on approval). Needed when the
@@ -82,7 +82,11 @@ export const corpCustomerOnboardingApi = {
   // Same file calls as the individual API (see customerOnboarding.api.js).
   upload: (fields) => uploadFile(routes.UPLOAD, fields),
   file: (payload) => downloadFile(routes.FILE, payload),
-};
+});
+export const corpCustomerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.CORPORATE);
+// The same calls under /merchant (a case or account whose owner is a
+// merchant, opened from an EPURSE page).
+export const corpMerchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.CORPORATE));
 
 export const startCorpOnboarding = async (payload) => first(await corpCustomerOnboardingApi.add(payload));
 export const loadCorpWizard = async (referenceId) => first(await corpCustomerOnboardingApi.get(referenceId));

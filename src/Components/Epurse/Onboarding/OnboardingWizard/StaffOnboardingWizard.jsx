@@ -184,7 +184,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const activeIndex = Math.max(0, sections.findIndex((s) => s.key === activeKey));
   const section = sections[activeIndex];
   const portalDraft = isPortalDraft(wizard?.onboarding);
-  const editable = !forceReadOnly && !portalDraft && wizard?.onboarding?.editable !== false;
+  // Locked while a case decides it (16 Pending Review) and once rejected (17).
+  const inCase = [16, 17].includes(Number(wizard?.onboarding?.status));
+  const editable = !forceReadOnly && !portalDraft && !inCase && wizard?.onboarding?.editable !== false;
   const notEditableReason = forceReadOnly ? t("customer:viewingOnlyNothingCanBeChanged") : portalDraft ? t(PORTAL_DRAFT_REASON) : t("customer:recordCantBeEditedNow");
 
   // Reseed the draft during render whenever the section or the reply

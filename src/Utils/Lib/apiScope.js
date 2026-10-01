@@ -19,3 +19,8 @@ export function setApiScope(moduleName) {
 export function scopedPath(path) {
   return prefix === "customer" ? path : String(path).replace(SCOPED, `/${prefix}/$1/`);
 }
+
+// A route table's /customer/... paths as /merchant/..., for screens that
+// reach a merchant's record whatever page they are on (Case Management).
+export const merchantRoutes = (routes) =>
+  Object.fromEntries(Object.entries(routes).map(([key, path]) => [key, typeof path === "string" ? path.replace(/^\/customer\//, "/merchant/") : path]));
