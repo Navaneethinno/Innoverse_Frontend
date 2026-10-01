@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
-import { Building2, CheckCircle, Clock, FileText, UserCheck, UserPlus } from "lucide-react";
+import { AlertTriangle, Briefcase, Building2, CheckCircle, Clock, FileText, UserCheck, UserPlus } from "lucide-react";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 import { useWidgetData } from "../layout/dashboardData";
 import { glass } from "./WidgetCard";
 
-function StatCard({ label, value, sub, gradient, icon: Icon, loading }) {
+function StatCard({ label, value, sub, gradient, icon: Icon, loading, warnings = [] }) {
   return (
     <div className="relative flex h-full flex-col justify-between gap-2 overflow-hidden rounded-2xl border p-5" style={glass}>
       <div className="flex items-center justify-between pr-10">
@@ -20,6 +21,15 @@ function StatCard({ label, value, sub, gradient, icon: Icon, loading }) {
           <p className="text-4xl font-black leading-none tracking-tight text-slate-800">{value == null ? "—" : Number(value).toLocaleString()}</p>
         )}
         {sub && <p className="mt-1.5 text-[11px] font-medium text-muted-foreground">{sub}</p>}
+        {warnings.length > 0 && (
+          <p className="mt-1.5 flex flex-wrap gap-1">
+            {warnings.map((w) => (
+              <span key={w} className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                <AlertTriangle size={10} /> {w}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -44,3 +54,25 @@ export const ActiveCustomersWidget = statWidget("activeCustomers", "approvedAndA
 export const OnboardingInProgressWidget = statWidget("onboardingInProgress", "draftsAndPendingApproval", "bg-[var(--chart-3)]", UserPlus, (d, t) =>
   t("openAndPending", { open: d.open_sessions ?? 0, pending: d.pending_approval ?? 0 }),
 );
+
+// Onboarding cases not closed, with overdue and high priority as warnings;
+// the card opens the case queue.
+export function OnboardingCasesWidget() {
+  const { t } = useTranslation("dashboard");
+  const openMenu = useOpenMenu();
+  const { data, loading } = useWidgetData("onboardingCases");
+  const warnings = data ? [["casesOverdue", data.overdue], ["casesHighPriority", data.high_priority]].filter(([, n]) => n > 0) : [];
+  return (
+    <button type="button" onClick={() => openMenu("onboardingcases")} className="h-full w-full text-left">
+      <StatCard
+        label={t("onboardingCases")}
+        sub={data ? t("casesMine", { count: data.mine ?? 0 }) : t("openCases")}
+        value={data?.value}
+        loading={loading}
+        gradient="bg-[var(--primary)]"
+        icon={Briefcase}
+        warnings={warnings.map(([key, n]) => t(key, { count: n }))}
+      />
+    </button>
+  );
+}

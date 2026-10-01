@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Briefcase, RefreshCw, Search } from "lucide-react";
+import { Briefcase, RefreshCw, Search, Settings2 } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -9,14 +9,16 @@ import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.ap
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { AmlPill, CaseStatus, PriorityFlag, ReasonChips, RiskPill, ageText, subjectKind } from "./caseShared";
+import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, ageText, caseDate, subjectKind } from "./caseShared";
 import { CaseView } from "./CaseView";
+import { CaseSettings } from "./CaseSettings";
 
 // Tabs from the list's `counts` (they ignore the status filter): each sets
 // the status (or assigned) filter.
 const TABS = [
   { key: "ACTIVE", body: { status: "ACTIVE" } },
   { key: "MINE", body: { status: "ACTIVE", assigned: "ME" } },
+  { key: "OVERDUE", body: { status: "ACTIVE", overdue: true } },
   { key: "OPEN", body: { status: "OPEN" } },
   { key: "IN_REVIEW", body: { status: "IN_REVIEW" } },
   { key: "AWAITING_CUSTOMER", body: { status: "AWAITING_CUSTOMER" } },
@@ -42,6 +44,7 @@ export function OnboardingCases() {
   const [data, setData] = useState({ cases: [], total: 0, counts: {} });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
+  const [settings, setSettings] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -58,6 +61,17 @@ export function OnboardingCases() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  if (settings) {
+    return (
+      <CaseSettings
+        onBack={() => {
+          setSettings(false);
+          void load();
+        }}
+      />
+    );
+  }
 
   if (openId) {
     return (
@@ -85,7 +99,10 @@ export function OnboardingCases() {
       render: (c) => (
         <button type="button" onClick={() => setOpenId(c.id)} className="flex flex-col items-start gap-1 text-left">
           <span className="font-mono text-xs font-bold text-primary hover:underline">{c.case_number}</span>
-          <PriorityFlag priority={c.priority} />
+          <span className="flex flex-wrap gap-1">
+            <PriorityFlag priority={c.priority} />
+            <OverdueFlag overdue={c.overdue} />
+          </span>
         </button>
       ),
     },
@@ -105,7 +122,12 @@ export function OnboardingCases() {
     { key: "aml", label: t("amlBand"), sortable: false, render: (c) => <AmlPill aml={c.aml} /> },
     { key: "status", label: t("status"), render: (c) => <CaseStatus status={c.status} outcome={c.outcome} /> },
     { key: "assigned_to", label: t("assignee"), render: (c) => <span className="text-xs">{c.assigned_to?.name ?? <span className="text-muted-foreground">{t("unassigned")}</span>}</span> },
-    { key: "age_hours", label: t("age"), render: (c) => <span className="whitespace-nowrap text-xs tabular-nums">{ageText(c.age_hours)}</span> },
+    { key: "age_hours", label: t("age"), render: (c) => (
+        <span className={c.overdue ? "whitespace-nowrap text-xs font-bold tabular-nums text-red-700" : "whitespace-nowrap text-xs tabular-nums"} title={c.due_at ? t("dueOn", { date: caseDate(c.due_at) }) : undefined}>
+          {ageText(c.age_hours)}
+        </span>
+      ),
+    },
     { key: "actions", label: t("common:actions"), sortable: false, render: (c) => <RowActions buttons={{ view: true }} onView={() => setOpenId(c.id)} /> },
   ];
 
@@ -118,9 +140,14 @@ export function OnboardingCases() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => void load()} disabled={loading}>
-          <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> {t("refresh")}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" icon={Settings2} onClick={() => setSettings(true)}>
+            {t("settings")}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => void load()} disabled={loading}>
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> {t("refresh")}
+          </Button>
+        </div>
       </div>
 
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1">
@@ -134,7 +161,7 @@ export function OnboardingCases() {
             }}
             className={cn(
               "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold",
-              tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary",
+              tab === key ? "bg-primary text-primary-foreground shadow-sm" : key === "OVERDUE" && data.counts?.OVERDUE ? "text-red-700 hover:bg-red-50" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary",
             )}
           >
             {t(`tab_${key}`)}

@@ -64,6 +64,12 @@ export function PriorityFlag({ priority }) {
   );
 }
 
+export function OverdueFlag({ overdue }) {
+  const { t } = useTranslation("cases");
+  if (!overdue) return null;
+  return <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-red-700 ring-1 ring-red-200">{t("overdue")}</span>;
+}
+
 // The risk level (from case.risk or a snapshot's risk).
 export function RiskPill({ risk }) {
   const { t } = useTranslation("cases");

@@ -24,3 +24,13 @@ export const onboardingCasesApi = {
   requestReview: call("request_review"),
   requestCancel: call("request_cancel"),
 };
+
+// Onboarding Cases settings, per institution and maker-checker: edit
+// proposes (send only what changes), auth applies, deauth drops. A service
+// provider / System user adds inst_profile_id. Each replies like get.
+export const caseSettingsApi = {
+  get: (body = {}) => request("/config/case/setting/get", body),
+  edit: (body) => request("/config/case/setting/edit", body),
+  auth: (body) => request("/config/case/setting/auth", body),
+  deauth: (body) => request("/config/case/setting/deauth", body),
+};

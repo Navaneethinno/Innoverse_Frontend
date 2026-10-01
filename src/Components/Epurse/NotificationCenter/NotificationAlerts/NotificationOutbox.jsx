@@ -86,7 +86,21 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
 
   const columns = [
     { key: "created_time", label: t("notification:time"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.created_time)}</span> },
-    { key: "noti_alert_name", label: t("notification:alert"), align: "left", render: (row) => <span className="font-semibold">{row.noti_alert_name ?? row.alert_code ?? "-"}</span> },
+    {
+      key: "noti_alert_name",
+      label: t("notification:alert"),
+      align: "left",
+      // Customer messages from Onboarding Cases have an event_code and no alert.
+      render: (row) =>
+        row.event_code ? (
+          <span className="flex flex-col">
+            <span className="font-semibold">{t(`cases:messageEvent_${row.event_code}`, { defaultValue: row.event_code })}</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-primary">{t("notification:customerMessage")}</span>
+          </span>
+        ) : (
+          <span className="font-semibold">{row.noti_alert_name ?? row.alert_code ?? "-"}</span>
+        ),
+    },
     {
       key: "channel",
       label: t("notification:channel"),
@@ -103,7 +117,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
       align: "left",
       render: (row) => <span className="line-clamp-1 max-w-72 text-xs">{row.subject ?? row.body}</span>,
     },
-    { key: "action", label: t("notification:actionOnMenu"), render: (row) => `${row.action_name ?? "-"} · ${row.menu_name ?? "-"}` },
+    { key: "action", label: t("notification:actionOnMenu"), render: (row) => [row.action_name, row.menu_name].filter(Boolean).join(" · ") || "-" },
     { key: "actor_userid_name", label: t("notification:user"), render: (row) => row.actor_userid_name ?? "-" },
     {
       key: "delivery_status",

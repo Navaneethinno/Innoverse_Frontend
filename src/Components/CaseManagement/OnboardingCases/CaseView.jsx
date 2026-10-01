@@ -13,7 +13,7 @@ import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { AmlPill, CaseStatus, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
+import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
 import { AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 
@@ -105,13 +105,15 @@ export function CaseView({ id, onBack }) {
               <h1 className="font-mono text-xl font-black text-foreground">{kase.case_number}</h1>
               <CaseStatus status={kase.status} outcome={kase.outcome} />
               <PriorityFlag priority={kase.priority} />
+              <OverdueFlag overdue={kase.overdue} />
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
               {kase.subject?.name || t("noNameYet")}
               <span className="ml-2 text-xs font-medium text-muted-foreground">{subjectKind(t, kase.subject)}{kase.subject?.customer_type ? ` · ${kase.subject.customer_type}` : ""}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {t("openedOn", { date: caseDate(kase.opened_at) })} · {t("assignee")}: {kase.assigned_to?.name ?? t("unassigned")}
+              {t("openedOn", { date: caseDate(kase.opened_at) })}
+              {kase.due_at && kase.status !== "CLOSED" ? <span className={kase.overdue ? "font-bold text-red-700" : ""}> · {t("dueOn", { date: caseDate(kase.due_at) })}</span> : null} · {t("assignee")}: {kase.assigned_to?.name ?? t("unassigned")}
               {kase.inst_profile_name ? ` · ${kase.inst_profile_name}` : ""}
             </p>
             <ReasonChips reasons={kase.reasons} className="mt-2" />
