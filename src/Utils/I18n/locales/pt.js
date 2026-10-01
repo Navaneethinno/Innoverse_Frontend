@@ -1679,6 +1679,15 @@ export const tour = {
 };
 
 export const formBuilder = {
+  enum_liveness: "Prova de vida",
+  opt_confirm: "Digitar duas vezes",
+  opt_block_simple: "Recusar PINs simples",
+  pinSecretHint: "O cliente escolhe o PIN. Só um hash é guardado: a equipe nunca o vê, e ele aparece como ******** em todo lugar.",
+  livenessSingleSide: "Uma captura de prova de vida é uma única imagem: defina Lados como Único.",
+  pinLengthRange: "Um PIN tem de 4 a 12 dígitos.",
+  pinMinAboveMax: "O mínimo de dígitos não pode ser maior que o máximo.",
+  pinIsSet: "Definido pelo cliente",
+  pinSetByCustomer: "O cliente define no portal ou no app",
   formFieldsTitle: "Campos do formulário",
   formFieldsSubtitle: "A biblioteca de perguntas da sua instituição. Coloque-as em secções e construa o formulário de cada tipo de cliente a partir delas.",
   formFieldsSubtitle_merchant: "A biblioteca de perguntas da sua instituição. Coloque-as em secções e construa o formulário de cada tipo de comerciante a partir delas.",

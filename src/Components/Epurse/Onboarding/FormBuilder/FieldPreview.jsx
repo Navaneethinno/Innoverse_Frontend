@@ -183,6 +183,16 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
           ))}
         </div>
       );
+    case "PIN":
+      // Never stored or shown as typed: the server answers "********" once
+      // the customer has set it. The customer chooses it in the portal or
+      // app; staff can't see or set it.
+      return (
+        <div className={cn(control, "flex items-center justify-between gap-2 bg-muted/40")}>
+          <span className="font-mono tracking-[0.3em]">{value ? "••••••" : "—"}</span>
+          <span className="text-[11px] text-muted-foreground">{t(value ? "pinIsSet" : "pinSetByCustomer")}</span>
+        </div>
+      );
     case "FILE": {
       const both = options.sides === "front_back";
       const current = both ? (value && typeof value === "object" ? value : {}) : value;

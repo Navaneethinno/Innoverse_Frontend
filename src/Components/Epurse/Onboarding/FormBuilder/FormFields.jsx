@@ -16,6 +16,23 @@ import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./form
 
 import { Button } from "@/Components/Common/Button";
 const EMPTY = { key: "", name: "", field_type: "TEXT", label: "", hint: "", help_text: "", required: false, read_only: false, default_value: "", options: {} };
+
+// PIN (Form Builder PIN handoff): digits only, 4 to 12 long, typed twice and
+// simple ones refused unless switched off. Only a hash is stored.
+const PIN_DEFAULTS = { min_length: 4, max_length: 6, confirm: true, block_simple: true };
+
+// The options the server would refuse, caught before saving: a liveness
+// capture is a single image, and a PIN is 4 to 12 digits with min <= max.
+function optionProblem(type, options) {
+  if (type === "FILE" && options.capture === "liveness" && options.sides === "front_back") return "livenessSingleSide";
+  if (type === "PIN") {
+    const min = Number(options.min_length ?? PIN_DEFAULTS.min_length);
+    const max = Number(options.max_length ?? PIN_DEFAULTS.max_length);
+    if (![min, max].every((n) => Number.isInteger(n) && n >= 4 && n <= 12)) return "pinLengthRange";
+    if (min > max) return "pinMinAboveMax";
+  }
+  return null;
+}
 const glass = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 
 // Add / edit one library field (§4.2). The key is chosen once and never
@@ -46,10 +63,15 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
   const set = (patch) => setForm((current) => ({ ...current, ...patch }));
   const setName = (name) => set({ name, ...(keyTouched ? {} : { key: keyFromName(name) }) });
   // A new type takes its own options: the old ones don't apply.
-  const setType = (field_type) => set({ field_type, options: {} });
+  // A PIN starts with the server's defaults and has no placeholder or
+  // default value (it is a secret the customer chooses).
+  const setType = (field_type) =>
+    set(field_type === "PIN" ? { field_type, options: { ...PIN_DEFAULTS }, hint: "", default_value: "" } : { field_type, options: {} });
+  const isPin = form.field_type === "PIN";
+  const problem = optionProblem(form.field_type, form.options ?? {});
 
   const keyValid = KEY_PATTERN.test(form.key);
-  const canSave = !readOnly && keyValid && form.name.trim() && form.label.trim() && form.field_type;
+  const canSave = !readOnly && keyValid && form.name.trim() && form.label.trim() && form.field_type && !problem;
 
   const save = async () => {
     setBusy(true);
@@ -58,11 +80,11 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
         name: form.name.trim(),
         field_type: form.field_type,
         label: form.label.trim(),
-        hint: form.hint,
+        hint: isPin ? "" : form.hint,
         help_text: form.help_text,
         required: Boolean(form.required),
         read_only: Boolean(form.read_only),
-        default_value: form.default_value,
+        default_value: isPin ? "" : form.default_value,
         options: form.options ?? {},
       };
       let response;
@@ -132,19 +154,23 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
             <input className={inputClass} disabled={readOnly} value={form.label} onChange={(e) => set({ label: e.target.value })} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:questionHint")}</span>
           </label>
+          {!isPin && (
           <label className="text-sm font-semibold text-slate-700">
             {t("formBuilder:placeholder")}
             <input className={inputClass} disabled={readOnly} value={form.hint ?? ""} onChange={(e) => set({ hint: e.target.value })} />
           </label>
+          )}
           <label className="text-sm font-semibold text-slate-700">
             {t("formBuilder:helpText")}
             <input className={inputClass} disabled={readOnly} value={form.help_text ?? ""} onChange={(e) => set({ help_text: e.target.value })} />
           </label>
+          {!isPin && (
           <label className="text-sm font-semibold text-slate-700">
             {t("formBuilder:defaultValue")}
             <input className={inputClass} disabled={readOnly} value={form.default_value ?? ""} onChange={(e) => set({ default_value: e.target.value })} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:defaultValueHint")}</span>
           </label>
+          )}
           <div className="flex flex-wrap items-end gap-2">
             <CheckboxPill checked={Boolean(form.required)} disabled={readOnly} onChange={(on) => set({ required: on })} label={t("formBuilder:required")} />
             <CheckboxPill checked={Boolean(form.read_only)} disabled={readOnly} onChange={(on) => set({ read_only: on })} label={t("formBuilder:readOnly")} />
@@ -154,6 +180,8 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
           <div className="rounded-2xl border bg-muted/40 p-4">
             <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("formBuilder:typeOptions", { type: typeDef.name ?? typeDef.type })}</h3>
             <FieldOptionsEditor typeDef={typeDef} value={form.options} onChange={(options) => set({ options })} vocabulary={vocabulary} libraryFields={libraryFields} selfKey={form.key} disabled={readOnly} />
+            {isPin && <p className="mt-3 text-[11px] text-muted-foreground">{t("formBuilder:pinSecretHint")}</p>}
+            {problem && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{t(`formBuilder:${problem}`)}</p>}
           </div>
         )}
         {editing && usedBy && (

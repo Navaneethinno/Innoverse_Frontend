@@ -1693,6 +1693,15 @@ export const tour = {
 };
 
 export const formBuilder = {
+  enum_liveness: "Liveness",
+  opt_confirm: "Type it twice",
+  opt_block_simple: "Refuse simple PINs",
+  pinSecretHint: "The customer chooses the PIN. Only a hash is kept: staff never see it, and it shows as ******** everywhere.",
+  livenessSingleSide: "A liveness capture is a single image: set Sides to Single.",
+  pinLengthRange: "A PIN has 4 to 12 digits.",
+  pinMinAboveMax: "The fewest digits can't be more than the most digits.",
+  pinIsSet: "Set by the customer",
+  pinSetByCustomer: "The customer sets this in the portal or app",
   formFieldsTitle: "Form Fields",
   formFieldsSubtitle: "Your institution's library of questions. Place them in sections, then build each customer type's form from those sections.",
   formFieldsSubtitle_merchant: "Your institution's library of questions. Place them in sections, then build each merchant type's form from those sections.",
