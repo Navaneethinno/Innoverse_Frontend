@@ -25,14 +25,18 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { useAuth } from "@/Hooks/useAuth";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
+import { normalizeBranding } from "@/Utils/Lib/branding";
 
 const FIELDS = [
   ["display_name", "Display Name"],
   ["logo", "Logo"],
+  ["logo_dark", "Logo (Dark)"],
   ["favicon", "Favicon"],
-  ["primary_color", "Primary Color"],
-  ["secondary_color", "Secondary Color"],
   ["login_background", "Login Background"],
+  ["primary_color_light", "Primary Color (Light)"],
+  ["secondary_color_light", "Secondary Color (Light)"],
+  ["primary_color_dark", "Primary Color (Dark)"],
+  ["secondary_color_dark", "Secondary Color (Dark)"],
   ["email_header", "Email Header"],
   ["email_footer", "Email Footer"],
   ["receipt_header", "Receipt Header"],
@@ -41,6 +45,10 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+// Image fields: uploaded first (the upload's `field` names which), then
+// saved as the returned path.
+const IMAGE_KEYS = new Set(["logo", "logo_dark", "favicon", "login_background"]);
+const COLOR_FALLBACK = { primary_color_light: "#2563eb", secondary_color_light: "#dbeafe", primary_color_dark: "#60a5fa", secondary_color_dark: "#1e293b" };
 const HEX_COLOR_RE = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
 const COLOR_NAMES = {
   "#d82222": "Red",
@@ -51,10 +59,10 @@ const COLOR_NAMES = {
   "#000000": "Black",
 };
 const colorName = (color) => COLOR_NAMES[String(color ?? "").toLowerCase()] ?? "Custom color";
-// Logo and favicon are stored on the server (File upload / File paths
-// handoffs, 2026-09): each is uploaded on its own for the institution (the
-// upload's `field` says which; PNG, JPEG or WebP, up to 2 MB) and saved as
-// the returned path; showing one downloads it through /branding/file.
+// The images (logo, dark logo, favicon, login background) are stored on the
+// server: each is uploaded on its own for the institution (the upload's
+// `field` says which; PNG, JPEG or WebP, up to 2 MB) and saved as the
+// returned path; showing one downloads it through /branding/file.
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const brandingDownload = (instProfileId) => (path) => institutionBrandingApi.file({ inst_profile_id: Number(instProfileId), path });
 function ColorValue({ color }) {
@@ -148,7 +156,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
               <div className="mt-1 break-words text-sm font-semibold text-foreground">
                 {key.includes("color") ? (
                   <ColorValue color={details?.[key]} />
-                ) : key === "logo" || key === "favicon" ? (
+                ) : IMAGE_KEYS.has(key) ? (
                   <StoredFilePreview value={details?.[key]} download={brandingDownload(details?.inst_profile_id)} />
                 ) : (
                   value(details, key)
@@ -183,7 +191,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
 export function InstitutionBranding() {
   const tr = useConfigLabel();
   const currentUser = useAuth((s) => s.user);
-  const { colors: liveBrandColors, setBrandTheme } = useBrandTheme();
+  const { brand: liveBrand, setBrandTheme } = useBrandTheme();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
@@ -219,14 +227,14 @@ export function InstitutionBranding() {
       render: (r) => value(r, "inst_profile_name"),
     },
     {
-      key: "primary_color",
+      key: "primary_color_light",
       label: tr("Primary Color"),
-      render: (r) => <ColorValue color={r.primary_color} />,
+      render: (r) => <ColorValue color={r.primary_color_light} />,
     },
     {
-      key: "secondary_color",
+      key: "secondary_color_light",
       label: tr("Secondary Color"),
-      render: (r) => <ColorValue color={r.secondary_color} />,
+      render: (r) => <ColorValue color={r.secondary_color_light} />,
     },
     {
       key: "status",
@@ -305,12 +313,9 @@ export function InstitutionBranding() {
       if (
         currentUser?.inst_profile_id != null &&
         String(instProfileId) === String(currentUser.inst_profile_id) &&
-        (values.primary_color || values.secondary_color)
+        normalizeBranding(values)
       ) {
-        setBrandTheme({
-          primary: values.primary_color || liveBrandColors?.primary,
-          secondary: values.secondary_color || liveBrandColors?.secondary,
-        });
+        setBrandTheme({ ...normalizeBranding(values), institutionCode: liveBrand?.institutionCode });
       }
     } catch {
       /* mutation hook already shows the error toast */
@@ -370,7 +375,7 @@ export function InstitutionBranding() {
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr("Institution Branding")}
-        searchableKeys={["display_name", "inst_profile_name", "primary_color"]}
+        searchableKeys={["display_name", "inst_profile_name", "primary_color_light"]}
         emptyTitle={tr("No branding profiles found")}
         emptyDescription={tr("Branding profiles will appear here when available.")}
       bare /></div><Modal
@@ -456,7 +461,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           <FilterSelect
             className="mt-1.5"
             value={form.inst_profile_id}
-            onChange={(next) => setForm((f) => ({ ...f, inst_profile_id: next, logo: "", favicon: "" }))}
+            onChange={(next) => setForm((f) => ({ ...f, inst_profile_id: next, logo: "", logo_dark: "", favicon: "", login_background: "" }))}
             options={[
               { value: "", label: tr("Select institution") },
               ...institutions.map((i) => ({
@@ -469,7 +474,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       )}
       {FIELDS.map(([key, label]) => {
         if (key.includes("color")) {
-          const fallback = key === "primary_color" ? "#2563eb" : "#dbeafe";
+          const fallback = COLOR_FALLBACK[key];
           const currentValue = form[key] || fallback;
           return (
             <label key={key} className="text-sm font-medium">
@@ -499,7 +504,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             </label>
           );
         }
-        if (key === "logo" || key === "favicon") {
+        if (IMAGE_KEYS.has(key)) {
           return (
             <label key={key} className="text-sm font-medium">
               {label}

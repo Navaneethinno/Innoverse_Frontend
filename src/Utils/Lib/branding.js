@@ -4,16 +4,15 @@
 //               primary_color_light, secondary_color_light,
 //               primary_color_dark, secondary_color_dark }
 //
-// normalizeBranding turns that into one shape the app uses everywhere. The
-// older keys (primary_color / secondary_color) are still read when the new
-// ones are missing, and a dark colour or logo that isn't set falls back to
-// the light one. Empty strings count as "not set".
+// normalizeBranding turns that into one shape the app uses everywhere. A
+// dark colour or logo that isn't set falls back to the light one. Empty
+// strings count as "not set".
 const text = (v) => (typeof v === "string" && v.trim() ? v.trim() : null);
 
 export function normalizeBranding(raw) {
   if (!raw || typeof raw !== "object") return null;
-  const lightPrimary = text(raw.primary_color_light) ?? text(raw.primary_color);
-  const lightSecondary = text(raw.secondary_color_light) ?? text(raw.secondary_color);
+  const lightPrimary = text(raw.primary_color_light);
+  const lightSecondary = text(raw.secondary_color_light);
   const brand = {
     displayName: text(raw.display_name),
     logo: text(raw.logo),

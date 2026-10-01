@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { deriveBrandThemeVars } from "@/Utils/Lib/colorTheme";
 import { asBrand, brandColors } from "@/Utils/Lib/branding";
-import { getAccessToken } from "@/Services/api/authStorage";
+import { getAccessToken, readAuthUser } from "@/Services/api/authStorage";
 import { institutionBrandingApi } from "@/Services/Institution/institutionBranding.api";
 
 const STORAGE_KEY = "innoverse-brand-theme";
@@ -98,7 +98,7 @@ async function loadAssets(brand, cached) {
         return;
       }
       try {
-        const blob = await institutionBrandingApi.file({ path });
+        const blob = await institutionBrandingApi.file({ inst_profile_id: readAuthUser()?.inst_profile_id, path });
         const small = blob.size <= MAX_CACHED_IMAGE;
         out[name] = { path, url: small ? await blobToDataUrl(blob) : URL.createObjectURL(blob), cache: small };
       } catch {
@@ -157,16 +157,12 @@ export function BrandThemeProvider({ children }) {
     setFavicon(faviconUrl);
   }, [brand?.displayName, faviconUrl]);
 
-  // `next`: a normalized brand (login/refresh) or a { primary, secondary }
-  // pair (Institution Branding's live preview). Null clears it.
+  // `next`: a normalized brand (login/refresh, Institution Branding's
+  // live preview). Null clears it.
   const setBrandTheme = useCallback((next) => {
-    setBrand((prev) => {
-      const value = asBrand(next);
-      // A colour-only preview keeps the rest of the current brand.
-      const merged = value && prev && !next?.light && (next?.primary || next?.secondary) ? { ...prev, light: value.light } : value;
-      writeJson(STORAGE_KEY, merged);
-      return merged;
-    });
+    const value = asBrand(next);
+    setBrand(value);
+    writeJson(STORAGE_KEY, value);
   }, []);
 
   const clearBrandTheme = useCallback(() => setBrandTheme(null), [setBrandTheme]);
