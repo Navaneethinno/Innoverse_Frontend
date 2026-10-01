@@ -26,6 +26,10 @@ export function CaseStatus({ status, outcome }) {
   );
 }
 
+// A proposal's or decision's outcome may come as APPROVE or APPROVED (and
+// REJECT / REJECTED): anything starting with APPROV is an approval.
+export const isApproval = (outcome) => /^APPROV/i.test(String(outcome ?? ""));
+
 export const OUTCOME_TONE = {
   APPROVED: "bg-emerald-50 text-emerald-700",
   REJECTED: "bg-red-50 text-red-700",

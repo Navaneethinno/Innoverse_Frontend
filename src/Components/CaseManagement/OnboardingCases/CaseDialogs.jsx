@@ -7,7 +7,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { useAuth } from "@/Hooks/useAuth";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { caseDate } from "./caseShared";
+import { caseDate, isApproval } from "./caseShared";
 
 const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
 const labelClass = "text-sm font-semibold text-slate-700";
@@ -129,7 +129,7 @@ export function ProposeDialog({ outcome, openMatches, busy, onClose, onSave }) {
 export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
   const [note, setNote] = useState("");
-  const approve = proposal?.outcome === "APPROVE";
+  const approve = isApproval(proposal?.outcome);
   return (
     <Modal
       open

@@ -13,7 +13,7 @@ import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
+import { AmlPill, isApproval, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
 import { AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 
@@ -191,7 +191,7 @@ function Empty({ text }) {
 
 function ProposalBanner({ proposal, closed }) {
   const { t } = useTranslation("cases");
-  const approve = proposal.outcome === "APPROVE";
+  const approve = isApproval(proposal.outcome);
   return (
     <div className={cn("mt-3 rounded-xl border p-3 text-sm", approve ? "border-emerald-200 bg-emerald-50/60" : "border-red-200 bg-red-50/60")}>
       <p className="font-bold text-foreground">

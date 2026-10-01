@@ -2000,6 +2000,7 @@ export const cases = {
   outcome_WITHDRAWN: "Retirado",
   outcome_APPROVE: "Aprovar",
   outcome_REJECT: "Rejeitar",
+  outcome_REVIEW: "Revisão",
   backToQueue: "Voltar à fila",
   loadingCase: "Carregando o caso…",
   openedOn: "Aberto em {{date}}",

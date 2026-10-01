@@ -2014,6 +2014,7 @@ export const cases = {
   outcome_WITHDRAWN: "Withdrawn",
   outcome_APPROVE: "Approve",
   outcome_REJECT: "Reject",
+  outcome_REVIEW: "Review",
   backToQueue: "Back to the queue",
   loadingCase: "Loading the case…",
   openedOn: "Opened {{date}}",
