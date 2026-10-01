@@ -76,6 +76,7 @@ export function getModuleIcon(moduleName = "") {
 // icon (which is exactly what was happening before this list was reordered).
 const MENU_ICON_RULES = [
   [/^limits?$/i, Gauge],
+  [/^accounts$/i, Wallet],
   [/user activity/i, Activity],
   [/score breakdown/i, Gauge],
   // InnoAML menus, before the generic "configuration"/"review" style rules.

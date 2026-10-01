@@ -14,7 +14,7 @@ import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 // add/options payload shape differ (party type + company type, no
 // ownership/sub-type axis, no level_no anywhere since corporate customer
 // types have no KYC levels).
-async function request(path, body = {}) {
+async function request(path, body = {}, extraHeaders = {}) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 20000);
   try {
@@ -26,6 +26,7 @@ async function request(path, body = {}) {
         Deviceinfo: JSON.stringify(DEVICE_INFO),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...apiLanguageHeader(),
+        ...extraHeaders,
       },
       body: JSON.stringify(scopedBody(body)),
       signal: controller.signal,
@@ -60,7 +61,11 @@ export const corpOnboardingRowsOf = (response) => (Array.isArray(response?.data)
 const routes = API_ENDPOINTS.CUSTOMER.CORPORATE;
 export const corpCustomerOnboardingApi = {
   options: (payload = {}) => request(routes.OPTIONS, payload),
-  add: (payload) => request(routes.ADD, payload),
+  // The digital product the onboarding belongs to (its primary account
+  // product is the account opened on approval). Needed when the
+  // institution has more than one Active digital product.
+  add: (payload, { digitalProductId } = {}) =>
+    request(routes.ADD, payload, digitalProductId ? { "X-Digital-Product-Id": String(digitalProductId) } : {}),
   edit: (payload) => request(routes.EDIT, payload),
   get: (referenceId) => request(routes.GET, { reference_id: referenceId }),
   submit: (payload) => request(routes.SUBMIT, payload),

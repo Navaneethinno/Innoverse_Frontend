@@ -48,6 +48,7 @@ void i18n
       "tour",
       "formBuilder",
       "limits",
+      "accounts",
     ],
     interpolation: { escapeValue: false },
     detection: {

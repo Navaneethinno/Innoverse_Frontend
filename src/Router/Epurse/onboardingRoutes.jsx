@@ -54,6 +54,10 @@ onboardingRoutes.push(
   { path: "formsections/:id", element: pageElement(FormSections) },
 );
 
+// EPURSE > Accounts (menu 178): customers' and merchants' accounts, read only.
+const Accounts = lazy(() => import("@/Components/Epurse/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
+onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { path: "accounts/:id", element: pageElement(Accounts) });
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages
