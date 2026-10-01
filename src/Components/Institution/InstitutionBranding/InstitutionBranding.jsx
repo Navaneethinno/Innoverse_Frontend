@@ -26,6 +26,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { useAuth } from "@/Hooks/useAuth";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { normalizeBranding } from "@/Utils/Lib/branding";
+import { BrandingPreview } from "./BrandingPreview";
 
 const FIELDS = [
   ["display_name", "Display Name"],
@@ -472,6 +473,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           />
         </label>
       )}
+      <BrandingPreview form={form} download={brandingDownload(form.inst_profile_id ?? editing?.inst_profile_id)} />
       {FIELDS.map(([key, label]) => {
         if (key.includes("color")) {
           const fallback = COLOR_FALLBACK[key];
