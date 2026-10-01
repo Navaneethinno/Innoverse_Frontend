@@ -6,7 +6,7 @@ import { glass } from "./WidgetCard";
 
 function StatCard({ label, value, sub, gradient, icon: Icon, loading }) {
   return (
-    <div className="relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl border p-5" style={glass}>
+    <div className="relative flex h-full flex-col justify-between gap-2 overflow-hidden rounded-2xl border p-5" style={glass}>
       <div className="flex items-center justify-between pr-10">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
       </div>

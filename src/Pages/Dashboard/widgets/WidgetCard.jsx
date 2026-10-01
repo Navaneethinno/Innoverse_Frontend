@@ -31,7 +31,7 @@ export function WidgetCard({ title, icon: Icon, action, className, children }) {
           {action}
         </div>
       )}
-      {children}
+      <div className="flex min-h-0 flex-1 flex-col overflow-auto">{children}</div>
     </div>
   );
 }
@@ -40,8 +40,8 @@ export function WidgetCard({ title, icon: Icon, action, className, children }) {
 // failed, or when there is nothing to show.
 export function WidgetBody({ loading, failed, empty, emptyText, children }) {
   const { t } = useTranslation("dashboard");
-  if (loading) return <div className="min-h-32 flex-1 animate-pulse rounded-xl bg-muted/60" />;
-  if (failed) return <p className="flex min-h-32 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{t("couldNotLoad")}</p>;
-  if (empty) return <p className="flex min-h-32 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{emptyText ?? t("nothingYet")}</p>;
+  if (loading) return <div className="min-h-16 flex-1 animate-pulse rounded-xl bg-muted/60" />;
+  if (failed) return <p className="flex min-h-16 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{t("couldNotLoad")}</p>;
+  if (empty) return <p className="flex min-h-16 flex-1 items-center justify-center text-center text-xs text-muted-foreground">{emptyText ?? t("nothingYet")}</p>;
   return children;
 }

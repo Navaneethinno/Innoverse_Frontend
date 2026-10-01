@@ -28,7 +28,7 @@ export function OnboardingTrendWidget() {
   return (
     <WidgetCard title={t("onboardingTrend")} icon={TrendingUp} action={data ? <span className="text-xs font-bold text-muted-foreground">{t("totalN", { count: data.total ?? 0 })}</span> : null}>
       <WidgetBody loading={loading} failed={failed} empty={!rows.length}>
-        <div className="h-56 min-h-0 flex-1">
+        <div className="min-h-24 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={rows} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
               <defs>
@@ -74,7 +74,7 @@ export function CustomerSourcesWidget() {
   return (
     <WidgetCard title={t("customerSources")} icon={PieIcon}>
       <WidgetBody loading={loading} failed={failed} empty={!items.length}>
-        <div className="relative h-44">
+        <div className="relative min-h-28 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie data={drawn.length ? drawn : [{ source: "none", count: 1 }]} dataKey="count" nameKey="label" innerRadius="62%" outerRadius="90%" paddingAngle={drawn.length > 1 ? 3 : 0} stroke="none">
@@ -113,7 +113,7 @@ export function KycLevelsWidget() {
   return (
     <WidgetCard title={t("kycLevels")} icon={BarChart3} action={data ? <span className="text-xs font-bold text-muted-foreground">{t("totalN", { count: data.total ?? 0 })}</span> : null}>
       <WidgetBody loading={loading} failed={failed} empty={!rows.length} emptyText={t("noKycLevels")}>
-        <div className="h-56 min-h-0 flex-1">
+        <div className="min-h-24 flex-1">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={rows} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />

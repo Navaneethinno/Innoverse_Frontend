@@ -1,4 +1,5 @@
 import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { LAYOUT_VERSION } from "@/Pages/Dashboard/layout/gridLayout";
 
 // Dashboard (Admin portal handoff: dashboard). The layout is per user and
 // only the user's own (user_id + user_name must be the signed-in user);
@@ -16,7 +17,7 @@ export const dashboardApi = {
         user_id: user.id,
         user_name: user.username,
         layout,
-        ...(layout ? { layout_version: 1 } : {}),
+        ...(layout ? { layout_version: LAYOUT_VERSION } : {}),
       }),
     ),
   // widgets: ids to refresh (all when left out).

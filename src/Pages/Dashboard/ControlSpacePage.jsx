@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, LayoutGrid, RefreshCw, RotateCcw } from "lucide-react";
 import { motion } from "motion/react";
@@ -13,10 +13,10 @@ import { WIDGET_REGISTRY } from "./layout/widgetRegistry";
 // the user may not see comes back unavailable and is hidden.
 //
 //   ControlSpacePage        header + "Customize layout"/"Done" toggle
-//   layout/widgetRegistry   id -> component, default/min/max span
-//   layout/useDashboardLayout  per-user saved order + widths (server)
-//   layout/DashboardGrid    dnd-kit context + sortable 4-column grid
-//   layout/SortableWidget   one slot: drag handle, width toggle
+//   layout/widgetRegistry   id -> component, default size
+//   layout/gridLayout       saved layout <-> grid items (pure helpers)
+//   layout/useDashboardLayout  per-user saved places and sizes (server only)
+//   layout/DashboardGrid    react-grid-layout: drag, resize, drop preview
 //   widgets/*               the widgets themselves
 // Greeting follows the viewer’s local clock rather than always saying
 // “Good morning”.
@@ -31,11 +31,10 @@ export function ControlSpacePage() {
   const currentUser = useAuth((s) => s.user);
   const summary = useDashboardSummary();
   const { layout, setLayout, resetLayout } = useDashboardLayout(currentUser, summary.layout);
-  const visible = layout.filter((w) => !isHidden(summary.widgets, w.id));
+  const visibleIds = useMemo(() => new Set(Object.keys(WIDGET_REGISTRY).filter((id) => !isHidden(summary.widgets, id))), [summary.widgets]);
   const [editing, setEditing] = useState(false);
 
-  // Esc leaves customize mode. dnd-kit’s keyboard sensor also uses Esc to
-  // cancel a drag and marks that event handled, so a cancel doesn’t exit.
+  // Esc leaves customize mode.
   useEffect(() => {
     if (!editing) return undefined;
     const onKey = (e) => {
@@ -77,7 +76,7 @@ export function ControlSpacePage() {
               <RefreshCw size={13} className={summary.loading ? "animate-spin" : ""} /> {t("refresh")}
             </button>
           )}
-          {editing && (
+          {editing && layout && (
             <button
               type="button"
               onClick={resetLayout}
@@ -108,7 +107,15 @@ export function ControlSpacePage() {
       </motion.div>
 
       <DashboardDataContext.Provider value={summary}>
-        <DashboardGrid layout={visible} setLayout={setLayout} editing={editing} />
+        {layout ? (
+          <DashboardGrid layout={layout} visibleIds={visibleIds} setLayout={setLayout} editing={editing} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-40 animate-pulse rounded-2xl bg-muted/60" />
+            ))}
+          </div>
+        )}
       </DashboardDataContext.Provider>
     </div>
   );

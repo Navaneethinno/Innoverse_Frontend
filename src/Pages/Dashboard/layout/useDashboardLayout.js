@@ -1,58 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { dashboardApi } from "@/Services/Dashboard/dashboard.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { WIDGET_REGISTRY, clampSpan, defaultLayout } from "./widgetRegistry";
+import { reconcileLayout } from "./gridLayout";
+import { GRID_COLS, MAX_SPAN, WIDGET_REGISTRY, defaultLayout } from "./widgetRegistry";
 
-// Per-user widget layout, saved on the server (/config/user/dashboard_layout)
-// as [{ id, span }]: order and width only, never pixel positions. A copy is
-// kept in localStorage so the page draws the user's layout before the
-// server answers. Changes are saved a moment after the last one.
-const STORAGE_PREFIX = "innoverse:dashboard-layout:";
+// Per-user widget layout. The server is the only copy: it comes back with
+// the dashboard summary and is saved to /config/user/dashboard_layout a
+// moment after the last move or resize. Nothing is kept in the browser.
 const SAVE_DELAY = 800;
-
-// A saved layout is reconciled with the current registry: unknown widgets
-// are dropped, spans clamped, and widgets added since are appended.
-function reconcile(saved) {
-  if (!Array.isArray(saved)) return defaultLayout();
-  const seen = new Set();
-  const kept = saved
-    .filter((item) => item && WIDGET_REGISTRY[item.id] && !seen.has(item.id) && seen.add(item.id))
-    .map((item) => ({ id: item.id, span: clampSpan(item.id, item.span) }));
-  const added = defaultLayout().filter((item) => !seen.has(item.id));
-  return [...kept, ...added];
-}
-
-const readCache = (key) => {
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? reconcile(JSON.parse(raw)) : null;
-  } catch {
-    return null;
-  }
-};
-const writeCache = (key, layout) => {
-  try {
-    if (layout) window.localStorage.setItem(key, JSON.stringify(layout));
-    else window.localStorage.removeItem(key);
-  } catch {
-    // Storage unavailable: the server copy still holds.
-  }
-};
+const options = { cols: GRID_COLS, maxSpan: MAX_SPAN };
 
 // `serverLayout`: the layout the summary returned (undefined until it has
-// answered, null when the user never customised).
+// answered, null when the user never customised). `layout` stays null until
+// then, so the page never flashes a layout it is about to replace.
 export function useDashboardLayout(user, serverLayout) {
-  const storageKey = STORAGE_PREFIX + (user?.id ?? user?.username ?? "anonymous");
-  const [layout, setLayoutState] = useState(() => readCache(storageKey) ?? defaultLayout());
+  const [layout, setLayoutState] = useState(null);
   const timer = useRef(null);
 
-  // The server's copy wins once it arrives.
   useEffect(() => {
     if (serverLayout === undefined) return;
-    const next = serverLayout?.layout ? reconcile(serverLayout.layout) : defaultLayout();
-    setLayoutState(next);
-    writeCache(storageKey, serverLayout?.layout ? next : null);
-  }, [serverLayout, storageKey]);
+    setLayoutState(serverLayout?.layout ? reconcileLayout(WIDGET_REGISTRY, serverLayout.layout, options) : defaultLayout());
+  }, [serverLayout]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
@@ -68,21 +36,17 @@ export function useDashboardLayout(user, serverLayout) {
   );
 
   const setLayout = useCallback(
-    (next) =>
-      setLayoutState((prev) => {
-        const value = typeof next === "function" ? next(prev) : next;
-        writeCache(storageKey, value);
-        save(value);
-        return value;
-      }),
-    [storageKey, save],
+    (value) => {
+      setLayoutState(value);
+      save(value);
+    },
+    [save],
   );
 
   const resetLayout = useCallback(() => {
-    writeCache(storageKey, null);
     setLayoutState(defaultLayout());
     save(null);
-  }, [storageKey, save]);
+  }, [save]);
 
   return { layout, setLayout, resetLayout };
 }

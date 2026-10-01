@@ -1,68 +1,73 @@
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { SortableWidget } from "./SortableWidget";
-import { WIDGET_REGISTRY, clampSpan } from "./widgetRegistry";
+import { Responsive, WidthProvider } from "react-grid-layout";
+import { Move } from "lucide-react";
+import { cn } from "@/Utils/Lib/utils";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import "./dashboardGrid.css";
+import { mergeVisible, stackItems, toGridItems } from "./gridLayout";
+import { GRID_COLS, MAX_SPAN, ROW_HEIGHT, WIDGET_REGISTRY } from "./widgetRegistry";
 
-// The widget grid: an ordered array of { id, span } rendered into a
-// 4-column CSS grid (1 column below md, spans ignored there). Placement is
-// ONLY ever an index in that array, so cards can't overlap however fast or
-// wherever the pointer moves.
+const ResponsiveGrid = WidthProvider(Responsive);
+
+// The widget grid (react-grid-layout). Each card has a cell position and a
+// size. While editing, a card is dragged by its whole surface and the grid
+// shows where it will land (the shaded placeholder), moving the others out
+// of the way. Cards resize from the right edge, the bottom edge or the
+// corner, snapping to whole columns and rows. Below the md breakpoint the
+// grid is one column and editing is off, so a phone never rewrites the
+// desktop layout.
 //
-// rectSortingStrategy gives the live sliding reflow: while a card is
-// dragged over others, they animate out of the way to preview the result,
-// continuously, and the dragged card follows the pointer before settling
-// into the previewed slot on drop. KeyboardSensor makes the same reorder
-// work from the keyboard (Space/Enter to pick up, arrows to move, Space to
-// drop, Escape to cancel).
-export function DashboardGrid({ layout, setLayout, editing }) {
+// `layout`: every widget's saved place; `visibleIds`: the ones to draw.
+export function DashboardGrid({ layout, visibleIds, setLayout, editing }) {
   const { t } = useTranslation("dashboard");
-  const sensors = useSensors(
-    // A small distance before a drag starts, so a plain click on the handle
-    // doesn't pick the card up.
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-  const nameOf = (id) => t(WIDGET_REGISTRY[id]?.titleKey ?? String(id));
-  const positionOf = (id) => layout.findIndex((w) => w.id === id) + 1;
+  const [breakpoint, setBreakpoint] = useState("lg");
+  const desktop = breakpoint === "lg";
+  const canEdit = editing && desktop;
+  const shown = useMemo(() => layout.filter((it) => visibleIds.has(it.id)), [layout, visibleIds]);
+  const items = useMemo(() => toGridItems(WIDGET_REGISTRY, shown, { maxSpan: MAX_SPAN, editing: canEdit }), [shown, canEdit]);
+  // Phones: the same order, one card per row.
+  const stacked = useMemo(() => stackItems(items), [items]);
 
-  const onDragEnd = ({ active, over }) => {
-    if (!over || active.id === over.id) return;
-    setLayout((prev) => {
-      const from = prev.findIndex((w) => w.id === active.id);
-      const to = prev.findIndex((w) => w.id === over.id);
-      return from < 0 || to < 0 ? prev : arrayMove(prev, from, to);
-    });
+  // Saved only when the user finishes a move or resize; changes the grid
+  // makes on its own (mount, width changes) are never written back.
+  const commit = (next) => {
+    if (!canEdit) return;
+    const merged = mergeVisible(layout, next);
+    if (JSON.stringify(merged) !== JSON.stringify(layout)) setLayout(merged);
   };
 
-  const onToggleSpan = (id) =>
-    setLayout((prev) => prev.map((w) => (w.id === id ? { ...w, span: clampSpan(id, w.span === 2 ? 1 : 2) } : w)));
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
-      accessibility={{
-        screenReaderInstructions: { draggable: t("dragInstructions") },
-        announcements: {
-          onDragStart: ({ active }) => t("announcePickedUp", { name: nameOf(active.id), position: positionOf(active.id) }),
-          onDragOver: ({ active, over }) =>
-            over ? t("announceMovedOver", { name: nameOf(active.id), position: positionOf(over.id) }) : undefined,
-          onDragEnd: ({ active, over }) =>
-            over ? t("announceDropped", { name: nameOf(active.id), position: positionOf(over.id) }) : t("announceCancelled", { name: nameOf(active.id) }),
-          onDragCancel: ({ active }) => t("announceCancelled", { name: nameOf(active.id) }),
-        },
-      }}
+    <ResponsiveGrid
+      className={cn("dashboard-grid -mx-2", canEdit && "is-editing")}
+      layouts={{ lg: items, sm: stacked }}
+      breakpoints={{ lg: 768, sm: 0 }}
+      cols={{ lg: GRID_COLS, sm: 1 }}
+      rowHeight={ROW_HEIGHT}
+      margin={[16, 16]}
+      containerPadding={[8, 14]}
+      compactType="vertical"
+      resizeHandles={["e", "s", "se"]}
+      draggableCancel="button, a, input, select, textarea"
+      onBreakpointChange={setBreakpoint}
+      onDragStop={commit}
+      onResizeStop={commit}
     >
-      <SortableContext items={layout.map((w) => w.id)} strategy={rectSortingStrategy}>
-        {/* Extra row gap while editing leaves room for each card’s control pill. */}
-        <div className={`grid grid-cols-1 gap-x-4 md:grid-cols-4 ${editing ? "gap-y-9 pt-3" : "gap-y-4"}`}>
-          {layout.map((w) => (
-            <SortableWidget key={w.id} id={w.id} span={w.span} editing={editing} onToggleSpan={onToggleSpan} />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+      {items.map((it) => {
+        const widget = WIDGET_REGISTRY[it.i];
+        const Widget = widget.component;
+        return (
+          <div key={it.i} className="dashboard-cell">
+            <Widget />
+            {canEdit && (
+              <span className="dashboard-move-hint" aria-hidden>
+                <Move size={11} /> {t(widget.titleKey)}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </ResponsiveGrid>
   );
 }
