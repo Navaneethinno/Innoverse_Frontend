@@ -7,6 +7,8 @@ import { GRID_COLS, MAX_SPAN, WIDGET_REGISTRY, defaultLayout } from "./widgetReg
 // Per-user widget layout. The server is the only copy: it comes back with
 // the dashboard summary and is saved to /config/user/dashboard_layout a
 // moment after the last move or resize. Nothing is kept in the browser.
+// Saved widgets this page does not know (another portal's, sharing the same
+// dashboard key) are carried through every save untouched.
 const SAVE_DELAY = 800;
 const options = { cols: GRID_COLS, maxSpan: MAX_SPAN };
 
@@ -16,9 +18,11 @@ const options = { cols: GRID_COLS, maxSpan: MAX_SPAN };
 export function useDashboardLayout(user, serverLayout) {
   const [layout, setLayoutState] = useState(null);
   const timer = useRef(null);
+  const foreign = useRef([]);
 
   useEffect(() => {
     if (serverLayout === undefined) return;
+    foreign.current = (Array.isArray(serverLayout?.layout) ? serverLayout.layout : []).filter((it) => it && !WIDGET_REGISTRY[it.id]);
     setLayoutState(serverLayout?.layout ? reconcileLayout(WIDGET_REGISTRY, serverLayout.layout, options) : defaultLayout());
   }, [serverLayout]);
 
@@ -29,7 +33,7 @@ export function useDashboardLayout(user, serverLayout) {
       window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => {
         if (!user?.id) return;
-        dashboardApi.saveLayout(user, value).catch((error) => notifications.error(error.message));
+        dashboardApi.saveLayout(user, value && [...value, ...foreign.current]).catch((error) => notifications.error(error.message));
       }, SAVE_DELAY);
     },
     [user],
@@ -45,7 +49,7 @@ export function useDashboardLayout(user, serverLayout) {
 
   const resetLayout = useCallback(() => {
     setLayoutState(defaultLayout());
-    save(null);
+    save(foreign.current.length ? defaultLayout() : null);
   }, [save]);
 
   return { layout, setLayout, resetLayout };
