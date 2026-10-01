@@ -38,7 +38,7 @@ export function BrandingPreview({ form, download }) {
   );
 
   return (
-    <div className="rounded-2xl border border-border p-3 sm:col-span-2">
+    <div className="rounded-2xl border border-border bg-card p-3">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold">Live preview</p>
         <SegmentedSwitch
@@ -50,9 +50,9 @@ export function BrandingPreview({ form, download }) {
           ]}
         />
       </div>
-      <div className="grid gap-3 lg:grid-cols-[1fr_200px]">
+      <div className="grid gap-3">
         {/* App screen */}
-        <div className="flex h-56 overflow-hidden rounded-xl text-[11px]" style={{ ...vars, background: s.page, color: s.text, border: `1px solid ${s.border}` }}>
+        <div className="flex h-64 overflow-hidden rounded-xl text-[11px]" style={{ ...vars, background: s.page, color: s.text, border: `1px solid ${s.border}` }}>
           <aside className="hidden w-36 shrink-0 flex-col gap-2 p-2 sm:flex" style={{ background: s.panel, borderRight: `1px solid ${s.border}` }}>
             <div className="flex items-center gap-2 rounded-lg p-1.5" style={{ border: `1px solid ${s.border}` }}>
               {mark}
@@ -83,10 +83,10 @@ export function BrandingPreview({ form, download }) {
               <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--primary-light)" }}>
                 <div className="h-full w-2/3 rounded-full" style={{ background: "var(--primary)" }} />
               </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="rounded-lg px-2.5 py-1 font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>Primary</span>
-                <span className="rounded-lg px-2.5 py-1 font-bold" style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>Secondary</span>
-                <span className="rounded-lg px-2.5 py-1 font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary)" }}>Outline</span>
+              <div className="mt-3 flex flex-wrap gap-1">
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>Primary</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>Secondary</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary)" }}>Outline</span>
               </div>
             </div>
           </div>

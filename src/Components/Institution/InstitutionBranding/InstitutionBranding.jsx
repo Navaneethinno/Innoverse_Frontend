@@ -1,5 +1,5 @@
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { FileUploadField, StoredFilePreview } from "@/Components/Common/FileUploadField";
@@ -46,6 +46,11 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+// The form groups the fields (the view and audit keep the API order): name
+// and colours first, beside the live preview, then images, then texts.
+const FORM_SECTIONS = { display_name: "Name and colours", logo: "Images", email_header: "Texts" };
+const FORM_ORDER = ["display_name", "primary_color_light", "secondary_color_light", "primary_color_dark", "secondary_color_dark", "logo", "logo_dark", "favicon", "login_background"];
+const FORM_FIELDS = [...FORM_ORDER.map((key) => FIELDS.find(([k]) => k === key)), ...FIELDS.filter(([k]) => !FORM_ORDER.includes(k))];
 // Image fields: uploaded first (the upload's `field` names which), then
 // saved as the returned path.
 const IMAGE_KEYS = new Set(["logo", "logo_dark", "favicon", "login_background"]);
@@ -383,7 +388,7 @@ export function InstitutionBranding() {
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? tr("Edit institution branding") : tr("Add institution branding")}
-        size="lg"
+        size="xl"
       >
         <BrandingForm
           editing={editing}
@@ -432,9 +437,73 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
     const normalized = raw && !raw.startsWith("#") ? `#${raw}` : raw;
     setForm((f) => ({ ...f, [key]: normalized }));
   };
+  const renderField = (key, label) => {
+    if (key.includes("color")) {
+      const fallback = COLOR_FALLBACK[key];
+      const currentValue = form[key] || fallback;
+      return (
+        <label key={key} className="text-sm font-medium">
+          {label}
+          {/* Bare <input type="color"> opens the browser's native
+              picker, which on Chrome has no way to type a hex value
+              directly (only an RGB slider/eyedropper) — paired with a
+              text input here so a hex code can be typed or pasted, and
+              kept in sync with the swatch both ways. */}
+          <div className="mt-1.5 flex items-center gap-2">
+            <input
+              type="color"
+              value={HEX_COLOR_RE.test(currentValue) ? currentValue : fallback}
+              onChange={set(key)}
+              className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-border bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
+            />
+            <input
+              type="text"
+              value={form[key] ?? ""}
+              onChange={setColorText(key)}
+              placeholder={fallback}
+              spellCheck={false}
+              maxLength={7}
+              className="h-12 w-full rounded-xl border border-border p-3 font-mono text-sm uppercase"
+            />
+          </div>
+        </label>
+      );
+    }
+    if (IMAGE_KEYS.has(key)) {
+      return (
+        <label key={key} className="text-sm font-medium">
+          {label}
+          <FileUploadField
+            tr={tr}
+            value={form[key]}
+            onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
+            upload={(file) => institutionBrandingApi.upload({ inst_profile_id: Number(form.inst_profile_id), field: key, file })}
+            download={brandingDownload(form.inst_profile_id)}
+            disabled={!form.inst_profile_id}
+            accept="image/png,image/jpeg,image/webp"
+            maxBytes={MAX_IMAGE_BYTES}
+            uploadLabel={form.inst_profile_id ? "Upload image" : "Select an institution first"}
+            hint="PNG, JPG or WebP, up to 2MB"
+          />
+        </label>
+      );
+    }
+    return (
+      <label key={key} className={key === "display_name" ? "text-sm font-medium sm:col-span-2" : "text-sm font-medium"}>
+        {label}
+        <input
+          required={key === "display_name"}
+          type={key.includes("email") ? "email" : "text"}
+          value={form[key]}
+          onChange={set(key)}
+          className="mt-1.5 w-full rounded-xl border border-border p-3"
+        />
+      </label>
+    );
+  };
   return (
     <form
-      className="grid gap-4 sm:grid-cols-2"
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"
       onSubmit={(e) => {
         e.preventDefault();
         // FilterSelect has no native form control, so re-check "required"
@@ -456,6 +525,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         );
       }}
     >
+      <div className="grid content-start gap-4 sm:grid-cols-2">
       {!editing && canChoose && (
         <label className="text-sm font-medium sm:col-span-2">
           Institution
@@ -473,69 +543,15 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           />
         </label>
       )}
-      <BrandingPreview form={form} download={brandingDownload(form.inst_profile_id ?? editing?.inst_profile_id)} />
-      {FIELDS.map(([key, label]) => {
-        if (key.includes("color")) {
-          const fallback = COLOR_FALLBACK[key];
-          const currentValue = form[key] || fallback;
-          return (
-            <label key={key} className="text-sm font-medium">
-              {label}
-              {/* Bare <input type="color"> opens the browser's native
-                  picker, which on Chrome has no way to type a hex value
-                  directly (only an RGB slider/eyedropper) — paired with a
-                  text input here so a hex code can be typed or pasted, and
-                  kept in sync with the swatch both ways. */}
-              <div className="mt-1.5 flex items-center gap-2">
-                <input
-                  type="color"
-                  value={HEX_COLOR_RE.test(currentValue) ? currentValue : fallback}
-                  onChange={set(key)}
-                  className="h-12 w-12 shrink-0 cursor-pointer appearance-none rounded-xl border border-border bg-white p-1 shadow-sm transition hover:border-primary/50 [&::-webkit-color-swatch]:rounded-lg [&::-webkit-color-swatch]:border-0 [&::-webkit-color-swatch-wrapper]:p-0"
-                />
-                <input
-                  type="text"
-                  value={form[key] ?? ""}
-                  onChange={setColorText(key)}
-                  placeholder={fallback}
-                  spellCheck={false}
-                  maxLength={7}
-                  className="h-12 w-full rounded-xl border border-border p-3 font-mono text-sm uppercase"
-                />
-              </div>
-            </label>
-          );
-        }
-        if (IMAGE_KEYS.has(key)) {
-          return (
-            <label key={key} className="text-sm font-medium">
-              {label}
-              <FileUploadField
-                tr={tr}
-                value={form[key]}
-                onChange={(next) => setForm((f) => ({ ...f, [key]: next }))}
-                upload={(file) => institutionBrandingApi.upload({ inst_profile_id: Number(form.inst_profile_id), field: key, file })}
-                download={brandingDownload(form.inst_profile_id)}
-                disabled={!form.inst_profile_id}
-                accept="image/png,image/jpeg,image/webp"
-                maxBytes={MAX_IMAGE_BYTES}
-                uploadLabel={form.inst_profile_id ? "Upload image" : "Select an institution first"}
-                hint="PNG, JPG or WebP, up to 2MB"
-              />
-            </label>
-          );
-        }
-        return (
-          <label key={key} className="text-sm font-medium">
-            {label}
-            <input
-              required={key === "display_name"}
-              type={key.includes("email") ? "email" : "text"}
-              value={form[key]}
-              onChange={set(key)}
-              className="mt-1.5 w-full rounded-xl border border-border p-3"
-            />
-          </label>
+      {FORM_FIELDS.map(([key, label]) => {
+        const field = renderField(key, label);
+        return FORM_SECTIONS[key] ? (
+          <Fragment key={key}>
+            <h3 className="border-b border-border pb-1.5 pt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground sm:col-span-2">{FORM_SECTIONS[key]}</h3>
+            {field}
+          </Fragment>
+        ) : (
+          field
         );
       })}
       <label className="text-sm font-medium sm:col-span-2">
@@ -575,6 +591,10 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         >
           {pending ? "Saving..." : editing ? "Save changes" : "Add branding"}
         </button>
+      </div>
+      </div>
+      <div className="order-first lg:order-none lg:sticky lg:top-0 lg:self-start">
+        <BrandingPreview form={form} download={brandingDownload(form.inst_profile_id ?? editing?.inst_profile_id)} />
       </div>
     </form>
   );
