@@ -75,7 +75,7 @@ export function ControlSpacePage() {
               {t("resetLayout")}
             </Button>
           )}
-          <Button variant={editing ? "primary" : "outline"} size="sm" icon={editing ? Check : LayoutGrid} aria-pressed={editing} onClick={() => setEditing((v) => !v)}>
+          <Button variant={editing ? "primary" : "outline"} size="sm" icon={editing ? Check : LayoutGrid} aria-pressed={editing} onClick={() => setEditing((v) => !v)} className="hidden lg:inline-flex">
             {editing ? t("done") : t("customizeLayout")}
           </Button>
         </div>

@@ -28,7 +28,7 @@ export function WidgetCard({ title, icon: Icon, action, className, children }) {
             )}
             <h2 className="truncate text-sm font-bold text-slate-800">{title}</h2>
           </div>
-          {action}
+          {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
         </div>
       )}
       <div className="flex min-h-0 flex-1 flex-col overflow-auto">{children}</div>

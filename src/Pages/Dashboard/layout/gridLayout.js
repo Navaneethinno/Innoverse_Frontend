@@ -70,11 +70,26 @@ export const mergeVisible = (layout, gridItems) => {
   return layout.map((it) => byId.get(it.id) ?? it);
 };
 
-// The same cards in reading order, one per row (phones).
-export const stackItems = (items) =>
-  [...items]
+// The same cards in reading order for a narrower grid (tablets: 2
+// columns, phones: 1), packed left to right at their smallest height so a
+// single number doesn't fill the screen. Not editable there.
+export const reflowItems = (items, cols) => {
+  let x = 0;
+  let y = 0;
+  let rowH = 0;
+  return [...items]
     .sort((a, b) => a.y - b.y || a.x - b.x)
-    .reduce((acc, it) => {
-      const prev = acc[acc.length - 1];
-      return [...acc, { ...it, x: 0, y: prev ? prev.y + prev.h : 0, w: 1, maxW: 1, isDraggable: false, isResizable: false }];
-    }, []);
+    .map((it) => {
+      const w = Math.min(it.w, cols);
+      const h = it.minH ?? it.h;
+      if (x + w > cols) {
+        y += rowH;
+        x = 0;
+        rowH = 0;
+      }
+      const item = { ...it, x, y, w, h, maxW: cols, isDraggable: false, isResizable: false };
+      x += w;
+      rowH = Math.max(rowH, h);
+      return item;
+    });
+};

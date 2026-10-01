@@ -6,7 +6,7 @@ import { cn } from "@/Utils/Lib/utils";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import "./dashboardGrid.css";
-import { mergeVisible, stackItems, toGridItems } from "./gridLayout";
+import { mergeVisible, reflowItems, toGridItems } from "./gridLayout";
 import { GRID_COLS, MAX_SPAN, ROW_HEIGHT, WIDGET_REGISTRY } from "./widgetRegistry";
 
 const ResponsiveGrid = WidthProvider(Responsive);
@@ -15,9 +15,9 @@ const ResponsiveGrid = WidthProvider(Responsive);
 // size. While editing, a card is dragged by its whole surface and the grid
 // shows where it will land (the shaded placeholder), moving the others out
 // of the way. Cards resize from the right edge, the bottom edge or the
-// corner, snapping to whole columns and rows. Below the md breakpoint the
-// grid is one column and editing is off, so a phone never rewrites the
-// desktop layout.
+// corner, snapping to whole columns and rows. A narrower grid shows the same cards in
+// 2 columns (tablets) or 1 (phones), and editing is off there, so a small
+// screen never rewrites the desktop layout.
 //
 // `layout`: every widget's saved place; `visibleIds`: the ones to draw.
 export function DashboardGrid({ layout, visibleIds, setLayout, editing }) {
@@ -27,8 +27,8 @@ export function DashboardGrid({ layout, visibleIds, setLayout, editing }) {
   const canEdit = editing && desktop;
   const shown = useMemo(() => layout.filter((it) => visibleIds.has(it.id)), [layout, visibleIds]);
   const items = useMemo(() => toGridItems(WIDGET_REGISTRY, shown, { maxSpan: MAX_SPAN, editing: canEdit }), [shown, canEdit]);
-  // Phones: the same order, one card per row.
-  const stacked = useMemo(() => stackItems(items), [items]);
+  const tablet = useMemo(() => reflowItems(items, 2), [items]);
+  const phone = useMemo(() => reflowItems(items, 1), [items]);
 
   // Saved only when the user finishes a move or resize; changes the grid
   // makes on its own (mount, width changes) are never written back.
@@ -41,9 +41,9 @@ export function DashboardGrid({ layout, visibleIds, setLayout, editing }) {
   return (
     <ResponsiveGrid
       className={cn("dashboard-grid -mx-2", canEdit && "is-editing")}
-      layouts={{ lg: items, sm: stacked }}
-      breakpoints={{ lg: 768, sm: 0 }}
-      cols={{ lg: GRID_COLS, sm: 1 }}
+      layouts={{ lg: items, md: tablet, sm: phone }}
+      breakpoints={{ lg: 860, md: 560, sm: 0 }}
+      cols={{ lg: GRID_COLS, md: 2, sm: 1 }}
       rowHeight={ROW_HEIGHT}
       margin={[16, 16]}
       containerPadding={[8, 14]}
