@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Eye, MessageSquare, RefreshCw, RotateCcw, ShieldCheck, Unlock, UserPlus, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, MessageSquarePlus, MessageSquare, RefreshCw, RotateCcw, ShieldCheck, Unlock, UserPlus, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -15,8 +15,9 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { AmlPill, CaseStatus, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
 import { AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
+import { RequestDialog, RequestsTab } from "./CaseRequests";
 
-const TABS = ["overview", "customer", "risk", "aml", "timeline", "account"];
+const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "account"];
 
 // The staff onboarding calls for the case's subject (customer or merchant,
 // individual or corporate).
@@ -76,11 +77,13 @@ export function CaseView({ id, onBack }) {
   }
 
   const allowed = kase.actions ?? {};
+  const openRequests = (kase.requests ?? []).filter((r) => r.status === "OPEN" || r.status === "RESPONDED").length;
   const edit = can("Edit");
   const authorize = can("Authorize");
   const buttons = [
     allowed.assign && edit && { key: "assign", icon: UserPlus, variant: "secondary", run: () => setDialog("assign") },
     allowed.note && edit && { key: "note", icon: MessageSquare, variant: "secondary", run: () => setDialog("note") },
+    allowed.request && edit && { key: "request", icon: MessageSquarePlus, variant: "secondary", run: () => setDialog("request") },
     allowed.rescreen && edit && { key: "rescreen", icon: RefreshCw, variant: "secondary", run: () => void act("rescreen", { what: [] }) },
     allowed.propose_reject && edit && { key: "proposeReject", icon: XCircle, variant: "danger", run: () => setDialog("reject") },
     allowed.propose_approve && edit && { key: "proposeApprove", icon: CheckCircle2, variant: "primary", run: () => setDialog("approve") },
@@ -133,6 +136,7 @@ export function CaseView({ id, onBack }) {
             className={cn("shrink-0 border-b-2 px-3 py-2 text-sm font-bold", tab === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}
           >
             {t(`tab_${key}`)}
+            {key === "requests" && openRequests > 0 && <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{openRequests}</span>}
             {key === "aml" && kase.aml_open_matches > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{kase.aml_open_matches}</span>}
           </button>
         ))}
@@ -140,11 +144,32 @@ export function CaseView({ id, onBack }) {
 
       {tab === "overview" && <OverviewTab kase={kase} />}
       {tab === "customer" && <StaffOnboardingWizard kind={kase.subject?.ownership === "CORPORATE" ? "corporate" : "individual"} api={subjectApi(kase.subject)} referenceId={kase.subject?.reference_id} forceReadOnly onClose={() => setTab("overview")} />}
+      {tab === "requests" && (
+        <RequestsTab
+          requests={kase.requests}
+          canEdit={edit}
+          api={subjectApi(kase.subject)}
+          referenceId={kase.subject?.reference_id}
+          busy={busy}
+          onAccept={(r) => act("requestReview", { request_id: r.id, accept: true })}
+          onAskAgain={(r, message) => act("requestReview", { request_id: r.id, accept: false, message })}
+          onCancel={(r, note) => act("requestCancel", { request_id: r.id, note })}
+        />
+      )}
       {tab === "risk" && <RiskTab assessment={kase.risk_assessment} />}
       {tab === "aml" && <AmlTab result={kase.aml_result} openMatches={kase.aml_open_matches} onChanged={reload} />}
       {tab === "timeline" && <TimelineTab events={kase.timeline} canNote={allowed.note && edit} onNote={(body) => act("note", { body })} busy={busy} />}
       {tab === "account" && (kase.accounts?.length ? <CustomerAccounts accounts={kase.accounts} /> : <Empty text={t("noAccountYet")} />)}
 
+      {dialog === "request" && (
+        <RequestDialog
+          api={subjectApi(kase.subject)}
+          referenceId={kase.subject?.reference_id}
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={async (requests) => (await act("request", { requests })) && setTab("requests")}
+        />
+      )}
       {dialog === "assign" && <AssignDialog kase={kase} busy={busy} onClose={() => setDialog(null)} onSave={(userId) => act("assign", { user_id: userId })} />}
       {dialog === "note" && <NoteDialog title={t("action_note")} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("note", { body })} />}
       {(dialog === "approve" || dialog === "reject") && (

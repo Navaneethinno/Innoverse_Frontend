@@ -17,4 +17,10 @@ export const onboardingCasesApi = {
   decide: call("decide"),
   reopen: call("reopen"),
   release: call("release"),
+  // Asking the customer for more (phase 3): request takes up to 20
+  // { kind, target, message, due_days }; review accepts an answer or asks
+  // again; cancel withdraws an open or answered request.
+  request: call("request"),
+  requestReview: call("request_review"),
+  requestCancel: call("request_cancel"),
 };
