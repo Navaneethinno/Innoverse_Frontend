@@ -192,13 +192,22 @@ function Empty({ text }) {
 function ProposalBanner({ proposal, closed }) {
   const { t } = useTranslation("cases");
   const approve = isApproval(proposal.outcome);
+  const Icon = approve ? CheckCircle2 : XCircle;
   return (
-    <div className={cn("mt-3 rounded-xl border p-3 text-sm", approve ? "border-emerald-200 bg-emerald-50/60" : "border-red-200 bg-red-50/60")}>
-      <p className="font-bold text-foreground">
-        {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: t(approve ? "approve" : "reject"), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}
-      </p>
-      {proposal.reason && <p className="mt-1 text-xs text-foreground"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}
-      {proposal.customer_message && <p className="mt-0.5 text-xs text-foreground"><span className="font-semibold">{t("customerMessage")}:</span> {proposal.customer_message}</p>}
+    <div
+      className={cn(
+        "mt-3 flex gap-3 rounded-xl border border-l-4 p-3 text-sm",
+        approve ? "border-emerald-300 border-l-emerald-500 bg-emerald-50 text-emerald-900" : "border-red-300 border-l-red-500 bg-red-50 text-red-900",
+      )}
+    >
+      <Icon size={18} className={cn("mt-0.5 shrink-0", approve ? "text-emerald-600" : "text-red-600")} />
+      <div className="min-w-0">
+        <p className="font-bold">
+          {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: t(approve ? "approve" : "reject"), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}
+        </p>
+        {proposal.reason && <p className="mt-1 text-xs"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}
+        {proposal.customer_message && <p className="mt-0.5 text-xs"><span className="font-semibold">{t("customerMessage")}:</span> {proposal.customer_message}</p>}
+      </div>
     </div>
   );
 }
