@@ -110,7 +110,7 @@ export async function loginRequest(institutionCode, username, password) {
       Authorization: getBasicAuthorization(),
       ...apiLanguageHeader(),
     },
-    body: JSON.stringify({ institution_code: institutionCode, user_name: username, password }),
+    body: JSON.stringify({ institution_code: institutionCode, user_name: String(username ?? "").replace(/\s/g, ""), password }),
   });
   return parseSessionResponse(payload);
 }
