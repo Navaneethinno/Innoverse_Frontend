@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Landmark } from "lucide-react";
+import { cn } from "@/Utils/Lib/utils";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 
 // Account display shared by the Accounts screen and the customer/merchant
@@ -9,7 +10,22 @@ export const money = (value, currency) =>
 
 export const accountDate = (value) => (value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 
+// A date-only value (YYYY-MM-DD), as a local date without a time shift.
+export const dayDate = (value) => (value ? new Date(`${String(value).slice(0, 10)}T00:00:00`).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—");
+
 export const productLabel = (code, name) => [name, code].filter(Boolean).join(" · ") || "—";
+
+// The account's class: CUSTOMER is a wallet, DEPOSIT a term deposit's own
+// account (internal GL accounts are never listed).
+export function AccountClass({ value }) {
+  const { t } = useTranslation("accounts");
+  if (!value) return null;
+  return (
+    <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold", value === "DEPOSIT" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700")}>
+      {t(`class_${value}`, { defaultValue: value })}
+    </span>
+  );
+}
 
 // The balances, as label/value tiles.
 export function AccountBalances({ account }) {
@@ -48,7 +64,9 @@ export function CustomerAccounts({ accounts }) {
           <div key={account.id} className="rounded-xl bg-muted/40 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="font-mono text-sm font-bold text-foreground">{account.acct_num}</p>
+                <p className="flex items-center gap-2 font-mono text-sm font-bold text-foreground">
+                  {account.acct_num} <AccountClass value={account.acct_class} />
+                </p>
                 <p className="text-[11px] text-muted-foreground">
                   {productLabel(account.acct_product_code, account.acct_product_name)}
                   {account.acct_product_type ? ` · ${account.acct_product_type}` : ""}

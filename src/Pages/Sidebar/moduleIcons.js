@@ -1,4 +1,7 @@
 import {
+  PiggyBank,
+  Scale,
+  Clock3,
   Briefcase,
   Gauge,
   Activity,
@@ -46,6 +49,7 @@ import {
 
 const MODULE_ICON_RULES = [
   [/case management/i, Briefcase],
+  [/term deposit/i, PiggyBank],
   [/global settings/i, Settings2],
   [/report/i, FileBarChart],
   [/institution/i, Landmark],
@@ -79,6 +83,10 @@ export function getModuleIcon(moduleName = "") {
 const MENU_ICON_RULES = [
   [/^limits?$/i, Gauge],
   [/^accounts$/i, Wallet],
+  [/deposit products/i, PiggyBank],
+  [/^deposits$/i, Landmark],
+  [/balance adjustment/i, Scale],
+  [/scheduled jobs/i, Clock3],
   [/onboarding cases/i, ClipboardCheck],
   [/user activity/i, Activity],
   [/score breakdown/i, Gauge],

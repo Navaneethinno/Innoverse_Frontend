@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, Search } from "lucide-react";
+import { Landmark, ScrollText, Search } from "lucide-react";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -11,9 +12,10 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { AccountBalances, accountDate, money, productLabel } from "./accountShared";
+import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
+import { AccountStatement } from "./AccountStatement";
 
-const EMPTY_FILTERS = { acct_num: "", owner_name: "", party: "", ownership: "", status: "" };
+const EMPTY_FILTERS = { acct_num: "", owner_name: "", party: "", ownership: "", acct_class: "", status: "" };
 const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
 
 // The filters as the list call takes them: blanks left out, ids as numbers.
@@ -22,6 +24,7 @@ const filterBody = (f) => ({
   ...(f.owner_name.trim() ? { owner_name: f.owner_name.trim() } : {}),
   ...(f.party ? { party: f.party } : {}),
   ...(f.ownership ? { ownership: f.ownership } : {}),
+  ...(f.acct_class ? { acct_class: f.acct_class } : {}),
   ...(f.status !== "" ? { status: Number(f.status) } : {}),
 });
 
@@ -37,6 +40,7 @@ export function Accounts() {
   const [result, setResult] = useState({ accounts: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState(null);
+  const [statement, setStatement] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,7 +68,12 @@ export function Accounts() {
     {
       key: "acct_num",
       label: t("accountNumber"),
-      render: (r) => <span className="font-mono text-xs font-bold">{r.acct_num}</span>,
+      render: (r) => (
+        <div className="flex flex-col items-start gap-1">
+          <span className="font-mono text-xs font-bold">{r.acct_num}</span>
+          <AccountClass value={r.acct_class} />
+        </div>
+      ),
     },
     {
       key: "owner",
@@ -88,7 +97,12 @@ export function Accounts() {
       key: "actions",
       label: t("common:actions"),
       sortable: false,
-      render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} />,
+      render: (r) => (
+        <div className="flex items-center justify-center gap-1">
+          <RowActions buttons={{ view: true }} onView={() => setViewing(r)} />
+          <ActionIconButton label={t("statement")} intent="statement" icon={ScrollText} onClick={() => setStatement(r)} />
+        </div>
+      ),
     },
   ];
 
@@ -101,7 +115,7 @@ export function Accounts() {
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <form onSubmit={search} className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-6">
+      <form onSubmit={search} className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-7">
         <input className={inputClass} placeholder={t("accountNumber")} value={filters.acct_num} onChange={(e) => setFilter("acct_num")(e.target.value)} />
         <input className={inputClass} placeholder={t("ownerName")} value={filters.owner_name} onChange={(e) => setFilter("owner_name")(e.target.value)} />
         <FilterSelect
@@ -120,6 +134,15 @@ export function Accounts() {
             { value: "", label: t("allOwnerships") },
             { value: "INDIVIDUAL", label: t("individual") },
             { value: "CORPORATE", label: t("corporate") },
+          ]}
+        />
+        <FilterSelect
+          value={filters.acct_class}
+          onChange={setFilter("acct_class")}
+          options={[
+            { value: "", label: t("allClasses") },
+            { value: "CUSTOMER", label: t("class_CUSTOMER") },
+            { value: "DEPOSIT", label: t("class_DEPOSIT") },
           ]}
         />
         <FilterSelect
@@ -171,13 +194,23 @@ export function Accounts() {
         }}
       />
 
-      {viewing && <AccountDetail account={viewing} onClose={() => setViewing(null)} />}
+      {viewing && (
+        <AccountDetail
+          account={viewing}
+          onClose={() => setViewing(null)}
+          onStatement={(a) => {
+            setViewing(null);
+            setStatement(a);
+          }}
+        />
+      )}
+      {statement && <AccountStatement account={statement} onClose={() => setStatement(null)} />}
     </div>
   );
 }
 
 // One account, fetched fresh (/config/account/get) for its latest balances.
-function AccountDetail({ account, onClose }) {
+function AccountDetail({ account, onClose, onStatement }) {
   const { t } = useTranslation("accounts");
   const [full, setFull] = useState(null);
 
@@ -214,9 +247,16 @@ function AccountDetail({ account, onClose }) {
           <Spinner size={12} /> {t("refreshing")}
         </div>
       )}
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <p className="font-mono text-lg font-black text-foreground">{a.acct_num}</p>
-        <StatusBadge status={a.status_name ?? String(a.status ?? "")} variant="subtle" />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-2 font-mono text-lg font-black text-foreground">
+          {a.acct_num} <AccountClass value={a.acct_class} />
+        </p>
+        <div className="flex items-center gap-3">
+          <StatusBadge status={a.status_name ?? String(a.status ?? "")} variant="subtle" />
+          <Button variant="outline" size="sm" icon={ScrollText} onClick={() => onStatement(a)}>
+            {t("statement")}
+          </Button>
+        </div>
       </div>
       <AccountBalances account={a} />
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">

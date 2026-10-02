@@ -62,6 +62,20 @@ onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { pa
 const OnboardingCases = lazy(() => import("@/Components/CaseManagement/OnboardingCases/OnboardingCases.jsx").then((m) => ({ default: m.OnboardingCases })));
 onboardingRoutes.push({ path: "onboardingcases", element: pageElement(OnboardingCases) }, { path: "onboardingcases/:id", element: pageElement(OnboardingCases) });
 
+// Term Deposits (Admin Portal: Term Deposits handoff): TERM DEPOSITS >
+// Deposit Products (180) and Deposits (181), EPURSE > Balance Adjustments
+// (182), GLOBAL SETTINGS > Scheduled Jobs (183).
+const DepositProducts = lazy(() => import("@/Components/TermDeposits/DepositProducts/DepositProducts.jsx").then((m) => ({ default: m.DepositProducts })));
+const Deposits = lazy(() => import("@/Components/TermDeposits/Deposits/Deposits.jsx").then((m) => ({ default: m.Deposits })));
+const BalanceAdjustments = lazy(() => import("@/Components/TermDeposits/BalanceAdjustments/BalanceAdjustments.jsx").then((m) => ({ default: m.BalanceAdjustments })));
+const ScheduledJobs = lazy(() => import("@/Components/TermDeposits/ScheduledJobs/ScheduledJobs.jsx").then((m) => ({ default: m.ScheduledJobs })));
+onboardingRoutes.push(
+  ...Object.entries({ depositproducts: DepositProducts, deposits: Deposits, balanceadjustments: BalanceAdjustments, scheduledjobs: ScheduledJobs }).flatMap(([path, Page]) => [
+    { path, element: pageElement(Page) },
+    { path: `${path}/:id`, element: pageElement(Page) },
+  ]),
+);
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages

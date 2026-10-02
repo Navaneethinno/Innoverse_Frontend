@@ -18,6 +18,7 @@ const ACTION_COLORS = {
   members: "text-indigo-700 hover:bg-indigo-50",
   test: "text-amber-700 hover:bg-amber-50",
   clone: "text-violet-700 hover:bg-violet-50",
+  statement: "text-teal-700 hover:bg-teal-50",
 };
 
 export const actionButtonClass = (method) => `rounded-lg p-1.5 ${ACTION_COLORS[method] ?? ACTION_COLORS.view}`;

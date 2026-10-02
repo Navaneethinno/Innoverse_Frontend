@@ -15,6 +15,7 @@ import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./custome
 
 import { Button } from "@/Components/Common/Button";
 import { CustomerAccounts } from "@/Components/Epurse/Accounts/accountShared";
+import { OwnerDeposits } from "@/Components/TermDeposits/Deposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
 // The staff onboarding wizard on the institution's own form (Admin portal
 // handoff: onboarding form builder, §8), for individual and corporate.
@@ -441,6 +442,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         </div>
         {!corporate && <KycLevelPanel kyc={wizard.kyc} onJump={jumpToField} />}
         <CustomerAccounts accounts={wizard.accounts} />
+        <OwnerDeposits accounts={wizard.accounts} />
         <CustomerRiskPanel kind={kind} instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
         <CustomerAmlBadge aml={wizard.aml} customerKind={corporate ? "CORPORATE" : "INDIVIDUAL"} referenceId={wizard.onboarding?.reference_id} />
         <HorizontalStepper
