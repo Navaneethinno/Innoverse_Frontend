@@ -246,6 +246,25 @@ const STATUS_CONFIG = {
   OK: { label: "OK", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   PARTIAL: { label: "Partial", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
   RUNNING: { label: "Running", dot: "bg-blue-500", pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  // Loans: applications, loans, instalments, collateral and reports.
+  SUBMITTED: { label: "Submitted", dot: "bg-blue-500", pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  UNDER_REVIEW: { label: "Under Review", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  MORE_INFORMATION_REQUIRED: { label: "More Information Required", dot: "bg-orange-500", pill: "bg-orange-50 text-orange-700 border-orange-200" },
+  DECLINED: { label: "Declined", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
+  WITHDRAWN: { label: "Withdrawn", dot: "bg-slate-400", pill: "bg-muted text-muted-foreground border-border" },
+  CONVERTED: { label: "Converted", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  PENDING_DISBURSEMENT: { label: "Pending Disbursement", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  DELINQUENT: { label: "Delinquent", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
+  SETTLED: { label: "Settled", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  WRITTEN_OFF: { label: "Written Off", dot: "bg-slate-400", pill: "bg-muted text-muted-foreground border-border" },
+  DUE: { label: "Due", dot: "bg-blue-500", pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  PARTIALLY_PAID: { label: "Partially Paid", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  PAID: { label: "Paid", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  OVERDUE: { label: "Overdue", dot: "bg-red-500", pill: "bg-red-50 text-red-700 border-red-200" },
+  GENERATED: { label: "Generated", dot: "bg-blue-500", pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  COMPLETED: { label: "Completed", dot: "bg-emerald-500", pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  PENDING_PERFECTION: { label: "Pending Perfection", dot: "bg-amber-500", pill: "bg-amber-50 text-amber-700 border-amber-200" },
+  RELEASED: { label: "Released", dot: "bg-slate-400", pill: "bg-muted text-muted-foreground border-border" },
 };
 // Maps each pill's background/border classes to the equivalent bare text
 // color, for the "subtle" variant below — same color language, no filled

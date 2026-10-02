@@ -224,7 +224,7 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
 
 // Find a customer or merchant by name or wallet number (their wallets in
 // Accounts), and pick one.
-function OwnerFinder({ onPick }) {
+export function OwnerFinder({ onPick }) {
   const { t } = useTranslation(["deposits", "accounts"]);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState(null);

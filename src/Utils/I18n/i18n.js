@@ -51,6 +51,7 @@ void i18n
       "accounts",
       "cases",
       "deposits",
+      "loans",
     ],
     interpolation: { escapeValue: false },
     detection: {

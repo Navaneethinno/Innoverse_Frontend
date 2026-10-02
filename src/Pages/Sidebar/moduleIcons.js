@@ -1,4 +1,6 @@
 import {
+  HandCoins,
+  FileSignature,
   PiggyBank,
   Scale,
   Clock3,
@@ -50,6 +52,7 @@ import {
 const MODULE_ICON_RULES = [
   [/case management/i, Briefcase],
   [/term deposit/i, PiggyBank],
+  [/^loans?$/i, HandCoins],
   [/global settings/i, Settings2],
   [/report/i, FileBarChart],
   [/institution/i, Landmark],
@@ -87,6 +90,11 @@ const MENU_ICON_RULES = [
   [/^deposits$/i, Landmark],
   [/balance adjustment/i, Scale],
   [/scheduled jobs/i, Clock3],
+  [/loan products/i, HandCoins],
+  [/lending regulatory/i, Scale],
+  [/loan applications/i, FileSignature],
+  [/loan facilities/i, Landmark],
+  [/regulatory submissions/i, FileBarChart],
   [/onboarding cases/i, ClipboardCheck],
   [/user activity/i, Activity],
   [/score breakdown/i, Gauge],

@@ -76,6 +76,21 @@ onboardingRoutes.push(
   ]),
 );
 
+// Loans (Admin Portal: Loans handoff), module LOANS: Loan Products (184),
+// Lending Regulatory Profile (185), Loan Applications (186), Loan
+// Facilities (187), Regulatory Submissions (188).
+const LoanProducts = lazy(() => import("@/Components/Loans/LoanProducts/LoanProducts.jsx").then((m) => ({ default: m.LoanProducts })));
+const RegulatoryProfile = lazy(() => import("@/Components/Loans/RegulatoryProfile/RegulatoryProfile.jsx").then((m) => ({ default: m.RegulatoryProfile })));
+const LoanApplications = lazy(() => import("@/Components/Loans/Applications/LoanApplications.jsx").then((m) => ({ default: m.LoanApplications })));
+const LoanFacilities = lazy(() => import("@/Components/Loans/Facilities/LoanFacilities.jsx").then((m) => ({ default: m.LoanFacilities })));
+const RegulatorySubmissions = lazy(() => import("@/Components/Loans/Submissions/RegulatorySubmissions.jsx").then((m) => ({ default: m.RegulatorySubmissions })));
+onboardingRoutes.push(
+  ...Object.entries({ loanproducts: LoanProducts, lendingregulatoryprofile: RegulatoryProfile, loanapplications: LoanApplications, loanfacilities: LoanFacilities, regulatorysubmissions: RegulatorySubmissions }).flatMap(([path, Page]) => [
+    { path, element: pageElement(Page) },
+    { path: `${path}/:id`, element: pageElement(Page) },
+  ]),
+);
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages
