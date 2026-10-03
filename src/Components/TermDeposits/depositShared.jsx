@@ -72,8 +72,9 @@ export function ActionButtons({ buttons, busy }) {
 }
 
 // Approve / reject / cancel and the like: an optional (or required)
-// narration, then the call. `children` goes above the narration.
-export function NarrationDialog({ title, hint, confirmLabel, variant = "primary", required = false, busy, onClose, onSave, children, size = "sm" }) {
+// narration, then the call. `children` goes above the narration; `label`
+// names the text (a reason, say) when it is not a narration.
+export function NarrationDialog({ title, hint, confirmLabel, variant = "primary", required = false, busy, onClose, onSave, children, size = "sm", label }) {
   const { t } = useTranslation("deposits");
   const [narration, setNarration] = useState("");
   return (
@@ -96,7 +97,7 @@ export function NarrationDialog({ title, hint, confirmLabel, variant = "primary"
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
       {children}
       <label className={labelClass}>
-        {t(required ? "narrationRequired" : "narration")}
+        {label ?? t(required ? "narrationRequired" : "narration")}
         <textarea value={narration} maxLength={500} onChange={(e) => setNarration(e.target.value)} className={cn(inputClass, "mt-1.5 min-h-20")} />
       </label>
     </Modal>

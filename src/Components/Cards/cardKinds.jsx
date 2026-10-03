@@ -191,6 +191,12 @@ function ProductForm({ values: v, set, options, locked }) {
           <F label={t("maxCardsPerCustomer")} hint={dp ? t("dpAllowsN", { count: Number(dp.extra ?? 1) }) : t("maxCardsHint")}>
             <Field field={{ type: "int" }} value={v.max_cards_per_customer} onChange={(x) => set({ max_cards_per_customer: x.slice(0, 3) })} />
           </F>
+          <F label={t("renewalNoticeDays")} hint={t("renewalNoticeHint")}>
+            <Field field={{ type: "int" }} value={v.renewal_notice_days} onChange={(x) => set({ renewal_notice_days: x.slice(0, 3) })} />
+          </F>
+          <F label={t("unactivatedCloseDays")} hint={t("unactivatedCloseHint")}>
+            <Field field={{ type: "int" }} value={v.unactivated_close_days} onChange={(x) => set({ unactivated_close_days: x.slice(0, 4) })} />
+          </F>
         </div>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <Switch label={t("embossNameRequired")} value={v.emboss_name_required} onChange={(x) => set({ emboss_name_required: x })} />
@@ -266,6 +272,8 @@ const productBody = (v) => {
     allow_addon: Boolean(v.allow_addon),
     allow_reissue: Boolean(v.allow_reissue),
     max_cards_per_customer: num(v.max_cards_per_customer),
+    renewal_notice_days: num(v.renewal_notice_days),
+    unactivated_close_days: num(v.unactivated_close_days),
     pin_policy: { length: num(pin.length), allow_change: Boolean(pin.allow_change), max_tries: num(pin.max_tries) },
     effective_from: v.effective_from ?? "",
     effective_to: v.effective_to ?? "",
@@ -326,6 +334,8 @@ export const productKind = {
         [t("activationMode"), loanLabel(t, c.activation_mode)],
         [t("expiryMonths"), c.expiry_months],
         [t("maxCardsPerCustomer"), c.max_cards_per_customer],
+        [t("renewalNoticeDays"), Number(c.renewal_notice_days) ? t("daysN", { count: Number(c.renewal_notice_days) }) : t("never")],
+        [t("unactivatedCloseDays"), Number(c.unactivated_close_days) ? t("daysN", { count: Number(c.unactivated_close_days) }) : t("never")],
         [t("embossNameRequired"), yes(t, c.emboss_name_required)],
         [t("allowVirtualToPhysical"), yes(t, c.allow_virtual_to_physical)],
         [t("allowAddon"), yes(t, c.allow_addon)],

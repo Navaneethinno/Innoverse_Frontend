@@ -655,6 +655,7 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
             className="lg:grid-cols-3"
             rows={[
               [t("wallet"), `${req.owner_name} · ${req.acct_num}${req.operation_type ? ` (${req.operation_type})` : ""}`],
+              req.card_pan_masked && [t("card"), req.card_pan_masked],
               req.counter_acct_num && [t("counterparty"), `${req.counter_owner_name} · ${req.counter_acct_num}`],
               req.org_rrn && [t("original"), req.org_rrn],
               [t("fee"), `${m(req.fee_amount)}${Number(req.tax_amount) ? ` + ${t("tax")} ${m(req.tax_amount)}` : ""}`],

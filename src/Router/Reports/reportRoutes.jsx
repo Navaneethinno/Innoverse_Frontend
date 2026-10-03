@@ -8,7 +8,14 @@ const RiskScoreBreakdown = lazy(() => import("@/Components/Reports/RiskScoreBrea
 
 // Transaction reports (menus 191-194).
 const txnReport = (name) => lazy(() => import("@/Components/Reports/Transactions/TxnReports.jsx").then((m) => ({ default: m[name] })));
-const TXN_REPORTS = { transactionsummary: txnReport("TransactionSummary"), feeincome: txnReport("FeeIncome"), failedtransactions: txnReport("FailedTransactions"), reversals: txnReport("Reversals") };
+const TXN_REPORTS = {
+  transactionsummary: txnReport("TransactionSummary"),
+  feeincome: txnReport("FeeIncome"),
+  failedtransactions: txnReport("FailedTransactions"),
+  reversals: txnReport("Reversals"),
+  // Card Summary (menu 202).
+  cardsummary: lazy(() => import("@/Components/Reports/Cards/CardSummary.jsx").then((m) => ({ default: m.CardSummary }))),
+};
 
 export const reportRoutes = [
   ...Object.entries(TXN_REPORTS).flatMap(([path, Page]) => [

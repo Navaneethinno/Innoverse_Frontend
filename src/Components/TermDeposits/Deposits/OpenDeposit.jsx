@@ -224,6 +224,7 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
 
 // Find a customer or merchant by name or wallet number (their wallets in
 // Accounts), and pick one.
+// onPick(entity, account): the owner's entity and the account it was found by.
 export function OwnerFinder({ onPick }) {
   const { t } = useTranslation(["deposits", "accounts"]);
   const [query, setQuery] = useState("");
@@ -264,7 +265,7 @@ export function OwnerFinder({ onPick }) {
             <button
               key={`${a.owner.kind}-${a.owner.id}`}
               type="button"
-              onClick={() => onPick(ownerEntity(a.owner))}
+              onClick={() => onPick(ownerEntity(a.owner), a)}
               className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-all hover:-translate-y-px hover:border-primary hover:shadow-sm"
             >
               <span>

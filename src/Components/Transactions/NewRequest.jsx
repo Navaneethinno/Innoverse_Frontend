@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Send } from "lucide-react";
+import { Search, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
+import { cardsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { transactionRequestsApi, transactionsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -14,19 +15,24 @@ import { PlanCard } from "./txnShared";
 
 // What a type asks for, from its option: the wallets on the non-cash
 // sides, the original transaction when needs_org_txn, and an amount unless
-// it is a reversal (which returns the original's).
+// it is a reversal (which returns the original's). A card load takes the
+// holder's wallet and the card; an unload, the card and the wallet it pays.
+const CARD_SIDE = { CARD_LOAD: "from", CARD_UNLOAD: "to" };
 export function typeNeeds(option) {
   const reversal = option?.txn_type === "REVERSAL";
   const org = Boolean(option?.needs_org_txn) || reversal;
+  const cardSide = CARD_SIDE[option?.txn_type];
+  if (cardSide) return { from: cardSide === "from", to: cardSide === "to", org: false, amount: true, card: true };
   return {
     from: !org && option?.from !== "CASH",
     to: !org && option?.to !== "CASH",
     org,
     amount: !reversal,
+    card: false,
   };
 }
 
-const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "" };
+const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "", card: null };
 
 // A staff transaction: pick the type, fill what it needs, see the quote
 // (fee, tax, totals, limits) as you type, then send it for approval. A user
@@ -57,10 +63,11 @@ export function NewRequest({ preset, onClose, onDone }) {
 
   const option = types?.find((x) => x.txn_type === type);
   const needs = typeNeeds(option);
-  const complete = option && (!needs.from || form.from_acct_num) && (!needs.to || form.to_acct_num) && (!needs.org || form.org_rrn) && (!needs.amount || Number(form.amount) > 0);
+  const complete = option && (!needs.from || form.from_acct_num) && (!needs.to || form.to_acct_num) && (!needs.org || form.org_rrn) && (!needs.amount || Number(form.amount) > 0) && (!needs.card || form.card);
   const body = complete
     ? {
         txn_type: type,
+        ...(needs.card ? { card_id: form.card.id } : {}),
         ...(needs.from ? { from_acct_num: form.from_acct_num } : {}),
         ...(needs.to ? { to_acct_num: form.to_acct_num } : {}),
         ...(needs.org ? { org_rrn: form.org_rrn } : {}),
@@ -161,15 +168,21 @@ export function NewRequest({ preset, onClose, onDone }) {
                 options={types.map((x) => ({ value: x.txn_type, label: `${x.name} (${x.from} → ${x.to})` }))}
               />
             </label>
+            {needs.card && (
+              <div className={cn(labelClass, "sm:col-span-2")}>
+                {t("prepaidCard")}
+                <CardPicker value={form.card} onChange={(card) => setForm((f) => ({ ...f, card }))} />
+              </div>
+            )}
             {needs.from && (
               <label className={labelClass}>
-                {t("fromWallet")}
+                {t(needs.card ? "holderWallet" : "fromWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.from_acct_num} onChange={set("from_acct_num")} placeholder="20784000000021" />
               </label>
             )}
             {needs.to && (
               <label className={labelClass}>
-                {t("toWallet")}
+                {t(needs.card ? "holderWallet" : "toWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.to_acct_num} onChange={set("to_acct_num")} placeholder="20784000000013" />
               </label>
             )}
@@ -216,5 +229,60 @@ export function NewRequest({ preset, onClose, onDone }) {
         </div>
       )}
     </Modal>
+  );
+}
+
+// The prepaid card a load or unload is for: find it by its last 4 digits,
+// the name on it or the holder's name. Only active cards are offered.
+function CardPicker({ value, onChange }) {
+  const { t } = useTranslation("txn");
+  const [query, setQuery] = useState("");
+  const [rows, setRows] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const find = async () => {
+    setBusy(true);
+    try {
+      setRows(rowsOf(await cardsApi.list({ search: query.trim(), ops_status: "ACTIVE", page: 1, page_size: 10 }))[0]?.items ?? []);
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (value) {
+    return (
+      <div className="mt-1.5 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2">
+        <span className="min-w-0 text-sm font-semibold">
+          <span className="font-mono">{value.pan_masked}</span> · {value.holder_name} · {value.product_code}
+        </span>
+        <button type="button" onClick={() => onChange(null)} className="text-xs font-semibold text-muted-foreground transition-colors hover:text-primary">
+          {t("change")}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-1.5 grid gap-2">
+      <div className="flex gap-2">
+        <input className={inputClass} value={query} placeholder={t("findCardPlaceholder")} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), query.trim() && void find())} />
+        <Button type="button" icon={Search} loading={busy} disabled={!query.trim()} onClick={find}>
+          {t("find")}
+        </Button>
+      </div>
+      {rows && (
+        <div className="grid gap-1.5">
+          {rows.map((c) => (
+            <button key={c.id} type="button" onClick={() => onChange(c)} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left text-xs transition-all hover:-translate-y-px hover:border-primary">
+              <span className="font-mono font-bold">{c.pan_masked}</span>
+              <span className="min-w-0 flex-1 truncate">{c.holder_name}</span>
+              <span className="text-muted-foreground">{c.product_code} · {c.product_class}</span>
+            </button>
+          ))}
+          {!rows.length && <p className="text-xs text-muted-foreground">{t("noCardsFound")}</p>}
+        </div>
+      )}
+    </div>
   );
 }

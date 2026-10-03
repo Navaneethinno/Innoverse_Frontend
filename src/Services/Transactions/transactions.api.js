@@ -30,4 +30,6 @@ export const txnReportsApi = {
   feeIncome: report("fee_income"),
   failed: report("failed_txn", ["list", "summary"]),
   reversals: report("reversals"),
+  // REPORTS > Card Summary (menu 202).
+  cardSummary: report("card_summary"),
 };
