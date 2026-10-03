@@ -1,7 +1,8 @@
 // Every request body is trimmed before it is sent: leading/trailing spaces
 // come off each text value, at any depth (objects and arrays). Passwords are
-// the exception and go exactly as typed (a space can be part of one).
-const KEEP_AS_TYPED = /pass(word)?|pwd|secret/i;
+// the exception and go exactly as typed (a space can be part of one), and so
+// does a file delimiter, which may be a tab.
+const KEEP_AS_TYPED = /pass(word)?|pwd|secret|^delimiter$/i;
 
 export function trimPayload(value, key = "") {
   if (typeof value === "string") return KEEP_AS_TYPED.test(key) ? value : value.trim();

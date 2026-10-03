@@ -17,9 +17,9 @@ import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./form
 import { Button } from "@/Components/Common/Button";
 const EMPTY = { key: "", name: "", field_type: "TEXT", label: "", hint: "", help_text: "", required: false, read_only: false, default_value: "", options: {} };
 
-// PIN (Form Builder PIN handoff): digits only, 4 to 12 long, typed twice and
-// simple ones refused unless switched off. Only a hash is stored.
-const PIN_DEFAULTS = { min_length: 4, max_length: 6, confirm: true, block_simple: true };
+// PIN (Form Builder PIN handoff): digits only, 4 to 12 long, typed twice;
+// any digits are accepted (3 Oct 2026). Only a hash is stored.
+const PIN_DEFAULTS = { min_length: 4, max_length: 6, confirm: true };
 
 // The options the server would refuse, caught before saving: a liveness
 // capture is a single image, and a PIN is 4 to 12 digits with min <= max.

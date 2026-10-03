@@ -91,6 +91,16 @@ onboardingRoutes.push(
   ]),
 );
 
+// CARDS (Card setup handoff): Card BINs (195), Card Products (196),
+// Issuance Groups (197).
+const cardPage = (name) => lazy(() => import("@/Components/Cards/CardPages.jsx").then((m) => ({ default: m[name] })));
+onboardingRoutes.push(
+  ...Object.entries({ cardbins: cardPage("CardBins"), cardproducts: cardPage("CardProducts"), issuancegroups: cardPage("IssuanceGroups") }).flatMap(([path, Page]) => [
+    { path, element: pageElement(Page) },
+    { path: `${path}/:id`, element: pageElement(Page) },
+  ]),
+);
+
 // EPURSE > Transactions (menu 189): the journal and staff requests.
 const Transactions = lazy(() => import("@/Components/Transactions/Transactions.jsx").then((m) => ({ default: m.Transactions })));
 onboardingRoutes.push({ path: "transactions", element: pageElement(Transactions) }, { path: "transactions/:id", element: pageElement(Transactions) });

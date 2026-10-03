@@ -25,6 +25,7 @@ void i18n
     defaultNS: "common",
     ns: [
       "common",
+      "cards",
       "auth",
       "login",
       "layout",
