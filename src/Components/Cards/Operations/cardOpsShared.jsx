@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { UserRound, X } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { cardProductsApi } from "@/Services/Cards/cards.api";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
 import { OwnerFinder } from "../../TermDeposits/Deposits/OpenDeposit";
 import { inputClass, labelClass } from "../../TermDeposits/depositShared";
@@ -81,17 +83,30 @@ export function CardFace({ card, className }) {
   );
 }
 
-// The card a dialog is about to issue or request: the product's BIN (when
-// the product carries it) then dots, and the name it will carry.
+// The card a dialog is about to issue or request: the product's BIN (from
+// the product's own record) then dots, and the name it will carry.
 export function ProductCardPreview({ product, form, name, holder }) {
   const { t } = useTranslation("cards");
-  const bin = String(product?.bin_code ?? "");
-  const length = Math.min(19, Math.max(13, Number(product?.pan_length) || 16));
+  const [refs, setRefs] = useState({});
+  useEffect(() => {
+    if (!product?.id) return undefined;
+    let cancelled = false;
+    cardProductsApi
+      .get({ id: product.id })
+      .then((r) => !cancelled && setRefs({ id: product.id, ...(rowsOf(r)[0]?.refs ?? {}) }))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id]);
+  const known = refs.id === product?.id ? refs : {};
+  const bin = String(product?.bin_code ?? known.bin_code ?? "");
+  const length = Math.min(19, Math.max(13, Number(product?.pan_length ?? known.pan_length) || 16));
   const pan = bin.padEnd(length, "•").slice(0, length).replace(/(.{4})(?=.)/g, "$1 ");
   return (
     <CardFace
       className="mx-auto w-full max-w-[280px] sm:w-64"
-      card={{ pan_masked: pan, product_code: product?.product_code ?? t("binPreview"), form_factor: form, network_code: product?.network_code, name_on_card: name?.trim() || holder?.name?.toUpperCase() || t("binPreviewName"), expiry: "MM/YY", ops_status: "ACTIVE" }}
+      card={{ pan_masked: pan, product_code: product?.product_code ?? t("binPreview"), form_factor: form, network_code: product?.network_code ?? known.network_code, name_on_card: name?.trim() || holder?.name?.toUpperCase() || t("binPreviewName"), expiry: "MM/YY", ops_status: "ACTIVE" }}
     />
   );
 }
