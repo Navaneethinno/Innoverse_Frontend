@@ -4,8 +4,9 @@ import { Volume2, VolumeX } from "lucide-react";
 import { barcodeBars } from "@/Utils/Lib/barcode";
 import "./posReceipt.css";
 
-// A POS terminal printing the receipt as a thermal slip: the paper comes out
-// of the slot one line at a time (stopping at each line, like a real print
+// of the slot one line at a time, last line first, pushing the printed part
+// down (stopping at each line, like a real print head), then is torn off.
+// Taken from the customer portal's receipt.
 // head), then is torn off. Taken from the customer portal's receipt.
 //
 //   <PosReceipt slip={receiptSlip(...)} logo={url} ref={ref} />
@@ -189,46 +190,42 @@ export const PosReceipt = forwardRef(function PosReceipt({ slip, logo }, ref) {
       const height = paper.offsetHeight;
       win.style.height = `${height + ROOM}px`;
       setWinHeight(height + ROOM);
-      // Only what is printed so far shows, revealed from the top down.
-      const shown = (printed) => `inset(0 0 ${Math.max(0, height - printed)}px 0)`;
+      // Like a real printer, the slip is printed from its last line up: each
+      // new line comes out at the slot and pushes what is already printed
+      // down, so the newest line is always at the top, by the slot, and the
+      // slip ends the right way up. Only the printed part (the bottom
+      // `printed` px of the paper) shows, hanging from the slot.
+      const at = (printed) => ({ transform: `translateY(${printed - height}px)`, clipPath: `inset(${Math.max(0, height - printed)}px 0 -10px 0)` });
+      const place = (printed) => Object.assign(paper.style, at(printed));
       paper.getAnimations().forEach((animation) => animation.cancel());
-      paper.style.transform = "translateY(0px)";
-      paper.style.clipPath = shown(0);
+      place(0);
       setPhase("printing");
-      // In a scrolling box (the dialog), follow the print head down so the
-      // line being printed stays in view; start with the printer at the top.
-      const box = scrollBox(win);
-      box?.scrollTo({ top: 0, behavior: "smooth" });
-      const follow = (printed) => {
-        if (!box) return;
-        const top = paper.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
-        const target = top + printed + 48 - box.clientHeight;
-        if (target > box.scrollTop) box.scrollTo({ top: target, behavior: "smooth" });
-      };
+      // The printer is at the top of the dialog, so start there.
+      scrollBox(win)?.scrollTo({ top: 0, behavior: "smooth" });
       stopHum = startHum();
       await wait(450);
       if (!alive()) return;
 
-      // Where the print head stops: the bottom of each line, then the whole paper.
-      const stops = [...paper.querySelectorAll(".ln")].map((line) => line.offsetTop + line.getBoundingClientRect().height);
+      // Where the feed stops: the top of each line, counted from the bottom
+      // of the paper, then the whole paper.
+      const stops = [...paper.querySelectorAll(".ln")].map((line) => height - line.offsetTop).sort((a, b) => a - b);
       stops.push(height);
       let previous = 0;
       for (const stop of stops) {
         if (stop <= previous) continue;
         const distance = stop - previous;
-        const feed = paper.animate([{ clipPath: shown(previous) }, { clipPath: shown(stop) }], {
+        const feed = paper.animate([at(previous), at(stop)], {
           duration: Math.max(60, distance * 4.5),
           easing: "cubic-bezier(.2,.8,.3,1)",
         });
         hiss(Math.min(150, 40 + distance * 2.2), { gain: 0.16 + Math.random() * 0.05 });
-        follow(stop);
         try {
           await feed.finished;
         } catch {
           /* cancelled by a newer run */
         }
         if (!alive()) return;
-        paper.style.clipPath = shown(stop);
+        place(stop);
         feed.cancel();
         previous = stop;
         // The stop-start stutter is what makes it feel like a thermal head.
