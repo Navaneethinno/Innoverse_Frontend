@@ -40,6 +40,14 @@ function Barcode({ value }) {
   );
 }
 
+// The nearest ancestor that scrolls vertically, if any.
+function scrollBox(node) {
+  for (let el = node?.parentElement; el; el = el.parentElement) {
+    if (/(auto|scroll)/.test(getComputedStyle(el).overflowY) && el.scrollHeight > el.clientHeight) return el;
+  }
+  return null;
+}
+
 const Rule = () => <div className="ln pos-rule" aria-hidden="true" />;
 
 export const PosReceipt = forwardRef(function PosReceipt({ slip, logo }, ref) {
@@ -187,6 +195,16 @@ export const PosReceipt = forwardRef(function PosReceipt({ slip, logo }, ref) {
       paper.style.transform = "translateY(0px)";
       paper.style.clipPath = shown(0);
       setPhase("printing");
+      // In a scrolling box (the dialog), follow the print head down so the
+      // line being printed stays in view; start with the printer at the top.
+      const box = scrollBox(win);
+      box?.scrollTo({ top: 0, behavior: "smooth" });
+      const follow = (printed) => {
+        if (!box) return;
+        const top = paper.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop;
+        const target = top + printed + 48 - box.clientHeight;
+        if (target > box.scrollTop) box.scrollTo({ top: target, behavior: "smooth" });
+      };
       stopHum = startHum();
       await wait(450);
       if (!alive()) return;
@@ -203,6 +221,7 @@ export const PosReceipt = forwardRef(function PosReceipt({ slip, logo }, ref) {
           easing: "cubic-bezier(.2,.8,.3,1)",
         });
         hiss(Math.min(150, 40 + distance * 2.2), { gain: 0.16 + Math.random() * 0.05 });
+        follow(stop);
         try {
           await feed.finished;
         } catch {
