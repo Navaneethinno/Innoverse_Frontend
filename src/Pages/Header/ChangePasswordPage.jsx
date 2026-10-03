@@ -11,6 +11,7 @@ export function ChangePasswordPage() {
   const { t } = useTranslation("changePassword");
   const navigate = useNavigate();
   const changePassword = useAuth((state) => state.changePassword);
+  const forced = Number(useAuth((state) => state.user?.is_force_pwd)) === 1;
   const { policy } = usePasswordPolicyQuery();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -52,13 +53,17 @@ export function ChangePasswordPage() {
   return (
     <div className="pb-12 pt-6">
       <div className="mx-auto max-w-lg rounded-3xl border border-white/90 bg-white/85 p-8 shadow-xl">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
-        >
-          <ArrowLeft size={16} /> {t("common:back")}
-        </button>
+        {forced ? (
+          <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">{t("forcedNotice")}</p>
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
+          >
+            <ArrowLeft size={16} /> {t("common:back")}
+          </button>
+        )}
         <div className="mb-6 flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl"

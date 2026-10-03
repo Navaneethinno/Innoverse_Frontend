@@ -20,6 +20,7 @@ import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass 
 import { MiniTable, StatusStrip, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
 import { PlanCard, ReceiptDialog, typeLabel } from "./txnShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["POSTED", "REVERSED", "FAILED"];
 const REQUEST_STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "FAILED"];
@@ -84,8 +85,8 @@ function Journal({ onOpen }) {
   const [loading, setLoading] = useState(false);
   const types = useTxnTypes();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const row = rowsOf(await transactionsApi.list({ page, page_size: limit, ...clean(applied) }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
@@ -98,6 +99,7 @@ function Journal({ onOpen }) {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/transaction/list", () => void load({ silent: true }));
 
   const set = (key) => (v) => setFilters((f) => ({ ...f, [key]: v }));
   const columns = [
@@ -466,8 +468,8 @@ function Requests({ openId, onOpenTxn, onClose }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(openId ?? null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const row = rowsOf(await transactionRequestsApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { acct_num: applied } : {}) }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
@@ -480,6 +482,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/transaction/request/list", () => void load({ silent: true }));
 
   const columns = useMemo(
     () => [

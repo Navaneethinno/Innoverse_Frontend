@@ -19,6 +19,7 @@ import { balanceAdjustmentsApi } from "@/Services/TermDeposits/termDeposits.api"
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, amountInput, inputClass, labelClass } from "../depositShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "FAILED"];
 
@@ -42,8 +43,8 @@ export function BalanceAdjustments() {
   const [openId, setOpenId] = useState(null);
   const [txn, setTxn] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const row = rowsOf(await balanceAdjustmentsApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { acct_num: applied } : {}) }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
@@ -56,6 +57,7 @@ export function BalanceAdjustments() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/ledger/adjustment/list", () => void load({ silent: true }));
 
   const columns = [
     {

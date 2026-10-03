@@ -21,10 +21,8 @@ const idOf = (row) => row?.id;
 // the screen shows — the chosen page, page size, status tab and order — and
 // the server paginates (totalRecords/totalPages come back in `pagination`).
 // `livePath` (optional): the entity's own /list REST path, to subscribe to
-// its live-push channel (Live Updates guide). A pushed record already on
-// this page is merged in place; anything else (a new record, or a tab other
-// than All, where it may no longer belong) refetches the page quietly, since
-// only the server knows which page it lands on.
+// its live-push channel. A push refetches the page quietly: its rows may be
+// only ids and status (a change made elsewhere), so they are never merged.
 export function useEntityListQuery(listFn, { page = 1, limit = 10, livePath, filter, sortBy } = {}) {
   const narrowed = Boolean(filter) && filter !== "all";
   const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null });
@@ -63,6 +61,6 @@ export function useEntityListQuery(listFn, { page = 1, limit = 10, livePath, fil
     },
     [narrowed, refetch],
   );
-  useLiveChannel(livePath, (_action, records) => applyRecords(records));
+  useLiveChannel(livePath, () => void refetch({ silent: true }));
   return { ...state, refetch, applyRecords };
 }

@@ -6,6 +6,7 @@ import { clearToken } from "@/Redux/AuthToken";
 import { clearMenuState } from "@/Redux/MenuSlice";
 import store from "@/Redux/Store";
 import { clearAuthSession } from "@/Services/api/authStorage";
+import { logoutRequest } from "@/Services/Auth/auth.service";
 import { TopBar } from "../../Pages/Header/TopBar";
 import { WorkspaceContainer } from "./WorkspaceContainer";
 import { SidebarStateProvider, useSidebar } from "./SidebarContext";
@@ -55,6 +56,7 @@ function AuthEvents() {
 
   useEffect(() => {
     const handleUnauthorized = () => {
+      clearAuthSession();
       store.dispatch(clearToken());
       store.dispatch(clearMenuState());
       navigate("/login", { replace: true });
@@ -89,6 +91,8 @@ function InactivityLogout() {
       clearTimeout(inactivityTimeout);
 
       inactivityTimeout = setTimeout(() => {
+        // Ends the session on the server as well; signs out here regardless.
+        void logoutRequest().catch(() => {});
         dispatch(clearToken());
         dispatch(clearMenuState());
         clearAuthSession();

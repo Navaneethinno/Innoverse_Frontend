@@ -125,6 +125,23 @@ export async function refreshTokenRequest() {
   return parseSessionResponse(payload);
 }
 
+// Ends every session of the user, on every browser and device: every token
+// issued until now is refused from here on.
+export async function logoutRequest() {
+  const token = getAccessToken();
+  if (!token) return null;
+  return request(API_ENDPOINTS.AUTH.LOGOUT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Deviceinfo: JSON.stringify(DEVICE_INFO),
+      Authorization: "Bearer " + token,
+      ...apiLanguageHeader(),
+    },
+    body: JSON.stringify({}),
+  });
+}
+
 export async function changePassword(oldPassword, newPassword) {
   return request(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
     method: "POST",

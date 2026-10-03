@@ -14,7 +14,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
+import { PortalSourceBadge, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
@@ -164,8 +164,7 @@ export function CorporateCustomerOnboardingResource() {
   }, [load]);
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
-  const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, liveRefresh);
+  useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, () => void load({ silent: true }));
 
   const visible =
     !search.trim() && tab === "all"

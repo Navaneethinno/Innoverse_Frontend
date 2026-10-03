@@ -16,6 +16,7 @@ import { ActionButtons, NarrationDialog, inputClass, ratePct } from "../../TermD
 import { MiniTable, StatusStrip, Tabs, Timeline, loanLabel } from "../loanShared";
 import { ApplicationForm, Disclosure } from "./ApplicationForm";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFORMATION_REQUIRED", "APPROVED", "DECLINED", "WITHDRAWN", "CONVERTED"];
 
@@ -36,8 +37,8 @@ export function LoanApplications() {
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const body = { page, page_size: limit, ...(status ? { status } : {}), ...(awaitingMe ? { awaiting_me: true } : {}), ...(applied ? { search: applied } : {}) };
       const row = rowsOf(await loanApplicationsApi.list(body))[0];
@@ -51,6 +52,7 @@ export function LoanApplications() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/loan/application/list", () => void load({ silent: true }));
 
   if (openId) {
     return (
@@ -212,6 +214,8 @@ function ApplicationView({ id, onBack }) {
   useEffect(() => {
     void reload();
   }, [reload]);
+  // The open record: reload when the push names it, or names nothing.
+  useLiveChannel("/config/loan/application/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   // The form lists (credit check types and outcomes, collateral types) come
   // with the borrower's options.

@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   changePassword as changePasswordRequest,
   loginRequest,
+  logoutRequest,
   refreshTokenRequest,
 } from "@/Services/Auth/auth.service";
 import { clearAuthSession, persistAuthSession, readAuthUser } from "@/Services/api/authStorage";
@@ -77,9 +78,22 @@ export function useAuth(selector) {
       return false;
     }
   };
-  const changePassword = (oldPassword, newPassword) =>
-    changePasswordRequest(oldPassword, newPassword);
-  const logout = () => {
+  // A forced change (is_force_pwd, first sign-in) is done once this succeeds:
+  // the stored user no longer carries the flag, so the app opens up.
+  const changePassword = async (oldPassword, newPassword) => {
+    const result = await changePasswordRequest(oldPassword, newPassword);
+    if (auth.user?.is_force_pwd) {
+      const user = { ...auth.user, is_force_pwd: 0 };
+      persistAuthSession(user, auth.token, auth.refreshToken);
+      dispatch(setSession({ token: auth.token, refreshToken: auth.refreshToken, user }));
+    }
+    return result;
+  };
+  // Ends the session on the server too (every device), then clears this
+  // browser. A failed call (network, a session already ended) still signs
+  // out here.
+  const logout = async () => {
+    await logoutRequest().catch(() => {});
     clearAuthSession();
     dispatch(clearToken());
     dispatch(clearMenuState());

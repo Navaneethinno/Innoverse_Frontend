@@ -13,6 +13,7 @@ import { scheduledJobsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { dayDate, inputClass } from "../depositShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 // GLOBAL SETTINGS > Scheduled Jobs (menu 183): the platform's daily jobs
 // (deposit interest at 00:30, maturity at 00:45 by default), for every
@@ -28,8 +29,8 @@ export function ScheduledJobs() {
   const [busy, setBusy] = useState(null);
   const [runsOf, setRunsOf] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const list = rowsOf(await scheduledJobsApi.list({}));
       setJobs(list);
@@ -43,6 +44,7 @@ export function ScheduledJobs() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/scheduler/job/list", () => void load({ silent: true }));
 
   const call = async (verb, body) => {
     setBusy(body.code);

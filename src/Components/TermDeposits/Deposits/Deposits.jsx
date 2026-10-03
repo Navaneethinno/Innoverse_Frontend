@@ -15,6 +15,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { dayDate, inputClass, labelClass, ratePct } from "../depositShared";
 import { DepositView } from "./DepositView";
 import { OpenDeposit } from "./OpenDeposit";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["PENDING_APPROVAL", "ACTIVE", "MATURED", "CLOSED", "PREMATURELY_CLOSED", "REJECTED", "CANCELLED"];
 const EMPTY = { search: "", status: "", maturity_from: "", maturity_to: "" };
@@ -66,8 +67,8 @@ export function Deposits() {
   const [openId, setOpenId] = useState(null);
   const [opening, setOpening] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const body = Object.fromEntries(Object.entries({ ...applied, search: applied.search.trim() }).filter(([, v]) => v));
       const row = rowsOf(await depositsApi.list({ page, page_size: limit, ...body }))[0];
@@ -81,6 +82,7 @@ export function Deposits() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/deposit/contract/list", () => void load({ silent: true }));
 
   const columns = depositColumns(t, can, setOpenId, false);
 

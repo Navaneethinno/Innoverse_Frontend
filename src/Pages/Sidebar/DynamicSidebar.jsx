@@ -334,8 +334,7 @@ export function DynamicSidebar() {
         <UiTooltip label="Sign out" side="right">
           <motion.button
             onClick={() => {
-              logout();
-              navigate("/login", { replace: true });
+              void logout().then(() => navigate("/login", { replace: true }));
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

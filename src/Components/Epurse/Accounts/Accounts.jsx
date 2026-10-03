@@ -14,6 +14,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
 import { AccountStatement } from "./AccountStatement";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const EMPTY_FILTERS = { acct_num: "", owner_name: "", party: "", ownership: "", acct_class: "", status: "" };
 const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
@@ -42,8 +43,8 @@ export function Accounts() {
   const [viewing, setViewing] = useState(null);
   const [statement, setStatement] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const data = rowsOf(await accountsApi.list({ page, limit, ...filterBody(applied) }))[0];
       setResult({ accounts: data?.accounts ?? [], total: data?.total ?? 0 });
@@ -56,6 +57,7 @@ export function Accounts() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/account/list", () => void load({ silent: true }));
 
   const search = (event) => {
     event.preventDefault();

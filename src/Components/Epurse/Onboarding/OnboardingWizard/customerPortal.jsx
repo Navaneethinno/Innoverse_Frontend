@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef } from "react";
 import { Globe } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 
@@ -39,21 +38,6 @@ export function usePortalAuditLabel() {
   const { t } = useAudienceTranslation("customer");
   return (entry) =>
     String(entry?.audit_action ?? "").toUpperCase() === "SELF" ? t("selfOnboardedCustomerPortal") : entry?.audit_action;
-}
-
-// §3: a customer saving section by section in the portal produces one live
-// `edit` push per save — coalesce a burst into one quiet list refresh.
-export function useDebouncedRefresh(refresh, delay = 800) {
-  const timer = useRef(null);
-  const refreshRef = useRef(refresh);
-  useEffect(() => {
-    refreshRef.current = refresh;
-  }, [refresh]);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
-  return useCallback(() => {
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => refreshRef.current(), delay);
-  }, [delay]);
 }
 
 export function PortalDraftBanner() {

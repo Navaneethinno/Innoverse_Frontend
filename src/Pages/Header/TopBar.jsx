@@ -208,8 +208,7 @@ export function TopBar() {
                   </button>
                   <button
                     onClick={() => {
-                      logout();
-                      navigate("/login");
+                      void logout().then(() => navigate("/login"));
                     }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-destructive hover:bg-[var(--destructive-soft)] transition-colors border-t border-border"
                   >

@@ -17,6 +17,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, inputClass, labelClass, ratePct } from "../../TermDeposits/depositShared";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { Field, MiniTable, ScheduleTable, StatusStrip, Tabs, Timeline, loanLabel } from "../loanShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["PENDING_DISBURSEMENT", "ACTIVE", "DELINQUENT", "SETTLED", "WRITTEN_OFF", "CANCELLED"];
 const SOURCES = ["WALLET", "CASH"];
@@ -40,8 +41,8 @@ export function LoanFacilities() {
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const row = rowsOf(await loanFacilitiesApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { search: applied } : {}) }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
@@ -54,6 +55,7 @@ export function LoanFacilities() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/loan/facility/list", () => void load({ silent: true }));
 
   if (openId) {
     return (
@@ -182,6 +184,8 @@ function FacilityView({ id, onBack }) {
   useEffect(() => {
     void reload();
   }, [reload]);
+  // The open record: reload when the push names it, or names nothing.
+  useLiveChannel("/config/loan/facility/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   const act = async (verb, body = {}) => {
     setBusy(true);

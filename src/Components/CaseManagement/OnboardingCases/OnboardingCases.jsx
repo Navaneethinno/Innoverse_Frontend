@@ -12,6 +12,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, ageText, caseDate, subjectKind } from "./caseShared";
 import { CaseView } from "./CaseView";
 import { CaseSettings } from "./CaseSettings";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 // Tabs from the list's `counts` (they ignore the status filter): each sets
 // the status (or assigned) filter.
@@ -46,8 +47,8 @@ export function OnboardingCases() {
   const [openId, setOpenId] = useState(null);
   const [settings, setSettings] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const tabBody = TABS.find((x) => x.key === tab)?.body ?? {};
       const row = rowsOf(await onboardingCasesApi.list({ page, limit, ...filterBody(applied), ...tabBody }))[0];
@@ -61,6 +62,7 @@ export function OnboardingCases() {
   useEffect(() => {
     void load();
   }, [load]);
+  useLiveChannel("/config/case/onboarding/list", () => void load({ silent: true }));
 
   if (settings) {
     return (

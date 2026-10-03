@@ -447,6 +447,7 @@ export const setup = {
 };
 
 export const changePassword = {
+  forcedNotice: "Choose a new password before you continue: your account asks for one at this sign-in.",
   title: "Change Password",
   subtitle: "Update your account password",
   oldPassword: "Old Password",

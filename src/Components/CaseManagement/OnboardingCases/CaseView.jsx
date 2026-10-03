@@ -16,6 +16,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { AmlPill, isApproval, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
 import { AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "account"];
 
@@ -48,6 +49,8 @@ export function CaseView({ id, onBack }) {
   useEffect(() => {
     void reload();
   }, [reload]);
+  // The open record: reload when the push names it, or names nothing.
+  useLiveChannel("/config/case/onboarding/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   // Runs an action with the case's updated_time; a 409 (someone else acted)
   // reloads the case.

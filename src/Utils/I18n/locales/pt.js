@@ -431,6 +431,7 @@ export const setup = {
 };
 
 export const changePassword = {
+  forcedNotice: "Escolha uma nova senha antes de continuar: sua conta pede uma neste acesso.",
   title: "Alterar Senha",
   subtitle: "Atualize a senha da sua conta",
   oldPassword: "Senha Antiga",

@@ -14,7 +14,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Epurse/customerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { PortalSourceBadge, isPortalDraft, useDebouncedRefresh, usePortalAuditLabel } from "./customerPortal";
+import { PortalSourceBadge, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
@@ -166,8 +166,7 @@ export function CustomerOnboardingResource() {
   }, [load]);
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
-  const liveRefresh = useDebouncedRefresh(() => load({ silent: true }));
-  useLiveChannel(API_ENDPOINTS.CUSTOMER.INDIVIDUAL.LIST, liveRefresh);
+  useLiveChannel(API_ENDPOINTS.CUSTOMER.INDIVIDUAL.LIST, () => void load({ silent: true }));
 
   // Same StatusFilterTabs + search filtering every other maker-checker list
   // uses, applied on top of whatever page pending_only already narrowed

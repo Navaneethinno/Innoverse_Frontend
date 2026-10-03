@@ -14,6 +14,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, dayDate, inputClass, labelClass, ratePct } from "../depositShared";
 import { earlyText, optionLabel } from "../DepositProducts/productShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const TABS = ["summary", "interest", "history", "transactions"];
 const INSTRUCTIONS = ["PAYOUT", "RENEW_PRINCIPAL", "RENEW_PRINCIPAL_AND_INTEREST", "HOLD"];
@@ -54,6 +55,8 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
     setDeposit(null);
     void reload();
   }, [reload]);
+  // The open deposit: reload when the push names it, or names nothing.
+  useLiveChannel("/config/deposit/contract/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   // Every action replies with the deposit; it replaces what is shown.
   const act = async (verb, body = {}) => {
