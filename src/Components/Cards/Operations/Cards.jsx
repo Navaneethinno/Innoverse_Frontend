@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, Search, ShieldAlert, Truck } from "lucide-react";
+import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, Search, ShieldAlert, Truck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -13,6 +13,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { cardRequestsApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { NewRequest } from "@/Components/Transactions/NewRequest";
+import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../TermDeposits/depositShared";
 import { CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
@@ -230,6 +231,8 @@ function CardView({ id, options, onBack, onOpen }) {
   const [card, setCard] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  // A load / unload sent from here and waiting for a checker.
+  const [waiting, setWaiting] = useState(null);
 
   const reload = useCallback(async () => {
     try {
@@ -243,6 +246,13 @@ function CardView({ id, options, onBack, onOpen }) {
     void reload();
   }, [reload]);
   useLiveChannel(cardsApi.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
+  // The waiting request was decided: say how, and drop the note.
+  useLiveChannel(transactionRequestsApi.listPath, (_action, records) => {
+    const done = waiting && records.find((r) => String(r.id) === String(waiting.id) && ["APPROVED", "REJECTED", "CANCELLED"].includes(r.status));
+    if (!done) return;
+    notifications[done.status === "APPROVED" ? "success" : "error"](t(`request_${done.status}`, { ref: waiting.request_reference }));
+    setWaiting(null);
+  });
 
   const act = async (call) => {
     setBusy(true);
@@ -287,6 +297,11 @@ function CardView({ id, options, onBack, onOpen }) {
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
         <ArrowLeft size={15} /> {t("backToCards")}
       </button>
+      {waiting && (
+        <p className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <Hourglass size={15} className="shrink-0" /> {t("requestWaiting", { ref: waiting.request_reference })}
+        </p>
+      )}
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -368,7 +383,8 @@ function CardView({ id, options, onBack, onOpen }) {
         <NewRequest
           preset={{ txn_type: dialog, card }}
           onClose={() => setDialog(null)}
-          onDone={() => {
+          onDone={(request) => {
+            setWaiting(request && !request.result ? request : null);
             setDialog(null);
             void reload();
           }}
