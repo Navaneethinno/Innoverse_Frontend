@@ -550,9 +550,9 @@ function FacilityView({ id, onBack }) {
 
 function Stat({ label, value, tone }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={cn("text-lg font-black tabular-nums text-foreground", tone)}>{value}</p>
+      <p className={cn("amount-fit text-lg font-black tabular-nums text-foreground", tone)}>{value}</p>
     </div>
   );
 }
@@ -565,9 +565,9 @@ function DueCard({ due, currency }) {
   return (
     <div className={cn("mb-4 rounded-2xl border p-4", owing ? "border-red-200 bg-red-50" : "border-border bg-card")}>
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("dueNow")}</p>
-          <p className={cn("text-2xl font-black tabular-nums", owing ? "text-red-700" : "text-foreground")}>{m(due.total_due)}</p>
+          <p className={cn("amount-fit text-xl font-black sm:text-2xl tabular-nums", owing ? "text-red-700" : "text-foreground")}>{m(due.total_due)}</p>
         </div>
         <div className="flex flex-wrap gap-6 sm:text-right">
           <div>

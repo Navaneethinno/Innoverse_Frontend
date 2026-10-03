@@ -308,8 +308,8 @@ function ApplicationView({ id, onBack }) {
               {app.product_name} · {app.requested_term_value} {loanLabel(t, app.requested_term_unit)} · {loanLabel(t, app.purpose_code)} · {loanLabel(t, app.application_channel)} · {app.inst_profile_name}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-black tabular-nums">{money(app.requested_amount, cur)}</p>
+          <div className="min-w-0 text-right">
+            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{money(app.requested_amount, cur)}</p>
             <p className="text-sm font-bold text-primary">{t("rateAYear", { rate: ratePct(app.annual_rate) })}</p>
           </div>
         </div>

@@ -273,7 +273,7 @@ export function OwnerFinder({ onPick }) {
                   {t(a.owner.party === "MERCHANT" ? "accounts:merchant" : "accounts:customer")} · {t(a.owner.ownership === "CORPORATE" ? "accounts:corporate" : "accounts:individual")} · {a.inst_profile_name}
                 </span>
               </span>
-              <span className="text-right font-mono text-xs">
+              <span className="amount-fit text-right font-mono text-xs">
                 {a.acct_num}
                 <span className="block font-sans text-[11px] font-semibold">{money(a.avail_bal, a.currency_code)}</span>
               </span>

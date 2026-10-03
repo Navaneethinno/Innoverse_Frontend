@@ -185,9 +185,9 @@ function TxnReport({ kind }) {
       {totals.length > 0 && (
         <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {totals.map((x) => (
-            <div key={x.currency_code} className="rounded-2xl border border-border bg-card p-4">
+            <div key={x.currency_code} className="min-w-0 rounded-2xl border border-border bg-card p-4">
               <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("totalIn", { currency: x.currency_code, count: x.txn_count })}</p>
-              <p className="mt-1 text-xl font-black tabular-nums">{money(kind === "feeIncome" ? x.fee : x.amount, x.currency_code)}</p>
+              <p className="amount-fit mt-1 text-xl font-black tabular-nums">{money(kind === "feeIncome" ? x.fee : x.amount, x.currency_code)}</p>
               <p className="text-xs text-muted-foreground">{kind === "feeIncome" ? t("plusTax", { tax: money(x.tax, x.currency_code) }) : t("feesX", { fee: money(x.fee, x.currency_code) })}</p>
             </div>
           ))}

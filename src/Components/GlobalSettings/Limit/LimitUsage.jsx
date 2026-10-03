@@ -59,7 +59,7 @@ export function LimitUsagePanel({ entity, compact = false }) {
             <p className="text-sm font-bold">
               {c.currency_code} <span className="font-mono text-xs font-medium text-muted-foreground">{c.acct_num}</span>
             </p>
-            <p className="text-xs text-muted-foreground">{t("usageBalance", { balance: money(c.balance, c.currency_code) })}</p>
+            <p className="amount-fit text-xs text-muted-foreground">{t("usageBalance", { balance: money(c.balance, c.currency_code) })}</p>
           </div>
           {c.limits?.length ? (
             <div className="grid gap-2 md:grid-cols-2">
@@ -67,7 +67,7 @@ export function LimitUsagePanel({ entity, compact = false }) {
                 const counted = l.max_count != null && Number(l.max_count) > 0;
                 const pct = counted ? share(l.used_count, l.max_count) : share(l.used_amount, l.max_amount);
                 return (
-                  <div key={`${l.rule_code}-${l.limit_type}-${i}`} className="rounded-lg bg-muted/40 px-3 py-2">
+                  <div key={`${l.rule_code}-${l.limit_type}-${i}`} className="min-w-0 rounded-lg bg-muted/40 px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-1">
                       <p className="text-xs font-bold">
                         <span className={cn("mr-1.5 rounded px-1 text-[10px] font-black", l.direction === "DEBIT" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700")}>{t(`usageDir_${l.direction}`, { defaultValue: l.direction })}</span>
@@ -84,7 +84,7 @@ export function LimitUsagePanel({ entity, compact = false }) {
                         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
                           <div className={cn("h-full rounded-full transition-all", pct >= 90 ? "bg-red-500" : pct >= 70 ? "bg-amber-500" : "bg-primary")} style={{ width: `${pct}%` }} />
                         </div>
-                        <p className="mt-1 text-[11px] tabular-nums">
+                        <p className="amount-fit mt-1 text-[11px] tabular-nums">
                           {counted
                             ? t("usageCount", { used: l.used_count ?? 0, max: l.max_count, left: l.left_count ?? 0 })
                             : t("usageAmount", { used: money(l.used_amount ?? 0, c.currency_code), max: money(l.max_amount, c.currency_code), left: money(l.left_amount ?? 0, c.currency_code) })}

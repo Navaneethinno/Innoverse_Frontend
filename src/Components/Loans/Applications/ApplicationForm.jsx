@@ -248,7 +248,7 @@ export function Disclosure({ disclosure: d, eligibility: e, live = false }) {
         <p className="text-3xl font-black tabular-nums text-emerald-700">
           {ratePct(d.annual_rate)} <span className="text-sm font-bold text-muted-foreground">{loanLabel(t, d.calculation_method)}</span>
         </p>
-        <p className="text-sm font-semibold text-foreground">
+        <p className="amount-fit text-sm font-semibold text-foreground">
           {m(d.amount)} · {d.term_value} {loanLabel(t, d.term_unit)} · {loanLabel(t, d.repayment_frequency)}
         </p>
       </div>

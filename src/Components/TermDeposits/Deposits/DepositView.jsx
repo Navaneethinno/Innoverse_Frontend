@@ -123,8 +123,8 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
               {deposit.product_name} · {deposit.tenor_label} · {deposit.inst_profile_name}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-black tabular-nums text-foreground">{money(deposit.principal, cur)}</p>
+          <div className="min-w-0 text-right">
+            <p className="amount-fit text-xl font-black tabular-nums text-foreground sm:text-2xl">{money(deposit.principal, cur)}</p>
             <p className="text-sm font-bold text-primary">{t("rateAYear", { rate: ratePct(deposit.annual_rate) })}</p>
           </div>
         </div>

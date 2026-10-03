@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Printer } from "lucide-react";
+import { ArrowRight, Download, Printer, RotateCcw } from "lucide-react";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
-import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { money } from "@/Components/Epurse/Accounts/accountShared";
-import { atIst } from "@/Components/Reports/Shared/reportShared";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { transactionsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { PosReceipt } from "./Receipt/PosReceipt";
+import { downloadReceiptPdf } from "./Receipt/receiptPdf";
+import { receiptSlip } from "./Receipt/receiptSlip";
 
 // Pieces shared by Transactions (journal, requests), Balance Adjustments and
 // the transaction reports. Times are UTC and shown on the platform clock.
@@ -32,7 +35,7 @@ export function PlanCard({ plan }) {
         <>
           <p className="truncate text-sm font-bold">{p.name}</p>
           <p className="font-mono text-[11px] text-muted-foreground">{p.acct_num}</p>
-          {p.avail_bal != null && <p className="text-[11px] text-muted-foreground">{t("available", { amount: m(p.avail_bal) })}</p>}
+          {p.avail_bal != null && <p className="amount-fit text-[11px] text-muted-foreground">{t("available", { amount: m(p.avail_bal) })}</p>}
         </>
       ) : (
         <p className="text-sm font-bold text-muted-foreground">{cash}</p>
@@ -83,25 +86,30 @@ export function PlanCard({ plan }) {
 
 function Line({ label, value, strong, muted, tone }) {
   return (
-    <div className={cn("flex justify-between gap-3", strong && "font-black", muted && "text-muted-foreground")}>
+    <div className={cn("flex min-w-0 justify-between gap-3", strong && "font-black", muted && "text-muted-foreground")}>
       <dt className={strong ? "" : "text-muted-foreground"}>{label}</dt>
-      <dd className={cn("tabular-nums", tone)}>{value}</dd>
+      <dd className={cn("amount-fit text-right tabular-nums", tone)}>{value}</dd>
     </div>
   );
 }
 
-// The frozen receipt; Reprint counts a duplicate and prints.
+// The frozen receipt, printed out of a POS terminal on screen. Reprint has the
+// server count a duplicate (the slip then says DUPLICATE) and prints it;
+// the PDF is the same slip.
 export function ReceiptDialog({ txnId, rrn, onClose }) {
   const { t } = useTranslation("txn");
+  const { logoUrl, displayName } = useBrandTheme();
   const [receipt, setReceipt] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const pos = useRef(null);
   const key = txnId ? { id: txnId } : { rrn };
 
   useEffect(() => {
     let cancelled = false;
     transactionsApi
       .receipt(txnId ? { id: txnId } : { rrn })
-      .then((r) => !cancelled && setReceipt(rowsOf(r)[0] ?? null))
+      .then((r) => !cancelled && setReceipt(rowsOf(r)[0] ?? false))
       .catch((e) => {
         notifications.error(e.message);
         if (!cancelled) setReceipt(false);
@@ -111,11 +119,14 @@ export function ReceiptDialog({ txnId, rrn, onClose }) {
     };
   }, [txnId, rrn]);
 
+  const slip = receipt ? receiptSlip(receipt, t, displayName) : null;
+
   const reprint = async () => {
     setBusy(true);
     try {
       setReceipt(rowsOf(await transactionsApi.receipt({ ...key, reprint: true }))[0] ?? receipt);
-      window.requestAnimationFrame(() => window.print());
+      pos.current?.finish();
+      window.setTimeout(() => window.print(), 80);
     } catch (e) {
       notifications.error(e.message);
     } finally {
@@ -123,9 +134,17 @@ export function ReceiptDialog({ txnId, rrn, onClose }) {
     }
   };
 
-  const r = receipt;
-  const p = r?.receipt_payload ?? {};
-  const m = (v) => money(v, r?.currency_code);
+  const download = async () => {
+    setDownloading(true);
+    try {
+      await downloadReceiptPdf({ slip, logoUrl });
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Modal
       open
@@ -133,60 +152,22 @@ export function ReceiptDialog({ txnId, rrn, onClose }) {
       size="sm"
       title={t("receipt")}
       footer={
-        r && (
-          <Button icon={Printer} loading={busy} onClick={reprint}>
-            {t("reprint")}
-          </Button>
+        slip && (
+          <>
+            <ActionIconButton label={t("rcptReplay")} icon={RotateCcw} onClick={() => pos.current?.replay()} className="mr-auto" />
+            <Button variant="secondary" icon={Download} loading={downloading} onClick={download}>
+              {t("rcptDownload")}
+            </Button>
+            <Button icon={Printer} loading={busy} onClick={reprint}>
+              {t("reprint")}
+            </Button>
+          </>
         )
       }
     >
-      {r === null && <Spinner size={18} />}
-      {r === false && <p className="text-sm text-muted-foreground">{t("noReceipt")}</p>}
-      {r && (
-        <div className="relative grid gap-2 font-mono text-xs">
-          {r.print_count > 0 && <span className="absolute right-0 top-0 rotate-6 rounded border-2 border-red-500 px-2 py-0.5 text-[11px] font-black text-red-600">{t("duplicate")}</span>}
-          <p className="text-sm font-black">{r.txn_short_desc}</p>
-          <p className="text-muted-foreground">{atIst(r.txn_time)}</p>
-          <StatusBadge status={r.status} variant="subtle" />
-          <div className="my-2 border-t border-dashed border-border" />
-          {[
-            ["RRN", r.rrn],
-            r.org_rrn && [t("original"), r.org_rrn],
-            [t("customer"), r.customer_name],
-            [t("account"), r.acct_mask],
-            p.from?.name && [t("from"), `${p.from.name} ${p.from.acct ?? ""}`],
-            p.to?.name && [t("to"), `${p.to.name} ${p.to.acct ?? ""}`],
-            p.reason && [t("reason"), p.reason],
-            r.counterparty_name && [t("counterparty"), r.counterparty_name],
-            r.merchant_name && [t("merchant"), r.merchant_name],
-            r.operator_name && [t("operator"), r.operator_name],
-          ]
-            .filter(Boolean)
-            .map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3">
-                <span className="text-muted-foreground">{k}</span>
-                <span className="text-right">{v || "—"}</span>
-              </div>
-            ))}
-          <div className="my-2 border-t border-dashed border-border" />
-          {[
-            [t("amount"), m(r.txn_amount)],
-            Number(r.fee_amount) > 0 && [r.fee_name || t("fee"), m(r.fee_amount)],
-            p.tax != null && Number(p.tax) > 0 && [t("tax"), m(p.tax)],
-            p.total_debit && [t("totalDebit"), m(p.total_debit)],
-            p.net_credit && [t("netCredit"), m(p.net_credit)],
-            r.entry_amount != null && [t("balanceAfter"), m(r.entry_amount)],
-          ]
-            .filter(Boolean)
-            .map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 font-bold">
-                <span>{k}</span>
-                <span className="tabular-nums">{v}</span>
-              </div>
-            ))}
-          {r.print_count > 0 && <p className="mt-2 text-center text-[10px] text-muted-foreground">{t("printedN", { count: r.print_count })}</p>}
-        </div>
-      )}
+      {receipt === null && <Spinner size={18} />}
+      {receipt === false && <p className="text-sm text-muted-foreground">{t("noReceipt")}</p>}
+      {slip && <PosReceipt ref={pos} slip={slip} logo={logoUrl} />}
     </Modal>
   );
 }

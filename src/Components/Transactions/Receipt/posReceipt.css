@@ -1,0 +1,224 @@
+/* The receipt printer (from the customer portal): the printer body, the paper
+   window under its slot, and the thermal paper with torn zigzag edges. The paper and
+   the printer keep their own colours in dark mode; only the page around them
+   switches. */
+.pos-window {
+  position: relative;
+  overflow: hidden;
+  margin-inline: auto;
+  margin-top: -6px;
+  width: 86%;
+}
+
+.pos-paper {
+  --paper: #fffef9;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 18px 24px;
+  background: var(--paper);
+  color: #23201b;
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.18));
+  transform-origin: 50% 0;
+  will-change: transform, clip-path;
+}
+.pos-paper::before,
+.pos-paper::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+.pos-paper::before {
+  top: -8px;
+  background: conic-gradient(from -45deg at bottom, var(--paper) 90deg, transparent 0) 50% / 14px 100%;
+}
+.pos-paper::after {
+  bottom: -8px;
+  background: conic-gradient(from 135deg at top, var(--paper) 90deg, transparent 0) 50% / 14px 100%;
+}
+
+.pos-paper .ln:not(.pos-row) {
+  display: block;
+}
+.pos-center {
+  text-align: center;
+}
+.pos-rule {
+  margin: 8px 0;
+  border-top: 1px dashed #8d887c;
+  height: 0;
+}
+.pos-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  column-gap: 12px;
+}
+.pos-label {
+  color: #7a7468;
+}
+/* A long value drops to the next line, still right-aligned. */
+.pos-value {
+  margin-left: auto;
+  min-width: 0;
+  max-width: 100%;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.pos-sub {
+  overflow-wrap: anywhere;
+  color: #7a7468;
+  font-size: 11.5px;
+  text-align: right;
+}
+/* The institution's logo, in grey like a thermal print. */
+.pos-logo img {
+  display: block;
+  max-width: 58%;
+  max-height: 46px;
+  margin: 0 auto 8px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.15);
+}
+.pos-brand {
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  font-size: 15px;
+  text-align: center;
+}
+.pos-small {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  color: #7a7468;
+  text-align: center;
+}
+.pos-title {
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+.pos-duplicate {
+  color: #b91c1c;
+}
+.pos-total {
+  font-weight: 700;
+  font-size: 15px;
+}
+.pos-barcode {
+  display: block;
+  width: 78%;
+  height: 46px;
+  margin: 6px auto 2px;
+}
+
+/* The printer body, above the paper. */
+.pos-printer {
+  position: relative;
+  z-index: 10;
+  height: 76px;
+  background: #1f1e1b;
+  border-radius: 24px 24px 14px 14px;
+  box-shadow: 0 10px 22px -10px rgb(0 0 0 / 0.5);
+}
+.pos-slot {
+  position: absolute;
+  bottom: 14px;
+  left: 5%;
+  right: 5%;
+  height: 8px;
+  border-radius: 4px;
+  background: #0b0a09;
+}
+.pos-brand-label {
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a867c;
+}
+.pos-led {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a867c;
+}
+.pos-led-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #5b574e;
+}
+.pos-led[data-state="printing"] {
+  color: #4ade80;
+}
+.pos-led[data-state="printing"] .pos-led-dot {
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+  animation: pos-blink 0.4s steps(2) infinite;
+}
+.pos-led[data-state="ready"] .pos-led-dot {
+  background: #4ade80;
+  opacity: 0.55;
+}
+@keyframes pos-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pos-led[data-state="printing"] .pos-led-dot {
+    animation: none;
+  }
+}
+
+/* Printing the page prints just the receipt, as a narrow slip. */
+@page {
+  size: 80mm auto;
+  margin: 4mm;
+}
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .pos-paper,
+  .pos-paper * {
+    visibility: visible !important;
+  }
+  .pos-window {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: auto !important;
+  }
+  .pos-paper {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    width: 72mm !important;
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
+    margin: 0 !important;
+  }
+  .pos-paper::before,
+  .pos-paper::after {
+    display: none !important;
+  }
+}

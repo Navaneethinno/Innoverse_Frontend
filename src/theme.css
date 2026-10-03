@@ -307,6 +307,13 @@
     transform: translateY(1px);
     box-shadow: none;
   }
+  /* A money figure of any length stays inside its box: it wraps (between
+     any characters, if it must) instead of spilling out. */
+  .amount-fit {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
   /* Visible keyboard focus everywhere, without a ring on mouse clicks. */
   :where(button, a, [role="button"], [role="tab"]):focus-visible {
     outline: 2px solid var(--ring);

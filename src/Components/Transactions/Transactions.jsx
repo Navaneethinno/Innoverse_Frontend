@@ -264,8 +264,8 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
               {atIst(x.tran_date_time)} · {t("businessDateX", { date: x.business_date })} · {x.user_name || "—"} · {x.inst_profile_name}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-black tabular-nums">{m(x.txn_amount)}</p>
+          <div className="min-w-0 text-right">
+            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(x.txn_amount)}</p>
             {Number(x.fee_amount) > 0 && <p className="text-xs text-muted-foreground">{t("plusFee", { fee: m(x.fee_amount), name: x.fee_name || t("fee"), payer: t(`payFrom_${x.fee_pay_from}`, { defaultValue: x.fee_pay_from ?? "" }) })}</p>}
           </div>
         </div>
@@ -635,7 +635,7 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
       ) : (
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-2xl font-black tabular-nums">{m(req.amount)}</p>
+            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(req.amount)}</p>
             <StatusBadge status={req.status} />
           </div>
           {req.status === "FAILED" && (

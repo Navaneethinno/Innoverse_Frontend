@@ -32,9 +32,9 @@ export function Facts({ rows, className }) {
   return (
     <dl className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4", className)}>
       {rows.filter(Boolean).map(([label, value, tone]) => (
-        <div key={label} className="rounded-xl border border-border px-3 py-2">
+        <div key={label} className="min-w-0 rounded-xl border border-border px-3 py-2">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</dt>
-          <dd className={cn("mt-0.5 break-words text-sm font-semibold text-foreground", tone)}>{value ?? "—"}</dd>
+          <dd className={cn("amount-fit mt-0.5 text-sm font-semibold text-foreground", tone)}>{value ?? "—"}</dd>
         </div>
       ))}
     </dl>
@@ -43,7 +43,7 @@ export function Facts({ rows, className }) {
 
 export function Section({ title, action, children, className }) {
   return (
-    <section className={cn("rounded-2xl border border-border bg-card p-4", className)}>
+    <section className={cn("min-w-0 rounded-2xl border border-border bg-card p-4", className)}>
       {(title || action) && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-bold text-foreground">{title}</h3>
