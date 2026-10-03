@@ -7,6 +7,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { Section, dayDate, labelClass } from "../TermDeposits/depositShared";
 import { Field, loanLabel } from "../Loans/loanShared";
 import { pickOptions } from "./CardSetup";
+import { CardFace } from "./Operations/cardOpsShared";
 
 // What differs between the three CARDS screens: the api, list columns, the
 // facts a view shows, the form, the body sent, the fields fixed once added
@@ -48,24 +49,33 @@ const grid = "grid gap-3 md:grid-cols-2 lg:grid-cols-3";
 function BinForm({ values: v, set, options, locked }) {
   const { t } = useTranslation("cards");
   const after = num(v.pan_length) - String(v.bin_code ?? "").length;
+  // The card as it will read: the BIN, then the rest of the length as dots,
+  // in groups of four.
+  const length = Math.min(19, Math.max(13, num(v.pan_length) || 16));
+  const digits = String(v.bin_code ?? "").padEnd(length, "•").slice(0, length);
+  const network = codes(options.networks).find((n) => n.value === v.network_code);
+  const preview = { pan_masked: digits.replace(/(.{4})(?=.)/g, "$1 "), network_code: network?.label ?? v.network_code, product_code: t("binPreview"), form_factor: "PHYSICAL", name_on_card: t("binPreviewName"), expiry: "MM/YY", ops_status: "ACTIVE" };
   return (
     <Section title={t("groupBin")}>
-      <div className={grid}>
-        <F label={t("binCode")} hint={!locked && t("fixedOnceAdded")}>
-          <Field field={{ placeholder: "498765" }} disabled={locked} value={v.bin_code} onChange={(x) => set({ bin_code: x.replace(/\D/g, "").slice(0, 12) })} />
-        </F>
-        <F label={t("network")} hint={!locked && t("fixedOnceAdded")}>
-          <Field field={{ type: "select", blank: t("choose"), options: codes(options.networks) }} disabled={locked} value={v.network_code} onChange={(x) => set({ network_code: x })} />
-        </F>
-        <F label={t("panLength")} hint={t("panLengthHint")} warn={v.bin_code && after < 7 && t("panTooShort", { count: after })}>
-          <Field field={{ type: "int" }} value={v.pan_length} onChange={(x) => set({ pan_length: x.slice(0, 2) })} />
-        </F>
-        <F label={t("serviceCode")} hint={t("serviceCodeHint")}>
-          <Field field={{ type: "int" }} value={v.service_code} onChange={(x) => set({ service_code: x.slice(0, 3) })} />
-        </F>
-        <F label={t("description")} span="md:col-span-2">
-          <Field field={{}} value={v.description} onChange={(x) => set({ description: x.slice(0, 255) })} />
-        </F>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        <div className={cn(grid, "flex-1 lg:grid-cols-2")}>
+          <F label={t("binCode")} hint={!locked && t("fixedOnceAdded")}>
+            <Field field={{ placeholder: "498765" }} disabled={locked} value={v.bin_code} onChange={(x) => set({ bin_code: x.replace(/\D/g, "").slice(0, 12) })} />
+          </F>
+          <F label={t("network")} hint={!locked && t("fixedOnceAdded")}>
+            <Field field={{ type: "select", blank: t("choose"), options: codes(options.networks) }} disabled={locked} value={v.network_code} onChange={(x) => set({ network_code: x })} />
+          </F>
+          <F label={t("panLength")} hint={t("panLengthHint")} warn={v.bin_code && after < 7 && t("panTooShort", { count: after })}>
+            <Field field={{ type: "int" }} value={v.pan_length} onChange={(x) => set({ pan_length: x.slice(0, 2) })} />
+          </F>
+          <F label={t("serviceCode")} hint={t("serviceCodeHint")}>
+            <Field field={{ type: "int" }} value={v.service_code} onChange={(x) => set({ service_code: x.slice(0, 3) })} />
+          </F>
+          <F label={t("description")} span="md:col-span-2">
+            <Field field={{}} value={v.description} onChange={(x) => set({ description: x.slice(0, 255) })} />
+          </F>
+        </div>
+        <CardFace card={preview} className="mx-auto shrink-0 lg:mx-0 lg:w-72" />
       </div>
     </Section>
   );

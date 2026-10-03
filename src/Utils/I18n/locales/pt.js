@@ -3806,6 +3806,8 @@ export const cards = {
   recordReceipt: "Registar {{count}} recebido(s)",
   recordedBy: "Registado por",
   reissue: "Reemitir",
+  binPreview: "Pré-visualização",
+  binPreviewName: "NOME DO TITULAR",
   load: "Carregar",
   unload: "Descarregar",
   requestWaiting: "O pedido {{ref}} aguarda aprovação. O cartão atualiza quando for decidido.",

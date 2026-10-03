@@ -3792,6 +3792,8 @@ export const cards = {
   recordReceipt: "Record {{count}} received",
   recordedBy: "Recorded by",
   reissue: "Reissue",
+  binPreview: "Card preview",
+  binPreviewName: "CARDHOLDER NAME",
   load: "Load",
   unload: "Unload",
   requestWaiting: "Request {{ref}} is waiting for approval. The card updates once it is decided.",
