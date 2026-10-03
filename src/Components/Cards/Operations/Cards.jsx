@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, Search, ShieldAlert, Truck } from "lucide-react";
+import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, Search, ShieldAlert, Truck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -12,6 +12,7 @@ import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { cardRequestsApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { NewRequest } from "@/Components/Transactions/NewRequest";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../TermDeposits/depositShared";
 import { CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
@@ -225,6 +226,7 @@ function CardView({ id, options, onBack, onOpen }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
   const canRequest = useMenuPermission("Card Requests");
+  const canTxn = useMenuPermission("Transactions");
   const [card, setCard] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -273,6 +275,8 @@ function CardView({ id, options, onBack, onOpen }) {
     a.activate && can("Change Status") && { key: "activate", label: t("activate"), icon: Power, variant: "primary", run: () => setDialog("activate") },
     a.status && can("Change Status") && card.status_changes?.length > 0 && { key: "status", label: t("changeStatus"), icon: ShieldAlert, run: () => setDialog("status") },
     a.pin_clear && can("Edit") && { key: "pin", label: t("clearPin"), icon: KeyRound, run: () => setDialog("pin") },
+    a.load && canTxn("Add") && { key: "load", label: t("load"), icon: ArrowDownToLine, variant: "primary", run: () => setDialog("CARD_LOAD") },
+    a.unload && canTxn("Add") && { key: "unload", label: t("unload"), icon: ArrowUpFromLine, run: () => setDialog("CARD_UNLOAD") },
     a.reissue && can("Add") && { key: "reissue", label: t("reissue"), icon: Repeat, run: () => setDialog("reissue") },
     issued && card.form_factor === "VIRTUAL" && product?.allow_virtual_to_physical && canRequest("Add") && { key: "plastic", label: t("orderPlastic"), icon: Truck, run: () => setDialog("plastic") },
   ];
@@ -357,6 +361,16 @@ function CardView({ id, options, onBack, onOpen }) {
             setDialog(null);
             if (result?.card?.id) onOpen(result.card.id);
             else void reload();
+          }}
+        />
+      )}
+      {(dialog === "CARD_LOAD" || dialog === "CARD_UNLOAD") && (
+        <NewRequest
+          preset={{ txn_type: dialog, card }}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            void reload();
           }}
         />
       )}

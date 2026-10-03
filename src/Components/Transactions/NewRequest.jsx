@@ -36,12 +36,13 @@ const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", rea
 // A staff transaction: pick the type, fill what it needs, see the quote
 // (fee, tax, totals, limits) as you type, then send it for approval. A user
 // with Self on the menu posts it at once; the reply then carries the
-// result. `preset` opens it for a refund or reversal of a transaction.
+// result. `preset` opens it for a refund or reversal of a transaction, or
+// for a load / unload of a card (`preset.card`, locked).
 export function NewRequest({ preset, onClose, onDone }) {
   const { t } = useTranslation("txn");
   const [types, setTypes] = useState(null);
   const [type, setType] = useState(preset?.txn_type ?? "");
-  const [form, setForm] = useState({ ...EMPTY, org_rrn: preset?.org_rrn ?? "" });
+  const [form, setForm] = useState({ ...EMPTY, org_rrn: preset?.org_rrn ?? "", card: preset?.card ?? null });
   const [plan, setPlan] = useState(null);
   const [quoteError, setQuoteError] = useState("");
   const [quoting, setQuoting] = useState(false);
@@ -170,7 +171,7 @@ export function NewRequest({ preset, onClose, onDone }) {
             {needs.card && (
               <div className={cn(labelClass, "sm:col-span-2")}>
                 {t("prepaidCard")}
-                <CardPicker value={form.card} onChange={(card) => setForm((f) => ({ ...f, card, wallet_id: "" }))} />
+                <CardPicker value={form.card} locked={Boolean(preset?.card)} onChange={(card) => setForm((f) => ({ ...f, card, wallet_id: "" }))} />
               </div>
             )}
             {needs.card && form.card && <HolderWallet card={form.card} value={form.wallet_id} onChange={(wallet_id) => setForm((f) => ({ ...f, wallet_id }))} />}
@@ -234,7 +235,7 @@ export function NewRequest({ preset, onClose, onDone }) {
 
 // The prepaid card a load or unload is for: find it by its last 4 digits,
 // the name on it or the holder's name. Only active cards are offered.
-function CardPicker({ value, onChange }) {
+function CardPicker({ value, locked, onChange }) {
   const { t } = useTranslation("txn");
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState(null);
@@ -257,9 +258,11 @@ function CardPicker({ value, onChange }) {
         <span className="min-w-0 text-sm font-semibold">
           <span className="font-mono">{value.pan_masked}</span> · {value.holder_name} · {value.product_code}
         </span>
-        <button type="button" onClick={() => onChange(null)} className="text-xs font-semibold text-muted-foreground transition-colors hover:text-primary">
-          {t("change")}
-        </button>
+        {!locked && (
+          <button type="button" onClick={() => onChange(null)} className="text-xs font-semibold text-muted-foreground transition-colors hover:text-primary">
+            {t("change")}
+          </button>
+        )}
       </div>
     );
   }
@@ -288,8 +291,7 @@ function CardPicker({ value, onChange }) {
 }
 
 // The holder's wallet a card load takes from (or an unload pays into): the
-// card's holder_wallets, default first. Left on the default, the server
-// uses the preferred one.
+// card's holder_wallets, default first, which is picked to begin with.
 function HolderWallet({ card, value, onChange }) {
   const { t } = useTranslation("txn");
   const [wallets, setWallets] = useState(null);
@@ -298,11 +300,18 @@ function HolderWallet({ card, value, onChange }) {
     let cancelled = false;
     cardsApi
       .get({ id: card.id })
-      .then((r) => !cancelled && setWallets(rowsOf(r)[0]?.holder_wallets ?? []))
+      .then((r) => {
+        if (cancelled) return;
+        const list = rowsOf(r)[0]?.holder_wallets ?? [];
+        setWallets(list);
+        if (list[0]) onChange(String(list[0].acct_id));
+      })
       .catch((e) => !cancelled && notifications.error(e.message));
     return () => {
       cancelled = true;
     };
+    // Only a new card starts over on its default wallet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.id]);
 
   return (
@@ -315,7 +324,7 @@ function HolderWallet({ card, value, onChange }) {
           className="mt-1.5"
           value={value}
           onChange={onChange}
-          options={[{ value: "", label: t("preferredWallet", { acct: wallets[0].acct_num }) }, ...wallets.slice(1).map((w) => ({ value: String(w.acct_id), label: `${w.acct_num} · ${w.avail_bal}` }))]}
+          options={wallets.map((w, i) => ({ value: String(w.acct_id), label: `${w.acct_num} · ${w.avail_bal}${i === 0 ? ` · ${t("preferred")}` : ""}` }))}
         />
       ) : (
         <p className="mt-1.5 text-xs font-normal text-muted-foreground">{t("noHolderWallet")}</p>
