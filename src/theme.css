@@ -770,3 +770,225 @@ textarea:disabled {
     scale: none;
   }
 }
+
+/* ---- Light flourishes: CSS only, short, never in the way. ---- */
+
+/* Placeholders while a page or table loads: a soft sweep. */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, var(--muted) 25%, color-mix(in srgb, var(--muted) 45%, var(--card)) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s linear infinite;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* A table row a live update changed. */
+.row-flash > td {
+  animation: row-flash 1.6s ease-out;
+}
+@keyframes row-flash {
+  0%,
+  25% {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+/* Approved / rejected: a stamp lands in the middle of the screen. */
+.flourish-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.approval-stamp {
+  border: 4px solid currentColor;
+  border-radius: 14px;
+  padding: 0.35rem 1.4rem;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--card) 85%, transparent);
+  box-shadow: var(--glass-shadow);
+  animation: approval-stamp 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+.approval-stamp.is-approved {
+  color: #059669;
+}
+.approval-stamp.is-rejected {
+  color: #dc2626;
+}
+@keyframes approval-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.8) rotate(-14deg);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1) rotate(-8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) rotate(-8deg);
+  }
+}
+
+/* A tick that draws itself (a transaction posted at once). */
+.check-draw circle {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: check-draw 0.45s ease-out forwards;
+}
+.check-draw path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: check-draw 0.3s 0.35s ease-out forwards;
+}
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A card drawn as a card tilts a little under the pointer. */
+.card-tilt {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-tilt:hover {
+  transform: perspective(700px) rotateX(4deg) rotateY(-6deg) translateY(-2px);
+  box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.45);
+}
+
+/* Emboss file: three cards slide into an envelope. */
+.flourish-envelope {
+  position: relative;
+  width: 120px;
+  height: 84px;
+}
+.flourish-envelope .env {
+  position: absolute;
+  inset: 22px 0 0;
+  border-radius: 10px;
+  background: var(--primary);
+  box-shadow: var(--glass-shadow);
+  z-index: 2;
+}
+.flourish-envelope .env::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(160deg, transparent 49%, rgb(255 255 255 / 0.18) 50%, transparent 51%), linear-gradient(200deg, transparent 49%, rgb(255 255 255 / 0.18) 50%, transparent 51%);
+}
+.flourish-envelope .mini-card,
+.flourish-handover .mini-card {
+  position: absolute;
+  width: 70px;
+  height: 44px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #f59e0b));
+  box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.4);
+}
+.flourish-envelope .mini-card {
+  left: 25px;
+  top: -60px;
+  z-index: 1;
+  opacity: 0;
+  animation: card-into-envelope 0.55s ease-in forwards;
+}
+.flourish-envelope .mini-card:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.flourish-envelope .mini-card:nth-child(3) {
+  animation-delay: 0.24s;
+}
+@keyframes card-into-envelope {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(80px);
+  }
+}
+.flourish-layer.is-leaving {
+  animation: flourish-out 0.3s ease-in forwards;
+}
+@keyframes flourish-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Card Stock: the cards slide over to whoever now holds them. */
+.flourish-handover {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: 16px;
+  background: var(--popover);
+  box-shadow: var(--glass-shadow);
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+.flourish-handover .stack {
+  position: relative;
+  width: 150px;
+  height: 44px;
+}
+.flourish-handover .mini-card {
+  left: 0;
+  animation: card-handover 0.6s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+}
+.flourish-handover .mini-card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.flourish-handover .mini-card:nth-child(3) {
+  animation-delay: 0.16s;
+}
+@keyframes card-handover {
+  to {
+    transform: translateX(80px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer,
+  .row-flash > td,
+  .check-draw circle,
+  .check-draw path,
+  .flourish-envelope .mini-card,
+  .flourish-handover .mini-card {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .flourish-envelope .mini-card {
+    opacity: 1;
+    transform: translateY(80px);
+  }
+  .card-tilt:hover {
+    transform: none;
+  }
+}

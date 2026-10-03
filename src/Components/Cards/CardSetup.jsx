@@ -6,6 +6,7 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -247,9 +248,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
 
   if (!record) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

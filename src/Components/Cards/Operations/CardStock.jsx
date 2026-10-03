@@ -13,6 +13,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { cardStockApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { cardsHandedTo } from "@/Utils/Lib/flourish";
 import { Problems } from "../../TermDeposits/depositShared";
 import { CardNumber, CardPill, HolderPicker, Labelled, PagedTable, filterBody, usePagedFilters } from "./cardOpsShared";
 
@@ -171,6 +172,7 @@ function AssignDialog({ ids, users, onClose, onDone }) {
     try {
       const response = await cardStockApi.assign({ inventory_ids: ids, ...(to === VAULT ? { assignee_type: VAULT } : { assignee_type: "USER", assignee_id: Number(to) }) });
       notifications.success(response?.message ?? t("handedOver"));
+      cardsHandedTo(to === VAULT ? t("vault") : users.find((u) => String(u.id) === to)?.user_name);
       onDone();
     } catch (e) {
       setError(e.message);

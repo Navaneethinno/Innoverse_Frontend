@@ -316,11 +316,11 @@ export function StatusBadge({ status, variant = "solid" }) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 text-xs font-medium",
+          "inline-flex items-center gap-1.5 text-xs font-medium transition-colors duration-300",
           TEXT_COLOR_BY_PILL[cfg.pill] ?? "text-muted-foreground",
         )}
       >
-        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
+        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-300", cfg.dot)} />
         {label}
       </span>
     );
@@ -328,11 +328,11 @@ export function StatusBadge({ status, variant = "solid" }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border",
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors duration-300",
         cfg.pill,
       )}
     >
-      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", cfg.dot)} />
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 transition-colors duration-300", cfg.dot)} />
       {label}
     </span>
   );

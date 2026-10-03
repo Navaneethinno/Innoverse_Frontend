@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Pencil, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -54,9 +54,7 @@ export function DepositProductView({ id, onBack, onEdit }) {
 
   if (!product) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

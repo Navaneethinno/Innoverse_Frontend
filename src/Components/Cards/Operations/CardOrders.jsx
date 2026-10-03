@@ -6,6 +6,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -14,6 +15,7 @@ import { cardOrdersApi, cardRequestsApi, cardsApi } from "@/Services/Cards/cards
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { cardsIntoEnvelope } from "@/Utils/Lib/flourish";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from "../../TermDeposits/depositShared";
 import { MiniTable } from "../../Loans/loanShared";
@@ -298,9 +300,7 @@ function OrderView({ id, onBack }) {
 
   if (!order) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -401,7 +401,10 @@ function OrderView({ id, onBack }) {
               <Button variant="ghost" onClick={() => setDialog(null)}>
                 {t("cancel")}
               </Button>
-              <Button icon={FileDown} loading={busy} onClick={() => act(() => cardOrdersApi.emboss({ id }), (response) => saveEmbossFile(rowsOf(response)[0]))}>
+              <Button icon={FileDown} loading={busy} onClick={() => act(() => cardOrdersApi.emboss({ id }), (response) => {
+                    saveEmbossFile(rowsOf(response)[0]);
+                    cardsIntoEnvelope();
+                  })}>
                 {t("makeFile")}
               </Button>
             </>

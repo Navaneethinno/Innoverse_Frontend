@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Calculator, Save, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanProductsApi } from "@/Services/Loans/loans.api";
@@ -161,9 +161,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 
   if (!config || !options) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

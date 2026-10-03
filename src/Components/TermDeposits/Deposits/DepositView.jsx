@@ -4,6 +4,7 @@ import { ArrowLeft, Ban, CheckCircle2, Compass, Eye, Hourglass, Link2, ScrollTex
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { AccountStatement, TxnDetail, TxnDialog } from "@/Components/Epurse/Accounts/AccountStatement";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
@@ -77,9 +78,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
 
   if (!deposit) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

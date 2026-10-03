@@ -107,7 +107,25 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
   );
 }
 
+// Rows whose content changed since the last rows (a live refresh): those
+// glow for a moment. A new page or filter (mostly new keys) is not a change.
+function useChangedKeys(rows, rowKey) {
+  const sig = new Map(rows.map((row, i) => [String(rowKey(row, i)), JSON.stringify(row)]));
+  const text = JSON.stringify([...sig]);
+  const [seen, setSeen] = useState({ text: null, sig: null, changed: new Set() });
+  if (text !== seen.text) {
+    const changed = new Set();
+    if (seen.sig?.size) {
+      const kept = [...sig.keys()].filter((k) => seen.sig.has(k)).length;
+      if (kept * 2 >= seen.sig.size) for (const [k, v] of sig) if (seen.sig.get(k) !== v) changed.add(k);
+    }
+    setSeen({ text, sig, changed });
+  }
+  return seen.changed;
+}
+
 function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey, t, selectable = false, selectedKeys = new Set(), onToggleRow, compact = false }) {
+  const changed = useChangedKeys(rows, rowKey);
   if (isLoading) {
     return (
       <tbody>
@@ -142,7 +160,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
       {rows.map((row, i) => (
         <tr
           key={rowKey(row, i)}
-          className={cn("border-b transition-colors hover:bg-[var(--primary-light)]", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}
+          className={cn("border-b transition-colors hover:bg-[var(--primary-light)]", changed.has(String(rowKey(row, i))) && "row-flash", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}
           style={{ borderColor: "color-mix(in srgb, var(--border) 40%, transparent)" }}
         >
           {selectable && <td className="w-10 px-3 py-2.5"><input type="checkbox" aria-label={t("selectRow")} checked={selectedKeys.has(String(rowKey(row, i)))} onChange={() => onToggleRow(row, i)} className="h-3.5 w-3.5 rounded border-slate-300 accent-[var(--primary)]" /></td>}

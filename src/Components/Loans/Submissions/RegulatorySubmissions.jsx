@@ -5,7 +5,7 @@ import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
@@ -226,9 +226,7 @@ function SubmissionView({ id, onBack }) {
 
   if (!report) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

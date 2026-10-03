@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -16,7 +16,7 @@ import { NewRequest } from "@/Components/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../TermDeposits/depositShared";
-import { CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
 
 const FORM_FACTORS = ["VIRTUAL", "PHYSICAL"];
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
@@ -272,9 +272,7 @@ function CardView({ id, options, onBack, onOpen }) {
 
   if (!card) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -304,7 +302,8 @@ function CardView({ id, options, onBack, onOpen }) {
       )}
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
+          <CardFace card={card} className="sm:w-64" />
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black text-foreground">{card.pan_masked}</h1>
               <CardPill prefix="ops" code={card.ops_status} />

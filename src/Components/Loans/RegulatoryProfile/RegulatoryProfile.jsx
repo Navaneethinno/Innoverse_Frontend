@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Scale, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
@@ -128,9 +128,7 @@ export function RegulatoryProfile() {
       )}
 
       {chooser && !institution ? null : !data ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner size={16} /> {t("loading")}
-        </div>
+        <PageSkeleton />
       ) : form ? (
         <div className="grid gap-4">
           <Section title={t("licenceAndPolicy")}>

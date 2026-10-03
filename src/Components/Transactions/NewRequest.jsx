@@ -127,7 +127,11 @@ export function NewRequest({ preset, onClose, onDone }) {
   if (result) {
     return (
       <Modal open onClose={() => onDone(result)} size="md" title={t("posted")} footer={<Button onClick={() => onDone(result)}>{t("done")}</Button>}>
-        <p className="mb-3 text-sm text-emerald-700">{t("postedAtOnce", { rrn: result.result.rrn })}</p>
+        <svg viewBox="0 0 56 56" className="check-draw mx-auto mb-2 h-14 w-14 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="28" cy="28" r="25" />
+          <path d="M17 29l7 7 15-16" />
+        </svg>
+        <p className="mb-3 text-center text-sm text-emerald-700">{t("postedAtOnce", { rrn: result.result.rrn })}</p>
         <PlanCard plan={result.result} />
       </Modal>
     );

@@ -23,6 +23,8 @@ export const common = {
   submit: "Submit",
   edit: "Edit",
   loading: "Loading…",
+  stampApproved: "Approved",
+  stampRejected: "Rejected",
   noResultsFound: "No results found",
   yes: "Yes",
   no: "No",

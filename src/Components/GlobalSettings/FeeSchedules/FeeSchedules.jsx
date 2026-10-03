@@ -5,7 +5,7 @@ import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass, labelClass, ratePct } from "@/Components/TermDeposits/depositShared";
@@ -283,9 +283,7 @@ function ScheduleView({ id, onBack, onEdit }) {
 
   if (!s) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 
@@ -502,9 +500,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
 
   if (!config || !options) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
   const sel = (rows, blank) => ({ type: "select", blank, options: (rows ?? []).map((x) => ({ value: String(x.id), label: x.name })) });

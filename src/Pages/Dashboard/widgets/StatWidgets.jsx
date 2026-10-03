@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Briefcase, Building2, CheckCircle, Clock, FileText, UserCheck, UserPlus } from "lucide-react";
+import { AnimatedNumber } from "@/Components/Common/AnimatedNumber";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 import { useWidgetData } from "../layout/dashboardData";
@@ -16,9 +17,9 @@ function StatCard({ label, value, sub, gradient, icon: Icon, loading, warnings =
       </span>
       <div>
         {loading ? (
-          <span className="block h-9 w-20 animate-pulse rounded-lg bg-muted" />
+          <span className="skeleton-shimmer block h-9 w-20 rounded-lg" />
         ) : (
-          <p className="text-4xl font-black leading-none tracking-tight text-slate-800">{value == null ? "—" : Number(value).toLocaleString()}</p>
+          <p className="text-4xl font-black leading-none tracking-tight text-slate-800"><AnimatedNumber value={value} /></p>
         )}
         {sub && <p className="mt-1.5 text-[11px] font-medium text-muted-foreground">{sub}</p>}
         {warnings.length > 0 && (

@@ -4,7 +4,7 @@ import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileS
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
-import { Spinner } from "@/Components/Common/Spinner";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
@@ -264,9 +264,7 @@ function ApplicationView({ id, onBack }) {
 
   if (!app) {
     return (
-      <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
-        <Spinner size={16} /> {t("loading")}
-      </div>
+      <PageSkeleton />
     );
   }
 

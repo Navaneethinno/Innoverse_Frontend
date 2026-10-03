@@ -46,7 +46,39 @@ const TONE = {
 export function CardPill({ prefix, code }) {
   const { t } = useTranslation("cards");
   if (!code) return <span className="text-xs text-muted-foreground">—</span>;
-  return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold", TONE[code] ?? "bg-muted text-muted-foreground")}>{cardWord(t, prefix, code)}</span>;
+  return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold transition-colors duration-300", TONE[code] ?? "bg-muted text-muted-foreground")}>{cardWord(t, prefix, code)}</span>;
+}
+
+// A card drawn as a card: product, masked number, name, expiry, network.
+// A card that cannot be used is greyed.
+const STOPPED = ["BLOCKED", "LOST", "STOLEN", "HOTLISTED", "EXPIRED", "CLOSED"];
+export function CardFace({ card, className }) {
+  const { t } = useTranslation("cards");
+  return (
+    <div
+      className={cn(
+        "card-tilt relative flex aspect-[1.586] w-full max-w-[300px] flex-col justify-between overflow-hidden rounded-2xl p-4 text-white shadow-lg",
+        STOPPED.includes(card.ops_status) && "opacity-60 grayscale",
+        className,
+      )}
+      style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #1e1b4b))" }}
+    >
+      <span className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/10" aria-hidden="true" />
+      <span className="flex items-start justify-between gap-2">
+        <span className="min-w-0 truncate text-sm font-bold">{card.product_code}</span>
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-white/75">{cardWord(t, "opt", card.form_factor)}</span>
+      </span>
+      {card.form_factor === "PHYSICAL" && <span className="h-6 w-9 rounded-md bg-gradient-to-br from-amber-200 to-amber-400 opacity-90" aria-hidden="true" />}
+      <span>
+        <span className="block font-mono text-base font-semibold tracking-[0.12em] [overflow-wrap:anywhere]">{card.pan_masked}</span>
+        <span className="mt-1 flex items-end justify-between gap-2 text-[11px]">
+          <span className="min-w-0 truncate uppercase tracking-wide">{card.name_on_card || "—"}</span>
+          <span className="shrink-0 font-mono">{card.expiry}</span>
+          <span className="shrink-0 font-black italic tracking-tight">{card.network_code}</span>
+        </span>
+      </span>
+    </div>
+  );
 }
 
 // The masked card number and expiry, in the card font.

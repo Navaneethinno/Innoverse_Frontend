@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreditCard } from "lucide-react";
+import { AnimatedNumber } from "@/Components/Common/AnimatedNumber";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
 import { money } from "@/Components/Epurse/Accounts/accountShared";
@@ -92,7 +93,7 @@ export function CardSummary() {
             {Object.keys(SECTIONS).map((key) => (
               <div key={key} className="min-w-0 rounded-2xl border border-border bg-card p-4">
                 <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t(`sum_${key}`)}</p>
-                <p className="mt-1 text-2xl font-black tabular-nums">{total(data[key] ?? [])}</p>
+                <p className="mt-1 text-2xl font-black tabular-nums"><AnimatedNumber value={total(data[key] ?? [])} /></p>
               </div>
             ))}
           </div>
