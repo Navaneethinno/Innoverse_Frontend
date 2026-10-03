@@ -67,15 +67,23 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   useLayoutEffect(() => {
     if (!isOpen) return undefined;
     const PANEL_MAX_HEIGHT = 224; // matches max-h-56 below
+    const PANEL_MAX_WIDTH = 420;
     const GAP = 6;
+    const EDGE = 8;
     function updatePosition() {
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       const spaceBelow = window.innerHeight - rect.bottom;
       const openUpward = spaceBelow < PANEL_MAX_HEIGHT && rect.top > spaceBelow;
+      // At least as wide as the trigger, wider for long options, never
+      // past the viewport; near the right edge it lines up on the right.
+      const maxWidth = Math.min(PANEL_MAX_WIDTH, window.innerWidth - EDGE * 2);
+      const alignRight = rect.left + maxWidth > window.innerWidth - EDGE;
       setPlacement({
-        left: rect.left,
-        width: rect.width,
+        left: alignRight ? undefined : rect.left,
+        right: alignRight ? Math.max(EDGE, window.innerWidth - rect.right) : undefined,
+        minWidth: Math.min(rect.width, maxWidth),
+        maxWidth,
         top: openUpward ? undefined : rect.bottom + GAP,
         bottom: openUpward ? window.innerHeight - rect.top + GAP : undefined,
         maxHeight: Math.min(PANEL_MAX_HEIGHT, (openUpward ? rect.top : spaceBelow) - GAP * 2),
@@ -144,12 +152,15 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
           <div
             ref={panelRef}
             className={cn(
-              "fixed z-50 overflow-y-auto rounded-xl border p-1.5",
+              "fixed z-50 overflow-y-auto overflow-x-hidden rounded-xl border p-1.5",
               panelClassName,
             )}
             style={{
               left: placement.left,
-              width: placement.width,
+              right: placement.right,
+              width: "max-content",
+              minWidth: placement.minWidth,
+              maxWidth: placement.maxWidth,
               top: placement.top,
               bottom: placement.bottom,
               maxHeight: placement.maxHeight,
@@ -186,13 +197,13 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                    "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary-light text-primary"
                       : "text-muted-foreground hover:bg-primary-light hover:text-primary",
                   )}
                 >
-                  {option.label}
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{option.label}</span>
                   {isActive && <Check size={14} className="shrink-0" />}
                 </button>
               );
