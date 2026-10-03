@@ -15,7 +15,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cardsHandedTo } from "@/Utils/Lib/flourish";
 import { Problems } from "../../TermDeposits/depositShared";
-import { CardNumber, CardPill, HolderPicker, Labelled, PagedTable, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, HolderPicker, Labelled, PagedTable, WithCard, filterBody, usePagedFilters } from "./cardOpsShared";
 
 const STATUSES = ["AVAILABLE", "ASSIGNED", "ISSUED"];
 const VAULT = "VAULT";
@@ -235,7 +235,7 @@ function IssueFromStock({ stock, onClose, onDone }) {
     <Modal
       open
       onClose={onClose}
-      size="md"
+      size="lg"
       title={t("issueToCustomer")}
       footer={
         <>
@@ -248,16 +248,13 @@ function IssueFromStock({ stock, onClose, onDone }) {
         </>
       }
     >
-      <div className="grid gap-3">
-        <p className="text-sm">
-          <CardNumber card={stock} /> · {stock.product_code}
-        </p>
+      <WithCard card={<CardFace className="mx-auto w-full max-w-[280px] sm:w-64" card={{ ...stock, form_factor: "PHYSICAL", ops_status: "ACTIVE", name_on_card: stock.name_on_card || holder?.name?.toUpperCase() || t("binPreviewName") }} />}>
         <p className="text-sm text-muted-foreground">{t("issueStockHint")}</p>
         <Labelled label={t("holder")}>
           <HolderPicker value={holder} onChange={setHolder} />
         </Labelled>
         <Problems message={error} />
-      </div>
+      </WithCard>
     </Modal>
   );
 }

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, CreditCard, Hash, Layers, Plus, X } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -402,24 +403,51 @@ export const productKind = {
 const DELIMITER_KEYS = { ",": "delim_comma", ";": "delim_semicolon", "|": "delim_pipe", "\t": "delim_tab" };
 
 // The emboss file's columns, in order: move, remove, add from the rest.
+// A move slides the rows to their new places (FLIP) and lights up the one
+// that moved; an added column fades in.
 function EmbossColumns({ value, all, onChange }) {
   const { t } = useTranslation("cards");
+  const rows = useRef(new Map());
+  const before = useRef(null);
+  const [moved, setMoved] = useState(null);
+  const remember = () => {
+    before.current = new Map([...rows.current].map(([col, el]) => [col, el.getBoundingClientRect().top]));
+  };
   const move = (i, d) => {
+    remember();
     const next = [...value];
     [next[i], next[i + d]] = [next[i + d], next[i]];
+    setMoved(value[i]);
     onChange(next);
   };
+  useLayoutEffect(() => {
+    const was = before.current;
+    before.current = null;
+    if (!was || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    for (const [col, el] of rows.current) {
+      const top = was.get(col);
+      if (top == null) el.animate([{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "none" }], { duration: 220, easing: "ease-out" });
+      else if (top !== el.getBoundingClientRect().top) el.animate([{ transform: `translateY(${top - el.getBoundingClientRect().top}px)` }, { transform: "none" }], { duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" });
+    }
+  }, [value]);
   const rest = (all ?? []).filter((c) => !value.includes(c));
   return (
     <div className="grid gap-2">
       <ol className="grid gap-1.5">
         {value.map((col, i) => (
-          <li key={col} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold">
+          <li
+            key={moved === col ? `${col}:moved:${i}` : col}
+            ref={(el) => (el ? rows.current.set(col, el) : rows.current.delete(col))}
+            className={cn("relative flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold", moved === col && "field-flash")}
+          >
             <span className="w-5 text-muted-foreground">{i + 1}.</span>
             <span className="min-w-0 flex-1 font-mono">{col}</span>
             <ActionIconButton label={t("moveUp")} icon={ArrowUp} disabled={i === 0} onClick={() => move(i, -1)} />
             <ActionIconButton label={t("moveDown")} icon={ArrowDown} disabled={i === value.length - 1} onClick={() => move(i, 1)} />
-            <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => onChange(value.filter((c) => c !== col))} />
+            <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => {
+                remember();
+                onChange(value.filter((c) => c !== col));
+              }} />
           </li>
         ))}
         {!value.length && <li className="text-xs text-muted-foreground">{t("noColumns")}</li>}
@@ -428,7 +456,10 @@ function EmbossColumns({ value, all, onChange }) {
         <div className="flex flex-wrap items-center gap-1.5">
           <Plus size={13} className="text-muted-foreground" />
           {rest.map((col) => (
-            <button key={col} type="button" onClick={() => onChange([...value, col])} className="rounded-full border border-dashed border-border px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+            <button key={col} type="button" onClick={() => {
+                remember();
+                onChange([...value, col]);
+              }} className="rounded-full border border-dashed border-border px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary">
               {col}
             </button>
           ))}

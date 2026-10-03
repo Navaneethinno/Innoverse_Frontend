@@ -81,6 +81,31 @@ export function CardFace({ card, className }) {
   );
 }
 
+// The card a dialog is about to issue or request: the product's BIN (when
+// the product carries it) then dots, and the name it will carry.
+export function ProductCardPreview({ product, form, name, holder }) {
+  const { t } = useTranslation("cards");
+  const bin = String(product?.bin_code ?? "");
+  const length = Math.min(19, Math.max(13, Number(product?.pan_length) || 16));
+  const pan = bin.padEnd(length, "•").slice(0, length).replace(/(.{4})(?=.)/g, "$1 ");
+  return (
+    <CardFace
+      className="mx-auto w-full max-w-[280px] sm:w-64"
+      card={{ pan_masked: pan, product_code: product?.product_code ?? t("binPreview"), form_factor: form, network_code: product?.network_code, name_on_card: name?.trim() || holder?.name?.toUpperCase() || t("binPreviewName"), expiry: "MM/YY", ops_status: "ACTIVE" }}
+    />
+  );
+}
+
+// A dialog's fields with the card beside them (below on a phone).
+export function WithCard({ card, children }) {
+  return (
+    <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-start">
+      <div className="grid min-w-0 flex-1 gap-3">{children}</div>
+      <div className="shrink-0 sm:sticky sm:top-0">{card}</div>
+    </div>
+  );
+}
+
 // The masked card number and expiry, in the card font.
 export function CardNumber({ card, className }) {
   return (

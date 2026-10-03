@@ -13,7 +13,7 @@ import { cardRequestsApi, cardsApi, idempotencyKey } from "@/Services/Cards/card
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../../TermDeposits/depositShared";
-import { CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, ProductCardPreview, WithCard, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
 
 const STATUSES = ["SUBMITTED", "IN_PRODUCTION", "FULFILLED", "REJECTED", "CANCELLED"];
 const TYPES = ["NEW", "VIRTUAL_TO_PHYSICAL", "REISSUE", "REPLACE_DAMAGED", "RENEW"];
@@ -254,7 +254,7 @@ function NewCardRequest({ options, onClose, onDone }) {
     <Modal
       open
       onClose={onClose}
-      size="md"
+      size="lg"
       title={t("newRequest")}
       footer={
         <>
@@ -267,7 +267,7 @@ function NewCardRequest({ options, onClose, onDone }) {
         </>
       }
     >
-      <div className="grid gap-3">
+      <WithCard card={<ProductCardPreview product={product} form="PHYSICAL" name={name} holder={holder} />}>
         <p className="text-sm text-muted-foreground">{t("newRequestHint")}</p>
         <Labelled label={t("product")} hint={!products.length && t("noPersonalisedProduct")}>
           <FilterSelect value={productId} onChange={setProductId} options={products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name} · ${p.currency_code}` }))} />
@@ -280,7 +280,7 @@ function NewCardRequest({ options, onClose, onDone }) {
         </Labelled>
         <DeliveryFields modes={options.delivery_modes} value={delivery} onChange={setDelivery} />
         <Problems message={error} />
-      </div>
+      </WithCard>
     </Modal>
   );
 }

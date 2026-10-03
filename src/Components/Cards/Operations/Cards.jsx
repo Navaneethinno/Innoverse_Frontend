@@ -16,7 +16,7 @@ import { NewRequest } from "@/Components/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../TermDeposits/depositShared";
-import { CardFace, CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
 
 const FORM_FACTORS = ["VIRTUAL", "PHYSICAL"];
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
@@ -189,7 +189,7 @@ function IssueCardDialog({ products, onClose, onIssued }) {
     <Modal
       open
       onClose={onClose}
-      size="md"
+      size="lg"
       title={t("issueVirtual")}
       footer={
         <>
@@ -202,7 +202,7 @@ function IssueCardDialog({ products, onClose, onIssued }) {
         </>
       }
     >
-      <div className="grid gap-3">
+      <WithCard card={<ProductCardPreview product={product} form="VIRTUAL" name={name} holder={holder} />}>
         <p className="text-sm text-muted-foreground">{t("issueHint")}</p>
         <Labelled label={t("product")}>
           <FilterSelect value={productId} onChange={setProductId} options={products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name} · ${p.currency_code}` }))} />
@@ -217,7 +217,7 @@ function IssueCardDialog({ products, onClose, onIssued }) {
           <input className={inputClass} value={narration} onChange={(e) => setNarration(e.target.value)} />
         </Labelled>
         <Problems message={error} />
-      </div>
+      </WithCard>
     </Modal>
   );
 }
