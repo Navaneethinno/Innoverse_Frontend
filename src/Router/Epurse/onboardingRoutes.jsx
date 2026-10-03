@@ -93,14 +93,16 @@ onboardingRoutes.push(
 
 // CARDS (Web admin: cards): setup — Card BINs (195), Card Products (196),
 // Issuance Groups (197); operations — Cards (198), Card Requests (199), Card
-// Orders (200), Card Stock (201).
+// Orders (200), Card Stock (201). "cards" has no "cards/:id" form: the
+// module is CARDS too, and that route would swallow every /cards/<menu>.
 const cardPage = (name) => lazy(() => import("@/Components/Cards/CardPages.jsx").then((m) => ({ default: m[name] })));
+const CardsPage = lazy(() => import("@/Components/Cards/Operations/Cards.jsx").then((m) => ({ default: m.Cards })));
 onboardingRoutes.push(
+  { path: "cards", element: pageElement(CardsPage) },
   ...Object.entries({
     cardbins: cardPage("CardBins"),
     cardproducts: cardPage("CardProducts"),
     issuancegroups: cardPage("IssuanceGroups"),
-    cards: lazy(() => import("@/Components/Cards/Operations/Cards.jsx").then((m) => ({ default: m.Cards }))),
     cardrequests: lazy(() => import("@/Components/Cards/Operations/CardRequests.jsx").then((m) => ({ default: m.CardRequests }))),
     cardorders: lazy(() => import("@/Components/Cards/Operations/CardOrders.jsx").then((m) => ({ default: m.CardOrders }))),
     cardstock: lazy(() => import("@/Components/Cards/Operations/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
