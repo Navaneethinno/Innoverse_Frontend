@@ -58,7 +58,7 @@ export function CustomerAccounts({ accounts }) {
   const { t } = useTranslation("accounts");
   if (!Array.isArray(accounts) || !accounts.length) return null;
   return (
-    <div className="mb-4 rounded-2xl border border-border p-4">
+    <div className="mb-4 rounded-2xl border border-border bg-card p-4">
       <p className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
         <Landmark size={15} className="text-primary" /> {t("accountsTitle", { count: accounts.length })}
       </p>

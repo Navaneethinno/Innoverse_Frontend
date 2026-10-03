@@ -54,7 +54,7 @@ export function LimitUsagePanel({ entity, compact = false }) {
         </p>
       )}
       {(data.currencies ?? []).map((c) => (
-        <div key={c.currency_code} className="rounded-xl border border-border p-3">
+        <div key={c.currency_code} className="rounded-xl border border-border bg-card p-3">
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-bold">
               {c.currency_code} <span className="font-mono text-xs font-medium text-muted-foreground">{c.acct_num}</span>
@@ -132,7 +132,7 @@ export function OwnerLimitUsage({ owner }) {
   const can = useMenuPermission("Limit");
   if (!owner || !can("View")) return null;
   return (
-    <div className="mb-4 rounded-2xl border border-border p-4">
+    <div className="mb-4 rounded-2xl border border-border bg-card p-4">
       <p className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
         <Gauge size={15} className="text-primary" /> {t("limitsAndUsage")}
       </p>

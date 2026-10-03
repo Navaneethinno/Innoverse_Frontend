@@ -261,14 +261,14 @@ function AccountDetail({ account, onClose, onStatement }) {
       <AccountBalances account={a} />
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         {rows.map(([key, value]) => (
-          <div key={key} className="rounded-xl border border-border p-3">
+          <div key={key} className="rounded-xl border border-border bg-card p-3">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
             <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
           </div>
         ))}
       </dl>
       {a.owner && (
-        <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="mt-4 rounded-xl border border-border bg-card p-3">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("owner")}</p>
           <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
             <div>

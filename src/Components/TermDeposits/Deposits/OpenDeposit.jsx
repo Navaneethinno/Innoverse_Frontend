@@ -265,7 +265,7 @@ export function OwnerFinder({ onPick }) {
               key={`${a.owner.kind}-${a.owner.id}`}
               type="button"
               onClick={() => onPick(ownerEntity(a.owner))}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2 text-left transition-all hover:-translate-y-px hover:border-primary hover:shadow-sm"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-all hover:-translate-y-px hover:border-primary hover:shadow-sm"
             >
               <span>
                 <span className="block text-sm font-bold text-foreground">{a.owner.name}</span>

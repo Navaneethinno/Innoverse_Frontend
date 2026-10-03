@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowLeftRight, Ban, CheckCircle2, History, Plus, Receipt, RefreshCw, RotateCcw, Search, Undo2, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Eye, Ban, CheckCircle2, History, Plus, Receipt, RefreshCw, RotateCcw, Search, Undo2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -311,7 +311,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
           ]}
         />
         {x.source?.module === "TXN_REQUEST" && (
-          <Button variant="outline" size="sm" className="w-fit" onClick={() => onOpenRequest(x.source.id)}>
+          <Button variant="outline" size="sm" icon={Eye} className="w-fit" onClick={() => onOpenRequest(x.source.id)}>
             {t("openRequest", { ref: x.source.reference })}
           </Button>
         )}
@@ -665,7 +665,7 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
             ]}
           />
           {req.rrn && (
-            <Button variant="outline" size="sm" className="w-fit" onClick={() => onOpenTxn?.({ rrn: req.rrn })}>
+            <Button variant="outline" size="sm" icon={Eye} className="w-fit" onClick={() => onOpenTxn?.({ rrn: req.rrn })}>
               {t("openTxn", { rrn: req.rrn })}
             </Button>
           )}

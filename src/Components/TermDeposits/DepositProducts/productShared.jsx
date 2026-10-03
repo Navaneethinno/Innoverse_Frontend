@@ -49,7 +49,7 @@ export function ConfigSummary({ config, other, currency, compact = false }) {
         {policyRows(t, config, currency).map(([key, value]) => {
           const changed = otherRows && otherRows[key] !== value;
           return (
-            <div key={key} className={cn("rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border")}>
+            <div key={key} className={cn("rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border bg-card")}>
               <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
               <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
               {changed && <dd className="text-[10px] text-amber-900 line-through">{otherRows[key]}</dd>}
@@ -74,7 +74,7 @@ export function TenorTable({ tenors, other, currency }) {
   return (
     <div className="grid gap-3">
       {tenors.map((tenor, i) => (
-        <div key={tenor.id ?? `n${i}`} className={cn("rounded-xl border p-3", otherTenors && !otherTenors.has(tenorKey(tenor)) ? "border-amber-300 bg-amber-50" : "border-border")}>
+        <div key={tenor.id ?? `n${i}`} className={cn("rounded-xl border p-3", otherTenors && !otherTenors.has(tenorKey(tenor)) ? "border-amber-300 bg-amber-50" : "border-border bg-card")}>
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-bold text-foreground">
               {tenor.label} <span className="text-xs font-medium text-muted-foreground">· {t("daysN", { count: Number(tenor.tenor_days) })}</span>

@@ -90,7 +90,7 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
   return (
     <div className="grid gap-2">
       {rows.map((row, i) => (
-        <div key={row.id ?? `n${i}`} className="rounded-xl border border-border p-3">
+        <div key={row.id ?? `n${i}`} className="rounded-xl border border-border bg-card p-3">
           <div className="flex items-start gap-2">
             <div className={cn("grid flex-1 gap-2 sm:grid-cols-2", columns)}>
               {fields.map((f) => (

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownLeft, ArrowUpRight, Search } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Eye, Search } from "lucide-react";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -80,11 +81,7 @@ export function AccountStatement({ account, onClose }) {
       key: "open",
       label: t("common:actions"),
       sortable: false,
-      render: (l) => (
-        <Button variant="ghost" size="sm" onClick={() => setTxn(l.txn_id)}>
-          {t("viewTxn")}
-        </Button>
-      ),
+      render: (l) => <ActionIconButton label={t("viewTxn")} icon={Eye} onClick={() => setTxn(l.txn_id)} />,
     },
   ];
 
@@ -192,7 +189,7 @@ export function TxnDetail({ txn }) {
       </div>
       <dl className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {facts.map(([key, value]) => (
-          <div key={key} className="rounded-xl border border-border px-3 py-2">
+          <div key={key} className="rounded-xl border border-border bg-card px-3 py-2">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
             <dd className="mt-0.5 text-xs font-semibold text-foreground">{value}</dd>
           </div>

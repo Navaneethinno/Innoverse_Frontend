@@ -61,7 +61,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
             {rows.map(([key, value]) => {
               const changed = before && String(before[key]) !== String(value);
               return (
-                <div key={key} className={cn("rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border")}>
+                <div key={key} className={cn("rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border bg-card")}>
                   <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
                   <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
                   {changed && <dd className="text-[10px] text-amber-900 line-through">{before[key]}</dd>}
@@ -76,7 +76,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
         <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("termsAndRates")}</p>
         <div className="grid gap-2">
           {(config.terms ?? []).map((term, i) => (
-            <div key={term.id ?? i} className="rounded-xl border border-border p-3">
+            <div key={term.id ?? i} className="rounded-xl border border-border bg-card p-3">
               <p className="mb-2 text-sm font-bold">
                 {term.term_code} · {term.term_value} {loanLabel(t, term.term_unit)}
                 <span className="ml-2 text-xs font-medium text-muted-foreground">

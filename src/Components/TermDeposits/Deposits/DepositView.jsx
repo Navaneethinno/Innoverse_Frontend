@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, Compass, Hourglass, Link2, ScrollText, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Compass, Eye, Hourglass, Link2, ScrollText, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -179,7 +179,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
               <Breakdown quote={deposit.settlement} currency={cur} />
               {deposit.settlement.narration?.trim() && <p className="mt-3 text-xs italic text-muted-foreground">“{deposit.settlement.narration.trim()}”</p>}
               {deposit.settlement.renewal_term_deposit_id && (
-                <Button variant="outline" size="sm" icon={Link2} className="mt-3" onClick={() => setId(deposit.settlement.renewal_term_deposit_id)}>
+                <Button variant="outline" size="sm" icon={Eye} className="mt-3" onClick={() => setId(deposit.settlement.renewal_term_deposit_id)}>
                   {t("openRenewal")}
                 </Button>
               )}
@@ -296,7 +296,7 @@ function EventDetail({ detail, currency }) {
           ))}
       </div>
       {(quote ?? settlement) && (
-        <div className="mt-2 max-w-md rounded-xl border border-border p-2">
+        <div className="mt-2 max-w-md rounded-xl border border-border bg-card p-2">
           <Breakdown quote={quote ?? settlement} currency={currency} small />
         </div>
       )}
@@ -443,7 +443,7 @@ function SettlementTxn({ txnId }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant="outline" size="sm" className="w-fit" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="sm" icon={Eye} className="w-fit" onClick={() => setOpen(true)}>
         {t("settlementTxn")}
       </Button>
       {open && <TxnDialog txnId={txnId} onClose={() => setOpen(false)} />}
@@ -469,7 +469,7 @@ function InstructDialog({ deposit, busy, onClose, onSave }) {
     >
       <div className="mb-3 grid gap-2">
         {choices.map((c) => (
-          <label key={c} className={cn("flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 transition-colors", instruction === c ? "border-primary bg-[var(--primary-light)]" : "border-border hover:border-primary/50")}>
+          <label key={c} className={cn("flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 transition-colors", instruction === c ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50")}>
             <input type="radio" name="instruction" className="mt-1 accent-[var(--primary)]" checked={instruction === c} onChange={() => setInstruction(c)} />
             <span>
               <span className="block text-sm font-bold text-foreground">{optionLabel(t, c)}</span>
@@ -522,7 +522,7 @@ function PrecloseDialog({ deposit, verb, busy, onClose, onSave }) {
           {onDate && <span className="mt-1 block text-[11px] font-normal text-amber-700">{t("estimateHint")}</span>}
         </label>
       )}
-      <div className="mb-3 rounded-xl border border-border p-3">
+      <div className="mb-3 rounded-xl border border-border bg-card p-3">
         {quote ? <Breakdown quote={quote} currency={deposit.currency_code} /> : error ? <p className="text-xs font-semibold text-red-700">{error}</p> : <Spinner size={16} />}
       </div>
     </NarrationDialog>

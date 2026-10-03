@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Pencil, Plus, Power, Receipt, RefreshCw, RotateCcw, Save, Search, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, Power, Receipt, RefreshCw, RotateCcw, Save, Search, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -528,8 +528,8 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             {t("currency")}
             <Field field={{ type: "select", blank: t("choose"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}${c.fee_schedule_id ? ` (${t("hasSchedule")})` : ""}` })) }} disabled={Boolean(schedule)} value={String(schedule?.currency_code ?? head.currency_code)} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />
             {!schedule && currency?.fee_schedule_id && (
-              <button type="button" onClick={() => onOpen(currency.fee_schedule_id)} className="mt-1 block text-[11px] font-bold text-primary hover:underline">
-                {t("openExisting", { name: currency.fee_schedule_name })}
+              <button type="button" onClick={() => onOpen(currency.fee_schedule_id)} className="mt-1 flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+                <Eye size={12} /> {t("openExisting", { name: currency.fee_schedule_name })}
               </button>
             )}
           </label>

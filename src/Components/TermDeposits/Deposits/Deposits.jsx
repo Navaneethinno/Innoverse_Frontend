@@ -235,7 +235,7 @@ export function OwnerDeposits({ owner }) {
   if (!owner || !allowed || items === null) return null;
   const entity = owner ? { entity_type: owner.kind, entity_id: owner.id } : null;
   return (
-    <div className="mb-4 rounded-2xl border border-border p-4">
+    <div className="mb-4 rounded-2xl border border-border bg-card p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 text-sm font-bold text-foreground">
           <PiggyBank size={15} className="text-primary" /> {t("ownerDeposits", { count: items.length })}

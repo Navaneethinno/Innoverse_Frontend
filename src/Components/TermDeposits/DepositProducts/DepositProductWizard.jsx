@@ -268,7 +268,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
           <p className="mb-3 text-xs text-muted-foreground">{t("tenorsHint", { days: minDays, frequency: optionLabel(t, config.interest_payout_frequency) })}</p>
           <div className="grid gap-2">
             {config.tenors.map((tenor, i) => (
-              <div key={tenor.id ?? `n${i}`} className="grid items-end gap-2 rounded-xl border border-border p-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+              <div key={tenor.id ?? `n${i}`} className="grid items-end gap-2 rounded-xl border border-border bg-card p-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
                 <label className={labelClass}>
                   {t("tenorLabel")}
                   <input className={cn(inputClass, "mt-1")} value={tenor.label} placeholder={t("tenorLabelPlaceholder")} onChange={(e) => setTenor(i, { label: e.target.value })} />

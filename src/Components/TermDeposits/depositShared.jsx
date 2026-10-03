@@ -32,7 +32,7 @@ export function Facts({ rows, className }) {
   return (
     <dl className={cn("grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4", className)}>
       {rows.filter(Boolean).map(([label, value, tone]) => (
-        <div key={label} className="min-w-0 rounded-xl border border-border px-3 py-2">
+        <div key={label} className="min-w-0 rounded-xl border border-border bg-card px-3 py-2">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</dt>
           <dd className={cn("amount-fit mt-0.5 text-sm font-semibold text-foreground", tone)}>{value ?? "—"}</dd>
         </div>
