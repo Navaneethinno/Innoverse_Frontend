@@ -4,10 +4,10 @@ import { Volume2, VolumeX } from "lucide-react";
 import { barcodeBars } from "@/Utils/Lib/barcode";
 import "./posReceipt.css";
 
+// A POS terminal printing the receipt as a thermal slip: the paper comes out
 // of the slot one line at a time, last line first, pushing the printed part
 // down (stopping at each line, like a real print head), then is torn off.
 // Taken from the customer portal's receipt.
-// head), then is torn off. Taken from the customer portal's receipt.
 //
 //   <PosReceipt slip={receiptSlip(...)} logo={url} ref={ref} />
 //   ref.current.replay()  - print it again on screen
