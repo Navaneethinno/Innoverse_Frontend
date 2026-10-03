@@ -186,6 +186,9 @@ export const limitGroupOps = {
   assign: (payload) => limitGroupApi.call("assign", payload),
   members: (payload) => limitGroupApi.call("members", payload),
   evaluate: (payload) => limitGroupApi.call("evaluate", payload),
+  // A party's limits with what is used and left: { reference_id } or
+  // { entity_type, entity_id }, currency_code?.
+  usage: (payload) => limitGroupApi.call("usage", payload),
 };
 
 // Platform lists the limit screens pick from (no menu permission needed).

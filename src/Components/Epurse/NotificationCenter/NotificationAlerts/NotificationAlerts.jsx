@@ -126,7 +126,10 @@ function AlertsList({ onShowMessages }) {
             <ViewItem label={t("notification:triggers")}>
               <ul className="space-y-0.5 font-normal">
                 {(row.triggers ?? []).map((tr) => (
-                  <li key={`${tr.menu_id}:${tr.action_id}`}>{describeTrigger(options, tr)}</li>
+                  <li key={tr.event ?? `${tr.menu_id}:${tr.action_id}`}>
+                    {describeTrigger(options, tr)}
+                    {tr.notify_party && <span className="ml-1 text-[11px] font-semibold text-primary">· {t("notification:notifiesParty")}</span>}
+                  </li>
                 ))}
               </ul>
             </ViewItem>

@@ -8,7 +8,6 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { money } from "@/Components/Epurse/Accounts/accountShared";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -210,40 +209,30 @@ export function Deposits() {
   );
 }
 
-// A customer's or merchant's deposits, in their detail: found from one of
-// their wallets (the account names the owner), with "Open deposit" for
+// A customer's or merchant's deposits, in their detail, with "Open deposit" for
 // staff who may open one. Shown only to users with the Deposits menu.
-export function OwnerDeposits({ accounts }) {
+export function OwnerDeposits({ owner }) {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
   const can = useMenuPermission("Deposits");
-  const [owner, setOwner] = useState(null);
   const [items, setItems] = useState(null);
   const [openId, setOpenId] = useState(null);
   const [opening, setOpening] = useState(false);
-  const walletId = accounts?.find((a) => a.acct_class !== "DEPOSIT")?.id;
   const allowed = can("View");
   const columns = depositColumns(t, can, setOpenId, true);
 
-  const loadDeposits = useCallback(async (found) => {
-    const row = rowsOf(await depositsApi.list({ entity_type: found.kind, entity_id: found.id, page: 1, page_size: 100 }))[0];
-    setItems(row?.items ?? []);
-  }, []);
-
-  // The wallet's account names its owner; then their deposits.
+  const loadDeposits = useCallback(async () => {
+    try {
+      const row = rowsOf(await depositsApi.list({ entity_type: owner.kind, entity_id: owner.id, page: 1, page_size: 100 }))[0];
+      setItems(row?.items ?? []);
+    } catch {
+      setItems([]);
+    }
+  }, [owner]);
   useEffect(() => {
-    if (!walletId || !allowed) return;
-    accountsApi
-      .get({ id: walletId })
-      .then(async (r) => {
-        const found = rowsOf(r)[0]?.owner;
-        if (!found?.kind) return;
-        setOwner(found);
-        await loadDeposits(found);
-      })
-      .catch(() => setItems([]));
-  }, [walletId, allowed, loadDeposits]);
+    if (owner && allowed) void loadDeposits();
+  }, [owner, allowed, loadDeposits]);
 
-  if (!walletId || !can("View") || items === null) return null;
+  if (!owner || !allowed || items === null) return null;
   const entity = owner ? { entity_type: owner.kind, entity_id: owner.id } : null;
   return (
     <div className="mb-4 rounded-2xl border border-border p-4">
@@ -269,7 +258,7 @@ export function OwnerDeposits({ accounts }) {
           onClose={() => setOpening(false)}
           onOpened={(deposit) => {
             setOpening(false);
-            void loadDeposits(owner).catch(() => {});
+            void loadDeposits();
             if (deposit?.id) setOpenId(deposit.id);
           }}
         />

@@ -14,7 +14,9 @@ import { FieldPreview } from "../FormBuilder/FieldPreview";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
 
 import { Button } from "@/Components/Common/Button";
-import { CustomerAccounts } from "@/Components/Epurse/Accounts/accountShared";
+import { CustomerAccounts, useAccountsOwner } from "@/Components/Epurse/Accounts/accountShared";
+import { OwnerLimitUsage } from "@/Components/GlobalSettings/Limit/LimitUsage";
+import { OwnerHistoryButton } from "@/Components/Transactions/OwnerHistory";
 import { OwnerDeposits } from "@/Components/TermDeposits/Deposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
 // The staff onboarding wizard on the institution's own form (Admin portal
@@ -141,6 +143,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const [products, setProducts] = useState([]);
   const [starting, setStarting] = useState(false);
   const [wizard, setWizard] = useState(null);
+  // The customer or merchant behind these accounts: their deposits, limits
+  // and transaction history are keyed by it.
+  const owner = useAccountsOwner(wizard?.accounts);
   const [loading, setLoading] = useState(Boolean(referenceId));
   const [activeKey, setActiveKey] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -442,7 +447,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         </div>
         {!corporate && <KycLevelPanel kyc={wizard.kyc} onJump={jumpToField} />}
         <CustomerAccounts accounts={wizard.accounts} />
-        <OwnerDeposits accounts={wizard.accounts} />
+        <OwnerHistoryButton owner={owner} />
+        <OwnerDeposits owner={owner} />
+        <OwnerLimitUsage owner={owner} />
         <CustomerRiskPanel kind={kind} instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
         <CustomerAmlBadge aml={wizard.aml} customerKind={corporate ? "CORPORATE" : "INDIVIDUAL"} referenceId={wizard.onboarding?.reference_id} />
         <HorizontalStepper

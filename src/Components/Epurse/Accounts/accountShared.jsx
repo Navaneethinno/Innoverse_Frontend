@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Landmark } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { accountsApi } from "@/Services/Epurse/accounts.api";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 
 // Account display shared by the Accounts screen and the customer/merchant
 // detail. Balances come rounded to the currency's decimals already.
@@ -81,4 +84,24 @@ export function CustomerAccounts({ accounts }) {
       </div>
     </div>
   );
+}
+
+// The customer or merchant who owns these accounts ({kind, id, name, ...}),
+// read from their first wallet: a customer's detail has their accounts but
+// not the profile id that deposits, limits and history are keyed by.
+export function useAccountsOwner(accounts) {
+  const walletId = accounts?.find((a) => a.acct_class !== "DEPOSIT")?.id;
+  const [owner, setOwner] = useState(null);
+  useEffect(() => {
+    if (!walletId) return undefined;
+    let cancelled = false;
+    accountsApi
+      .get({ id: walletId })
+      .then((r) => !cancelled && setOwner(rowsOf(r)[0]?.owner?.kind ? rowsOf(r)[0].owner : null))
+      .catch(() => !cancelled && setOwner(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [walletId]);
+  return owner;
 }

@@ -9,7 +9,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
-import { triggerKey, useAlertOptions } from "./useAlertOptions";
+import { EVENT_COMMON_PLACEHOLDERS, triggerKey, useAlertOptions } from "./useAlertOptions";
 import { GroupPicker } from "./GroupPicker";
 import { TriggerGrid } from "./TriggerGrid";
 
@@ -34,7 +34,9 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
     email_body: editing?.email_body ?? "",
     sms_body: editing?.sms_body ?? "",
     group_ids: editing?.group_ids ?? [],
-    triggers: new Set((editing?.triggers ?? []).map((tr) => triggerKey(tr.menu_id, tr.action_id))),
+    triggers: new Set((editing?.triggers ?? []).filter((tr) => !tr.event).map((tr) => triggerKey(tr.menu_id, tr.action_id))),
+    // Business events: event code -> notify_party.
+    events: new Map((editing?.triggers ?? []).filter((tr) => tr.event).map((tr) => [tr.event, Boolean(tr.notify_party)])),
   }));
   const [saving, setSaving] = useState(false);
   const [menuSearch, setMenuSearch] = useState("");
@@ -64,6 +66,34 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
     onChange: (e) => setForm({ ...form, [key]: e.target.value }),
   });
 
+  // With event triggers only the chosen events' placeholders (plus
+  // Institution, Date, Time) are allowed; menu triggers add the menu ones.
+  const placeholders = useMemo(() => {
+    if (!form.events.size) return options.placeholders;
+    const byName = new Map();
+    const add = (p) => !byName.has(p.name) && byName.set(p.name, p);
+    for (const ev of options.events) if (form.events.has(ev.event)) (ev.placeholders ?? []).forEach(add);
+    EVENT_COMMON_PLACEHOLDERS.forEach((name) => add(options.placeholders.find((p) => p.name === name) ?? { name, description: name }));
+    if (form.triggers.size) options.placeholders.forEach(add);
+    return [...byName.values()];
+  }, [form.events, form.triggers, options.events, options.placeholders]);
+  const notifiesParty = [...form.events.values()].some(Boolean);
+  const eventGroups = useMemo(() => {
+    const groups = new Map();
+    for (const ev of options.events) {
+      if (!groups.has(ev.module)) groups.set(ev.module, []);
+      groups.get(ev.module).push(ev);
+    }
+    return [...groups.entries()];
+  }, [options.events]);
+  const setEvent = (event, on, notifyParty = false) =>
+    setForm((f) => {
+      const events = new Map(f.events);
+      if (on) events.set(event, notifyParty);
+      else events.delete(event);
+      return { ...f, events };
+    });
+
   // Menus grouped under their parent, filtered by the search box.
   const menuGroups = useMemo(() => {
     const q = menuSearch.trim().toLowerCase();
@@ -91,10 +121,13 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
         email_body: form.send_email ? form.email_body : "",
         sms_body: form.send_sms ? form.sms_body : "",
         group_ids: form.group_ids,
-        triggers: [...form.triggers].map((key) => {
-          const [menu_id, action_id] = key.split(":").map(Number);
-          return { menu_id, action_id };
-        }),
+        triggers: [
+          ...[...form.triggers].map((key) => {
+            const [menu_id, action_id] = key.split(":").map(Number);
+            return { menu_id, action_id };
+          }),
+          ...[...form.events].map(([event, notify_party]) => ({ event, notify_party })),
+        ],
         ...(editing ? {} : { inst_profile_id: form.inst_profile_id, code: form.code }),
       };
       const response = await saveRecord(notificationAlertApi, { editing, body, draft });
@@ -151,11 +184,11 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
             <CheckboxPill checked={form.send_email} onChange={(v) => setForm({ ...form, send_email: v })} label={t("notification:email")} />
             <CheckboxPill checked={form.send_sms} onChange={(v) => setForm({ ...form, send_sms: v })} label={t("notification:sms")} />
           </div>
-          {(form.send_email || form.send_sms) && options.placeholders.length > 0 && (
+          {(form.send_email || form.send_sms) && placeholders.length > 0 && (
             <div className="mt-3">
               <p className="text-[11px] text-muted-foreground">{t("notification:placeholdersHint")}</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {options.placeholders.map((p) => (
+                {placeholders.map((p) => (
                   <UiTooltip key={p.name} label={p.description}>
                     <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => insertPlaceholder(p.name)} className="flex items-center gap-1 rounded-full border bg-card px-2.5 py-1 font-mono text-[11px] font-semibold text-primary hover:bg-primary-light">
                       <Braces size={11} /> {p.name}
@@ -200,7 +233,44 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
             <input type="checkbox" checked={form.notify_maker} onChange={(e) => setForm({ ...form, notify_maker: e.target.checked })} className="h-4 w-4 accent-[var(--primary)]" />
             {t("notification:notifyMaker")}
           </label>
+          {notifiesParty && <p className="mt-2 text-[11px] text-muted-foreground">{t("notification:partyIsRecipient")}</p>}
         </div>
+
+        {/* Business events */}
+        {options.events.length > 0 && (
+          <div className={section}>
+            <p className={sectionTitle}>
+              {t("notification:eventTriggers")} <span className="ml-1 text-xs font-semibold text-muted-foreground">{t("notification:eventCount", { count: form.events.size })}</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">{t("notification:eventTriggersHint")}</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {eventGroups.map(([module, events]) => (
+                <div key={module} className="rounded-xl border p-3">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t(`notification:eventModule_${module}`, { defaultValue: module })}</p>
+                  <div className="grid gap-1.5">
+                    {events.map((ev) => {
+                      const on = form.events.has(ev.event);
+                      return (
+                        <div key={ev.event} className="flex flex-wrap items-center justify-between gap-2">
+                          <label className="flex items-center gap-2 text-sm text-slate-700">
+                            <input type="checkbox" checked={on} onChange={(e) => setEvent(ev.event, e.target.checked)} className="h-4 w-4 accent-[var(--primary)]" />
+                            {ev.name} <span className="font-mono text-[10px] text-muted-foreground">{ev.event}</span>
+                          </label>
+                          {on && (
+                            <label className="flex items-center gap-1.5 text-[11px] font-semibold text-primary">
+                              <input type="checkbox" checked={form.events.get(ev.event)} onChange={(e) => setEvent(ev.event, true, e.target.checked)} className="h-3.5 w-3.5 accent-[var(--primary)]" />
+                              {t("notification:notifyParty")}
+                            </label>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* When it's sent */}
         <div className={section}>

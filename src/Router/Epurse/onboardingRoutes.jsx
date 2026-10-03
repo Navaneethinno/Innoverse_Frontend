@@ -91,6 +91,10 @@ onboardingRoutes.push(
   ]),
 );
 
+// EPURSE > Transactions (menu 189): the journal and staff requests.
+const Transactions = lazy(() => import("@/Components/Transactions/Transactions.jsx").then((m) => ({ default: m.Transactions })));
+onboardingRoutes.push({ path: "transactions", element: pageElement(Transactions) }, { path: "transactions/:id", element: pageElement(Transactions) });
+
 // Old corporate-only links (this app's own earlier best-guess slugs, since
 // the real menu names weren't confirmed yet at the time) now redirect into
 // the unified pages with ?type=corporate rather than staying separate pages

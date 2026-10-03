@@ -52,6 +52,9 @@ void i18n
       "cases",
       "deposits",
       "loans",
+      "txn",
+      "fees",
+      "txnReports",
     ],
     interpolation: { escapeValue: false },
     detection: {

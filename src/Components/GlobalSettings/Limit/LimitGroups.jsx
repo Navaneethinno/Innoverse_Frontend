@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Copy, FlaskConical, ListChecks, Plus, Users } from "lucide-react";
+import { Copy, FlaskConical, Gauge, ListChecks, Plus, Users } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -10,6 +10,7 @@ import { LifecycleList } from "@/Components/Epurse/Onboarding/OnboardingConfigur
 import { LimitRulesEditor } from "./LimitRulesEditor";
 import { LimitMembers } from "./LimitMembers";
 import { LimitEvaluate } from "./LimitEvaluate";
+import { LimitUsageDialog } from "./LimitUsage";
 
 import { Button } from "@/Components/Common/Button";
 // Global Settings > Limit: limit groups (maker-checker), their rules, who
@@ -27,6 +28,7 @@ export function LimitGroups() {
   const [editor, setEditor] = useState(null);
   const [members, setMembers] = useState(null);
   const [evaluate, setEvaluate] = useState(null);
+  const [usage, setUsage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey((k) => k + 1);
@@ -94,9 +96,14 @@ export function LimitGroups() {
         canDeactivateRow={(row) => !row.is_default}
         toolbar={
           can("View") && (
-            <button type="button" onClick={() => setEvaluate({ group: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
-              <FlaskConical size={14} /> {t("limits:testACustomer")}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setUsage(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
+                <Gauge size={14} /> {t("limits:limitsAndUsage")}
+              </button>
+              <button type="button" onClick={() => setEvaluate({ group: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
+                <FlaskConical size={14} /> {t("limits:testACustomer")}
+              </button>
+            </div>
           )
         }
         addButton={
@@ -181,6 +188,7 @@ export function LimitGroups() {
       )}
       {editor && <LimitRulesEditor group={editor.group} forceReadOnly={editor.readOnly} onClose={() => setEditor(null)} onSaved={reload} />}
       {members && <LimitMembers group={members} canMove={can("Edit")} onClose={() => setMembers(null)} />}
+      {usage && <LimitUsageDialog onClose={() => setUsage(false)} />}
       {evaluate && <LimitEvaluate group={evaluate.group} onClose={() => setEvaluate(null)} />}
     </>
   );

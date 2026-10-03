@@ -1,31 +1,35 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, Eye, Plus, RefreshCw, Scale, Search, XCircle } from "lucide-react";
-import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { Plus, RefreshCw, Scale, Search, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
-import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
+import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DrCr, TxnDialog } from "@/Components/Epurse/Accounts/AccountStatement";
-import { AccountClass, accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
+import { money } from "@/Components/Epurse/Accounts/accountShared";
+import { atIst } from "@/Components/Reports/Shared/reportShared";
+import { RequestDialog } from "@/Components/Transactions/Transactions";
+import { PlanCard, typeLabel } from "@/Components/Transactions/txnShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { balanceAdjustmentsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { Facts, NarrationDialog, Problems, amountInput, inputClass, labelClass } from "../depositShared";
+import { Problems, amountInput, inputClass, labelClass } from "../depositShared";
 
-const STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
+const STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "FAILED"];
 
-// EPURSE > Balance Adjustments (menu 182): staff credit or debit a
-// customer's or merchant's wallet (cash at a counter, a correction). The
-// money moves when a checker approves, or at once for Self users.
+// A type's direction: money into the wallet (CR) or out of it (DR).
+const opOf = (option) => (option?.to === "CASH" ? "DR" : "CR");
+
+// EPURSE > Balance Adjustments (menu 182): cash in / out at a counter and
+// credit / debit corrections, posted through the transaction engine (fees,
+// limits, history, receipts) when a checker approves, or at once for Self.
 export function BalanceAdjustments() {
-  const { t } = useTranslation(["deposits", "common"]);
+  const { t } = useTranslation(["deposits", "txn", "common"]);
   const can = usePagePermission();
   const [status, setStatus] = useState("");
   const [acctNum, setAcctNum] = useState("");
@@ -35,9 +39,8 @@ export function BalanceAdjustments() {
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [viewing, setViewing] = useState(null);
-  const [dialog, setDialog] = useState(null);
-  const [busy, setBusy] = useState(false);
+  const [openId, setOpenId] = useState(null);
+  const [txn, setTxn] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,30 +57,17 @@ export function BalanceAdjustments() {
     void load();
   }, [load]);
 
-  // auth / deauth / cancel: the reply is the adjustment.
-  const act = async (verb, adjustment, narration) => {
-    setBusy(true);
-    try {
-      const response = await balanceAdjustmentsApi[verb]({ id: adjustment.id, ...(narration ? { narration } : {}) });
-      if (response?.message) notifications.success(response.message);
-      setDialog(null);
-      setViewing((v) => (v ? (rowsOf(response)[0] ?? v) : v));
-      void load();
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const rowButtons = (a) => [
-    a.actions?.auth && can("Authorize") && { key: "auth", intent: "auth", icon: CheckCircle2 },
-    a.actions?.deauth && can("Authorize") && { key: "deauth", intent: "deauth", icon: XCircle },
-    a.actions?.cancel && can("Add") && { key: "cancel", intent: "delete", icon: Ban },
-  ].filter(Boolean);
-
   const columns = [
-    { key: "requested_at", label: t("requestedAt"), render: (a) => <span className="whitespace-nowrap text-xs">{accountDate(a.requested_at)}</span> },
+    {
+      key: "request_reference",
+      label: t("txn:request"),
+      render: (a) => (
+        <button type="button" onClick={() => setOpenId(a.id)} className="text-left">
+          <span className="block font-mono text-xs font-bold text-primary hover:underline">{a.request_reference ?? `#${a.id}`}</span>
+          <span className="block text-[10px] text-muted-foreground">{atIst(a.requested_at)}</span>
+        </button>
+      ),
+    },
     {
       key: "acct_num",
       label: t("wallet"),
@@ -89,24 +79,22 @@ export function BalanceAdjustments() {
         </div>
       ),
     },
-    { key: "operation_type", label: t("accounts:drCr"), render: (a) => <DrCr type={a.operation_type} /> },
-    { key: "amount", label: t("amount"), render: (a) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(a.amount, a.currency_code)}</span> },
-    { key: "reason", label: t("reason"), align: "left", render: (a) => <span className="line-clamp-2 text-xs">{a.reason}</span> },
-    { key: "status", label: t("status"), render: (a) => <StatusBadge status={a.status} variant="subtle" /> },
-    { key: "requested_by", label: t("requestedBy"), render: (a) => <span className="text-xs">{a.requested_userid_name ?? a.requested_by ?? "—"}</span> },
     {
-      key: "actions",
-      label: t("common:actions"),
-      sortable: false,
+      key: "txn_type",
+      label: t("txn:type"),
       render: (a) => (
-        <div className="flex items-center justify-center gap-1">
-          <ActionIconButton label={t("view")} intent="view" icon={Eye} onClick={() => setViewing(a)} />
-          {rowButtons(a).map((b) => (
-            <ActionIconButton key={b.key} label={t(`adj_${b.key}`)} intent={b.intent} icon={b.icon} onClick={() => setDialog({ verb: b.key, adjustment: a })} />
-          ))}
-        </div>
+        <span className="flex flex-col items-start gap-0.5 text-xs">
+          <span className="font-semibold">{typeLabel(t, a.txn_type, a.txn_type_name)}</span>
+          <DrCr type={a.operation_type} />
+        </span>
       ),
     },
+    { key: "amount", label: t("amount"), render: (a) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(a.amount, a.currency_code)}</span> },
+    { key: "fee_amount", label: t("txn:fee"), render: (a) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(a.fee_amount) ? money(Number(a.fee_amount) + Number(a.tax_amount ?? 0), a.currency_code) : "—"}</span> },
+    { key: "reason", label: t("reason"), align: "left", render: (a) => <span className={cn("line-clamp-2 text-xs", a.status === "FAILED" && "text-red-700")}>{a.status === "FAILED" ? a.status_desc : a.reason}</span> },
+    { key: "status", label: t("status"), render: (a) => <StatusBadge status={a.status} variant="subtle" /> },
+    { key: "requested_by", label: t("requestedBy"), render: (a) => <span className="text-xs">{a.requested_userid_name ?? a.requested_by ?? "—"}</span> },
+    { key: "actions", label: t("common:actions"), sortable: false, render: (a) => <RowActions buttons={{ view: true }} onView={() => setOpenId(a.id)} /> },
   ];
 
   return (
@@ -145,7 +133,7 @@ export function BalanceAdjustments() {
             setStatus(v);
             setPage(1);
           }}
-          options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`adjStatus_${s}`) }))]}
+          options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`txn:reqStatus_${s}`) }))]}
         />
         <Button type="submit" size="sm" icon={Search}>
           {t("search")}
@@ -183,110 +171,67 @@ export function BalanceAdjustments() {
           }}
         />
       )}
-      {viewing && <AdjustmentDetail adjustment={viewing} buttons={rowButtons(viewing)} onAction={(verb) => setDialog({ verb, adjustment: viewing })} onClose={() => setViewing(null)} />}
-      {dialog && (
-        <NarrationDialog
-          title={t(`adj_${dialog.verb}`)}
-          hint={t(`adjHint_${dialog.verb}`, { amount: money(dialog.adjustment.amount, dialog.adjustment.currency_code), account: dialog.adjustment.acct_num })}
-          confirmLabel={t(`adj_${dialog.verb}`)}
-          variant={dialog.verb === "auth" ? "primary" : "danger"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog.verb, dialog.adjustment, narration)}
-        />
-      )}
+      {openId && <RequestDialog id={openId} api={balanceAdjustmentsApi} onClose={() => setOpenId(null)} onChanged={() => void load()} onOpenTxn={({ rrn }) => setTxn(rrn)} />}
+      {txn && <TxnDialog rrn={txn} onClose={() => setTxn(null)} />}
     </div>
   );
 }
 
-function AdjustmentDetail({ adjustment: a, buttons, onAction, onClose }) {
-  const { t } = useTranslation(["deposits", "accounts"]);
-  const [txn, setTxn] = useState(false);
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      size="lg"
-      title={t("adjustmentN", { id: a.id })}
-      subtitle={a.owner_name}
-      footer={
-        buttons.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {buttons.map((b) => (
-              <Button key={b.key} size="sm" icon={b.icon} variant={b.key === "auth" ? "primary" : b.key === "deauth" ? "danger" : "secondary"} onClick={() => onAction(b.key)}>
-                {t(`adj_${b.key}`)}
-              </Button>
-            ))}
-          </div>
-        )
-      }
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <p className={cn("text-2xl font-black tabular-nums", a.operation_type === "CR" ? "text-emerald-700" : "text-red-700")}>
-          {a.operation_type === "CR" ? "+" : "−"}
-          {money(a.amount, a.currency_code)}
-        </p>
-        <StatusBadge status={a.status} />
-      </div>
-      <Facts
-        rows={[
-          [t("wallet"), <span key="w" className="font-mono">{a.acct_num}</span>],
-          [t("reason"), a.reason],
-          [t("reference"), a.reference || "—"],
-          [t("requestedBy"), `${a.requested_userid_name ?? a.requested_by ?? "—"} · ${accountDate(a.requested_at)}`],
-          a.decided_by && [t("decidedBy"), `${a.decided_by} · ${accountDate(a.decided_at)}`],
-          a.decision_narration && [t("narration"), a.decision_narration],
-          a.balance_after != null && [t("balanceAfter"), money(a.balance_after, a.currency_code)],
-          a.inst_profile_name && [t("institution"), a.inst_profile_name],
-        ]}
-      />
-      {a.txn_id && (
-        <Button variant="outline" size="sm" className="mt-4" onClick={() => setTxn(true)}>
-          {t("viewTxnRrn", { rrn: a.rrn })}
-        </Button>
-      )}
-      {txn && <TxnDialog txnId={a.txn_id} onClose={() => setTxn(false)} />}
-    </Modal>
-  );
-}
-
-// New adjustment: the wallet is looked up by number first, so staff see
-// whose it is and its balance before crediting or debiting it.
+// New adjustment: the type (cash in / out, credit / debit correction), the
+// wallet and amount; the quote shows the fee and the balance after before
+// it is sent.
 function AdjustmentForm({ onClose, onSaved }) {
-  const { t } = useTranslation(["deposits", "accounts"]);
-  const [acctNum, setAcctNum] = useState("");
-  const [account, setAccount] = useState(null);
-  const [looking, setLooking] = useState(false);
-  const [form, setForm] = useState({ operation_type: "CR", amount: "", reason: "", reference: "" });
+  const { t } = useTranslation(["deposits", "txn"]);
+  const [types, setTypes] = useState(null);
+  const [form, setForm] = useState({ txn_type: "", acct_num: "", amount: "", reason: "", reference: "" });
+  const [plan, setPlan] = useState(null);
+  const [quoteError, setQuoteError] = useState("");
+  const [quoting, setQuoting] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const lookup = async () => {
-    if (!acctNum) return;
-    setLooking(true);
-    setError("");
-    try {
-      const found = rowsOf(await accountsApi.get({ acct_num: acctNum }))[0] ?? null;
-      setAccount(found);
-      if (found?.acct_class === "DEPOSIT") setError(t("notAWallet"));
-    } catch (e) {
-      setAccount(null);
-      setError(e.message);
-    } finally {
-      setLooking(false);
-    }
-  };
+  useEffect(() => {
+    balanceAdjustmentsApi
+      .options({})
+      .then((r) => {
+        const list = (rowsOf(r)[0]?.txn_types ?? []).filter((x) => x.active !== false);
+        setTypes(list);
+        setForm((f) => ({ ...f, txn_type: f.txn_type || list[0]?.txn_type || "" }));
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+
+  const option = types?.find((x) => x.txn_type === form.txn_type);
+  const body = option && form.acct_num && Number(form.amount) > 0 ? { txn_type: form.txn_type, operation_type: opOf(option), acct_num: form.acct_num, amount: form.amount } : null;
+  const bodyKey = JSON.stringify(body);
+
+  useEffect(() => {
+    setPlan(null);
+    setQuoteError("");
+    if (!body) return undefined;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setQuoting(true);
+      balanceAdjustmentsApi
+        .quote(JSON.parse(bodyKey))
+        .then((r) => !cancelled && setPlan(rowsOf(r)[0] ?? null))
+        .catch((e) => !cancelled && setQuoteError(e.message))
+        .finally(() => !cancelled && setQuoting(false));
+    }, 450);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    // bodyKey stands for body.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodyKey]);
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
-  const wallet = account && account.acct_class !== "DEPOSIT";
-  const debitTooBig = wallet && form.operation_type === "DR" && Number(form.amount) > Number(account.avail_bal ?? 0);
-  const ready = wallet && Number(form.amount) > 0 && form.reason.trim() && !debitTooBig;
-
   const save = async () => {
     setBusy(true);
     setError("");
     try {
-      const response = await balanceAdjustmentsApi.add({ acct_id: account.id, ...form });
+      const response = await balanceAdjustmentsApi.add({ ...body, reason: form.reason.trim(), ...(form.reference.trim() ? { reference: form.reference.trim() } : {}) });
       notifications.success(response?.message ?? t("adjustmentSaved"));
       onSaved();
     } catch (e) {
@@ -307,70 +252,60 @@ function AdjustmentForm({ onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button disabled={!ready} loading={busy} onClick={save}>
+          <Button icon={Send} disabled={!plan || !form.reason.trim()} loading={busy} onClick={save}>
             {t("submitAdjustment")}
           </Button>
         </>
       }
     >
-      <p className="mb-4 text-sm text-muted-foreground">{t("adjFormHint")}</p>
-      <label className={labelClass}>{t("walletNumber")}</label>
-      <div className="mb-3 mt-1.5 flex gap-2">
-        <input
-          className={inputClass}
-          value={acctNum}
-          onChange={(e) => {
-            setAcctNum(e.target.value.replace(/\s/g, ""));
-            setAccount(null);
-          }}
-          onKeyDown={(e) => e.key === "Enter" && void lookup()}
-          placeholder="20784000000021"
-        />
-        <Button variant="outline" size="sm" icon={Search} loading={looking} disabled={!acctNum} onClick={lookup}>
-          {t("find")}
-        </Button>
-      </div>
-      {account && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2">
-          <div>
-            <p className="text-sm font-bold text-foreground">{account.owner?.name || "—"}</p>
-            <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
-              {account.acct_product_name} <AccountClass value={account.acct_class} />
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("accounts:availBal")}</p>
-            <p className="text-sm font-black tabular-nums">{money(account.avail_bal, account.currency_code)}</p>
-          </div>
-        </div>
-      )}
-      {looking && <Spinner size={14} />}
-      {wallet && (
+      {!types ? (
+        <Spinner size={18} />
+      ) : (
         <div className="grid gap-3">
-          <SegmentedSwitch
-            value={form.operation_type}
-            onChange={set("operation_type")}
-            options={[
-              { value: "CR", label: t("creditWallet") },
-              { value: "DR", label: t("debitWallet") },
-            ]}
-          />
+          <p className="text-sm text-muted-foreground">{t("adjFormHint")}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {types.map((x) => (
+              <button
+                key={x.txn_type}
+                type="button"
+                onClick={() => set("txn_type")(x.txn_type)}
+                className={cn("rounded-xl border px-3 py-2 text-left transition-all", form.txn_type === x.txn_type ? "border-primary bg-[var(--primary-light)]" : "border-border hover:border-primary/50")}
+              >
+                <span className="block text-sm font-bold">{x.name}</span>
+                <span className="block text-[11px] text-muted-foreground">{t(`deposits:adjKind_${x.txn_type}`, { defaultValue: `${x.from} → ${x.to}` })}</span>
+              </button>
+            ))}
+          </div>
           <label className={labelClass}>
-            {t("amountIn", { currency: account.currency_code })}
-            <input className={cn(inputClass, "mt-1.5 tabular-nums")} inputMode="decimal" value={form.amount} onChange={(e) => set("amount")(amountInput(e.target.value))} placeholder="0.00" />
-            {debitTooBig && <span className="mt-1 block text-[11px] font-semibold text-red-700">{t("debitTooBig")}</span>}
+            {t("walletNumber")}
+            <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.acct_num} onChange={(e) => set("acct_num")(e.target.value.replace(/\s/g, ""))} placeholder="20784000000021" />
+          </label>
+          <label className={labelClass}>
+            {t("amountIn", { currency: plan?.currency_code ?? "" })}
+            <input className={cn(inputClass, "mt-1.5 text-base font-bold tabular-nums")} inputMode="decimal" value={form.amount} onChange={(e) => set("amount")(amountInput(e.target.value, plan?.amount_decimals ?? 2))} placeholder="0.00" />
           </label>
           <label className={labelClass}>
             {t("reason")}
-            <input className={cn(inputClass, "mt-1.5")} maxLength={200} value={form.reason} onChange={(e) => set("reason")(e.target.value)} placeholder={t("reasonPlaceholder")} />
+            <input className={cn(inputClass, "mt-1.5")} maxLength={255} value={form.reason} onChange={(e) => set("reason")(e.target.value)} placeholder={t("reasonPlaceholder")} />
           </label>
           <label className={labelClass}>
             {t("referenceOptional")}
-            <input className={cn(inputClass, "mt-1.5")} maxLength={60} value={form.reference} onChange={(e) => set("reference")(e.target.value)} placeholder={t("referencePlaceholder")} />
+            <input className={cn(inputClass, "mt-1.5")} maxLength={64} value={form.reference} onChange={(e) => set("reference")(e.target.value)} placeholder={t("referencePlaceholder")} />
           </label>
+          {quoting && (
+            <p className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Spinner size={12} /> {t("txn:quoting")}
+            </p>
+          )}
+          {quoteError && <Problems message={quoteError} />}
+          {plan && <PlanCard plan={plan} />}
         </div>
       )}
-      {error && <div className="mt-3"><Problems message={error} /></div>}
+      {error && (
+        <div className="mt-3">
+          <Problems message={error} />
+        </div>
+      )}
     </Modal>
   );
 }
