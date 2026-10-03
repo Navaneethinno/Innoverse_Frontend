@@ -13,7 +13,8 @@ const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-car
 const labelClass = "text-sm font-semibold text-slate-700";
 
 // Assign the case to a user (or unassign). The server checks the user is
-// active and in the case's institution or yours.
+// active and in the case's institution or yours. You aren't listed among the
+// users; "Assign to me" covers that.
 export function AssignDialog({ kase, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
   const me = useAuth((s) => s.user);
@@ -42,7 +43,7 @@ export function AssignDialog({ kase, busy, onClose, onSave }) {
     >
       <label className={labelClass}>
         {t("assignTo")}
-        <FilterSelect className="mt-1.5" value={userId} onChange={setUserId} options={[{ value: "", label: t("chooseUser") }, ...users]} />
+        <FilterSelect className="mt-1.5" value={userId} onChange={setUserId} options={[{ value: "", label: t("chooseUser") }, ...users.filter((u) => u.value !== String(me?.id) || u.value === userId)]} />
       </label>
       {me?.id && String(me.id) !== userId && (
         <button type="button" onClick={() => setUserId(String(me.id))} className="mt-2 text-xs font-bold text-primary hover:underline">
