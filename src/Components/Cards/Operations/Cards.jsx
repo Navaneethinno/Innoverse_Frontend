@@ -17,7 +17,6 @@ import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } 
 import { CardNumber, CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
 
 const FORM_FACTORS = ["VIRTUAL", "PHYSICAL"];
-const REISSUE_REASONS = ["LOST", "STOLEN", "DAMAGED", "EXPIRED"];
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
 // CARDS > Cards (menu 198): every card, issue a virtual card, and one card's
@@ -274,7 +273,7 @@ function CardView({ id, options, onBack, onOpen }) {
     a.activate && can("Change Status") && { key: "activate", label: t("activate"), icon: Power, variant: "primary", run: () => setDialog("activate") },
     a.status && can("Change Status") && card.status_changes?.length > 0 && { key: "status", label: t("changeStatus"), icon: ShieldAlert, run: () => setDialog("status") },
     a.pin_clear && can("Edit") && { key: "pin", label: t("clearPin"), icon: KeyRound, run: () => setDialog("pin") },
-    issued && !card.replaced_by_card_id && can("Add") && { key: "reissue", label: t("reissue"), icon: Repeat, run: () => setDialog("reissue") },
+    a.reissue && can("Add") && { key: "reissue", label: t("reissue"), icon: Repeat, run: () => setDialog("reissue") },
     issued && card.form_factor === "VIRTUAL" && product?.allow_virtual_to_physical && canRequest("Add") && { key: "plastic", label: t("orderPlastic"), icon: Truck, run: () => setDialog("plastic") },
   ];
   const yes = (v) => t(v ? "yes" : "no");
@@ -414,7 +413,8 @@ function StatusDialog({ card, busy, onClose, onSave }) {
 // a physical one becomes a request for the plastic.
 function ReissueDialog({ card, onClose, onDone }) {
   const { t } = useTranslation("cards");
-  const [reason, setReason] = useState(["LOST", "STOLEN"].includes(card.ops_status) ? card.ops_status : card.ops_status === "EXPIRED" ? "EXPIRED" : "DAMAGED");
+  const reasons = card.reissue_reasons ?? [];
+  const [reason, setReason] = useState(reasons[0] ?? "");
   const [name, setName] = useState(card.name_on_card ?? "");
   const [delivery, setDelivery] = useState({ delivery_mode: "BRANCH_PICKUP", delivery_ref: "" });
   const [narration, setNarration] = useState("");
@@ -455,7 +455,7 @@ function ReissueDialog({ card, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Repeat} loading={busy} onClick={send}>
+          <Button icon={Repeat} loading={busy} disabled={!reason} onClick={send}>
             {t("reissue")}
           </Button>
         </>
@@ -464,7 +464,7 @@ function ReissueDialog({ card, onClose, onDone }) {
       <div className="grid gap-3">
         <p className="text-sm text-muted-foreground">{t(physical ? "reissuePhysicalHint" : "reissueVirtualHint")}</p>
         <Labelled label={t("reason")} hint={t(`reissueHint_${reason}`)}>
-          <FilterSelect value={reason} onChange={setReason} options={REISSUE_REASONS.map((r) => ({ value: r, label: cardWord(t, "reissue", r) }))} />
+          <FilterSelect value={reason} onChange={setReason} options={reasons.map((r) => ({ value: r, label: cardWord(t, "reissue", r) }))} />
         </Labelled>
         <Labelled label={t("nameOnCard")}>
           <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />

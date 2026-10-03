@@ -3220,6 +3220,8 @@ export const txn = {
   card: "Card",
   prepaidCard: "Prepaid card",
   holderWallet: "The holder's wallet",
+  preferredWallet: "Preferred wallet ({{acct}})",
+  noHolderWallet: "The holder has no active wallet in the card's currency.",
   findCardPlaceholder: "Last 4 digits, name on card or holder",
   find: "Find",
   noCardsFound: "No active card found",

@@ -3234,6 +3234,8 @@ export const txn = {
   card: "Cartão",
   prepaidCard: "Cartão pré-pago",
   holderWallet: "A carteira do titular",
+  preferredWallet: "Carteira preferida ({{acct}})",
+  noHolderWallet: "O titular não tem carteira ativa na moeda do cartão.",
   findCardPlaceholder: "Últimos 4 dígitos, nome no cartão ou titular",
   find: "Procurar",
   noCardsFound: "Nenhum cartão ativo encontrado",

@@ -178,7 +178,7 @@ function NewOrder({ groups, onClose, onDone }) {
     let cancelled = false;
     cardRequestsApi
       .list({ page: 1, page_size: 100, orderable: true, card_product_id: group.card_product_id })
-      .then((r) => !cancelled && setRequests(rowsOf(r)[0]?.items ?? []))
+      .then((r) => !cancelled && setRequests((rowsOf(r)[0]?.items ?? []).filter((x) => x.actions?.order)))
       .catch((e) => !cancelled && setError(e.message));
     return () => {
       cancelled = true;

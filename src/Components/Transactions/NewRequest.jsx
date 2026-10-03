@@ -15,14 +15,13 @@ import { PlanCard } from "./txnShared";
 
 // What a type asks for, from its option: the wallets on the non-cash
 // sides, the original transaction when needs_org_txn, and an amount unless
-// it is a reversal (which returns the original's). A card load takes the
-// holder's wallet and the card; an unload, the card and the wallet it pays.
-const CARD_SIDE = { CARD_LOAD: "from", CARD_UNLOAD: "to" };
+// it is a reversal (which returns the original's). A type with needs_card
+// (card load / unload) takes the card; the holder's wallet is optional
+// (the server picks the preferred one in the card's currency).
 export function typeNeeds(option) {
   const reversal = option?.txn_type === "REVERSAL";
   const org = Boolean(option?.needs_org_txn) || reversal;
-  const cardSide = CARD_SIDE[option?.txn_type];
-  if (cardSide) return { from: cardSide === "from", to: cardSide === "to", org: false, amount: true, card: true };
+  if (option?.needs_card) return { from: false, to: false, org: false, amount: true, card: true, walletSide: option.from === "CARD_HOLDER" ? "from" : "to" };
   return {
     from: !org && option?.from !== "CASH",
     to: !org && option?.to !== "CASH",
@@ -32,7 +31,7 @@ export function typeNeeds(option) {
   };
 }
 
-const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "", card: null };
+const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "", card: null, wallet_id: "" };
 
 // A staff transaction: pick the type, fill what it needs, see the quote
 // (fee, tax, totals, limits) as you type, then send it for approval. A user
@@ -67,7 +66,7 @@ export function NewRequest({ preset, onClose, onDone }) {
   const body = complete
     ? {
         txn_type: type,
-        ...(needs.card ? { card_id: form.card.id } : {}),
+        ...(needs.card ? { card_id: form.card.id, ...(form.wallet_id ? { [`${needs.walletSide}_acct_id`]: Number(form.wallet_id) } : {}) } : {}),
         ...(needs.from ? { from_acct_num: form.from_acct_num } : {}),
         ...(needs.to ? { to_acct_num: form.to_acct_num } : {}),
         ...(needs.org ? { org_rrn: form.org_rrn } : {}),
@@ -171,18 +170,19 @@ export function NewRequest({ preset, onClose, onDone }) {
             {needs.card && (
               <div className={cn(labelClass, "sm:col-span-2")}>
                 {t("prepaidCard")}
-                <CardPicker value={form.card} onChange={(card) => setForm((f) => ({ ...f, card }))} />
+                <CardPicker value={form.card} onChange={(card) => setForm((f) => ({ ...f, card, wallet_id: "" }))} />
               </div>
             )}
+            {needs.card && form.card && <HolderWallet card={form.card} value={form.wallet_id} onChange={(wallet_id) => setForm((f) => ({ ...f, wallet_id }))} />}
             {needs.from && (
               <label className={labelClass}>
-                {t(needs.card ? "holderWallet" : "fromWallet")}
+                {t("fromWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.from_acct_num} onChange={set("from_acct_num")} placeholder="20784000000021" />
               </label>
             )}
             {needs.to && (
               <label className={labelClass}>
-                {t(needs.card ? "holderWallet" : "toWallet")}
+                {t("toWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.to_acct_num} onChange={set("to_acct_num")} placeholder="20784000000013" />
               </label>
             )}
@@ -282,6 +282,43 @@ function CardPicker({ value, onChange }) {
           ))}
           {!rows.length && <p className="text-xs text-muted-foreground">{t("noCardsFound")}</p>}
         </div>
+      )}
+    </div>
+  );
+}
+
+// The holder's wallet a card load takes from (or an unload pays into): the
+// card's holder_wallets, default first. Left on the default, the server
+// uses the preferred one.
+function HolderWallet({ card, value, onChange }) {
+  const { t } = useTranslation("txn");
+  const [wallets, setWallets] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    cardsApi
+      .get({ id: card.id })
+      .then((r) => !cancelled && setWallets(rowsOf(r)[0]?.holder_wallets ?? []))
+      .catch((e) => !cancelled && notifications.error(e.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [card.id]);
+
+  return (
+    <div className={cn(labelClass, "sm:col-span-2")}>
+      {t("holderWallet")}
+      {!wallets ? (
+        <Spinner size={14} />
+      ) : wallets.length ? (
+        <FilterSelect
+          className="mt-1.5"
+          value={value}
+          onChange={onChange}
+          options={[{ value: "", label: t("preferredWallet", { acct: wallets[0].acct_num }) }, ...wallets.slice(1).map((w) => ({ value: String(w.acct_id), label: `${w.acct_num} · ${w.avail_bal}` }))]}
+        />
+      ) : (
+        <p className="mt-1.5 text-xs font-normal text-muted-foreground">{t("noHolderWallet")}</p>
       )}
     </div>
   );

@@ -172,8 +172,8 @@ function RequestDialog({ id, onClose, onChanged }) {
   const r = request;
   const buttons = r
     ? [
-        r.request_status === "SUBMITTED" && !r.card_order_id && can("Authorize") && { key: "reject", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("reject") },
-        r.ready_to_deliver && can("Edit") && { key: "deliver", label: t("deliver"), icon: Truck, variant: "primary", run: () => setDialog("deliver") },
+        r.actions?.reject && can("Authorize") && { key: "reject", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("reject") },
+        r.actions?.deliver && can("Edit") && { key: "deliver", label: t("deliver"), icon: Truck, variant: "primary", run: () => setDialog("deliver") },
       ]
     : [];
 
