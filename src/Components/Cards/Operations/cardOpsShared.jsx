@@ -74,10 +74,10 @@ export function CardFace({ card, className }) {
       {card.form_factor === "PHYSICAL" && <span className="h-6 w-9 rounded-md bg-gradient-to-br from-amber-200 to-amber-400 opacity-90" aria-hidden="true" />}
       <span>
         <span className="block font-mono text-base font-semibold tracking-[0.12em] [overflow-wrap:anywhere]">{card.pan_masked}</span>
-        <span className="mt-1 flex items-end justify-between gap-2 text-[11px]">
-          <span className="min-w-0 truncate uppercase tracking-wide">{card.name_on_card || "—"}</span>
-          <span className="shrink-0 font-mono">{card.expiry}</span>
-          <span className="shrink-0 font-black italic tracking-tight">{card.network_code}</span>
+        <span className="mt-1 block truncate text-[11px] uppercase tracking-wide">{card.name_on_card || "—"}</span>
+        <span className="mt-0.5 flex items-end justify-between gap-2 text-[11px]">
+          <span className="font-mono">{card.expiry}</span>
+          <span className="min-w-0 truncate font-black italic tracking-tight">{card.network_code}</span>
         </span>
       </span>
     </div>
