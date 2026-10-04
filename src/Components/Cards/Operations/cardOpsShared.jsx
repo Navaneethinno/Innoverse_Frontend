@@ -6,6 +6,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cardProductsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
+import { money } from "@/Components/Epurse/Accounts/accountShared";
 import { OwnerFinder } from "../../TermDeposits/Deposits/OpenDeposit";
 import { inputClass, labelClass } from "../../TermDeposits/depositShared";
 
@@ -133,14 +134,24 @@ export function CardNumber({ card, className }) {
 
 // The card holder: find a customer or merchant by name or wallet number
 // (the Open Deposit finder), shown once picked with a way to change it.
-// onChange({ entity_type, entity_id, name }) or null.
+// onChange({ entity_type, entity_id, name, acct_num, avail_bal, currency_code })
+// or null; the wallet it was found by shows with the name.
 export function HolderPicker({ value, onChange }) {
   const { t } = useTranslation("cards");
   if (value) {
     return (
       <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2">
-        <span className="flex min-w-0 items-center gap-2 text-sm font-bold">
-          <UserRound size={15} className="shrink-0 text-primary" /> <span className="truncate">{value.name}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          <UserRound size={15} className="shrink-0 text-primary" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-bold">{value.name}</span>
+            {value.acct_num && (
+              <span className="block truncate font-mono text-[11px] text-muted-foreground">
+                {value.acct_num}
+                {value.avail_bal != null && <span className="font-sans font-semibold"> · {money(value.avail_bal, value.currency_code)}</span>}
+              </span>
+            )}
+          </span>
         </span>
         <button type="button" onClick={() => onChange(null)} className="flex items-center gap-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary">
           <X size={13} /> {t("change")}
@@ -148,7 +159,7 @@ export function HolderPicker({ value, onChange }) {
       </div>
     );
   }
-  return <OwnerFinder onPick={(entity, account) => onChange({ ...entity, name: account?.owner?.name ?? "" })} />;
+  return <OwnerFinder onPick={(entity, account) => onChange({ ...entity, name: account?.owner?.name ?? "", acct_num: account?.acct_num, avail_bal: account?.avail_bal, currency_code: account?.currency_code })} />;
 }
 
 // A labelled field.
