@@ -39,7 +39,7 @@ async function request(path, body) {
       window.dispatchEvent(new Event("auth:unauthorized"));
       throw new Error("Session expired. Please sign in again.");
     }
-    const statusMessage = getStatusErrorMessage(response.status);
+    const statusMessage = getStatusErrorMessage(response.status, payload);
     if (statusMessage) throw new Error(statusMessage);
     if (!response.ok)
       throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));

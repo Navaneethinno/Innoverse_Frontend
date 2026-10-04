@@ -45,7 +45,7 @@ async function request(path, body = {}, extraHeaders = {}) {
       error.conflict = true;
       throw error;
     }
-    const statusError = getStatusErrorMessage(response.status);
+    const statusError = getStatusErrorMessage(response.status, payload);
     if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
       throw new Error(getApiErrorMessage(payload, "Request failed"));

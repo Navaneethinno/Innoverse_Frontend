@@ -47,7 +47,9 @@ function parseSessionResponse(payload) {
     refresh_token: sessionInfo?.refresh_token ?? null,
     // `scope` (institution scope handoff) rides on the stored user: tier,
     // type_code, institution_id, can_choose_institution.
-    user: data?.user_details ? { ...data.user_details, ...(data?.scope ? { scope: data.scope } : {}) } : null,
+    // session_user_id: the signed-in user's id (user_session_info.user_id),
+    // to keep own-account actions off their own row.
+    user: data?.user_details ? { ...data.user_details, ...(data?.scope ? { scope: data.scope } : {}), ...(sessionInfo?.user_id ? { session_user_id: sessionInfo.user_id } : {}) } : null,
     branding,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
@@ -76,9 +78,9 @@ async function request(endpoint, init) {
       ...init,
       signal: controller.signal,
     });
-    const statusMessage = getStatusErrorMessage(response.status);
-    if (statusMessage) throw new Error(statusMessage);
     const payload = await getResponsePayload(response);
+    const statusMessage = getStatusErrorMessage(response.status, payload);
+    if (statusMessage) throw new Error(statusMessage);
     if (!response.ok) {
       throw new Error(getApiErrorMessage(payload, "Request failed with status " + response.status));
     }

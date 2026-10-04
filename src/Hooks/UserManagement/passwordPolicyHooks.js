@@ -1,3 +1,4 @@
+import { useIsTenant } from "@/Hooks/useInstitutionScope";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useState } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
@@ -9,8 +10,12 @@ const CHANGED = "user-password-policy:data-changed";
 const notify = () => window.dispatchEvent(new Event(CHANGED));
 
 // Delegates to the one permission source (exact menu, fail-closed).
+// Password policies apply to every institution: a tenant only reads them
+// (the server refuses its changes).
 export function useHasPasswordPolicyAction(actionName) {
-  return useMenuPermission("Password Policy")(actionName);
+  const can = useMenuPermission("Password Policy");
+  const tenant = useIsTenant();
+  return can(actionName) && !(tenant && !["View", "Audit"].includes(actionName));
 }
 
 export function usePasswordPoliciesQuery(params = {}) {

@@ -38,7 +38,7 @@ async function send(path, init) {
       window.dispatchEvent(new Event("auth:unauthorized"));
       throw new Error("Session expired. Please sign in again.");
     }
-    const statusError = getStatusErrorMessage(response.status);
+    const statusError = getStatusErrorMessage(response.status, payload);
     if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
       // A proxy in front of the API can refuse an oversized upload with an

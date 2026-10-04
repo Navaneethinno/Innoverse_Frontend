@@ -44,7 +44,7 @@ async function request(path, body = {}, extraHeaders = {}) {
       error.conflict = true;
       throw error;
     }
-    const statusError = getStatusErrorMessage(response.status);
+    const statusError = getStatusErrorMessage(response.status, payload);
     // getApiErrorMessage shows payload.message (+ data problems), never remark/
     // etc internally — checking payload?.remark first, as this used to,
     // bypassed that priority and always surfaced the backend's internal

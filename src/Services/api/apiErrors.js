@@ -39,7 +39,11 @@ export function getApiErrorMessage(payload, fallback) {
   const problems = getApiProblems(payload);
   return problems.length ? [headline, ...problems.map((p) => PROBLEM_BULLET + p)].join("\n") : headline;
 }
-export function getStatusErrorMessage(status) {
+// Our own text for a status, used only when the reply has no JSON message
+// of its own: the server's `message` is user text, already translated.
+export function getStatusErrorMessage(status, payload) {
+  const own = payload && typeof payload === "object" ? getApiErrorMessage(payload, "") : "";
+  if (status >= 400 && own) return own;
   if (status === 403) {
     return "Permission denied. You do not have access to this resource.";
   }

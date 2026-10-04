@@ -60,12 +60,12 @@ async function masterPost(path, body, { basicAuthFallback = false } = {}) {
       window.dispatchEvent(new Event("auth:unauthorized"));
       throw new Error("Session expired. Please sign in again.");
     }
-    const statusMessage = getStatusErrorMessage(response.status);
-    if (statusMessage) throw new Error(statusMessage);
     const contentType = response.headers.get("content-type") ?? "";
     const payload = contentType.includes("application/json")
       ? await response.json().catch(() => null)
       : await response.text().catch(() => null);
+    const statusMessage = getStatusErrorMessage(response.status, payload);
+    if (statusMessage) throw new Error(statusMessage);
     if (!response.ok) {
       throw new Error(getApiErrorMessage(payload, "Request failed with status " + response.status));
     }

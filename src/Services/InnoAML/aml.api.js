@@ -9,7 +9,8 @@ const call = (base, verb) => (payload = {}) => request(`${base}/${verb}`, payloa
 
 // One setup per institution: score bands (same shape as risk levels) mapped
 // to the institution's risk actions, min_match_score, ongoing_rescreen.
-// Use `list`, not `get_active` (a setup has no name).
+// The setup screen uses `list`; read-only screens use `get_active`, which
+// needs only a login (no AML Setup menu).
 export const amlSetupApi = createLifecycle(SETUP);
 
 // The institution's own watchlists: upload the CSV/XLSX, `validate` it with

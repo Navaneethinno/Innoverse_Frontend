@@ -96,6 +96,10 @@ const FIELD_LABELS = {
   max_sessions_allowed: "Maximum sessions allowed",
 };
 
+// Not enforced by the server yet, so not shown (an admin would think the
+// protection is on): 2FA, MFA for admins, IP restriction and ranges,
+// session timeout, max sessions, permanent lock, password similarity,
+// dictionary words. Their stored values still travel with an edit.
 const FORM_SECTIONS = [
   {
     title: "Basic details",
@@ -128,7 +132,6 @@ const FORM_SECTIONS = [
       "restrict_past_password",
       "max_retry_count",
       "lockout_duration_mins",
-      "permanent_lock_flag",
       "inactive_user_days",
     ],
   },
@@ -136,19 +139,11 @@ const FORM_SECTIONS = [
     title: "Security controls",
     icon: ShieldCheck,
     fields: [
-      "ip_restriction_required",
-      "allowed_ip_ranges",
       "force_pwd_first_login",
       "system_generated_flag",
-      "require_2fa",
       "disallow_userid_in_pwd",
-      "password_similarity_pct",
       "max_repeated_chars",
-      "prevent_dictionary_words",
       "password_blacklist",
-      "enforce_mfa_for_admins",
-      "session_timeout_minutes",
-      "max_sessions_allowed",
     ],
   },
 ];
@@ -161,7 +156,8 @@ const searchText = (row) =>
 function toForm(row) {
   const next = empty();
   ALL_FIELDS.forEach((field) => {
-    if (row?.[field] !== undefined && row?.[field] !== null) next[field] = row[field];
+    // "Undefined" is the server's old placeholder for no value: an empty field.
+    if (row?.[field] !== undefined && row?.[field] !== null && row[field] !== "Undefined") next[field] = row[field];
   });
   BOOLEAN_FIELDS.forEach((field) => {
     next[field] = Boolean(next[field]);
@@ -286,7 +282,7 @@ function PolicyView({ row, onClose }) {
                 <div key={field} className="rounded-lg border border-border bg-muted/60 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{FIELD_LABELS[field]}</p>
                   <p className="mt-1 text-sm font-semibold text-slate-800">
-                    {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : row?.[field] || "-"}
+                    {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : (row?.[field] !== "Undefined" && row?.[field]) || "-"}
                   </p>
                 </div>
               ))}
@@ -428,7 +424,7 @@ export function PasswordPolicy() {
     { key: "policy_name", label: tr("Policy Name"), align: "left", render: (row) => row.policy_name ?? "-" },
     { key: "min_length", label: tr("Min Length"), render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: tr("Max Retries"), render: (row) => row.max_retry_count ?? "-" },
-    { key: "session_timeout_minutes", label: tr("Session Timeout"), render: (row) => row.session_timeout_minutes ?? "-" },
+
     { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: tr("Process Status"), render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: tr("Authorization Status"), render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
     {
       key: "actions",

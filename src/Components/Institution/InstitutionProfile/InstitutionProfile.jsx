@@ -7,7 +7,8 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs, statusBucket } from "@/Components/Common/StatusFilterTabs";
+import { useOwnIds } from "@/Hooks/useInstitutionScope";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { useSessionState } from "@/Hooks/useSessionState";
 import {
   mapInstitutionListResponse,
@@ -116,7 +117,10 @@ export function InstitutionProfile() {
 
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
-  const activeCount = useMemo(() => institutions.filter((inst) => statusBucket(inst) === "active").length, [institutions]);
+  // Active by the record's own status (1), like the badges and the
+  // dashboard: an Active institution with a draft edit still counts.
+  const activeCount = useMemo(() => institutions.filter((inst) => Number(inst.status) === 1).length, [institutions]);
+  const own = useOwnIds();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -213,6 +217,8 @@ export function InstitutionProfile() {
           canChangeStatus,
           canDelete,
         });
+        // The server refuses deactivating or deleting one's own institution.
+        if (String(id) === own.institutionId) Object.assign(buttons, { deactivate: false, delete: false });
         return (
           <RowActions
             buttons={buttons}

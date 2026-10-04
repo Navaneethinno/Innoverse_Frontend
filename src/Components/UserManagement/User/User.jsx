@@ -31,6 +31,7 @@ import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
 import { EditUser } from "./EditUser";
+import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { AuditUser } from "./AuditUser";
 import { deriveButtonVisibility, getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
@@ -56,6 +57,7 @@ export function User() {
   // rather than gated — a user should always be able to look at a record.
   const canAdd = useHasUserAction("Add");
   const canEdit = useHasUserAction("Edit");
+  const own = useOwnIds();
   const canAuthorize = useHasUserAction("Authorize");
   const hasDeauthorizePermission = useHasUserAction("Deauthorize");
   const canDeauthorize = hasDeauthorizePermission || canAuthorize;
@@ -150,7 +152,7 @@ export function User() {
       .get({ user_id: Number(editParam) })
       .then((response) => {
         const record = Array.isArray(response?.data) ? response.data[0] : response?.data;
-        if (record) void openEdit(record);
+        if (record) void openEdit(record, { readOnly: String(record.user_id ?? record.id) === own.userId });
       })
       .catch((error) => notifications.error(error instanceof Error ? error.message : String(error)));
     // openEdit is recreated each render; running once per param is the intent.
@@ -317,6 +319,9 @@ export function User() {
           ...rawVisibility,
           deauthorize: canDeauthorize && rawDeauthorize && !rawVisibility.isPendingDelete,
         };
+        // The server refuses any change to one's own account (that goes
+        // through My Profile / Change Password): view and audit only.
+        if (String(user.user_id ?? user.id) === own.userId) Object.assign(visibility, { edit: false, deactivate: false, reactivate: false, delete: false, submit: false, authorize: false, deauthorize: false });
         const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
         return (
           <RowActions

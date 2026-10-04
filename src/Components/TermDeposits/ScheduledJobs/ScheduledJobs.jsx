@@ -8,6 +8,7 @@ import { Toggle } from "@/Components/Common/Toggle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { useIsTenant } from "@/Hooks/useInstitutionScope";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { scheduledJobsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -22,7 +23,9 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 export function ScheduledJobs() {
   const { t } = useTranslation(["deposits", "common"]);
   const can = usePagePermission();
-  const edit = can("Edit");
+  // Jobs run for every institution: a tenant only reads them.
+  const tenant = useIsTenant();
+  const edit = can("Edit") && !tenant;
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [times, setTimes] = useState({});

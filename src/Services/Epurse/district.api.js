@@ -18,7 +18,7 @@ async function request(path, body = {}) {
     });
     const payload = (response.headers.get("content-type") ?? "").includes("application/json") ? await response.json().catch(() => null) : null;
     if (response.status === 401) { clearAuthSession(); window.dispatchEvent(new Event("auth:unauthorized")); throw new Error("Session expired. Please sign in again."); }
-    const statusError = getStatusErrorMessage(response.status);
+    const statusError = getStatusErrorMessage(response.status, payload);
     if (statusError) throw new Error(statusError);
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") throw new Error(getApiErrorMessage(payload, "Request failed"));
     return payload;
