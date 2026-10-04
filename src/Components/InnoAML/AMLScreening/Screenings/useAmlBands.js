@@ -10,11 +10,11 @@ export function useAmlBands() {
   const [bands, setBands] = useState([]);
   useEffect(() => {
     amlSetupApi
-      .getActive({})
+      .getActive()
       .then((r) => {
         const byCode = new Map();
         rowsOf(r).forEach((setup) => (setup.levels ?? []).forEach((l) => !byCode.has(l.code) && byCode.set(l.code, l)));
-        setBands([...byCode.values()]);
+        setBands([...byCode.values()].sort((a, b) => Number(a.min_score) - Number(b.min_score)));
       })
       .catch(() => setBands([]));
   }, []);

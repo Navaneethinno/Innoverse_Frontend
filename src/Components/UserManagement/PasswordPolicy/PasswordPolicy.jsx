@@ -156,8 +156,7 @@ const searchText = (row) =>
 function toForm(row) {
   const next = empty();
   ALL_FIELDS.forEach((field) => {
-    // "Undefined" is the server's old placeholder for no value: an empty field.
-    if (row?.[field] !== undefined && row?.[field] !== null && row[field] !== "Undefined") next[field] = row[field];
+    if (row?.[field] !== undefined && row?.[field] !== null) next[field] = row[field];
   });
   BOOLEAN_FIELDS.forEach((field) => {
     next[field] = Boolean(next[field]);
@@ -282,7 +281,7 @@ function PolicyView({ row, onClose }) {
                 <div key={field} className="rounded-lg border border-border bg-muted/60 p-3">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{FIELD_LABELS[field]}</p>
                   <p className="mt-1 text-sm font-semibold text-slate-800">
-                    {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : (row?.[field] !== "Undefined" && row?.[field]) || "-"}
+                    {typeof row?.[field] === "boolean" ? (row[field] ? "Yes" : "No") : row?.[field] || "-"}
                   </p>
                 </div>
               ))}
