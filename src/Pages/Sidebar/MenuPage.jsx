@@ -3,7 +3,8 @@ import { useSelector } from "react-redux";
 import { matchRoutes, useLocation } from "react-router-dom";
 import { RouteError } from "@/Components/Common/RouteError";
 import { setApiScope } from "@/Utils/Lib/apiScope";
-import { findMenuByPath, menuBranch, menuSlugForItem } from "./menuRouteMap";
+import { ModuleDashboard } from "@/Pages/Dashboard/Module/ModuleDashboard";
+import { findMenuByPath, findModuleByDashboardPath, menuBranch, menuSlugForItem } from "./menuRouteMap";
 import { MenuContext } from "./menuContext";
 
 // Corporate Onboarding Configuration / Wizard share the hub page with the
@@ -53,6 +54,10 @@ export function MenuPage({ routes }) {
   const context = useMemo(() => (menu ? { menu, module: menu.module_name, branch, menus: active } : null), [menu, branch, active]);
 
   if (!menus?.length) return null;
+  if (!menu) {
+    const dashboardOf = findModuleByDashboardPath(active, location.pathname);
+    if (dashboardOf) return <ModuleDashboard key={dashboardOf} moduleName={dashboardOf} />;
+  }
   if (!menu || !element) return <RouteError />;
   return (
     <MenuContext.Provider value={context}>

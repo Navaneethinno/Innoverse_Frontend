@@ -15,7 +15,7 @@ import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
-import { findMenuByPath } from "./menuRouteMap";
+import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "./menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
 const SIDEBAR_EXPANDED_W = 256;
@@ -84,7 +84,7 @@ export function DynamicSidebar() {
   // direct link, select its module and highlight it, as if it had been
   // clicked through the sidebar. The user can still switch module by hand.
   const { pathname } = useLocation();
-  const routeMenu = useMemo(() => findMenuByPath(activeMenuArray, pathname), [activeMenuArray, pathname]);
+  const routeMenu = useMemo(() => findMenuByPath(activeMenuArray, pathname) ?? activeMenuArray.find((m) => m.module_name === findModuleByDashboardPath(activeMenuArray, pathname)), [activeMenuArray, pathname]);
   const [syncedMenuId, setSyncedMenuId] = useState(null);
   if (routeMenu && routeMenu.menu_id !== syncedMenuId) {
     setSyncedMenuId(routeMenu.menu_id);
@@ -287,7 +287,12 @@ export function DynamicSidebar() {
         <ModuleDropdown
           modules={filteredModules}
           selectedModule={selectedModule}
-          onSelectModule={(module) => setSelectedModuleId(Number(module.module_id))}
+          onSelectModule={(module) => {
+            setSelectedModuleId(Number(module.module_id));
+            // Picking a module opens its own dashboard (as in payse).
+            const name = activeMenuArray.find((m) => Number(m.module_id) === Number(module.module_id))?.module_name ?? module.module_name;
+            if (name) handleNavigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
+          }}
           isCollapsed={!isExpanded}
         />
       </div>

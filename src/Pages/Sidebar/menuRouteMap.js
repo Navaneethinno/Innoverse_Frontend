@@ -48,6 +48,16 @@ export function menuPathForItem(item, menuItems) {
   return `/${segments.join("/")}`;
 }
 
+// A module's own dashboard: /<module>/dashboard (opened by picking the
+// module in the sidebar). A real menu at that path still wins.
+export const moduleDashboardPath = (moduleName) => `/${kebab(moduleName)}/dashboard`;
+
+// The module whose dashboard a path names, or null.
+export function findModuleByDashboardPath(menuItems, pathname) {
+  const target = String(pathname ?? "").toLowerCase().replace(/\/+$/, "");
+  return (menuItems ?? []).find((m) => moduleDashboardPath(m.module_name) === target)?.module_name ?? null;
+}
+
 // The menu a /<module>/<menu>/<...> path names, or null.
 export function findMenuByPath(menuItems, pathname) {
   const target = `/${String(pathname ?? "").split("/").filter(Boolean).map((s) => decodeURIComponent(s).toLowerCase()).join("/")}`;
