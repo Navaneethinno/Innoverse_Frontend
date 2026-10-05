@@ -4,6 +4,7 @@ import { ArrowLeft, Download } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 
 // Shared by every Reports screen (read-only; handoffs 08–09).
 
@@ -62,11 +63,13 @@ export function PeriodChips({ value, onChange, allTime = false }) {
 
 // Excel / CSV buttons. `exportFile(format)` resolves to { blob, fileName };
 // a JSON error (e.g. over 100,000 rows) shows its message instead of a file.
-// Excel / CSV download the server's file. PDF takes the same export as CSV,
-// lays it out as a table (reportPdf.js) and opens it in a new tab, where the
-// browser's viewer previews it and downloads it.
+// Excel / CSV download the server's file. PDF takes the same export as CSV
+// and opens a preview page in a new tab (the institution's logo, the report
+// box, the table, a logo watermark) whose Download PDF saves the same
+// layout (reportPdf.js).
 export function ExportButtons({ exportFile, disabled = false, children }) {
   const { t } = useTranslation("reports");
+  const { paper } = useBrandTheme();
   const [busy, setBusy] = useState("");
   const run = async (format) => {
     // The tab opens on the click itself (a popup opened after the await
@@ -77,13 +80,23 @@ export function ExportButtons({ exportFile, disabled = false, children }) {
     try {
       const { blob, fileName } = await exportFile(format === "PDF" ? "CSV" : format);
       if (format !== "PDF") return saveBlob(blob, fileName);
-      const { csvToPdf } = await import("./reportPdf");
-      const title = String(fileName ?? t("report")).replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
-      const pdf = await csvToPdf(await blob.text(), { title, subtitle: t("pdfGenerated", { date: atIst(new Date().toISOString()) }) });
-      const url = URL.createObjectURL(pdf);
-      if (tab) tab.location.href = url;
-      else saveBlob(pdf, `${title}.pdf`);
-      window.setTimeout(() => URL.revokeObjectURL(url), 10 * 60 * 1000);
+      const { loadLogo, previewHtml, reportModel, reportPdf } = await import("./reportPdf");
+      const base = String(fileName ?? t("report")).replace(/\.[^.]+$/, "");
+      const title = base.replace(/[_-]+/g, " ").replace(/(^|\s)\w/g, (c) => c.toUpperCase());
+      const model = reportModel(await blob.text(), {
+        title,
+        generatedOn: atIst(new Date().toISOString()),
+        color: paper?.color,
+        logo: await loadLogo(paper?.logoUrl),
+        labels: { reportName: t("reportName"), generatedOn: t("generatedOn"), download: t("downloadPdf"), empty: t("noRowsInReport") },
+      });
+      const pdf = await reportPdf(model);
+      if (!tab) return saveBlob(pdf, `${base}.pdf`);
+      // The preview stays open as long as the user wants: its PDF link is not revoked.
+      const html = previewHtml(model, { pdfUrl: URL.createObjectURL(pdf), fileName: `${base}.pdf` });
+      tab.document.open();
+      tab.document.write(html);
+      tab.document.close();
     } catch (error) {
       tab?.close();
       notifications.error(error.message);

@@ -151,6 +151,8 @@ export function BrandThemeProvider({ children }) {
   const signedIn = Boolean(brand);
   const logoUrl = signedIn ? (assets?.urls?.[mode === "dark" && brand.logoDark ? "logoDark" : "logo"] ?? null) : null;
   const faviconUrl = signedIn ? (assets?.urls?.favicon ?? null) : null;
+  // For paper (report PDFs): always the light logo and light primary colour.
+  const paper = useMemo(() => (signedIn ? { logoUrl: assets?.urls?.logo ?? null, color: brand?.light?.primary ?? null, name: brand?.displayName ?? null } : null), [signedIn, assets?.urls?.logo, brand?.light?.primary, brand?.displayName]);
 
   useEffect(() => {
     document.title = brand?.displayName ?? DEFAULT_TITLE;
@@ -183,12 +185,13 @@ export function BrandThemeProvider({ children }) {
       brand,
       colors: brandColors(brand, mode),
       logoUrl,
+      paper,
       displayName: brand?.displayName ?? null,
       setBrandTheme,
       clearBrandTheme,
       loginAssetsFor,
     }),
-    [brand, mode, logoUrl, setBrandTheme, clearBrandTheme, loginAssetsFor],
+    [brand, mode, logoUrl, paper, setBrandTheme, clearBrandTheme, loginAssetsFor],
   );
 
   return <BrandThemeContext.Provider value={value}>{children}</BrandThemeContext.Provider>;
