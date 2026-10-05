@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { MenuItem } from "./MenuItem";
 import { getRootMenuItems } from "./menuSearchUtils";
@@ -25,6 +26,14 @@ export function MenuList({
 }) {
   const { t } = useTranslation();
   const [clickedMenuId, setActiveMenuId] = useState(null);
+  // A click's highlight lasts until the URL changes (a module dashboard
+  // has no menu, so nothing stays open there).
+  const { pathname } = useLocation();
+  const [clickedAt, setClickedAt] = useState(pathname);
+  if (pathname !== clickedAt) {
+    setClickedAt(pathname);
+    setActiveMenuId(null);
+  }
   // The page in the URL wins; a click highlights until the route catches up.
   const activeMenuId = routeMenuId ?? clickedMenuId;
 

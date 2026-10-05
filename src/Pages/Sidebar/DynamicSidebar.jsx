@@ -84,11 +84,18 @@ export function DynamicSidebar() {
   // direct link, select its module and highlight it, as if it had been
   // clicked through the sidebar. The user can still switch module by hand.
   const { pathname } = useLocation();
-  const routeMenu = useMemo(() => findMenuByPath(activeMenuArray, pathname) ?? activeMenuArray.find((m) => m.module_name === findModuleByDashboardPath(activeMenuArray, pathname)), [activeMenuArray, pathname]);
-  const [syncedMenuId, setSyncedMenuId] = useState(null);
-  if (routeMenu && routeMenu.menu_id !== syncedMenuId) {
-    setSyncedMenuId(routeMenu.menu_id);
-    setSelectedModuleId(Number(routeMenu.module_id));
+  // On a module dashboard (/<module>/dashboard) only the module is
+  // selected: no menu is the open page, so the tree stays collapsed.
+  const routeMenu = useMemo(() => findMenuByPath(activeMenuArray, pathname), [activeMenuArray, pathname]);
+  const dashboardModuleId = useMemo(() => {
+    const name = findModuleByDashboardPath(activeMenuArray, pathname);
+    return name ? Number(activeMenuArray.find((m) => m.module_name === name)?.module_id) : null;
+  }, [activeMenuArray, pathname]);
+  const routeKey = routeMenu ? `menu:${routeMenu.menu_id}` : dashboardModuleId != null ? `module:${dashboardModuleId}` : null;
+  const [syncedKey, setSyncedKey] = useState(null);
+  if (routeKey && routeKey !== syncedKey) {
+    setSyncedKey(routeKey);
+    setSelectedModuleId(routeMenu ? Number(routeMenu.module_id) : dashboardModuleId);
   }
 
   // Dev-time diagnostic only: a menu whose parent_menu_id points at nothing
