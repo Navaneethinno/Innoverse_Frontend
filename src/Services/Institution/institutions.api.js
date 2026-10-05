@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 // Institution/Profile endpoints — per the backend's confirmed spec
 // (2026-09 "Institution Profile API Requests" doc): list, get_active, add,
 // submit, edit, auth, deauth, delete, delete_auth, deactivate, reactivate,
@@ -33,7 +34,7 @@ async function request(path, body) {
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await authFetch(`${API_BASE_URL}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

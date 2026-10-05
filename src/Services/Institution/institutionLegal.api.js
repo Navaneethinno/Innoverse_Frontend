@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
@@ -12,7 +13,7 @@ async function request(path, body = {}) {
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, { method: "POST", headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() }, body: JSON.stringify(scopedBody(body)), signal: controller.signal });
+    const response = await authFetch(`${API_BASE_URL}${path}`, { method: "POST", headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() }, body: JSON.stringify(scopedBody(body)), signal: controller.signal });
     const type = response.headers.get("content-type") ?? "";
     const payload = type.includes("application/json") ? await response.json().catch(() => null) : null;
     if (response.status === 401) { clearAuthSession(); window.dispatchEvent(new Event("auth:unauthorized")); throw new Error("Session expired. Please sign in again."); }

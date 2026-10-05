@@ -3,16 +3,15 @@ import {
   changePassword as changePasswordRequest,
   loginRequest,
   logoutRequest,
-  refreshTokenRequest,
 } from "@/Services/Auth/auth.service";
-import { clearAuthSession, persistAuthSession, readAuthUser } from "@/Services/api/authStorage";
+import { clearAuthSession, persistAuthSession } from "@/Services/api/authStorage";
 import { clearToken, setSession } from "@/Redux/AuthToken";
 import { setMenuArray, clearMenuState } from "@/Redux/MenuSlice";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 export function useAuth(selector) {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.token);
-  const { brand, setBrandTheme, clearBrandTheme } = useBrandTheme();
+  const { setBrandTheme, clearBrandTheme } = useBrandTheme();
   const login = async ({ institutionCode, username, password }) => {
     try {
       const response = await loginRequest(institutionCode, username, password);
@@ -47,37 +46,6 @@ export function useAuth(selector) {
       return { success: false, message: error instanceof Error ? error.message : undefined };
     }
   };
-  const refresh = async () => {
-    try {
-      const response = await refreshTokenRequest();
-      // Refresh may not re-send scope: keep the one from login.
-      const stored = readAuthUser();
-      const user = response.user ? { ...response.user, scope: response.user.scope ?? stored?.scope } : stored;
-      persistAuthSession(user, response.access_token, response.refresh_token);
-      dispatch(
-        setSession({
-          token: response.access_token,
-          refreshToken: response.refresh_token,
-          user,
-        }),
-      );
-      // The refresh_token endpoint does not re-send menu_array; keep the
-      // menu_array already persisted from login instead of clobbering it
-      // with an empty list.
-      if (Array.isArray(response.menu_array) && response.menu_array.length > 0) {
-        dispatch(setMenuArray(response.menu_array));
-      }
-      // Only replace the branding when this response carries one.
-      if (response.branding) setBrandTheme({ ...response.branding, institutionCode: brand?.institutionCode });
-      return true;
-    } catch {
-      clearAuthSession();
-      dispatch(clearToken());
-      dispatch(clearMenuState());
-      clearBrandTheme();
-      return false;
-    }
-  };
   // A forced change (is_force_pwd, first sign-in) is done once this succeeds:
   // the stored user no longer carries the flag, so the app opens up.
   const changePassword = async (oldPassword, newPassword) => {
@@ -99,5 +67,5 @@ export function useAuth(selector) {
     dispatch(clearMenuState());
     clearBrandTheme();
   };
-  return selector({ ...auth, login, refresh, changePassword, logout });
+  return selector({ ...auth, login, changePassword, logout });
 }

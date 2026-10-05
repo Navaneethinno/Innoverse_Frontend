@@ -1,3 +1,5 @@
+import { authFetch } from "@/Services/api/authFetch";
+import { seal, withSealedRetry } from "@/Services/api/credentialSeal";
 import { normalizeBranding } from "@/Utils/Lib/branding";
 import { trimPayload } from "@/Utils/Lib/trimPayload";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
@@ -70,19 +72,20 @@ function getResponsePayload(response) {
     : response.text().catch(() => null);
 }
 
-async function request(endpoint, init) {
+async function request(endpoint, init, send = fetch) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), LOGIN_TIMEOUT);
   try {
-    const response = await fetch(API_BASE_URL + endpoint, {
+    const response = await send(API_BASE_URL + endpoint, {
       ...init,
       signal: controller.signal,
     });
     const payload = await getResponsePayload(response);
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw new Error(statusMessage);
+    if (statusMessage) throw Object.assign(new Error(statusMessage), { code: payload?.error_code });
     if (!response.ok) {
-      throw new Error(getApiErrorMessage(payload, "Request failed with status " + response.status));
+      // error_code (a stable key) rides along for callers that branch on it.
+      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed with status " + response.status)), { code: payload?.error_code });
     }
     return payload;
   } catch (error) {
@@ -97,17 +100,20 @@ async function request(endpoint, init) {
 
 // Usernames are unique only within an institution, so the login names it
 // by its code (case does not matter).
+// The password is sealed (credentialSeal.js), afresh on every try.
 export async function loginRequest(institutionCode, username, password) {
-  const payload = await request(API_ENDPOINTS.AUTH.LOGIN, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Deviceinfo: JSON.stringify(DEVICE_INFO),
-      Authorization: getBasicAuthorization(),
-      ...apiLanguageHeader(),
-    },
-    body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password }),
-  });
+  const payload = await withSealedRetry(async () =>
+    request(API_ENDPOINTS.AUTH.LOGIN, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Deviceinfo: JSON.stringify(DEVICE_INFO),
+        Authorization: getBasicAuthorization(),
+        ...apiLanguageHeader(),
+      },
+      body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password: await seal(password) }),
+    }),
+  );
   return parseSessionResponse(payload);
 }
 
@@ -145,14 +151,20 @@ export async function logoutRequest() {
 }
 
 export async function changePassword(oldPassword, newPassword) {
-  return request(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Deviceinfo: JSON.stringify(DEVICE_INFO),
-      Authorization: "Bearer " + (getAccessToken() || ""),
-      ...apiLanguageHeader(),
-    },
-    body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
-  });
+  return withSealedRetry(async () =>
+    request(
+      API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Deviceinfo: JSON.stringify(DEVICE_INFO),
+          Authorization: "Bearer " + (getAccessToken() || ""),
+          ...apiLanguageHeader(),
+        },
+        body: JSON.stringify({ old_password: await seal(oldPassword), new_password: await seal(newPassword) }),
+      },
+      authFetch,
+    ),
+  );
 }

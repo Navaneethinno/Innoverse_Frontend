@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -19,7 +20,7 @@ export async function request(path, body = {}) {
   const timeout = window.setTimeout(() => controller.abort(), 30000);
   try {
     const token = getAccessToken();
-    const response = await fetch(`${API_BASE_URL}${scopedPath(path)}`, {
+    const response = await authFetch(`${API_BASE_URL}${scopedPath(path)}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

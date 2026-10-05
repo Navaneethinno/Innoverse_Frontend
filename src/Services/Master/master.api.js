@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 // Master (Reference Data) endpoints — per the official Postman collection
 // ("InnoVerse_ConfigProcessor"), these live under the "Master (Reference
 // Data)" folder and are distinct from the Institution/Module CONFIGURATION
@@ -44,7 +45,7 @@ async function masterPost(path, body, { basicAuthFallback = false } = {}) {
       ? getBasicAuthorization()
       : undefined;
   try {
-    const response = await fetch(API_BASE_URL + path, {
+    const response = await authFetch(API_BASE_URL + path, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

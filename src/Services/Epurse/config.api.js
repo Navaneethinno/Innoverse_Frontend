@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
@@ -13,7 +14,7 @@ async function request(path, body = {}) {
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
   try {
-    const response = await fetch(`${API_BASE_URL}${scopedPath(path)}`, {
+    const response = await authFetch(`${API_BASE_URL}${scopedPath(path)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Deviceinfo: JSON.stringify(DEVICE_INFO), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...apiLanguageHeader() },
       body: JSON.stringify(scopedBody(body)),

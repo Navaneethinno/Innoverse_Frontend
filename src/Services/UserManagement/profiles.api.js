@@ -1,4 +1,5 @@
 import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
 // Profile (URMG) endpoints — per the official Postman collection
 // ("InnoVerse_ConfigProcessor" -> "Profile (URMG)"). "Profile" here means a
 // role/permission profile (a named set of menu_id/action_id grants), NOT
@@ -26,7 +27,7 @@ async function request(path, body) {
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
   const token = getAccessToken();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await authFetch(`${API_BASE_URL}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
