@@ -2810,6 +2810,15 @@ export const deposits = {
 };
 
 export const loans = {
+  pricingType: "Rate type",
+  pricingFixed: "Fixed",
+  pricingVariable: "Variable",
+  referenceRate: "Reference rate",
+  spreadPct: "Spread (%)",
+  referenceRates: "Reference rates",
+  referenceRatesHint: "A variable rate band uses the latest approved rate of its code on or before the day, plus the band's spread. A new rate waits for a checker.",
+  addRate: "Add rate",
+  noReferenceRates: "No reference rates yet.",
   opt_PIN_SET: "When the PIN is set",
   opt_IMMEDIATE: "Immediately",
   opt_MANUAL: "By staff",

@@ -63,7 +63,13 @@ function toBody(c) {
       maximum_amount: str(term.maximum_amount),
       effective_from: term.effective_from ?? "",
       ...(term.effective_to ? { effective_to: term.effective_to } : {}),
-      pricing: (term.pricing ?? []).map((b) => ({ ...keepId(b), ...b, minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), annual_rate: str(b.annual_rate, ""), pricing_type: "FIXED" })),
+      // A VARIABLE band is the reference rate in force on the day plus the
+      // spread (annual_rate is then ignored); FIXED carries its own rate.
+      pricing: (term.pricing ?? []).map(({ reference_rate_code, spread, annual_rate, ...b }) =>
+        b.pricing_type === "VARIABLE"
+          ? { ...keepId(b), ...b, minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), reference_rate_code: str(reference_rate_code, "").toUpperCase(), spread: str(spread, "0") }
+          : { ...keepId(b), ...b, minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), annual_rate: str(annual_rate, ""), pricing_type: "FIXED" },
+      ),
     })),
     fees: (c.fees ?? []).map((f) => ({ ...keepId(f), fee_code: str(f.fee_code, "").toUpperCase(), fee_name: str(f.fee_name, ""), calculation_type: f.calculation_type, fee_value: str(f.fee_value), maximum_fee: str(f.maximum_fee), collection_point: f.collection_point, refundable: Boolean(f.refundable) })),
   };
@@ -118,7 +124,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
     if (key === "product" && (!str(config.product_name, "") || (!product && (!/^[A-Z0-9_]+$/.test(head.product_code) || !head.currency_code)))) return t("productNeedsBasics");
     if (key === "terms") {
       if (!config.terms?.length) return t("addOneTerm");
-      if (config.terms.some((x) => !x.term_code || !(Number(x.term_value) > 0) || !x.pricing?.length || x.pricing.some((b) => b.annual_rate === ""))) return t("termNeedsParts");
+      if (config.terms.some((x) => !x.term_code || !(Number(x.term_value) > 0) || !x.pricing?.length || x.pricing.some((b) => (b.pricing_type === "VARIABLE" ? !b.reference_rate_code || b.spread === "" : b.annual_rate === "")))) return t("termNeedsParts");
     }
     if (key === "fees" && config.fees?.some((f) => !f.fee_code || !f.fee_name || f.fee_value === "")) return t("feeNeedsParts");
     if (key === "approvals" && !config.approval_matrix?.length) return t("addOneApprovalRow");
@@ -234,7 +240,10 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
                   fields={[
                     { key: "minimum_amount", label: t("amountFrom"), type: "amount" },
                     { key: "maximum_amount", label: t("upToZero"), type: "amount" },
-                    { key: "annual_rate", label: t("ratePct"), type: "rate" },
+                    { key: "pricing_type", label: t("pricingType"), type: "select", options: [{ value: "FIXED", label: t("pricingFixed") }, { value: "VARIABLE", label: t("pricingVariable") }] },
+                    { key: "annual_rate", label: t("ratePct"), type: "rate", showIf: (b) => b.pricing_type !== "VARIABLE" },
+                    { key: "reference_rate_code", label: t("referenceRate"), placeholder: "BASE", showIf: (b) => b.pricing_type === "VARIABLE" },
+                    { key: "spread", label: t("spreadPct"), type: "rate", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "calculation_method", label: t("calculationMethod"), ...sel(options.calculation_methods) },
                     { key: "day_count_convention", label: t("dayCount"), ...sel(options.day_count_conventions) },
                     { key: "effective_from", label: t("effectiveFrom"), type: "date" },
@@ -441,7 +450,8 @@ export function RateCheck({ product, decimals = 2 }) {
       {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
       {quote && (
         <p className="mt-2 text-sm">
-          <b className="text-lg text-primary">{ratePct(quote.annual_rate)}</b> · {quote.term_code} · {loanLabel(t, quote.calculation_method)} · {loanLabel(t, quote.day_count_convention)}
+          <b className="text-lg text-primary">{ratePct(quote.annual_rate)}</b>
+          {quote.reference_rate_code && <span className="text-xs text-muted-foreground"> ({quote.reference_rate_code} {ratePct(quote.reference_rate)} + {ratePct(quote.spread)})</span>} · {quote.term_code} · {loanLabel(t, quote.calculation_method)} · {loanLabel(t, quote.day_count_convention)}
         </p>
       )}
     </div>

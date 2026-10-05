@@ -2824,6 +2824,15 @@ export const deposits = {
 };
 
 export const loans = {
+  pricingType: "Tipo de taxa",
+  pricingFixed: "Fixa",
+  pricingVariable: "Variável",
+  referenceRate: "Taxa de referência",
+  spreadPct: "Spread (%)",
+  referenceRates: "Taxas de referência",
+  referenceRatesHint: "Uma faixa variável usa a última taxa aprovada do seu código até ao dia, mais o spread da faixa. Uma nova taxa aguarda um verificador.",
+  addRate: "Adicionar taxa",
+  noReferenceRates: "Ainda sem taxas de referência.",
   opt_PIN_SET: "Quando o PIN é definido",
   opt_IMMEDIATE: "Imediatamente",
   opt_MANUAL: "Pela equipa",

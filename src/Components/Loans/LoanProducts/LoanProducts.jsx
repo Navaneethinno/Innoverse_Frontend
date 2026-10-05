@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Plus, Power, RefreshCw, RotateCcw, Search, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RefreshCw, RotateCcw, Search, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -18,6 +18,7 @@ import { ProductStatus } from "../../TermDeposits/DepositProducts/productShared"
 import { loanLabel, useInstitutionScope } from "../loanShared";
 import { LoanConfigSummary } from "./loanProductShared";
 import { LoanProductWizard, RateCheck } from "./LoanProductWizard";
+import { ReferenceRates } from "./ReferenceRates";
 
 const STATUSES = [
   [1, "Active"],
@@ -35,6 +36,7 @@ export function LoanProducts() {
   const { t } = useTranslation(["loans", "deposits", "common"]);
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const [ratesOpen, setRatesOpen] = useState(false);
   const [tab, setTab] = useState("all");
   const [filters, setFilters] = useState({ search: "", status: "", product_category: "" });
   const [applied, setApplied] = useState(filters);
@@ -100,6 +102,9 @@ export function LoanProducts() {
           <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle")}</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
+            {t("referenceRates")}
+          </Button>
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
             {t("refresh")}
           </Button>
@@ -110,6 +115,7 @@ export function LoanProducts() {
           )}
         </div>
       </div>
+      {ratesOpen && <ReferenceRates scope={scope} onClose={() => setRatesOpen(false)} />}
       {chooser && (
         <div className="mb-4 max-w-sm">
           <InstitutionField value={institution} onChange={setInstitution} />

@@ -8,6 +8,10 @@ const calls = (base, verbs) => Object.fromEntries(verbs.map((verb) => [verb, (bo
 // The record a reply carries: data[0], or data itself when it is an object.
 export const recordOf = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 
+// Reference rates (Loan Products menu) for VARIABLE rate bands:
+//   list { code?, status? } · add { code, annual_rate, effective_from } · auth / deauth { id }
+export const loanReferenceRatesApi = calls("/config/loan/reference_rate", ["list", "add", "auth", "deauth"]);
+
 // Lending Regulatory Profile (menu 185): one per institution, maker-checker.
 export const regulatoryProfileApi = calls("/config/loan/regulatory_profile", ["get", "edit", "auth", "deauth"]);
 

@@ -88,7 +88,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
                 columns={[
                   { key: "minimum_amount", label: t("amountFrom"), render: (b) => money(b.minimum_amount, currency) },
                   { key: "maximum_amount", label: t("upTo"), render: (b) => upTo(t, b.maximum_amount, currency) },
-                  { key: "annual_rate", label: t("rate"), render: (b) => <b className="text-primary">{ratePct(b.annual_rate)}</b> },
+                  { key: "annual_rate", label: t("rate"), render: (b) => (b.pricing_type === "VARIABLE" ? <b className="text-primary">{`${b.reference_rate_code} + ${ratePct(b.spread)}`}</b> : <b className="text-primary">{ratePct(b.annual_rate)}</b>) },
                   { key: "calculation_method", label: t("calculationMethod"), render: (b) => loanLabel(t, b.calculation_method) },
                   { key: "day_count_convention", label: t("dayCount"), render: (b) => loanLabel(t, b.day_count_convention) },
                   { key: "effective_from", label: t("effectiveFrom"), render: (b) => dayDate(b.effective_from) },
