@@ -234,6 +234,16 @@ function SnapshotRow({ title, snap }) {
         </Tile>
       </div>
       {snap.reasons?.length > 0 && <ReasonChips reasons={snap.reasons} className="mt-3" />}
+      {snap.eligibility?.length > 0 && (
+        <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-200">
+          <p className="mb-1 font-bold">{t("eligibilityMissed")}</p>
+          <ul className="list-disc pl-4">
+            {snap.eligibility.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

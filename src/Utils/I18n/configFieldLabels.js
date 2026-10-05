@@ -125,6 +125,8 @@ const PT = {
   "Maximum balance": "Saldo máximo",
   "Maximum balance for interest": "Saldo máximo para juros",
   "Maximum cards": "Máximo de cartões",
+  "The customer portal signs in with a password and has no login PIN, so the login PIN settings have no effect yet. The transaction PIN length applies between 4 and 12.": "O portal do cliente entra com palavra-passe e não tem PIN de acesso, por isso as definições do PIN de acesso ainda não têm efeito. O comprimento do PIN de transação aplica-se entre 4 e 12.",
+  "The transaction PIN length must be between 4 and 12.": "O comprimento do PIN de transação deve estar entre 4 e 12.",
   "Maximum holders": "Máximo de titulares",
   "Maximum level": "Nível máximo",
   "Maximum members": "Máximo de membros",

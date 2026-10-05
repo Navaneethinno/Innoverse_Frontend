@@ -40,6 +40,7 @@ const REASON_TONE = {
   RISK_REJECT: "border-red-200 bg-red-50 text-red-700",
   AML_REJECT: "border-red-200 bg-red-50 text-red-700",
   AML_ERROR: "border-orange-200 bg-orange-50 text-orange-700",
+  PRODUCT_NOT_ELIGIBLE: "border-orange-200 bg-orange-50 text-orange-700",
   RISK_REVIEW: "border-amber-200 bg-amber-50 text-amber-800",
   AML_REVIEW: "border-amber-200 bg-amber-50 text-amber-800",
 };

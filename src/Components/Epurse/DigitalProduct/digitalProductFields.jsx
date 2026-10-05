@@ -41,6 +41,9 @@ export const CONFIGS = {
   },
   security_config: {
     title: "Security Config",
+    // The portal signs in with a password: login PIN settings do nothing yet.
+    note: "The customer portal signs in with a password and has no login PIN, so the login PIN settings have no effect yet. The transaction PIN length applies between 4 and 12.",
+    check: (v) => (!v.transaction_pin_inherit && v.transaction_pin_length !== "" && v.transaction_pin_length != null && (Number(v.transaction_pin_length) < 4 || Number(v.transaction_pin_length) > 12) ? "The transaction PIN length must be between 4 and 12." : ""),
     fields: [
       ["login_pin_inherit", "Login PIN inherit", "boolean"],
       ["login_pin_required", "Login PIN required", "boolean"],

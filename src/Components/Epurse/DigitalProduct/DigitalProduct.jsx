@@ -100,6 +100,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
         }}
         className="grid gap-4"
       >
+        {config.note && <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{tr(config.note)}</p>}
         {orderedFields(config.fields)
           .filter(([, , , showIf]) => !showIf || showIf(value))
           .map(([key, label, type]) =>
@@ -261,6 +262,11 @@ export function DigitalProduct({ entity }) {
     if (missingField) {
       const label = tr(missingField[1]).toLowerCase();
       notifications.error(`Please select ${/^[aeiou]/.test(label) ? "an" : "a"} ${label}`);
+      return;
+    }
+    const problem = config.check?.(form);
+    if (problem) {
+      notifications.error(tr(problem));
       return;
     }
     setSaving(true);

@@ -26,7 +26,7 @@ const TABS = [
   { key: "PENDING_DECISION", body: { status: "PENDING_DECISION" } },
   { key: "CLOSED", body: { status: "CLOSED" } },
 ];
-const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_AML_SCREENING", "NO_AML_SETUP", "AML_ERROR", "MANUAL_POLICY"];
+const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_AML_SCREENING", "NO_AML_SETUP", "AML_ERROR", "MANUAL_POLICY", "PRODUCT_NOT_ELIGIBLE"];
 const EMPTY = { search: "", priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "" };
 const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
 

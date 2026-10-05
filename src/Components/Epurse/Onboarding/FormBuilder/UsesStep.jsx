@@ -14,6 +14,8 @@ import { cn } from "@/Utils/Lib/cn";
 const LISTS = ["DROPDOWN", "RADIO", "CHECKBOXES"];
 const COMPARABLE = ["TEXT", "NUMBER", "DATE", "PHONE", "EMAIL", "DROPDOWN", "RADIO"];
 const COUNTRY_SOURCES = new Set(["master.country", "master.nationality"]);
+// The digital product's residency rule reads the list field with this role.
+const RESIDENCY_SOURCE = "master.residency_type";
 const DOC_TYPE_SOURCE = "cust_master_config.indv_document_type";
 const SCREENING = ["screening_name", "screening_birth_date", "screening_country", "screening_gender", "screening_alt_name"];
 const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
@@ -62,6 +64,7 @@ function suggestUses(fields, kind) {
   put("screening_country", nationality ? [nationality.key] : only(countries));
   const gender = fields.find((f) => isList(f) && /gender|sex/.test(text(f)));
   if (gender) put("screening_gender", [gender.key]);
+  if (kind !== "corporate") put("residency", only(fields.filter((f) => isList(f) && f.source_table === RESIDENCY_SOURCE)));
   put("contact_phone", only(fields.filter((f) => f.field_type === "PHONE")));
   put("contact_email", only(fields.filter((f) => f.field_type === "EMAIL")));
   const docType = fields.find(isDocTypeList);
@@ -218,6 +221,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
   const countries = fields.filter(isCountryList);
   const lists = fields.filter(isList);
   const phones = ofType(["PHONE"]);
+  const residencies = corporate ? [] : lists.filter((f) => f.source_table === RESIDENCY_SOURCE);
   const emails = ofType(["EMAIL"]);
   const comparable = ofType(COMPARABLE);
   const addFieldFirst = (type) => (
@@ -235,7 +239,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
       summary={nameKeys.length ? t("usesNameSummary", { list: labels(nameKeys) }) : t("usesNotSet")}
       open={open.has("name")}
       onToggle={() => toggle("name")}
-      problems={problemsFor(problems, ["display_name", "contact_phone", "contact_email"])}
+      problems={problemsFor(problems, ["display_name", "contact_phone", "contact_email", "residency"])}
     >
       {texts.length ? (
         <OrderedChips fields={texts} value={nameKeys} disabled={readOnly} onChange={(keys) => set({ display_name: keys })} />
@@ -251,6 +255,11 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
             {phones.length > 0 && <Pick label={t("usesPhone")} fields={phones} value={get("contact_phone")[0]} disabled={readOnly} emptyLabel={t("usesDontPrefill")} onChange={(keys) => set({ contact_phone: keys })} />}
             {emails.length > 0 && <Pick label={t("usesEmail")} fields={emails} value={get("contact_email")[0]} disabled={readOnly} emptyLabel={t("usesDontPrefill")} onChange={(keys) => set({ contact_email: keys })} />}
           </div>
+        </div>
+      )}
+      {residencies.length > 0 && (
+        <div className="grid gap-3 md:grid-cols-2">
+          <Pick label={t("usesResidency")} fields={residencies} value={get("residency")[0]} disabled={readOnly} emptyLabel={t("usesResidencyNone")} onChange={(keys) => set({ residency: keys })} />
         </div>
       )}
     </Card>
