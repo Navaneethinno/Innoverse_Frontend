@@ -14,6 +14,8 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
 import { AccountStatement } from "./AccountStatement";
+import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } from "./AccountActions";
+import { Tabs } from "../../Loans/loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const EMPTY_FILTERS = { acct_num: "", owner_name: "", party: "", ownership: "", acct_class: "", status: "" };
@@ -29,8 +31,9 @@ const filterBody = (f) => ({
   ...(f.status !== "" ? { status: Number(f.status) } : {}),
 });
 
-// EPURSE > Accounts (menu 178, view only): every customer's and merchant's
-// account, opened automatically on approval. A bank / fintech user sees its
+// EPURSE > Accounts (menu 178): every customer's and merchant's account,
+// opened automatically on approval; freeze / block / close / reactivate /
+// activate and parties go through maker-checker requests (AccountActions). A bank / fintech user sees its
 // own institution's; a service provider sees every institution's.
 export function Accounts() {
   const { t } = useTranslation(["accounts", "common"]);
@@ -93,7 +96,16 @@ export function Accounts() {
     { key: "digital_product_name", label: t("digitalProduct"), render: (r) => <span className="text-xs">{r.digital_product_name ?? "—"}</span> },
     { key: "avail_bal", label: t("availBal"), render: (r) => <span className="whitespace-nowrap text-xs font-semibold">{money(r.avail_bal, r.currency_code)}</span> },
     { key: "inst_profile_name", label: t("institution"), render: (r) => <span className="text-xs">{r.inst_profile_name ?? "—"}</span> },
-    { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status_name ?? String(r.status ?? "")} variant="subtle" /> },
+    {
+      key: "status",
+      label: t("status"),
+      render: (r) => (
+        <span className="inline-flex flex-wrap items-center justify-center gap-1">
+          <StatusBadge status={r.status_name ?? String(r.status ?? "")} variant="subtle" />
+          <RestrictionBadge value={r.restriction} />
+        </span>
+      ),
+    },
     { key: "opened_at", label: t("openedAt"), render: (r) => <span className="whitespace-nowrap text-xs">{accountDate(r.opened_at)}</span> },
     {
       key: "actions",
@@ -212,9 +224,12 @@ export function Accounts() {
 }
 
 // One account, fetched fresh (/config/account/get) for its latest balances.
+// Tabs: the account itself, its action requests, its parties, its statements.
 function AccountDetail({ account, onClose, onStatement }) {
   const { t } = useTranslation("accounts");
   const [full, setFull] = useState(null);
+  const [tab, setTab] = useState("overview");
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,7 +244,7 @@ function AccountDetail({ account, onClose, onStatement }) {
     return () => {
       cancelled = true;
     };
-  }, [account]);
+  }, [account, version]);
 
   const a = full ?? account;
   const rows = [
@@ -243,7 +258,7 @@ function AccountDetail({ account, onClose, onStatement }) {
   ];
 
   return (
-    <Modal open onClose={onClose} size="lg" title={t("accountTitle", { number: a.acct_num })}>
+    <Modal open onClose={onClose} size="xl" title={t("accountTitle", { number: a.acct_num })}>
       {!full && (
         <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
           <Spinner size={12} /> {t("refreshing")}
@@ -255,34 +270,43 @@ function AccountDetail({ account, onClose, onStatement }) {
         </p>
         <div className="flex items-center gap-3">
           <StatusBadge status={a.status_name ?? String(a.status ?? "")} variant="subtle" />
+          <RestrictionBadge value={a.restriction} />
           <Button variant="outline" size="sm" icon={ScrollText} onClick={() => onStatement(a)}>
             {t("statement")}
           </Button>
         </div>
       </div>
-      <AccountBalances account={a} />
-      <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-        {rows.map(([key, value]) => (
-          <div key={key} className="rounded-xl border border-border bg-card p-3">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
-            <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
-          </div>
-        ))}
-      </dl>
-      {a.owner && (
-        <div className="mt-4 rounded-xl border border-border bg-card p-3">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("owner")}</p>
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-sm font-bold text-foreground">{a.owner.name || "—"}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {t(a.owner.party === "MERCHANT" ? "merchant" : "customer")} · {t(a.owner.ownership === "CORPORATE" ? "corporate" : "individual")}
-                {a.owner.reference_id ? ` · ${a.owner.reference_id}` : ""}
-              </p>
+      {a.acct_class !== "DEPOSIT" && <Tabs tabs={[{ key: "overview" }, { key: "requests" }, { key: "parties" }, { key: "statements" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />}
+      {tab === "requests" && <AccountRequests account={a} onChanged={() => setVersion((n) => n + 1)} />}
+      {tab === "parties" && <AccountParties account={a} />}
+      {tab === "statements" && <AccountStatements account={a} />}
+      {tab === "overview" && (
+        <>
+          <AccountBalances account={a} />
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            {rows.map(([key, value]) => (
+              <div key={key} className="rounded-xl border border-border bg-card p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
+                <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          {a.owner && (
+            <div className="mt-4 rounded-xl border border-border bg-card p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("owner")}</p>
+              <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-bold text-foreground">{a.owner.name || "—"}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t(a.owner.party === "MERCHANT" ? "merchant" : "customer")} · {t(a.owner.ownership === "CORPORATE" ? "corporate" : "individual")}
+                    {a.owner.reference_id ? ` · ${a.owner.reference_id}` : ""}
+                  </p>
+                </div>
+                {a.owner.status_name && <StatusBadge status={a.owner.status_name} variant="subtle" />}
+              </div>
             </div>
-            {a.owner.status_name && <StatusBadge status={a.owner.status_name} variant="subtle" />}
-          </div>
-        </div>
+          )}
+        </>
       )}
     </Modal>
   );

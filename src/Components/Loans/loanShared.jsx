@@ -210,7 +210,8 @@ export function Timeline({ events, currency }) {
 }
 
 // Tabs under a record's header.
-export function Tabs({ tabs, value, onChange }) {
+// `labelOf(key)` names a tab when the labels live outside the loans words.
+export function Tabs({ tabs, value, onChange, labelOf }) {
   const { t } = useTranslation("loans");
   return (
     <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
@@ -221,7 +222,7 @@ export function Tabs({ tabs, value, onChange }) {
           onClick={() => onChange(key)}
           className={cn("flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-bold transition-colors", value === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}
         >
-          {t(`tab_${key}`)}
+          {labelOf ? labelOf(key) : t(`tab_${key}`)}
           {count > 0 && <span className="rounded-full bg-muted px-1.5 text-[10px] tabular-nums">{count}</span>}
         </button>
       ))}

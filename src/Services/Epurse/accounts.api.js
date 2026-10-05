@@ -16,3 +16,27 @@ export const accountsApi = {
   ledger: (body) => request("/config/account/ledger", body),
   txn: (body) => request("/config/account/txn", body),
 };
+
+// Account actions (maker-checker): FREEZE, UNFREEZE, BLOCK, UNBLOCK, CLOSE,
+// REACTIVATE, ACTIVATE, ADD_PARTY, REMOVE_PARTY. One open request per
+// account; Self skips the checker (unless the product says closing needs
+// a second person).
+//   add: { acct_id, action, reason, party? } · auth / deauth: { id, narration }
+//   cancel: { id } (the requester, while pending) · list: { acct_id, status, page, limit }
+export const accountActionsApi = {
+  listPath: "/config/account/action/list",
+  add: (body) => request("/config/account/action/add", body),
+  auth: (body) => request("/config/account/action/auth", body),
+  deauth: (body) => request("/config/account/action/deauth", body),
+  cancel: (body) => request("/config/account/action/cancel", body),
+  get: (body) => request("/config/account/action/get", body),
+  list: (body) => request("/config/account/action/list", body),
+};
+
+// The account's other parties (joint holders, guardian, group members,
+// nominees) and its statements.
+export const accountPartiesApi = { list: (body) => request("/config/account/party/list", body) };
+export const accountStatementsApi = {
+  list: (body) => request("/config/account/statement/list", body),
+  get: (body) => request("/config/account/statement/get", body),
+};
