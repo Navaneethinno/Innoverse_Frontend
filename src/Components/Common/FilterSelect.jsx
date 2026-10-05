@@ -129,7 +129,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       <button
         type="button"
         disabled={disabled}
-        title={disabled ? disabledReason : undefined}
+        title={disabled ? disabledReason : typeof selected?.label === "string" ? selected.label : undefined}
         onClick={() => !disabled && setIsOpen((open) => !open)}
         className={cn(
           "flex w-full items-center justify-between gap-2 border border-border bg-card font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",

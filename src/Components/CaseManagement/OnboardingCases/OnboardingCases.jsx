@@ -172,17 +172,17 @@ export function OnboardingCases() {
         ))}
       </div>
 
-      <form onSubmit={apply} className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-7">
-        <input className={cn(inputClass, "lg:col-span-2")} placeholder={t("searchPlaceholder")} value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} />
-        <FilterSelect value={filters.priority} onChange={setFilter("priority")} options={[{ value: "", label: t("anyPriority") }, { value: "HIGH", label: t("high") }, { value: "NORMAL", label: t("normal") }]} />
-        <FilterSelect value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("anyReason") }, ...REASONS.map((r) => ({ value: r, label: t(`reason_${r}`) }))]} />
-        <FilterSelect value={filters.party} onChange={setFilter("party")} options={[{ value: "", label: t("anyParty") }, { value: "CUSTOMER", label: t("customer") }, { value: "MERCHANT", label: t("merchant") }]} />
+      <form onSubmit={apply} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
+        <input className={cn(inputClass, "min-w-[14rem] flex-[2_1_16rem]")} placeholder={t("searchPlaceholder")} value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} />
+        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.priority} onChange={setFilter("priority")} options={[{ value: "", label: t("anyPriority") }, { value: "HIGH", label: t("high") }, { value: "NORMAL", label: t("normal") }]} />
+        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("anyReason") }, ...REASONS.map((r) => ({ value: r, label: t(`reason_${r}`) }))]} />
+        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.party} onChange={setFilter("party")} options={[{ value: "", label: t("anyParty") }, { value: "CUSTOMER", label: t("customer") }, { value: "MERCHANT", label: t("merchant") }]} />
         {tab === "CLOSED" ? (
-          <FilterSelect value={filters.outcome} onChange={setFilter("outcome")} options={[{ value: "", label: t("anyOutcome") }, ...["APPROVED", "REJECTED", "WITHDRAWN"].map((o) => ({ value: o, label: t(`outcome_${o}`) }))]} />
+          <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.outcome} onChange={setFilter("outcome")} options={[{ value: "", label: t("anyOutcome") }, ...["APPROVED", "REJECTED", "WITHDRAWN"].map((o) => ({ value: o, label: t(`outcome_${o}`) }))]} />
         ) : (
-          <FilterSelect value={filters.assigned} onChange={setFilter("assigned")} options={[{ value: "", label: t("anyAssignee") }, { value: "ME", label: t("assignedToMe") }, { value: "UNASSIGNED", label: t("unassigned") }]} />
+          <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.assigned} onChange={setFilter("assigned")} options={[{ value: "", label: t("anyAssignee") }, { value: "ME", label: t("assignedToMe") }, { value: "UNASSIGNED", label: t("unassigned") }]} />
         )}
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button type="submit" size="sm" icon={Search} className="flex-1">{t("search")}</Button>
           <Button
             variant="secondary"

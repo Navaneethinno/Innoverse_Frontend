@@ -74,10 +74,23 @@ export async function loadLogo(url) {
   }
 }
 
+// An amount as people read it: grouped, two decimals, more only when they
+// carry something ("10.000000" -> "10.00", "7.125000" -> "7.125").
+// Whole numbers (counts) stay whole.
+function amount(v) {
+  const text = v.trim();
+  if (!text) return text;
+  const [, fraction = ""] = text.replace(/,/g, "").split(".");
+  const kept = fraction.replace(/0+$/, "").length;
+  const digits = fraction ? Math.max(2, kept) : 0;
+  return Number(text.replace(/,/g, "")).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+}
+
 // What both the preview and the PDF show.
 export function reportModel(csvText, { title, generatedOn, color, logo, labels }) {
-  const [head = [], ...body] = parseCsv(csvText);
-  const numeric = head.map((_, c) => isNumeric(body.map((r) => r[c] ?? "")));
+  const [head = [], ...raw] = parseCsv(csvText);
+  const numeric = head.map((_, c) => isNumeric(raw.map((r) => r[c] ?? "")));
+  const body = raw.map((r) => head.map((_, c) => (numeric[c] ? amount(r[c] ?? "") : (r[c] ?? ""))));
   const base = rgb(color);
   return { title, generatedOn, head, body, numeric, logo, labels, base, text: ink(base) };
 }

@@ -11,6 +11,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { cn } from "@/Utils/Lib/utils";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
 import { AccountStatement } from "./AccountStatement";
@@ -129,9 +130,9 @@ export function Accounts() {
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
 
-      <form onSubmit={search} className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-7">
-        <input className={inputClass} placeholder={t("accountNumber")} value={filters.acct_num} onChange={(e) => setFilter("acct_num")(e.target.value)} />
-        <input className={inputClass} placeholder={t("ownerName")} value={filters.owner_name} onChange={(e) => setFilter("owner_name")(e.target.value)} />
+      <form onSubmit={search} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
+        <input className={cn(inputClass, "min-w-[12rem] flex-[1_1_12rem]")} placeholder={t("accountNumber")} value={filters.acct_num} onChange={(e) => setFilter("acct_num")(e.target.value)} />
+        <input className={cn(inputClass, "min-w-[12rem] flex-[1_1_12rem]")} placeholder={t("ownerName")} value={filters.owner_name} onChange={(e) => setFilter("owner_name")(e.target.value)} />
         <FilterSelect
           value={filters.party}
           onChange={setFilter("party")}
@@ -168,7 +169,7 @@ export function Accounts() {
             { value: "0", label: t("inactive") },
           ]}
         />
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button type="submit" size="sm" icon={Search} className="flex-1">
             {t("search")}
           </Button>

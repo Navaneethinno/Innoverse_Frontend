@@ -82,7 +82,10 @@ export function ExportButtons({ exportFile, disabled = false, children }) {
       if (format !== "PDF") return saveBlob(blob, fileName);
       const { loadLogo, previewHtml, reportModel, reportPdf } = await import("./reportPdf");
       const base = String(fileName ?? t("report")).replace(/\.[^.]+$/, "");
-      const title = base.replace(/[_-]+/g, " ").replace(/(^|\s)\w/g, (c) => c.toUpperCase());
+      // "card_summary_2026-10-01_2026-10-05" -> "Card Summary (01 Oct 2026 – 05 Oct 2026)".
+      const dates = [...base.matchAll(/(\d{4})-(\d{2})-(\d{2})/g)].map(([iso]) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" }));
+      const words = base.replace(/\d{4}-\d{2}-\d{2}/g, " ").replace(/[_-]+/g, " ").trim().replace(/\s+/g, " ").replace(/(^|\s)\w/g, (c) => c.toUpperCase());
+      const title = dates.length ? `${words} (${dates.join(" – ")})` : words;
       const model = reportModel(await blob.text(), {
         title,
         generatedOn: atIst(new Date().toISOString()),
