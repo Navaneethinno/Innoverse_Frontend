@@ -2,7 +2,7 @@ import { authFetch } from "@/Services/api/authFetch";
 import { seal, withSealedRetry } from "@/Services/api/credentialSeal";
 import { normalizeBranding } from "@/Utils/Lib/branding";
 import { trimPayload } from "@/Utils/Lib/trimPayload";
-import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { apiError, getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { unwrapApiResponse } from "@/Services/api/response";
 import { getAccessToken, getRefreshToken } from "@/Services/api/authStorage";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
@@ -82,10 +82,9 @@ async function request(endpoint, init, send = fetch) {
     });
     const payload = await getResponsePayload(response);
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw Object.assign(new Error(statusMessage), { code: payload?.error_code });
+    if (statusMessage) throw apiError(statusMessage, payload);
     if (!response.ok) {
-      // error_code (a stable key) rides along for callers that branch on it.
-      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed with status " + response.status)), { code: payload?.error_code });
+      throw apiError(getApiErrorMessage(payload, "Request failed with status " + response.status), payload);
     }
     return payload;
   } catch (error) {

@@ -1,6 +1,7 @@
+import { sealFields, withSealedRetry } from "@/Services/api/credentialSeal";
 import { scopedBody } from "@/Utils/Lib/institutionScope";
 import { authFetch } from "@/Services/api/authFetch";
-import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { apiError, getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
@@ -41,9 +42,9 @@ async function request(path, body) {
       throw new Error("Session expired. Please sign in again.");
     }
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw new Error(statusMessage);
+    if (statusMessage) throw apiError(statusMessage, payload);
     if (!response.ok)
-      throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));
+      throw apiError(getApiErrorMessage(payload, `Request failed with status ${response.status}`), payload);
     return payload;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")
@@ -75,8 +76,9 @@ export const usersApi = {
   getActive: (payload = { view: "dropdown" }) => request(USER.GET_ACTIVE, payload),
   audit: (payload) => request(USER.AUDIT, payload),
   pending: (payload = {}) => request(USER.PENDING, payload),
-  add: (payload) => request(USER.ADD, userPayload(payload)),
-  edit: (payload) => request(USER.EDIT, userPayload(payload)),
+  // The new user's password (password_hash) is sealed, afresh on each try.
+  add: (payload) => withSealedRetry(async () => request(USER.ADD, await sealFields(userPayload(payload)))),
+  edit: (payload) => withSealedRetry(async () => request(USER.EDIT, await sealFields(userPayload(payload)))),
   submit: (payload) => request(USER.SUBMIT, payload),
   auth: (payload) => request(USER.AUTH, payload),
   deauth: (payload) => request(USER.DEAUTH, payload),

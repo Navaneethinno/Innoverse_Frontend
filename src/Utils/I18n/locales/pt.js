@@ -2832,6 +2832,9 @@ export const deposits = {
 };
 
 export const loans = {
+  rateStatus_PENDING: "A aguardar aprovação",
+  rateStatus_ACTIVE: "Ativa",
+  rateStatus_REJECTED: "Rejeitada",
   pricingType: "Tipo de taxa",
   pricingFixed: "Fixa",
   pricingVariable: "Variável",

@@ -18,5 +18,5 @@ export function useIsTenant() {
 // changes to either (own account: My Profile / Change Password).
 export function useOwnIds() {
   const user = useAuth((state) => state.user);
-  return { userId: String(user?.session_user_id ?? user?.user_id ?? user?.id ?? ""), userName: String(user?.user_name ?? user?.username ?? ""), institutionId: String(user?.scope?.institution_id ?? "") };
+  return { userId: String(user?.session_user_id ?? user?.user_id ?? user?.id ?? ""), institutionId: String(user?.scope?.institution_id ?? "") };
 }

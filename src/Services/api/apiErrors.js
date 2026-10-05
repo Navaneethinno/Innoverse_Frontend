@@ -52,3 +52,11 @@ export function getStatusErrorMessage(status, payload) {
   }
   return null;
 }
+
+// An Error carrying the reply's stable `error_code` (to branch on) and,
+// when a refusal sends it, the server's clock (`server_time`, Unix ms).
+export function apiError(message, payload) {
+  const body = payload && typeof payload === "object" ? payload : {};
+  const first = Array.isArray(body.data) ? body.data[0] : body.data;
+  return Object.assign(new Error(message), { code: body.error_code, serverTime: body.server_time ?? first?.server_time });
+}

@@ -72,7 +72,7 @@ export function AccountRequests({ account, onChanged }) {
 
   const load = useCallback(async () => {
     try {
-      setRows(rowsOf(await accountActionsApi.list({ acct_id: account.id, page: 1, limit: 50 })).flatMap((r) => r.items ?? r.requests ?? [r]));
+      setRows(rowsOf(await accountActionsApi.list({ acct_id: account.id, page: 1, limit: 50 })));
     } catch (error) {
       notifications.error(error.message);
       setRows([]);
@@ -99,7 +99,8 @@ export function AccountRequests({ account, onChanged }) {
   };
 
   const pending = rows?.find((r) => r.status === "PENDING");
-  const mine = pending && [String(own.userId), own.userName].includes(String(pending.requested_by));
+  // Only the requester may cancel (by user id: names repeat across institutions).
+  const mine = pending && String(pending.requested_userid) === own.userId;
   const buttons = !pending && can("Edit") ? offeredActions(account).map((code) => ({ key: code, label: t(`action_${code}`), icon: ICONS[code], variant: code === "CLOSE" || code === "BLOCK" ? "danger" : "secondary", run: () => setDialog({ kind: "add", action: code }) })) : [];
 
   return (
@@ -167,7 +168,7 @@ export function AccountParties({ account }) {
 
   const load = useCallback(async () => {
     try {
-      setRows(rowsOf(await accountPartiesApi.list({ acct_id: account.id })).flatMap((r) => r.parties ?? r.items ?? [r]));
+      setRows(rowsOf(await accountPartiesApi.list({ acct_id: account.id })));
     } catch (error) {
       notifications.error(error.message);
       setRows([]);
@@ -308,7 +309,7 @@ export function AccountStatements({ account }) {
     let cancelled = false;
     accountStatementsApi
       .list({ acct_id: account.id, page: 1, limit: 24 })
-      .then((r) => !cancelled && setRows(rowsOf(r).flatMap((x) => x.statements ?? x.items ?? [x])))
+      .then((r) => !cancelled && setRows(rowsOf(r)))
       .catch((e) => !cancelled && (setError(e.message), setRows([])));
     return () => {
       cancelled = true;

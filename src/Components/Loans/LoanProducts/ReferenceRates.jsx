@@ -6,6 +6,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { dayDate } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanReferenceRatesApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -21,6 +22,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function ReferenceRates({ scope, onClose }) {
   const { t } = useTranslation("loans");
   const can = usePagePermission();
+  const own = useOwnIds();
   const [rows, setRows] = useState(null);
   const [form, setForm] = useState({ code: "BASE", annual_rate: "", effective_from: today() });
   const [busy, setBusy] = useState(false);
@@ -28,7 +30,7 @@ export function ReferenceRates({ scope, onClose }) {
 
   const load = useCallback(async () => {
     try {
-      setRows(rowsOf(await loanReferenceRatesApi.list(scope({}))).flatMap((r) => r.items ?? r.rates ?? [r]));
+      setRows(rowsOf(await loanReferenceRatesApi.list(scope({}))));
     } catch (e) {
       setError(e.message);
       setRows([]);
@@ -92,13 +94,15 @@ export function ReferenceRates({ scope, onClose }) {
             { key: "code", label: t("referenceRate"), render: (r) => <span className="font-mono text-xs font-bold">{r.code}</span> },
             { key: "annual_rate", label: t("ratePct"), align: "right", render: (r) => <b className="text-primary">{ratePct(r.annual_rate)}</b> },
             { key: "effective_from", label: t("effectiveFrom"), render: (r) => <span className="text-xs">{dayDate(r.effective_from)}</span> },
-            { key: "status", label: t("status"), render: (r) => <span className="text-xs font-bold">{r.status_name ?? r.status ?? "—"}</span> },
+            { key: "status", label: t("status"), render: (r) => <span className="text-xs font-bold">{t(`rateStatus_${r.status}`, { defaultValue: r.status })}</span> },
             {
               key: "x",
               label: "",
               render: (r) =>
-                String(r.status ?? r.status_name ?? "").toUpperCase().includes("PENDING") &&
-                can("Authorise") && (
+                // A checker decides; the requester only with Self.
+                r.status === "PENDING" &&
+                can("Authorise") &&
+                (String(r.requested_userid) !== own.userId || can("Self")) && (
                   <ActionButtons
                     busy={busy}
                     buttons={[
