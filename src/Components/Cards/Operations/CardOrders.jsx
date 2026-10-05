@@ -25,10 +25,11 @@ const STATUSES = ["PENDING", "GENERATED", "PREFILED", "RECEIVED", "CANCELLED"];
 
 // The emboss file holds full card numbers and CVVs: it goes straight from
 // the reply to a file on the user's machine and is never kept, shown or
-// logged here.
+// logged here. With the bureau's PGP key on the issuance group it arrives
+// encrypted (.csv.asc, only the bureau can open it); named from file_name.
 function saveEmbossFile(reply) {
   const bytes = Uint8Array.from(atob(reply.content_base64), (c) => c.charCodeAt(0));
-  saveBlob(new Blob([bytes], { type: "text/csv" }), reply.file_name);
+  saveBlob(new Blob([bytes], { type: reply.encrypted ? "application/pgp-encrypted" : "text/csv" }), reply.file_name);
 }
 
 // CARDS > Card Orders (menu 200): orders to the card bureau. Instant
@@ -391,28 +392,12 @@ function OrderView({ id, onBack }) {
 
       {narrated && <NarrationDialog title={narrated[0]} hint={narrated[1]} confirmLabel={narrated[2]} variant={narrated[3]} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(() => narrated[4](narration ? { narration } : {}))} />}
       {dialog === "emboss" && (
-        <Modal
-          open
-          onClose={() => setDialog(null)}
-          size="sm"
-          title={t("emboss")}
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setDialog(null)}>
-                {t("cancel")}
-              </Button>
-              <Button icon={FileDown} loading={busy} onClick={() => act(() => cardOrdersApi.emboss({ id }), (response) => {
-                    saveEmbossFile(rowsOf(response)[0]);
-                    cardsIntoEnvelope();
-                  })}>
-                {t("makeFile")}
-              </Button>
-            </>
-          }
-        >
-          <p className="text-sm text-muted-foreground">{t(order.emboss_jobs?.length ? "embossAgainHint" : "embossHintFile")}</p>
-          <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("embossSensitive")}</p>
-        </Modal>
+        <EmbossDialog again={Boolean(order.emboss_jobs?.length)} busy={busy} onClose={() => setDialog(null)} onMake={(reason) => act(() => cardOrdersApi.emboss({ id, ...(reason ? { reason } : {}) }), (response) => {
+            const file = rowsOf(response)[0];
+            saveEmbossFile(file);
+            cardsIntoEnvelope();
+            if (!file?.encrypted) notifications.error(t("embossPlainWarning"));
+          })} />
       )}
       {dialog === "receive" && <ReceiveDialog cards={cards.filter((c) => c.issuance_status !== "CANCELLED")} busy={busy} onClose={() => setDialog(null)} onSave={(missing, narration) => act(() => cardOrdersApi.receive({ id, missing_card_ids: missing, ...(narration ? { narration } : {}) }))} />}
     </div>
@@ -458,6 +443,39 @@ function ReceiveDialog({ cards, busy, onClose, onSave }) {
           <input className={inputClass} value={narration} onChange={(e) => setNarration(e.target.value)} />
         </Labelled>
       </div>
+    </Modal>
+  );
+}
+
+// Make the emboss file. Once one exists, making it again needs a reason
+// (and the server wants another user than the last maker: its message says so).
+function EmbossDialog({ again, busy, onClose, onMake }) {
+  const { t } = useTranslation("cards");
+  const [reason, setReason] = useState("");
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="sm"
+      title={t("emboss")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button icon={FileDown} loading={busy} disabled={again && !reason.trim()} onClick={() => onMake(again ? reason.trim() : "")}>
+            {t("makeFile")}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground">{t(again ? "embossAgainHint" : "embossHintFile")}</p>
+      {again && (
+        <Labelled label={t("embossAgainReason")} hint={t("embossAgainOtherUser")} className="mt-3">
+          <input className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Labelled>
+      )}
+      <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("embossSensitive")}</p>
     </Modal>
   );
 }

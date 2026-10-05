@@ -505,6 +505,9 @@ function GroupForm({ values: v, set, options, locked }) {
               <FilterSelect className="mt-1" value={layout.delimiter ?? ","} onChange={(x) => setLayout({ delimiter: x })} options={(options.emboss_delimiters ?? []).map((d) => ({ value: d, label: t(DELIMITER_KEYS[d] ?? "delim_other", { value: d }) }))} />
             </F>
             <Switch label={t("headerLine")} hint={t("headerLineHint")} value={layout.header} onChange={(x) => setLayout({ header: x })} />
+            <F label={t("bureauKey")} hint={t("bureauKeyHint")}>
+              <textarea className="mt-1 min-h-28 w-full rounded-xl border border-border bg-card px-3 py-2 font-mono text-[11px] outline-none transition-colors focus:border-primary" spellCheck={false} placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----" value={layout.encrypt_to ?? ""} onChange={(e) => setLayout({ encrypt_to: e.target.value })} />
+            </F>
           </div>
           <F label={t("columns")}>
             <div className="mt-1">
@@ -549,6 +552,7 @@ export const groupKind = {
         [t("delimiter"), t(DELIMITER_KEYS[layout.delimiter] ?? "delim_other", { value: layout.delimiter })],
         [t("headerLine"), yes(t, layout.header)],
         [t("columns"), (layout.columns ?? []).join(", ")],
+        [t("bureauKey"), layout.encrypt_to ? t("bureauKeySet") : t("bureauKeyNone")],
       ]],
     ];
   },
@@ -563,7 +567,7 @@ export const groupKind = {
     description: v.description ?? "",
     default_form_factor: "PHYSICAL",
     default_perso_mode: v.default_perso_mode ?? "",
-    emboss_layout: { delimiter: v.emboss_layout?.delimiter ?? ",", header: Boolean(v.emboss_layout?.header), columns: v.emboss_layout?.columns ?? [] },
+    emboss_layout: { delimiter: v.emboss_layout?.delimiter ?? ",", header: Boolean(v.emboss_layout?.header), columns: v.emboss_layout?.columns ?? [], encrypt_to: v.emboss_layout?.encrypt_to ?? "" },
   }),
   missing: (v, { draft }) => {
     if (!CODE.test(v.code ?? "")) return "needGroupCode";

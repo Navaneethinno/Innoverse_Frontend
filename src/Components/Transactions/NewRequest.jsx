@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Search, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
+import { useMenuPermission } from "@/Hooks/usePermission";
 import { Spinner } from "@/Components/Common/Spinner";
 import { cardsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -49,6 +51,13 @@ export function NewRequest({ preset, onClose, onDone }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+  // client_reference is the server's idempotency key: one per form, reused
+  // on every retry, so a resent request is refused instead of posted twice.
+  // The user's own reference wins when typed.
+  const [autoReference] = useState(() => crypto.randomUUID());
+  // With Self the request posts at once (no checker): say so and confirm.
+  const self = useMenuPermission("Transactions")("Self");
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     transactionsApi
@@ -111,16 +120,22 @@ export function NewRequest({ preset, onClose, onDone }) {
         ...body,
         reason: form.reason.trim(),
         ...(form.reference.trim() ? { reference: form.reference.trim() } : {}),
-        ...(form.client_reference.trim() ? { client_reference: form.client_reference.trim() } : {}),
+        client_reference: form.client_reference.trim() || autoReference,
       });
       const request = rowsOf(response)[0];
       notifications.success(response?.message ?? t("requestSent"));
       if (request?.result) setResult(request);
       else onDone(request);
     } catch (e) {
-      setError(e.message);
+      // Already sent (a retry after a lost reply): that request stands.
+      const existing = /REQ-(\d+)/.exec(e.message ?? "");
+      if (existing) {
+        notifications.success(e.message);
+        onDone({ id: Number(existing[1]), request_reference: existing[0] });
+      } else setError(e.message);
     } finally {
       setBusy(false);
+      setConfirming(false);
     }
   };
 
@@ -148,8 +163,8 @@ export function NewRequest({ preset, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Send} loading={busy} disabled={!plan || !form.reason.trim()} onClick={send}>
-            {t("sendForApproval")}
+          <Button icon={Send} loading={busy} disabled={!plan || !form.reason.trim()} onClick={() => (self ? setConfirming(true) : void send())}>
+            {t(self ? "postNow" : "sendForApproval")}
           </Button>
         </>
       }
@@ -233,6 +248,7 @@ export function NewRequest({ preset, onClose, onDone }) {
           <Problems message={error} />
         </div>
       )}
+      <ConfirmDialog open={confirming} title={t("postNowTitle")} description={t("postNowHint")} confirmLabel={t("postNow")} pending={busy} onClose={() => setConfirming(false)} onConfirm={send} />
     </Modal>
   );
 }
