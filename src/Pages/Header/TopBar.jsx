@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound } from "lucide-react";
+import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound, House } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
@@ -93,9 +93,16 @@ export function TopBar() {
 
         {!brandInSidebar && <div className="w-px h-4 bg-border shrink-0" />}
 
-        <span className="hidden sm:block truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {/* "Admin portal" is the way home too: it opens the main dashboard. */}
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          title={t("layout:backToDashboard")}
+          className="group hidden items-center gap-1.5 truncate rounded-full border border-transparent px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-all hover:border-[var(--primary-light)] hover:bg-primary-light hover:text-primary sm:flex"
+        >
+          <House size={12} className="shrink-0 transition-transform group-hover:-translate-y-px" />
           {t("layout:adminPortal")}
-        </span>
+        </button>
 
         <div className="flex-1 min-w-0" />
 

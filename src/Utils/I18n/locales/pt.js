@@ -605,6 +605,7 @@ export const layout = {
   noNotificationsYet: "Nenhuma notificação ainda",
   youReAllCaughtUpNewNotifications: "Você está em dia. Novas notificações aparecerão aqui.",
   openMenu: "Abrir menu",
+  backToDashboard: "Voltar ao painel principal",
   adminPortal: "Portal administrativo",
 };
 

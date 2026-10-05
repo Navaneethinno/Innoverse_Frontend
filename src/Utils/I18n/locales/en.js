@@ -621,6 +621,7 @@ export const layout = {
   noNotificationsYet: "No notifications yet",
   youReAllCaughtUpNewNotifications: "You're all caught up. New notifications will appear here.",
   openMenu: "Open menu",
+  backToDashboard: "Back to the main dashboard",
   adminPortal: "Admin portal",
 };
 
