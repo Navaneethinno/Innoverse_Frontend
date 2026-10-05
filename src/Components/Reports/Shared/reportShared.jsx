@@ -62,15 +62,30 @@ export function PeriodChips({ value, onChange, allTime = false }) {
 
 // Excel / CSV buttons. `exportFile(format)` resolves to { blob, fileName };
 // a JSON error (e.g. over 100,000 rows) shows its message instead of a file.
+// Excel / CSV download the server's file. PDF takes the same export as CSV,
+// lays it out as a table (reportPdf.js) and opens it in a new tab, where the
+// browser's viewer previews it and downloads it.
 export function ExportButtons({ exportFile, disabled = false, children }) {
   const { t } = useTranslation("reports");
   const [busy, setBusy] = useState("");
   const run = async (format) => {
+    // The tab opens on the click itself (a popup opened after the await
+    // would be blocked), showing a short note until the PDF is ready.
+    const tab = format === "PDF" ? window.open("", "_blank") : null;
+    if (tab) tab.document.write(`<title>${t("pdfPreparing")}</title><p style="font:14px system-ui;color:#64748b;padding:24px">${t("pdfPreparing")}</p>`);
     setBusy(format);
     try {
-      const { blob, fileName } = await exportFile(format);
-      saveBlob(blob, fileName);
+      const { blob, fileName } = await exportFile(format === "PDF" ? "CSV" : format);
+      if (format !== "PDF") return saveBlob(blob, fileName);
+      const { csvToPdf } = await import("./reportPdf");
+      const title = String(fileName ?? t("report")).replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
+      const pdf = await csvToPdf(await blob.text(), { title, subtitle: t("pdfGenerated", { date: atIst(new Date().toISOString()) }) });
+      const url = URL.createObjectURL(pdf);
+      if (tab) tab.location.href = url;
+      else saveBlob(pdf, `${title}.pdf`);
+      window.setTimeout(() => URL.revokeObjectURL(url), 10 * 60 * 1000);
     } catch (error) {
+      tab?.close();
       notifications.error(error.message);
     } finally {
       setBusy("");
@@ -79,7 +94,7 @@ export function ExportButtons({ exportFile, disabled = false, children }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {children}
-      {["XLSX", "CSV"].map((format) => (
+      {["XLSX", "CSV", "PDF"].map((format) => (
         <button
           key={format}
           type="button"
@@ -87,7 +102,7 @@ export function ExportButtons({ exportFile, disabled = false, children }) {
           onClick={() => void run(format)}
           className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary disabled:opacity-50"
         >
-          {busy === format ? <Spinner size={12} /> : <Download size={13} />} {t(format === "XLSX" ? "excel" : "csv")}
+          {busy === format ? <Spinner size={12} /> : <Download size={13} />} {t({ XLSX: "excel", CSV: "csv", PDF: "pdf" }[format])}
         </button>
       ))}
     </div>
