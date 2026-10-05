@@ -30,7 +30,7 @@ function Chips({ values, value, onChange, label }) {
   const { t } = useTranslation("txnReports");
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[11px] font-bold text-muted-foreground">{label}</span>
+      <span className="w-24 shrink-0 text-[11px] font-bold text-muted-foreground">{label}</span>
       {values.map((v) => {
         const on = value.includes(v);
         return (
@@ -170,14 +170,14 @@ function TxnReport({ kind }) {
         <PeriodChips value={filters} onChange={set} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <FilterSelect value={filters.currency_code} onChange={(v) => set({ currency_code: v })} options={[{ value: "", label: t("anyCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.currency_name ?? c.name ?? ""}` }))]} />
-          <input className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary" placeholder={t(kind === "reversals" ? "reversedTypes" : "txnTypes")} value={filters.txn_types} onChange={(e) => set({ txn_types: e.target.value })} />
-          {kind === "failed" && <input className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary" placeholder={t("errorCodes")} value={filters.error_codes} onChange={(e) => set({ error_codes: e.target.value })} />}
+          <input className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-sm outline-none focus:border-primary" placeholder={t(kind === "reversals" ? "reversedTypes" : "txnTypes")} value={filters.txn_types} onChange={(e) => set({ txn_types: e.target.value })} />
+          {kind === "failed" && <input className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-sm outline-none focus:border-primary" placeholder={t("errorCodes")} value={filters.error_codes} onChange={(e) => set({ error_codes: e.target.value })} />}
         </div>
         {REPORTS[kind].filters.includes("statuses") && <Chips label={t("status")} values={STATUSES} value={filters.statuses} onChange={(v) => set({ statuses: v })} />}
         <Chips label={t("channel")} values={CHANNELS} value={filters.channels} onChange={(v) => set({ channels: v })} />
         <Chips label={t("initiator")} values={INITIATORS} value={filters.initiator_types} onChange={(v) => set({ initiator_types: v })} />
         {GROUPS[kind] && <Chips label={t("groupBy")} values={GROUPS[kind].all} value={filters.group_by} onChange={(v) => set({ group_by: v })} />}
-        <div className="flex justify-end">
+        <div className="flex justify-end border-t border-border pt-3">
           <ExportButtons disabled={!body} exportFile={(format) => api.export({ ...body, format })} />
         </div>
       </div>
