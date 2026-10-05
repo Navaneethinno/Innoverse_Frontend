@@ -275,7 +275,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
           {form.subheading && <p className="mt-1 text-xs text-muted-foreground">{form.subheading}</p>}
           <div className="mt-4 flex flex-col gap-3">
             {preview.map((field) => (
-              <FieldPreview key={field.key} field={field} />
+              <FieldPreview key={field.key} field={field} instProfileId={form.inst_profile_id} />
             ))}
           </div>
           {form.multi_row && <p className="mt-3 text-xs font-semibold text-primary">+ {t("formBuilder:addAnotherRow")}</p>}

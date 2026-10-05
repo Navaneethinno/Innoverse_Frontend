@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
-import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, loginMethodsOf } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
+import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, loginMethodsOf, usesPin } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
@@ -138,7 +138,7 @@ function InputField({ label, fieldKey, placeholder, required = false, value, err
     </div>
   );
 }
-function NumberField({ label, fieldKey, value, onChange }) {
+function NumberField({ label, fieldKey, value, onChange, help }) {
   return (
     <div>
       <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
@@ -151,6 +151,7 @@ function NumberField({ label, fieldKey, value, onChange }) {
         onChange={(e) => onChange(fieldKey, clampNonNegative(e.target.value))}
         className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 transition-all"
       />
+      {help && <p className="mt-1 text-[11px] text-muted-foreground">{help}</p>}
     </div>
   );
 }
@@ -213,7 +214,6 @@ function LivePreview({ form, step, steps, t }) {
           </PreviewSection>
           <PreviewSection title={t("kycLoginPolicySectionLabel")}>
             <PreviewItem label={t("kycEnabled")} value={form.kyc_enabled ? t("common:yes") : t("common:no")} />
-            <PreviewItem label={t("loginPinEnabled")} value={form.is_login_pin_enabled ? t("common:yes") : t("common:no")} />
             <PreviewItem label={t("transactionPinEnabled")} value={form.is_txn_pin_enabled ? t("common:yes") : t("common:no")} />
           </PreviewSection>
         </div>
@@ -613,13 +613,9 @@ export function AddInstitutionProfile() {
                       value={form.primary_login_identifier}
                       onChange={setField}
                     />
-                    <ToggleField
-                      label={t("loginPinEnabled")}
-                      fieldKey="is_login_pin_enabled"
-                      value={form.is_login_pin_enabled}
-                      onChange={setField}
-                    />
-                    {form.is_login_pin_enabled && (
+                    <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length", Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
+                    <LoginMethodsGrid value={form.portal_login_methods} onChange={(v) => setField("portal_login_methods", v)} />
+                    {usesPin(form.portal_login_methods) && (
                       <div className="grid grid-cols-2 gap-4">
                         <NumberField
                           label={t("loginPinLength")}
@@ -653,6 +649,7 @@ export function AddInstitutionProfile() {
                         <NumberField
                           label={t("transactionPinLength")}
                           fieldKey="txn_pin_length"
+                          help={t("txnPinLengthHelp")}
                           value={form.txn_pin_length}
                           onChange={setField}
                         />
@@ -664,8 +661,6 @@ export function AddInstitutionProfile() {
                         />
                       </>
                     )}
-                    <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length", Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
-                    <LoginMethodsGrid value={form.portal_login_methods} onChange={(v) => setField("portal_login_methods", v)} />
                   </div>
                 )}
 
@@ -695,7 +690,6 @@ export function AddInstitutionProfile() {
                           label={t("reviewLoginIdentifiers")}
                           value={form.allowed_login_identifiers}
                         />
-                        <ReviewRow label={t("loginPinEnabled")} value={form.is_login_pin_enabled} />
                         <ReviewRow label={t("reviewTxnPinEnabled")} value={form.is_txn_pin_enabled} />
                       </div>
                     </div>

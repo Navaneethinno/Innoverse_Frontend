@@ -374,6 +374,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         <FieldPreview
           key={field.key}
           field={field}
+          instProfileId={wizard.onboarding?.inst_profile_id}
           value={row?.[field.key]}
           choices={choicesFor(field, row)}
           disabled={!editable}

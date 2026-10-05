@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS } from "./InstitutionProfileForm";
+import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, usesPin } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
 import { useTimezones } from "@/Hooks/Master/masterHooks";
 
@@ -63,11 +63,6 @@ export function EditInstitutionProfile({ institution, form, setField }) {
             onChange={setField("primary_login_identifier")}
           />
           <EditToggle
-            label={t("loginPinEnabled")}
-            value={form.is_login_pin_enabled}
-            onChange={setField("is_login_pin_enabled")}
-          />
-          <EditToggle
             label={t("biometricLogin")}
             value={form.allow_biometric_login}
             onChange={setField("allow_biometric_login")}
@@ -83,6 +78,9 @@ export function EditInstitutionProfile({ institution, form, setField }) {
             onChange={setField("is_same_login_txn_pin_allowed")}
           />
           <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length")(Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
+          {usesPin(form.portal_login_methods) && (
+            <EditField label={t("loginPinLength")} type="number" value={form.login_pin_length} onChange={setField("login_pin_length")} />
+          )}
           <LoginMethodsGrid value={form.portal_login_methods} onChange={setField("portal_login_methods")} />
         </div>
       </div>

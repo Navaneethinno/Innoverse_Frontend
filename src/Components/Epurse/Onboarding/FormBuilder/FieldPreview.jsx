@@ -6,6 +6,8 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/cn";
+import { useOwnIds } from "@/Hooks/useInstitutionScope";
+import { usePrimaryCurrency } from "@/Hooks/Institution/institutionCurrencyHooks";
 
 const control = "w-full rounded-xl border bg-white/80 px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] disabled:bg-muted disabled:text-muted-foreground";
 const sameValue = (a, b) => a !== undefined && a !== null && a !== "" && String(a) === String(b);
@@ -86,7 +88,19 @@ function FileSide({ label, value, onChange, disabled, file, side }) {
 // the answer shapes are the ones `edit` takes. `choices` are the field's
 // inline choices already narrowed by its parent's answer. Without
 // `onChange` it is a read-only preview (the section editor's live preview).
-function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
+function AmountInput({ instProfileId, input }) {
+  const own = useOwnIds();
+  const currency = usePrimaryCurrency(instProfileId ?? own.institutionId);
+  if (!currency?.alpha_code) return input;
+  return (
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 rounded-lg border bg-muted/40 px-2.5 py-2.5 text-xs font-bold text-muted-foreground">{currency.alpha_code}</span>
+      {input}
+    </div>
+  );
+}
+
+function FormFieldInput({ field, value, onChange, choices, disabled, file, instProfileId }) {
   const { t } = useAudienceTranslation("formBuilder");
   const preview = !onChange;
   const off = disabled || preview || field.read_only;
@@ -94,8 +108,8 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
   const options = field.options ?? {};
   const list = choices ?? field.choices ?? options.choices ?? [];
   switch (field.field_type) {
-    case "NUMBER":
-      return (
+    case "NUMBER": {
+      const input = (
         <input
           type="number"
           step={options.number_kind === "integer" ? 1 : "any"}
@@ -108,6 +122,9 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
           onChange={(e) => set(e.target.value === "" ? "" : Number(e.target.value))}
         />
       );
+      // An amount: the institution's base currency in front of it.
+      return options.currency ? <AmountInput instProfileId={instProfileId} input={input} /> : input;
+    }
     case "DATE":
       return <input type="date" min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "PHONE":
@@ -222,7 +239,8 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file }) {
 }
 
 // A field with its question, required mark, help text and issue.
-export function FieldPreview({ field, value, onChange, choices, disabled, file, issue, note }) {
+// `instProfileId`: whose currency an amount shows (default: the user's own).
+export function FieldPreview({ field, value, onChange, choices, disabled, file, issue, note, instProfileId }) {
   return (
     <div data-field={field.key}>
       <label className="mb-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-700">
@@ -232,7 +250,7 @@ export function FieldPreview({ field, value, onChange, choices, disabled, file, 
         </span>
         {note && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">{note}</span>}
       </label>
-      <FormFieldInput field={field} value={value} onChange={onChange} choices={choices} disabled={disabled} file={file} />
+      <FormFieldInput field={field} value={value} onChange={onChange} choices={choices} disabled={disabled} file={file} instProfileId={instProfileId} />
       {field.help_text && <p className="mt-1 text-[11px] text-muted-foreground">{field.help_text}</p>}
       {issue && <p className="mt-1 text-xs font-medium text-red-600">{issue}</p>}
     </div>

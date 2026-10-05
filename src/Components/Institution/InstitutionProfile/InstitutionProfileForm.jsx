@@ -75,6 +75,8 @@ export const LOGIN_PORTALS = ["customer_web", "customer_app", "merchant_web", "m
 const LOGIN_METHODS = ["PIN", "PASSWORD"];
 export const loginMethodsOf = (value) =>
   Object.fromEntries(LOGIN_PORTALS.map((p) => [p, Array.isArray(value?.[p]) && value[p].length ? value[p] : ["PASSWORD"]]));
+// Whether any portal signs in with a PIN (login_pin_length matters then).
+export const usesPin = (value) => Object.values(loginMethodsOf(value)).some((m) => m.includes("PIN"));
 
 // The 4 x 2 grid of tick boxes; read-only without onChange. The last tick in
 // a row can't be cleared, as each portal needs a method.

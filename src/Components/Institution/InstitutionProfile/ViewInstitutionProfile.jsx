@@ -11,7 +11,7 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { Field, LoginMethodsGrid, institutionId, loginMethodsOf } from "./InstitutionProfileForm";
+import { Field, LoginMethodsGrid, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
@@ -298,11 +298,11 @@ export function ViewInstitutionProfile() {
               <Field label={t("totalKycLevels")} value={institution.total_kyc_levels} />
               <Field label={t("allowDowngradeKyc")} value={institution.allow_downgrade_kyc} />
               <Field label={t("primaryLoginIdentifier")} value={institution.primary_login_identifier} />
-              <Field label={t("loginPinEnabled")} value={institution.is_login_pin_enabled} />
               <Field label={t("biometricLogin")} value={institution.allow_biometric_login} />
               <Field label={t("reviewTxnPinEnabled")} value={institution.is_txn_pin_enabled} />
               <Field label={t("sameLoginTxnPin")} value={institution.is_same_login_txn_pin_allowed} />
               <Field label={t("otpLength")} value={institution.otp_length ?? 6} />
+              {usesPin(institution.portal_login_methods) && <Field label={t("loginPinLength")} value={institution.login_pin_length} />}
               <LoginMethodsGrid value={institution.portal_login_methods} />
             </div>
           </div>
