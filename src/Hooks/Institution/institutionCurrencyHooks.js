@@ -21,8 +21,8 @@ export function useMasterCurrencies() { const [state, setState] = useState({ cur
 // /master/country rows that have a dialling code (uninhabited territories have none).
 export function useDialCountries() { const [countries, setCountries] = useState([]); useEffect(() => { let cancelled = false; masterApi.countryList().then((rows) => { if (!cancelled) setCountries(rows.filter((c) => c.dial_code)); }).catch(() => {}); return () => { cancelled = true; }; }, []); return countries; }
 // An institution's base currency as { alpha_code, decimal_places }, or null:
-// its is_base_currency row from currency/list (which returns every
-// institution's rows, so filtered here) looked up in the currency master.
+// its is_base_currency row from currency/list (filtered by the server to
+// that institution) looked up in the currency master.
 // One lookup per institution per page load.
 const primaryCurrencies = new Map();
 export function usePrimaryCurrency(instProfileId) {
@@ -36,7 +36,7 @@ export function usePrimaryCurrency(instProfileId) {
         key,
         Promise.all([institutionCurrencyApi.list({ inst_profile_id: Number(key), page: 1, limit: 100 }), masterApi.currencyList()])
           .then(([list, master]) => {
-            const base = (Array.isArray(list?.data) ? list.data : []).find((r) => String(r.inst_profile_id) === key && r.is_base_currency);
+            const base = (Array.isArray(list?.data) ? list.data : []).find((r) => r.is_base_currency);
             return master.find((c) => String(c.id) === String(base?.currency_code)) ?? null;
           })
           .catch(() => {
