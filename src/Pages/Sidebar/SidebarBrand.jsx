@@ -62,7 +62,9 @@ export function SidebarBrand({ isCollapsed }) {
       ) : (
         <div className="flex items-center gap-3">
           {logoUrl ? (
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-black/5 transition-transform duration-200 group-hover:scale-105">
+            // The mark fills its tile edge to edge (a square logo keeps its own
+            // corners and colour); white shows only around a non-square one.
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white shadow-md ring-1 ring-black/10 transition-transform duration-200 group-hover:scale-105">
               <img src={logoUrl} alt={displayName ?? ""} onLoad={onLoad} className="h-full w-full object-contain" />
             </span>
           ) : (
@@ -76,7 +78,7 @@ export function SidebarBrand({ isCollapsed }) {
                 {displayName}
               </p>
             )}
-            <span className="mt-1 inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-primary" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
+            <span className="mt-1 inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em]" style={{ background: "color-mix(in srgb, var(--primary) 16%, transparent)", color: "color-mix(in srgb, var(--primary) 45%, var(--foreground))" }}>
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
               <span className="truncate">{caption}</span>
             </span>
