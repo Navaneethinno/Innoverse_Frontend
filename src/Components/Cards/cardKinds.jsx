@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, CreditCard, Hash, Layers, Plus, X } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cardBinsApi, cardProductsApi, issuanceGroupsApi } from "@/Services/Cards/cards.api";
 import { cn } from "@/Utils/Lib/utils";
@@ -413,13 +414,13 @@ function EmbossColumns({ value, all, onChange }) {
   const remember = () => {
     before.current = new Map([...rows.current].map(([col, el]) => [col, el.getBoundingClientRect().top]));
   };
-  const move = (i, d) => {
+  const moveTo = (from, to) => {
     remember();
-    const next = [...value];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
-    setMoved(value[i]);
-    onChange(next);
+    setMoved(value[from]);
+    onChange(moveItem(value, from, to));
   };
+  const move = (i, d) => moveTo(i, i + d);
+  const dnd = useDragReorder(moveTo);
   useLayoutEffect(() => {
     const was = before.current;
     before.current = null;
@@ -438,8 +439,10 @@ function EmbossColumns({ value, all, onChange }) {
           <li
             key={moved === col ? `${col}:moved:${i}` : col}
             ref={(el) => (el ? rows.current.set(col, el) : rows.current.delete(col))}
-            className={cn("relative flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold", moved === col && "field-flash")}
+            {...dnd.rowProps(i)}
+            className={cn("relative flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold", moved === col && "field-flash", dnd.rowClass(i))}
           >
+            <DragGrip label={t("dragToReorder")} {...dnd.gripProps(i)} />
             <span className="w-5 text-muted-foreground">{i + 1}.</span>
             <span className="min-w-0 flex-1 font-mono">{col}</span>
             <ActionIconButton label={t("moveUp")} icon={ArrowUp} disabled={i === 0} onClick={() => move(i, -1)} />

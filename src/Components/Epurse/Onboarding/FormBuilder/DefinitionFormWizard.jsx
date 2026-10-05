@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { Modal } from "@/Components/Common/Modal";
@@ -12,7 +13,9 @@ import { masterApi } from "@/Services/Master/master.api";
 import { kycSchemeApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { inputClass } from "./FieldOptionsEditor";
-import { useFieldLibrary, useSectionLibrary } from "./formBuilderHooks";
+import { useFieldLibrary, useFieldTypes, useSectionLibrary } from "./formBuilderHooks";
+import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
+import { cn } from "@/Utils/Lib/utils";
 import { UsesStep } from "./UsesStep";
 
 import { Button } from "@/Components/Common/Button";
@@ -57,6 +60,72 @@ function MoveButtons({ index, count, onMove, onRemove, t }) {
         <Trash2 size={14} />
       </button>
     </>
+  );
+}
+
+// A library section's fields as the customer sees them: the server's
+// resolved_fields, else its placements over the field details.
+const resolvedFields = (section, fieldDetails) =>
+  section?.resolved_fields ?? (section?.fields ?? []).map((p) => ({ ...fieldDetails.get(p.field_key), key: p.field_key, ...(p.label ? { label: p.label } : {}), ...(typeof p.required === "boolean" ? { required: p.required } : {}) }));
+
+// One section on the definition: drag grip, its name, a fields pill that
+// opens the list of the fields it asks, Required, and move / remove.
+function SectionCard({ placed, index, count, section, fields, typeName, readOnly, dnd, onRequired, onMove, onRemove, t }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div {...(readOnly ? {} : dnd.rowProps(index))} className={cn("rounded-xl border bg-white/70", !readOnly && dnd.rowClass(index))}>
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2.5">
+        {!readOnly && <DragGrip label={t("formBuilder:dragToReorder")} {...dnd.gripProps(index)} />}
+        <span className="w-6 text-center text-xs font-bold text-muted-foreground">{index + 1}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-slate-800">
+            {section?.heading ?? placed.section_key}
+            {!section && <span className="ml-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
+          </p>
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted-foreground">
+            <span className="truncate">{section?.name}</span> · <code>{placed.section_key}</code>
+            {section?.multi_row ? <span>· {t("formBuilder:repeatable")}</span> : null}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={!fields.length}
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          title={t(open ? "formBuilder:hideFields" : "formBuilder:showFields")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-colors disabled:opacity-50",
+            open ? "border-primary bg-primary/10 text-primary" : "text-slate-600 hover:border-primary hover:text-primary",
+          )}
+        >
+          {t("formBuilder:fieldsN", { count: fields.length })}
+          <ChevronDown size={13} className={cn("transition-transform duration-200", open && "rotate-180")} />
+        </button>
+        <CheckboxPill checked={placed.required !== false} disabled={readOnly} onChange={onRequired} label={t("formBuilder:requiredSection")} />
+        {!readOnly && <MoveButtons t={t} index={index} count={count} onMove={onMove} onRemove={onRemove} />}
+      </div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} className="overflow-hidden">
+            <ol className="grid gap-2 border-t bg-muted/30 p-3 sm:grid-cols-2 lg:grid-cols-3">
+              {fields.map((f, i) => (
+                <li key={f.key ?? f.field_key ?? i} className="flex min-w-0 items-center gap-2.5 rounded-lg border bg-white/80 px-2.5 py-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black text-primary">{i + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold text-slate-800">
+                      {f.label ?? f.key}
+                      {f.required && <span className="text-red-500"> *</span>}
+                    </p>
+                    <p className="truncate font-mono text-[10px] text-muted-foreground">{f.key ?? f.field_key}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{typeName(f.field_type)}</span>
+                </li>
+              ))}
+            </ol>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -181,6 +250,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
   const { t } = useAudienceTranslation(["formBuilder", "onboarding", "common"]);
   const openMenu = useOpenMenu();
   const sectionLibrary = useSectionLibrary();
+  const vocabulary = useFieldTypes();
   const fieldLibrary = useFieldLibrary();
   const [def, setDef] = useState(definition);
   const [basics, setBasics] = useState({ minor_age_years: 18, home_country_id: "", kyc_group_id: "", effective_from: "", narration: "" });
@@ -259,7 +329,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
     const seen = new Set();
     for (const { section_key } of form.sections) {
       const section = sectionByKey.get(section_key);
-      const resolved = section?.resolved_fields ?? (section?.fields ?? []).map((p) => ({ ...snapshotFields.get(p.field_key), key: p.field_key, ...(p.label ? { label: p.label } : {}) }));
+      const resolved = resolvedFields(section, snapshotFields);
       for (const f of resolved) {
         const key = f.key ?? f.field_key;
         if (!key || seen.has(key)) continue;
@@ -368,12 +438,9 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
   const step = STEPS[stepIndex];
   const isLast = stepIndex === STEPS.length - 1;
   const ready = !loading && !sectionLibrary.loading && !fieldLibrary.loading;
-  const moveIn = (list, index, delta) => {
-    const next = [...list];
-    const [item] = next.splice(index, 1);
-    next.splice(index + delta, 0, item);
-    return next;
-  };
+  const moveSection = (from, to) => change({ sections: moveItem(form.sections, from, to) });
+  const dnd = useDragReorder(moveSection);
+  const typeName = (type) => vocabulary?.types?.find((x) => x.type === type)?.name ?? type ?? "-";
   const placedSections = new Set(form.sections.map((s) => s.section_key));
 
   return (
@@ -478,26 +545,21 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
               {form.sections.map((s, index) => {
                 const section = sectionByKey.get(s.section_key);
                 return (
-                  <div key={s.section_key} className="flex flex-wrap items-center gap-3 rounded-xl border bg-white/70 px-3 py-2.5">
-                    <span className="w-6 text-center text-xs font-bold text-muted-foreground">{index + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-800">
-                        {section?.heading ?? s.section_key}
-                        {!section && <span className="ml-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
-                      </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {section?.name} · <code>{s.section_key}</code> · {t("formBuilder:fieldsN", { count: (section?.fields ?? []).length })}
-                        {section?.multi_row ? ` · ${t("formBuilder:repeatable")}` : ""}
-                      </p>
-                    </div>
-                    <CheckboxPill
-                      checked={s.required !== false}
-                      disabled={readOnly}
-                      onChange={(on) => change({ sections: form.sections.map((x, i) => (i === index ? { ...x, required: on } : x)) })}
-                      label={t("formBuilder:requiredSection")}
-                    />
-                    {!readOnly && <MoveButtons t={t} index={index} count={form.sections.length} onMove={(d) => change({ sections: moveIn(form.sections, index, d) })} onRemove={() => change({ sections: form.sections.filter((_, i) => i !== index) })} />}
-                  </div>
+                  <SectionCard
+                    key={s.section_key}
+                    t={t}
+                    placed={s}
+                    index={index}
+                    count={form.sections.length}
+                    section={section}
+                    fields={resolvedFields(section, snapshotFields)}
+                    typeName={typeName}
+                    readOnly={readOnly}
+                    dnd={dnd}
+                    onRequired={(on) => change({ sections: form.sections.map((x, i) => (i === index ? { ...x, required: on } : x)) })}
+                    onMove={(d) => moveSection(index, index + d)}
+                    onRemove={() => change({ sections: form.sections.filter((_, i) => i !== index) })}
+                  />
                 );
               })}
               {!readOnly && (

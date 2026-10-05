@@ -18,6 +18,7 @@ import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./form
 import { FieldPreview } from "./FieldPreview";
 
 import { Button } from "@/Components/Common/Button";
+import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 const EMPTY = { key: "", name: "", heading: "", subheading: "", multi_row: false, max_rows: "", fields: [] };
 const OVERRIDES = ["label", "hint", "help_text", "default_value"];
 const glass = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
@@ -35,15 +36,16 @@ function cleanPlacement(p) {
 // overrides on top (the server's resolved_fields, computed live here).
 const resolvePlacement = (placement, libraryField) => ({ ...(libraryField ?? { key: placement.field_key, label: placement.field_key }), ...cleanPlacement(placement), key: placement.field_key });
 
-function PlacementRow({ placement, index, count, libraryField, typeName, disabled, onChange, onMove, onRemove }) {
+function PlacementRow({ placement, index, count, libraryField, typeName, disabled, dnd, onChange, onMove, onRemove }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const [open, setOpen] = useState(false);
   const set = (patch) => onChange({ ...placement, ...patch });
   const triState = (key) => (typeof placement[key] === "boolean" ? String(placement[key]) : "");
   const overridden = OVERRIDES.some((k) => placement[k]) || ["required", "read_only"].some((k) => typeof placement[k] === "boolean");
   return (
-    <div className="rounded-xl border bg-white/70">
+    <div {...(disabled ? {} : dnd.rowProps(index))} className={cn("rounded-xl border bg-white/70", !disabled && dnd.rowClass(index))}>
       <div className="flex items-center gap-2 px-3 py-2">
+        {!disabled && <DragGrip label={t("formBuilder:dragToReorder")} {...dnd.gripProps(index)} />}
         <span className="w-6 text-center text-xs font-bold text-muted-foreground">{index + 1}</span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-800">
@@ -139,12 +141,8 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
   const typeName = (type) => vocabulary?.types?.find((x) => x.type === type)?.name ?? type ?? "-";
   const placed = new Set(form.fields.map((p) => p.field_key));
   const setPlacements = (fields) => set({ fields });
-  const move = (index, delta) => {
-    const next = [...form.fields];
-    const [item] = next.splice(index, 1);
-    next.splice(index + delta, 0, item);
-    setPlacements(next);
-  };
+  const move = (from, to) => setPlacements(moveItem(form.fields, from, to));
+  const dnd = useDragReorder(move);
 
   const keyValid = KEY_PATTERN.test(form.key);
   const canSave = !readOnly && keyValid && form.name.trim() && form.heading.trim();
@@ -243,8 +241,9 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
                   libraryField={byKey.get(p.field_key)}
                   typeName={typeName}
                   disabled={readOnly}
+                  dnd={dnd}
                   onChange={(next) => setPlacements(form.fields.map((x, i) => (i === index ? next : x)))}
-                  onMove={(delta) => move(index, delta)}
+                  onMove={(delta) => move(index, index + delta)}
                   onRemove={() => setPlacements(form.fields.filter((_, i) => i !== index))}
                 />
               ))}

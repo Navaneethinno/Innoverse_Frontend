@@ -9,6 +9,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 import { Problems, Section, inputClass, labelClass, ratePct } from "../../TermDeposits/depositShared";
 import { Field, RowsEditor, loanLabel } from "../loanShared";
 
@@ -382,17 +383,15 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 // The order a repayment pays the parts in: move a part up or down.
 function AllocationOrder({ value, onChange }) {
   const { t } = useTranslation("loans");
-  const move = (i, d) => {
-    const next = [...value];
-    [next[i], next[i + d]] = [next[i + d], next[i]];
-    onChange(next);
-  };
+  const dnd = useDragReorder((from, to) => onChange(moveItem(value, from, to)), { horizontal: true });
+  const move = (i, d) => onChange(moveItem(value, i, i + d));
+
   return (
     <div className="mt-4">
       <p className={labelClass}>{t("allocationOrder")}</p>
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         {value.map((part, i) => (
-          <span key={part} className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-bold">
+          <span key={part} {...dnd.rowProps(i)} {...dnd.gripProps(i)} title={t("dragToReorder")} className={cn("inline-flex cursor-grab items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-bold active:cursor-grabbing", dnd.rowClass(i))}>
             <span className="text-muted-foreground">{i + 1}.</span> {loanLabel(t, part)}
             <button type="button" disabled={i === 0} onClick={() => move(i, -1)} className="px-1 text-muted-foreground hover:text-primary disabled:opacity-30" aria-label={t("moveUp")}>
               ‹
