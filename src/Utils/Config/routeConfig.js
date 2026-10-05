@@ -20,6 +20,7 @@ const SEGMENT_LABELS = {
   institutionbranding: { titleKey: "crumbInstitutionBranding", breadcrumb: ["crumbInstitution", "crumbInstitutionBranding"] },
   institutionchannel: { titleKey: "crumbInstitutionChannel", breadcrumb: ["crumbInstitution", "crumbInstitutionChannel"] },
   institutioncurrency: { titleKey: "crumbInstitutionCurrency", breadcrumb: ["crumbInstitution", "crumbInstitutionCurrency"] },
+  institutionphonecode: { titleKey: "crumbInstitutionPhoneCode", breadcrumb: ["crumbInstitution", "crumbInstitutionPhoneCode"] },
   institutionprofile: {
     titleKey: "crumbInstitutionProfile",
     breadcrumb: ["crumbInstitution", "crumbInstitutionProfile"],

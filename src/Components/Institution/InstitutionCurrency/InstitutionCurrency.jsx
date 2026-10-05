@@ -13,10 +13,13 @@ import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
-import { institutionCurrencyApi } from "@/Services/Institution/institutionCurrency.api";
+import { institutionCurrencyApi, institutionPhoneCountryApi } from "@/Services/Institution/institutionCurrency.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { countryName } from "@/Components/Common/countryOption";
 import {
-  useInstitutionCurrenciesQuery,
-  useInstitutionCurrencyMutation,
+  useAssignmentListQuery,
+  useAssignmentMutation,
+  useDialCountries,
   useMasterCurrencies,
 } from "@/Hooks/Institution/institutionCurrencyHooks";
 import {
@@ -26,7 +29,46 @@ import {
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const display = (row, key) => row?.[key] ?? "—";
-function CurrencyActions({ row, onRefresh, onEdit }) {
+
+// Institution Currency and Institution Phone Code (menu 203) are the same
+// screen over the same 13 maker-checker calls; only the picked item and its
+// flag differ. Phone Code lists the countries whose numbers customers and
+// merchants may use; a number typed without + is the primary country's.
+const KINDS = {
+  currency: {
+    api: institutionCurrencyApi,
+    livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_CURRENCY.LIST,
+    useOptions: () => useMasterCurrencies().currencies.map((c) => ({ value: c.currency_code ?? c.id, label: c.currency_name ?? c.name ?? c.currency_code })),
+    valueKey: "currency_code",
+    nameKey: "currency_name",
+    flagKey: "is_base_currency",
+    noun: "currency",
+    title: "Institution Currency",
+    subtitle: "Manage institution currency assignments.",
+    itemLabel: "Currency",
+    flagLabel: "Base Currency",
+    selectLabel: "Select currency",
+    emptyTitle: "No currencies found",
+    emptyDescription: "Currency assignments will appear here when available.",
+  },
+  phoneCode: {
+    api: institutionPhoneCountryApi,
+    livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_PHONE_COUNTRY.LIST,
+    useOptions: () => useDialCountries().map((c) => ({ value: c.id, label: countryName(c) })),
+    valueKey: "country_id",
+    nameKey: "country_name",
+    flagKey: "is_primary",
+    noun: "phone code",
+    title: "Institution Phone Code",
+    subtitle: "Countries whose phone numbers customers and merchants may use. A number typed without + is taken as the primary country's; with none listed, any number is accepted.",
+    itemLabel: "Country",
+    flagLabel: "Primary",
+    selectLabel: "Select country",
+    emptyTitle: "No phone codes found",
+    emptyDescription: "Phone countries will appear here when available.",
+  },
+};
+function AssignmentActions({ kind, row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const canEdit = useHasInstitutionAction("Edit");
@@ -37,9 +79,9 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
   const [details, setDetails] = useState(null);
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
-  const mutation = useInstitutionCurrencyMutation(action?.method ?? "submit");
+  const mutation = useAssignmentMutation(kind.api, action?.method ?? "submit");
   const pendingInfo = usePendingChanges(
-    institutionCurrencyApi.pending,
+    kind.api.pending,
     row.id,
     !!action && ["auth", "deauth", "deleteAuth"].includes(action.method),
   );
@@ -73,7 +115,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
       />
       <ConfirmDialog
         open={!!action}
-        title={`${action?.label ?? "Action"} institution currency`}
+        title={`${action?.label ?? "Action"} institution ${kind.noun}`}
         confirmLabel={action?.label}
         destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
         pending={mutation.isPending}
@@ -94,14 +136,14 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
       <Modal
         open={!!details}
         onClose={() => setDetails(null)}
-        title={tr("View institution currency")}
+        title={tr(`View institution ${kind.noun}`)}
         size="md"
       >
         <div className="space-y-3">
           {[
-            ["Currency", row.currency_name ?? row.currency_code],
+            [kind.itemLabel, row[kind.nameKey] ?? row[kind.valueKey]],
             ...(canChooseInstitution() ? [["Institution", row.inst_profile_name ?? row.inst_profile_id]] : []),
-            ["Base currency", row.is_base_currency ? "Yes" : "No"],
+            [kind.flagLabel, row[kind.flagKey] ? "Yes" : "No"],
           ].map(([label, val]) => (
             <div key={label}>
               <p className="text-xs font-semibold text-muted-foreground">{label}</p>
@@ -117,15 +159,15 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
       </Modal>
       {audit && (
         <AuditModal
-          title={row.currency_name ?? `Currency #${row.id}`}
+          title={row[kind.nameKey] ?? `${kind.itemLabel} #${row.id}`}
           fields={[
-            ["currency_name", "Currency"],
+            [kind.nameKey, kind.itemLabel],
             ["inst_profile_name", "Institution"],
-            ["is_base_currency", "Base Currency"],
+            [kind.flagKey, kind.flagLabel],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
-            institutionCurrencyApi.audit({ id: row.id, page, limit }).then((r) => ({
+            kind.api.audit({ id: row.id, page, limit }).then((r) => ({
               entries: Array.isArray(r?.data) ? r.data : [],
               totalPages: r?.pagination?.totalPages ?? 1,
             }))
@@ -135,7 +177,7 @@ function CurrencyActions({ row, onRefresh, onEdit }) {
     </>
   );
 }
-export function InstitutionCurrency() {
+function AssignmentPage({ kind }) {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -145,11 +187,11 @@ export function InstitutionCurrency() {
   const [editing, setEditing] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const query = useInstitutionCurrenciesQuery({ page, limit, filter: statusFilter, sort_by: sortBy });
+  const query = useAssignmentListQuery(kind.api, kind.livePath, { page, limit, filter: statusFilter, sort_by: sortBy });
   const institutions = useActiveInstitutionsQuery();
-  const { currencies } = useMasterCurrencies();
-  const add = useInstitutionCurrencyMutation("add");
-  const edit = useInstitutionCurrencyMutation("edit");
+  const options = kind.useOptions();
+  const add = useAssignmentMutation(kind.api, "add");
+  const edit = useAssignmentMutation(kind.api, "edit");
   // The list has no search param yet: search narrows the current page.
   const filteredRows =
     !search.trim()
@@ -160,10 +202,10 @@ export function InstitutionCurrency() {
         );
   const columns = [
     {
-      key: "currency_name",
-      label: tr("Currency"),
+      key: kind.nameKey,
+      label: tr(kind.itemLabel),
       render: (r) => (
-        <span className="font-semibold text-foreground">{display(r, "currency_name")}</span>
+        <span className="font-semibold text-foreground">{display(r, kind.nameKey)}</span>
       ),
     },
     {
@@ -172,9 +214,9 @@ export function InstitutionCurrency() {
       render: (r) => display(r, "inst_profile_name"),
     },
     {
-      key: "is_base_currency",
-      label: tr("Base Currency"),
-      render: (r) => (r.is_base_currency ? "Yes" : "No"),
+      key: kind.flagKey,
+      label: tr(kind.flagLabel),
+      render: (r) => (r[kind.flagKey] ? "Yes" : "No"),
     },
     {
       key: "status",
@@ -204,7 +246,8 @@ export function InstitutionCurrency() {
       label: tr("Actions"),
       sortable: false,
       render: (r) => (
-        <CurrencyActions
+        <AssignmentActions
+          kind={kind}
           row={r}
           onRefresh={query.refetch}
           onEdit={() => {
@@ -235,10 +278,10 @@ export function InstitutionCurrency() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black tracking-tight text-foreground">
-            {tr("Institution Currency")}
+            {tr(kind.title)}
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            {tr("Manage institution currency assignments.")}
+            {tr(kind.subtitle)}
           </p>
         </div>
         
@@ -264,7 +307,7 @@ export function InstitutionCurrency() {
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
-            <Plus size={14} /> {tr("Add")} {tr("currency")}
+            <Plus size={14} /> {tr("Add")} {tr(kind.noun)}
           </button>
         )}
       bare /><DataTable serverSorted
@@ -283,20 +326,21 @@ export function InstitutionCurrency() {
         }}
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
-        title={tr("Institution Currency")}
-        searchableKeys={["currency_name", "inst_profile_name"]}
-        emptyTitle={tr("No currencies found")}
-        emptyDescription={tr("Currency assignments will appear here when available.")}
+        title={tr(kind.title)}
+        searchableKeys={[kind.nameKey, "inst_profile_name"]}
+        emptyTitle={tr(kind.emptyTitle)}
+        emptyDescription={tr(kind.emptyDescription)}
       bare /></div><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
-        title={editing ? tr("Edit institution currency") : tr("Add institution currency")}
+        title={editing ? tr(`Edit institution ${kind.noun}`) : tr(`Add institution ${kind.noun}`)}
         size="md"
       >
-        <CurrencyForm
+        <AssignmentForm
+          kind={kind}
           editing={editing}
           institutions={institutions.data}
-          currencies={currencies}
+          options={options}
           pending={add.isPending || edit.isPending}
           onCancel={() => setFormOpen(false)}
           onSubmit={submit}
@@ -305,10 +349,17 @@ export function InstitutionCurrency() {
     </div>
   );
 }
-function CurrencyForm({
+export function InstitutionCurrency() {
+  return <AssignmentPage kind={KINDS.currency} />;
+}
+export function InstitutionPhoneCode() {
+  return <AssignmentPage kind={KINDS.phoneCode} />;
+}
+function AssignmentForm({
+  kind,
   editing,
   institutions = [],
-  currencies = [],
+  options = [],
   pending,
   onCancel,
   onSubmit,
@@ -319,8 +370,8 @@ function CurrencyForm({
   const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState({
     inst_profile_id: editing?.inst_profile_id ?? (canChoose ? "" : (ownInstitution ?? "")),
-    currency_code: editing?.currency_code ?? "",
-    is_base_currency: Boolean(editing?.is_base_currency),
+    [kind.valueKey]: editing?.[kind.valueKey] ?? "",
+    [kind.flagKey]: Boolean(editing?.[kind.flagKey]),
     narration: "",
     is_draft: false,
   });
@@ -340,18 +391,18 @@ function CurrencyForm({
           notifications.error("Please select an institution");
           return;
         }
-        if (!form.currency_code) {
-          notifications.error("Please select a currency");
+        if (!form[kind.valueKey]) {
+          notifications.error(tr(kind.selectLabel));
           return;
         }
         const { inst_profile_id, ...rest } = form;
         void onSubmit(
           editing
-            ? { ...rest, currency_code: Number(rest.currency_code), is_draft: false }
+            ? { ...rest, [kind.valueKey]: Number(rest[kind.valueKey]), is_draft: false }
             : {
                 inst_profile_id: Number(inst_profile_id),
                 ...rest,
-                currency_code: Number(rest.currency_code),
+                [kind.valueKey]: Number(rest[kind.valueKey]),
               },
         );
       }}
@@ -376,23 +427,17 @@ function CurrencyForm({
         )}
       </label>
       <label className="block text-sm font-medium">
-        Currency
+        {kind.itemLabel}
         <FilterSelect
           className="mt-1.5"
-          value={form.currency_code}
-          onChange={(next) => set("currency_code")({ target: { value: next } })}
-          options={[
-            { value: "", label: tr("Select currency") },
-            ...currencies.map((c) => ({
-              value: c.currency_code ?? c.id,
-              label: c.currency_name ?? c.name ?? c.currency_code,
-            })),
-          ]}
+          value={form[kind.valueKey]}
+          onChange={(next) => set(kind.valueKey)({ target: { value: next } })}
+          options={[{ value: "", label: tr(kind.selectLabel) }, ...options]}
         />
       </label>
       <label className="flex items-center gap-2 text-sm font-medium">
-        <input type="checkbox" checked={form.is_base_currency} onChange={set("is_base_currency")} />{" "}
-        Base currency
+        <input type="checkbox" checked={form[kind.flagKey]} onChange={set(kind.flagKey)} />{" "}
+        {kind.flagLabel}
       </label>
       <label className="block text-sm font-medium">
         Narration
@@ -413,7 +458,7 @@ function CurrencyForm({
             void onSubmit({
               ...form,
               inst_profile_id: Number(form.inst_profile_id),
-              currency_code: Number(form.currency_code),
+              [kind.valueKey]: Number(form[kind.valueKey]),
               is_draft: true,
             })
           }
@@ -425,7 +470,7 @@ function CurrencyForm({
           disabled={pending}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
-          {pending ? "Saving..." : editing ? "Save changes" : "Add currency"}
+          {pending ? "Saving..." : editing ? "Save changes" : `Add ${kind.noun}`}
         </button>
       </div>
     </form>

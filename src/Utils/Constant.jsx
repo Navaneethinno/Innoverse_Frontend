@@ -114,6 +114,9 @@ export const API_ENDPOINTS = {
     INSTITUTION_CURRENCY: {
       ADD: "/config/institution/currency/add", SUBMIT: "/config/institution/currency/submit", EDIT: "/config/institution/currency/edit", AUTH: "/config/institution/currency/auth", DEAUTH: "/config/institution/currency/deauth", DELETE: "/config/institution/currency/delete", DELETE_AUTH: "/config/institution/currency/delete_auth", DEACTIVATE: "/config/institution/currency/deactivate", REACTIVATE: "/config/institution/currency/reactivate", LIST: "/config/institution/currency/list", GET_ACTIVE: "/config/institution/currency/get_active", AUDIT: "/config/institution/currency/audit", PENDING: "/config/institution/currency/pending",
     },
+    INSTITUTION_PHONE_COUNTRY: {
+      ADD: "/config/institution/phone_country/add", SUBMIT: "/config/institution/phone_country/submit", EDIT: "/config/institution/phone_country/edit", AUTH: "/config/institution/phone_country/auth", DEAUTH: "/config/institution/phone_country/deauth", DELETE: "/config/institution/phone_country/delete", DELETE_AUTH: "/config/institution/phone_country/delete_auth", DEACTIVATE: "/config/institution/phone_country/deactivate", REACTIVATE: "/config/institution/phone_country/reactivate", LIST: "/config/institution/phone_country/list", GET_ACTIVE: "/config/institution/phone_country/get_active", AUDIT: "/config/institution/phone_country/audit", PENDING: "/config/institution/phone_country/pending",
+    },
   },
 
   // --- User Management (top-level sidebar item) ----------------------------

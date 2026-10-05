@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
+import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, loginMethodsOf } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
@@ -56,6 +57,8 @@ const EMPTY = {
   is_txn_pin_enabled: false,
   txn_pin_length: 4,
   is_same_login_txn_pin_allowed: false,
+  otp_length: 6,
+  portal_login_methods: loginMethodsOf(null),
   narration: "",
 };
 
@@ -105,6 +108,8 @@ function buildPayload(form, isDraft) {
     is_txn_pin_enabled: form.is_txn_pin_enabled,
     txn_pin_length: Number(form.txn_pin_length) || 0,
     is_same_login_txn_pin_allowed: form.is_same_login_txn_pin_allowed,
+    otp_length: Number(form.otp_length),
+    portal_login_methods: form.portal_login_methods,
   };
 }
 
@@ -659,6 +664,8 @@ export function AddInstitutionProfile() {
                         />
                       </>
                     )}
+                    <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length", Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
+                    <LoginMethodsGrid value={form.portal_login_methods} onChange={(v) => setField("portal_login_methods", v)} />
                   </div>
                 )}
 

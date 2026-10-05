@@ -11,7 +11,7 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { Field, institutionId } from "./InstitutionProfileForm";
+import { Field, LoginMethodsGrid, institutionId, loginMethodsOf } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
@@ -107,6 +107,8 @@ export function ViewInstitutionProfile() {
         is_txn_pin_enabled: Boolean(institution.is_txn_pin_enabled),
         txn_pin_length: institution.txn_pin_length ?? 0,
         is_same_login_txn_pin_allowed: Boolean(institution.is_same_login_txn_pin_allowed),
+        otp_length: institution.otp_length ?? 6,
+        portal_login_methods: loginMethodsOf(institution.portal_login_methods),
         narration: "",
       });
     }
@@ -300,6 +302,8 @@ export function ViewInstitutionProfile() {
               <Field label={t("biometricLogin")} value={institution.allow_biometric_login} />
               <Field label={t("reviewTxnPinEnabled")} value={institution.is_txn_pin_enabled} />
               <Field label={t("sameLoginTxnPin")} value={institution.is_same_login_txn_pin_allowed} />
+              <Field label={t("otpLength")} value={institution.otp_length ?? 6} />
+              <LoginMethodsGrid value={institution.portal_login_methods} />
             </div>
           </div>
         </>

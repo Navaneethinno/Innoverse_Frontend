@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EditField, EditSelect, EditToggle } from "./InstitutionProfileForm";
+import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
 import { useTimezones } from "@/Hooks/Master/masterHooks";
 
@@ -82,6 +82,8 @@ export function EditInstitutionProfile({ institution, form, setField }) {
             value={form.is_same_login_txn_pin_allowed}
             onChange={setField("is_same_login_txn_pin_allowed")}
           />
+          <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length")(Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
+          <LoginMethodsGrid value={form.portal_login_methods} onChange={setField("portal_login_methods")} />
         </div>
       </div>
 

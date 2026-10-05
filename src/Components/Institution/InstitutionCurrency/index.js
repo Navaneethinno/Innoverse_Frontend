@@ -1,1 +1,1 @@
-export { InstitutionCurrency } from "./InstitutionCurrency";
+export { InstitutionCurrency, InstitutionPhoneCode } from "./InstitutionCurrency";

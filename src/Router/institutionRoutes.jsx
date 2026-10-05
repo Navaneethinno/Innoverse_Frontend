@@ -22,6 +22,7 @@ const InstitutionLegal = lazy(() => import("@/Components/Institution/Institution
 const InstitutionBranding = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBranding })));
 const InstitutionChannel = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannel })));
 const InstitutionCurrency = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrency })));
+const InstitutionPhoneCode = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionPhoneCode })));
 export const institutionRoutes = [
   { path: "/institutions", element: pageElement(InstitutionListPage) },
   { path: "/institutions/pending", element: <Navigate to="/institutions" replace /> },
@@ -49,4 +50,6 @@ export const institutionRoutes = [
   { path: "/institutionchannel/:id", element: pageElement(InstitutionChannel) },
   { path: "/institutioncurrency", element: pageElement(InstitutionCurrency) },
   { path: "/institutioncurrency/:id", element: pageElement(InstitutionCurrency) },
+  { path: "/institutionphonecode", element: pageElement(InstitutionPhoneCode) },
+  { path: "/institutionphonecode/:id", element: pageElement(InstitutionPhoneCode) },
 ];
