@@ -11,6 +11,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
+import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
@@ -307,11 +308,23 @@ export function DynamicSidebar() {
         className="thin-scrollbar mt-3 flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto"
         style={{ overflowX: "hidden" }}
       >
-        {isExpanded && filteredMenuItems.length > 0 && (
-          <p className="px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground/80">
-            {isSearching ? t("common:search", "Search") : t("menuHeading")}
-          </p>
-        )}
+        {selectedModule &&
+          (() => {
+            const SelectedIcon = getModuleIcon(selectedModule.module_name);
+            return (
+              <div className="px-2 min-w-0">
+                <div
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0",
+                    isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
+                  )}
+                >
+                  <SelectedIcon size={15} strokeWidth={1.8} className="shrink-0 text-primary" />
+                  {isExpanded && <span className="truncate">{selectedModule.module_name}</span>}
+                </div>
+              </div>
+            );
+          })()}
         <div className="px-2 min-w-0">
           <MenuList
             menuItems={filteredMenuItems}
@@ -325,40 +338,74 @@ export function DynamicSidebar() {
         </div>
       </div>
 
-      <div className="mt-2 px-2">
-        <div className="mb-2 h-px" style={{ background: "linear-gradient(to right, transparent, var(--border), transparent)" }} />
-        <div className={cn("flex gap-1.5", isExpanded ? "flex-row" : "flex-col items-center")}>
-          <UiTooltip label={isExpanded ? null : t("common:signOut")} side="right">
-            <button
-              type="button"
-              onClick={() => {
-                void logout().then(() => navigate("/login", { replace: true }));
-              }}
-              aria-label={t("common:signOut")}
-              className={cn(
-                "flex h-9 items-center gap-2 rounded-xl text-xs font-semibold text-red-500 transition-colors hover:bg-red-50/80 hover:text-red-600",
-                isExpanded ? "flex-1 px-3" : "w-10 justify-center",
+      <div className="px-2 mt-2">
+        <div
+          className="h-px mb-3"
+          style={{ background: "linear-gradient(to right, transparent, var(--primary-light), transparent)" }}
+        />
+        <UiTooltip label="Sign out" side="right">
+          <motion.button
+            onClick={() => {
+              void logout().then(() => navigate("/login", { replace: true }));
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            aria-label={t("common:signOut")}
+            className={cn(
+              "mb-2 flex items-center gap-2.5 rounded-xl h-9 text-red-500 hover:text-red-600 hover:bg-red-50/80 transition-colors",
+              isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
+            )}
+          >
+            <LogOut size={15} strokeWidth={1.8} />
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold whitespace-nowrap overflow-hidden"
+                >
+                  {t("common:signOut")}
+                </motion.span>
               )}
-            >
-              <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
-              {isExpanded && <span className="truncate">{t("common:signOut")}</span>}
-            </button>
-          </UiTooltip>
-          {/* Collapse/pin-open only makes sense for the desktop rail — the
-              mobile drawer is closed via the X above or the backdrop. */}
-          {!isMobile && (
-            <UiTooltip label={collapsed ? t("pinOpen") : t("collapse")} side="right">
-              <button
-                type="button"
-                onClick={toggle}
-                aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
-                className="flex h-9 w-10 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
-              >
-                {collapsed ? <PanelLeftOpen size={15} strokeWidth={1.8} /> : <PanelLeftClose size={15} strokeWidth={1.8} />}
-              </button>
-            </UiTooltip>
-          )}
-        </div>
+            </AnimatePresence>
+          </motion.button>
+        </UiTooltip>
+        {/* Collapse/pin-open only makes sense for the desktop rail — the
+            mobile drawer is always full-width while open, closed via the
+            X above or the backdrop otherwise. */}
+        {!isMobile && (
+          <motion.button
+            onClick={toggle}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            aria-label={collapsed ? t("expandSidebar") : t("collapseSidebar")}
+            className={cn(
+              "flex items-center gap-2.5 rounded-xl h-9 text-muted-foreground hover:text-[var(--primary)] hover:bg-[var(--primary-light)] transition-colors",
+              isExpanded ? "px-3 w-full" : "justify-center w-10 mx-auto px-0",
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen size={15} strokeWidth={1.8} />
+            ) : (
+              <PanelLeftClose size={15} strokeWidth={1.8} />
+            )}
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs font-semibold whitespace-nowrap overflow-hidden"
+                >
+                  {collapsed ? t("pinOpen") : t("collapse")}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        )}
       </div>
       </motion.aside>
     </>

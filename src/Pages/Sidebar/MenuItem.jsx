@@ -1,5 +1,5 @@
 import { createElement, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPathForItem } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
@@ -77,14 +77,18 @@ export function MenuItem({
   };
 
   const isRoot = depth === 0;
-  // Only the open page is filled (a soft pill with an accent bar); an open
-  // group just turns darker, so a long tree never becomes a column of
-  // coloured blocks. Nesting is shown by the guide line + indent below.
-  const rowClasses = isActiveLeaf
-    ? "bg-[var(--primary-light)] text-[var(--primary)] font-semibold before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[3px] before:rounded-full before:bg-[var(--primary)]"
-    : isExpanded
-      ? "text-foreground font-semibold"
-      : "text-slate-600 hover:bg-[var(--primary-light)]/60 hover:text-[var(--primary)]";
+  const isHighlighted = isExpanded || isActiveLeaf;
+  // A solid filled pill means "this is a module" — reserved for depth 0.
+  // A child (any depth > 0), even Onboarding Configuration/Wizard sitting
+  // right alongside plain masters like Kinship under the same parent, gets
+  // a lighter left-accent treatment instead: real nesting is shown by the
+  // tree line + indent in the children wrapper below, and the active state
+  // never looks like "another root module" no matter how deep it is.
+  const highlightClasses = isHighlighted
+    ? isRoot
+      ? "bg-[var(--primary)] text-white shadow-sm"
+      : "bg-[var(--primary-light)] text-[var(--primary)] font-semibold"
+    : "text-muted-foreground hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
 
   return (
     <div className="flex flex-col gap-1">
@@ -93,23 +97,25 @@ export function MenuItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "relative flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--primary)]/40",
-          isRoot ? "h-9 px-2.5 text-[12.5px] font-medium" : "h-8 px-2.5 text-xs font-medium",
+          "flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-colors",
+          isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-8 px-2.5 text-[11px] font-medium",
           isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
-          rowClasses,
+          highlightClasses,
         )}
       >
-        <span className="flex min-w-0 items-center gap-2.5">
+        <span className="flex min-w-0 items-center gap-1.5">
+          {!isCollapsed && hasChildren && (
+            <span className="shrink-0">
+              {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            </span>
+          )}
           {createElement(getMenuIcon(item?.menu_name), {
-            size: isRoot ? 15 : 13,
+            size: isRoot ? 14 : 12,
             strokeWidth: 1.8,
-            className: cn("shrink-0", isActiveLeaf ? "text-[var(--primary)]" : "text-muted-foreground"),
+            className: "shrink-0",
           })}
           {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
         </span>
-        {!isCollapsed && hasChildren && (
-          <ChevronRight size={13} className={cn("shrink-0 text-muted-foreground transition-transform duration-200", isExpanded && "rotate-90")} />
-        )}
       </button>
       </UiTooltip>
 
@@ -124,7 +130,7 @@ export function MenuItem({
               every level adds its own line/indent recursively, so depth is
               legible at a glance instead of relying on a ~12px margin that
               disappears in a long flat list. */}
-          <div className="ml-[1.05rem] mt-0.5 flex flex-col gap-0.5 border-l pl-2" style={{ borderColor: "var(--border)" }}>
+          <div className="ml-[0.95rem] flex flex-col gap-1 border-l pl-2" style={{ borderColor: "var(--border)" }}>
             {children.map((child) => (
               <MenuItem
                 key={child.menu_id}
