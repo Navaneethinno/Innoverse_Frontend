@@ -26,6 +26,7 @@ import {
 import { Spinner } from "@/Components/Common/Spinner";
 import { StoredFilePreview, useStoredFileUrl } from "@/Components/Common/FileUploadField";
 import { KycPdfButton } from "./KycReportPdf";
+import { scoredRisk, screenedAml } from "./kycShared";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
@@ -221,10 +222,10 @@ function Header({ summary, photo }) {
     customer_type: type,
     onboarding = {},
     kyc = {},
-    risk,
-    aml,
     accounts,
   } = summary ?? {};
+  const risk = scoredRisk(summary?.risk);
+  const aml = screenedAml(summary?.aml);
   const band = aml?.effective_band;
   return (
     <section className="rounded-2xl p-4 sm:p-5" style={glassCard}>
@@ -1357,7 +1358,7 @@ export function KycReportView({ api, body, onBack, title }) {
             <IdentityCard checks={report.identity_checks} />
             <KycCard kyc={report.kyc} processes={report.kyc_processes} />
           </div>
-          <RiskCard risk={report.risk} history={report.risk_history} />
+          <RiskCard risk={scoredRisk(report.risk)} history={report.risk_history} />
           <AmlCard screenings={report.aml_screenings} />
           <CasesCard cases={report.cases} />
           <AccountsCard accounts={report.accounts} joint={report.joint_accounts} />

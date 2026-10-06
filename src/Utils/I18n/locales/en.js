@@ -4387,6 +4387,7 @@ export const cards = {
 };
 
 export const kycReport = {
+  notAnImage: "File (not an image)",
   signinPin: "Sign-in PIN",
   txnPin: "Transaction PIN",
   set: "Set",

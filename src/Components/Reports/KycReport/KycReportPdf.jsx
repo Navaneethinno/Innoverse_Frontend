@@ -5,6 +5,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ink, loadLogo, rgb, tint } from "../Shared/reportPdf";
+import { scoredRisk, screenedAml } from "./kycShared";
 
 // The KYC Report as a printed bank form (A4 portrait): the institution's
 // logo and name on top, its logo faint behind every page, the selfie in a
@@ -59,7 +60,7 @@ async function photoData(download, path) {
 
 const PAGE = { w: 210, h: 297, m: 14 };
 
-async function buildPdf({ data, t, title, brand, logo, selfie }) {
+async function buildPdf({ data, t, title, brand, logo, selfie, photos }) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   doc.setProperties({ title });
@@ -269,10 +270,53 @@ async function buildPdf({ data, t, title, brand, logo, selfie }) {
     });
   }
 
+  // --- Documents and photos -------------------------------------------------
+  const docs = rowsOf(data.documents);
+  heading(t("documents"));
+  if (!docs.length) table([], [], []);
+  const roleName = { idv_front: "idFront", idv_back: "idBack", idv_selfie: "selfie", kyc_document_front: "kycDocFront", kyc_document_back: "kycDocBack" };
+  const tileW = (full - 6) / 2;
+  const tileH = 62;
+  for (let i = 0; i < docs.length; i += 2) {
+    ensure(tileH + 12);
+    docs.slice(i, i + 2).forEach((d, c) => {
+      const x = PAGE.m + c * (tileW + 6);
+      const img = photos[i + c];
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(x, y, tileW, tileH, "S");
+      if (img) {
+        // Fit inside the tile, centred.
+        let w = tileW - 4;
+        let h = w / img.ratio;
+        if (h > tileH - 4) {
+          h = tileH - 4;
+          w = h * img.ratio;
+        }
+        doc.addImage(img.data, "JPEG", x + (tileW - w) / 2, y + (tileH - h) / 2, w, h);
+      } else {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(7.5);
+        doc.setTextColor(148, 163, 184);
+        doc.text(t("notAnImage"), x + tileW / 2, y + tileH / 2, { align: "center" });
+      }
+      const roles = rowsOf(d.roles).map((r) => t(roleName[r] ?? r, { defaultValue: r })).join(", ");
+      const extra = [d.side && t(`side_${d.side}`, { defaultValue: d.side }), d.row != null && t("row", { n: Number(d.row) + 1 })].filter(Boolean).join(" · ");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(31, 41, 55);
+      doc.text(doc.splitTextToSize(d.label ?? d.field_key ?? "", tileW)[0], x, y + tileH + 4);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(6.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(doc.splitTextToSize([roles, extra].filter(Boolean).join(" · ") || d.section_heading || "", tileW)[0] ?? "", x, y + tileH + 7.5);
+    });
+    y += tileH + 11;
+  }
+
   // --- KYC, risk and AML at a glance ----------------------------------------
   const kyc = summary.kyc ?? {};
-  const risk = report.risk ?? summary.risk;
-  const aml = summary.aml;
+  const risk = scoredRisk(report.risk) ?? scoredRisk(summary.risk);
+  const aml = screenedAml(summary.aml);
   heading(t("assessment"));
   fields(
     [
@@ -407,10 +451,11 @@ export function KycPdfButton({ data, download, title }) {
     tab?.document.write(`<title>${t("preparingPdf")}</title><p style="font:14px system-ui;color:#64748b;padding:24px">${t("preparingPdf")}</p>`);
     setBusy(true);
     try {
-      const selfiePath = rowsOf(data.documents).find((d) => rowsOf(d.roles).includes("idv_selfie"))?.path;
-      const [logo, selfie] = await Promise.all([loadLogo(paper?.logoUrl), photoData(download, selfiePath)]);
+      const docs = rowsOf(data.documents);
+      const [logo, ...photos] = await Promise.all([loadLogo(paper?.logoUrl), ...docs.map((d) => photoData(download, d.path))]);
+      const selfie = photos[docs.findIndex((d) => rowsOf(d.roles).includes("idv_selfie"))] ?? null;
       const name = data.summary?.profile?.display_name ?? "";
-      const blob = await buildPdf({ data, t, title: title ?? t("customerTitle"), brand: paper, logo, selfie });
+      const blob = await buildPdf({ data, t, title: title ?? t("customerTitle"), brand: paper, logo, selfie, photos });
       const fileName = `${(name || "kyc_report").replace(/[^\w-]+/g, "_")}_kyc_report.pdf`;
       const url = URL.createObjectURL(blob);
       if (!tab) {
