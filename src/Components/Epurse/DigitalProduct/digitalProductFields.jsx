@@ -53,8 +53,8 @@ export const CONFIGS = {
       ["transaction_pin_required", "Transaction PIN required", "boolean"],
       ["transaction_pin_length", "Transaction PIN length", "number"],
       ["transaction_pin_type", "Transaction PIN type", "text"],
-      ["login_transaction_pin_same_inherit", "Same PIN inherit", "boolean"],
-      ["login_transaction_pin_same", "Same PIN", "boolean"],
+      ["login_transaction_pin_same_inherit", "Same PIN for sign-in and payments: use the institution's setting", "boolean"],
+      ["login_transaction_pin_same", "Same PIN for sign-in and payments", "boolean"],
     ],
   },
   kyc_config: {

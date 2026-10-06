@@ -56,14 +56,21 @@ export function EditSelect({ label, value, onChange, options, placeholder, disab
     </div>
   );
 }
-export function EditToggle({ label, value, onChange }) {
-  return (
+export function EditToggle({ label, value, onChange, hint }) {
+  const toggle = (
     <label className="flex h-10 items-center justify-between rounded-xl border border-border px-3 py-2">
       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
       <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
     </label>
+  );
+  if (!hint) return toggle;
+  return (
+    <div>
+      {toggle}
+      <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>
+    </div>
   );
 }
 

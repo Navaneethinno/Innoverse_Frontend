@@ -659,6 +659,7 @@ export function AddInstitutionProfile() {
                           value={form.is_same_login_txn_pin_allowed}
                           onChange={setField}
                         />
+                        <p className="-mt-3 text-[11px] text-muted-foreground">{t("sameLoginTxnPinHint")}</p>
                       </>
                     )}
                   </div>

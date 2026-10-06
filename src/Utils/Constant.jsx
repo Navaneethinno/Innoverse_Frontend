@@ -788,6 +788,7 @@ export const API_ENDPOINTS = {
       FILE: "/customer/admin/individual/file",
       // Everything about one customer (KYC Report, menus 205/206).
       REPORT: "/customer/admin/individual/report",
+      EXPORT: "/customer/admin/individual/export",
       EDIT: "/customer/admin/individual/edit",
       SUBMIT: "/customer/admin/individual/submit",
       LIST: "/customer/admin/individual/list",
@@ -810,6 +811,7 @@ export const API_ENDPOINTS = {
       UPLOAD: "/customer/admin/corporate/upload",
       FILE: "/customer/admin/corporate/file",
       REPORT: "/customer/admin/corporate/report",
+      EXPORT: "/customer/admin/corporate/export",
       EDIT: "/customer/admin/corporate/edit",
       SUBMIT: "/customer/admin/corporate/submit",
       LIST: "/customer/admin/corporate/list",

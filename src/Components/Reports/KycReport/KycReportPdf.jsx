@@ -343,7 +343,8 @@ async function buildPdf({ data, t, title, brand, logo, selfie }) {
         [t("lastLogin"), when(a.last_login_at)],
         [t("failedLogins"), a.failed_logins],
         [t("passwordSet"), a.password_set ? t("yes") : t("no")],
-        [t("pinSet"), a.pin_set ? t("yes") : t("no")],
+        [t("signinPin"), a.signin_pin_set ? t("set") : t("notSet")],
+        [t("txnPin"), a.pin_set ? t("set") : t("notSet")],
       ],
       { cols: 3 },
     );

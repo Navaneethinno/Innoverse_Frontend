@@ -19,7 +19,7 @@ import {
   corpMerchantOnboardingApi,
 } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { glassCard, useReportDetail } from "../Shared/reportShared";
+import { ExportButtons, glassCard, useReportDetail } from "../Shared/reportShared";
 import { KycReportView } from "./KycReportView";
 
 // Reports > KYC Report (group 204): Customer KYC Report (206) and Merchant
@@ -164,6 +164,7 @@ function KycReportList({ audience }) {
             search={search}
             onSearch={setSearch}
             searchPlaceholder={t("search")}
+            actions={<ExportButtons exportFile={(format) => api.export({ ...(search.trim() ? { search: search.trim() } : {}), filter: "all", sort_by: sortBy, format })} />}
             bare
           />
           <DataTable

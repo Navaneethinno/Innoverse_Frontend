@@ -6,7 +6,7 @@ import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
-import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
+import { downloadAttachment, downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 import { merchantRoutes } from "@/Utils/Lib/apiScope";
 
 // Customer Onboarding (Individual) runtime API — "Customer Onboarding
@@ -90,6 +90,8 @@ const buildApi = (routes) => ({
   audit: (payload) => request(routes.AUDIT, payload),
   // { customer_id } or { reference_id } -> the KYC Report (data[0]).
   report: (payload) => request(routes.REPORT, payload),
+  // The list as a file (XLSX or CSV): every row matching the list's body.
+  export: (payload) => downloadAttachment(routes.EXPORT, payload, `onboarding.${payload.format === "CSV" ? "csv" : "xlsx"}`),
   // { reference_id, section_code, field, type_id?, file } -> { path, ... };
   // the path is then saved as the field's value by `edit`.
   upload: (fields) => uploadFile(routes.UPLOAD, fields),

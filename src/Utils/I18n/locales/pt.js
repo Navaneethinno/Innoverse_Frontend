@@ -192,8 +192,9 @@ export const institutions = {
   biometricLogin: "Login Biométrico",
   transactionPinEnabled: "PIN de Transação Ativado",
   transactionPinLength: "Tamanho do PIN de Transação",
-  sameLoginTxnPinAllowed: "Permitir Mesmo PIN de Login/Transação",
-  sameLoginTxnPin: "Mesmo PIN de Login/Transação",
+  sameLoginTxnPinAllowed: "Mesmo PIN para acesso e pagamentos",
+  sameLoginTxnPin: "Mesmo PIN para acesso e pagamentos",
+  sameLoginTxnPinHint: "Desligado: os clientes têm um PIN de acesso e um PIN de transação separado, que têm de ser diferentes.",
   institutionSectionLabel: "Instituição",
   kycLoginPolicySectionLabel: "Política de KYC e Login",
   reviewCode: "Código",
@@ -4400,6 +4401,10 @@ export const cards = {
 };
 
 export const kycReport = {
+  signinPin: "PIN de acesso",
+  txnPin: "PIN de transação",
+  set: "Definido",
+  notSet: "Não definido",
   applicant: "Dados do cliente",
   noPhoto: "Foto indisponível",
   assessment: "KYC, risco e AML",
@@ -4558,7 +4563,6 @@ export const kycReport = {
   lockedUntil: "Bloqueado até",
   pinFailures: "Falhas de PIN",
   passwordSet: "Palavra-passe definida",
-  pinSet: "PIN definido",
   pinChanged: "PIN alterado",
   locked: "Bloqueado",
   yes: "Sim",

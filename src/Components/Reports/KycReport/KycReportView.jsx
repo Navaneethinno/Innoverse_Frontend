@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { StoredFilePreview, useStoredFileUrl } from "@/Components/Common/FileUploadField";
-import { useAmlBands } from "@/Components/InnoAML/AMLScreening/Screenings/useAmlBands";
 import { KycPdfButton } from "./KycReportPdf";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Loans/loanShared";
@@ -802,7 +801,6 @@ function AmlHistoryRow({ screening: s }) {
 
 function AmlCard({ screenings }) {
   const { t } = useTranslation("kycReport");
-  const bands = useAmlBands();
   const list = rowsOf(screenings);
   const latest = list[0];
   const band = latest?.effective_band;
@@ -822,7 +820,7 @@ function AmlCard({ screenings }) {
               </span>
               {latest.party_role && <span className="text-xs text-muted-foreground">· {latest.party_role}</span>}
             </div>
-            {score != null && <ScoreScale levels={bands} score={score} />}
+            {score != null && <ScoreScale levels={latest.levels} score={score} />}
             <div className="mt-4">
               <AmlFacts screening={latest} />
             </div>
@@ -1190,7 +1188,8 @@ function AccessCard({ access }) {
                 [t("failedLogins"), show(a.failed_logins)],
                 [t("lockedUntil"), when(a.locked_until)],
                 [t("passwordSet"), yesNo(a.password_set)],
-                [t("pinSet"), yesNo(a.pin_set)],
+                [t("signinPin"), a.signin_pin_set ? t("set") : t("notSet")],
+                [t("txnPin"), a.pin_set ? t("set") : t("notSet")],
                 [t("pinFailures"), show(a.pin_failures)],
                 [t("pinChanged"), when(a.pin_changed_at)],
                 [t("passwordChanged"), when(a.password_changed_at)],

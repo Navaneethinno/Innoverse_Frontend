@@ -74,6 +74,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           />
           <EditToggle
             label={t("sameLoginTxnPin")}
+            hint={t("sameLoginTxnPinHint")}
             value={form.is_same_login_txn_pin_allowed}
             onChange={setField("is_same_login_txn_pin_allowed")}
           />
