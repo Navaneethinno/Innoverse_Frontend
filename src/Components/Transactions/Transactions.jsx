@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowLeftRight, Eye, Ban, CheckCircle2, History, Plus, Receipt, RefreshCw, RotateCcw, Search, Undo2, XCircle } from "lucide-react";
@@ -139,8 +140,8 @@ function Journal({ onOpen }) {
         <FilterSelect value={filters.channel_type} onChange={set("channel_type")} options={[{ value: "", label: t("anyChannel") }, ...CHANNELS.map((c) => ({ value: c, label: c }))]} />
         <FilterSelect value={filters.initiator_type} onChange={set("initiator_type")} options={[{ value: "", label: t("anyInitiator") }, ...INITIATORS.map((c) => ({ value: c, label: t(`initiator_${c}`) }))]} />
         <div className="grid grid-cols-2 gap-2">
-          <input type="date" title={t("from")} className={cn(inputClass, "min-w-0 px-2")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-          <input type="date" title={t("to")} className={cn(inputClass, "min-w-0 px-2")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+          <DateInput title={t("from")} className={cn(inputClass, "min-w-0 px-2")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
+          <DateInput title={t("to")} className={cn(inputClass, "min-w-0 px-2")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <input className={inputClass} inputMode="decimal" placeholder={t("minAmount")} value={filters.min_amount} onChange={(e) => set("min_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
@@ -424,11 +425,11 @@ export function PartyHistory({ party, onClose, onOpen }) {
       <div className="mb-3 flex flex-wrap items-end gap-2">
         <label className={labelClass}>
           {t("from")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={range.from} onChange={(e) => (setRange((r) => ({ ...r, from: e.target.value })), setPage(1))} />
+          <DateInput className={cn(inputClass, "mt-1")} value={range.from} onChange={(e) => (setRange((r) => ({ ...r, from: e.target.value })), setPage(1))} />
         </label>
         <label className={labelClass}>
           {t("to")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={range.to} onChange={(e) => (setRange((r) => ({ ...r, to: e.target.value })), setPage(1))} />
+          <DateInput className={cn(inputClass, "mt-1")} value={range.to} onChange={(e) => (setRange((r) => ({ ...r, to: e.target.value })), setPage(1))} />
         </label>
       </div>
       <DataTable

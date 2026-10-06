@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
@@ -144,11 +145,11 @@ function RuleCard({ rule, index, onChange, onRemove, lists, disabled, t }) {
             <div className="grid grid-cols-2 gap-2">
               <label className="text-xs font-semibold text-slate-700">
                 {t("from")}
-                <input type="date" className={input} disabled={disabled} value={String(rule.effective_from ?? "").slice(0, 10)} onChange={(e) => set({ effective_from: e.target.value })} />
+                <DateInput className={input} disabled={disabled} value={String(rule.effective_from ?? "").slice(0, 10)} onChange={(e) => set({ effective_from: e.target.value })} />
               </label>
               <label className="text-xs font-semibold text-slate-700">
                 {t("to")}
-                <input type="date" className={input} disabled={disabled} value={String(rule.effective_to ?? "").slice(0, 10)} onChange={(e) => set({ effective_to: e.target.value })} />
+                <DateInput className={input} disabled={disabled} value={String(rule.effective_to ?? "").slice(0, 10)} onChange={(e) => set({ effective_to: e.target.value })} />
               </label>
             </div>
             <label className="text-xs font-semibold text-slate-700 md:col-span-4">

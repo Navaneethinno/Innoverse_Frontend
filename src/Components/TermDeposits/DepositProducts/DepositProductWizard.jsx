@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Plus, Save, Send, Trash2 } from "lucide-react";
@@ -277,11 +278,11 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 </label>
                 <label className={labelClass}>
                   {t("effectiveFrom")}
-                  <input type="date" className={cn(inputClass, "mt-1")} value={tenor.effective_from ?? ""} onChange={(e) => setTenor(i, { effective_from: e.target.value })} />
+                  <DateInput className={cn(inputClass, "mt-1")} value={tenor.effective_from ?? ""} onChange={(e) => setTenor(i, { effective_from: e.target.value })} />
                 </label>
                 <label className={labelClass}>
                   {t("effectiveTo")}
-                  <input type="date" className={cn(inputClass, "mt-1")} value={tenor.effective_to ?? ""} onChange={(e) => setTenor(i, { effective_to: e.target.value })} />
+                  <DateInput className={cn(inputClass, "mt-1")} value={tenor.effective_to ?? ""} onChange={(e) => setTenor(i, { effective_to: e.target.value })} />
                 </label>
                 <ActionIconButton label={t("removeTenor")} intent="delete" icon={Trash2} onClick={() => set({ tenors: config.tenors.filter((_, j) => j !== i) })} className="mb-1" />
               </div>
@@ -321,11 +322,11 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                     </label>
                     <label className={labelClass}>
                       {t("effectiveFrom")}
-                      <input type="date" className={cn(inputClass, "mt-1")} value={b.effective_from ?? ""} onChange={(e) => setBand(i, k, { effective_from: e.target.value })} />
+                      <DateInput className={cn(inputClass, "mt-1")} value={b.effective_from ?? ""} onChange={(e) => setBand(i, k, { effective_from: e.target.value })} />
                     </label>
                     <label className={labelClass}>
                       {t("effectiveTo")}
-                      <input type="date" className={cn(inputClass, "mt-1")} value={b.effective_to ?? ""} onChange={(e) => setBand(i, k, { effective_to: e.target.value })} />
+                      <DateInput className={cn(inputClass, "mt-1")} value={b.effective_to ?? ""} onChange={(e) => setBand(i, k, { effective_to: e.target.value })} />
                     </label>
                     <ActionIconButton label={t("removeBand")} intent="delete" icon={Trash2} onClick={() => setTenor(i, { rates: tenor.rates.filter((_, j) => j !== k) })} className="mb-1" />
                   </div>

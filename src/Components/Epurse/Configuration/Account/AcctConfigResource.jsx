@@ -1,3 +1,4 @@
+import { TypedInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { scopeInstitutionFields } from "@/Utils/Lib/institutionScope";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -791,7 +792,7 @@ export function AcctConfigResource({ entity }) {
                           className="mt-1.5 min-h-24 w-full rounded-xl border px-3 py-2.5"
                         />
                       ) : (
-                        <input
+                        <TypedInput
                           type={type === "number" ? "number" : type === "date" ? "date" : "text"}
                           min={type === "number" ? 0 : undefined}
                           value={form[key] ?? ""}

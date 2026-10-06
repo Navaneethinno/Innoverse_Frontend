@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2 } from "lucide-react";
@@ -527,7 +528,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
               )}
               <label className="text-sm font-semibold text-slate-700">
                 {t("onboarding:effectiveFrom")}
-                <input type="date" disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className={inputClass} />
+                <DateInput disabled={readOnly} value={basics.effective_from} onChange={(e) => setBasic("effective_from", e.target.value)} className={inputClass} />
               </label>
               {!readOnly && (
                 <label className="text-sm font-semibold text-slate-700 md:col-span-2">

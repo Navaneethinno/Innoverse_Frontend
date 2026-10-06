@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Ban, CheckCircle2, Compass, Eye, Hourglass, Link2, ScrollText, XCircle } from "lucide-react";
@@ -520,7 +521,7 @@ function PrecloseDialog({ deposit, verb, busy, onClose, onSave }) {
       {verb === "preclose" && (
         <label className={cn(labelClass, "mb-3 block")}>
           {t("estimateForDate")}
-          <input type="date" className={cn(inputClass, "mt-1")} min={new Date().toISOString().slice(0, 10)} max={deposit.maturity_date} value={onDate} onChange={(e) => setOnDate(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} min={new Date().toISOString().slice(0, 10)} max={deposit.maturity_date} value={onDate} onChange={(e) => setOnDate(e.target.value)} />
           {onDate && <span className="mt-1 block text-[11px] font-normal text-amber-700">{t("estimateHint")}</span>}
         </label>
       )}

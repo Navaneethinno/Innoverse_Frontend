@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useRef, useState } from "react";
 import { Eye, FileText, Upload, X } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -126,7 +127,7 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
       return options.currency ? <AmountInput instProfileId={instProfileId} input={input} /> : input;
     }
     case "DATE":
-      return <input type="date" min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
+      return <DateInput min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "PHONE":
       return <input type="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "EMAIL":

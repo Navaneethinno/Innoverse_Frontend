@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Pencil, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
@@ -198,7 +199,7 @@ function RateQuote({ product }) {
         </label>
         <label className={labelClass}>
           {t("onDateOptional")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={onDate} onChange={(e) => setOnDate(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={onDate} onChange={(e) => setOnDate(e.target.value)} />
         </label>
         <div className="flex items-end">
           <Button type="submit" icon={Calculator} loading={busy} disabled={!tenorId || !(Number(principal) > 0)} className="w-full">

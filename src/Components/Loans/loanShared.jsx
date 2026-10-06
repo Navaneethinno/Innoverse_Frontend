@@ -1,3 +1,4 @@
+import { TypedInput } from "@/Components/Common/DateInput";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
@@ -70,7 +71,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2 }) {
     int: (v) => String(v).replace(/\D/g, ""),
   }[type];
   return (
-    <input
+    <TypedInput
       type={type === "date" ? "date" : "text"}
       inputMode={clean ? (type === "int" ? "numeric" : "decimal") : undefined}
       className={cn(inputClass, "mt-1", clean && "tabular-nums")}

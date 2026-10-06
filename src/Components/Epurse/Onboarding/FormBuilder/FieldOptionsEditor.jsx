@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
@@ -161,7 +162,7 @@ export function FieldOptionsEditor({ typeDef, value, onChange, vocabulary, libra
         />
       );
     } else if (kind === "date") {
-      control = <input type="date" className={inputClass} disabled={disabled} value={current ?? ""} onChange={(e) => set(key, e.target.value)} />;
+      control = <DateInput className={inputClass} disabled={disabled} value={current ?? ""} onChange={(e) => set(key, e.target.value)} />;
     } else {
       control = <input className={inputClass} disabled={disabled} value={current ?? ""} onChange={(e) => set(key, e.target.value)} />;
     }

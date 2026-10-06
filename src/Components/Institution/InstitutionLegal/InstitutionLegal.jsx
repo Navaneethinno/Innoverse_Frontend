@@ -1,3 +1,4 @@
+import { TypedInput } from "@/Components/Common/DateInput";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
@@ -363,7 +364,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
       {FIELDS.map(([key, label]) => (
         <label key={key} className="text-sm font-medium">
           {label}
-          <input
+          <TypedInput
             required={key === "legal_name"}
             type={key.includes("date") ? "date" : key === "contact_email" ? "email" : "text"}
             value={form[key]}

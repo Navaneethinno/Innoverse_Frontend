@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
@@ -98,11 +99,11 @@ export function ScreeningChanges({ bands }) {
           />
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             {t("aml:from")}
-            <input type="date" value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
+            <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
           </label>
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             {t("aml:to")}
-            <input type="date" value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
+            <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
           </label>
         </div>
         <DataTable

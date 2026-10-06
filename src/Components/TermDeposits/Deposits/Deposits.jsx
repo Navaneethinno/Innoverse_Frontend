@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Landmark, PiggyBank, Plus, RefreshCw, Search } from "lucide-react";
@@ -151,11 +152,11 @@ export function Deposits() {
         </label>
         <label className={labelClass}>
           {t("maturityFrom")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={filters.maturity_from} onChange={(e) => set("maturity_from")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.maturity_from} onChange={(e) => set("maturity_from")(e.target.value)} />
         </label>
         <label className={labelClass}>
           {t("maturityTo")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={filters.maturity_to} onChange={(e) => set("maturity_to")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.maturity_to} onChange={(e) => set("maturity_to")(e.target.value)} />
         </label>
         <div className="flex gap-2">
           <Button type="submit" size="sm" icon={Search} className="flex-1">

@@ -1,3 +1,4 @@
+import { TypedInput } from "@/Components/Common/DateInput";
 import { Plus, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -87,7 +88,7 @@ export function FieldInput({ field, item, setItem, readOnly, readOnlyReason }) {
           <CheckboxPillGroup options={options} value={value ?? []} onChange={set} disabled={disabled} className="flex-row flex-wrap" />
         </div>
       ) : (
-        <input
+        <TypedInput
           type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
           min={field.type === "number" ? 0 : undefined}
           value={value ?? ""}

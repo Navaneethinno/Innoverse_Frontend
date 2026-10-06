@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { UserSearch } from "lucide-react";
@@ -112,11 +113,11 @@ export function ScreeningsList({ bands, initial = {} }) {
           <input type="number" min={0} max={100} value={filters.min_score} onChange={(e) => set("min_score")(e.target.value)} placeholder={t("aml:minScore")} className={`${filterInput} w-24`} />
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             {t("aml:from")}
-            <input type="date" value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
+            <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
           </label>
           <label className="flex items-center gap-1 text-xs text-muted-foreground">
             {t("aml:to")}
-            <input type="date" value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
+            <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
           </label>
           {filters.reference_id && (
             <button type="button" onClick={() => set("reference_id")("")} className="rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-bold text-primary">

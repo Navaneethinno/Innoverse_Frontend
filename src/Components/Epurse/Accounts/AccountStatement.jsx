@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownLeft, ArrowUpRight, Eye, Search } from "lucide-react";
@@ -97,11 +98,11 @@ export function AccountStatement({ account, onClose }) {
       >
         <label className="text-xs font-semibold text-slate-700">
           {t("from")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
         </label>
         <label className="text-xs font-semibold text-slate-700">
           {t("to")}
-          <input type="date" className={cn(inputClass, "mt-1")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+          <DateInput className={cn(inputClass, "mt-1")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
         </label>
         <label className="text-xs font-semibold text-slate-700">
           {t("txnType")}

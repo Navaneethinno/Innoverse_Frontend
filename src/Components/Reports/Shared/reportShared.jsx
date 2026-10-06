@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Download } from "lucide-react";
@@ -9,7 +10,7 @@ import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 // Shared by every Reports screen (read-only; handoffs 08–09).
 
 export const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
-export const dateInput = "rounded-lg border px-2.5 py-1.5 text-xs";
+export const dateInput = "w-auto min-w-[8.5rem] rounded-lg border px-2.5 py-1.5 text-xs";
 
 // JSON times are UTC; reports show them in platform time (IST).
 export const atIst = (value) =>
@@ -53,8 +54,8 @@ export function PeriodChips({ value, onChange, allTime = false }) {
       ))}
       {value.period === "CUSTOM" && (
         <span className="ml-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-          {t("from")} <input type="date" value={value.from} onChange={(e) => onChange({ from: e.target.value })} className={dateInput} />
-          {t("to")} <input type="date" value={value.to} min={value.from || undefined} onChange={(e) => onChange({ to: e.target.value })} className={dateInput} />
+          {t("from")} <DateInput value={value.from} onChange={(e) => onChange({ from: e.target.value })} className={dateInput} />
+          {t("to")} <DateInput value={value.to} min={value.from || undefined} onChange={(e) => onChange({ to: e.target.value })} className={dateInput} />
         </span>
       )}
     </div>

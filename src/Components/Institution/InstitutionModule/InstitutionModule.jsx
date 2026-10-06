@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
@@ -454,9 +455,8 @@ function ModuleForm({
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm font-medium">
               Effective from
-              <input
+              <DateInput
                 required
-                type="date"
                 value={form.effective_from}
                 onChange={set("effective_from")}
                 className="mt-1.5 w-full rounded-xl border border-border p-3"
@@ -464,8 +464,7 @@ function ModuleForm({
             </label>
             <label className="text-sm font-medium">
               Effective to
-              <input
-                type="date"
+              <DateInput
                 value={form.effective_to}
                 onChange={set("effective_to")}
                 className="mt-1.5 w-full rounded-xl border border-border p-3"
@@ -509,9 +508,8 @@ function ModuleForm({
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="text-sm font-medium">
                   Effective from
-                  <input
+                  <DateInput
                     required
-                    type="date"
                     value={row.effective_from}
                     onChange={setModuleRow(index, "effective_from")}
                     className="mt-1.5 w-full rounded-xl border border-border p-3"
@@ -519,8 +517,7 @@ function ModuleForm({
                 </label>
                 <label className="text-sm font-medium">
                   Effective to
-                  <input
-                    type="date"
+                  <DateInput
                     value={row.effective_to}
                     onChange={setModuleRow(index, "effective_to")}
                     className="mt-1.5 w-full rounded-xl border border-border p-3"

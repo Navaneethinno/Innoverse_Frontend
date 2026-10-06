@@ -1,3 +1,4 @@
+import { DateInput } from "@/Components/Common/DateInput";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useState } from "react";
@@ -436,7 +437,7 @@ export function OnboardingConfigurationPage() {
           </label>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:effectiveFrom")}
-            <input type="date" value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
+            <DateInput value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
         </div>
       </Modal>
