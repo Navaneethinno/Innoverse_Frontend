@@ -4,6 +4,7 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  backToTop: "Back to top",
   appName: "Innoverse",
   cancel: "Cancel",
   noAccessTitle: "You don't have access to this screen",

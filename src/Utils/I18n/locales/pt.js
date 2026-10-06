@@ -2,6 +2,7 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  backToTop: "Voltar ao topo",
   appName: "Innoverse",
   cancel: "Cancelar",
   noAccessTitle: "Você não tem acesso a esta tela",
