@@ -786,6 +786,8 @@ export const API_ENDPOINTS = {
       // path; `file` returns the stored file itself (blob, not JSON).
       UPLOAD: "/customer/admin/individual/upload",
       FILE: "/customer/admin/individual/file",
+      // Everything about one customer (KYC Report, menus 205/206).
+      REPORT: "/customer/admin/individual/report",
       EDIT: "/customer/admin/individual/edit",
       SUBMIT: "/customer/admin/individual/submit",
       LIST: "/customer/admin/individual/list",
@@ -807,6 +809,7 @@ export const API_ENDPOINTS = {
       // path; `file` returns the stored file itself (blob, not JSON).
       UPLOAD: "/customer/admin/corporate/upload",
       FILE: "/customer/admin/corporate/file",
+      REPORT: "/customer/admin/corporate/report",
       EDIT: "/customer/admin/corporate/edit",
       SUBMIT: "/customer/admin/corporate/submit",
       LIST: "/customer/admin/corporate/list",

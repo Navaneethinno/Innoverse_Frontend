@@ -80,6 +80,8 @@ const buildApi = (routes) => ({
   getActive: (payload = { view: "dropdown" }) => request(routes.GET_ACTIVE, payload),
   pending: (payload) => request(routes.PENDING, payload),
   audit: (payload) => request(routes.AUDIT, payload),
+  // { customer_id } or { reference_id } -> the KYC Report (data[0]).
+  report: (payload) => request(routes.REPORT, payload),
   // Same file calls as the individual API (see customerOnboarding.api.js).
   upload: (fields) => uploadFile(routes.UPLOAD, fields),
   file: (payload) => downloadFile(routes.FILE, payload),

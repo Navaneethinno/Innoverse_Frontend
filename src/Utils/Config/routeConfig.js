@@ -152,6 +152,8 @@ const SEGMENT_LABELS = {
   useractivity: { titleKey: "crumbUserActivity", breadcrumb: ["crumbReports", "crumbUserActivity"] },
   riskscorebreakdown: { titleKey: "crumbRiskScoreBreakdown", breadcrumb: ["crumbReports", "crumbRiskScoreBreakdown"] },
   amlscorebreakdown: { titleKey: "crumbAmlScoreBreakdown", breadcrumb: ["crumbReports", "crumbAmlScoreBreakdown"] },
+  customerkycreport: { titleKey: "crumbCustomerKycReport", breadcrumb: ["crumbReports", "crumbKycReport", "crumbCustomerKycReport"] },
+  merchantkycreport: { titleKey: "crumbMerchantKycReport", breadcrumb: ["crumbReports", "crumbKycReport", "crumbMerchantKycReport"] },
   // --- InnoAML ---------------------------------------------------------------
   amlsetup: { titleKey: "crumbAmlSetup", breadcrumb: ["crumbAmlConfiguration", "crumbAmlSetup"] },
   internalwatchlists: { titleKey: "crumbInternalWatchlists", breadcrumb: ["crumbAmlConfiguration", "crumbInternalWatchlists"] },

@@ -1,3 +1,6 @@
+import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { ViewReportButton, reportBody } from "@/Components/Reports/KycReport/KycReport";
+import { KycReportView } from "@/Components/Reports/KycReport/KycReportView";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -146,6 +149,9 @@ export function CorporateCustomerOnboardingResource() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
+  // The KYC Report of a row, opened over the list (kept mounted, hidden).
+  const [reportRow, setReportRow] = useState(null);
+  const audience = useMenuContext()?.module === "MMS" ? "merchant" : "customer";
 
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -220,6 +226,7 @@ export function CorporateCustomerOnboardingResource() {
       label: t("common:actions"),
       sortable: false,
       render: (r) => (
+        <div className="flex items-center justify-center gap-1">
         <OnboardingActions
           row={r}
           canAdd={can("Add")}
@@ -230,6 +237,8 @@ export function CorporateCustomerOnboardingResource() {
           onRefresh={load}
           onOpen={(row, opts) => setWizard({ referenceId: row.reference_id, forceReadOnly: Boolean(opts?.forceReadOnly) })}
         />
+        <ViewReportButton audience={audience} onClick={() => setReportRow(r)} />
+        </div>
       ),
     },
   ];
@@ -245,7 +254,9 @@ export function CorporateCustomerOnboardingResource() {
   ) : null;
 
   return (
-    <div className="pt-1 pb-6">
+    <>
+    {reportRow && <KycReportView api={corpCustomerOnboardingApi} body={reportBody(reportRow)} onBack={() => setReportRow(null)} />}
+    <div className={reportRow ? "hidden" : "pt-1 pb-6"}>
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">{t("customer:corporateCustomerOnboarding")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -297,5 +308,6 @@ export function CorporateCustomerOnboardingResource() {
         />
       )}
     </div>
+    </>
   );
 }

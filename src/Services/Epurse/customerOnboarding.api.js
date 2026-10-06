@@ -88,6 +88,8 @@ const buildApi = (routes) => ({
   getActive: (payload = { view: "dropdown" }) => request(routes.GET_ACTIVE, payload),
   pending: (payload) => request(routes.PENDING, payload),
   audit: (payload) => request(routes.AUDIT, payload),
+  // { customer_id } or { reference_id } -> the KYC Report (data[0]).
+  report: (payload) => request(routes.REPORT, payload),
   // { reference_id, section_code, field, type_id?, file } -> { path, ... };
   // the path is then saved as the field's value by `edit`.
   upload: (fields) => uploadFile(routes.UPLOAD, fields),

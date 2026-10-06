@@ -56,6 +56,7 @@ void i18n
       "txn",
       "fees",
       "txnReports",
+      "kycReport",
     ],
     interpolation: { escapeValue: false },
     detection: {

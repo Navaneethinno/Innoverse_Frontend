@@ -15,6 +15,9 @@ const TXN_REPORTS = {
   reversals: txnReport("Reversals"),
   // Card Summary (menu 202).
   cardsummary: lazy(() => import("@/Components/Reports/Cards/CardSummary.jsx").then((m) => ({ default: m.CardSummary }))),
+  // KYC Report (group 204): Customer (206) and Merchant (205).
+  customerkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.CustomerKycReport }))),
+  merchantkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.MerchantKycReport }))),
 };
 
 export const reportRoutes = [
