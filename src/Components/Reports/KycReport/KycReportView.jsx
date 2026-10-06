@@ -4,8 +4,10 @@ import {
   ArrowLeft,
   Briefcase,
   CheckCircle2,
+  ChevronRight,
   CreditCard,
   FileImage,
+  FileText,
   Fingerprint,
   FolderKanban,
   Gauge,
@@ -162,7 +164,7 @@ function Stat({ icon, label, children }) {
   );
 }
 
-function Header({ summary, riskColor }) {
+function Header({ summary }) {
   const { t } = useTranslation("kycReport");
   const {
     profile = {},
@@ -240,7 +242,7 @@ function Header({ summary, riskColor }) {
           {risk ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xl font-black tabular-nums">{risk.risk_score}</span>
-              <ColorBadge color={riskColor}>{risk.level_name ?? risk.level_code}</ColorBadge>
+              <ColorBadge color={risk.color_code}>{risk.level_name ?? risk.level_code}</ColorBadge>
               {risk.risk_action_name && (
                 <span className="text-[11px] text-muted-foreground">{risk.risk_action_name}</span>
               )}
@@ -540,81 +542,129 @@ function KycCard({ kyc, processes }) {
 
 // --- Risk --------------------------------------------------------------
 
-const levelColor = (levels, code) =>
-  rowsOf(levels).find((l) => l.code === code || l.level_code === code)?.color_code ?? null;
+// The assessment's points: one row per scored question of breakdown.criteria.
+function RiskPoints({ breakdown }) {
+  const { t } = useTranslation("kycReport");
+  return (
+    <MiniTable
+      rows={rowsOf(breakdown?.criteria)}
+      empty={t("none")}
+      rowKey={(r, i) => r.field_code ?? i}
+      columns={[
+        { key: "field_name", label: t("criterion"), render: (r) => show(r.field_name ?? r.field_code) },
+        {
+          key: "value_name",
+          label: t("answer"),
+          render: (r) => (r.answered === false ? <span className="italic text-muted-foreground">{t("notAnswered")}</span> : show(r.value_name)),
+        },
+        { key: "weight", label: t("weight"), align: "right", render: (r) => show(r.weight) },
+        {
+          key: "points",
+          label: t("points"),
+          align: "right",
+          render: (r) => (
+            <span>
+              <b>{show(r.points)}</b>
+              {r.max_points != null && <span className="text-muted-foreground"> / {r.max_points}</span>}
+            </span>
+          ),
+        },
+      ]}
+    />
+  );
+}
+
+// The level bands from min to max score, each in its colour, with a marker
+// at the score.
+function RiskScale({ levels, score }) {
+  const bands = [...rowsOf(levels)].sort((a, b) => Number(a.min_score) - Number(b.min_score));
+  if (!bands.length) return null;
+  const lo = Number(bands[0].min_score ?? 0);
+  const hi = Number(bands[bands.length - 1].max_score ?? 100);
+  const span = hi - lo || 100;
+  const at = Math.min(100, Math.max(0, ((Number(score) - lo) / span) * 100));
+  return (
+    <div className="mt-4 max-w-2xl">
+      <div className="relative pt-5">
+        <span className="absolute top-0 -translate-x-1/2 text-[10px] font-black tabular-nums text-slate-700" style={{ left: `${at}%` }}>
+          {score}
+        </span>
+        <span className="absolute top-4 z-10 h-5 w-0.5 -translate-x-1/2 rounded-full bg-slate-800 ring-2 ring-white" style={{ left: `${at}%` }} />
+        <div className="flex h-3 overflow-hidden rounded-full">
+          {bands.map((b) => (
+            <span key={b.code} title={`${b.name} ${b.min_score}–${b.max_score}`} style={{ width: `${((Number(b.max_score) - Number(b.min_score)) / span) * 100}%`, background: b.color_code ?? "var(--muted)" }} />
+          ))}
+        </div>
+      </div>
+      <div className="mt-1 flex">
+        {bands.map((b) => (
+          <span key={b.code} className="truncate text-[10px] font-semibold text-muted-foreground" style={{ width: `${((Number(b.max_score) - Number(b.min_score)) / span) * 100}%` }}>
+            {b.name} <span className="tabular-nums">{b.min_score}–{b.max_score}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RiskHistoryRow({ item }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="rounded-xl border border-border">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-left text-xs">
+        <ChevronRight size={13} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-90")} />
+        <span className="font-black tabular-nums">{item.risk_score}</span>
+        <ColorBadge color={item.color_code ?? rowsOf(item.breakdown?.levels).find((l) => l.code === item.level_code)?.color_code}>{item.level_name ?? item.level_code}</ColorBadge>
+        {item.source && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{item.source}</span>}
+        {item.risk_action_name && <span className="text-muted-foreground">{item.risk_action_name}</span>}
+        <span className="ml-auto text-muted-foreground">
+          {when(item.assessed_at)}
+          {item.assessed_by ? ` · ${item.assessed_by}` : ""}
+        </span>
+      </button>
+      {open && (
+        <div className="border-t border-border p-2.5">
+          <RiskPoints breakdown={item.breakdown} />
+        </div>
+      )}
+    </li>
+  );
+}
 
 function RiskCard({ risk, history }) {
   const { t } = useTranslation("kycReport");
   const past = rowsOf(history);
-  const levels = past[0]?.breakdown?.levels;
-  const points = rowsOf(risk?.points);
   return (
     <Card icon={Gauge} title={t("risk")}>
       <Sub title={t("currentRisk")}>
         {!risk ? (
           <None />
         ) : (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-3xl font-black tabular-nums">{risk.risk_score}</span>
-            <ColorBadge color={levelColor(levels, risk.level_code)}>
-              {risk.level_name ?? risk.level_code}
-            </ColorBadge>
-            <span className="text-xs text-muted-foreground">
-              {t("action")}: <b className="text-slate-700">{show(risk.risk_action_name)}</b> ·{" "}
-              {when(risk.assessed_at)}
-            </span>
-          </div>
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-3xl font-black tabular-nums">{risk.risk_score}</span>
+              <ColorBadge color={risk.color_code}>{risk.level_name ?? risk.level_code}</ColorBadge>
+              <span className="text-xs text-muted-foreground">
+                {t("action")}: <b className="text-slate-700">{show(risk.risk_action_name)}</b> · {when(risk.assessed_at)}
+              </span>
+              {risk.breakdown?.setup?.name && <span className="text-xs text-muted-foreground">· {risk.breakdown.setup.name}</span>}
+            </div>
+            <RiskScale levels={risk.breakdown?.levels} score={risk.risk_score} />
+          </>
         )}
       </Sub>
-      {points.length > 0 && (
+      {risk && (
         <Sub title={t("riskPoints")}>
-          <MiniTable
-            rows={points}
-            columns={[
-              {
-                key: "criterion",
-                label: t("criterion"),
-                render: (r) => show(r.label ?? r.field_label ?? r.criterion_name ?? r.field_key),
-              },
-              {
-                key: "answer",
-                label: t("answer"),
-                render: (r) => show(r.answer_label ?? r.answer ?? r.value),
-              },
-              { key: "weight", label: t("weight"), align: "right", render: (r) => show(r.weight) },
-              {
-                key: "points",
-                label: t("points"),
-                align: "right",
-                render: (r) => <b>{show(r.points)}</b>,
-              },
-            ]}
-          />
+          <RiskPoints breakdown={risk.breakdown} />
         </Sub>
       )}
       <Sub title={t("riskHistory")}>
         {!past.length ? (
           <None />
         ) : (
-          <ul className="thin-scrollbar grid max-h-96 gap-2 overflow-y-auto pr-1">
+          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pr-1">
             {past.map((h, i) => (
-              <li key={i} className="rounded-xl border border-border p-2.5">
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="font-black tabular-nums">{h.risk_score}</span>
-                  <ColorBadge color={levelColor(h.breakdown?.levels, h.level_code)}>
-                    {h.level_name ?? h.level_code}
-                  </ColorBadge>
-                  {h.source && (
-                    <span className="rounded bg-muted px-1.5 text-[10px] font-bold">
-                      {h.source}
-                    </span>
-                  )}
-                  <span className="ml-auto text-muted-foreground">
-                    {when(h.assessed_at ?? h.created_time)}
-                  </span>
-                </div>
-                <Details value={h.breakdown?.criteria} />
-              </li>
+              <RiskHistoryRow key={i} item={h} />
             ))}
           </ul>
         )}
@@ -1007,7 +1057,7 @@ function CardsCard({ cards }) {
 
 function AccessCard({ access }) {
   const { t } = useTranslation("kycReport");
-  const list = Array.isArray(access) ? access : access ? [access] : [];
+  const list = rowsOf(access);
   const yesNo = (v) => (v ? t("yes") : t("no"));
   return (
     <Card icon={KeyRound} title={t("signIn")}>
@@ -1019,6 +1069,7 @@ function AccessCard({ access }) {
           <div key={a.login_id ?? i} className="mt-3 first:mt-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="font-mono text-sm font-bold">{a.login_id}</span>
+              {a.party && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold">{a.party}</span>}
               {a.status && <StatusBadge status={String(a.status)} variant="subtle" />}
               {locked && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-black text-red-700">
@@ -1035,6 +1086,8 @@ function AccessCard({ access }) {
                 [t("pinSet"), yesNo(a.pin_set)],
                 [t("pinFailures"), show(a.pin_failures)],
                 [t("pinChanged"), when(a.pin_changed_at)],
+                [t("passwordChanged"), when(a.password_changed_at)],
+                [t("created"), when(a.created_at)],
               ]}
             />
           </div>
@@ -1093,6 +1146,40 @@ function TimelineCard({ timeline }) {
   );
 }
 
+// --- Record details --------------------------------------------------------
+
+function RecordCard({ onboarding, record }) {
+  const { t } = useTranslation("kycReport");
+  const o = onboarding ?? {};
+  const r = record ?? {};
+  if (!onboarding && !record) {
+    return (
+      <Card icon={FileText} title={t("recordDetails")}>
+        <None />
+      </Card>
+    );
+  }
+  const by = (who, at) => [who, at ? when(at) : null].filter(Boolean).join(" · ") || "—";
+  return (
+    <Card icon={FileText} title={t("recordDetails")}>
+      <Pairs
+        items={[
+          [t("reference"), show(o.reference_id)],
+          [t("channel"), show(o.channel)],
+          [t("digitalProduct"), show(o.digital_product_name)],
+          [t("signupStarted"), when(o.started_at)],
+          [t("signupCompleted"), when(o.completed_at)],
+          [t("signupStatus"), o.onboarding_status ? <StatusBadge status={o.onboarding_status} variant="subtle" /> : "—"],
+          [t("attempts"), show(o.attempt_count)],
+          [t("createdBy"), by(r.created_by, r.created_time)],
+          [t("lastChangedBy"), by(r.updated_by, r.updated_time)],
+          [t("approval"), r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"],
+        ]}
+      />
+    </Card>
+  );
+}
+
 // --- The page ------------------------------------------------------------
 
 export function KycReportView({ api, body, onBack }) {
@@ -1132,10 +1219,6 @@ export function KycReportView({ api, body, onBack }) {
     data?.summary?.onboarding?.reference_id ?? report.onboarding?.reference_id ?? body.reference_id;
   // Stored file paths open through /file with the onboarding's reference.
   const download = (path) => api.file({ reference_id: referenceId, path });
-  const riskColor = levelColor(
-    rowsOf(report.risk_history)[0]?.breakdown?.levels,
-    data?.summary?.risk?.level_code,
-  );
 
   return (
     <div className="pt-1 pb-8">
@@ -1156,7 +1239,7 @@ export function KycReportView({ api, body, onBack }) {
         </div>
       ) : (
         <div className="grid gap-4">
-          <Header summary={data.summary} riskColor={riskColor} />
+          <Header summary={data.summary} />
           <ProfileCard profile={data.profile} />
           <DocumentsCard documents={data.documents} download={download} />
           <div className="grid gap-4 xl:grid-cols-2">
@@ -1177,6 +1260,7 @@ export function KycReportView({ api, body, onBack }) {
             <AccessCard access={report.access} />
             <TimelineCard timeline={report.timeline} />
           </div>
+          <RecordCard onboarding={report.onboarding} record={report.profile_record} />
         </div>
       )}
     </div>

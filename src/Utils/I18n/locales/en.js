@@ -4386,6 +4386,17 @@ export const cards = {
 };
 
 export const kycReport = {
+  notAnswered: "Not answered",
+  passwordChanged: "Password changed",
+  recordDetails: "Record details",
+  digitalProduct: "Digital product",
+  signupStarted: "Sign-up started",
+  signupCompleted: "Sign-up completed",
+  signupStatus: "Sign-up status",
+  attempts: "Attempts",
+  createdBy: "Created by / at",
+  lastChangedBy: "Last changed by / at",
+  approval: "Approval",
   customerTitle: "Customer KYC Report",
   merchantTitle: "Merchant KYC Report",
   listSubtitle: "Pick a customer to see everything about them on one page.",

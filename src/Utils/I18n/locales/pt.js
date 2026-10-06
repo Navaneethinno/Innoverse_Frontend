@@ -4400,6 +4400,17 @@ export const cards = {
 };
 
 export const kycReport = {
+  notAnswered: "Sem resposta",
+  passwordChanged: "Palavra-passe alterada",
+  recordDetails: "Detalhes do registo",
+  digitalProduct: "Produto digital",
+  signupStarted: "Registo iniciado",
+  signupCompleted: "Registo concluído",
+  signupStatus: "Estado do registo",
+  attempts: "Tentativas",
+  createdBy: "Criado por / em",
+  lastChangedBy: "Alterado por / em",
+  approval: "Aprovação",
   customerTitle: "Relatório KYC de Cliente",
   merchantTitle: "Relatório KYC de Comerciante",
   listSubtitle: "Escolha um cliente para ver tudo sobre ele numa só página.",
