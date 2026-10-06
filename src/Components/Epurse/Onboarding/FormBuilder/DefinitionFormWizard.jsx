@@ -107,7 +107,7 @@ function SectionCard({ placed, index, count, section, fields, typeName, readOnly
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} className="overflow-hidden">
-            <ol className="grid gap-2 border-t bg-muted/30 p-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ol className="grid max-h-72 gap-2 overflow-y-auto border-t bg-muted/30 p-3 sm:grid-cols-2 lg:grid-cols-3">
               {fields.map((f, i) => (
                 <li key={f.key ?? f.field_key ?? i} className="flex min-w-0 items-center gap-2.5 rounded-lg border bg-white/80 px-2.5 py-2">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black text-primary">{i + 1}</span>
