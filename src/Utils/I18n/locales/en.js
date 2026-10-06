@@ -257,7 +257,7 @@ export const institutions = {
   reactivateConfirmDescription: "Are you sure you want to reactivate",
   submitConfirmDescriptionPrefix: "This request will be submitted for",
   submitConfirmDescriptionSuffix: "approval. Are you sure you want to continue?",
-  listTitle: "Institutions",
+  listTitle: "Institution Profile",
   listSubtitle: "{{total}} registered · {{active}} active",
   newInstitution: "New Institution",
   newInstitutionShort: "New",
