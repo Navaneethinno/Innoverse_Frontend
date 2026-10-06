@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Search } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { masterApi } from "@/Services/Master/master.api";
 import { useTranslation } from "react-i18next";
+
+// Actions always in the same order (unknown ones last, by name), so the
+// same action sits in the same place on every menu row.
+const ACTION_ORDER = ["view", "add", "edit", "delete", "change status", "authorise", "authorize", "self"];
+const actionRank = (name) => {
+  const i = ACTION_ORDER.indexOf(String(name ?? "").trim().toLowerCase());
+  return i === -1 ? ACTION_ORDER.length : i;
+};
+const byActionOrder = (a, b) => actionRank(a.action_name) - actionRank(b.action_name) || String(a.action_name).localeCompare(String(b.action_name));
 
 // Base data source deliberately reused rather than inventing a new master
 // endpoint: the Postman collection has no confirmed /master/menu/list or
@@ -69,7 +78,7 @@ export function useMenuTreeSource() {
           menu_id: menuId,
           menu_name: menu?.menu_name ?? menu?.name ?? `Menu #${menuId}`,
           priority: Number(menu?.priority ?? 0),
-          actions,
+          actions: [...actions].sort(byActionOrder),
         });
       });
       const modules = Array.from(menusByModule.entries())
@@ -396,15 +405,17 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                         </label>
 
                         {granted && (
-                          <div className="mt-2 flex flex-wrap items-center gap-3 pl-6">
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-6">
                             {(menu.actions || []).map((action) => {
                               const active = !!grant?.actions.includes(action.action_id);
                               return (
                                 <label
                                   key={action.action_id}
                                   className={cn(
-                                    "flex items-center gap-1.5 text-[11px] font-medium",
-                                    readOnly ? "text-muted-foreground" : "cursor-pointer text-slate-600",
+                                    "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
+                                    active ? "border-[var(--primary)] bg-white text-slate-700" : "border-dashed border-border text-muted-foreground/70",
+                                    !readOnly && "cursor-pointer focus-within:ring-2 focus-within:ring-[var(--primary)]/30 hover:border-[var(--primary)]",
+                                    readOnly && !active && "line-through",
                                   )}
                                 >
                                   <input
@@ -412,8 +423,9 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                                     checked={active}
                                     disabled={readOnly}
                                     onChange={() => toggleAction(menu, action.action_id)}
-                                    className="h-3.5 w-3.5 accent-[var(--primary)]"
+                                    className="sr-only"
                                   />
+                                  {active ? <Check size={11} className="shrink-0 text-[var(--primary)]" strokeWidth={3} /> : <span className="h-[11px] w-[11px] shrink-0" />}
                                   {action.action_name}
                                 </label>
                               );
