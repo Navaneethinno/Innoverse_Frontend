@@ -1,3 +1,5 @@
+import { Lock } from "lucide-react";
+import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -26,8 +28,28 @@ export async function saveRecord(api, { editing, body, draft }) {
 // The institution a record belongs to. Only a service provider picks it; a
 // bank / fintech user is always in its own institution, so nothing shows
 // and the request carries no inst_profile_id (institution scope handoff).
+// A user who can't choose (a bank / fintech user) always works in their own
+// institution: it is shown filled in and locked instead of a blank gap.
 export function InstitutionField(props) {
-  return useCanChooseInstitution() ? <InstitutionPicker {...props} /> : null;
+  return useCanChooseInstitution() ? <InstitutionPicker {...props} /> : <OwnInstitution />;
+}
+
+function OwnInstitution() {
+  const { t } = useTranslation("notification");
+  const name = useAuth((state) => state.user?.inst_profile_name);
+  return (
+    <label className={labelClass}>
+      {t("institution")}
+      <div
+        aria-disabled="true"
+        title={name ?? undefined}
+        className="mt-1.5 flex cursor-not-allowed select-none items-center justify-between gap-2 rounded-xl border border-border bg-muted px-4 py-2.5 text-sm font-medium text-muted-foreground"
+      >
+        <span className="truncate">{name ?? "—"}</span>
+        <Lock size={13} className="shrink-0" />
+      </div>
+    </label>
+  );
 }
 
 function InstitutionPicker({ value, onChange, disabled }) {
