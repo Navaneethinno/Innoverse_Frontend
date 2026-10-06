@@ -71,9 +71,8 @@ function AuthEvents() {
 // Mirrors payse's Body.jsx inactivity-logout mechanism: read a per-user
 // inactivity timeout (minutes) from Redux, reset a timer on user activity,
 // and force a logout + redirect once the user goes idle past that window.
-// Innoverse's user object has no `inactivity_timeout` field yet, so this
-// falls back to the same 5-minute default payse uses when the value is
-// missing/invalid.
+// The login reply's inactivity_timeout (minutes, carried on the stored
+// user); 5 minutes, as in payse, when it is missing or not above 0.
 function InactivityLogout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();

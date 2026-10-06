@@ -51,7 +51,15 @@ function parseSessionResponse(payload) {
     // type_code, institution_id, can_choose_institution.
     // session_user_id: the signed-in user's id (user_session_info.user_id),
     // to keep own-account actions off their own row.
-    user: data?.user_details ? { ...data.user_details, ...(data?.scope ? { scope: data.scope } : {}), ...(sessionInfo?.user_id ? { session_user_id: sessionInfo.user_id } : {}) } : null,
+    // inactivity_timeout (minutes) sits beside user_details, not inside it.
+    user: data?.user_details
+      ? {
+          ...data.user_details,
+          ...(data?.scope ? { scope: data.scope } : {}),
+          ...(sessionInfo?.user_id ? { session_user_id: sessionInfo.user_id } : {}),
+          ...(data?.inactivity_timeout != null ? { inactivity_timeout: data.inactivity_timeout } : {}),
+        }
+      : null,
     branding,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
