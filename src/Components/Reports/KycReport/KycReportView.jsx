@@ -45,7 +45,7 @@ const show = (v) => (v === null || v === undefined || v === "" ? "—" : String(
 
 function Card({ id, icon, title, count, children, className }) {
   return (
-    <section id={id} className={cn("scroll-mt-4 rounded-2xl p-4 sm:p-5", className)} style={glassCard}>
+    <section id={id} className={cn("scroll-mt-32 rounded-2xl p-4 sm:p-5", className)} style={glassCard}>
       <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-800">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--primary-light)] text-[var(--primary)]">
           {createElement(icon, { size: 15 })}
@@ -186,7 +186,7 @@ const SECTIONS = [
 function SectionLinks() {
   const { t } = useTranslation("kycReport");
   return (
-    <nav className="thin-scrollbar sticky top-2 z-20 -mx-1 flex gap-1.5 overflow-x-auto rounded-2xl px-1 py-1.5" style={glassCard}>
+    <nav className="thin-scrollbar sticky top-16 z-20 -mx-1 flex gap-1.5 overflow-x-auto rounded-2xl px-1 py-1.5" style={glassCard}>
       {SECTIONS.map(([id, key]) => (
         <a
           key={id}
