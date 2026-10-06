@@ -1,4 +1,4 @@
-import { createElement, useEffect, useState } from "react";
+import { createElement, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -24,7 +24,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
-import { StoredFilePreview } from "@/Components/Common/FileUploadField";
+import { StoredFilePreview, useStoredFileUrl } from "@/Components/Common/FileUploadField";
+import { useAmlBands } from "@/Components/InnoAML/AMLScreening/Screenings/useAmlBands";
+import { KycPdfButton } from "./KycReportPdf";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
@@ -41,9 +43,9 @@ const when = (v) => (v ? new Date(v).toLocaleString() : "—");
 const day = (v) => (v ? new Date(v).toLocaleDateString() : "—");
 const show = (v) => (v === null || v === undefined || v === "" ? "—" : String(v));
 
-function Card({ icon, title, count, children, className }) {
+function Card({ id, icon, title, count, children, className }) {
   return (
-    <section className={cn("rounded-2xl p-4 sm:p-5", className)} style={glassCard}>
+    <section id={id} className={cn("scroll-mt-4 rounded-2xl p-4 sm:p-5", className)} style={glassCard}>
       <h2 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-800">
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--primary-light)] text-[var(--primary)]">
           {createElement(icon, { size: 15 })}
@@ -153,6 +155,55 @@ function Pairs({ items }) {
 
 // --- Header ---------------------------------------------------------------
 
+// The selfie when there is one, else the initials.
+function Avatar({ photo, name }) {
+  const url = useStoredFileUrl(photo?.path, photo?.download);
+  const initials = String(name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("") || "?";
+  return url.url && url.isImage ? (
+    <img src={url.url} alt="" className="h-16 w-16 shrink-0 rounded-2xl border-2 border-white object-cover shadow-md" />
+  ) : (
+    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--primary)] text-xl font-black text-[var(--primary-foreground,#fff)] shadow-md">{initials}</span>
+  );
+}
+
+const SECTIONS = [
+  ["kyc-profile", "profile"],
+  ["kyc-documents", "documents"],
+  ["kyc-identity", "identityChecks"],
+  ["kyc-kyc", "kyc"],
+  ["kyc-risk", "risk"],
+  ["kyc-aml", "aml"],
+  ["kyc-cases", "cases"],
+  ["kyc-accounts", "accountsBlock"],
+  ["kyc-loans", "depositsLoans"],
+  ["kyc-cards", "cards"],
+  ["kyc-access", "signIn"],
+  ["kyc-timeline", "timeline"],
+  ["kyc-record", "recordDetails"],
+];
+
+// Quick links to each card of the long page.
+function SectionLinks() {
+  const { t } = useTranslation("kycReport");
+  return (
+    <nav className="thin-scrollbar sticky top-2 z-20 -mx-1 flex gap-1.5 overflow-x-auto rounded-2xl px-1 py-1.5" style={glassCard}>
+      {SECTIONS.map(([id, key]) => (
+        <a
+          key={id}
+          href={`#${id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold text-slate-600 transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
+        >
+          {t(key)}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 function Stat({ icon, label, children }) {
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card/70 p-3">
@@ -164,7 +215,7 @@ function Stat({ icon, label, children }) {
   );
 }
 
-function Header({ summary }) {
+function Header({ summary, photo }) {
   const { t } = useTranslation("kycReport");
   const {
     profile = {},
@@ -179,7 +230,9 @@ function Header({ summary }) {
   return (
     <section className="rounded-2xl p-4 sm:p-5" style={glassCard}>
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-4">
+          <Avatar photo={photo} name={profile.display_name} />
+          <div className="min-w-0">
           <h1 className="truncate text-2xl font-black tracking-tight text-slate-800">
             {profile.display_name || "—"}
           </h1>
@@ -207,6 +260,7 @@ function Header({ summary }) {
             )}
           </div>
         </div>
+          </div>
         <p className="font-mono text-[11px] text-muted-foreground" title={onboarding.reference_id}>
           {t("reference")}: {onboarding.reference_id ?? "—"}
         </p>
@@ -323,7 +377,7 @@ function ProfileCard({ profile }) {
   const legacy =
     !sections && profile && typeof profile === "object" ? Object.entries(profile) : null;
   return (
-    <Card icon={User} title={t("profile")}>
+    <Card id="kyc-profile" icon={User} title={t("profile")}>
       {sections?.length ? (
         sections.map((s, i) => (
           <Sub key={s.key ?? s.section_key ?? i} title={s.heading ?? s.key}>
@@ -401,7 +455,7 @@ function DocumentsCard({ documents, download }) {
   const pair = front && selfie ? [front, selfie] : [];
   const rest = docs.filter((d) => !pair.includes(d));
   return (
-    <Card icon={FileImage} title={t("documents")} count={docs.length}>
+    <Card id="kyc-documents" icon={FileImage} title={t("documents")} count={docs.length}>
       {!docs.length && <None />}
       {pair.length > 0 && (
         <Sub title={t("faceCompare")}>
@@ -429,7 +483,7 @@ function IdentityCard({ checks }) {
   const { t } = useTranslation("kycReport");
   const list = rowsOf(checks);
   return (
-    <Card icon={ScanFace} title={t("identityChecks")} count={list.length}>
+    <Card id="kyc-identity" icon={ScanFace} title={t("identityChecks")} count={list.length}>
       {!list.length && <None />}
       <div className="grid gap-3">
         {list.map((c, i) => {
@@ -490,7 +544,7 @@ function KycCard({ kyc, processes }) {
   const records = rowsOf(kyc);
   const checks = rowsOf(processes);
   return (
-    <Card icon={Fingerprint} title={t("kyc")}>
+    <Card id="kyc-kyc" icon={Fingerprint} title={t("kyc")}>
       <Sub title={t("kycRecords")}>
         <MiniTable
           rows={records}
@@ -576,7 +630,7 @@ function RiskPoints({ breakdown }) {
 
 // The level bands from min to max score, each in its colour, with a marker
 // at the score.
-function RiskScale({ levels, score }) {
+function ScoreScale({ levels, score }) {
   const bands = [...rowsOf(levels)].sort((a, b) => Number(a.min_score) - Number(b.min_score));
   if (!bands.length) return null;
   const lo = Number(bands[0].min_score ?? 0);
@@ -635,7 +689,7 @@ function RiskCard({ risk, history }) {
   const { t } = useTranslation("kycReport");
   const past = rowsOf(history);
   return (
-    <Card icon={Gauge} title={t("risk")}>
+    <Card id="kyc-risk" icon={Gauge} title={t("risk")}>
       <Sub title={t("currentRisk")}>
         {!risk ? (
           <None />
@@ -649,7 +703,7 @@ function RiskCard({ risk, history }) {
               </span>
               {risk.breakdown?.setup?.name && <span className="text-xs text-muted-foreground">· {risk.breakdown.setup.name}</span>}
             </div>
-            <RiskScale levels={risk.breakdown?.levels} score={risk.risk_score} />
+            <ScoreScale levels={risk.breakdown?.levels} score={risk.risk_score} />
           </>
         )}
       </Sub>
@@ -675,69 +729,122 @@ function RiskCard({ risk, history }) {
 
 // --- AML ---------------------------------------------------------------
 
+function AmlSubject({ subject }) {
+  return subject && typeof subject === "object" ? Object.values(subject).filter(Boolean).join(" · ") : show(subject);
+}
+
+function AmlMatches({ screening }) {
+  const { t } = useTranslation("kycReport");
+  const matches = rowsOf(screening.matches);
+  if (!matches.length) return <p className="text-xs text-muted-foreground">{t("noMatches")}</p>;
+  return (
+    <ul className="grid gap-1.5">
+      {matches.map((m, j) => (
+        <li key={j} className="rounded-lg border border-border px-2.5 py-1.5 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold">{m.matched_name}</span>
+            <span className="rounded bg-red-50 px-1.5 text-[10px] font-black tabular-nums text-red-700">{m.score}</span>
+            <span className="text-muted-foreground">{[m.list_code, m.category, m.entity_type].filter(Boolean).join(" · ")}</span>
+          </div>
+          <Details value={m.entity} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// What a screening searched and how it ended.
+function AmlFacts({ screening: s }) {
+  const { t } = useTranslation("kycReport");
+  return (
+    <>
+      {s.error && <p className="mb-2 text-xs font-semibold text-red-700">{s.error}</p>}
+      <Pairs
+        items={[
+          [t("subject"), <AmlSubject key="s" subject={s.subject} />],
+          [t("trigger"), show(s.trigger)],
+          [t("by"), show(s.screened_by)],
+          [t("score"), show(s.score)],
+          [t("effectiveScore"), show(s.effective_score)],
+          [t("matches"), show(s.match_count ?? rowsOf(s.matches).length)],
+        ]}
+      />
+    </>
+  );
+}
+
+function AmlHistoryRow({ screening: s }) {
+  const [open, setOpen] = useState(false);
+  const band = s.effective_band;
+  return (
+    <li className="rounded-xl border border-border">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-left text-xs">
+        <ChevronRight size={13} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-90")} />
+        <span className="font-black tabular-nums">{s.effective_score ?? s.score ?? "—"}</span>
+        {band && <ColorBadge color={band.color_code}>{band.name}</ColorBadge>}
+        {s.party_role && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{s.party_role}</span>}
+        {s.trigger && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{s.trigger}</span>}
+        {s.status && s.status !== "DONE" && <StatusBadge status={s.status} variant="subtle" />}
+        <span className="ml-auto text-muted-foreground">
+          {when(s.screened_at)}
+          {s.screened_by ? ` · ${s.screened_by}` : ""}
+        </span>
+      </button>
+      {open && (
+        <div className="grid gap-3 border-t border-border p-2.5">
+          <AmlFacts screening={s} />
+          <AmlMatches screening={s} />
+        </div>
+      )}
+    </li>
+  );
+}
+
 function AmlCard({ screenings }) {
   const { t } = useTranslation("kycReport");
+  const bands = useAmlBands();
   const list = rowsOf(screenings);
+  const latest = list[0];
+  const band = latest?.effective_band;
+  const score = latest?.effective_score ?? latest?.score;
   return (
-    <Card icon={ShieldCheck} title={t("screenings")} count={list.length}>
-      {!list.length && <None />}
-      <div className="thin-scrollbar grid max-h-[36rem] gap-3 overflow-y-auto pr-1">
-        {list.map((s, i) => {
-          const band = s.effective_band;
-          const subject =
-            s.subject && typeof s.subject === "object"
-              ? Object.values(s.subject).filter(Boolean).join(" · ")
-              : s.subject;
-          return (
-            <div key={i} className="rounded-xl border border-border p-3">
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                {s.party_role && (
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold">
-                    {s.party_role}
-                  </span>
-                )}
-                <StatusBadge status={s.status} variant="subtle" />
-                {band && <ColorBadge color={band.color_code}>{band.name}</ColorBadge>}
-                <span className="ml-auto text-muted-foreground">{when(s.screened_at)}</span>
-              </div>
-              {s.error && <p className="mt-1 text-xs font-semibold text-red-700">{s.error}</p>}
-              <div className="mt-2">
-                <Pairs
-                  items={[
-                    [t("subject"), show(subject)],
-                    [t("trigger"), show(s.trigger)],
-                    [t("by"), show(s.screened_by)],
-                    [t("score"), show(s.score)],
-                    [t("effectiveScore"), show(s.effective_score)],
-                    [t("action"), show(band?.risk_action_name)],
-                  ]}
-                />
-              </div>
-              {rowsOf(s.matches).length > 0 && (
-                <div className="mt-3">
-                  <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {t("matches")} ({s.match_count ?? s.matches.length})
-                  </p>
-                  <ul className="grid gap-1.5">
-                    {s.matches.map((m, j) => (
-                      <li key={j} className="rounded-lg bg-muted/40 px-2.5 py-1.5 text-xs">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-semibold">{m.matched_name}</span>
-                          <span className="tabular-nums text-muted-foreground">{m.score}</span>
-                          <span className="text-muted-foreground">
-                            {[m.list_code, m.category, m.entity_type].filter(Boolean).join(" · ")}
-                          </span>
-                        </div>
-                        <Details value={m.entity} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+    <Card id="kyc-aml" icon={ShieldCheck} title={t("screenings")} count={list.length}>
+      <Sub title={t("latestScreening")}>
+        {!latest ? (
+          <None />
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-3xl font-black tabular-nums">{score ?? "—"}</span>
+              {band && <ColorBadge color={band.color_code}>{band.name}</ColorBadge>}
+              <span className="text-xs text-muted-foreground">
+                {t("action")}: <b className="text-slate-700">{show(band?.risk_action_name)}</b> · {when(latest.screened_at)}
+              </span>
+              {latest.party_role && <span className="text-xs text-muted-foreground">· {latest.party_role}</span>}
             </div>
-          );
-        })}
-      </div>
+            {score != null && <ScoreScale levels={bands} score={score} />}
+            <div className="mt-4">
+              <AmlFacts screening={latest} />
+            </div>
+          </>
+        )}
+      </Sub>
+      {latest && (
+        <Sub title={t("matches")}>
+          <AmlMatches screening={latest} />
+        </Sub>
+      )}
+      <Sub title={t("history")}>
+        {!list.length ? (
+          <None />
+        ) : (
+          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pr-1">
+            {list.map((sc, i) => (
+              <AmlHistoryRow key={i} screening={sc} />
+            ))}
+          </ul>
+        )}
+      </Sub>
     </Card>
   );
 }
@@ -748,7 +855,7 @@ function CasesCard({ cases }) {
   const { t } = useTranslation("kycReport");
   const list = rowsOf(cases);
   return (
-    <Card icon={FolderKanban} title={t("cases")} count={list.length}>
+    <Card id="kyc-cases" icon={FolderKanban} title={t("cases")} count={list.length}>
       {!list.length && <None />}
       <div className="grid gap-3">
         {list.map((c, i) => (
@@ -817,7 +924,7 @@ const money = (amount, currency) =>
 function AccountsCard({ accounts, joint }) {
   const { t } = useTranslation("kycReport");
   return (
-    <Card icon={Wallet} title={t("accountsBlock")} count={rowsOf(accounts).length}>
+    <Card id="kyc-accounts" icon={Wallet} title={t("accountsBlock")} count={rowsOf(accounts).length}>
       <MiniTable
         rows={rowsOf(accounts)}
         empty={t("none")}
@@ -891,7 +998,7 @@ function DepositsLoansCard({ deposits, applications, loans }) {
   const { t } = useTranslation("kycReport");
   const pct = (v) => (v === null || v === undefined ? "—" : `${v}%`);
   return (
-    <Card icon={Landmark} title={t("depositsLoans")}>
+    <Card id="kyc-loans" icon={Landmark} title={t("depositsLoans")}>
       <Sub title={t("termDeposits")}>
         <MiniTable
           rows={rowsOf(deposits)}
@@ -1013,7 +1120,7 @@ function DepositsLoansCard({ deposits, applications, loans }) {
 function CardsCard({ cards }) {
   const { t } = useTranslation("kycReport");
   return (
-    <Card icon={CreditCard} title={t("cards")} count={rowsOf(cards).length}>
+    <Card id="kyc-cards" icon={CreditCard} title={t("cards")} count={rowsOf(cards).length}>
       <MiniTable
         rows={rowsOf(cards)}
         empty={t("none")}
@@ -1060,7 +1167,7 @@ function AccessCard({ access }) {
   const list = rowsOf(access);
   const yesNo = (v) => (v ? t("yes") : t("no"));
   return (
-    <Card icon={KeyRound} title={t("signIn")}>
+    <Card id="kyc-access" icon={KeyRound} title={t("signIn")}>
       {!list.length && <None />}
       {list.map((a, i) => {
         const locked =
@@ -1118,7 +1225,7 @@ function TimelineCard({ timeline }) {
   // Sent oldest first; shown newest at the top.
   const list = [...rowsOf(timeline)].reverse();
   return (
-    <Card icon={History} title={t("timeline")} count={list.length}>
+    <Card id="kyc-timeline" icon={History} title={t("timeline")} count={list.length}>
       {!list.length && <None />}
       <ol className="thin-scrollbar relative max-h-[32rem] overflow-y-auto pr-1">
         {list.map((e, i) => (
@@ -1154,14 +1261,14 @@ function RecordCard({ onboarding, record }) {
   const r = record ?? {};
   if (!onboarding && !record) {
     return (
-      <Card icon={FileText} title={t("recordDetails")}>
+      <Card id="kyc-record" icon={FileText} title={t("recordDetails")}>
         <None />
       </Card>
     );
   }
   const by = (who, at) => [who, at ? when(at) : null].filter(Boolean).join(" · ") || "—";
   return (
-    <Card icon={FileText} title={t("recordDetails")}>
+    <Card id="kyc-record" icon={FileText} title={t("recordDetails")}>
       <Pairs
         items={[
           [t("reference"), show(o.reference_id)],
@@ -1182,7 +1289,7 @@ function RecordCard({ onboarding, record }) {
 
 // --- The page ------------------------------------------------------------
 
-export function KycReportView({ api, body, onBack }) {
+export function KycReportView({ api, body, onBack, title }) {
   const { t } = useTranslation("kycReport");
   const [state, setState] = useState({ data: null, error: "" });
   const key = JSON.stringify(body);
@@ -1218,17 +1325,21 @@ export function KycReportView({ api, body, onBack }) {
   const referenceId =
     data?.summary?.onboarding?.reference_id ?? report.onboarding?.reference_id ?? body.reference_id;
   // Stored file paths open through /file with the onboarding's reference.
-  const download = (path) => api.file({ reference_id: referenceId, path });
+  const download = useCallback((path) => api.file({ reference_id: referenceId, path }), [api, referenceId]);
+  const selfie = rowsOf(data?.documents).find((d) => rowsOf(d.roles).includes("idv_selfie"));
 
   return (
     <div className="pt-1 pb-8">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-4 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
-      >
-        <ArrowLeft size={14} /> {t("back")}
-      </button>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+        >
+          <ArrowLeft size={14} /> {t("back")}
+        </button>
+        {data && <KycPdfButton data={data} download={download} title={title} />}
+      </div>
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
           {error}
@@ -1239,7 +1350,8 @@ export function KycReportView({ api, body, onBack }) {
         </div>
       ) : (
         <div className="grid gap-4">
-          <Header summary={data.summary} />
+          <Header summary={data.summary} photo={selfie ? { path: selfie.path, download } : null} />
+          <SectionLinks />
           <ProfileCard profile={data.profile} />
           <DocumentsCard documents={data.documents} download={download} />
           <div className="grid gap-4 xl:grid-cols-2">

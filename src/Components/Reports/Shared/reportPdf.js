@@ -36,15 +36,15 @@ export function parseCsv(text) {
 }
 
 const FALLBACK = "#1e293b";
-const rgb = (hex) => {
+export const rgb = (hex) => {
   const m = /^#?([0-9a-f]{6})$/i.exec(String(hex ?? "").trim());
   const n = parseInt(m ? m[1] : FALLBACK.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 // The colour mixed with white (amount 0..1 of the colour).
-const tint = (c, amount) => c.map((v) => Math.round(255 - (255 - v) * amount));
+export const tint = (c, amount) => c.map((v) => Math.round(255 - (255 - v) * amount));
 // A darker shade for text, so a light brand colour (yellow, say) stays readable.
-const ink = (c) => (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] > 140 ? c.map((v) => Math.round(v * 0.45)) : c);
+export const ink = (c) => (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] > 140 ? c.map((v) => Math.round(v * 0.45)) : c);
 const css = (c) => `rgb(${c.join(",")})`;
 
 // Numbers (amounts, counts) sit to the right, like a ledger; long runs of

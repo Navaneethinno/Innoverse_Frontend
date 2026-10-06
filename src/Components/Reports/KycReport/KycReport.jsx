@@ -125,7 +125,7 @@ function KycReportList({ audience }) {
   return (
     <>
       {detail.open && (
-        <KycReportView api={api} body={reportBody(detail.open)} onBack={detail.back} />
+        <KycReportView api={api} body={reportBody(detail.open)} onBack={detail.back} title={t(audience === "merchant" ? "merchantTitle" : "customerTitle")} />
       )}
       <div className={detail.open ? "hidden" : "pt-1 pb-6"}>
         <div className="mb-3">

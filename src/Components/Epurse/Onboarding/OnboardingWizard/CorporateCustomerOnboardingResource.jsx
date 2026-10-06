@@ -255,7 +255,7 @@ export function CorporateCustomerOnboardingResource() {
 
   return (
     <>
-    {reportRow && <KycReportView api={corpCustomerOnboardingApi} body={reportBody(reportRow)} onBack={() => setReportRow(null)} />}
+    {reportRow && <KycReportView api={corpCustomerOnboardingApi} body={reportBody(reportRow)} onBack={() => setReportRow(null)} title={t(`kycReport:${audience}Title`)} />}
     <div className={reportRow ? "hidden" : "pt-1 pb-6"}>
       <div className="mb-3">
         <h1 className="text-xl font-black text-slate-800">{t("customer:corporateCustomerOnboarding")}</h1>
