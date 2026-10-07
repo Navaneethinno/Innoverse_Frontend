@@ -761,7 +761,8 @@ export const routes = {
 
 export const customer = {
   kycUpgradeInProgress: "Atualização KYC em curso (pelo cliente)",
-  kycUpgradeWaiting: "Atualização KYC a aguardar aprovação",
+  kycUpgradeWaiting: "Atualização KYC",
+  kycUpgradeRejected: "Atualização KYC rejeitada (o cliente corrige)",
   waitingForGuardian: "A aguardar o responsável",
   company: "Empresa",
   corporateCustomerOnboarding: "Integração de Clientes Corporativos",

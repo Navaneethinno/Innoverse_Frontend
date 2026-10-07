@@ -18,7 +18,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeInProgress, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
+import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeWithCustomer, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
@@ -47,8 +47,9 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   }
   // A portal draft is the customer's own form, still being filled in on
   // the customer portal — view only here until they complete it.
-  // The customer's own draft (portal sign-up or KYC upgrade): view only.
-  if (isPortalDraft(row) || isKycUpgradeInProgress(row)) {
+  // The customer's own (portal sign-up, or a KYC upgrade in progress or
+  // rejected back to them): view only.
+  if (isPortalDraft(row) || isKycUpgradeWithCustomer(row)) {
     buttons.edit = false;
     buttons.submitDraft = false;
     buttons.delete = false;
