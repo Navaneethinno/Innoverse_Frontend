@@ -15,6 +15,9 @@ let credKey = null;
 let clockOffset = 0;
 
 async function loadKey() {
+  // WebCrypto exists only on a secure page (https, or http://localhost); an
+  // http:// network address (e.g. the dev server opened by its IP) has none.
+  if (!globalThis.crypto?.subtle) throw new Error("Sign-in needs a secure connection. Open this page over https or on localhost.");
   const res = await fetch(`${API_BASE_URL}/auth/public_key`);
   const k = (await res.json())?.data?.[0];
   if (!k?.spki) throw new Error("The encryption key could not be loaded. Please try again.");
