@@ -43,9 +43,9 @@ export function UserActivity() {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  // The record, narration, maker, entity or institution (the list only; the
-  // summary counts the whole period).
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
+  // The record, narration, maker, entity or institution; the summary and the
+  // export then count only the matching activity.
+  const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("desc");
   const detail = useReportDetail();
@@ -73,8 +73,9 @@ export function UserActivity() {
       ...(f.role ? { roles: [f.role] } : {}),
       ...(f.group ? { groups: [f.group] } : {}),
       ...(f.entity ? { entities: [f.entity] } : {}),
+      ...(searchTerm ? { search: searchTerm } : {}),
     };
-  }, [filters]);
+  }, [filters, searchTerm]);
   const bodyKey = JSON.stringify(body);
 
   useEffect(() => {
@@ -102,7 +103,7 @@ export function UserActivity() {
     }
     setLoading(true);
     try {
-      const response = await latestList(userActivityApi.list({ ...current, ...searchBody, page, limit, sort_by: sortBy }));
+      const response = await latestList(userActivityApi.list({ ...current, page, limit, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -110,7 +111,7 @@ export function UserActivity() {
     } finally {
       setLoading(false);
     }
-  }, [searchBody, latestList, bodyKey, page, limit, sortBy]);
+  }, [latestList, bodyKey, page, limit, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);

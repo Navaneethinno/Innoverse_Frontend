@@ -30,8 +30,8 @@ export function MatchReview() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  // All reviews: the screened name, reference, matched entity, proposer,
-  // decider or comment.
+  // The screened name, reference, matched entity, proposer, decider or
+  // comment (both views).
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [screeningId, setScreeningId] = useState(null);
   const [action, setAction] = useState(null); // { type: "auth" | "deauth", row }
@@ -44,7 +44,7 @@ export function MatchReview() {
       if (!silent) setLoading(true);
       try {
         const active = view === "all" ? Object.fromEntries(Object.entries(JSON.parse(filterKey)).filter(([, v]) => v)) : {};
-        const response = await latestList(view === "pending" ? amlReviewApi.pending({ page, limit }) : amlReviewApi.list({ ...searchBody, page, limit, ...active }));
+        const response = await latestList((view === "pending" ? amlReviewApi.pending : amlReviewApi.list)({ ...searchBody, page, limit, ...active }));
         setRows(rowsOf(response));
         setPagination(response?.pagination ?? {});
       } catch (error) {
@@ -154,9 +154,10 @@ export function MatchReview() {
         onChange={switchView}
       />
       <div className="overflow-hidden rounded-2xl" style={glassCard}>
-        {view === "all" && (
-          <div className="flex flex-wrap items-center gap-2 border-b p-3">
-            <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("aml:searchReviews")} />
+        <div className="flex flex-wrap items-center gap-2 border-b p-3">
+          <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("aml:searchReviews")} />
+          {view === "all" && (
+            <>
             <FilterSelect
               size="sm"
               className="w-40"
@@ -171,8 +172,9 @@ export function MatchReview() {
               onChange={setFilter("decision")}
               options={[{ value: "", label: t("aml:allDecisions") }, ...DECISIONS.map((d) => ({ value: d, label: t(`aml:review_${d}`) }))]}
             />
-          </div>
-        )}
+            </>
+          )}
+        </div>
         <DataTable
           columns={columns}
           rows={rows}
