@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle, Search } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckCircle2, Clock3, FilePen, ListChecks, PauseCircle } from "lucide-react";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
+import { SearchBox } from "./SearchBox";
 
 // INSTITUTION_DRAFT_STATUS_CODE is env-overridable (defaults to 9) rather
 // than a bare literal, since this component is shared across every
@@ -116,32 +117,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
 
       {(onSearch || onSortChange) && (
       <div className="flex w-full items-center gap-2">
-      {onSearch && (
-        <div data-tour="search" className="relative w-full min-w-0 flex-1">
-          <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={search}
-            maxLength={100}
-            onChange={(event) => onSearch(event.target.value)}
-            // Enter searches at once (server search lists).
-            onKeyDown={(event) => event.key === "Enter" && onSearchSubmit?.()}
-            placeholder={searchPlaceholder ?? t("searchPlaceholder")}
-            className={cn("h-9 w-full rounded-lg border border-border bg-white pl-9 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10", onSearchSubmit ? "pr-10" : "pr-3")}
-          />
-          {onSearchSubmit && (
-            <button
-              type="button"
-              onClick={onSearchSubmit}
-              aria-label={t("search")}
-              title={t("search")}
-              className="absolute right-1 top-1/2 flex h-7 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
-            >
-              <Search size={14} />
-            </button>
-          )}
-        </div>
-      )}
+      {onSearch && <SearchBox search={search} onSearch={onSearch} onSearchSubmit={onSearchSubmit} placeholder={searchPlaceholder} />}
       {/* sort_by: newest (desc) or oldest (asc) change first, applied by the
           server across every record, not just the loaded page. */}
       {onSortChange && (

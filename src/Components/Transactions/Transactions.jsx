@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -460,10 +462,10 @@ export function PartyHistory({ party, onClose, onOpen }) {
 function Requests({ openId, onOpenTxn, onClose }) {
   const { t } = useTranslation(["txn", "common"]);
   const [status, setStatus] = useState("");
-  const [acctNum, setAcctNum] = useState("");
-  const [applied, setApplied] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  // Reference, client reference, reason, who asked or decided, either account.
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(openId ?? null);
@@ -471,14 +473,14 @@ function Requests({ openId, onOpenTxn, onClose }) {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const row = rowsOf(await transactionRequestsApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { acct_num: applied } : {}) }))[0];
+      const row = rowsOf(await latestList(transactionRequestsApi.list({ ...searchBody, page, page_size: limit, ...(status ? { status } : {}) })))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [status, applied, page, limit]);
+  }, [searchBody, latestList, status, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -534,22 +536,12 @@ function Requests({ openId, onOpenTxn, onClose }) {
           setPage(1);
         }}
       />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(acctNum.trim());
-          setPage(1);
-        }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[1fr_auto_auto]"
-      >
-        <input className={inputClass} placeholder={t("walletNumber")} value={acctNum} onChange={(e) => setAcctNum(e.target.value.replace(/\s/g, ""))} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
+      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[1fr_auto]">
+        <SearchBox {...searchBind} placeholder={t("searchRequests")} />
         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
           {t("refresh")}
         </Button>
-      </form>
+      </div>
       <DataTable
         columns={columns}
         rows={data.items}

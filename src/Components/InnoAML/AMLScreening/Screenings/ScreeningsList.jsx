@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,7 +22,7 @@ const filterInput = "rounded-lg border px-2.5 py-1.5 text-xs";
 // are server-side; band and minimum score filter on the effective values.
 export function ScreeningsList({ bands, initial = {} }) {
   const { t } = useTranslation(["aml", "common"]);
-  const [filters, setFilters] = useState({ customer_kind: "", trigger: "", status: "", band_code: "", min_score: "", name: "", from: "", to: "", reference_id: "", ...initial });
+  const [filters, setFilters] = useState({ customer_kind: "", trigger: "", status: "", band_code: "", min_score: "", from: "", to: "", reference_id: "", ...initial });
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
@@ -28,7 +30,8 @@ export function ScreeningsList({ bands, initial = {} }) {
   const [limit, setLimit] = useState(20);
   const [openId, setOpenId] = useState(null);
   const [customer, setCustomer] = useState(null);
-  const [nameInput, setNameInput] = useState(filters.name);
+  // The screened name, reference, who screened, institution.
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const filterKey = JSON.stringify(filters);
 
   const load = useCallback(
@@ -37,7 +40,7 @@ export function ScreeningsList({ bands, initial = {} }) {
       try {
         const active = Object.fromEntries(Object.entries(JSON.parse(filterKey)).filter(([, v]) => v !== ""));
         if (active.min_score != null) active.min_score = Number(active.min_score);
-        const response = await amlScreeningApi.list({ page, limit, ...active });
+        const response = await latestList(amlScreeningApi.list({ ...searchBody, page, limit, ...active }));
         setRows(rowsOf(response));
         setPagination(response?.pagination ?? {});
       } catch (error) {
@@ -46,7 +49,7 @@ export function ScreeningsList({ bands, initial = {} }) {
         setLoading(false);
       }
     },
-    [page, limit, filterKey],
+    [searchBody, latestList, page, limit, filterKey],
   );
   useEffect(() => {
     void load();
@@ -57,14 +60,6 @@ export function ScreeningsList({ bands, initial = {} }) {
     setFilters((f) => ({ ...f, [key]: value }));
     setPage(1);
   };
-  // The name filter is a server search: wait for a pause in typing.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setFilters((f) => (f.name === nameInput ? f : { ...f, name: nameInput }));
-      setPage(1);
-    }, 400);
-    return () => window.clearTimeout(timer);
-  }, [nameInput]);
   const opt = (values, prefix, allKey) => [{ value: "", label: t(`aml:${allKey}`) }, ...values.map((v) => ({ value: v, label: t(`aml:${prefix}${v}`) }))];
 
   const columns = [
@@ -99,7 +94,7 @@ export function ScreeningsList({ bands, initial = {} }) {
     <>
       <div className="overflow-hidden rounded-2xl" style={glassCard}>
         <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <input value={nameInput} onChange={(e) => setNameInput(e.target.value)} placeholder={t("aml:searchName")} className={`${filterInput} w-44`} />
+          <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("aml:searchScreenings")} />
           <FilterSelect size="sm" className="w-44" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
           <FilterSelect size="sm" className="w-36" value={filters.trigger} onChange={set("trigger")} options={opt(TRIGGERS, "trigger_", "allTriggers")} />
           <FilterSelect size="sm" className="w-32" value={filters.status} onChange={set("status")} options={opt(["DONE", "ERROR"], "status_", "allStatuses")} />

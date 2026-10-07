@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownUp } from "lucide-react";
@@ -71,25 +73,17 @@ export function RiskScoreBreakdown() {
     source: "",
     latest_only: true,
   });
-  const [nameInput, setNameInput] = useState("");
-  const [name, setName] = useState("");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  // The customer's reference, name, risk setup, level or institution.
+  const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("desc");
   const [detail, setDetail] = useState(false);
   const breakdown = useReportDetail();
 
-  // Customer name is a server search: wait for a pause in typing.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setName(nameInput.trim());
-      setPage(1);
-    }, 400);
-    return () => window.clearTimeout(timer);
-  }, [nameInput]);
 
   // Every field is optional; null only while a Custom period lacks From.
   const body = useMemo(() => {
@@ -107,10 +101,10 @@ export function RiskScoreBreakdown() {
         min_score: num(f.min_score),
         max_score: num(f.max_score),
         sources: f.source ? [f.source] : undefined,
-        name: name || undefined,
+        search: searchTerm || undefined,
       }).filter(([, v]) => v !== undefined),
     );
-  }, [filters, name]);
+  }, [filters, searchTerm]);
   const bodyKey = JSON.stringify(body);
 
   const load = useCallback(async () => {
@@ -118,7 +112,7 @@ export function RiskScoreBreakdown() {
     if (!current) return;
     setLoading(true);
     try {
-      const response = await riskBreakdownApi.list({ ...current, page, limit, sort_by: sortBy });
+      const response = await latestList(riskBreakdownApi.list({ ...current, page, limit, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -126,7 +120,7 @@ export function RiskScoreBreakdown() {
     } finally {
       setLoading(false);
     }
-  }, [bodyKey, page, limit, sortBy]);
+  }, [latestList, bodyKey, page, limit, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -270,12 +264,7 @@ export function RiskScoreBreakdown() {
               value={filters.latest_only ? "latest" : "all"}
               onChange={(v) => set({ latest_only: v === "latest" })}
             />
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder={t("searchCustomer")}
-              className="w-48 rounded-lg border px-2.5 py-1.5 text-xs"
-            />
+            <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("searchCustomer")} />
             <FilterSelect
               size="sm"
               className="w-36"

@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Landmark, ScrollText, Search } from "lucide-react";
@@ -11,7 +13,6 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { cn } from "@/Utils/Lib/utils";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
 import { AccountStatement } from "./AccountStatement";
@@ -19,13 +20,10 @@ import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } 
 import { Tabs } from "../../Loans/loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
-const EMPTY_FILTERS = { acct_num: "", owner_name: "", party: "", ownership: "", acct_class: "", status: "" };
-const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
+const EMPTY_FILTERS = { party: "", ownership: "", acct_class: "", status: "" };
 
 // The filters as the list call takes them: blanks left out, ids as numbers.
 const filterBody = (f) => ({
-  ...(f.acct_num.trim() ? { acct_num: f.acct_num.trim() } : {}),
-  ...(f.owner_name.trim() ? { owner_name: f.owner_name.trim() } : {}),
   ...(f.party ? { party: f.party } : {}),
   ...(f.ownership ? { ownership: f.ownership } : {}),
   ...(f.acct_class ? { acct_class: f.acct_class } : {}),
@@ -43,6 +41,8 @@ export function Accounts() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [result, setResult] = useState({ accounts: [], total: 0 });
+  // Account number, owner's name or reference, account or digital product.
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [statement, setStatement] = useState(null);
@@ -50,14 +50,14 @@ export function Accounts() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const data = rowsOf(await accountsApi.list({ page, limit, ...filterBody(applied) }))[0];
+      const data = rowsOf(await latestList(accountsApi.list({ ...searchBody, page, limit, ...filterBody(applied) })))[0];
       setResult({ accounts: data?.accounts ?? [], total: data?.total ?? 0 });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [applied, page, limit]);
+  }, [searchBody, latestList, applied, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -131,8 +131,7 @@ export function Accounts() {
       </div>
 
       <form onSubmit={search} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
-        <input className={cn(inputClass, "min-w-[12rem] flex-[1_1_12rem]")} placeholder={t("accountNumber")} value={filters.acct_num} onChange={(e) => setFilter("acct_num")(e.target.value)} />
-        <input className={cn(inputClass, "min-w-[12rem] flex-[1_1_12rem]")} placeholder={t("ownerName")} value={filters.owner_name} onChange={(e) => setFilter("owner_name")(e.target.value)} />
+        <SearchBox {...searchBind} className="min-w-[14rem] flex-[2_1_16rem]" placeholder={t("searchAccounts")} />
         <FilterSelect
           value={filters.party}
           onChange={setFilter("party")}

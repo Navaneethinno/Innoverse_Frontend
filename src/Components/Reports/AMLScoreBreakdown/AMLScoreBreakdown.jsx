@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowDownUp } from "lucide-react";
@@ -59,25 +61,17 @@ export function AMLScoreBreakdown() {
     matched_only: false,
     latest_only: true,
   });
-  const [nameInput, setNameInput] = useState("");
-  const [name, setName] = useState("");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  // The customer's reference, name, institution or who screened.
+  const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("desc");
   const [perMatch, setPerMatch] = useState(false);
   const run = useReportDetail();
 
-  // Customer name is a server search: wait for a pause in typing.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setName(nameInput.trim());
-      setPage(1);
-    }, 400);
-    return () => window.clearTimeout(timer);
-  }, [nameInput]);
 
   // Every field is optional; null only while a Custom period lacks From.
   const body = useMemo(() => {
@@ -97,10 +91,10 @@ export function AMLScoreBreakdown() {
         matched_only: f.matched_only || undefined,
         triggers: f.trigger ? [f.trigger] : undefined,
         status: f.status || undefined,
-        name: name || undefined,
+        search: searchTerm || undefined,
       }).filter(([, v]) => v !== undefined),
     );
-  }, [filters, name]);
+  }, [filters, searchTerm]);
   const bodyKey = JSON.stringify(body);
 
   const load = useCallback(async () => {
@@ -108,7 +102,7 @@ export function AMLScoreBreakdown() {
     if (!current) return;
     setLoading(true);
     try {
-      const response = await amlBreakdownApi.list({ ...current, page, limit, sort_by: sortBy });
+      const response = await latestList(amlBreakdownApi.list({ ...current, page, limit, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -116,7 +110,7 @@ export function AMLScoreBreakdown() {
     } finally {
       setLoading(false);
     }
-  }, [bodyKey, page, limit, sortBy]);
+  }, [latestList, bodyKey, page, limit, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -281,12 +275,7 @@ export function AMLScoreBreakdown() {
               onChange={(v) => set({ matched_only: v })}
               label={t("withMatchesOnly")}
             />
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder={t("searchCustomer")}
-              className="w-48 rounded-lg border px-2.5 py-1.5 text-xs"
-            />
+            <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("searchCustomer")} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <FilterSelect

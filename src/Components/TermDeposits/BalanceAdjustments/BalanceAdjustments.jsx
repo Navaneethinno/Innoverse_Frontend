@@ -1,6 +1,8 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, RefreshCw, Scale, Search, Send } from "lucide-react";
+import { Plus, RefreshCw, Scale, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -33,10 +35,10 @@ export function BalanceAdjustments() {
   const { t } = useTranslation(["deposits", "txn", "common"]);
   const can = usePagePermission();
   const [status, setStatus] = useState("");
-  const [acctNum, setAcctNum] = useState("");
-  const [applied, setApplied] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
+  // Reference, client reference, reason, who asked or decided, either account.
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -46,14 +48,14 @@ export function BalanceAdjustments() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const row = rowsOf(await balanceAdjustmentsApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { acct_num: applied } : {}) }))[0];
+      const row = rowsOf(await latestList(balanceAdjustmentsApi.list({ ...searchBody, page, page_size: limit, ...(status ? { status } : {}) })))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [status, applied, page, limit]);
+  }, [searchBody, latestList, status, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -120,15 +122,8 @@ export function BalanceAdjustments() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(acctNum.trim());
-          setPage(1);
-        }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[1fr_1fr_auto]"
-      >
-        <input className={inputClass} placeholder={t("walletNumber")} value={acctNum} onChange={(e) => setAcctNum(e.target.value.replace(/\s/g, ""))} />
+      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr]">
+        <SearchBox {...searchBind} placeholder={t("searchRequests")} />
         <FilterSelect
           value={status}
           onChange={(v) => {
@@ -137,10 +132,7 @@ export function BalanceAdjustments() {
           }}
           options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`txn:reqStatus_${s}`) }))]}
         />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
+      </div>
 
       <DataTable
         columns={columns}

@@ -1424,6 +1424,8 @@ export const risk = {
 
 // InnoAML (AML handoffs 03–07).
 export const aml = {
+  searchReviews: "Search name, reference, matched entity, proposer, decider or comment",
+  searchScreenings: "Search name, reference, screened by or institution",
   institution: "Institution",
   code: "Code",
   codeHint: "Capital letters, digits and _, up to 32. Can't be changed after adding.",
@@ -1537,7 +1539,6 @@ export const aml = {
   matches: "Matches",
   matchCount_one: "{{count}} match",
   matchCount_other: "{{count}} matches",
-  searchName: "Search name",
   allCustomers: "All customers",
   allTriggers: "All triggers",
   allStatuses: "All statuses",
@@ -1613,6 +1614,7 @@ export const aml = {
 
 // Reports (handoff 08).
 export const reports = {
+  searchActivity: "Search record, narration, maker, entity or institution",
   back: "Back",
   title: "User Activity",
   subtitle: "Everything one user did in the maker-checker flow over a period: as maker, as checker, or directly.",
@@ -1673,7 +1675,7 @@ export const reports = {
   breakdownSubtitle: "Customers' risk assessments and exactly how each score was reached. The risk score only; AML is separate.",
   currentOnly: "Current assessment only",
   allAssessments: "All assessments",
-  searchCustomer: "Search customer",
+  searchCustomer: "Search customer, reference or institution",
   allTypes: "Both types",
   kind_INDIVIDUAL: "Individual",
   kind_CORPORATE: "Corporate",
@@ -2381,6 +2383,7 @@ export const cases = {
 };
 
 export const accounts = {
+  searchAccounts: "Search account number, owner, reference or product",
   tab_overview: "Overview",
   tab_requests: "Requests",
   tab_parties: "Parties",
@@ -2486,7 +2489,6 @@ export const accounts = {
   title: "Accounts",
   subtitle: "Every customer's and merchant's account, opened automatically when they are approved. Read only.",
   accountNumber: "Account number",
-  ownerName: "Owner name",
   owner: "Owner",
   customer: "Customer",
   merchant: "Merchant",
@@ -2524,6 +2526,7 @@ export const accounts = {
 };
 
 export const deposits = {
+  searchRequests: "Search reference, reason, who asked or decided, or account",
   adjFormHint: "Cash in or out at a counter, or a correction. The fee and the balance after show before you send it.",
   adjSubtitle: "Cash in / out at a counter and credit / debit corrections. They post with fees, limits and receipts when a checker approves.",
   adjKind_CASH_IN: "Money in at the counter",
@@ -3519,6 +3522,7 @@ export const loans = {
 };
 
 export const txn = {
+  searchRequests: "Search reference, reason, who asked or decided, or account",
   card: "Card",
   prepaidCard: "Prepaid card",
   holderWallet: "The holder's wallet",
@@ -3609,7 +3613,6 @@ export const txn = {
   requestedBy: "Requested by",
   decidedBy: "Decided by",
   noRequests: "No requests",
-  walletNumber: "Wallet number",
   tab_requests: "Requests",
   reqStatus_PENDING: "Pending",
   reqStatus_APPROVED: "Approved",
@@ -3774,6 +3777,7 @@ export const fees = {
 };
 
 export const txnReports = {
+  searchTxns: "Search RRN, reference, user, description, error code, reason or merchant",
   title_summary: "Transaction Summary",
   subtitle_summary: "Counts and amounts per currency, grouped as you choose. Failed attempts count with amount 0.",
   title_feeIncome: "Fee Income",

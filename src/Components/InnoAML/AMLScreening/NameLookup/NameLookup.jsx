@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
@@ -36,6 +38,8 @@ export function NameLookup() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  // The screened name, reference, who screened, institution.
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [openId, setOpenId] = useState(null);
   const { countries } = useCountries();
 
@@ -43,7 +47,7 @@ export function NameLookup() {
     async ({ silent = false } = {}) => {
       if (!silent) setLoading(true);
       try {
-        const response = await amlLookupApi.list({ page, limit });
+        const response = await latestList(amlLookupApi.list({ ...searchBody, page, limit }));
         setRows(rowsOf(response));
         setPagination(response?.pagination ?? {});
       } catch (error) {
@@ -52,7 +56,7 @@ export function NameLookup() {
         setLoading(false);
       }
     },
-    [page, limit],
+    [searchBody, latestList, page, limit],
   );
   useEffect(() => {
     void load();
@@ -152,6 +156,9 @@ export function NameLookup() {
       )}
 
       <div className="overflow-hidden rounded-2xl" style={glassCard}>
+        <div className="border-b border-border p-3">
+          <SearchBox {...searchBind} placeholder={t("aml:searchScreenings")} />
+        </div>
         <DataTable
           columns={columns}
           rows={rows}

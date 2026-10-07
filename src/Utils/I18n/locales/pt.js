@@ -1438,6 +1438,8 @@ export const risk = {
 
 // InnoAML (AML handoffs 03–07).
 export const aml = {
+  searchReviews: "Pesquisar nome, referência, entidade, proponente, decisor ou comentário",
+  searchScreenings: "Pesquisar nome, referência, verificado por ou instituição",
   institution: "Instituição",
   code: "Código",
   codeHint: "Letras maiúsculas, dígitos e _, até 32. Não pode ser alterado depois de adicionado.",
@@ -1551,7 +1553,6 @@ export const aml = {
   matches: "Correspondências",
   matchCount_one: "{{count}} correspondência",
   matchCount_other: "{{count}} correspondências",
-  searchName: "Pesquisar nome",
   allCustomers: "Todos os clientes",
   allTriggers: "Todas as origens",
   allStatuses: "Todos os estados",
@@ -1627,6 +1628,7 @@ export const aml = {
 
 // Reports (handoff 08).
 export const reports = {
+  searchActivity: "Pesquisar registo, narração, autor, entidade ou instituição",
   back: "Voltar",
   title: "Atividade do Utilizador",
   subtitle: "Tudo o que um utilizador fez no fluxo criador-verificador num período: como criador, como verificador ou diretamente.",
@@ -1687,7 +1689,7 @@ export const reports = {
   breakdownSubtitle: "As avaliações de risco dos clientes e exatamente como cada pontuação foi obtida. Só a pontuação de risco; o AML é separado.",
   currentOnly: "Só a avaliação atual",
   allAssessments: "Todas as avaliações",
-  searchCustomer: "Pesquisar cliente",
+  searchCustomer: "Pesquisar cliente, referência ou instituição",
   allTypes: "Ambos os tipos",
   kind_INDIVIDUAL: "Individual",
   kind_CORPORATE: "Empresarial",
@@ -2395,6 +2397,7 @@ export const cases = {
 };
 
 export const accounts = {
+  searchAccounts: "Pesquisar número da conta, titular, referência ou produto",
   tab_overview: "Resumo",
   tab_requests: "Pedidos",
   tab_parties: "Intervenientes",
@@ -2500,7 +2503,6 @@ export const accounts = {
   title: "Contas",
   subtitle: "A conta de cada cliente e comerciante, aberta automaticamente na aprovação. Somente leitura.",
   accountNumber: "Número da conta",
-  ownerName: "Nome do titular",
   owner: "Titular",
   customer: "Cliente",
   merchant: "Comerciante",
@@ -2538,6 +2540,7 @@ export const accounts = {
 };
 
 export const deposits = {
+  searchRequests: "Pesquisar referência, motivo, quem pediu ou decidiu, ou conta",
   adjFormHint: "Entrada ou saída de dinheiro no balcão, ou uma correção. A tarifa e o saldo após aparecem antes do envio.",
   adjSubtitle: "Entradas e saídas de dinheiro no balcão e correções de crédito / débito. São lançadas com tarifas, limites e comprovantes quando um aprovador aprova.",
   adjKind_CASH_IN: "Dinheiro recebido no balcão",
@@ -3533,6 +3536,7 @@ export const loans = {
 };
 
 export const txn = {
+  searchRequests: "Pesquisar referência, motivo, quem pediu ou decidiu, ou conta",
   card: "Cartão",
   prepaidCard: "Cartão pré-pago",
   holderWallet: "A carteira do titular",
@@ -3623,7 +3627,6 @@ export const txn = {
   requestedBy: "Solicitada por",
   decidedBy: "Decidida por",
   noRequests: "Nenhuma solicitação",
-  walletNumber: "Número da carteira",
   tab_requests: "Solicitações",
   reqStatus_PENDING: "Pendente",
   reqStatus_APPROVED: "Aprovada",
@@ -3788,6 +3791,7 @@ export const fees = {
 };
 
 export const txnReports = {
+  searchTxns: "Pesquisar RRN, referência, utilizador, descrição, código de erro, motivo ou comerciante",
   title_summary: "Resumo de Transações",
   subtitle_summary: "Quantidades e valores por moeda, agrupados como preferir. Tentativas com falha contam com valor 0.",
   title_feeIncome: "Receita de Tarifas",

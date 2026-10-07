@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownUp, UserRoundSearch } from "lucide-react";
@@ -41,6 +43,9 @@ export function UserActivity() {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  // The record, narration, maker, entity or institution (the list only; the
+  // summary counts the whole period).
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("desc");
   const detail = useReportDetail();
@@ -97,7 +102,7 @@ export function UserActivity() {
     }
     setLoading(true);
     try {
-      const response = await userActivityApi.list({ ...current, page, limit, sort_by: sortBy });
+      const response = await latestList(userActivityApi.list({ ...current, ...searchBody, page, limit, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -105,7 +110,7 @@ export function UserActivity() {
     } finally {
       setLoading(false);
     }
-  }, [bodyKey, page, limit, sortBy]);
+  }, [searchBody, latestList, bodyKey, page, limit, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -331,6 +336,9 @@ export function UserActivity() {
               </div>
             )}
             <div className="overflow-hidden rounded-2xl" style={glassCard}>
+              <div className="border-b border-border p-3">
+                <SearchBox {...searchBind} placeholder={t("searchActivity")} />
+              </div>
               <DataTable
                 columns={columns}
                 rows={rows}

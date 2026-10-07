@@ -1,3 +1,5 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertOctagon, BarChart3, Coins, Undo2 } from "lucide-react";
@@ -64,6 +66,9 @@ function TxnReport({ kind }) {
   const [loading, setLoading] = useState(false);
   const Icon = REPORTS[kind].icon;
   const paged = kind === "failed" || kind === "reversals";
+  // Failed / Reversals: RRN, client reference, user, description, error
+  // code, reason, merchant or institution. The other two are totals.
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
 
   const body = useMemo(() => {
     const period = periodBody(filters);
@@ -76,8 +81,9 @@ function TxnReport({ kind }) {
       ...(list(filters.txn_types).length ? { txn_types: list(filters.txn_types) } : {}),
       ...(kind === "failed" && filters.error_codes.trim() ? { error_codes: filters.error_codes.split(",").map((x) => x.trim()).filter(Boolean) } : {}),
       ...(GROUPS[kind] && filters.group_by.length ? { group_by: filters.group_by } : {}),
+      ...(paged && searchTerm ? { search: searchTerm } : {}),
     };
-  }, [filters, kind]);
+  }, [filters, kind, paged, searchTerm]);
   const bodyKey = JSON.stringify(body);
 
   useEffect(() => {
@@ -169,6 +175,7 @@ function TxnReport({ kind }) {
       <div className="mb-4 grid gap-3 rounded-2xl p-4" style={glassCard}>
         <PeriodChips value={filters} onChange={set} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {paged && <SearchBox {...searchBind} className="sm:col-span-2 lg:col-span-3" placeholder={t("searchTxns")} />}
           <FilterSelect value={filters.currency_code} onChange={(v) => set({ currency_code: v })} options={[{ value: "", label: t("anyCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.currency_name ?? c.name ?? ""}` }))]} />
           <input className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-sm outline-none focus:border-primary" placeholder={t(kind === "reversals" ? "reversedTypes" : "txnTypes")} value={filters.txn_types} onChange={(e) => set({ txn_types: e.target.value })} />
           {kind === "failed" && <input className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm shadow-sm outline-none focus:border-primary" placeholder={t("errorCodes")} value={filters.error_codes} onChange={(e) => set({ error_codes: e.target.value })} />}
