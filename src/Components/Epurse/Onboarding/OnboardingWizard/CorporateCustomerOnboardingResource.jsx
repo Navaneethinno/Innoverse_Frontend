@@ -18,7 +18,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeWithCustomer, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
+import { PortalSourceBadge, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
@@ -47,9 +47,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   }
   // A portal draft is the customer's own form, still being filled in on
   // the customer portal — view only here until they complete it.
-  // The customer's own (portal sign-up, or a KYC upgrade in progress or
-  // rejected back to them): view only.
-  if (isPortalDraft(row) || isKycUpgradeWithCustomer(row)) {
+  if (isPortalDraft(row)) {
     buttons.edit = false;
     buttons.submitDraft = false;
     buttons.delete = false;
@@ -187,7 +185,6 @@ export function CorporateCustomerOnboardingResource() {
           <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
           <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
           <PortalSourceBadge record={r} />
-          <CustomerStateBadges record={r} />
         </div>
       ),
     },
