@@ -26,7 +26,13 @@ async function loadKey() {
   credKey = { id: k.key_id, key: await crypto.subtle.importKey("spki", der, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]) };
 }
 
+// Dev server only: opened by its network address (http, so no WebCrypto),
+// credentials go unsealed, over the API's own https, for testing on other
+// devices. A production build always seals: this branch is not in it.
+const devUnsealed = () => import.meta.env.DEV && !globalThis.crypto?.subtle;
+
 export async function seal(value) {
+  if (devUnsealed()) return value;
   if (!credKey) await loadKey();
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
   const plain = new TextEncoder().encode(JSON.stringify({ v: value, ts: Date.now() + clockOffset, n: nonce }));
