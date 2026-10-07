@@ -22,6 +22,7 @@ import {
 import { notifications } from "@/Utils/Lib/notifications";
 import { ExportButtons, glassCard, useReportDetail } from "../Shared/reportShared";
 import { KycReportView } from "./KycReportView";
+import { CustomerStateBadges } from "@/Components/Epurse/Onboarding/OnboardingWizard/customerPortal";
 
 // Reports > KYC Report (group 204): Customer KYC Report (206) and Merchant
 // KYC Report (205). A list of the onboarding records, Individual |
@@ -87,6 +88,7 @@ function KycReportList({ audience }) {
           <div className="truncate text-[11px] text-muted-foreground">
             {r.email || r.phone_number}
           </div>
+          <CustomerStateBadges record={r} />
           <InstitutionOnly>
             {r.inst_profile_name && (
               <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>

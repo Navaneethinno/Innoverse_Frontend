@@ -27,6 +27,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { StoredFilePreview, useStoredFileUrl } from "@/Components/Common/FileUploadField";
 import { KycPdfButton } from "./KycReportPdf";
 import { scoredRisk, screenedAml } from "./kycShared";
+import { CustomerStateBadges } from "@/Components/Epurse/Onboarding/OnboardingWizard/customerPortal";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
@@ -256,6 +257,7 @@ function Header({ summary, photo }) {
               <span className="text-muted-foreground">
                 {t("onboardingStatus")}:{" "}
                 <StatusBadge status={onboarding.onboarding_status} variant="subtle" />
+                <CustomerStateBadges record={onboarding} />
               </span>
             )}
           </div>

@@ -21,6 +21,7 @@ const SCREENING = ["screening_name", "screening_birth_date", "screening_country"
 const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
 const KYC = ["kyc_document_type", "kyc_document_front", "kyc_document_back"];
 const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country"];
+const SUBMIT_CHANNELS = ["APP", "WEB", "USSD"];
 const IDV = ["idv_front", "idv_back", "idv_selfie", "idv_face_side", "idv_id_number"];
 
 // Identity verification: the photos are single-image files in a one-row
@@ -175,7 +176,7 @@ function Pick({ label, fields, value, onChange, disabled, emptyLabel, optional }
   );
 }
 
-export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, guardian, onGuardianChange }) {
+export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, guardian, onGuardianChange, submitLevels, kycLevels = [], onSubmitLevelsChange }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const openMenu = useOpenMenu();
   const corporate = kind === "corporate";
@@ -508,6 +509,42 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
     </Card>
   );
 
+  // The KYC level each channel must reach before a sign-up can be submitted
+  // (empty: the scheme's entry level). Only with a KYC scheme.
+  const levelsSet = submitLevels ?? {};
+  const setLevel = (channel, value) => {
+    const next = { ...levelsSet };
+    if (value === "") delete next[channel];
+    else next[channel] = Number(value);
+    onSubmitLevelsChange?.(next);
+  };
+  const submitCard = kycLevels.length > 0 && (
+    <Card
+      key="submitLevels"
+      title={t("usesSubmitLevelsTitle")}
+      summary={SUBMIT_CHANNELS.map((c) => `${c} ${levelsSet[c] ?? t("usesEntryLevelShort")}`).join(" · ")}
+      open={open.has("submitLevels")}
+      onToggle={() => toggle("submitLevels")}
+      problems={problemsFor(problems, ["submit level"])}
+    >
+      <p className="text-xs text-muted-foreground">{t("usesSubmitLevelsIntro")}</p>
+      <div className="grid gap-3 md:grid-cols-3">
+        {SUBMIT_CHANNELS.map((channel) => (
+          <label key={channel} className="text-sm font-semibold text-slate-700">
+            {t(`channel_${channel}`)}
+            <FilterSelect
+              className="mt-1.5"
+              disabled={readOnly}
+              value={levelsSet[channel] != null ? String(levelsSet[channel]) : ""}
+              onChange={(v) => setLevel(channel, v)}
+              options={[{ value: "", label: t("usesEntryLevel") }, ...kycLevels.map((n) => ({ value: String(n), label: t("usesLevelN", { n }) }))]}
+            />
+          </label>
+        ))}
+      </div>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">{t("usesIntro")}</p>
@@ -518,6 +555,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
       {idvCard}
       {relatedCard}
       {guardianCard}
+      {submitCard}
     </div>
   );
 }

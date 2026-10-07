@@ -15,6 +15,9 @@ const CODE = /^[A-Z0-9_]+$/;
 const codeInput = (value) => value.toUpperCase().replace(/[^A-Z0-9_]/g, "");
 export const END = "END";
 const OUTCOMES = ["CONTINUE", "STOP", "WAIT", "SUBMIT"];
+// EDIT goes back to a section; GUARDIAN_REQUEST sends the request to the
+// parent/tutor (no section).
+const ACTION_CODES = ["EDIT", "GUARDIAN_REQUEST"];
 // SUBMIT only at the end; CONTINUE only after a section.
 const outcomeAllowed = (outcome, at) => (at === END ? outcome !== "CONTINUE" : outcome !== "SUBMIT");
 
@@ -249,8 +252,17 @@ export function CheckpointsStep({ checkpoints, onChange, fields, sections, readO
               <div className="flex flex-col gap-2">
                 {actions.map((a, j) => (
                   <div key={j} className="grid items-end gap-2 md:grid-cols-[1fr_2fr_auto]">
-                    <span className="rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-sm font-semibold">{t("formBuilder:action_EDIT_button")}</span>
-                    <FilterSelect disabled={readOnly} value={a.section ?? ""} onChange={(v) => setAction(j, { code: "EDIT", section: v })} options={[{ value: "", label: t("formBuilder:pickSection") }, ...sections]} />
+                    <FilterSelect
+                      disabled={readOnly}
+                      value={a.code ?? "EDIT"}
+                      onChange={(code) => setAction(j, code === "EDIT" ? { code, section: a.section ?? "" } : { code, section: undefined })}
+                      options={ACTION_CODES.map((code) => ({ value: code, label: t(`formBuilder:action_${code}_button`) }))}
+                    />
+                    {(a.code ?? "EDIT") === "EDIT" ? (
+                      <FilterSelect disabled={readOnly} value={a.section ?? ""} onChange={(v) => setAction(j, { section: v })} options={[{ value: "", label: t("formBuilder:pickSection") }, ...sections]} />
+                    ) : (
+                      <span />
+                    )}
                     {!readOnly && (
                       <button type="button" onClick={() => set({ actions: actions.filter((_, k) => k !== j) })} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
                         <Trash2 size={14} />

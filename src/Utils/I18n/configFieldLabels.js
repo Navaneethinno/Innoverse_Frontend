@@ -26,6 +26,7 @@ const PT = {
   "Self-onboarded (customer portal)": "Autointegração (portal do cliente)",
   "Enables customer self-onboarding on the web portal": "Ativa a autointegração de clientes no portal web",
   "Enables customer self-onboarding in the mobile app": "Ativa a autointegração de clientes no aplicativo móvel",
+  "Enables customer sign-up over USSD": "Ativa o registo de clientes por USSD",
   "An Active WEB or APP channel also lets that institution's customers onboard themselves on the web portal or mobile app.": "Um canal WEB ou APP ativo também permite que os clientes dessa instituição se integrem sozinhos no portal web ou no aplicativo móvel.",
   Corporate: "Corporativo",
   Individual: "Individual",

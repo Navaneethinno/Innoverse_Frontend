@@ -33,6 +33,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const PORTAL_CHANNEL_HINTS = {
   WEB: "Enables customer self-onboarding on the web portal",
   APP: "Enables customer self-onboarding in the mobile app",
+  USSD: "Enables customer sign-up over USSD",
 };
 const portalHintFor = (channel) =>
   PORTAL_CHANNEL_HINTS[String(channel?.channel_code ?? channel?.code ?? channel?.channel_name ?? channel?.name ?? "").trim().toUpperCase()];
@@ -210,13 +211,17 @@ export function InstitutionChannel() {
           onRefresh={query.refetch}
           onEdit={() => {
             setEditing(r);
+            setFormError("");
             setFormOpen(true);
           }}
         />
       ),
     },
   ];
+  // A refusal (e.g. "Channel Already Exists") also shows on the form.
+  const [formError, setFormError] = useState("");
   const submit = async (values) => {
+    setFormError("");
     try {
       if (editing)
         await edit.mutateAsync({
@@ -227,8 +232,8 @@ export function InstitutionChannel() {
       else await add.mutateAsync(values);
       setFormOpen(false);
       await query.refetch();
-    } catch {
-      /* mutation hook already shows the error toast */
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : String(error));
     }
   };
   return (
@@ -261,7 +266,8 @@ export function InstitutionChannel() {
             type="button"
             onClick={() => {
               setEditing(null);
-              setFormOpen(true);
+              setFormError("");
+            setFormOpen(true);
             }}
             className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
@@ -299,6 +305,7 @@ export function InstitutionChannel() {
           institutions={institutions.data}
           channels={channels}
           pending={add.isPending || edit.isPending}
+          error={formError}
           onCancel={() => setFormOpen(false)}
           onSubmit={submit}
         />
@@ -306,7 +313,7 @@ export function InstitutionChannel() {
     </div>
   );
 }
-function ChannelForm({ editing, institutions = [], channels = [], pending, onCancel, onSubmit }) {
+function ChannelForm({ editing, institutions = [], channels = [], pending, error, onCancel, onSubmit }) {
   const tr = useConfigLabel();
   // A bank / fintech user is always in its own institution: no picker.
   const canChoose = useCanChooseInstitution();
@@ -418,6 +425,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, onCan
           {pending ? "Saving..." : editing ? "Save changes" : "Add channel"}
         </button>
       </div>
+      {error && <p className="text-right text-xs font-semibold text-red-600">{error}</p>}
     </form>
   );
 }

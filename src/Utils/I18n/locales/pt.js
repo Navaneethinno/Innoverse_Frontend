@@ -760,6 +760,9 @@ export const routes = {
 };
 
 export const customer = {
+  kycUpgradeInProgress: "Atualização KYC em curso (pelo cliente)",
+  kycUpgradeWaiting: "Atualização KYC a aguardar aprovação",
+  waitingForGuardian: "A aguardar o responsável",
   company: "Empresa",
   corporateCustomerOnboarding: "Integração de Clientes Corporativos",
   registerACompanyMerchantOrAgentThrough: "Cadastre uma empresa, comerciante ou agente pelo formulário de integração corporativa publicado pela instituição — cada campo, opção e regra vem dessa configuração.",
@@ -830,6 +833,21 @@ export const customer = {
 };
 
 export const onboarding = {
+  levelsSaved: "Níveis guardados",
+  holdersCount: "{{customers}} clientes, {{merchants}} comerciantes",
+  entryLevel: "Nível de entrada",
+  nextLevelN: "Seguinte: nível {{n}}",
+  fieldsList: "Campos: {{list}}",
+  docsChecksCaps: "{{docs}} documentos · {{checks}} verificações · {{caps}} permissões",
+  pendingLevelChanges: "Alterações pendentes: estes níveis entram em vigor quando um verificador aprovar",
+  hideCompare: "Ocultar comparação",
+  showCompare: "Comparar",
+  level: "Nível",
+  inForce: "Em vigor",
+  proposed: "Proposto",
+  noHolders: "Ninguém o tem",
+  levelAdded: "Nível novo",
+  levelRemoved: "Removido",
   companyType: "Tipo de empresa",
   corporateCustomerTypeCreated: "Tipo de cliente corporativo criado",
   partyCompanyType: "Parte × Tipo de empresa",
@@ -904,10 +922,10 @@ export const onboarding = {
   levels: "Níveis",
   clone: "Clonar",
   noKycSchemesYet: "Nenhum esquema KYC ainda",
-  copiesTheSchemeAndAllItsLevels: "Copia o esquema e todos os seus níveis para um novo Rascunho com um novo código.",
+  copiesTheSchemeAndAllItsLevels: "Cria um novo esquema a partir deste: copia todos os níveis para um novo Rascunho com um código novo.",
   newCode: "Novo código",
   newName: "Novo nome",
-  schemeFrozenReason: "Este esquema está {{status}} e não pode ser alterado. Clone-o em um novo Rascunho para fazer alterações.",
+  schemeFrozenReason: "Este esquema está {{status}} e não pode ser alterado agora (uma alteração aguarda aprovação).",
   newCheck: "Nova verificação",
   newLimit: "Novo limite",
   newCapability: "Nova permissão",
@@ -1872,6 +1890,19 @@ export const tour = {
 };
 
 export const formBuilder = {
+  guardianLevelMetField: "O responsável tem o nível KYC exigido (@guardian_level_met)",
+  levelMet_YES: "Sim",
+  levelMet_NO: "Não",
+  guardian_FOUND: "Encontrado (pedido ainda não enviado)",
+  action_GUARDIAN_REQUEST_button: "Enviar o pedido ao pai/tutor",
+  usesSubmitLevelsTitle: "Nível para submeter, por canal",
+  usesSubmitLevelsIntro: "O nível KYC que um registo tem de atingir em cada canal antes de poder ser submetido. Por exemplo, os clientes da app e da web preenchem tudo até ao Nível 2, e os de USSD podem ser aprovados no Nível 1 e completar o Nível 2 mais tarde na app.",
+  usesEntryLevel: "O nível de entrada do esquema",
+  usesEntryLevelShort: "entrada",
+  usesLevelN: "Nível {{n}}",
+  channel_APP: "App",
+  channel_WEB: "Web",
+  channel_USSD: "USSD",
   step_flows: "Fluxos",
   step_checkpoints: "Pontos de controlo",
   flowsStepHint: "Um fluxo só pede um grupo de secções quando as suas condições se verificam. As secções mantêm o lugar no formulário; cada secção pertence no máximo a um fluxo, e uma secção sem fluxo é pedida a todos.",
@@ -1909,7 +1940,6 @@ export const formBuilder = {
   action_EDIT_button: "Voltar para alterar",
   guardianStatusField: "Estado do responsável (@guardian_status)",
   guardian_NOT_FOUND: "Não encontrado (tem de se registar)",
-  guardian_LEVEL_LOW: "Nível KYC baixo",
   guardian_PENDING: "Pedido, sem resposta",
   guardian_APPROVED: "Aprovado",
   guardian_LINKED: "Aprovado e ligado",

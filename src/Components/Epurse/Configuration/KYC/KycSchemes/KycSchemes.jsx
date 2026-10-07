@@ -13,12 +13,96 @@ import { useFieldLibrary } from "../../../Onboarding/FormBuilder/formBuilderHook
 
 import { Button } from "@/Components/Common/Button";
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
-// replaces ALL levels atomically, validate is a dry run of the submit checks,
-// clone copies an approved (frozen) scheme into a new Draft under a new code.
-const EDITABLE = [9, 5];
+// replaces ALL levels atomically, validate is a dry run of the submit checks.
+// An approved scheme's levels are edited like any maker-checker record
+// (handoff 7 Oct 2026): save_config keeps the edit in pending_config, the
+// levels in force stay until a checker approves. Clone only starts a new
+// scheme from an existing one.
+// Draft, Rejected and Active (with or without a rejected edit) can be edited;
+// only a never-approved one can be deleted.
+const EDITABLE = [9, 5, 1, 6, 7, 12, 15];
+const DELETABLE = [9, 5];
 const isEditable = (row) => EDITABLE.includes(Number(row.process_status));
+const isDeletable = (row) => DELETABLE.includes(Number(row.process_status)) && Number(row.status) !== 1;
 const asOptions = (list, valueKey = "code", labelOf = (x) => `${x.name} (${x.code})`) =>
   (list ?? []).map((x) => ({ value: x[valueKey], label: labelOf(x) }));
+
+// " · 3 customers, 1 merchant" for a level anyone holds.
+function holdersText(holders, levelNo, t) {
+  const h = holders.find((x) => Number(x.level_no) === Number(levelNo));
+  if (!h || (!h.customers && !h.merchants)) return "";
+  return ` · ${t("onboarding:holdersCount", { customers: h.customers ?? 0, merchants: h.merchants ?? 0 })}`;
+}
+
+// One level as the checker reads it.
+function levelSummary(level, fieldName, t) {
+  if (!level) return null;
+  return [
+    level.name,
+    level.is_entry_level ? t("onboarding:entryLevel") : null,
+    level.next_level_no ? t("onboarding:nextLevelN", { n: level.next_level_no }) : null,
+    t("onboarding:fieldsList", { list: (level.fields ?? []).map((f) => fieldName(f.field_key)).join(", ") || "—" }),
+    t("onboarding:docsChecksCaps", { docs: (level.documents ?? []).length, checks: (level.processes ?? []).length, caps: (level.capabilities ?? []).length }),
+  ].filter(Boolean);
+}
+
+// The edit waiting for approval, level by level, next to the levels in force,
+// with who holds each level (so the checker sees whom a change affects).
+function PendingLevels({ inForce, proposed, holders, fieldName }) {
+  const { t } = useTranslation(["onboarding", "common"]);
+  const [open, setOpen] = useState(true);
+  const numbers = [...new Set([...inForce, ...proposed].map((l) => Number(l.level_no)))].sort((a, b) => a - b);
+  const byNo = (list, n) => list.find((l) => Number(l.level_no) === n);
+  return (
+    <div className="rounded-2xl border border-amber-300 bg-amber-50/60">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
+        <span className="text-sm font-bold text-amber-800">{t("onboarding:pendingLevelChanges")}</span>
+        <span className="text-xs font-semibold text-amber-700">{open ? t("onboarding:hideCompare") : t("onboarding:showCompare")}</span>
+      </button>
+      {open && (
+        <div className="overflow-x-auto border-t border-amber-200 p-3">
+          <table className="w-full min-w-[36rem] text-xs">
+            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="w-28 px-2 py-1.5">{t("onboarding:level")}</th>
+                <th className="px-2 py-1.5">{t("onboarding:inForce")}</th>
+                <th className="px-2 py-1.5">{t("onboarding:proposed")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {numbers.map((n) => {
+                const before = levelSummary(byNo(inForce, n), fieldName, t);
+                const after = levelSummary(byNo(proposed, n), fieldName, t);
+                const changed = JSON.stringify(before) !== JSON.stringify(after);
+                return (
+                  <tr key={n} className={changed ? "bg-amber-100/60" : undefined}>
+                    <td className="border-t border-amber-200 px-2 py-2 align-top">
+                      <p className="font-bold">{t("onboarding:levelN", { n })}</p>
+                      <p className="text-[10px] text-muted-foreground">{holdersText(holders, n, t).replace(/^ · /, "") || t("onboarding:noHolders")}</p>
+                    </td>
+                    {[before, after].map((lines, i) => (
+                      <td key={i} className="border-t border-amber-200 px-2 py-2 align-top">
+                        {lines ? (
+                          lines.map((line, j) => (
+                            <p key={j} className={j === 0 ? "font-semibold" : "text-slate-600"}>
+                              {line}
+                            </p>
+                          ))
+                        ) : (
+                          <span className="italic text-muted-foreground">{t(i === 0 ? "onboarding:levelAdded" : "onboarding:levelRemoved")}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   const { t } = useTranslation(["onboarding", "common"]);
@@ -28,6 +112,10 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   // (onboarding form builder handoff §6).
   const library = useFieldLibrary();
   const [levels, setLevels] = useState([]);
+  const [inForce, setInForce] = useState(null);
+  const [pending, setPending] = useState(null);
+  const [holders, setHolders] = useState([]);
+  const [saveError, setSaveError] = useState("");
   const [record, setRecord] = useState(scheme);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
@@ -50,7 +138,11 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
         if (cancelled) return;
         const data = rowsOf(response)[0] ?? {};
         setRecord(data.kyc_group ?? scheme);
-        setLevels(data.config?.levels ?? []);
+        setInForce(data.config?.levels ?? []);
+        setPending(data.pending_config?.levels ?? null);
+        setHolders(Array.isArray(data.holders) ? data.holders : []);
+        // The maker carries on with the edit waiting for approval.
+        setLevels(data.pending_config?.levels ?? data.config?.levels ?? []);
       })
       .catch((error) => notifications.error(error.message))
       .finally(() => !cancelled && setLoading(false));
@@ -136,11 +228,20 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
   // condition): a level no longer carries them, so none are sent.
   const payloadLevels = () => cleanConfig(levels.map(({ limits: _limits, ...level }) => level));
 
+  // A refusal (e.g. removing a level customers hold) also shows next to Save.
   const save = () =>
     run("save", async () => {
-      await kycSchemeOps.saveConfig({ id: record.id, config: { levels: payloadLevels() } });
-      notifications.success("Levels saved");
-      onSaved?.();
+      setSaveError("");
+      try {
+        const response = await kycSchemeOps.saveConfig({ id: record.id, config: { levels: payloadLevels() } });
+        const saved = rowsOf(response)[0] ?? {};
+        if (saved.pending_config) setPending(saved.pending_config.levels ?? []);
+        notifications.success(apiMessage(response, t("onboarding:levelsSaved")));
+        onSaved?.();
+      } catch (error) {
+        setSaveError(error.message);
+        throw error;
+      }
     });
   const validate = () =>
     run("validate", async () => {
@@ -150,6 +251,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
       if (result.valid) notifications.success("Scheme is valid");
     });
 
+  const fieldName = (key) => library.rows.find((x) => x.key === key)?.name ?? key;
   const ready = !loading && catalog && !mastersLoading && !library.loading;
   return (
     <Modal
@@ -165,6 +267,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
           </Button>
           {!readOnly && (
             <>
+              {saveError && <span className="mr-auto max-w-md text-xs font-semibold text-red-600">{saveError}</span>}
               <Button variant="secondary" disabled={Boolean(busy)} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
                 {t("onboarding:validate")}
               </Button>
@@ -185,7 +288,17 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
           {readOnly && (
             <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{readOnlyReason}</p>
           )}
-          <ListEditor items={levels} onChange={setLevels} spec={spec} addLabel={t("onboarding:addLevel")} readOnly={readOnly} readOnlyReason={readOnlyReason} itemTitle={(l) => `${t("onboarding:levelN", { n: l.level_no ?? "?" })}${l.name ? ` — ${l.name}` : ""}`} emptyText={t("onboarding:noLevelsYetASchemeNeedsAt")} />
+          {pending && <PendingLevels inForce={inForce ?? []} proposed={pending} holders={holders} fieldName={fieldName} />}
+          <ListEditor
+            items={levels}
+            onChange={setLevels}
+            spec={spec}
+            addLabel={t("onboarding:addLevel")}
+            readOnly={readOnly}
+            readOnlyReason={readOnlyReason}
+            itemTitle={(l) => `${t("onboarding:levelN", { n: l.level_no ?? "?" })}${l.name ? ` — ${l.name}` : ""}${holdersText(holders, l.level_no, t)}`}
+            emptyText={t("onboarding:noLevelsYetASchemeNeedsAt")}
+          />
           {problems && (
             <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
               <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>{problems.length ? `${problems.length} problem(s)` : "No problems found"}</p>
@@ -280,7 +393,7 @@ export function KycSchemes() {
           setEditor(row);
         }}
         canEditRow={isEditable}
-        canDeleteRow={isEditable}
+        canDeleteRow={isDeletable}
         addButton={
           <Button size="sm" onClick={() => setForm({ code: "", name: "", description: "" })}>
             <Plus size={14} /> Add KYC scheme

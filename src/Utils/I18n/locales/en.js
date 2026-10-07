@@ -780,6 +780,9 @@ export const routes = {
 };
 
 export const customer = {
+  kycUpgradeInProgress: "KYC upgrade in progress (by the customer)",
+  kycUpgradeWaiting: "KYC upgrade waiting for approval",
+  waitingForGuardian: "Waiting for guardian",
   company: "Company",
   corporateCustomerOnboarding: "Corporate Customer Onboarding",
   registerACompanyMerchantOrAgentThrough: "Register a company, merchant or agent through the institution's published corporate onboarding form — every field, option and rule comes from that configuration.",
@@ -850,6 +853,21 @@ export const customer = {
 };
 
 export const onboarding = {
+  levelsSaved: "Levels saved",
+  holdersCount: "{{customers}} customers, {{merchants}} merchants",
+  entryLevel: "Entry level",
+  nextLevelN: "Next: level {{n}}",
+  fieldsList: "Fields: {{list}}",
+  docsChecksCaps: "{{docs}} documents · {{checks}} checks · {{caps}} capabilities",
+  pendingLevelChanges: "Pending changes: these levels go into force when a checker approves",
+  hideCompare: "Hide comparison",
+  showCompare: "Compare",
+  level: "Level",
+  inForce: "In force",
+  proposed: "Proposed",
+  noHolders: "No one holds it",
+  levelAdded: "New level",
+  levelRemoved: "Removed",
   companyType: "Company type",
   corporateCustomerTypeCreated: "Corporate customer type created",
   partyCompanyType: "Party × Company type",
@@ -924,10 +942,10 @@ export const onboarding = {
   levels: "Levels",
   clone: "Clone",
   noKycSchemesYet: "No KYC schemes yet",
-  copiesTheSchemeAndAllItsLevels: "Copies the scheme and all its levels into a new Draft under a new code.",
+  copiesTheSchemeAndAllItsLevels: "Starts a new scheme from this one: copies all its levels into a new Draft under a new code.",
   newCode: "New code",
   newName: "New name",
-  schemeFrozenReason: "This scheme is {{status}} and can't be changed. Clone it into a new Draft to make changes.",
+  schemeFrozenReason: "This scheme is {{status}} and can't be changed right now (an edit is waiting for approval).",
   newCheck: "New check",
   newLimit: "New limit",
   newCapability: "New capability",
@@ -1858,6 +1876,19 @@ export const tour = {
 };
 
 export const formBuilder = {
+  guardianLevelMetField: "Guardian is at the required KYC level (@guardian_level_met)",
+  levelMet_YES: "Yes",
+  levelMet_NO: "No",
+  guardian_FOUND: "Found (request not sent yet)",
+  action_GUARDIAN_REQUEST_button: "Send the request to the parent/tutor",
+  usesSubmitLevelsTitle: "Submit level per channel",
+  usesSubmitLevelsIntro: "The KYC level a sign-up must reach on each channel before it can be submitted. For example, app and web customers fill in everything up to Level 2, while USSD customers can be approved at Level 1 and finish Level 2 later in the app.",
+  usesEntryLevel: "The scheme's entry level",
+  usesEntryLevelShort: "entry",
+  usesLevelN: "Level {{n}}",
+  channel_APP: "App",
+  channel_WEB: "Web",
+  channel_USSD: "USSD",
   step_flows: "Flows",
   step_checkpoints: "Checkpoints",
   flowsStepHint: "A flow asks a group of sections only when its conditions hold. The sections keep their place in the form; a section belongs to at most one flow, and a section in no flow is asked of everyone.",
@@ -1895,7 +1926,6 @@ export const formBuilder = {
   action_EDIT_button: "Go back to change",
   guardianStatusField: "Guardian status (@guardian_status)",
   guardian_NOT_FOUND: "Not found (must register)",
-  guardian_LEVEL_LOW: "KYC level too low",
   guardian_PENDING: "Asked, no answer",
   guardian_APPROVED: "Approved",
   guardian_LINKED: "Approved and linked",

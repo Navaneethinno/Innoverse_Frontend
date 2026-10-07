@@ -11,7 +11,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { countryOption } from "@/Components/Common/countryOption";
 import { masterApi } from "@/Services/Master/master.api";
-import { kycSchemeApi, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { kycSchemeApi, kycSchemeOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { inputClass } from "./FieldOptionsEditor";
 import { useFieldLibrary, useFieldTypes, useSectionLibrary } from "./formBuilderHooks";
@@ -221,6 +221,8 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
   const [problems, setProblems] = useState(null);
   const [countries, setCountries] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
+  // The chosen KYC scheme's level numbers, for the submit level per channel.
+  const [kycLevels, setKycLevels] = useState([]);
   const [stepIndex, setStepIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
@@ -261,6 +263,22 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       cancelled = true;
     };
   }, [definition, kind, ops]);
+
+  useEffect(() => {
+    if (!basics.kyc_group_id) return undefined;
+    let cancelled = false;
+    kycSchemeOps
+      .get({ id: Number(basics.kyc_group_id) })
+      .then((r) => {
+        if (cancelled) return;
+        const levels = rowsOf(r)[0]?.config?.levels ?? [];
+        setKycLevels(levels.map((l) => Number(l.level_no)).filter((n) => n >= 1).sort((a, b) => a - b));
+      })
+      .catch(() => !cancelled && setKycLevels([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [basics.kyc_group_id]);
 
   const change = (patch) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -342,10 +360,12 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       enabled: c.enabled !== false,
       outcome: c.outcome,
       conditions: (c.conditions ?? []).map(cleanCondition),
-      // Sent as set: a button with no section comes back as a problem.
-      actions: (c.actions ?? []).map((a) => ({ code: "EDIT", section: a.section ?? "" })),
+      // Sent as set: an EDIT with no section comes back as a problem.
+      actions: (c.actions ?? []).map((a) => ((a.code ?? "EDIT") === "EDIT" ? { code: "EDIT", section: a.section ?? "" } : { code: a.code })),
     })),
     guardian: { min_kyc_level: Number(form.guardian?.min_kyc_level) || 0 },
+    // A channel left out uses the scheme's entry level.
+    ...(Object.keys(form.submit_levels ?? {}).length ? { submit_levels: form.submit_levels } : {}),
     uses: Object.fromEntries(Object.entries(form.uses ?? {}).filter(([, keys]) => Array.isArray(keys) && keys.length)),
   });
 
@@ -597,7 +617,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           {step === "checkpoints" && <CheckpointsStep t={t} checkpoints={form.checkpoints} onChange={(checkpoints) => change({ checkpoints })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
 
           {step === "uses" && (
-            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} guardian={form.guardian} onGuardianChange={(guardian) => change({ guardian })} />
+            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} guardian={form.guardian} onGuardianChange={(guardian) => change({ guardian })} submitLevels={form.submit_levels} kycLevels={basics.kyc_group_id ? kycLevels : []} onSubmitLevelsChange={(submit_levels) => change({ submit_levels })} />
           )}
 
           {step === "review" && (

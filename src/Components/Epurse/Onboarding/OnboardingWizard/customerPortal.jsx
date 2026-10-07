@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { Globe, Hourglass, TrendingUp } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 
 // "Handoff — Admin Panel (web)" (2026-09), §2: customers can now onboard
@@ -43,4 +43,29 @@ export function usePortalAuditLabel() {
 export function PortalDraftBanner() {
   const { t } = useAudienceTranslation("customer");
   return <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">{t(PORTAL_DRAFT_REASON)}</div>;
+}
+
+// Handoff 7 Oct 2026, customers:
+// - A customer completing the next KYC level themselves (e.g. after a USSD
+//   approval) is a Draft with auth_status KYC_UPGRADE: theirs to fill in,
+//   so staff can't edit it. Submitted, it waits as an ordinary pending edit
+//   (narration "KYC upgrade waiting for approval").
+// - A minor whose guardian approved but is below the level is held:
+//   onboarding status HELD_FOR_GUARDIAN, nothing for staff to approve.
+export const isKycUpgradeInProgress = (record) => String(record?.auth_status ?? "").toUpperCase() === "KYC_UPGRADE";
+const isKycUpgradeWaiting = (record) => Number(record?.process_status) === 3 && /kyc upgrade/i.test(String(record?.narration ?? ""));
+export const isHeldForGuardian = (record) => String(record?.onboarding_status ?? "").toUpperCase() === "HELD_FOR_GUARDIAN";
+
+export function CustomerStateBadges({ record }) {
+  const { t } = useAudienceTranslation("customer");
+  const badge = (key, icon, text, tone) => (
+    <span key={key} className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${tone}`}>
+      {icon} {text}
+    </span>
+  );
+  const out = [];
+  if (isKycUpgradeInProgress(record)) out.push(badge("upgrade", <TrendingUp size={10} />, t("kycUpgradeInProgress"), "bg-sky-50 text-sky-700"));
+  else if (isKycUpgradeWaiting(record)) out.push(badge("waiting", <TrendingUp size={10} />, t("kycUpgradeWaiting"), "bg-amber-50 text-amber-700"));
+  if (isHeldForGuardian(record)) out.push(badge("guardian", <Hourglass size={10} />, t("waitingForGuardian"), "bg-violet-50 text-violet-700"));
+  return out.length ? <span className="flex flex-wrap gap-1">{out}</span> : null;
 }

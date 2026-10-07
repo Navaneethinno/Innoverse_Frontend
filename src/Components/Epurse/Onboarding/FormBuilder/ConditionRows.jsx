@@ -11,10 +11,14 @@ const AGE_OPERATORS = ["AGE_LT", "AGE_LTE", "AGE_GT", "AGE_GTE", "AGE_BETWEEN"];
 export const LIST_OPERATORS = new Set(["IN", "NOT_IN", "BETWEEN", "AGE_BETWEEN"]);
 export const NO_VALUE = new Set(["IS_SET", "IS_EMPTY"]);
 
-// Where the minor's guardian stands; a checkpoint-only field.
+// Facts about the minor's guardian, offered in checkpoint conditions only:
+// where the request stands, and whether the guardian is at the KYC level.
 export const GUARDIAN_FIELD = "@guardian_status";
-const GUARDIAN_STATUSES = ["NOT_FOUND", "LEVEL_LOW", "PENDING", "APPROVED", "LINKED", "DECLINED"];
+const GUARDIAN_STATUSES = ["NOT_FOUND", "FOUND", "PENDING", "APPROVED", "LINKED", "DECLINED"];
 const GUARDIAN_OPERATORS = ["EQ", "NEQ", "IN", "NOT_IN"];
+const LEVEL_MET_FIELD = "@guardian_level_met";
+const YES_NO = ["YES", "NO"];
+const YES_NO_OPERATORS = ["EQ", "NEQ"];
 
 // Condition values are typed as text; numbers go back as numbers (a list
 // field is compared with the chosen row's id).
@@ -35,13 +39,29 @@ export function ConditionRows({ conditions, onChange, fields, guardian = false, 
   const typeOf = (key) => fields.find((f) => f.key === key)?.field_type;
   const fieldOptions = [
     { value: "", label: t("formBuilder:pickField") },
-    ...(guardian ? [{ value: GUARDIAN_FIELD, label: t("formBuilder:guardianStatusField") }] : []),
+    ...(guardian
+      ? [
+          { value: GUARDIAN_FIELD, label: t("formBuilder:guardianStatusField") },
+          { value: LEVEL_MET_FIELD, label: t("formBuilder:guardianLevelMetField") },
+        ]
+      : []),
     ...fields.map((f) => ({ value: f.key, label: `${f.label} (${f.key})` })),
   ];
-  const operatorsFor = (field) => (field === GUARDIAN_FIELD ? GUARDIAN_OPERATORS : typeOf(field) === "DATE" ? [...OPERATORS, ...AGE_OPERATORS] : OPERATORS);
+  const operatorsFor = (field) =>
+    field === GUARDIAN_FIELD ? GUARDIAN_OPERATORS : field === LEVEL_MET_FIELD ? YES_NO_OPERATORS : typeOf(field) === "DATE" ? [...OPERATORS, ...AGE_OPERATORS] : OPERATORS;
 
   const valueInput = (c, i) => {
     if (NO_VALUE.has(c.operator)) return <span />;
+    if (c.field === LEVEL_MET_FIELD) {
+      return (
+        <FilterSelect
+          disabled={disabled}
+          value={typeof c.value === "string" ? c.value : ""}
+          onChange={(v) => setAt(i, { value: v })}
+          options={[{ value: "", label: t("formBuilder:value") }, ...YES_NO.map((v) => ({ value: v, label: t(`formBuilder:levelMet_${v}`) }))]}
+        />
+      );
+    }
     if (c.field === GUARDIAN_FIELD) {
       if (c.operator === "IN" || c.operator === "NOT_IN") {
         const chosen = Array.isArray(c.value) ? c.value : [];
