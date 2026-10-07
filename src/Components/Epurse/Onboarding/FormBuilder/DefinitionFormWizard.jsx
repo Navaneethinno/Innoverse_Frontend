@@ -342,7 +342,8 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       enabled: c.enabled !== false,
       outcome: c.outcome,
       conditions: (c.conditions ?? []).map(cleanCondition),
-      actions: (c.actions ?? []).filter((a) => a.section).map((a) => ({ code: a.code ?? "EDIT", section: a.section })),
+      // Sent as set: a button with no section comes back as a problem.
+      actions: (c.actions ?? []).map((a) => ({ code: "EDIT", section: a.section ?? "" })),
     })),
     guardian: { min_kyc_level: Number(form.guardian?.min_kyc_level) || 0 },
     uses: Object.fromEntries(Object.entries(form.uses ?? {}).filter(([, keys]) => Array.isArray(keys) && keys.length)),
