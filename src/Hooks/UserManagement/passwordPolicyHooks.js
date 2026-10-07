@@ -1,6 +1,6 @@
 import { useIsTenant } from "@/Hooks/useInstitutionScope";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -20,11 +20,14 @@ export function useHasPasswordPolicyAction(actionName) {
 
 export function usePasswordPoliciesQuery(params = {}) {
   const [state, setState] = useState({ data: [], pagination: null, error: null, isLoading: true });
+  // Only the newest call's reply counts (a search typed quickly).
+  const seq = useRef(0);
   const refetch = useCallback(async () => {
+    const id = ++seq.current;
     setState((old) => ({ ...old, isLoading: true, error: null }));
-    try { const result = await usersApi.passwordPolicyList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }); setState({ data: Array.isArray(result?.data) ? result.data : [], pagination: result?.pagination, error: null, isLoading: false }); }
-    catch (error) { setState((old) => ({ ...old, error: error instanceof Error ? error : new Error("Request failed"), isLoading: false })); }
-  }, [params.page, params.limit, params.filter, params.sort_by]);
+    try { const result = await usersApi.passwordPolicyList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }); if (id !== seq.current) return; setState({ data: Array.isArray(result?.data) ? result.data : [], pagination: result?.pagination, error: null, isLoading: false }); }
+    catch (error) { if (id === seq.current) setState((old) => ({ ...old, error: error instanceof Error ? error : new Error("Request failed"), isLoading: false })); }
+  }, [params.page, params.limit, params.filter, params.sort_by, params.search]);
   useEffect(() => { void refetch(); window.addEventListener(CHANGED, refetch); return () => window.removeEventListener(CHANGED, refetch); }, [refetch]);
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by

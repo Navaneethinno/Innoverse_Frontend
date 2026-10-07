@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/cn";
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle } from "lucide-react";
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckCircle2, Clock3, FilePen, Filter, ListChecks, PauseCircle, Search } from "lucide-react";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 
 // INSTITUTION_DRAFT_STATUS_CODE is env-overridable (defaults to 9) rather
@@ -41,7 +41,7 @@ const TABS = [
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
+export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, onSearchSubmit, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -120,11 +120,26 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
         <div data-tour="search" className="relative w-full min-w-0 flex-1">
           <Filter size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
+            type="search"
             value={search}
+            maxLength={100}
             onChange={(event) => onSearch(event.target.value)}
+            // Enter searches at once (server search lists).
+            onKeyDown={(event) => event.key === "Enter" && onSearchSubmit?.()}
             placeholder={searchPlaceholder ?? t("searchPlaceholder")}
-            className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+            className={cn("h-9 w-full rounded-lg border border-border bg-white pl-9 text-xs outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10", onSearchSubmit ? "pr-10" : "pr-3")}
           />
+          {onSearchSubmit && (
+            <button
+              type="button"
+              onClick={onSearchSubmit}
+              aria-label={t("search")}
+              title={t("search")}
+              className="absolute right-1 top-1/2 flex h-7 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
+            >
+              <Search size={14} />
+            </button>
+          )}
         </div>
       )}
       {/* sort_by: newest (desc) or oldest (asc) change first, applied by the

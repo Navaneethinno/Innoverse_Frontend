@@ -11,6 +11,7 @@ export function useInstitutionLegalsQuery(params = {}) {
     limit: params.limit,
     filter: params.filter,
     sortBy: params.sort_by,
+    search: params.search,
     livePath: API_ENDPOINTS.INSTITUTION.INSTITUTION_LEGAL.LIST,
   });
 }

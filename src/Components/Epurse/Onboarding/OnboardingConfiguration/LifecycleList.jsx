@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -65,7 +66,7 @@ export function LifecycleList({
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [tab, setTab] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
   const [view, setView] = useState(null);
@@ -83,7 +84,7 @@ export function LifecycleList({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.list({ page, limit, ...JSON.parse(filterKey), filter: tab, sort_by: sortBy });
+      const response = await latestList(api.list({ ...searchBody, page, limit, ...JSON.parse(filterKey), filter: tab, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -91,20 +92,12 @@ export function LifecycleList({
     } finally {
       setLoading(false);
     }
-  }, [api, page, limit, filterKey, tab, sortBy]);
+  }, [api, searchBody, latestList, page, limit, filterKey, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load, reloadKey]);
   useLiveChannel(api.listPath, () => void load());
 
-  const visible = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
-      ),
-    [rows, search],
-  );
 
   const run = async () => {
     setPending(true);
@@ -188,15 +181,14 @@ export function LifecycleList({
           rows={rows}
           value={tab}
           onChange={(next) => { setTab(next); setPage(1); }}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={t("onboarding:searchTitle", { title: title.toLowerCase() })}
           actions={addButton && can("Add") ? addButton : null}
           bare
         />
         <DataTable
           columns={tableColumns}
-          rows={visible}
+          rows={rows}
           rowKey={(row) => row.id}
           isLoading={loading}
           title={title}

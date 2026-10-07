@@ -13,6 +13,7 @@ export function useAssignmentListQuery(api, livePath, params = {}) {
     limit: params.limit,
     filter: params.filter,
     sortBy: params.sort_by,
+    search: params.search,
     livePath,
   });
 }

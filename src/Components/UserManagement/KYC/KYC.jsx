@@ -1,5 +1,6 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -44,8 +45,6 @@ const FORM_FIELDS = [
 ];
 
 const idOf = (row) => row?.user_id ?? row?.id;
-const textOf = (row) =>
-  `${row?.user_name ?? ""} ${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""} ${row?.employee_id ?? ""} ${row?.email ?? ""} ${row?.mobile ?? ""}`;
 const displayName = (row) =>
   row?.user_name || `${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""}`.trim();
 
@@ -223,7 +222,6 @@ export function KYC() {
   const tr = useConfigLabel();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(EMPTY);
@@ -232,7 +230,8 @@ export function KYC() {
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = useKycQuery({ page, limit, filter: tab, sort_by: sortBy });
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
+  const query = useKycQuery({ page, limit, filter: tab, sort_by: sortBy, search: searchTerm });
   const activeUsersQuery = useActiveUsersForKycQuery();
   const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
@@ -240,13 +239,6 @@ export function KYC() {
   const canAdd = useHasKycAction("Add");
   const rows = Array.isArray(query.data) ? query.data : [];
 
-  const visibleRows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      const matchesSearch = !q || textOf(row).toLowerCase().includes(q);
-      return matchesSearch;
-    });
-  }, [rows, search]);
 
   const save = async (draft) => {
     const userId = Number(form.user_id);
@@ -305,7 +297,7 @@ export function KYC() {
         <p className="mt-1 text-xs font-medium text-muted-foreground">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} search={search} onSearch={setSearch} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} {...searchBind} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -319,7 +311,7 @@ export function KYC() {
           </button>
         )} bare /><DataTable
         columns={columns}
-        rows={visibleRows}
+        rows={rows}
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
         title={tr("User KYC")}

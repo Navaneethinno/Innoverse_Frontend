@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -91,7 +92,6 @@ export function InstitutionProfile() {
   const canDelete = useHasInstitutionAction("Delete");
   // Kept for the tab session: View/Edit open the institution on its own
   // route, and coming back should land on the same page, tab and search.
-  const [search, setSearch] = useSessionState("institutions:search", "");
   const [activeTab, setActiveTab] = useSessionState("institutions:tab", "all");
   const [sortBy, setSortBy] = useSessionState("institutions:sort", "desc");
   const [action, setAction] = useState(null);
@@ -102,10 +102,10 @@ export function InstitutionProfile() {
   const [limit, setLimit] = useSessionState("institutions:limit", 10);
 
   // The request carries only what the screen shows (page, page size, tab,
-  // order). /institution/profile/list has no search param yet, so search
-  // narrows the current page only.
+  // order, search).
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1), "institutions:search");
   const institutionsQuery = useInstitutionsQuery(
-    { page, limit, filter: activeTab, sort_by: sortBy },
+    { page, limit, filter: activeTab, sort_by: sortBy, search: searchTerm },
   );
   const authMutation = useInstitutionAuthMutation();
   const deauthMutation = useInstitutionDeauthMutation();
@@ -122,17 +122,6 @@ export function InstitutionProfile() {
   const activeCount = useMemo(() => institutions.filter((inst) => Number(inst.status) === 1).length, [institutions]);
   const own = useOwnIds();
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const rows = institutions.filter((inst) => {
-      const matchSearch =
-        !q ||
-        String(inst.name ?? "").toLowerCase().includes(q) ||
-        String(inst.code ?? "").toLowerCase().includes(q);
-      return matchSearch;
-    });
-    return rows;
-  }, [institutions, search]);
 
   const closeAction = () => {
     setAction(null);
@@ -270,11 +259,7 @@ export function InstitutionProfile() {
           setActiveTab(next);
           setPage(1);
         }}
-        search={search}
-        onSearch={(next) => {
-          setSearch(next);
-          setPage(1);
-        }}
+        {...searchBind}
         searchPlaceholder={t("institutions:searchInstitutionsPlaceholder")}
         actions={
           canAdd && (
@@ -302,7 +287,7 @@ export function InstitutionProfile() {
         bare
         persistKey="institutions"
         columns={columns}
-        rows={filtered}
+        rows={institutions}
         rowKey={(inst) => institutionId(inst)}
         isLoading={institutionsQuery.isLoading}
         title={t("institutions:listTitle")}
@@ -317,7 +302,7 @@ export function InstitutionProfile() {
               {
                 page: institutionsQuery.pagination?.currentPage ?? page,
                 totalPages: institutionsQuery.pagination?.totalPages ?? 1,
-                totalRecords: institutionsQuery.pagination?.totalRecords ?? filtered.length,
+                totalRecords: institutionsQuery.pagination?.totalRecords ?? institutions.length,
                 onPageChange: setPage,
                 limit,
                 onLimitChange: (nextLimit) => {

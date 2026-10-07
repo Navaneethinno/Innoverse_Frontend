@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { ViewReportButton, reportBody } from "@/Components/Reports/KycReport/KycReport";
 import { KycReportView } from "@/Components/Reports/KycReport/KycReportView";
@@ -146,7 +147,7 @@ export function CorporateCustomerOnboardingResource() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
-  const [search, setSearch] = useState("");
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
   // The KYC Report of a row, opened over the list (kept mounted, hidden).
@@ -156,7 +157,7 @@ export function CorporateCustomerOnboardingResource() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const response = await corpCustomerOnboardingApi.list({ page, limit, filter: tab, sort_by: sortBy });
+      const response = await latestList(corpCustomerOnboardingApi.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
       setRows(corpOnboardingRowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -164,7 +165,7 @@ export function CorporateCustomerOnboardingResource() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, tab, sortBy]);
+  }, [searchBody, latestList, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -172,13 +173,6 @@ export function CorporateCustomerOnboardingResource() {
   // section the customer saves) — coalesce bursts into one quiet refetch.
   useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, () => void load({ silent: true }));
 
-  const visible =
-    !search.trim() && tab === "all"
-      ? rows
-      : rows.filter(
-          (row) =>
-            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
-        );
 
   const columns = [
     {
@@ -271,15 +265,14 @@ export function CorporateCustomerOnboardingResource() {
           rows={rows}
           value={tab}
           onChange={(next) => { setTab(next); setPage(1); }}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={t("customer:searchCorporateOnboarding")}
           actions={addAction}
           bare
         />
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={(r) => r.reference_id}
           isLoading={loading}
           title={t("customer:corporateCustomerOnboarding")}

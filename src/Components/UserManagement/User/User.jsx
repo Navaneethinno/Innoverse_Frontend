@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -65,7 +66,8 @@ export function User() {
   const canChangeStatus = useHasUserAction("Change Status");
   const canSubmit = useHasUserAction("Submit");
 
-  const [params, setParams] = useState({ page: 1, limit: 10, search: "", status: 0, filter: "all", sort_by: "desc" });
+  const [params, setParams] = useState({ page: 1, limit: 10, status: 0, filter: "all", sort_by: "desc" });
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setParams((current) => ({ ...current, page: 1 })));
   const [activeTab, setActiveTab] = useState("all");
   const canChooseInstitution = useCanChooseInstitution();
   const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
@@ -76,7 +78,7 @@ export function User() {
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [audit, setAudit] = useState(null);
-  const usersQuery = useUsersQuery(params);
+  const usersQuery = useUsersQuery({ ...params, search: searchTerm });
   const lookupsQuery = useUserLookupsQuery();
   const defaultPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
   const selectedPolicy =
@@ -95,7 +97,6 @@ export function User() {
   const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
   // The server filters by tab (`filter`) and orders (`sort_by`) across all
   // records, so the loaded page is shown as-is.
-  const visibleUsers = rawUsers;
   const pendingInfo = usePendingChanges(
     ({ id }) => usersApi.pending({ user_id: id }),
     numericId(action?.user ? userId(action.user) : null),
@@ -368,8 +369,7 @@ export function User() {
             setActiveTab(tab);
             setParams((current) => ({ ...current, page: 1, filter: tab }));
           }}
-          search={params.search}
-          onSearch={(search) => setParams((current) => ({ ...current, page: 1, search }))}
+          {...searchBind}
           searchPlaceholder={tr("Search users...")}
         bare />{usersQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -380,7 +380,7 @@ export function User() {
 
       <DataTable
         columns={columns}
-        rows={visibleUsers}
+        rows={rawUsers}
         rowKey={(u) => userId(u)}
         isLoading={usersQuery.isLoading}
         title={tr("Users")}
@@ -388,7 +388,7 @@ export function User() {
         emptyTitle={tr("No users found")}
         fetchMore={async (page, limit) => {
           const mapped = mapUserListResponse(
-            await usersApi.list({ page, limit, search: "", status: 0, filter: params.filter, sort_by: params.sort_by }),
+            await usersApi.list({ page, limit, ...(searchTerm ? { search: searchTerm } : {}), status: 0, filter: params.filter, sort_by: params.sort_by }),
           );
           return { rows: mapped.users, totalPages: mapped.pagination.totalPages };
         }}
@@ -396,7 +396,7 @@ export function User() {
           {
                 page: usersQuery.pagination?.currentPage ?? params.page,
                 totalPages: usersQuery.pagination?.totalPages ?? 1,
-                totalRecords: usersQuery.pagination?.totalRecords ?? visibleUsers.length,
+                totalRecords: usersQuery.pagination?.totalRecords ?? rawUsers.length,
                 onPageChange: (page) => setParams((p) => ({ ...p, page })),
                 limit: params.limit,
                 onLimitChange: (limit) => setParams((p) => ({ ...p, limit, page: 1 })),

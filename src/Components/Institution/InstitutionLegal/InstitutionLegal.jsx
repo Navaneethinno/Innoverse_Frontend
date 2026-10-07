@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { TypedInput } from "@/Components/Common/DateInput";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
@@ -153,23 +154,15 @@ export function InstitutionLegal() {
   const canAdd = useHasInstitutionAction("Add");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
-  const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const query = useInstitutionLegalsQuery({ page, limit, filter: statusFilter, sort_by: sortBy });
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
+  const query = useInstitutionLegalsQuery({ page, limit, filter: statusFilter, sort_by: sortBy, search: searchTerm });
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionLegalMutation("add");
   const edit = useInstitutionLegalMutation("edit");
-  // The list has no search param yet: search narrows the current page.
-  const filteredRows =
-    !search.trim()
-      ? query.data
-      : query.data.filter(
-          (row) =>
-            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
-        );
   const columns = [
     {
       key: "legal_name",
@@ -263,8 +256,7 @@ export function InstitutionLegal() {
         rows={query.data}
         total={query.pagination?.totalRecords}
         value={statusFilter}
-        search={search}
-        onSearch={setSearch}
+        {...searchBind}
         onChange={(next) => { setStatusFilter(next); setPage(1); }}
         actions={canAdd && (
           <button
@@ -280,11 +272,11 @@ export function InstitutionLegal() {
         )}
       bare /><DataTable serverSorted
         columns={columns}
-        rows={filteredRows}
+        rows={query.data}
         serverPagination={{
           page,
           totalPages: query.pagination?.totalPages ?? 1,
-          totalRecords: query.pagination?.totalRecords ?? filteredRows.length,
+          totalRecords: query.pagination?.totalRecords ?? query.data.length,
           onPageChange: setPage,
           limit,
           onLimitChange: (next) => {

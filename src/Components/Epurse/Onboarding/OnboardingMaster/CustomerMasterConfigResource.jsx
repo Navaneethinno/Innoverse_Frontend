@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useTranslation } from "react-i18next";
@@ -101,7 +102,7 @@ export function CustomerMasterConfigResource({ entity }) {
     [page, setPage] = useState(1),
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
-    [search, setSearch] = useState(""),
+    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
     [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({ code: "", name: "", description: "", ownership_id: "", category: "" }),
     [editing, setEditing] = useState(null),
@@ -121,7 +122,7 @@ export function CustomerMasterConfigResource({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await config.api.list({ page, limit, filter: tab, sort_by: sortBy });
+      const response = await latestList(config.api.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? response?.data?.pagination ?? {});
     } catch (error) {
@@ -129,20 +130,12 @@ export function CustomerMasterConfigResource({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [config, page, limit, tab, sortBy]);
+  }, [config, searchBody, latestList, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
   useLiveChannel(config.endpoint.LIST, () => void load());
 
-  const visible = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
-      ),
-    [rows, tab, search],
-  );
 
   const describeActionRow = (row) => row?.name ?? String(idOf(row));
 
@@ -324,15 +317,14 @@ export function CustomerMasterConfigResource({ entity }) {
           rows={rows}
           value={tab}
           onChange={(next) => { setTab(next); setPage(1); }}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={t("onboarding:searchTitle", { title: displayTitle.toLowerCase() })}
           actions={addAction}
           bare
         />
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={idOf}
           isLoading={loading}
           title={displayTitle}

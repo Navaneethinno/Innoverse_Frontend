@@ -1,5 +1,5 @@
 import { findMenuByName, useMenuPermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -29,18 +29,22 @@ function notifyProfileChange() {
 }
 
 function useProfileAsyncQuery(queryFn) {
+  // Only the newest call's reply counts (a search typed quickly).
+  const seq = useRef(0);
   const [data, setData] = useState();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const refetch = useCallback(async () => {
+    const id = ++seq.current;
     setIsLoading(true);
     setError(null);
     try {
-      setData(await queryFn());
+      const next = await queryFn();
+      if (id === seq.current) setData(next);
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Request failed"));
+      if (id === seq.current) setError(nextError instanceof Error ? nextError : new Error("Request failed"));
     } finally {
-      setIsLoading(false);
+      if (id === seq.current) setIsLoading(false);
     }
   }, [queryFn]);
   useEffect(() => {
@@ -107,7 +111,7 @@ export function useProfilesQuery(params) {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 100;
   const query = useProfileAsyncQuery(
-    useCallback(() => profilesApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }), [page, limit, params?.filter, params?.sort_by]),
+    useCallback(() => profilesApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }), [page, limit, params?.filter, params?.sort_by, params?.search]),
   );
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by

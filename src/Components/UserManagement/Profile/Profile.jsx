@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -79,7 +80,6 @@ function renderProfileValue(profile, key) {
 
 export function Profile() {
   const { t } = useTranslation("profiles");
-  const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
   const [action, setAction] = useState(null);
@@ -102,9 +102,9 @@ export function Profile() {
   const [limit, setLimit] = useState(10);
 
   // The request carries only what the screen shows (page, page size, tab,
-  // order). /profile/list has no search param yet, so search narrows the
-  // current page only.
-  const profilesQuery = useProfilesQuery({ page, limit, filter: activeTab, sort_by: sortBy });
+  // order, search).
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
+  const profilesQuery = useProfilesQuery({ page, limit, filter: activeTab, sort_by: sortBy, search: searchTerm });
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -127,14 +127,6 @@ export function Profile() {
     return result;
   }, [profiles]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const rows = profiles.filter((p) => {
-      const matchSearch = !q || String(p.profile_name ?? "").toLowerCase().includes(q);
-      return matchSearch;
-    });
-    return rows;
-  }, [profiles, search]);
 
   const openCreate = () => {
     setEditing(null);
@@ -329,11 +321,7 @@ export function Profile() {
             setActiveTab(value);
             setPage(1);
           }}
-          search={search}
-          onSearch={(value) => {
-            setSearch(value);
-            setPage(1);
-          }}
+          {...searchBind}
           searchPlaceholder={t("searchProfilesPlaceholder")}
         bare />{profilesQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
@@ -346,7 +334,7 @@ export function Profile() {
 
       <DataTable
         columns={columns}
-        rows={filtered}
+        rows={profiles}
         rowKey={(p) => profileId(p)}
         isLoading={profilesQuery.isLoading}
         title={t("profilesTitle")}
@@ -361,7 +349,7 @@ export function Profile() {
               {
                 page: profilesQuery.pagination?.currentPage ?? page,
                 totalPages: profilesQuery.pagination?.totalPages ?? 1,
-                totalRecords: profilesQuery.pagination?.totalRecords ?? filtered.length,
+                totalRecords: profilesQuery.pagination?.totalRecords ?? profiles.length,
                 onPageChange: setPage,
                 limit,
                 onLimitChange: (next) => {

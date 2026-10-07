@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FileSearch } from "lucide-react";
@@ -45,16 +46,16 @@ function KycReportList({ audience }) {
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("desc");
   const [loading, setLoading] = useState(true);
   const detail = useReportDetail();
   const api = APIS[audience][type];
 
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.list({ page, limit, filter: "all", sort_by: sortBy });
+      const response = await latestList(api.list({ ...searchBody, page, limit, filter: "all", sort_by: sortBy }));
       setRows(onboardingRowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -63,16 +64,11 @@ function KycReportList({ audience }) {
     } finally {
       setLoading(false);
     }
-  }, [api, page, limit, sortBy]);
+  }, [api, searchBody, latestList, page, limit, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
 
-  // As on the Onboarding Wizard list: search narrows the loaded page.
-  const needle = search.trim().toLowerCase();
-  const visible = needle
-    ? rows.filter((r) => JSON.stringify(r).toLowerCase().includes(needle))
-    : rows;
 
   const columns = [
     {
@@ -161,15 +157,14 @@ function KycReportList({ audience }) {
             rows={rows}
             value="all"
             onChange={() => {}}
-            search={search}
-            onSearch={setSearch}
+            {...searchBind}
             searchPlaceholder={t("search")}
-            actions={<ExportButtons exportFile={(format) => api.export({ ...(search.trim() ? { search: search.trim() } : {}), filter: "all", sort_by: sortBy, format })} />}
+            actions={<ExportButtons exportFile={(format) => api.export({ ...searchBody, filter: "all", sort_by: sortBy, format })} />}
             bare
           />
           <DataTable
             columns={columns}
-            rows={visible}
+            rows={rows}
             rowKey={(r) => r.reference_id ?? r.id}
             isLoading={loading}
             title={t(audience === "merchant" ? "merchantTitle" : "customerTitle")}

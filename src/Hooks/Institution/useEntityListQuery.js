@@ -23,25 +23,30 @@ const idOf = (row) => row?.id;
 // `livePath` (optional): the entity's own /list REST path, to subscribe to
 // its live-push channel. A push refetches the page quietly: its rows may be
 // only ids and status (a change made elsewhere), so they are never merged.
-export function useEntityListQuery(listFn, { page = 1, limit = 10, livePath, filter, sortBy } = {}) {
-  const narrowed = Boolean(filter) && filter !== "all";
+// `search` (optional): the server-side search text; only the newest call's
+// reply is kept, so a slow older one can't replace newer results.
+export function useEntityListQuery(listFn, { page = 1, limit = 10, livePath, filter, sortBy, search } = {}) {
+  const narrowed = (Boolean(filter) && filter !== "all") || Boolean(search);
   const [state, setState] = useState({ data: [], pagination: {}, isLoading: true, error: null });
   const dataRef = useRef([]);
+  const seq = useRef(0);
   dataRef.current = state.data;
 
   const refetch = useCallback(
     async ({ silent = false } = {}) => {
       if (!silent) setState((current) => ({ ...current, isLoading: true, error: null }));
+      const id = ++seq.current;
       try {
         const result = mapPage(
-          await listFn({ page, limit, ...(filter ? { filter } : {}), ...(sortBy ? { sort_by: sortBy } : {}) }),
+          await listFn({ page, limit, ...(filter ? { filter } : {}), ...(sortBy ? { sort_by: sortBy } : {}), ...(search ? { search } : {}) }),
         );
+        if (id !== seq.current) return;
         setState({ data: result.records, pagination: result.pagination, isLoading: false, error: null });
       } catch (error) {
-        setState((current) => ({ ...current, isLoading: false, error }));
+        if (id === seq.current) setState((current) => ({ ...current, isLoading: false, error }));
       }
     },
-    [listFn, page, limit, filter, sortBy],
+    [listFn, page, limit, filter, sortBy, search],
   );
   useEffect(() => {
     void refetch();

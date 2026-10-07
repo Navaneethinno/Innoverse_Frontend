@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -194,7 +195,7 @@ export function DigitalProduct({ entity }) {
     [page, setPage] = useState(1),
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
-    [search, setSearch] = useState(""),
+    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
     [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({}),
     [editing, setEditing] = useState(null),
@@ -219,7 +220,7 @@ export function DigitalProduct({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.list({ page, limit, filter: tab, sort_by: sortBy });
+      const r = await latestList(api.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
       setRows(rowsOf(r));
       setPagination(r?.pagination ?? r?.data?.pagination ?? {});
     } catch (e) {
@@ -227,7 +228,7 @@ export function DigitalProduct({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [api, page, limit, tab, sortBy]);
+  }, [api, searchBody, latestList, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -237,14 +238,6 @@ export function DigitalProduct({ entity }) {
   useLiveChannel(
     `/config/digital_product/${entity}/list`,
     () => void load(),
-  );
-  const visible = useMemo(
-    () =>
-      rows.filter(
-        (r) =>
-          JSON.stringify(r).toLowerCase().includes(search.toLowerCase()),
-      ),
-    [rows, tab, search],
   );
   const save = async (is_draft) => {
     // "_id" fields rendered as a plain <input required> get real HTML5
@@ -456,13 +449,12 @@ export function DigitalProduct({ entity }) {
         rows={rows}
         value={tab}
         onChange={(next) => { setTab(next); setPage(1); }}
-        search={search}
-        onSearch={setSearch}
+        {...searchBind}
         searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
         actions={addAction}
       bare /><DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={idOf}
           isLoading={loading}
           title={tr(config.title)}

@@ -1,5 +1,5 @@
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { genderApi } from "@/Services/Epurse/district.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
@@ -15,15 +15,18 @@ export function useHasKycAction(actionName) {
 }
 
 function useQuery(queryFn) {
+  const seq = useRef(0);
   const [data, setData] = useState();
   const [error, setError] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const refetch = useCallback(async () => {
+    // Only the newest call's reply counts (a search typed quickly).
+    const id = ++seq.current;
     setLoading(true);
     setError(null);
-    try { setData(await queryFn()); }
-    catch (nextError) { setError(nextError instanceof Error ? nextError : new Error("Request failed")); }
-    finally { setLoading(false); }
+    try { const next = await queryFn(); if (id === seq.current) setData(next); }
+    catch (nextError) { if (id === seq.current) setError(nextError instanceof Error ? nextError : new Error("Request failed")); }
+    finally { if (id === seq.current) setLoading(false); }
   }, [queryFn]);
   useEffect(() => {
     void refetch();
@@ -34,7 +37,7 @@ function useQuery(queryFn) {
 }
 
 export function useKycQuery(params = {}) {
-  const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }), [params.page, params.limit, params.filter, params.sort_by]));
+  const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }), [params.page, params.limit, params.filter, params.sort_by, params.search]));
   // Refetch on every live push — the in-place reconcile this replaced
   // (insertNew: false) silently dropped brand-new records pushed by
   // another user/tab entirely. See userHooks.js's identical fix.

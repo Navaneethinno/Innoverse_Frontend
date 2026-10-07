@@ -1,5 +1,6 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Clock, FileText, KeyRound, Plus, ShieldCheck } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -150,8 +151,6 @@ const FORM_SECTIONS = [
 
 const empty = () => Object.fromEntries(ALL_FIELDS.map((field) => [field, BOOLEAN_FIELDS.includes(field) ? false : ""]));
 const idOf = (row) => row?.policy_id ?? row?.id;
-const searchText = (row) =>
-  `${row?.policy_name ?? ""} ${row?.description ?? ""} ${row?.status_name ?? ""} ${row?.auth_status ?? ""}`;
 
 function toForm(row) {
   const next = empty();
@@ -377,7 +376,6 @@ export function PasswordPolicy() {
   const tr = useConfigLabel();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(empty);
@@ -386,18 +384,12 @@ export function PasswordPolicy() {
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
 
-  const query = usePasswordPoliciesQuery({ page, limit, filter: tab, sort_by: sortBy });
+  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
+  const query = usePasswordPoliciesQuery({ page, limit, filter: tab, sort_by: sortBy, search: searchTerm });
   const rows = Array.isArray(query.data) ? query.data : [];
   const canAdd = useHasPasswordPolicyAction("Add");
   const methods = usePasswordPolicyActions();
 
-  const visibleRows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      const matchesSearch = !q || searchText(row).toLowerCase().includes(q);
-      return matchesSearch;
-    });
-  }, [rows, search]);
 
   const save = async (draft) => {
     if (!form.policy_name.trim()) {
@@ -452,7 +444,7 @@ export function PasswordPolicy() {
         <p className="mt-1 text-xs font-medium text-muted-foreground">Manage password rules, lockout, and session security.</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} search={search} onSearch={setSearch} searchPlaceholder="Search password policies..." actions={canAdd && (
+      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} {...searchBind} searchPlaceholder="Search password policies..." actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -466,7 +458,7 @@ export function PasswordPolicy() {
           </button>
         )} bare /><DataTable
         columns={columns}
-        rows={visibleRows}
+        rows={rows}
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
         title="Password Policy"

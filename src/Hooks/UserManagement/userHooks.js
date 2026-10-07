@@ -1,5 +1,5 @@
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -22,18 +22,22 @@ function notifyUserChange() {
 }
 
 function useUserAsyncQuery(queryFn) {
+  // Only the newest call's reply counts (a search typed quickly).
+  const seq = useRef(0);
   const [data, setData] = useState();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const refetch = useCallback(async () => {
+    const id = ++seq.current;
     setIsLoading(true);
     setError(null);
     try {
-      setData(await queryFn());
+      const next = await queryFn();
+      if (id === seq.current) setData(next);
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Request failed"));
+      if (id === seq.current) setError(nextError instanceof Error ? nextError : new Error("Request failed"));
     } finally {
-      setIsLoading(false);
+      if (id === seq.current) setIsLoading(false);
     }
   }, [queryFn]);
   useEffect(() => {
@@ -94,7 +98,7 @@ export function useUsersQuery(params) {
   const status = params?.status ?? 0;
   const query = useUserAsyncQuery(
     useCallback(
-      () => usersApi.list({ page, limit, search, status, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }),
+      () => usersApi.list({ page, limit, ...(search ? { search } : {}), status, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }),
       [page, limit, search, status, params?.filter, params?.sort_by],
     ),
   );

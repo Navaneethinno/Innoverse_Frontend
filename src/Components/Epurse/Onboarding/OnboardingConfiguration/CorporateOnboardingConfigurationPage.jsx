@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { DateInput } from "@/Components/Common/DateInput";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
@@ -163,7 +164,7 @@ export function CorporateOnboardingConfigurationPage() {
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
-  const [search, setSearch] = useState("");
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
@@ -171,7 +172,7 @@ export function CorporateOnboardingConfigurationPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await corpOnboardingDefinitionApi.list({ page, limit, filter: tab, sort_by: sortBy });
+      const response = await latestList(corpOnboardingDefinitionApi.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? {});
     } catch (error) {
@@ -179,7 +180,7 @@ export function CorporateOnboardingConfigurationPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, tab, sortBy]);
+  }, [searchBody, latestList, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -219,13 +220,6 @@ export function CorporateOnboardingConfigurationPage() {
     }
   };
 
-  const visible =
-    !search.trim() && tab === "all"
-      ? rows
-      : rows.filter(
-          (row) =>
-            JSON.stringify(row).toLowerCase().includes(search.trim().toLowerCase()),
-        );
 
   const columns = [
     {
@@ -314,15 +308,14 @@ export function CorporateOnboardingConfigurationPage() {
           rows={rows}
           value={tab}
           onChange={(next) => { setTab(next); setPage(1); }}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={t("onboarding:searchCorporateCustomerTypes")}
           actions={addAction}
           bare
         />
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={(r) => r.id}
           isLoading={loading}
           title={t("onboarding:corporateCustomerTypes")}

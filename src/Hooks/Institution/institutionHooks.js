@@ -1,5 +1,5 @@
 import { usePagePermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
@@ -24,15 +24,19 @@ function useInstitutionAsyncQuery(queryFn) {
   const [data, setData] = useState();
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Only the newest call's reply counts (a search typed quickly).
+  const seq = useRef(0);
   const refetch = useCallback(async () => {
+    const id = ++seq.current;
     setIsLoading(true);
     setError(null);
     try {
-      setData(await queryFn());
+      const next = await queryFn();
+      if (id === seq.current) setData(next);
     } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Request failed"));
+      if (id === seq.current) setError(nextError instanceof Error ? nextError : new Error("Request failed"));
     } finally {
-      setIsLoading(false);
+      if (id === seq.current) setIsLoading(false);
     }
   }, [queryFn]);
   useEffect(() => {
@@ -109,8 +113,8 @@ export function useInstitutionsQuery(params) {
   const limit = params?.limit ?? 100;
   const query = useInstitutionAsyncQuery(
     useCallback(
-      () => institutionsApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }),
-      [page, limit, params?.filter, params?.sort_by],
+      () => institutionsApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }),
+      [page, limit, params?.filter, params?.sort_by, params?.search],
     ),
   );
   // Refetch on every live push — the in-place reconcile this replaced

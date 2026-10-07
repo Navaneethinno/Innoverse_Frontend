@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, Clock3, ListChecks, Mail, MessageSquare, XCircle } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -35,7 +36,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
   const [status, setStatus] = useState("all");
   const [channel, setChannel] = useState("");
   const [sortBy, setSortBy] = useState("desc");
-  const [search, setSearch] = useState("");
+  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [view, setView] = useState(null);
   const [alerts, setAlerts] = useState([]);
 
@@ -50,14 +51,15 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
     async ({ silent = false } = {}) => {
       if (!silent) setLoading(true);
       try {
-        const response = await notificationOutboxApi.list({
+        const response = await latestList(notificationOutboxApi.list({
+          ...searchBody,
           page,
           limit,
           sort_by: sortBy,
           ...(status !== "all" ? { delivery_status: status } : {}),
           ...(channel ? { channel } : {}),
           ...(alertId ? { noti_alert_id: Number(alertId) } : {}),
-        });
+        }));
         setRows(rowsOf(response));
         setPagination(response?.pagination ?? {});
       } catch (error) {
@@ -66,7 +68,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
         setLoading(false);
       }
     },
-    [page, limit, sortBy, status, channel, alertId],
+    [searchBody, latestList, page, limit, sortBy, status, channel, alertId],
   );
   useEffect(() => {
     void load();
@@ -79,10 +81,6 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
     setPage(1);
   };
 
-  const visible = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return q ? rows.filter((row) => JSON.stringify(row).toLowerCase().includes(q)) : rows;
-  }, [rows, search]);
 
   const columns = [
     { key: "created_time", label: t("notification:time"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.created_time)}</span> },
@@ -147,8 +145,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
           onChange={reset(setStatus)}
           sortBy={sortBy}
           onSortChange={reset(setSortBy)}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={t("notification:searchOutbox")}
           actions={
             <div className="flex items-center gap-2">
@@ -179,7 +176,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
         />
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={(row) => row.id}
           isLoading={loading}
           title={t("notification:outbox")}

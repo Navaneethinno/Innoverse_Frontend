@@ -1,3 +1,4 @@
+import { useListSearch } from "@/Hooks/useListSearch";
 import { TypedInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { scopeInstitutionFields } from "@/Utils/Lib/institutionScope";
@@ -481,7 +482,7 @@ export function AcctConfigResource({ entity }) {
     [page, setPage] = useState(1),
     [limit, setLimit] = useState(10),
     [loading, setLoading] = useState(true),
-    [search, setSearch] = useState(""),
+    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
     [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
     [form, setForm] = useState({}),
     [editing, setEditing] = useState(null),
@@ -502,7 +503,7 @@ export function AcctConfigResource({ entity }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await service.list({ page, limit, filter: tab, sort_by: sortBy });
+      const response = await latestList(service.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
       setRows(rowsOf(response));
       setPagination(response?.pagination ?? response?.data?.pagination ?? {});
     } catch (error) {
@@ -510,7 +511,7 @@ export function AcctConfigResource({ entity }) {
     } finally {
       setLoading(false);
     }
-  }, [service, page, limit, tab, sortBy]);
+  }, [service, searchBody, latestList, page, limit, tab, sortBy]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -522,14 +523,6 @@ export function AcctConfigResource({ entity }) {
   useLiveChannel(
     API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST,
     () => void load(),
-  );
-  const visible = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          JSON.stringify(row).toLowerCase().includes(search.toLowerCase()),
-      ),
-    [rows, tab, search],
   );
   const save = async (draft) => {
     // Same fix as DigitalProduct.jsx/KycConfigResource.jsx, widened
@@ -693,14 +686,13 @@ export function AcctConfigResource({ entity }) {
           rows={rows}
           value={tab}
           onChange={(next) => { setTab(next); setPage(1); }}
-          search={search}
-          onSearch={setSearch}
+          {...searchBind}
           searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
           bare
         />
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={rows}
           rowKey={idOf}
           isLoading={loading}
           title={tr(config.title)}
