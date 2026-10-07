@@ -18,6 +18,8 @@ import { useFieldLibrary, useFieldTypes, useSectionLibrary } from "./formBuilder
 import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 import { cn } from "@/Utils/Lib/utils";
 import { UsesStep } from "./UsesStep";
+import { ConditionRows, cleanCondition } from "./ConditionRows";
+import { CheckpointsStep, FlowsStep } from "./FlowsCheckpoints";
 
 import { Button } from "@/Components/Common/Button";
 // The form on a definition (Admin portal handoff: onboarding form builder,
@@ -26,23 +28,15 @@ import { Button } from "@/Components/Common/Button";
 // which purpose) and a review with the server's problems and snapshot.
 // `edit ... is_draft:true` saves the basics (and reopens an Active
 // definition as a draft); save_form saves the form.
-const STEPS = ["basics", "sections", "rules", "uses", "review"];
-const EMPTY_FORM = { sections: [], rules: [], uses: {} };
+// Flows and checkpoints (Admin handoff "onboarding flows and checkpoints")
+// follow the rules; a form saved before them has neither key.
+const STEPS = ["basics", "sections", "rules", "flows", "checkpoints", "uses", "review"];
+const EMPTY_FORM = { sections: [], rules: [], flows: [], checkpoints: [], uses: {}, guardian: { min_kyc_level: 0 } };
 
-const OPERATORS = ["EQ", "NEQ", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN", "BETWEEN", "IS_SET", "IS_EMPTY"];
-const LIST_OPERATORS = new Set(["IN", "NOT_IN", "BETWEEN"]);
-const NO_VALUE = new Set(["IS_SET", "IS_EMPTY"]);
 const ACTIONS = ["SHOW", "HIDE", "REQUIRE", "OPTIONAL"];
 
 
-// Condition values are typed as text; numbers go back as numbers (a list
-// field is compared with the chosen row's id).
-const parseValue = (text) => {
-  const trimmed = String(text ?? "").trim();
-  return trimmed !== "" && !Number.isNaN(Number(trimmed)) ? Number(trimmed) : trimmed;
-};
 const placementLabel = (f) => f.label || undefined;
-const valueText = (value) => (Array.isArray(value) ? value.join(", ") : (value ?? ""));
 
 // Draft / Rejected / Active (and Active with a rejected change) can be
 // edited: saving an Active one reopens it as a draft.
@@ -130,7 +124,7 @@ function SectionCard({ placed, index, count, section, fields, typeName, readOnly
   );
 }
 
-function RuleEditor({ rule, onChange, fieldOptions, sectionOptions, disabled, t }) {
+function RuleEditor({ rule, onChange, fieldOptions, conditionFields, sectionOptions, disabled, t }) {
   const set = (patch) => onChange({ ...rule, ...patch });
   const setAt = (listKey, index, patch) => set({ [listKey]: (rule[listKey] ?? []).map((x, i) => (i === index ? { ...x, ...patch } : x)) });
   const removeAt = (listKey, index) => set({ [listKey]: (rule[listKey] ?? []).filter((_, i) => i !== index) });
@@ -153,40 +147,7 @@ function RuleEditor({ rule, onChange, fieldOptions, sectionOptions, disabled, t 
       <CheckboxPill className="self-start" checked={rule.enabled !== false} disabled={disabled} onChange={(on) => set({ enabled: on })} label={t("formBuilder:enabled")} />
       <div>
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("formBuilder:whenAll")}</p>
-        <div className="flex flex-col gap-2">
-          {(rule.conditions ?? []).map((c, i) => (
-            <div key={i} className="grid items-end gap-2 md:grid-cols-[2fr_1fr_2fr_auto]">
-              <FilterSelect disabled={disabled} value={c.field ?? ""} onChange={(v) => setAt("conditions", i, { field: v })} options={[{ value: "", label: t("formBuilder:pickField") }, ...fieldOptions]} />
-              <FilterSelect disabled={disabled} value={c.operator ?? "EQ"} onChange={(v) => setAt("conditions", i, { operator: v, ...(NO_VALUE.has(v) ? { value: undefined } : {}) })} options={OPERATORS.map((o) => ({ value: o, label: t(`formBuilder:op_${o}`, { defaultValue: o }) }))} />
-              {NO_VALUE.has(c.operator) ? (
-                <span />
-              ) : (
-                <input
-                  className={`${inputClass} !mt-0`}
-                  disabled={disabled}
-                  placeholder={LIST_OPERATORS.has(c.operator) ? t("formBuilder:valuesCommaSeparated") : t("formBuilder:value")}
-                  value={c._text ?? valueText(c.value)}
-                  onChange={(e) =>
-                    setAt("conditions", i, {
-                      _text: e.target.value,
-                      value: LIST_OPERATORS.has(c.operator) ? e.target.value.split(",").map(parseValue).filter((v) => v !== "") : parseValue(e.target.value),
-                    })
-                  }
-                />
-              )}
-              {!disabled && (
-                <button type="button" onClick={() => removeAt("conditions", i)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-                  <Trash2 size={14} />
-                </button>
-              )}
-            </div>
-          ))}
-          {!disabled && (
-            <button type="button" onClick={() => set({ conditions: [...(rule.conditions ?? []), { field: "", operator: "EQ" }] })} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
-              <Plus size={13} /> {t("formBuilder:addCondition")}
-            </button>
-          )}
-        </div>
+        <ConditionRows t={t} disabled={disabled} fields={conditionFields} conditions={rule.conditions} onChange={(conditions) => set({ conditions })} />
       </div>
       <div>
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("formBuilder:thenApply")}</p>
@@ -282,7 +243,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
         if (cancelled) return;
         const d = data.definition ?? definition;
         setDef(d);
-        setForm({ ...EMPTY_FORM, ...(data.form ?? {}) });
+        setForm({ ...EMPTY_FORM, ...(data.form ?? {}), flows: data.form?.flows ?? [], checkpoints: data.form?.checkpoints ?? [], guardian: data.form?.guardian ?? EMPTY_FORM.guardian });
         setSnapshot(data.snapshot ?? null);
         setBasics({
           minor_age_years: d.minor_age_years ?? 18,
@@ -353,6 +314,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
     return out;
   }, [form.sections, sectionByKey, snapshotFields]);
   const fieldOptions = formFields.map((f) => ({ value: f.key, label: `${f.label} (${f.key})` }));
+  const sectionHeadings = form.sections.map((s) => ({ value: s.section_key, label: sectionByKey.get(s.section_key)?.heading ?? sectionByKey.get(s.section_key)?.name ?? s.section_key }));
   const sectionOptions = form.sections.map((s) => ({ value: s.section_key, label: `${sectionByKey.get(s.section_key)?.name ?? s.section_key} (${s.section_key})` }));
 
 
@@ -362,8 +324,27 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       ...r,
       priority: r.priority === "" || r.priority === undefined ? 100 : Number(r.priority),
       enabled: r.enabled !== false,
-      conditions: (r.conditions ?? []).map(({ _text, ...c }) => (NO_VALUE.has(c.operator) ? { field: c.field, operator: c.operator } : c)),
+      conditions: (r.conditions ?? []).map(cleanCondition),
     })),
+    flows: (form.flows ?? []).map((f) => ({
+      code: f.code,
+      name: f.name,
+      ...(f.within ? { within: f.within } : {}),
+      enabled: f.enabled !== false,
+      conditions: (f.conditions ?? []).map(cleanCondition),
+      sections: f.sections ?? [],
+    })),
+    checkpoints: (form.checkpoints ?? []).map((c) => ({
+      code: c.code,
+      name: c.name,
+      at: c.at,
+      priority: c.priority === "" || c.priority === undefined ? 100 : Number(c.priority),
+      enabled: c.enabled !== false,
+      outcome: c.outcome,
+      conditions: (c.conditions ?? []).map(cleanCondition),
+      actions: (c.actions ?? []).filter((a) => a.section).map((a) => ({ code: a.code ?? "EDIT", section: a.section })),
+    })),
+    guardian: { min_kyc_level: Number(form.guardian?.min_kyc_level) || 0 },
     uses: Object.fromEntries(Object.entries(form.uses ?? {}).filter(([, keys]) => Array.isArray(keys) && keys.length)),
   });
 
@@ -595,7 +576,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                       </button>
                     )}
                   </div>
-                  <RuleEditor t={t} rule={rule} disabled={readOnly} fieldOptions={fieldOptions} sectionOptions={sectionOptions} onChange={(next) => change({ rules: form.rules.map((r, i) => (i === index ? next : r)) })} />
+                  <RuleEditor t={t} rule={rule} disabled={readOnly} fieldOptions={fieldOptions} conditionFields={formFields} sectionOptions={sectionOptions} onChange={(next) => change({ rules: form.rules.map((r, i) => (i === index ? next : r)) })} />
                 </div>
               ))}
               {!readOnly && (
@@ -610,8 +591,12 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
             </div>
           )}
 
+          {step === "flows" && <FlowsStep t={t} flows={form.flows} onChange={(flows) => change({ flows })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
+
+          {step === "checkpoints" && <CheckpointsStep t={t} checkpoints={form.checkpoints} onChange={(checkpoints) => change({ checkpoints })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
+
           {step === "uses" && (
-            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} />
+            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} guardian={form.guardian} onGuardianChange={(guardian) => change({ guardian })} />
           )}
 
           {step === "review" && (

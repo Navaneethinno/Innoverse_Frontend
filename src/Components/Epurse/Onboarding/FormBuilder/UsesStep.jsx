@@ -175,7 +175,7 @@ function Pick({ label, fields, value, onChange, disabled, emptyLabel, optional }
   );
 }
 
-export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
+export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, guardian, onGuardianChange }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const openMenu = useOpenMenu();
   const corporate = kind === "corporate";
@@ -473,6 +473,41 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
     </Card>
   );
 
+  // The guardian a minor names: their phone (one field per path that asks
+  // it), who they are, and the KYC level they must hold.
+  const guardianSet = get("guardian_phone").length > 0;
+  const guardianCard = !corporate && (
+    <Card
+      key="guardian"
+      title={t("usesGuardianTitle")}
+      summary={guardianSet ? t("usesGuardianSummary", { list: labels(get("guardian_phone")), level: Number(guardian?.min_kyc_level) || 0 }) : t("usesNotSet")}
+      open={open.has("guardian")}
+      onToggle={() => toggle("guardian")}
+      problems={problemsFor(problems, ["guardian_phone", "guardian_relation"])}
+    >
+      <p className="text-xs text-muted-foreground">{t("usesGuardianIntro")}</p>
+      <div>
+        <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("usesGuardianPhone")}</p>
+        {phones.length ? <OrderedChips fields={phones} value={get("guardian_phone")} disabled={readOnly} onChange={(keys) => set({ guardian_phone: keys })} /> : addFieldFirst("PHONE")}
+      </div>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Pick label={t("usesGuardianRelation")} fields={lists} value={get("guardian_relation")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ guardian_relation: keys })} optional={t("usesOptional")} />
+        <label className="text-sm font-semibold text-slate-700">
+          {t("usesGuardianLevel")}
+          <input
+            type="number"
+            min={0}
+            className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm font-normal disabled:bg-muted"
+            disabled={readOnly}
+            value={guardian?.min_kyc_level ?? 0}
+            onChange={(e) => onGuardianChange?.({ ...guardian, min_kyc_level: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)) })}
+          />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("usesGuardianLevelHint")}</span>
+        </label>
+      </div>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">{t("usesIntro")}</p>
@@ -482,6 +517,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems }) {
       {kycCard}
       {idvCard}
       {relatedCard}
+      {guardianCard}
     </div>
   );
 }

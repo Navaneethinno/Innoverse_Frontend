@@ -31,6 +31,16 @@ function ChoicesEditor({ value, onChange, disabled }) {
         <div key={index} className="flex items-center gap-2">
           <input className={`${inputClass} !mt-0`} placeholder={t("choiceValue")} disabled={disabled} value={row.value ?? ""} onChange={(e) => set(index, { value: e.target.value })} />
           <input className={`${inputClass} !mt-0`} placeholder={t("choiceLabel")} disabled={disabled} value={row.label ?? ""} onChange={(e) => set(index, { label: e.target.value })} />
+          <input
+            className={`${inputClass} !mt-0`}
+            placeholder={t("choiceDescription")}
+            disabled={disabled}
+            value={row.description ?? ""}
+            onChange={(e) => {
+              const { description: _d, ...rest } = row;
+              onChange(rows.map((r, i) => (i === index ? (e.target.value ? { ...rest, description: e.target.value } : rest) : r)));
+            }}
+          />
           {!disabled && (
             <button type="button" aria-label={t("remove")} onClick={() => onChange(rows.filter((_, i) => i !== index))} className="rounded-lg p-2 text-red-600 hover:bg-red-50">
               <Trash2 size={14} />
