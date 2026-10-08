@@ -148,6 +148,11 @@ export const login = {
 };
 
 export const institutions = {
+  portalEdition: "Portal edition",
+  portalEdition_standard: "Standard",
+  portalEdition_etaku: "e-taku",
+  portalEditionHint: "Which version of the customer and merchant APIs this institution's apps and web portals get.",
+  portalEditionPlatformOnly: "Only platform staff can change the portal edition.",
   portalIdentifiers: "Sign-in and sign-up contacts",
   identifierUse_login: "Sign in with",
   identifierUse_signup: "Sign up with",
