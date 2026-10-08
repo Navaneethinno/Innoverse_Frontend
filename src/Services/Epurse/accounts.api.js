@@ -15,6 +15,8 @@ export const accountsApi = {
   get: (body) => request("/config/account/get", body),
   ledger: (body) => request("/config/account/ledger", body),
   txn: (body) => request("/config/account/txn", body),
+  // Money sent to phone numbers with no account: { status, phone_number, sender_name, inst_profile_id, search, page, limit }
+  phoneTransfers: (body) => request("/config/account/phone_transfer/list", body),
 };
 
 // Account actions (maker-checker): FREEZE, UNFREEZE, BLOCK, UNBLOCK, CLOSE,

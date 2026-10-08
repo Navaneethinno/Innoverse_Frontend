@@ -19,6 +19,7 @@ import { AccountStatement } from "./AccountStatement";
 import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } from "./AccountActions";
 import { Tabs } from "../../Loans/loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { PhoneTransfers } from "./PhoneTransfers";
 
 const EMPTY_FILTERS = { party: "", ownership: "", acct_class: "", status: "" };
 
@@ -33,8 +34,26 @@ const filterBody = (f) => ({
 // EPURSE > Accounts (menu 178): every customer's and merchant's account,
 // opened automatically on approval; freeze / block / close / reactivate /
 // activate and parties go through maker-checker requests (AccountActions). A bank / fintech user sees its
-// own institution's; a service provider sees every institution's.
+// own institution's; a service provider sees every institution's. A second
+// tab lists the money waiting for phone numbers (same menu).
 export function Accounts() {
+  const { t } = useTranslation("accounts");
+  const [view, setView] = useState("accounts");
+  return (
+    <div className="pb-8 pt-4">
+      <div className="mb-5">
+        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
+          <Landmark size={22} className="text-primary" /> {t("title")}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      </div>
+      <Tabs tabs={[{ key: "accounts" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t(k === "accounts" ? "title" : "ptTitle")} />
+      {view === "accounts" ? <AccountsList /> : <PhoneTransfers />}
+    </div>
+  );
+}
+
+function AccountsList() {
   const { t } = useTranslation(["accounts", "common"]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [applied, setApplied] = useState(EMPTY_FILTERS);
@@ -122,14 +141,7 @@ export function Accounts() {
   ];
 
   return (
-    <div className="pb-8 pt-4">
-      <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Landmark size={22} className="text-primary" /> {t("title")}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
-
+    <>
       <form onSubmit={search} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
         <SearchBox {...searchBind} className="min-w-[14rem] flex-[2_1_16rem]" placeholder={t("searchAccounts")} />
         <FilterSelect
@@ -219,7 +231,7 @@ export function Accounts() {
         />
       )}
       {statement && <AccountStatement account={statement} onClose={() => setStatement(null)} />}
-    </div>
+    </>
   );
 }
 

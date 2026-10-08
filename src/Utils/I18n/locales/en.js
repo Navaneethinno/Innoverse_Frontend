@@ -148,6 +148,12 @@ export const login = {
 };
 
 export const institutions = {
+  portalIdentifiers: "Sign-in and sign-up contacts",
+  identifierUse_login: "Sign in with",
+  identifierUse_signup: "Sign up with",
+  contact_PHONE: "Phone",
+  contact_EMAIL: "Email",
+  portalIdentifiersHint: "Sign up with: a code is sent to it to verify it. A contact not ticked can still be a field in the onboarding form. The app's first screen follows Customer app.",
   payToPhoneTitle: "Money to phone numbers without an account",
   payToPhone_enabled: "Customers can send money to numbers without an account",
   payToPhone_refund_after_days: "Return unclaimed money after (days)",
@@ -2421,6 +2427,27 @@ export const cases = {
 };
 
 export const accounts = {
+  ptTitle: "Money waiting for numbers",
+  ptPhone: "Phone number",
+  ptSender: "Sender",
+  ptSenderName: "Sender name",
+  ptAmount: "Amount",
+  ptSentOn: "Sent on",
+  ptReturnedOn: "Will be returned on",
+  ptUntilClaimed: "Waits until claimed",
+  ptClosed: "Closed on",
+  ptClaimedBy: "Claimed by {{name}}",
+  ptTransactions: "Transactions",
+  ptSearch: "Number, sender, wallet or RRN",
+  ptWaitingNow: "Waiting now",
+  ptTotal: "Total",
+  ptCount_one: "{{count}} transfer",
+  ptCount_other: "{{count}} transfers",
+  ptEmpty: "No money sent to phone numbers",
+  ptStatus_PENDING: "Waiting",
+  ptStatus_CLAIMED: "Claimed",
+  ptStatus_CANCELLED: "Cancelled by sender",
+  ptStatus_RETURNED: "Returned",
   txnType_P2P_TO_PHONE: "Money sent",
   txnType_PHONE_TRANSFER_CLAIM: "Money received",
   txnType_PHONE_TRANSFER_RETURN: "Money returned",

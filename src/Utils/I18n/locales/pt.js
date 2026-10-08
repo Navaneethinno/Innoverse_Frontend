@@ -143,6 +143,12 @@ export const login = {
 };
 
 export const institutions = {
+  portalIdentifiers: "Contactos para entrar e registar",
+  identifierUse_login: "Entrar com",
+  identifierUse_signup: "Registar com",
+  contact_PHONE: "Telefone",
+  contact_EMAIL: "Email",
+  portalIdentifiersHint: "Registar com: é enviado um código para o verificar. Um contacto não marcado pode continuar a ser um campo do formulário de registo. O primeiro ecrã da app segue a App de cliente.",
   payToPhoneTitle: "Dinheiro para números sem conta",
   payToPhone_enabled: "Os clientes podem enviar dinheiro para números sem conta",
   payToPhone_refund_after_days: "Devolver o dinheiro não reclamado após (dias)",
@@ -2435,6 +2441,27 @@ export const cases = {
 };
 
 export const accounts = {
+  ptTitle: "Dinheiro à espera de números",
+  ptPhone: "Número de telefone",
+  ptSender: "Remetente",
+  ptSenderName: "Nome do remetente",
+  ptAmount: "Montante",
+  ptSentOn: "Enviado em",
+  ptReturnedOn: "Será devolvido em",
+  ptUntilClaimed: "Aguarda até ser reclamado",
+  ptClosed: "Fechado em",
+  ptClaimedBy: "Reclamado por {{name}}",
+  ptTransactions: "Transações",
+  ptSearch: "Número, remetente, carteira ou RRN",
+  ptWaitingNow: "À espera agora",
+  ptTotal: "Total",
+  ptCount_one: "{{count}} transferência",
+  ptCount_other: "{{count}} transferências",
+  ptEmpty: "Nenhum dinheiro enviado para números",
+  ptStatus_PENDING: "À espera",
+  ptStatus_CLAIMED: "Reclamado",
+  ptStatus_CANCELLED: "Cancelado pelo remetente",
+  ptStatus_RETURNED: "Devolvido",
   txnType_P2P_TO_PHONE: "Dinheiro enviado",
   txnType_PHONE_TRANSFER_CLAIM: "Dinheiro recebido",
   txnType_PHONE_TRANSFER_RETURN: "Dinheiro devolvido",

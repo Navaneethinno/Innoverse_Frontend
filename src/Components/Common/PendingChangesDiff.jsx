@@ -82,13 +82,20 @@ const isNestedValue = (v) => v != null && typeof v === "object";
 // entirely — the backend now tells us which section a change belongs to
 // directly (`change.group`), so this only needs to find the actual leaf
 // fields inside it, not re-derive any grouping of its own.
-function flattenLeaves(value, out) {
+// With `path` (a whole-object setting sent as one change, e.g. an
+// institution's pay_to_phone or portal_identifiers), a leaf is named by its
+// path ("customer_web login") so same-named keys don't collide, and a list
+// of plain values (["PHONE", "EMAIL"]) is one leaf.
+function flattenLeaves(value, out, path) {
+  const isPlainList = (v) => Array.isArray(v) && !v.some(isNestedValue);
   if (Array.isArray(value)) {
-    value.forEach((item) => flattenLeaves(item, out));
+    value.forEach((item) => flattenLeaves(item, out, path));
   } else if (isNestedValue(value)) {
     Object.entries(value).forEach(([key, v]) => {
-      if (isNestedValue(v)) flattenLeaves(v, out);
-      else out.push({ field: key, value: v });
+      const name = path ? `${path} ${key}` : key;
+      if (path != null && isPlainList(v)) out.push({ field: name.trim(), value: v });
+      else if (isNestedValue(v)) flattenLeaves(v, out, path != null ? name : undefined);
+      else out.push({ field: path ? name.trim() : key, value: v });
     });
   }
   return out;
@@ -106,16 +113,20 @@ function flattenLeaves(value, out) {
 export function expandChangeRows(changes) {
   const rows = [];
   (changes ?? []).forEach((change) => {
-    const group = change.group ? change.group : null;
+    let group = change.group ? change.group : null;
     if (!isNestedValue(change.current) && !isNestedValue(change.proposed)) {
       rows.push({ group, field: change.field, current: change.current, proposed: change.proposed });
       return;
     }
     const byKey = new Map();
-    flattenLeaves(change.current, []).forEach((leaf) => {
+    // No group from the backend: the change is one whole-object field, so
+    // it becomes the group and its keys are named by their path.
+    const path = group ? undefined : "";
+    if (!group) group = change.field;
+    flattenLeaves(change.current, [], path).forEach((leaf) => {
       byKey.set(leaf.field, { group, field: leaf.field, current: leaf.value, proposed: null });
     });
-    flattenLeaves(change.proposed, []).forEach((leaf) => {
+    flattenLeaves(change.proposed, [], path).forEach((leaf) => {
       const existing = byKey.get(leaf.field);
       if (existing) existing.proposed = leaf.value;
       else byKey.set(leaf.field, { group, field: leaf.field, current: null, proposed: leaf.value });

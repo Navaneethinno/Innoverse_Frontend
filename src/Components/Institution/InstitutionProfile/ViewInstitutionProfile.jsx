@@ -11,7 +11,7 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { Field, LoginMethodsGrid, PayToPhoneSettings, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
+import { Field, LoginMethodsGrid, PayToPhoneSettings, PortalIdentifiersGrid, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
@@ -112,6 +112,7 @@ export function ViewInstitutionProfile() {
         // Left out of the edit until the record has it or staff set it, so
         // an untouched edit keeps the server's value.
         pay_to_phone: institution.pay_to_phone ?? undefined,
+        portal_identifiers: institution.portal_identifiers ?? undefined,
         narration: "",
       });
     }
@@ -307,6 +308,7 @@ export function ViewInstitutionProfile() {
               <Field label={t("otpLength")} value={institution.otp_length ?? 6} />
               {usesPin(institution.portal_login_methods) && <Field label={t("loginPinLength")} value={institution.login_pin_length} />}
               <LoginMethodsGrid value={institution.portal_login_methods} />
+              <PortalIdentifiersGrid value={institution.portal_identifiers} />
               <PayToPhoneSettings value={institution.pay_to_phone} />
             </div>
           </div>

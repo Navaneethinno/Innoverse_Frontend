@@ -136,6 +136,74 @@ export function LoginMethodsGrid({ value, onChange }) {
   );
 }
 
+// What people type to sign in, and what a new sign-up starts with (a code is
+// sent to it), per portal: PHONE, EMAIL or both. A portal the server didn't
+// send is both; all four are always sent, as one left out resets to both.
+const CONTACTS = ["PHONE", "EMAIL"];
+const IDENTIFIER_USES = ["login", "signup"];
+export const portalIdentifiersOf = (value) =>
+  Object.fromEntries(
+    LOGIN_PORTALS.map((p) => [p, Object.fromEntries(IDENTIFIER_USES.map((use) => [use, Array.isArray(value?.[p]?.[use]) && value[p][use].length ? value[p][use] : CONTACTS]))]),
+  );
+
+// One row per portal, Phone/Email ticks for sign-in and for sign-up;
+// read-only without onChange. The last tick in a pair can't be cleared.
+export function PortalIdentifiersGrid({ value, onChange }) {
+  const { t } = useTranslation("institutions");
+  const ids = portalIdentifiersOf(value);
+  const toggle = (portal, use, contact) => {
+    const list = ids[portal][use];
+    const next = list.includes(contact) ? list.filter((c) => c !== contact) : CONTACTS.filter((c) => c === contact || list.includes(c));
+    onChange({ ...ids, [portal]: { ...ids[portal], [use]: next } });
+  };
+  return (
+    <div className="sm:col-span-3">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("portalIdentifiers")}</p>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2 text-left">{t("portalChannel")}</th>
+              {IDENTIFIER_USES.map((use) => (
+                <th key={use} className="px-3 py-2 text-center">{t(`identifierUse_${use}`)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {LOGIN_PORTALS.map((portal) => (
+              <tr key={portal} className="border-t border-border">
+                <td className="px-3 py-2 font-medium text-slate-700">{t(`loginPortal_${portal}`)}</td>
+                {IDENTIFIER_USES.map((use) => (
+                  <td key={use} className="px-3 py-2">
+                    <div className="flex justify-center gap-4">
+                      {CONTACTS.map((c) => {
+                        const on = ids[portal][use].includes(c);
+                        return (
+                          <label key={c} className="inline-flex items-center gap-1.5 text-xs">
+                            <input
+                              type="checkbox"
+                              checked={on}
+                              disabled={!onChange || (on && ids[portal][use].length === 1)}
+                              onChange={() => toggle(portal, use, c)}
+                              className="h-4 w-4 accent-[var(--primary)] disabled:opacity-70"
+                            />
+                            {t(`contact_${c}`)}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">{t("portalIdentifiersHint")}</p>
+    </div>
+  );
+}
+
 // Money to phone numbers with no account yet: it waits in the institution's
 // holding account until the number signs up and is approved. A record that
 // never had the setting reads as all off.

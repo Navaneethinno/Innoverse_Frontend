@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, usesPin } from "./InstitutionProfileForm";
+import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalIdentifiersGrid, usesPin } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
 import { useTimezones } from "@/Hooks/Master/masterHooks";
 
@@ -83,6 +83,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
             <EditField label={t("loginPinLength")} type="number" value={form.login_pin_length} onChange={setField("login_pin_length")} />
           )}
           <LoginMethodsGrid value={form.portal_login_methods} onChange={setField("portal_login_methods")} />
+          <PortalIdentifiersGrid value={form.portal_identifiers} onChange={setField("portal_identifiers")} />
           <PayToPhoneSettings value={form.pay_to_phone} onChange={setField("pay_to_phone")} />
         </div>
       </div>

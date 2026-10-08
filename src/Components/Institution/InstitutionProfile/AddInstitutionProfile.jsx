@@ -19,7 +19,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/InstitutionProfile/DateFormatField";
-import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, loginMethodsOf, payToPhoneOf, usesPin } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
+import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalIdentifiersGrid, loginMethodsOf, payToPhoneOf, portalIdentifiersOf, usesPin } from "@/Components/Institution/InstitutionProfile/InstitutionProfileForm";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
@@ -60,6 +60,7 @@ const EMPTY = {
   otp_length: 6,
   portal_login_methods: loginMethodsOf(null),
   pay_to_phone: payToPhoneOf(null),
+  portal_identifiers: portalIdentifiersOf(null),
   narration: "",
 };
 
@@ -112,6 +113,7 @@ function buildPayload(form, isDraft) {
     otp_length: Number(form.otp_length),
     portal_login_methods: form.portal_login_methods,
     pay_to_phone: form.pay_to_phone,
+    portal_identifiers: form.portal_identifiers,
   };
 }
 
@@ -617,6 +619,7 @@ export function AddInstitutionProfile() {
                     />
                     <EditSelect label={t("otpLength")} value={form.otp_length} onChange={(v) => setField("otp_length", Number(v) || 6)} options={OTP_LENGTHS} placeholder="6" />
                     <LoginMethodsGrid value={form.portal_login_methods} onChange={(v) => setField("portal_login_methods", v)} />
+                    <PortalIdentifiersGrid value={form.portal_identifiers} onChange={(v) => setField("portal_identifiers", v)} />
                     <PayToPhoneSettings value={form.pay_to_phone} onChange={(v) => setField("pay_to_phone", v)} />
                     {usesPin(form.portal_login_methods) && (
                       <div className="grid grid-cols-2 gap-4">
