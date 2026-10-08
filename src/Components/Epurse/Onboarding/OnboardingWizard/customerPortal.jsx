@@ -7,9 +7,10 @@ import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 // the admin lists like any other. It is a Draft (9/9) while the customer is
 // still filling the form, and Active/AUTHORIZED straight after they submit
 // (no approval step, can_authorise false, audit_action SELF).
-export const PORTAL_ACTOR = "CustomerPortal";
+// Merchant sign-ups (MMS) come from `MerchantPortal` the same way.
+const PORTAL_ACTORS = new Set(["CustomerPortal", "MerchantPortal"]);
 
-export const isPortalCustomer = (record) => String(record?.created_by ?? "").trim() === PORTAL_ACTOR;
+export const isPortalCustomer = (record) => PORTAL_ACTORS.has(String(record?.created_by ?? "").trim());
 
 // A portal draft is the customer's own form, still being filled in. The
 // handoff recommends showing it read-only (no Save/Submit) until the

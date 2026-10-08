@@ -145,9 +145,8 @@ export const login = {
 export const institutions = {
   portalEdition: "Edição do portal",
   portalEdition_standard: "Padrão",
-  portalEdition_etaku: "e-taku",
+  portalEdition_etaku: "e-Taku",
   portalEditionHint: "Que versão das APIs de clientes e comerciantes recebem as apps e portais web desta instituição.",
-  portalEditionPlatformOnly: "Só a equipa da plataforma pode alterar a edição do portal.",
   portalIdentifiers: "Contactos para entrar e registar",
   identifierUse_login: "Entrar com",
   identifierUse_signup: "Registar com",

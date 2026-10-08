@@ -255,13 +255,15 @@ export function PayToPhoneSettings({ value, onChange }) {
 
 // Which edition of the customer and merchant APIs the institution's apps
 // and portals get ("" = standard). Only platform staff can change it, as it
-// changes what the bank's live app receives; read-only without onChange.
+// changes what the bank's live app receives, so it is hidden from bank users
+// (the server doesn't stop them). Read-only without onChange.
 const PORTAL_EDITIONS = ["", "etaku"];
 export function PortalEditionField({ value, onChange }) {
   const { t } = useTranslation("institutions");
   const isPlatform = useCanChooseInstitution();
   const current = value === "standard" ? "" : (value ?? "");
   const options = PORTAL_EDITIONS.map((e) => ({ value: e, label: t(`portalEdition_${e || "standard"}`) }));
+  if (!isPlatform) return null;
   if (!onChange) return <Field label={t("portalEdition")} value={options.find((o) => o.value === current)?.label ?? current} />;
   return (
     <div>
@@ -269,8 +271,6 @@ export function PortalEditionField({ value, onChange }) {
       <FilterSelect
         value={current}
         onChange={onChange}
-        disabled={!isPlatform}
-        disabledReason={isPlatform ? undefined : t("portalEditionPlatformOnly")}
         options={options}
       />
       <p className="mt-1 text-[11px] text-muted-foreground">{t("portalEditionHint")}</p>
