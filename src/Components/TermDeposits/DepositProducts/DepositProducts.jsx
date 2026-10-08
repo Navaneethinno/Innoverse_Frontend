@@ -35,7 +35,7 @@ export function DepositProducts() {
   const [status, setStatus] = useState("");
   const [applied, setApplied] = useState({ search: "", status: "" });
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);

@@ -84,7 +84,7 @@ function Journal({ onOpen }) {
   const [filters, setFilters] = useState(EMPTY);
   const [applied, setApplied] = useState(EMPTY);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const types = useTxnTypes();
@@ -372,7 +372,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
 export function PartyHistory({ party, onClose, onOpen }) {
   const { t } = useTranslation("txn");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [range, setRange] = useState({ from: "", to: "" });
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
@@ -463,7 +463,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
   const { t } = useTranslation(["txn", "common"]);
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   // Reference, client reference, reason, who asked or decided, either account.
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });

@@ -39,7 +39,7 @@ export function Accounts() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [applied, setApplied] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [result, setResult] = useState({ accounts: [], total: 0 });
   // Account number, owner's name or reference, account or digital product.
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));

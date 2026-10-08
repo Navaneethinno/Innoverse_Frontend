@@ -46,7 +46,7 @@ export function UserActivity() {
   // The record, narration, maker, entity or institution; the summary and the
   // export then count only the matching activity.
   const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [sortBy, setSortBy] = useState("desc");
   const detail = useReportDetail();
 

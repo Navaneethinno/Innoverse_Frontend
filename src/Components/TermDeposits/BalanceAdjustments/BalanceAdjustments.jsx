@@ -36,7 +36,7 @@ export function BalanceAdjustments() {
   const can = usePagePermission();
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   // Reference, client reference, reason, who asked or decided, either account.
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });

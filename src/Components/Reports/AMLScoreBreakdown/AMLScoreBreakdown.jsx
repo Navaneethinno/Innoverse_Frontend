@@ -67,7 +67,7 @@ export function AMLScoreBreakdown() {
   const [page, setPage] = useState(1);
   // The customer's reference, name, institution or who screened.
   const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [sortBy, setSortBy] = useState("desc");
   const [perMatch, setPerMatch] = useState(false);
   const run = useReportDetail();

@@ -145,7 +145,7 @@ function JobFact({ label, value }) {
 function JobRuns({ job, onClose }) {
   const { t } = useTranslation("deposits");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ runs: [], total: 0 });
   const [loading, setLoading] = useState(false);
 

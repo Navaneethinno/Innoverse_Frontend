@@ -41,7 +41,7 @@ export function OnboardingCases() {
   const [filters, setFilters] = useState(EMPTY);
   const [applied, setApplied] = useState(EMPTY);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ cases: [], total: 0, counts: {} });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);

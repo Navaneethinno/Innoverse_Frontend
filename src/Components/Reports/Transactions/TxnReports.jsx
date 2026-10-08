@@ -61,7 +61,7 @@ function TxnReport({ kind }) {
   const [data, setData] = useState(null);
   const [summary, setSummary] = useState([]);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(false);
   const Icon = REPORTS[kind].icon;

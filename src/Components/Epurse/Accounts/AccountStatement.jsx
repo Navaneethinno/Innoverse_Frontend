@@ -39,7 +39,7 @@ export function AccountStatement({ account, onClose }) {
   const [filters, setFilters] = useState({ from: "", to: "", txn_type: "" });
   const [applied, setApplied] = useState(filters);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ lines: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [txn, setTxn] = useState(null);

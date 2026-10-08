@@ -79,7 +79,7 @@ export function RiskScoreBreakdown() {
   const [page, setPage] = useState(1);
   // The customer's reference, name, risk setup, level or institution.
   const { term: searchTerm, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [sortBy, setSortBy] = useState("desc");
   const [detail, setDetail] = useState(false);
   const breakdown = useReportDetail();

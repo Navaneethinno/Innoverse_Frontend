@@ -29,7 +29,7 @@ export function MatchReview() {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   // The screened name, reference, matched entity, proposer, decider or
   // comment (both views).
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));

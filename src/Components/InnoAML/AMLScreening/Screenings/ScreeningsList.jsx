@@ -27,7 +27,7 @@ export function ScreeningsList({ bands, initial = {} }) {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [openId, setOpenId] = useState(null);
   const [customer, setCustomer] = useState(null);
   // The screened name, reference, who screened, institution.

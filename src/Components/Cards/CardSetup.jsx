@@ -42,7 +42,7 @@ export function CardSetupPage({ kind }) {
   const [filters, setFilters] = useState(blankFilters);
   const [applied, setApplied] = useState(blankFilters);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState(null);

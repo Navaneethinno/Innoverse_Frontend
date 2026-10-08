@@ -24,7 +24,7 @@ export function ScreeningChanges({ bands }) {
   const [pagination, setPagination] = useState({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const [customer, setCustomer] = useState(null);
   const filterKey = JSON.stringify(filters);
 

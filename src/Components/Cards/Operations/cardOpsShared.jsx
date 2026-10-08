@@ -220,7 +220,7 @@ export function usePagedFilters(blank) {
   const [filters, setFilters] = useState(blank);
   const [applied, setApplied] = useState(blank);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
   const apply = (next = filters) => {
     setApplied(next);
