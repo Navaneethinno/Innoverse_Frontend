@@ -148,6 +148,13 @@ export const login = {
 };
 
 export const institutions = {
+  payToPhoneTitle: "Money to phone numbers without an account",
+  payToPhone_enabled: "Customers can send money to numbers without an account",
+  payToPhone_refund_after_days: "Return unclaimed money after (days)",
+  payToPhoneRefundHint: "0: it waits until claimed or cancelled. Up to 3650.",
+  payToPhoneNeverReturned: "Waits until claimed or cancelled",
+  payToPhone_sender_can_cancel: "The sender can cancel while it waits",
+  payToPhone_invite_only_signup: "Only numbers that were sent money can sign up",
   createInstitutionTitle: "Create Institution",
   stepBasicInfo: "Basic Info",
   stepKycPolicy: "KYC Policy",
@@ -2414,6 +2421,9 @@ export const cases = {
 };
 
 export const accounts = {
+  txnType_P2P_TO_PHONE: "Money sent",
+  txnType_PHONE_TRANSFER_CLAIM: "Money received",
+  txnType_PHONE_TRANSFER_RETURN: "Money returned",
   searchAccounts: "Search account number, owner, reference or product",
   tab_overview: "Overview",
   tab_requests: "Requests",
@@ -3553,6 +3563,9 @@ export const loans = {
 };
 
 export const txn = {
+  type_P2P_TO_PHONE: "Money sent",
+  type_PHONE_TRANSFER_CLAIM: "Money received",
+  type_PHONE_TRANSFER_RETURN: "Money returned",
   searchRequests: "Search reference, reason, who asked or decided, or account",
   card: "Card",
   prepaidCard: "Prepaid card",

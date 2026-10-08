@@ -136,5 +136,53 @@ export function LoginMethodsGrid({ value, onChange }) {
   );
 }
 
+// Money to phone numbers with no account yet: it waits in the institution's
+// holding account until the number signs up and is approved. A record that
+// never had the setting reads as all off.
+const PAY_TO_PHONE_OFF = { enabled: false, refund_after_days: 0, sender_can_cancel: false, invite_only_signup: false };
+export const payToPhoneOf = (value) => ({ ...PAY_TO_PHONE_OFF, ...(value ?? {}) });
+const MAX_REFUND_DAYS = 3650;
+
+// The four settings; read-only without onChange. The last three show only
+// while sending to such numbers is on.
+export function PayToPhoneSettings({ value, onChange }) {
+  const { t } = useTranslation("institutions");
+  const v = payToPhoneOf(value);
+  const set = (patch) => onChange({ ...v, ...patch });
+  const switchRow = (key) =>
+    onChange ? (
+      <EditToggle label={t(`payToPhone_${key}`)} value={Boolean(v[key])} onChange={(on) => set({ [key]: on })} />
+    ) : (
+      <Field label={t(`payToPhone_${key}`)} value={Boolean(v[key])} />
+    );
+  return (
+    <div className="sm:col-span-3 space-y-3">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("payToPhoneTitle")}</p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {switchRow("enabled")}
+        {v.enabled && (
+          <>
+            {onChange ? (
+              <div>
+                <EditField
+                  label={t("payToPhone_refund_after_days")}
+                  type="number"
+                  value={v.refund_after_days}
+                  onChange={(n) => set({ refund_after_days: Math.min(MAX_REFUND_DAYS, Math.floor(Number(n) || 0)) })}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">{t("payToPhoneRefundHint")}</p>
+              </div>
+            ) : (
+              <Field label={t("payToPhone_refund_after_days")} value={Number(v.refund_after_days) ? v.refund_after_days : t("payToPhoneNeverReturned")} />
+            )}
+            {switchRow("sender_can_cancel")}
+            {switchRow("invite_only_signup")}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Digits of the one-time codes sent to customers and merchants (4–8).
 export const OTP_LENGTHS = [4, 5, 6, 7, 8].map((n) => ({ value: n, label: String(n) }));

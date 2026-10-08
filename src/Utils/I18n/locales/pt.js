@@ -143,6 +143,13 @@ export const login = {
 };
 
 export const institutions = {
+  payToPhoneTitle: "Dinheiro para números sem conta",
+  payToPhone_enabled: "Os clientes podem enviar dinheiro para números sem conta",
+  payToPhone_refund_after_days: "Devolver o dinheiro não reclamado após (dias)",
+  payToPhoneRefundHint: "0: aguarda até ser reclamado ou cancelado. Até 3650.",
+  payToPhoneNeverReturned: "Aguarda até ser reclamado ou cancelado",
+  payToPhone_sender_can_cancel: "O remetente pode cancelar enquanto aguarda",
+  payToPhone_invite_only_signup: "Só números que receberam dinheiro se podem registar",
   createInstitutionTitle: "Criar Instituição",
   stepBasicInfo: "Informações Básicas",
   stepKycPolicy: "Política de KYC",
@@ -2428,6 +2435,9 @@ export const cases = {
 };
 
 export const accounts = {
+  txnType_P2P_TO_PHONE: "Dinheiro enviado",
+  txnType_PHONE_TRANSFER_CLAIM: "Dinheiro recebido",
+  txnType_PHONE_TRANSFER_RETURN: "Dinheiro devolvido",
   searchAccounts: "Pesquisar número da conta, titular, referência ou produto",
   tab_overview: "Resumo",
   tab_requests: "Pedidos",
@@ -3567,6 +3577,9 @@ export const loans = {
 };
 
 export const txn = {
+  type_P2P_TO_PHONE: "Dinheiro enviado",
+  type_PHONE_TRANSFER_CLAIM: "Dinheiro recebido",
+  type_PHONE_TRANSFER_RETURN: "Dinheiro devolvido",
   searchRequests: "Pesquisar referência, motivo, quem pediu ou decidiu, ou conta",
   card: "Cartão",
   prepaidCard: "Cartão pré-pago",

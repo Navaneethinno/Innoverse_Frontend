@@ -15,7 +15,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { accountDate, dayDate, money } from "./accountShared";
 
-export const TXN_TYPES = ["ADJUST_CREDIT", "ADJUST_DEBIT", "TD_FUNDING", "TD_INTEREST_PAYOUT", "TD_SETTLEMENT", "REVERSAL"];
+export const TXN_TYPES = ["ADJUST_CREDIT", "ADJUST_DEBIT", "TD_FUNDING", "TD_INTEREST_PAYOUT", "TD_SETTLEMENT", "REVERSAL", "P2P_TO_PHONE", "PHONE_TRANSFER_CLAIM", "PHONE_TRANSFER_RETURN"];
 const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
 
 // DR / CR with an arrow: credit in green, debit in red.
