@@ -1,3 +1,4 @@
+import { uuid } from "@/Utils/Lib/uuid";
 import { ArrowRight, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ACCOUNT_CONFIGURATIONS } from "./acctConfigurations";
@@ -28,7 +29,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
               // unmount itself just because the URL changed underneath it.
               onNavigate?.();
               if (isEnabled) {
-                navigate(`/${route}/${crypto.randomUUID()}`);
+                navigate(`/${route}/${uuid()}`);
               } else {
                 // Not enabled yet on this product — there's nothing to
                 // configure on the sub-entity's own page (it would just be

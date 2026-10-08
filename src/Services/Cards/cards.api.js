@@ -1,3 +1,4 @@
+import { uuid } from "@/Utils/Lib/uuid";
 import { request } from "@/Services/Epurse/onboarding.api";
 
 // The CARDS module (Web admin: cards, 3 Oct 2026). Every api carries
@@ -24,4 +25,4 @@ export const cardStockApi = calls("/config/card/stock", ["options", "list", "ass
 
 // A fresh idempotency key per click (issue, request, reissue): sent again,
 // the server answers what it already did and charges nothing twice.
-export const idempotencyKey = () => crypto.randomUUID();
+export const idempotencyKey = uuid;

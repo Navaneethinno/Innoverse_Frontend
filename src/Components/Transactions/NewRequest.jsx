@@ -1,3 +1,4 @@
+import { uuid } from "@/Utils/Lib/uuid";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, Send } from "lucide-react";
@@ -54,7 +55,7 @@ export function NewRequest({ preset, onClose, onDone }) {
   // client_reference is the server's idempotency key: one per form, reused
   // on every retry, so a resent request is refused instead of posted twice.
   // The user's own reference wins when typed.
-  const [autoReference] = useState(() => crypto.randomUUID());
+  const [autoReference] = useState(uuid);
   // With Self the request posts at once (no checker): say so and confirm.
   const self = useMenuPermission("Transactions")("Self");
   const [confirming, setConfirming] = useState(false);
