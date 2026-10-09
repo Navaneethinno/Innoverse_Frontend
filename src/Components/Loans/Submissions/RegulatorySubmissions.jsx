@@ -1,3 +1,5 @@
+import { statusTabs } from "@/Components/Common/listTabs";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ClipboardCheck, Download, FileBarChart, Plus, RefreshCw } from "lucide-react";
@@ -16,7 +18,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Facts, Section, dayDate, ratePct } from "../../TermDeposits/depositShared";
 import { FormDialog } from "../loanDialogs";
-import { MiniTable, StatusStrip, loanLabel, useInstitutionScope } from "../loanShared";
+import { MiniTable, loanLabel, useInstitutionScope } from "../loanShared";
 
 const REPORT_TYPES = ["LOAN_BOOK", "CREDIT_REGISTRY"];
 const STATUSES = ["GENERATED", "SUBMITTED", "REJECTED"];
@@ -134,26 +136,28 @@ export function RegulatorySubmissions() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <StatusStrip
-        statuses={STATUSES}
+      <ListPanel
+        tabs={statusTabs(STATUSES, (s) => `loans:reportStatus_${s}`)}
         value={status}
-        labelOf={(s) => t(`reportStatus_${s}`)}
         onChange={(s) => {
           setStatus(s);
           setPage(1);
         }}
-      />
-      <div className="mb-4 max-w-xs">
-        <FilterSelect
-          value={type}
-          onChange={(v) => {
-            setType(v);
-            setPage(1);
-          }}
-          options={[{ value: "", label: t("anyReportType") }, ...REPORT_TYPES.map((v) => ({ value: v, label: loanLabel(t, v) }))]}
-        />
-      </div>
+        filters={
+          <>
+              <FilterSelect
+                value={type}
+                onChange={(v) => {
+                  setType(v);
+                  setPage(1);
+                }}
+                options={[{ value: "", label: t("anyReportType") }, ...REPORT_TYPES.map((v) => ({ value: v, label: loanLabel(t, v) }))]}
+              />
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(r) => r.id}
@@ -174,6 +178,7 @@ export function RegulatorySubmissions() {
           },
         }}
       />
+      </ListPanel>
       {generating && (
         <FormDialog
           title={t("generateReport")}

@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +12,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { CUSTOMER_KINDS, EffectiveResult, TRIGGERS, glassCard, partyLabel, when } from "../../Shared/amlShared";
+import { CUSTOMER_KINDS, EffectiveResult, TRIGGERS, partyLabel, when } from "../../Shared/amlShared";
 import { ScreeningDetailModal } from "../../Shared/ScreeningDetail";
 import { CustomerAmlModal } from "../../Shared/CustomerAml";
 
@@ -92,34 +92,39 @@ export function ScreeningsList({ bands, initial = {} }) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl" style={glassCard}>
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("aml:searchScreenings")} />
-          <FilterSelect size="sm" className="w-44" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
-          <FilterSelect size="sm" className="w-36" value={filters.trigger} onChange={set("trigger")} options={opt(TRIGGERS, "trigger_", "allTriggers")} />
-          <FilterSelect size="sm" className="w-32" value={filters.status} onChange={set("status")} options={opt(["DONE", "ERROR"], "status_", "allStatuses")} />
-          <FilterSelect
-            size="sm"
-            className="w-40"
-            value={filters.band_code}
-            onChange={set("band_code")}
-            options={[{ value: "", label: t("aml:allBands") }, ...bands.map((b) => ({ value: b.code, label: b.name ?? b.code }))]}
-          />
-          <input type="number" min={0} max={100} value={filters.min_score} onChange={(e) => set("min_score")(e.target.value)} placeholder={t("aml:minScore")} className={`${filterInput} w-24`} />
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            {t("aml:from")}
-            <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
-          </label>
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            {t("aml:to")}
-            <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
-          </label>
-          {filters.reference_id && (
-            <button type="button" onClick={() => set("reference_id")("")} className="rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-bold text-primary">
-              {t("aml:oneCustomer")} ✕
-            </button>
-          )}
-        </div>
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("aml:searchScreenings")}
+        filters={
+          <>
+            <FilterSelect size="sm" className="w-44" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
+            <FilterSelect size="sm" className="w-36" value={filters.trigger} onChange={set("trigger")} options={opt(TRIGGERS, "trigger_", "allTriggers")} />
+            <FilterSelect size="sm" className="w-32" value={filters.status} onChange={set("status")} options={opt(["DONE", "ERROR"], "status_", "allStatuses")} />
+            <FilterSelect
+              size="sm"
+              className="w-40"
+              value={filters.band_code}
+              onChange={set("band_code")}
+              options={[{ value: "", label: t("aml:allBands") }, ...bands.map((b) => ({ value: b.code, label: b.name ?? b.code }))]}
+            />
+            <input type="number" min={0} max={100} value={filters.min_score} onChange={(e) => set("min_score")(e.target.value)} placeholder={t("aml:minScore")} className={`${filterInput} w-24`} />
+            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+              {t("aml:from")}
+              <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
+            </label>
+            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+              {t("aml:to")}
+              <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
+            </label>
+            {filters.reference_id && (
+              <button type="button" onClick={() => set("reference_id")("")} className="rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-bold text-primary">
+                {t("aml:oneCustomer")} ✕
+              </button>
+            )}
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={rows}
@@ -131,7 +136,7 @@ export function ScreeningsList({ bands, initial = {} }) {
           serverSorted
           bare
         />
-      </div>
+      </ListPanel>
       {openId && <ScreeningDetailModal id={openId} onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
       {customer && <CustomerAmlModal customerKind={customer.customer_kind} referenceId={customer.reference_id} onClose={() => setCustomer(null)} />}
     </>

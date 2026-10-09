@@ -1,6 +1,7 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
@@ -22,7 +23,6 @@ import { Button } from "@/Components/Common/Button";
 import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReorder";
 const EMPTY = { key: "", name: "", heading: "", subheading: "", multi_row: false, max_rows: "", fields: [] };
 const OVERRIDES = ["label", "hint", "help_text", "default_value"];
-const glass = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 
 // A placement with its empty overrides dropped: only what differs from the
 // library goes to the server.
@@ -366,26 +366,22 @@ export function FormSections() {
         <PageTitle>{t("formBuilder:formSectionsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formSectionsSubtitle")}</p>
       </div>
-      <div className="mb-4 overflow-hidden rounded-2xl" style={glass}>
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <div className="relative min-w-[220px] flex-1">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("formBuilder:searchSections")}
-              className="w-full rounded-lg border bg-white/70 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-primary"
-            />
-          </div>
-          {can("Add") && (
-            <Button size="sm" onClick={() => setEditing({ record: null })}>
-              <Plus size={14} /> {t("formBuilder:addSection")}
+      <ListPanel
+        tabs={[]}
+        search={search}
+        onSearch={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        searchPlaceholder={t("formBuilder:searchSections")}
+        actions={
+          can("Add") && (
+            <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
+              {t("formBuilder:addSection")}
             </Button>
-          )}
-        </div>
+          )
+        }
+      >
         <DataTable
           columns={columns}
           rows={rows}
@@ -405,7 +401,7 @@ export function FormSections() {
           }}
           bare
         />
-      </div>
+      </ListPanel>
       {editing && (
         <SectionFormModal
           record={editing.record}

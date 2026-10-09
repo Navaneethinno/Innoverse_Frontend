@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
@@ -117,46 +117,6 @@ export function PhoneTransfers() {
 
   return (
     <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(filters);
-          setPage(1);
-        }}
-        className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4"
-      >
-        <SearchBox {...searchBind} className="min-w-[14rem] flex-[2_1_16rem]" placeholder={t("ptSearch")} />
-        <FilterSelect value={filters.status} onChange={setFilter("status")} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`ptStatus_${s}`) }))]} />
-        <input
-          value={filters.phone_number}
-          onChange={(e) => setFilter("phone_number")(e.target.value)}
-          placeholder={t("ptPhone")}
-          className="h-10 w-40 rounded-xl border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
-        />
-        <input
-          value={filters.sender_name}
-          onChange={(e) => setFilter("sender_name")(e.target.value)}
-          placeholder={t("ptSenderName")}
-          className="h-10 w-44 rounded-xl border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
-        />
-        <div className="flex shrink-0 gap-2">
-          <Button type="submit" size="sm" icon={Search}>
-            {t("search")}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setFilters(DEFAULT_FILTERS);
-              setApplied(DEFAULT_FILTERS);
-              setPage(1);
-            }}
-          >
-            {t("clear")}
-          </Button>
-        </div>
-      </form>
-
       {/* Everything the filters match, not just this page; with Waiting it
           equals the holding account's balance. */}
       {result.totals.length > 0 && (
@@ -173,7 +133,53 @@ export function PhoneTransfers() {
         </div>
       )}
 
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("ptSearch")}
+        filters={
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setApplied(filters);
+              setPage(1);
+            }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <FilterSelect value={filters.status} onChange={setFilter("status")} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`ptStatus_${s}`) }))]} />
+            <input
+              value={filters.phone_number}
+              onChange={(e) => setFilter("phone_number")(e.target.value)}
+              placeholder={t("ptPhone")}
+              className="h-10 w-40 rounded-xl border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+            />
+            <input
+              value={filters.sender_name}
+              onChange={(e) => setFilter("sender_name")(e.target.value)}
+              placeholder={t("ptSenderName")}
+              className="h-10 w-44 rounded-xl border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
+            />
+            <div className="flex shrink-0 gap-2">
+              <Button type="submit" size="sm" icon={Search}>
+                {t("search")}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setFilters(DEFAULT_FILTERS);
+                  setApplied(DEFAULT_FILTERS);
+                  setPage(1);
+                }}
+              >
+                {t("clear")}
+              </Button>
+            </div>
+          </form>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={result.rows}
         rowKey={(r) => r.id}
@@ -193,6 +199,7 @@ export function PhoneTransfers() {
           },
         }}
       />
+      </ListPanel>
       {rrn && <TxnDialog rrn={rrn} onClose={() => setRrn(null)} />}
     </>
   );

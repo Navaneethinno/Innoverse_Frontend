@@ -1,3 +1,4 @@
+import { statusTabs } from "@/Components/Common/listTabs";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -21,7 +22,7 @@ import { feeSchedulesApi, transactionRequestsApi, transactionsApi } from "@/Serv
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../TermDeposits/depositShared";
-import { MiniTable, StatusStrip, Tabs } from "../Loans/loanShared";
+import { MiniTable, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
 import { PlanCard, ReceiptDialog, typeLabel } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -128,51 +129,63 @@ function Journal({ onOpen }) {
 
   return (
     <>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
+      <ListPanel
+        tabs={[]}
+        search={filters.search}
+        onSearch={set("search")}
+        onSearchSubmit={() => {
           setApplied(filters);
           setPage(1);
         }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4"
+        searchPlaceholder={t("searchJournal")}
+        filters={
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setApplied(filters);
+              setPage(1);
+            }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <FilterSelect value={filters.txn_type} onChange={set("txn_type")} options={[{ value: "", label: t("anyType") }, ...types.map((x) => ({ value: x.code, label: x.name }))]} />
+            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
+            <FilterSelect value={filters.channel_type} onChange={set("channel_type")} options={[{ value: "", label: t("anyChannel") }, ...CHANNELS.map((c) => ({ value: c, label: c }))]} />
+            <FilterSelect value={filters.initiator_type} onChange={set("initiator_type")} options={[{ value: "", label: t("anyInitiator") }, ...INITIATORS.map((c) => ({ value: c, label: t(`initiator_${c}`) }))]} />
+            <div className="flex gap-2">
+              <DateInput title={t("from")} className={cn(inputClass, "min-w-0 px-2")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
+              <DateInput title={t("to")} className={cn(inputClass, "min-w-0 px-2")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+            </div>
+            <div className="flex gap-2">
+              <input className={inputClass} inputMode="decimal" placeholder={t("minAmount")} value={filters.min_amount} onChange={(e) => set("min_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
+              <input className={inputClass} inputMode="decimal" placeholder={t("maxAmount")} value={filters.max_amount} onChange={(e) => set("max_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex gap-2">
+                <Button type="submit" size="sm" icon={Search}>
+                  {t("search")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setFilters(EMPTY);
+                    setApplied(EMPTY);
+                    setPage(1);
+                  }}
+                >
+                  {t("clear")}
+                </Button>
+                <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+                  {t("refresh")}
+                </Button>
+              </div>
+              <ExportButtons exportFile={(format) => transactionsApi.export({ ...clean(applied), format })} />
+            </div>
+          </form>
+        }
       >
-        <input className={cn(inputClass, "lg:col-span-2")} placeholder={t("searchJournal")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        <FilterSelect value={filters.txn_type} onChange={set("txn_type")} options={[{ value: "", label: t("anyType") }, ...types.map((x) => ({ value: x.code, label: x.name }))]} />
-        <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
-        <FilterSelect value={filters.channel_type} onChange={set("channel_type")} options={[{ value: "", label: t("anyChannel") }, ...CHANNELS.map((c) => ({ value: c, label: c }))]} />
-        <FilterSelect value={filters.initiator_type} onChange={set("initiator_type")} options={[{ value: "", label: t("anyInitiator") }, ...INITIATORS.map((c) => ({ value: c, label: t(`initiator_${c}`) }))]} />
-        <div className="grid grid-cols-2 gap-2">
-          <DateInput title={t("from")} className={cn(inputClass, "min-w-0 px-2")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-          <DateInput title={t("to")} className={cn(inputClass, "min-w-0 px-2")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <input className={inputClass} inputMode="decimal" placeholder={t("minAmount")} value={filters.min_amount} onChange={(e) => set("min_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
-          <input className={inputClass} inputMode="decimal" placeholder={t("maxAmount")} value={filters.max_amount} onChange={(e) => set("max_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 sm:col-span-2 lg:col-span-4">
-          <div className="flex gap-2">
-            <Button type="submit" size="sm" icon={Search}>
-              {t("search")}
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setFilters(EMPTY);
-                setApplied(EMPTY);
-                setPage(1);
-              }}
-            >
-              {t("clear")}
-            </Button>
-            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-              {t("refresh")}
-            </Button>
-          </div>
-          <ExportButtons exportFile={(format) => transactionsApi.export({ ...clean(applied), format })} />
-        </div>
-      </form>
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(x) => x.id}
@@ -192,6 +205,7 @@ function Journal({ onOpen }) {
           },
         }}
       />
+      </ListPanel>
     </>
   );
 }
@@ -531,17 +545,13 @@ function Requests({ openId, onOpenTxn, onClose }) {
 
   return (
     <>
-      <StatusStrip
-        statuses={REQUEST_STATUSES}
+      <ListPanel
+        tabs={statusTabs(REQUEST_STATUSES, (s) => `txn:reqStatus_${s}`)}
         value={status}
-        labelOf={(s) => t(`reqStatus_${s}`)}
         onChange={(s) => {
           setStatus(s);
           setPage(1);
         }}
-      />
-      <ListPanel
-        tabs={[]}
         {...searchBind}
         searchPlaceholder={t("searchRequests")}
         filters={

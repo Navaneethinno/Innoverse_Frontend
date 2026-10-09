@@ -1,7 +1,10 @@
+import { useListSearch } from "@/Hooks/useListSearch";
+import { statusTabs } from "@/Components/Common/listTabs";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, PiggyBank, Plus, RefreshCw, Search } from "lucide-react";
+import { Landmark, PiggyBank, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -13,13 +16,13 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { dayDate, inputClass, labelClass, ratePct } from "../depositShared";
+import { dayDate, inputClass, ratePct } from "../depositShared";
 import { DepositView } from "./DepositView";
 import { OpenDeposit } from "./OpenDeposit";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["PENDING_APPROVAL", "ACTIVE", "MATURED", "CLOSED", "PREMATURELY_CLOSED", "REJECTED", "CANCELLED"];
-const EMPTY = { search: "", status: "", maturity_from: "", maturity_to: "" };
+const EMPTY = { status: "", maturity_from: "", maturity_to: "" };
 
 // The deposit table, shared by the Deposits screen and a customer's detail.
 function depositColumns(t, can, onOpen, compact) {
@@ -60,9 +63,9 @@ export function Deposits() {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
   const can = useMenuPermission("Deposits");
   const [filters, setFilters] = useState(EMPTY);
-  const [applied, setApplied] = useState(EMPTY);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -71,7 +74,7 @@ export function Deposits() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const body = Object.fromEntries(Object.entries({ ...applied, search: applied.search.trim() }).filter(([, v]) => v));
+      const body = Object.fromEntries(Object.entries({ ...filters, search: term }).filter(([, v]) => v));
       const row = rowsOf(await depositsApi.list({ page, page_size: limit, ...body }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -79,7 +82,7 @@ export function Deposits() {
     } finally {
       setLoading(false);
     }
-  }, [applied, page, limit]);
+  }, [filters, term, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -99,7 +102,10 @@ export function Deposits() {
     );
   }
 
-  const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
+  const set = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
+    setPage(1);
+  };
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -121,62 +127,27 @@ export function Deposits() {
         </div>
       </div>
 
-      <div className="mb-3 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1">
-        {["", ...STATUSES].map((key) => (
-          <button
-            key={key || "all"}
-            type="button"
-            onClick={() => {
-              setFilters((f) => ({ ...f, status: key }));
-              setApplied((f) => ({ ...f, status: key }));
-              setPage(1);
-            }}
-            className={cn("shrink-0 rounded-xl px-3 py-2 text-xs font-bold", applied.status === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {key ? t(`dstatus_${key}`) : t("tab_all")}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(filters);
-          setPage(1);
-        }}
-        className="mb-4 grid items-end gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]"
+      <ListPanel
+        tabs={statusTabs(STATUSES, (key) => `deposits:dstatus_${key}`)}
+        value={filters.status}
+        onChange={set("status")}
+        {...searchBind}
+        searchPlaceholder={t("searchDeposits")}
+        filters={
+          <>
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              {t("maturityFrom")}
+              <DateInput className={cn(inputClass, "w-auto")} value={filters.maturity_from} onChange={(e) => set("maturity_from")(e.target.value)} />
+            </label>
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              {t("maturityTo")}
+              <DateInput className={cn(inputClass, "w-auto")} value={filters.maturity_to} onChange={(e) => set("maturity_to")(e.target.value)} />
+            </label>
+          </>
+        }
       >
-        <label className={labelClass}>
-          {t("search")}
-          <input className={cn(inputClass, "mt-1")} placeholder={t("searchDeposits")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        </label>
-        <label className={labelClass}>
-          {t("maturityFrom")}
-          <DateInput className={cn(inputClass, "mt-1")} value={filters.maturity_from} onChange={(e) => set("maturity_from")(e.target.value)} />
-        </label>
-        <label className={labelClass}>
-          {t("maturityTo")}
-          <DateInput className={cn(inputClass, "mt-1")} value={filters.maturity_to} onChange={(e) => set("maturity_to")(e.target.value)} />
-        </label>
-        <div className="flex gap-2">
-          <Button type="submit" size="sm" icon={Search} className="flex-1">
-            {t("search")}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setFilters(EMPTY);
-              setApplied(EMPTY);
-              setPage(1);
-            }}
-          >
-            {t("clear")}
-          </Button>
-        </div>
-      </form>
-
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(d) => d.id}
@@ -197,6 +168,7 @@ export function Deposits() {
           },
         }}
       />
+      </ListPanel>
 
       {opening && (
         <OpenDeposit

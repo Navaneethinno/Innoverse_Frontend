@@ -42,7 +42,7 @@ const TABS = [
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, onSearchSubmit, searchPlaceholder, bare = false, actions = null, filters = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
+export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, onSearchSubmit, searchPlaceholder, bare = false, actions = null, filters = null, counts: ownCounts = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -61,6 +61,8 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
   // (`filter`), so `rows` holds only that tab and the server's total is only
   // that tab's count. Show a number on the selected tab alone.
   const countFor = (key) => {
+    // A list whose server counts every tab (`counts`) shows them all.
+    if (ownCounts) return ownCounts[key] ?? 0;
     if (serverFiltered) return key === value ? (Number.isFinite(total) ? total : rows.length) : null;
     return partial && key !== "all" ? null : counts[key];
   };
@@ -118,10 +120,10 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
       )}
 
       {(onSearch || onSortChange || filters) && (
-      <div className="flex w-full flex-wrap items-center gap-2 sm:flex-nowrap">
-      {onSearch && <SearchBox search={search} onSearch={onSearch} onSearchSubmit={onSearchSubmit} placeholder={searchPlaceholder} className="min-w-[12rem]" />}
+      <div className="flex w-full flex-wrap items-center gap-2">
+      {onSearch && <SearchBox search={search} onSearch={onSearch} onSearchSubmit={onSearchSubmit} placeholder={searchPlaceholder} className="min-w-[16rem] flex-[1_1_16rem]" />}
       {/* A list's own filters (status, type...), beside the search. */}
-      {filters && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap [&>*]:min-w-[10rem]">{filters}</div>}
+      {filters && <div className="flex flex-wrap items-center gap-2 [&>*]:min-w-[10rem]">{filters}</div>}
       {/* sort_by: newest (desc) or oldest (asc) change first, applied by the
           server across every record, not just the loaded page. */}
       {onSortChange && (

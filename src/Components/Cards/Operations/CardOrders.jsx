@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, RefreshCw, Search, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, RefreshCw, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -127,23 +127,17 @@ export function CardOrders() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          list.apply();
-        }}
-        className="mb-4 grid items-center gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto_auto]"
-      >
-        <input className={inputClass} placeholder={t("searchOrders")} value={list.filters.search} onChange={(e) => list.set("search")(e.target.value)} />
-        <FilterSelect value={list.filters.order_status} onChange={list.set("order_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "ord", s) }))]} />
-        <FilterSelect value={list.filters.issuance_group_id} onChange={list.set("issuance_group_id")} options={[{ value: "", label: t("anyGroup") }, ...(options.issuance_groups ?? []).map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))]} />
-        <Toggle showLabel label={t("waitingForChecker")} checked={list.filters.pending} onChange={list.set("pending")} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
-      <PagedTable {...list} columns={columns} rows={data.items} total={data.total} loading={loading} title={t("ordersTitle")} emptyTitle={t("noOrders")} emptyDescription={t("noOrdersHint")} />
+      <PagedTable
+        {...list}
+        searchPlaceholder={t("searchOrders")}
+        filterFields={
+          <>
+            <FilterSelect value={list.filters.order_status} onChange={list.set("order_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "ord", s) }))]} />
+            <FilterSelect value={list.filters.issuance_group_id} onChange={list.set("issuance_group_id")} options={[{ value: "", label: t("anyGroup") }, ...(options.issuance_groups ?? []).map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))]} />
+            <Toggle showLabel label={t("waitingForChecker")} checked={list.filters.pending} onChange={list.set("pending")} />
+          </>
+        }
+        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("ordersTitle")} emptyTitle={t("noOrders")} emptyDescription={t("noOrdersHint")} />
 
       {adding && (
         <NewOrder

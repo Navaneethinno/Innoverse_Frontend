@@ -1,6 +1,6 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownUp, UserRoundSearch } from "lucide-react";
@@ -337,10 +337,7 @@ export function UserActivity() {
                 )}
               </div>
             )}
-            <div className="overflow-hidden rounded-2xl" style={glassCard}>
-              <div className="border-b border-border p-3">
-                <SearchBox {...searchBind} placeholder={t("searchActivity")} />
-              </div>
+            <ListPanel tabs={[]} {...searchBind} searchPlaceholder={t("searchActivity")}>
               <DataTable
                 columns={columns}
                 rows={rows}
@@ -362,7 +359,7 @@ export function UserActivity() {
                 serverSorted
                 bare
               />
-            </div>
+            </ListPanel>
           </>
         )}
       </div>

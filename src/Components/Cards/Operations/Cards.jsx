@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, Search, ShieldAlert, Truck } from "lucide-react";
+import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, ShieldAlert, Truck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -117,24 +117,18 @@ export function Cards() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          list.apply();
-        }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]"
-      >
-        <input className={inputClass} placeholder={t("searchCards")} value={list.filters.search} onChange={(e) => list.set("search")(e.target.value)} />
-        <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-        <FilterSelect value={list.filters.ops_status} onChange={list.set("ops_status")} options={[{ value: "", label: t("anyOpsStatus") }, ...(options.ops_statuses ?? []).map((s) => ({ value: s.code, label: cardWord(t, "ops", s.code) }))]} />
-        <FilterSelect value={list.filters.issuance_status} onChange={list.set("issuance_status")} options={[{ value: "", label: t("anyIssuanceStatus") }, ...(options.issuance_statuses ?? []).map((s) => ({ value: s, label: cardWord(t, "iss", s) }))]} />
-        <FilterSelect value={list.filters.form_factor} onChange={list.set("form_factor")} options={[{ value: "", label: t("anyFormFactor") }, ...FORM_FACTORS.map((f) => ({ value: f, label: cardWord(t, "opt", f) }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
-      <PagedTable {...list} columns={columns} rows={data.items} total={data.total} loading={loading} title={t("cardsTitle")} emptyTitle={t("noCards")} emptyDescription={t("noCardsHint")} />
+      <PagedTable
+        {...list}
+        searchPlaceholder={t("searchCards")}
+        filterFields={
+          <>
+            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
+            <FilterSelect value={list.filters.ops_status} onChange={list.set("ops_status")} options={[{ value: "", label: t("anyOpsStatus") }, ...(options.ops_statuses ?? []).map((s) => ({ value: s.code, label: cardWord(t, "ops", s.code) }))]} />
+            <FilterSelect value={list.filters.issuance_status} onChange={list.set("issuance_status")} options={[{ value: "", label: t("anyIssuanceStatus") }, ...(options.issuance_statuses ?? []).map((s) => ({ value: s, label: cardWord(t, "iss", s) }))]} />
+            <FilterSelect value={list.filters.form_factor} onChange={list.set("form_factor")} options={[{ value: "", label: t("anyFormFactor") }, ...FORM_FACTORS.map((f) => ({ value: f, label: cardWord(t, "opt", f) }))]} />
+          </>
+        }
+        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("cardsTitle")} emptyTitle={t("noCards")} emptyDescription={t("noCardsHint")} />
 
       {issuing && (
         <IssueCardDialog

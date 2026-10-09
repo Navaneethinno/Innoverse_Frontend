@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { ListPanel } from "@/Components/Common/ListPanel";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { UserRound, X } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -188,45 +190,52 @@ export function DeliveryFields({ modes, value, onChange }) {
   );
 }
 
-// A server-paged list: the DataTable with its pager wired up.
-export function PagedTable({ columns, rows, total, page, limit, setPage, setLimit, loading, title, emptyTitle, emptyDescription, rowKey = (r) => r.id }) {
+// A server-paged list in its ListPanel: the search (`searchBind`), the
+// list's `filterFields` beside it, then the DataTable with its pager.
+export function PagedTable({ columns, rows, total, page, limit, setPage, setLimit, loading, title, emptyTitle, emptyDescription, rowKey = (r) => r.id, searchBind, searchPlaceholder, filterFields }) {
   return (
-    <DataTable
-      columns={columns}
-      rows={rows}
-      rowKey={rowKey}
-      isLoading={loading}
-      title={title}
-      emptyTitle={emptyTitle}
-      emptyDescription={emptyDescription}
-      serverSorted
-      serverPagination={{
-        page,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-        totalRecords: total,
-        onPageChange: setPage,
-        limit,
-        onLimitChange: (n) => {
-          setLimit(Math.min(n, 100));
-          setPage(1);
-        },
-      }}
-    />
+    <ListPanel tabs={[]} {...(searchBind ? { ...searchBind, searchPlaceholder } : {})} filters={filterFields}>
+      <DataTable
+        bare
+        columns={columns}
+        rows={rows}
+        rowKey={rowKey}
+        isLoading={loading}
+        title={title}
+        emptyTitle={emptyTitle}
+        emptyDescription={emptyDescription}
+        serverSorted
+        serverPagination={{
+          page,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+          totalRecords: total,
+          onPageChange: setPage,
+          limit,
+          onLimitChange: (n) => {
+            setLimit(Math.min(n, 100));
+            setPage(1);
+          },
+        }}
+      />
+    </ListPanel>
   );
 }
 
-// Page state for a server-paged, filtered list.
+// Page state for a server-paged, filtered list: a filter applies when it
+// changes, the search as the user types (`searchBind`); `applied` is what
+// the list call sends.
 export function usePagedFilters(blank) {
-  const [filters, setFilters] = useState(blank);
-  const [applied, setApplied] = useState(blank);
+  const { search: hasSearch, ...rest } = blank;
+  const [filters, setFilters] = useState(rest);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
-  const apply = (next = filters) => {
-    setApplied(next);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
+  const set = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
     setPage(1);
   };
-  return { filters, set, applied, apply, page, setPage, limit, setLimit };
+  const applied = useMemo(() => ({ ...filters, ...(hasSearch !== undefined ? { search: term } : {}) }), [filters, term, hasSearch]);
+  return { filters, set, applied, searchBind: hasSearch !== undefined ? searchBind : undefined, page, setPage, limit, setLimit };
 }
 
 // Only the filters that have a value, numbers as numbers.

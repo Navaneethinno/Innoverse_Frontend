@@ -1,8 +1,8 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, ScrollText, Search } from "lucide-react";
+import { Landmark, ScrollText } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -56,7 +56,6 @@ export function Accounts() {
 function AccountsList() {
   const { t } = useTranslation(["accounts", "common"]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [applied, setApplied] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [result, setResult] = useState({ accounts: [], total: 0 });
@@ -69,25 +68,23 @@ function AccountsList() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const data = rowsOf(await latestList(accountsApi.list({ ...searchBody, page, limit, ...filterBody(applied) })))[0];
+      const data = rowsOf(await latestList(accountsApi.list({ ...searchBody, page, limit, ...filterBody(filters) })))[0];
       setResult({ accounts: data?.accounts ?? [], total: data?.total ?? 0 });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [searchBody, latestList, applied, page, limit]);
+  }, [searchBody, latestList, filters, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
   useLiveChannel("/config/account/list", () => void load({ silent: true }));
 
-  const search = (event) => {
-    event.preventDefault();
-    setApplied(filters);
+  const setFilter = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
     setPage(1);
   };
-  const setFilter = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
 
   const columns = [
     {
@@ -145,63 +142,53 @@ function AccountsList() {
 
   return (
     <>
-      <form onSubmit={search} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
-        <SearchBox {...searchBind} className="min-w-[14rem] flex-[2_1_16rem]" placeholder={t("searchAccounts")} />
-        <FilterSelect
-          value={filters.party}
-          onChange={setFilter("party")}
-          options={[
-            { value: "", label: t("allParties") },
-            { value: "CUSTOMER", label: t("customer") },
-            { value: "MERCHANT", label: t("merchant") },
-          ]}
-        />
-        <FilterSelect
-          value={filters.ownership}
-          onChange={setFilter("ownership")}
-          options={[
-            { value: "", label: t("allOwnerships") },
-            { value: "INDIVIDUAL", label: t("individual") },
-            { value: "CORPORATE", label: t("corporate") },
-          ]}
-        />
-        <FilterSelect
-          value={filters.acct_class}
-          onChange={setFilter("acct_class")}
-          options={[
-            { value: "", label: t("allClasses") },
-            { value: "CUSTOMER", label: t("class_CUSTOMER") },
-            { value: "DEPOSIT", label: t("class_DEPOSIT") },
-          ]}
-        />
-        <FilterSelect
-          value={filters.status}
-          onChange={setFilter("status")}
-          options={[
-            { value: "", label: t("allStatuses") },
-            { value: "1", label: t("active") },
-            { value: "0", label: t("inactive") },
-          ]}
-        />
-        <div className="flex shrink-0 gap-2">
-          <Button type="submit" size="sm" icon={Search} className="flex-1">
-            {t("search")}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setFilters(EMPTY_FILTERS);
-              setApplied(EMPTY_FILTERS);
-              setPage(1);
-            }}
-          >
-            {t("clear")}
-          </Button>
-        </div>
-      </form>
-
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchAccounts")}
+        filters={
+          <>
+            <FilterSelect
+              value={filters.party}
+              onChange={setFilter("party")}
+              options={[
+                { value: "", label: t("allParties") },
+                { value: "CUSTOMER", label: t("customer") },
+                { value: "MERCHANT", label: t("merchant") },
+              ]}
+            />
+            <FilterSelect
+              value={filters.ownership}
+              onChange={setFilter("ownership")}
+              options={[
+                { value: "", label: t("allOwnerships") },
+                { value: "INDIVIDUAL", label: t("individual") },
+                { value: "CORPORATE", label: t("corporate") },
+              ]}
+            />
+            <FilterSelect
+              value={filters.acct_class}
+              onChange={setFilter("acct_class")}
+              options={[
+                { value: "", label: t("allClasses") },
+                { value: "CUSTOMER", label: t("class_CUSTOMER") },
+                { value: "DEPOSIT", label: t("class_DEPOSIT") },
+              ]}
+            />
+            <FilterSelect
+              value={filters.status}
+              onChange={setFilter("status")}
+              options={[
+                { value: "", label: t("allStatuses") },
+                { value: "1", label: t("active") },
+                { value: "0", label: t("inactive") },
+              ]}
+            />
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={result.accounts}
         rowKey={(r) => r.id}
@@ -222,6 +209,7 @@ function AccountsList() {
           },
         }}
       />
+      </ListPanel>
 
       {viewing && (
         <AccountDetail

@@ -1,3 +1,4 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,7 +10,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { BandBadge, CUSTOMER_KINDS, glassCard, when } from "../../Shared/amlShared";
+import { BandBadge, CUSTOMER_KINDS, when } from "../../Shared/amlShared";
 import { CustomerAmlModal } from "../../Shared/CustomerAml";
 
 const filterInput = "rounded-lg border px-2.5 py-1.5 text-xs";
@@ -81,31 +82,35 @@ export function ScreeningChanges({ bands }) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-2xl" style={glassCard}>
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <FilterSelect
-            size="sm"
-            className="w-36"
-            value={filters.customer_kind}
-            onChange={set("customer_kind")}
-            options={[{ value: "", label: t("aml:allCustomers") }, ...CUSTOMER_KINDS.map((k) => ({ value: k, label: t(`aml:kind_${k}`) }))]}
-          />
-          <FilterSelect
-            size="sm"
-            className="w-40"
-            value={filters.band_code}
-            onChange={set("band_code")}
-            options={[{ value: "", label: t("aml:allNewBands") }, ...bands.map((b) => ({ value: b.code, label: b.name ?? b.code }))]}
-          />
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            {t("aml:from")}
-            <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
-          </label>
-          <label className="flex items-center gap-1 text-xs text-muted-foreground">
-            {t("aml:to")}
-            <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
-          </label>
-        </div>
+      <ListPanel
+        tabs={[]}
+        filters={
+          <>
+            <FilterSelect
+              size="sm"
+              className="w-36"
+              value={filters.customer_kind}
+              onChange={set("customer_kind")}
+              options={[{ value: "", label: t("aml:allCustomers") }, ...CUSTOMER_KINDS.map((k) => ({ value: k, label: t(`aml:kind_${k}`) }))]}
+            />
+            <FilterSelect
+              size="sm"
+              className="w-40"
+              value={filters.band_code}
+              onChange={set("band_code")}
+              options={[{ value: "", label: t("aml:allNewBands") }, ...bands.map((b) => ({ value: b.code, label: b.name ?? b.code }))]}
+            />
+            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+              {t("aml:from")}
+              <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
+            </label>
+            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+              {t("aml:to")}
+              <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
+            </label>
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={rows}
@@ -117,7 +122,7 @@ export function ScreeningChanges({ bands }) {
           serverSorted
           bare
         />
-      </div>
+      </ListPanel>
       {customer && <CustomerAmlModal customerKind={customer.customer_kind} referenceId={customer.reference_id} onClose={() => setCustomer(null)} />}
     </>
   );

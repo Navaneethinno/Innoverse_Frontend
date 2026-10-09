@@ -1,6 +1,8 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Briefcase, RefreshCw, Search, Settings2 } from "lucide-react";
+import { AlertTriangle, Briefcase, CheckCircle2, Clock3, Eye, Gavel, Inbox, ListChecks, RefreshCw, Settings2, UserRound } from "lucide-react";
+import { useListSearch } from "@/Hooks/useListSearch";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -8,7 +10,6 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { cn } from "@/Utils/Lib/utils";
 import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, ageText, caseDate, subjectKind } from "./caseShared";
 import { CaseView } from "./CaseView";
 import { CaseSettings } from "./CaseSettings";
@@ -17,20 +18,19 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 // Tabs from the list's `counts` (they ignore the status filter): each sets
 // the status (or assigned) filter.
 const TABS = [
-  { key: "ACTIVE", body: { status: "ACTIVE" } },
-  { key: "MINE", body: { status: "ACTIVE", assigned: "ME" } },
-  { key: "OVERDUE", body: { status: "ACTIVE", overdue: true } },
-  { key: "OPEN", body: { status: "OPEN" } },
-  { key: "IN_REVIEW", body: { status: "IN_REVIEW" } },
-  { key: "AWAITING_CUSTOMER", body: { status: "AWAITING_CUSTOMER" } },
-  { key: "PENDING_DECISION", body: { status: "PENDING_DECISION" } },
-  { key: "CLOSED", body: { status: "CLOSED" } },
+  { key: "ACTIVE", icon: ListChecks, body: { status: "ACTIVE" } },
+  { key: "MINE", icon: UserRound, body: { status: "ACTIVE", assigned: "ME" } },
+  { key: "OVERDUE", icon: AlertTriangle, body: { status: "ACTIVE", overdue: true } },
+  { key: "OPEN", icon: Inbox, body: { status: "OPEN" } },
+  { key: "IN_REVIEW", icon: Eye, body: { status: "IN_REVIEW" } },
+  { key: "AWAITING_CUSTOMER", icon: Clock3, body: { status: "AWAITING_CUSTOMER" } },
+  { key: "PENDING_DECISION", icon: Gavel, body: { status: "PENDING_DECISION" } },
+  { key: "CLOSED", icon: CheckCircle2, body: { status: "CLOSED" } },
 ];
 const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_AML_SCREENING", "NO_AML_SETUP", "AML_ERROR", "MANUAL_POLICY", "PRODUCT_NOT_ELIGIBLE"];
-const EMPTY = { search: "", priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "" };
-const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
+const EMPTY = { priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "" };
 
-const filterBody = (f) => Object.fromEntries(Object.entries({ ...f, search: f.search.trim() }).filter(([, v]) => v !== ""));
+const filterBody = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => v !== ""));
 
 // CASE MANAGEMENT > Onboarding Cases (menu 179): the queue of new customers
 // and merchants whose risk / AML result needs a person to decide. Open
@@ -39,9 +39,9 @@ export function OnboardingCases() {
   const { t } = useTranslation(["cases", "common"]);
   const [tab, setTab] = useState("ACTIVE");
   const [filters, setFilters] = useState(EMPTY);
-  const [applied, setApplied] = useState(EMPTY);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ cases: [], total: 0, counts: {} });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -51,14 +51,14 @@ export function OnboardingCases() {
     if (!silent) setLoading(true);
     try {
       const tabBody = TABS.find((x) => x.key === tab)?.body ?? {};
-      const row = rowsOf(await onboardingCasesApi.list({ page, limit, ...filterBody(applied), ...tabBody }))[0];
+      const row = rowsOf(await onboardingCasesApi.list({ page, limit, ...filterBody(filters), ...(term ? { search: term } : {}), ...tabBody }))[0];
       setData({ cases: row?.cases ?? [], total: row?.total ?? 0, counts: row?.counts ?? {} });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [tab, applied, page, limit]);
+  }, [tab, filters, term, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -87,10 +87,8 @@ export function OnboardingCases() {
     );
   }
 
-  const setFilter = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
-  const apply = (event) => {
-    event?.preventDefault();
-    setApplied(filters);
+  const setFilter = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
     setPage(1);
   };
 
@@ -152,53 +150,31 @@ export function OnboardingCases() {
         </div>
       </div>
 
-      <div className="mb-3 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1">
-        {TABS.map(({ key }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold",
-              tab === key ? "bg-primary text-primary-foreground shadow-sm" : key === "OVERDUE" && data.counts?.OVERDUE ? "text-red-700 hover:bg-red-50" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary",
+      <ListPanel
+        tabs={TABS.map((x) => [x.key, `cases:tab_${x.key}`, x.icon])}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
+          setPage(1);
+        }}
+        counts={data.counts}
+        {...searchBind}
+        searchPlaceholder={t("searchPlaceholder")}
+        filters={
+          <>
+            <FilterSelect value={filters.priority} onChange={setFilter("priority")} options={[{ value: "", label: t("anyPriority") }, { value: "HIGH", label: t("high") }, { value: "NORMAL", label: t("normal") }]} />
+            <FilterSelect value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("anyReason") }, ...REASONS.map((r) => ({ value: r, label: t(`reason_${r}`) }))]} />
+            <FilterSelect value={filters.party} onChange={setFilter("party")} options={[{ value: "", label: t("anyParty") }, { value: "CUSTOMER", label: t("customer") }, { value: "MERCHANT", label: t("merchant") }]} />
+            {tab === "CLOSED" ? (
+              <FilterSelect value={filters.outcome} onChange={setFilter("outcome")} options={[{ value: "", label: t("anyOutcome") }, ...["APPROVED", "REJECTED", "WITHDRAWN"].map((o) => ({ value: o, label: t(`outcome_${o}`) }))]} />
+            ) : (
+              <FilterSelect value={filters.assigned} onChange={setFilter("assigned")} options={[{ value: "", label: t("anyAssignee") }, { value: "ME", label: t("assignedToMe") }, { value: "UNASSIGNED", label: t("unassigned") }]} />
             )}
-          >
-            {t(`tab_${key}`)}
-            <span className={cn("rounded-full px-1.5 text-[10px] tabular-nums", tab === key ? "bg-white/25" : "bg-muted")}>{data.counts?.[key] ?? 0}</span>
-          </button>
-        ))}
-      </div>
-
-      <form onSubmit={apply} className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
-        <input className={cn(inputClass, "min-w-[14rem] flex-[2_1_16rem]")} placeholder={t("searchPlaceholder")} value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} />
-        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.priority} onChange={setFilter("priority")} options={[{ value: "", label: t("anyPriority") }, { value: "HIGH", label: t("high") }, { value: "NORMAL", label: t("normal") }]} />
-        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("anyReason") }, ...REASONS.map((r) => ({ value: r, label: t(`reason_${r}`) }))]} />
-        <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.party} onChange={setFilter("party")} options={[{ value: "", label: t("anyParty") }, { value: "CUSTOMER", label: t("customer") }, { value: "MERCHANT", label: t("merchant") }]} />
-        {tab === "CLOSED" ? (
-          <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.outcome} onChange={setFilter("outcome")} options={[{ value: "", label: t("anyOutcome") }, ...["APPROVED", "REJECTED", "WITHDRAWN"].map((o) => ({ value: o, label: t(`outcome_${o}`) }))]} />
-        ) : (
-          <FilterSelect className="min-w-[11rem] flex-[1_1_11rem]" value={filters.assigned} onChange={setFilter("assigned")} options={[{ value: "", label: t("anyAssignee") }, { value: "ME", label: t("assignedToMe") }, { value: "UNASSIGNED", label: t("unassigned") }]} />
-        )}
-        <div className="flex shrink-0 gap-2">
-          <Button type="submit" size="sm" icon={Search} className="flex-1">{t("search")}</Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setFilters(EMPTY);
-              setApplied(EMPTY);
-              setPage(1);
-            }}
-          >
-            {t("clear")}
-          </Button>
-        </div>
-      </form>
-
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.cases}
         rowKey={(c) => c.id}
@@ -219,6 +195,7 @@ export function OnboardingCases() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

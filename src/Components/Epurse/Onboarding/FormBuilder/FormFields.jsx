@@ -1,6 +1,7 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -34,7 +35,6 @@ function optionProblem(type, options) {
   }
   return null;
 }
-const glass = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 
 // Add / edit one library field (§4.2). The key is chosen once and never
 // changes; the type's options are drawn from the vocabulary. On edit only
@@ -282,23 +282,17 @@ export function FormFields() {
         <PageTitle>{t("formBuilder:formFieldsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formFieldsSubtitle")}</p>
       </div>
-      <div className="mb-4 overflow-hidden rounded-2xl" style={glass}>
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <div className="relative min-w-[220px] flex-1">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder={t("formBuilder:searchFields")}
-              className="w-full rounded-lg border bg-white/70 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-primary"
-            />
-          </div>
+      <ListPanel
+        tabs={[]}
+        search={search}
+        onSearch={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        searchPlaceholder={t("formBuilder:searchFields")}
+        filters={
           <FilterSelect
             size="sm"
-            className="w-44"
             value={typeFilter}
             onChange={(next) => {
               setTypeFilter(next);
@@ -306,12 +300,15 @@ export function FormFields() {
             }}
             options={[{ value: "", label: t("formBuilder:allTypes") }, ...(vocabulary?.types ?? []).map((x) => ({ value: x.type, label: x.name ?? x.type }))]}
           />
-          {can("Add") && (
-            <Button size="sm" onClick={() => setEditing({ record: null })}>
-              <Plus size={14} /> {t("formBuilder:addField")}
+        }
+        actions={
+          can("Add") && (
+            <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
+              {t("formBuilder:addField")}
             </Button>
-          )}
-        </div>
+          )
+        }
+      >
         <DataTable
           columns={columns}
           rows={rows}
@@ -331,7 +328,7 @@ export function FormFields() {
           }}
           bare
         />
-      </div>
+      </ListPanel>
       {editing && (
         <FieldFormModal
           record={editing.record}

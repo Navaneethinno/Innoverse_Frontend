@@ -1,6 +1,9 @@
+import { statusTabs } from "@/Components/Common/listTabs";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileSignature, HandCoins, MessageSquareWarning, Pencil, Plus, RefreshCw, Search, ShieldCheck, XCircle } from "lucide-react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileSignature, HandCoins, MessageSquareWarning, Pencil, Plus, RefreshCw, ShieldCheck, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -12,8 +15,8 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanApplicationsApi, loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, inputClass, ratePct } from "../../TermDeposits/depositShared";
-import { MiniTable, StatusStrip, Tabs, Timeline, loanLabel } from "../loanShared";
+import { ActionButtons, NarrationDialog, ratePct } from "../../TermDeposits/depositShared";
+import { MiniTable, Tabs, Timeline, loanLabel } from "../loanShared";
 import { ApplicationForm, Disclosure } from "./ApplicationForm";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -28,10 +31,9 @@ export function LoanApplications() {
   const can = usePagePermission();
   const [status, setStatus] = useState("");
   const [awaitingMe, setAwaitingMe] = useState(false);
-  const [search, setSearch] = useState("");
-  const [applied, setApplied] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -40,7 +42,7 @@ export function LoanApplications() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const body = { page, page_size: limit, ...(status ? { status } : {}), ...(awaitingMe ? { awaiting_me: true } : {}), ...(applied ? { search: applied } : {}) };
+      const body = { page, page_size: limit, ...(status ? { status } : {}), ...(awaitingMe ? { awaiting_me: true } : {}), ...(term ? { search: term } : {}) };
       const row = rowsOf(await loanApplicationsApi.list(body))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -48,7 +50,7 @@ export function LoanApplications() {
     } finally {
       setLoading(false);
     }
-  }, [status, awaitingMe, applied, page, limit]);
+  }, [status, awaitingMe, term, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -116,44 +118,36 @@ export function LoanApplications() {
         </div>
       </div>
 
-      <StatusStrip
-        statuses={STATUSES}
+      <ListPanel
+        tabs={statusTabs(STATUSES, (s) => `loans:appStatus_${s}`)}
         value={status}
-        labelOf={(s) => t(`appStatus_${s}`)}
         onChange={(s) => {
           setStatus(s);
           setPage(1);
         }}
-      />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(search.trim());
-          setPage(1);
-        }}
-        className="mb-4 grid items-center gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[2fr_auto_auto]"
+        {...searchBind}
+        searchPlaceholder={t("searchApplications")}
+        filters={
+          <>
+            {can("Authorize") && (
+              <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700">
+                <input
+                  type="checkbox"
+                  className="accent-[var(--primary)]"
+                  checked={awaitingMe}
+                  onChange={(e) => {
+                    setAwaitingMe(e.target.checked);
+                    setPage(1);
+                  }}
+                />
+                {t("awaitingMyApproval")}
+              </label>
+            )}
+          </>
+        }
       >
-        <input className={inputClass} placeholder={t("searchApplications")} value={search} onChange={(e) => setSearch(e.target.value)} />
-        {can("Authorize") && (
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700">
-            <input
-              type="checkbox"
-              className="accent-[var(--primary)]"
-              checked={awaitingMe}
-              onChange={(e) => {
-                setAwaitingMe(e.target.checked);
-                setPage(1);
-              }}
-            />
-            {t("awaitingMyApproval")}
-          </label>
-        )}
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(a) => a.id}
@@ -174,6 +168,7 @@ export function LoanApplications() {
           },
         }}
       />
+      </ListPanel>
 
       {adding && (
         <ApplicationForm

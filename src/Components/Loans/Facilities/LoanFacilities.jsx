@@ -1,6 +1,9 @@
+import { statusTabs } from "@/Components/Common/listTabs";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, RefreshCw, Repeat, Search, Send, Undo2, Wallet, XCircle } from "lucide-react";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, RefreshCw, Repeat, Send, Undo2, Wallet, XCircle } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -15,9 +18,9 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, inputClass, labelClass, ratePct } from "../../TermDeposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct } from "../../TermDeposits/depositShared";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
-import { Field, MiniTable, ScheduleTable, StatusStrip, Tabs, Timeline, loanLabel } from "../loanShared";
+import { Field, MiniTable, ScheduleTable, Tabs, Timeline, loanLabel } from "../loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["PENDING_DISBURSEMENT", "ACTIVE", "DELINQUENT", "SETTLED", "WRITTEN_OFF", "CANCELLED"];
@@ -34,10 +37,9 @@ const pick = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => Strin
 export function LoanFacilities() {
   const { t } = useTranslation(["loans", "common"]);
   const [status, setStatus] = useState("");
-  const [search, setSearch] = useState("");
-  const [applied, setApplied] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
@@ -45,14 +47,14 @@ export function LoanFacilities() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const row = rowsOf(await loanFacilitiesApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(applied ? { search: applied } : {}) }))[0];
+      const row = rowsOf(await loanFacilitiesApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(term ? { search: term } : {}) }))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setLoading(false);
     }
-  }, [status, applied, page, limit]);
+  }, [status, term, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -114,29 +116,18 @@ export function LoanFacilities() {
           {t("refresh")}
         </Button>
       </div>
-      <StatusStrip
-        statuses={STATUSES}
+      <ListPanel
+        tabs={statusTabs(STATUSES, (s) => `loans:loanStatus_${s}`)}
         value={status}
-        labelOf={(s) => t(`loanStatus_${s}`)}
         onChange={(s) => {
           setStatus(s);
           setPage(1);
         }}
-      />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(search.trim());
-          setPage(1);
-        }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[1fr_auto]"
+        {...searchBind}
+        searchPlaceholder={t("searchLoans")}
       >
-        <input className={inputClass} placeholder={t("searchLoans")} value={search} onChange={(e) => setSearch(e.target.value)} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(f) => f.id}
@@ -157,6 +148,7 @@ export function LoanFacilities() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

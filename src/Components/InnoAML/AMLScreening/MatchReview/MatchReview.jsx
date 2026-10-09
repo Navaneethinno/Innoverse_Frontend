@@ -1,6 +1,6 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
@@ -12,7 +12,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlReviewApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { ReviewStateBadge, glassCard, scoreTone, when } from "../../Shared/amlShared";
+import { ReviewStateBadge, scoreTone, when } from "../../Shared/amlShared";
 import { ScreeningDetailModal } from "../../Shared/ScreeningDetail";
 
 const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
@@ -154,28 +154,33 @@ export function MatchReview() {
         value={view}
         onChange={switchView}
       />
-      <div className="overflow-hidden rounded-2xl" style={glassCard}>
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <SearchBox {...searchBind} className="min-w-[14rem]" placeholder={t("aml:searchReviews")} />
-          {view === "all" && (
-            <>
-            <FilterSelect
-              size="sm"
-              className="w-40"
-              value={filters.state}
-              onChange={setFilter("state")}
-              options={[{ value: "", label: t("aml:allStates") }, ...STATES.map((s) => ({ value: s, label: t(`aml:reviewState_${s}`) }))]}
-            />
-            <FilterSelect
-              size="sm"
-              className="w-40"
-              value={filters.decision}
-              onChange={setFilter("decision")}
-              options={[{ value: "", label: t("aml:allDecisions") }, ...DECISIONS.map((d) => ({ value: d, label: t(`aml:review_${d}`) }))]}
-            />
-            </>
-          )}
-        </div>
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("aml:searchReviews")}
+        filters={
+          <>
+            {view === "all" && (
+              <>
+              <FilterSelect
+                size="sm"
+                className="w-40"
+                value={filters.state}
+                onChange={setFilter("state")}
+                options={[{ value: "", label: t("aml:allStates") }, ...STATES.map((s) => ({ value: s, label: t(`aml:reviewState_${s}`) }))]}
+              />
+              <FilterSelect
+                size="sm"
+                className="w-40"
+                value={filters.decision}
+                onChange={setFilter("decision")}
+                options={[{ value: "", label: t("aml:allDecisions") }, ...DECISIONS.map((d) => ({ value: d, label: t(`aml:review_${d}`) }))]}
+              />
+              </>
+            )}
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={rows}
@@ -187,7 +192,7 @@ export function MatchReview() {
           serverSorted
           bare
         />
-      </div>
+      </ListPanel>
 
       <ConfirmDialog
         open={Boolean(action)}

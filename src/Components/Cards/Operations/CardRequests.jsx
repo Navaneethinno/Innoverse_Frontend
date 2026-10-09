@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Inbox, Plus, RefreshCw, Search, Truck, XCircle } from "lucide-react";
+import { CheckCircle2, Inbox, Plus, RefreshCw, Truck, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -101,23 +101,17 @@ export function CardRequests() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          list.apply();
-        }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]"
-      >
-        <input className={inputClass} placeholder={t("searchRequests")} value={list.filters.search} onChange={(e) => list.set("search")(e.target.value)} />
-        <FilterSelect value={list.filters.request_status} onChange={list.set("request_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "req", s) }))]} />
-        <FilterSelect value={list.filters.request_type} onChange={list.set("request_type")} options={[{ value: "", label: t("anyType") }, ...TYPES.map((s) => ({ value: s, label: cardWord(t, "rtype", s) }))]} />
-        <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
-      <PagedTable {...list} columns={columns} rows={data.items} total={data.total} loading={loading} title={t("requestsTitle")} emptyTitle={t("noRequests")} emptyDescription={t("noRequestsHint")} />
+      <PagedTable
+        {...list}
+        searchPlaceholder={t("searchRequests")}
+        filterFields={
+          <>
+            <FilterSelect value={list.filters.request_status} onChange={list.set("request_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "req", s) }))]} />
+            <FilterSelect value={list.filters.request_type} onChange={list.set("request_type")} options={[{ value: "", label: t("anyType") }, ...TYPES.map((s) => ({ value: s, label: cardWord(t, "rtype", s) }))]} />
+            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
+          </>
+        }
+        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("requestsTitle")} emptyTitle={t("noRequests")} emptyDescription={t("noRequestsHint")} />
 
       {openId && <RequestDialog id={openId} onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
       {adding && (

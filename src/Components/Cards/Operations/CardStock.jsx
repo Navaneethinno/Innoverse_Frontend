@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CreditCard, Package, RefreshCw, Search, UserCheck } from "lucide-react";
+import { CreditCard, Package, RefreshCw, UserCheck } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -116,23 +116,17 @@ export function CardStock() {
         </div>
       </div>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          list.apply();
-        }}
-        className="mb-4 grid items-center gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto_auto]"
-      >
-        <FilterSelect value={list.filters.inventory_status} onChange={list.set("inventory_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`inv_${s}`) }))]} />
-        <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-        <FilterSelect value={list.filters.assignee_id} onChange={list.set("assignee_id")} options={[{ value: "", label: t("anyHolder") }, ...users.map((u) => ({ value: String(u.id), label: u.user_name }))]} />
-        <Toggle showLabel label={t("heldByMe")} checked={list.filters.mine} onChange={list.set("mine")} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
-      <PagedTable {...list} columns={columns} rows={data.items} total={data.total} loading={loading} title={t("stockTitle")} emptyTitle={t("noStock")} emptyDescription={t("noStockHint")} />
+      <PagedTable
+        {...list}
+        filterFields={
+          <>
+            <FilterSelect value={list.filters.inventory_status} onChange={list.set("inventory_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`inv_${s}`) }))]} />
+            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
+            <FilterSelect value={list.filters.assignee_id} onChange={list.set("assignee_id")} options={[{ value: "", label: t("anyHolder") }, ...users.map((u) => ({ value: String(u.id), label: u.user_name }))]} />
+            <Toggle showLabel label={t("heldByMe")} checked={list.filters.mine} onChange={list.set("mine")} />
+          </>
+        }
+        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("stockTitle")} emptyTitle={t("noStock")} emptyDescription={t("noStockHint")} />
 
       {assigning && (
         <AssignDialog

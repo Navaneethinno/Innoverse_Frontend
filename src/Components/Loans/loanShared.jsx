@@ -231,22 +231,3 @@ export function Tabs({ tabs, value, onChange, labelOf }) {
   );
 }
 
-// A status filter strip above a list.
-export function StatusStrip({ statuses, value, onChange, labelOf }) {
-  const { t } = useTranslation("loans");
-  return (
-    <div className="mb-3 flex gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1">
-      {["", ...statuses].map((key) => (
-        <button
-          key={key || "all"}
-          type="button"
-          onClick={() => onChange(key)}
-          className={cn("shrink-0 rounded-xl px-3 py-2 text-xs font-bold", value === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-        >
-          {key ? labelOf(key) : t("all")}
-        </button>
-      ))}
-    </div>
-  );
-}
-
