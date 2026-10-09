@@ -1,4 +1,4 @@
-import { createElement, useCallback, useEffect, useState } from "react";
+import { createElement, useCallback, useEffect, useState, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -111,7 +111,20 @@ function Pass({ ok }) {
   );
 }
 
-// Raw detail behind a toggle (a check's response, a list entry...).
+// A response as readable rows: "Verification status: Succeeded", nested
+// keys as "Address · City", lists joined; never raw JSON.
+const humanKey = (k) => String(k).replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+function detailRows(value, prefix = "") {
+  if (value === null || value === undefined || value === "") return [];
+  if (Array.isArray(value)) {
+    if (!value.some((v) => v && typeof v === "object")) return [[prefix, value.join(", ")]];
+    return value.flatMap((v, i) => detailRows(v, `${prefix}${prefix ? " · " : ""}${i + 1}`));
+  }
+  if (typeof value === "object") return Object.entries(value).flatMap(([k, v]) => detailRows(v, prefix ? `${prefix} · ${humanKey(k)}` : humanKey(k)));
+  return [[prefix, value]];
+}
+
+// Detail behind a toggle (a check's response, a list entry...).
 function Details({ value }) {
   const { t } = useTranslation("kycReport");
   const [open, setOpen] = useState(false);
@@ -126,9 +139,14 @@ function Details({ value }) {
         {open ? t("hideDetails") : t("details")}
       </button>
       {open && (
-        <pre className="thin-scrollbar mt-1 max-h-56 overflow-auto rounded-lg bg-muted/60 p-2 text-[10px] leading-relaxed">
-          {JSON.stringify(value, null, 2)}
-        </pre>
+        <dl className="thin-scrollbar mt-1 grid max-h-56 grid-cols-[auto_1fr] gap-x-4 gap-y-1 overflow-auto rounded-lg bg-muted/60 p-2 text-[11px]">
+          {detailRows(value).map(([k, v], i) => (
+            <Fragment key={i}>
+              <dt className="text-muted-foreground">{k || t("value")}</dt>
+              <dd className="break-words font-semibold text-foreground">{typeof v === "boolean" ? (v ? t("yes") : t("no")) : /^[a-z_]+$/.test(String(v)) ? humanKey(v) : String(v)}</dd>
+            </Fragment>
+          ))}
+        </dl>
       )}
     </div>
   );
@@ -522,7 +540,7 @@ function IdentityCard({ checks }) {
                   <li key={j} className="rounded-lg bg-muted/40 px-2.5 py-1.5">
                     <div className="flex items-center gap-2 text-xs">
                       <Pass ok={s.ok} />
-                      <span className="font-mono font-semibold">{s.step}</span>
+                      <span className="font-semibold">{t(`step_${s.step}`, { defaultValue: humanKey(String(s.step ?? "").toLowerCase()) })}</span>
                       {s.ms != null && (
                         <span className="ml-auto text-[10px] text-muted-foreground">{s.ms} ms</span>
                       )}

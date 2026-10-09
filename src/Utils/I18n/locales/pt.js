@@ -3623,6 +3623,7 @@ export const loans = {
 };
 
 export const mms = {
+  institution: "Instituição",
   agentsTitle: "Agentes",
   agentsSubtitle: "Comerciantes, agentes e super agentes. Uma alteração de papel ou de super agente é aprovada por outro utilizador.",
   agentsTab_all: "Todos",
@@ -4715,6 +4716,11 @@ export const cards = {
 };
 
 export const kycReport = {
+  step_OCR_FRONT: "Leitura da frente do documento (OCR)",
+  step_OCR_BACK: "Leitura do verso do documento (OCR)",
+  step_FACE_MATCH: "Correspondência facial",
+  step_LIVENESS: "Prova de vida",
+  value: "Valor",
   notAnImage: "Ficheiro (não é imagem)",
   signinPin: "PIN de acesso",
   txnPin: "PIN de transação",

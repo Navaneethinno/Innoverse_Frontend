@@ -11,6 +11,8 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { terminalsApi } from "@/Services/Merchant/mms.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -68,7 +70,16 @@ export function Terminals() {
       ),
     },
     { key: "terminal_type", label: t("terminalType"), render: (r) => <span className="text-xs">{r.terminal_type_name ?? r.terminal_type} · {[r.make, r.model].filter(Boolean).join(" ")}</span> },
-    { key: "merchant", label: t("merchant"), render: (r) => <span className="text-xs">{r.merchant?.name ?? t("notAssigned")}</span> },
+    {
+      key: "merchant",
+      label: t("merchant"),
+      render: (r) => (
+        <div>
+          <p className="text-xs">{r.merchant?.name ?? t("notAssigned")}</p>
+          <p className="text-[10px] text-muted-foreground">{r.inst_profile_name}</p>
+        </div>
+      ),
+    },
     { key: "store", label: t("store"), render: (r) => <span className="text-xs">{r.store ? `${r.store.name}${r.name ? ` · ${r.name}` : ""}` : "—"}</span> },
     {
       key: "status",
@@ -157,6 +168,9 @@ function TerminalForm({ terminal, onClose, onSaved }) {
     model: terminal?.model ?? "",
   });
   const [merchant, setMerchant] = useState(null);
+  // Platform users pick the institution first; bank users are in their own.
+  const isPlatform = useCanChooseInstitution();
+  const [instId, setInstId] = useState("");
   const [saving, setSaving] = useState(false);
   const tidLocked = Boolean(terminal) && !["PENDING", "REJECTED"].includes(terminal.status);
 
@@ -168,12 +182,12 @@ function TerminalForm({ terminal, onClose, onSaved }) {
   }, []);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: key === "tid" ? tidOf(e.target.value) : e.target.value }));
-  const valid = form.tid.length >= 4 && form.serial_number.trim() && form.terminal_type;
+  const valid = form.tid.length >= 4 && form.serial_number.trim() && form.terminal_type && (terminal || !isPlatform || instId);
   const save = async () => {
     setSaving(true);
     try {
       const body = { ...form, serial_number: form.serial_number.trim(), make: form.make.trim(), model: form.model.trim() };
-      const response = terminal ? await terminalsApi.edit({ id: terminal.id, ...body }) : await terminalsApi.add({ ...body, ...(merchant ? { merchant: partyRef(merchant) } : {}) });
+      const response = terminal ? await terminalsApi.edit({ id: terminal.id, ...body }) : await terminalsApi.add({ ...body, ...(isPlatform ? { inst_profile_id: Number(instId) } : {}), ...(merchant ? { merchant: partyRef(merchant) } : {}) });
       if (response?.message) notifications.success(response.message);
       onClose();
       onSaved();
@@ -202,6 +216,17 @@ function TerminalForm({ terminal, onClose, onSaved }) {
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
+        {!terminal && (
+          <div className="sm:col-span-2">
+            <InstitutionField
+              value={instId}
+              onChange={(v) => {
+                setInstId(v);
+                setMerchant(null);
+              }}
+            />
+          </div>
+        )}
         <label className={labelClass}>
           {t("tid")} <span className="text-red-500">*</span>
           <input className={`${inputClass} mt-1.5 font-mono`} disabled={tidLocked} value={form.tid} onChange={set("tid")} placeholder="ETK00001" />
@@ -227,7 +252,7 @@ function TerminalForm({ terminal, onClose, onSaved }) {
         </div>
         {!terminal && (
           <div className="sm:col-span-2">
-            <MerchantPicker value={merchant} onChange={setMerchant} optional />
+            {(!isPlatform || instId) && <MerchantPicker value={merchant} onChange={setMerchant} instProfileId={isPlatform ? Number(instId) : undefined} optional />}
           </div>
         )}
       </div>
@@ -367,6 +392,7 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
   const rows = [
     ["serialNumber", x.serial_number],
     ["terminalType", `${x.terminal_type_name ?? x.terminal_type} · ${[x.make, x.model].filter(Boolean).join(" ")}`],
+    ["institution", x.inst_profile_name],
     ["merchant", x.merchant?.name ?? t("notAssigned")],
     ["store", x.store ? `${x.store.name} (${x.store.code})${x.name ? ` · ${x.name}` : ""}` : "—"],
     ["lastSeen", mmsDate(x.last_seen_at)],

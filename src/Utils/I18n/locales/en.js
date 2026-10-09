@@ -3609,6 +3609,7 @@ export const loans = {
 };
 
 export const mms = {
+  institution: "Institution",
   agentsTitle: "Agents",
   agentsSubtitle: "Merchants, agents and super agents. A role or super agent change is approved by a second user.",
   agentsTab_all: "All",
@@ -4701,6 +4702,11 @@ export const cards = {
 };
 
 export const kycReport = {
+  step_OCR_FRONT: "Document front read (OCR)",
+  step_OCR_BACK: "Document back read (OCR)",
+  step_FACE_MATCH: "Face match",
+  step_LIVENESS: "Liveness",
+  value: "Value",
   notAnImage: "File (not an image)",
   signinPin: "Sign-in PIN",
   txnPin: "Transaction PIN",
