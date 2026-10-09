@@ -148,6 +148,10 @@ export const login = {
 };
 
 export const institutions = {
+  sectionKyc: "KYC",
+  sectionSignIn: "Sign-in",
+  sectionSignUp: "Sign-up",
+  sectionMerchantsPortals: "Merchants and portals",
   appSignupTypes: "Who can sign up on the app",
   appSignupAll: "Every type set up",
   appSignupHint: "Leave empty to allow all types. Web sign-up isn't affected.",

@@ -326,7 +326,24 @@ export function SignupPrefixesField({ value, onChange, phoneCodes }) {
   const [dial, setDial] = useState("");
   // Until one is picked: the code the saved prefixes start with.
   const lead = dial || codes.find((c) => list.some((p) => p.startsWith(c))) || (own ? phoneCodes[0] : "");
-  if (!onChange) return <Field label={t("signupPrefixes")} value={list.length ? list.join(", ") : t("signupPrefixesAny")} />;
+  if (!onChange) {
+    return (
+      <div className="col-span-2">
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("signupPrefixes")}</p>
+        {list.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {list.map((p) => (
+              <span key={p} className="rounded-full bg-muted px-2.5 py-0.5 font-mono text-xs font-bold text-slate-700">
+                {p}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm font-medium text-slate-700">{t("signupPrefixesAny")}</p>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="sm:col-span-3">
       <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("signupPrefixes")}</p>

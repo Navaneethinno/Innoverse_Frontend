@@ -301,23 +301,46 @@ export function ViewInstitutionProfile() {
           </div>
 
           <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
-            <h2 className="text-sm font-bold text-slate-700">{t("kycLoginPolicySectionLabel")}</h2>
+            <h2 className="text-sm font-bold text-slate-700">{t("sectionKyc")}</h2>
             <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <Field label={t("kycEnabled")} value={institution.kyc_enabled} />
               <Field label={t("totalKycLevels")} value={institution.total_kyc_levels} />
               <Field label={t("allowDowngradeKyc")} value={institution.allow_downgrade_kyc} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
+            <h2 className="text-sm font-bold text-slate-700">{t("sectionSignIn")}</h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <Field label={t("primaryLoginIdentifier")} value={institution.primary_login_identifier} />
               <Field label={t("biometricLogin")} value={institution.allow_biometric_login} />
+              <Field label={t("otpLength")} value={institution.otp_length ?? 6} />
               <Field label={t("reviewTxnPinEnabled")} value={institution.is_txn_pin_enabled} />
               <Field label={t("sameLoginTxnPin")} value={institution.is_same_login_txn_pin_allowed} />
-              <Field label={t("otpLength")} value={institution.otp_length ?? 6} />
               {usesPin(institution.portal_login_methods) && <Field label={t("loginPinLength")} value={institution.login_pin_length} />}
               <LoginMethodsGrid value={institution.portal_login_methods} />
-              <StoreWalletsField value={institution.store_wallets} />
-              <SignupPrefixesField value={institution.signup_phone_prefixes} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
+            <h2 className="text-sm font-bold text-slate-700">{t("sectionSignUp")}</h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <AppSignupTypesField value={institution.app_signup_types} />
-              <PortalEditionField value={institution.portal_edition} />
+              <SignupPrefixesField value={institution.signup_phone_prefixes} />
               <PortalIdentifiersGrid value={institution.portal_identifiers} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80 space-y-4">
+            <h2 className="text-sm font-bold text-slate-700">{t("sectionMerchantsPortals")}</h2>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+              <StoreWalletsField value={institution.store_wallets} />
+              <PortalEditionField value={institution.portal_edition} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl p-5 bg-white/70 border border-white/80">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
               <PayToPhoneSettings value={institution.pay_to_phone} />
             </div>
           </div>

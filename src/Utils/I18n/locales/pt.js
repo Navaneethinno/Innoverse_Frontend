@@ -143,6 +143,10 @@ export const login = {
 };
 
 export const institutions = {
+  sectionKyc: "KYC",
+  sectionSignIn: "Início de sessão",
+  sectionSignUp: "Registo",
+  sectionMerchantsPortals: "Comerciantes e portais",
   appSignupTypes: "Quem se pode registar na app",
   appSignupAll: "Todos os tipos configurados",
   appSignupHint: "Deixe vazio para permitir todos os tipos. O registo na web não é afetado.",
