@@ -13,6 +13,16 @@ import { useTranslation } from "react-i18next";
 // every place it currently renders `label`/`config.title` as visible text
 // with `tr(label)` — the CONFIGS objects themselves are untouched.
 const PT = {
+  "The account products customers and merchants hold, and their settings.": "Os produtos de conta que clientes e comerciantes detêm, e as suas definições.",
+  "Which ownership types (individual, corporate...) each product is open to.": "Os tipos de titularidade (individual, empresa...) a que cada produto está aberto.",
+  "Which kinds of party (customer, merchant, agent...) each product is open to.": "Os tipos de parte (cliente, comerciante, agente...) a que cada produto está aberto.",
+  "The transactions each product allows.": "As transações que cada produto permite.",
+  "The channels each product can be used from.": "Os canais a partir dos quais cada produto pode ser usado.",
+  "The balances each product keeps and their limits.": "Os saldos que cada produto mantém e os seus limites.",
+  "The groups products belong to.": "Os grupos a que os produtos pertencem.",
+  "How each product earns or charges interest.": "Como cada produto rende ou cobra juros.",
+  "How joint holding works for each product.": "Como funciona a titularidade conjunta em cada produto.",
+  "The states an account of each product goes through.": "Os estados por que passa uma conta de cada produto.",
   // FileUploadField (every upload control).
   "Upload file": "Enviar arquivo",
   "Uploading...": "Enviando...",

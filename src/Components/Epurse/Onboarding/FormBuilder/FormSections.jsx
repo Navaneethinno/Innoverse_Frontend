@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -362,8 +363,8 @@ export function FormSections() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-black text-slate-800">{t("formBuilder:formSectionsTitle")}</h1>
-        <p className="mt-1 text-xs text-muted-foreground">{t("formBuilder:formSectionsSubtitle")}</p>
+        <PageTitle>{t("formBuilder:formSectionsTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formSectionsSubtitle")}</p>
       </div>
       <div className="mb-4 overflow-hidden rounded-2xl" style={glass}>
         <div className="flex flex-wrap items-center gap-2 border-b p-3">

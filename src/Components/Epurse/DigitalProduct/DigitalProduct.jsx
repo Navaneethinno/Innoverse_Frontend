@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
@@ -439,8 +440,8 @@ export function DigitalProduct({ entity }) {
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <PageTitle>{tr(config.title)}</PageTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
             {tr("Manage")} {tr(config.title).toLowerCase()} {tr("configuration")}.
           </p>
         </div>

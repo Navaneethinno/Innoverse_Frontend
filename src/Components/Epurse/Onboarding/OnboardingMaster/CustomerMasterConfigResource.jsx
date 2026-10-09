@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
@@ -306,8 +307,8 @@ export function CustomerMasterConfigResource({ entity }) {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{displayTitle}</h1>
-        <p className="mt-1 text-xs text-muted-foreground">{t("onboarding:manageMasterData", { title: displayTitle.toLowerCase() })}</p>
+        <PageTitle>{displayTitle}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("onboarding:manageMasterData", { title: displayTitle.toLowerCase() })}</p>
       </div>
       <div
         className="mb-4 overflow-hidden rounded-2xl"

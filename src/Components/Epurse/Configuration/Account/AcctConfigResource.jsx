@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { TypedInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
@@ -75,6 +76,7 @@ const CONFIGS = {
     // breadcrumb (routeConfig.js), Add button, and Modal titles all read
     // clearly instead of an ambiguous bare "Product".
     title: "Account Product",
+    subtitle: "The account products customers and merchants hold, and their settings.",
     menuName: "Account Product",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
     // Confirmed live: the backend has a NOT-NULL DB constraint on
@@ -126,6 +128,7 @@ const CONFIGS = {
   },
   acct_product_ownership: {
     title: "Product Ownership",
+    subtitle: "Which ownership types (individual, corporate...) each product is open to.",
     menuName: "Product Ownership",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -138,6 +141,7 @@ const CONFIGS = {
   },
   acct_product_party_type: {
     title: "Product Party Type",
+    subtitle: "Which kinds of party (customer, merchant, agent...) each product is open to.",
     menuName: "Product Party Type",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -148,6 +152,7 @@ const CONFIGS = {
   },
   acct_product_transaction: {
     title: "Product Transaction",
+    subtitle: "The transactions each product allows.",
     menuName: "Product Transaction",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -160,6 +165,7 @@ const CONFIGS = {
   },
   acct_product_channel: {
     title: "Product Channel",
+    subtitle: "The channels each product can be used from.",
     menuName: "Product Channel",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -170,6 +176,7 @@ const CONFIGS = {
   },
   acct_product_balance_config: {
     title: "Product Balance Configuration",
+    subtitle: "The balances each product keeps and their limits.",
     menuName: "Product Balance Configuration",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -186,6 +193,7 @@ const CONFIGS = {
   },
   acct_product_group_config: {
     title: "Product Group Configuration",
+    subtitle: "The groups products belong to.",
     menuName: "Product Group Configuration",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -198,6 +206,7 @@ const CONFIGS = {
   },
   acct_product_interest_config: {
     title: "Interest Configuration",
+    subtitle: "How each product earns or charges interest.",
     menuName: "Interest Configuration",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -218,6 +227,7 @@ const CONFIGS = {
   },
   acct_product_joint_config: {
     title: "Joint Configuration",
+    subtitle: "How joint holding works for each product.",
     menuName: "Joint Configuration",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -230,6 +240,7 @@ const CONFIGS = {
   },
   acct_product_lifecycle_config: {
     title: "Lifecycle Configuration",
+    subtitle: "The states an account of each product goes through.",
     menuName: "Lifecycle Configuration",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
@@ -663,7 +674,8 @@ export function AcctConfigResource({ entity }) {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{tr(config.title)}</h1>
+        <PageTitle>{tr(config.title)}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{tr(config.subtitle)}</p>
       </div>
       <div
         className="mb-4 overflow-hidden rounded-2xl"

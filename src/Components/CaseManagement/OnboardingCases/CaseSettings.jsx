@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Check, Clock, History, Send, X } from "lucide-react";
@@ -113,7 +114,7 @@ export function CaseSettings({ onBack }) {
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
         <ArrowLeft size={15} /> {t("backToQueue")}
       </button>
-      <h1 className="text-2xl font-black tracking-tight text-slate-800">{t("settingsTitle")}</h1>
+      <PageTitle>{t("settingsTitle")}</PageTitle>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">{t("settingsSubtitle")}</p>
 
       {chooser && (

@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useState } from "react";
@@ -293,8 +294,8 @@ export function KYC() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{tr("User KYC")}</h1>
-        <p className="mt-1 text-xs font-medium text-muted-foreground">{tr("Manage user KYC and personal details.")}</p>
+        <PageTitle>{tr("User KYC")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{tr("Manage user KYC and personal details.")}</p>
       </div>
 
       <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} {...searchBind} searchPlaceholder={tr("Search KYC records...")} actions={canAdd && (

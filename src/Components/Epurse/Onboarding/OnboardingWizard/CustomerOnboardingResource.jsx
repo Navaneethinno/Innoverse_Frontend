@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { ViewReportButton, reportBody } from "@/Components/Reports/KycReport/KycReport";
@@ -263,8 +264,8 @@ export function CustomerOnboardingResource() {
     {reportRow && <KycReportView api={customerOnboardingApi} body={reportBody(reportRow)} onBack={() => setReportRow(null)} title={t(`kycReport:${audience}Title`)} />}
     <div className={reportRow ? "hidden" : "pt-1 pb-6"}>
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{t("customer:customerOnboarding")}</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <PageTitle>{t("customer:customerOnboarding")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">
           {t("customer:takeAnIndividualCustomerThroughTheInstitution")}
         </p>
       </div>

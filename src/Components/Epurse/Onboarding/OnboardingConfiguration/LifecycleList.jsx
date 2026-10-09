@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -168,7 +169,7 @@ export function LifecycleList({
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div data-tour="page-title">
-          <h1 className="text-xl font-black text-slate-800">{title}</h1>
+          <PageTitle>{title}</PageTitle>
           {subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {toolbar}

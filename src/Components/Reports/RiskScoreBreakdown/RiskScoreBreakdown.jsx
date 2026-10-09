@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -239,8 +240,8 @@ export function RiskScoreBreakdown() {
       <div className={breakdown.open ? "hidden" : "pt-1 pb-6"}>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-black text-slate-800">{t("breakdownTitle")}</h1>
-            <p className="mt-1 text-xs font-medium text-muted-foreground">
+            <PageTitle>{t("breakdownTitle")}</PageTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
               {t("breakdownSubtitle")}
             </p>
           </div>

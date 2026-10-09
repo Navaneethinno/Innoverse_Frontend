@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -211,8 +212,8 @@ export function UserActivity() {
       <div className={detail.open ? "hidden" : "pt-1 pb-6"}>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-xl font-black text-slate-800">{t("title")}</h1>
-            <p className="mt-1 text-xs font-medium text-muted-foreground">{t("subtitle")}</p>
+            <PageTitle>{t("title")}</PageTitle>
+            <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
           <ExportButtons
             disabled={!body}

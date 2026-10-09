@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,8 +53,8 @@ export function NotificationAlerts() {
         {view === "outbox" ? (
           <>
             <div className="mb-3">
-              <h1 className="text-xl font-black text-slate-800">{t("outbox")}</h1>
-              <p className="mt-1 text-xs text-muted-foreground">{t("outboxSubtitle")}</p>
+              <PageTitle>{t("outbox")}</PageTitle>
+              <p className="mt-1 text-sm text-muted-foreground">{t("outboxSubtitle")}</p>
             </div>
             <NotificationOutbox alertId={alertId} onAlertChange={(id) => show("outbox", id)} />
           </>

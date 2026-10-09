@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
@@ -105,8 +106,8 @@ export function NameLookup() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{t("aml:lookupTitle")}</h1>
-        <p className="mt-1 text-xs font-medium text-muted-foreground">{t("aml:lookupSubtitle")}</p>
+        <PageTitle>{t("aml:lookupTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("aml:lookupSubtitle")}</p>
       </div>
 
       {can("Add") && (

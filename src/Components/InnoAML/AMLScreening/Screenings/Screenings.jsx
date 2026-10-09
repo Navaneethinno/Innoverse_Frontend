@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
@@ -20,8 +21,8 @@ export function Screenings() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <h1 className="text-xl font-black text-slate-800">{t("screeningsTitle")}</h1>
-        <p className="mt-1 text-xs font-medium text-muted-foreground">{t("screeningsSubtitle")}</p>
+        <PageTitle>{t("screeningsTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("screeningsSubtitle")}</p>
       </div>
       <SegmentedSwitch
         className="mb-3"

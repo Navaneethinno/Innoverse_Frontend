@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { DateInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
@@ -226,10 +227,10 @@ export function InstitutionModule() {
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black leading-tight tracking-tight text-foreground">
+          <PageTitle>
             {tr("Institution Module")}
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          </PageTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
             {tr("Manage institution module assignments.")}
           </p>
         </div>

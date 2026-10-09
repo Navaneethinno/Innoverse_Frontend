@@ -1,3 +1,4 @@
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -127,10 +128,10 @@ function KycReportList({ audience }) {
       )}
       <div className={detail.open ? "hidden" : "pt-1 pb-6"}>
         <div className="mb-3">
-          <h1 className="text-xl font-black text-slate-800">
+          <PageTitle>
             {t(audience === "merchant" ? "merchantTitle" : "customerTitle")}
-          </h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+          </PageTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
             {t(audience === "merchant" ? "merchantListSubtitle" : "listSubtitle")}
           </p>
         </div>
