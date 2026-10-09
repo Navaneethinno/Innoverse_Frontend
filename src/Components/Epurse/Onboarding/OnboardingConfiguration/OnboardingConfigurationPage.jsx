@@ -27,6 +27,7 @@ import { countryOption } from "@/Components/Common/countryOption";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
 import { Button } from "@/Components/Common/Button";
+import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../partyType";
 const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 
 // A customer type = the definition, full stop (Onboarding_Configuration_
@@ -158,6 +159,7 @@ const emptyForm = {
   code: "",
   name: "",
   description: "",
+  party_type_id: "",
   ownership_sub_type_id: "",
   minor_age_years: 18,
   home_country_id: "",
@@ -175,6 +177,7 @@ export function OnboardingConfigurationPage() {
   // everyone), which is what was silently happening before this menu name
   // was added: none of the old alternatives matched it.
   const can = usePagePermission("Onboarding Configuration");
+  const isMerchant = useIsMerchantModule();
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   // Only loaded while the create dialog is actually open — same masters
@@ -234,6 +237,7 @@ export function OnboardingConfigurationPage() {
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
+        ...partyTypeBody(isMerchant, form.party_type_id),
         ownership_sub_type_id: form.ownership_sub_type_id ? Number(form.ownership_sub_type_id) : null,
         minor_age_years: Number(form.minor_age_years),
         ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
@@ -405,6 +409,7 @@ export function OnboardingConfigurationPage() {
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
+          {isMerchant && <PartyTypeSelect value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} />}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:subType")} <span className="text-red-500">*</span>
             <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...subTypeOptions]} />

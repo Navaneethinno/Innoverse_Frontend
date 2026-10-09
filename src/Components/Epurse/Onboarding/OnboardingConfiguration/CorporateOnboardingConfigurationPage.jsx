@@ -27,6 +27,7 @@ import { countryOption } from "@/Components/Common/countryOption";
 import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
 
 import { Button } from "@/Components/Common/Button";
+import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../partyType";
 const pendingApi = ({ id }) => corpOnboardingDefinitionApi.pending({ id });
 
 // Corporate mirror of OnboardingConfigurationPage.jsx (Corporate_Onboarding_
@@ -147,6 +148,7 @@ const emptyForm = {
   code: "",
   name: "",
   description: "",
+  party_type_id: "",
   company_type_id: "",
   home_country_id: "",
   effective_from: "",
@@ -156,6 +158,7 @@ export function CorporateOnboardingConfigurationPage() {
   const openMenu = useOpenMenu();
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   const can = useMenuPermission("Corporate Onboarding Configuration");
+  const isMerchant = useIsMerchantModule();
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const { countries } = useCorpOnboardingMasters(open);
@@ -202,6 +205,7 @@ export function CorporateOnboardingConfigurationPage() {
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
+        ...partyTypeBody(isMerchant, form.party_type_id),
         company_type_id: Number(form.company_type_id),
         ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
         ...(form.effective_from ? { effective_from: form.effective_from } : {}),
@@ -371,6 +375,7 @@ export function CorporateOnboardingConfigurationPage() {
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} maxLength={250} className="mt-1.5 min-h-20 w-full rounded-xl border p-3 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
+          {isMerchant && <PartyTypeSelect value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} />}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:companyType")} <span className="text-red-500">*</span>
             <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...companyTypeOptions]} />

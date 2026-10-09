@@ -11,7 +11,7 @@ import { useUnsavedChangesGuard } from "@/Hooks/useUnsavedChangesGuard";
 import { CustomerRiskPanel } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { FieldPreview } from "../FormBuilder/FieldPreview";
-import { PORTAL_DRAFT_REASON, PortalDraftBanner, isPortalDraft } from "./customerPortal";
+import { PORTAL_DRAFT_REASON, PortalDraftBanner, SponsorLine, isPortalDraft } from "./customerPortal";
 
 import { Button } from "@/Components/Common/Button";
 import { CustomerAccounts, useAccountsOwner } from "@/Components/Epurse/Accounts/accountShared";
@@ -446,6 +446,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             <div className="h-full rounded-full bg-primary" style={{ width: `${wizard.progress?.percent ?? 0}%` }} />
           </div>
         </div>
+        <SponsorLine sponsor={wizard.onboarding?.sponsor} />
         {!corporate && <KycLevelPanel kyc={wizard.kyc} onJump={jumpToField} />}
         <CustomerAccounts accounts={wizard.accounts} />
         <OwnerHistoryButton owner={owner} />

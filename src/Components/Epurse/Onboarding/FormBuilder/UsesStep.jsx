@@ -22,6 +22,7 @@ const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
 const KYC = ["kyc_document_type", "kyc_document_front", "kyc_document_back"];
 const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country"];
 const SUBMIT_CHANNELS = ["APP", "WEB", "USSD"];
+const AGENT_TIERS = ["AGENT", "SUPER_AGENT"];
 const IDV = ["idv_front", "idv_back", "idv_selfie", "idv_face_side", "idv_id_number"];
 
 // Identity verification: the photos are single-image files in a one-row
@@ -176,7 +177,7 @@ function Pick({ label, fields, value, onChange, disabled, emptyLabel, optional }
   );
 }
 
-export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, guardian, onGuardianChange, submitLevels, kycLevels = [], onSubmitLevelsChange }) {
+export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, guardian, onGuardianChange, submitLevels, kycLevels = [], onSubmitLevelsChange, agentTier = null, onAgentTierChange }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const openMenu = useOpenMenu();
   const corporate = kind === "corporate";
@@ -545,6 +546,27 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
     </Card>
   );
 
+  // Agent customer types (agentTier not null): who their sign-ups become.
+  const agentCard = agentTier !== null && (
+    <Card
+      key="agentTier"
+      title={t("usesAgentTierTitle")}
+      summary={agentTier ? t(`agentTier_${agentTier}`) : t("usesAgentTierMissing")}
+      open={open.has("agentTier")}
+      onToggle={() => toggle("agentTier")}
+      problems={problemsFor(problems, ["agent tier", "agents or super agents"])}
+    >
+      <p className="text-xs text-muted-foreground">{t("usesAgentTierIntro")}</p>
+      <FilterSelect
+        className="max-w-xs"
+        disabled={readOnly}
+        value={agentTier}
+        onChange={(v) => onAgentTierChange?.(v)}
+        options={[{ value: "", label: t("usesAgentTierPick") }, ...AGENT_TIERS.map((v) => ({ value: v, label: t(`agentTier_${v}`) }))]}
+      />
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">{t("usesIntro")}</p>
@@ -556,6 +578,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
       {relatedCard}
       {guardianCard}
       {submitCard}
+      {agentCard}
     </div>
   );
 }

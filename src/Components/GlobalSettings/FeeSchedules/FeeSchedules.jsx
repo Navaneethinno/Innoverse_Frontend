@@ -579,7 +579,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
                 addLabel={t("addShare")}
                 columns="lg:grid-cols-2"
                 fields={[
-                  { key: "purpose", label: t("purpose"), ...codes(options.share_purposes) },
+                  { key: "purpose", label: t("purpose"), type: "select", options: (options.share_purposes ?? []).map((v) => ({ value: v, label: t(`share_${v}`, { defaultValue: v }) })) },
                   { key: "percent", label: t("percent"), type: "rate" },
                 ]}
               />

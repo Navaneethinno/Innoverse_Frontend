@@ -30,6 +30,14 @@ export function AccountClass({ value }) {
   );
 }
 
+// An agent's float wallet (wallet_purpose AGENT_FLOAT): only for cash-in
+// and cash-out, never for other transactions.
+export function WalletPurposeBadge({ value }) {
+  const { t } = useTranslation("accounts");
+  if (value !== "AGENT_FLOAT") return null;
+  return <span className="whitespace-nowrap rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">{t("agentWallet")}</span>;
+}
+
 // The balances, as label/value tiles.
 export function AccountBalances({ account }) {
   const { t } = useTranslation("accounts");

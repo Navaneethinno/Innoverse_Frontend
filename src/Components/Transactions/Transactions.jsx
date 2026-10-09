@@ -310,6 +310,10 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             x.fee_rule_code && [t("feeRule"), `${x.fee_schedule_code ?? ""} / ${x.fee_rule_code}`],
             x.client_reference && [t("clientReference"), x.client_reference],
             x.merchant_name && [t("merchant"), x.merchant_name],
+            // POS: the terminal, the store and the store user who made it.
+            x.terminal_id && [t("terminal"), x.terminal_id],
+            x.store_id && [t("store"), x.store_name ? `${x.store_name} (#${x.store_id})` : `#${x.store_id}`],
+            x.portal_user_id && [t("storeUser"), x.portal_user_name ? `${x.portal_user_name} (#${x.portal_user_id})` : `#${x.portal_user_id}`],
             (x.device_type || x.device_id) && [t("device"), [x.device_type, x.device_id].filter(Boolean).join(" · ")],
             x.digital_product_name && [t("digitalProduct"), x.digital_product_name],
           ]}
@@ -329,7 +333,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
               { key: "acct_num", label: t("account"), render: (l) => <span className="font-mono">{l.acct_num}</span> },
               { key: "operation_type", label: t("drCr"), render: (l) => <DrCr type={l.operation_type} /> },
               { key: "txn_amount", label: t("amount"), align: "right", render: (l) => m(l.txn_amount) },
-              { key: "leg_kind", label: t("leg"), render: (l) => `${l.leg_kind ?? ""} · ${l.party_role ?? ""}` },
+              { key: "leg_kind", label: t("leg"), render: (l) => `${t(`leg_${l.leg_kind}`, { defaultValue: l.leg_kind ?? "" })} · ${l.party_role ?? ""}` },
               { key: "acct_class", label: t("class"), render: (l) => l.acct_class ?? "—" },
               { key: "entry_amount", label: t("balanceAfter"), align: "right", render: (l) => m(l.entry_amount) },
             ]}

@@ -197,13 +197,13 @@ export function NewRequest({ preset, onClose, onDone }) {
             {needs.card && form.card && <HolderWallet card={form.card} value={form.wallet_id} onChange={(wallet_id) => setForm((f) => ({ ...f, wallet_id }))} />}
             {needs.from && (
               <label className={labelClass}>
-                {t("fromWallet")}
+                {option?.from === "AGENT_FLOAT" ? t("fromAgentWallet") : t("fromWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.from_acct_num} onChange={set("from_acct_num")} placeholder="20784000000021" />
               </label>
             )}
             {needs.to && (
               <label className={labelClass}>
-                {t("toWallet")}
+                {option?.to === "AGENT_FLOAT" ? t("toAgentWallet") : t("toWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.to_acct_num} onChange={set("to_acct_num")} placeholder="20784000000013" />
               </label>
             )}

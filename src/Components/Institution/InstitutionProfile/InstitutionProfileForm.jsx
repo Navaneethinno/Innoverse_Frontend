@@ -278,5 +278,20 @@ export function PortalEditionField({ value, onChange }) {
   );
 }
 
+// Where a merchant's store payments go: SHARED (the merchant's one wallet,
+// the default) or PER_STORE (each approved store gets its own wallet).
+const STORE_WALLETS = ["SHARED", "PER_STORE"];
+export function StoreWalletsField({ value, onChange }) {
+  const { t } = useTranslation("institutions");
+  const current = value || "SHARED";
+  if (!onChange) return <Field label={t("storeWallets")} value={t(`storeWallets_${current}`)} />;
+  return (
+    <div>
+      <EditSelect label={t("storeWallets")} value={current} onChange={onChange} options={STORE_WALLETS.map((v) => ({ value: v, label: t(`storeWallets_${v}`) }))} placeholder={t("storeWallets_SHARED")} />
+      <p className="mt-1 text-[11px] text-muted-foreground">{t("storeWalletsHint")}</p>
+    </div>
+  );
+}
+
 // Digits of the one-time codes sent to customers and merchants (4–8).
 export const OTP_LENGTHS = [4, 5, 6, 7, 8].map((n) => ({ value: n, label: String(n) }));

@@ -41,6 +41,13 @@ export function usePortalAuditLabel() {
     String(entry?.audit_action ?? "").toUpperCase() === "SELF" ? t("selfOnboardedCustomerPortal") : entry?.audit_action;
 }
 
+// Who signed the person up, when an agent did (onboarding.sponsor).
+export function SponsorLine({ sponsor }) {
+  const { t } = useAudienceTranslation("customer");
+  if (!sponsor?.name) return null;
+  return <p className="mb-3 rounded-lg bg-violet-50 p-2.5 text-xs font-semibold text-violet-700">{t("signedUpByAgent", { name: sponsor.name })}</p>;
+}
+
 export function PortalDraftBanner() {
   const { t } = useAudienceTranslation("customer");
   return <div className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs font-semibold text-amber-700">{t(PORTAL_DRAFT_REASON)}</div>;

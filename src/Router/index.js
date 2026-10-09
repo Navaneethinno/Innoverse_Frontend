@@ -12,6 +12,7 @@ import { onboardingMasterRoutes } from "./Epurse/onboardingMasterRoutes";
 import { onboardingAliasRoutes } from "./Epurse/onboardingAliasRoutes";
 import { notificationRoutes } from "./Epurse/notificationRoutes";
 import { riskRoutes } from "./Epurse/riskRoutes";
+import { mmsRoutes } from "./Merchant/mmsRoutes";
 import { amlRoutes } from "./InnoAML/amlRoutes";
 import { reportRoutes } from "./Reports/reportRoutes";
 import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
@@ -32,6 +33,7 @@ export const epurseRoutes = [
   ...onboardingAliasRoutes, // retired onboarding slugs
   ...notificationRoutes, // Notification Center
   ...riskRoutes, // Risk Assessment
+  ...mmsRoutes, // MMS > Agents, Stores, Terminals
 ];
 
 // InnoAML: AML Configuration (Setup, Internal Watchlists) and AML Screening

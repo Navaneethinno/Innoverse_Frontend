@@ -10,6 +10,7 @@ import { RISK_KINDS, useCustomerTypeOptions } from "./riskShared";
 import { useRiskOptions } from "./useRiskOptions";
 import { CriteriaEditor } from "./CriteriaEditor";
 import { LevelsEditor, chainLevels } from "./LevelsEditor";
+import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../Onboarding/partyType";
 
 const DEFAULT_LEVELS = [
   { code: "LOW", name: "Low", min_score: 0, max_score: 40, color_code: "#4CAF50", risk_action_id: "" },
@@ -42,6 +43,7 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
     description: editing?.description ?? "",
     ownership_sub_type_id: idOrEmpty(editing?.ownership_sub_type_id),
     company_type_id: idOrEmpty(editing?.company_type_id),
+    party_type_id: idOrEmpty(editing?.party_type_id),
     criteria: criteriaOf(editing?.criteria),
     levels: editing?.levels?.length
       ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id) }))
@@ -51,6 +53,7 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
   const risk = useRiskOptions(api, form.inst_profile_id || undefined);
   const types = useCustomerTypeOptions(kind);
   const locked = Boolean(editing);
+  const isMerchant = useIsMerchantModule();
 
   // Risk actions are the institution's own (Risk Action master). When it
   // still has the ones carried over from the old platform list (Allow /
@@ -99,6 +102,7 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
           : {
               inst_profile_id: form.inst_profile_id,
               code: form.code,
+              ...partyTypeBody(isMerchant, form.party_type_id),
               // Party type and ownership come from the module and menu
               // (handoff 17); "No sub type" is the default setup (null).
               ...(kind === "individual"
@@ -149,6 +153,7 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
 
         <fieldset data-tour="risk-customer-type" className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-2">
           <legend className="px-1 text-sm font-semibold text-slate-700">{t("risk:customerType")}</legend>
+          {isMerchant && <PartyTypeSelect className={labelClass} value={form.party_type_id} disabled={locked} onChange={pick("party_type_id")} />}
           {kind === "individual" ? (
             <label className={labelClass}>
               {t("risk:subType")} <span className="text-red-500">*</span>

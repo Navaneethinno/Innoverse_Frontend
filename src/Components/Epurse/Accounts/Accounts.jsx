@@ -14,7 +14,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { AccountBalances, AccountClass, accountDate, money, productLabel } from "./accountShared";
+import { AccountBalances, AccountClass, WalletPurposeBadge, accountDate, money, productLabel } from "./accountShared";
 import { AccountStatement } from "./AccountStatement";
 import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } from "./AccountActions";
 import { Tabs } from "../../Loans/loanShared";
@@ -96,7 +96,10 @@ function AccountsList() {
       render: (r) => (
         <div className="flex flex-col items-start gap-1">
           <span className="font-mono text-xs font-bold">{r.acct_num}</span>
-          <AccountClass value={r.acct_class} />
+          <span className="flex flex-wrap gap-1">
+            <AccountClass value={r.acct_class} />
+            <WalletPurposeBadge value={r.wallet_purpose} />
+          </span>
         </div>
       ),
     },
@@ -278,7 +281,7 @@ function AccountDetail({ account, onClose, onStatement }) {
       )}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-2 font-mono text-lg font-black text-foreground">
-          {a.acct_num} <AccountClass value={a.acct_class} />
+          {a.acct_num} <AccountClass value={a.acct_class} /> <WalletPurposeBadge value={a.wallet_purpose} />
         </p>
         <div className="flex items-center gap-3">
           <StatusBadge status={a.status_name ?? String(a.status ?? "")} variant="subtle" />

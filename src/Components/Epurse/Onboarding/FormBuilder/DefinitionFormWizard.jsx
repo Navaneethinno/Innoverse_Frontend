@@ -1,3 +1,4 @@
+import { isAgentType } from "../partyType";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -366,6 +367,8 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
     guardian: { min_kyc_level: Number(form.guardian?.min_kyc_level) || 0 },
     // A channel left out uses the scheme's entry level.
     ...(Object.keys(form.submit_levels ?? {}).length ? { submit_levels: form.submit_levels } : {}),
+    // Agent customer types only: whether sign-ups become agents or super agents.
+    ...(isAgentType(def) && form.agent_tier ? { agent_tier: form.agent_tier } : {}),
     uses: Object.fromEntries(Object.entries(form.uses ?? {}).filter(([, keys]) => Array.isArray(keys) && keys.length)),
   });
 
@@ -617,7 +620,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           {step === "checkpoints" && <CheckpointsStep t={t} checkpoints={form.checkpoints} onChange={(checkpoints) => change({ checkpoints })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
 
           {step === "uses" && (
-            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} guardian={form.guardian} onGuardianChange={(guardian) => change({ guardian })} submitLevels={form.submit_levels} kycLevels={basics.kyc_group_id ? kycLevels : []} onSubmitLevelsChange={(submit_levels) => change({ submit_levels })} />
+            <UsesStep kind={kind} fields={formFields} uses={form.uses} readOnly={readOnly} problems={problems} onChange={setUses} guardian={form.guardian} onGuardianChange={(guardian) => change({ guardian })} submitLevels={form.submit_levels} kycLevels={basics.kyc_group_id ? kycLevels : []} onSubmitLevelsChange={(submit_levels) => change({ submit_levels })} agentTier={isAgentType(def) ? (form.agent_tier ?? "") : null} onAgentTierChange={(agent_tier) => change({ agent_tier })} />
           )}
 
           {step === "review" && (
