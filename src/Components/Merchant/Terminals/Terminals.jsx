@@ -20,6 +20,8 @@ import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../../Te
 import { MmsStatus, mmsDate, pageOf, partyKey, partyRef } from "../mmsShared";
 
 const STATUSES = ["PENDING", "ACTIVE", "REJECTED", "BLOCKED", "RETIRED"];
+// "POS terminal · PAX A920" (no make or model: just the type).
+const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
 // TID: 4 to 16 of A-Z and 0-9.
 const tidOf = (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
 
@@ -69,7 +71,7 @@ export function Terminals() {
         </div>
       ),
     },
-    { key: "terminal_type", label: t("terminalType"), render: (r) => <span className="text-xs">{r.terminal_type_name ?? r.terminal_type} · {[r.make, r.model].filter(Boolean).join(" ")}</span> },
+    { key: "terminal_type", label: t("terminalType"), render: (r) => <span className="text-xs">{typeLabel(r)}</span> },
     {
       key: "merchant",
       label: t("merchant"),
@@ -177,7 +179,8 @@ function TerminalForm({ terminal, onClose, onSaved }) {
   useEffect(() => {
     terminalsApi
       .types()
-      .then((r) => setTypes(rowsOf(r)))
+      // data is [[...types]].
+      .then((r) => setTypes(rowsOf(r).flat()))
       .catch(() => setTypes([]));
   }, []);
 
@@ -391,7 +394,7 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
   );
   const rows = [
     ["serialNumber", x.serial_number],
-    ["terminalType", `${x.terminal_type_name ?? x.terminal_type} · ${[x.make, x.model].filter(Boolean).join(" ")}`],
+    ["terminalType", typeLabel(x)],
     ["institution", x.inst_profile_name],
     ["merchant", x.merchant?.name ?? t("notAssigned")],
     ["store", x.store ? `${x.store.name} (${x.store.code})${x.name ? ` · ${x.name}` : ""}` : "—"],
