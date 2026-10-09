@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
 import { DigitChips } from "@/Components/Common/DigitChips";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { useDialCountries } from "@/Hooks/Institution/institutionCurrencyHooks";
@@ -292,6 +293,22 @@ export function StoreWalletsField({ value, onChange }) {
     <div>
       <EditSelect label={t("storeWallets")} value={current} onChange={onChange} options={STORE_WALLETS.map((v) => ({ value: v, label: t(`storeWallets_${v}`) }))} />
       <p className="mt-1 text-[11px] text-muted-foreground">{t("storeWalletsHint")}</p>
+    </div>
+  );
+}
+
+// Which kinds of party may register in the mobile app; none = every type
+// the bank has set up. Web sign-up isn't affected.
+const APP_SIGNUP_TYPES = ["CUSTOMER_INDIVIDUAL", "CUSTOMER_CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];
+export function AppSignupTypesField({ value, onChange }) {
+  const { t } = useTranslation("institutions");
+  const list = value ?? [];
+  if (!onChange) return <Field label={t("appSignupTypes")} value={list.length ? list.map((v) => t(`appSignup_${v}`)).join(", ") : t("appSignupAll")} />;
+  return (
+    <div className="sm:col-span-3">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("appSignupTypes")}</p>
+      <CheckboxPillGroup className="flex-row flex-wrap" value={list} onChange={onChange} options={APP_SIGNUP_TYPES.map((v) => ({ value: v, label: t(`appSignup_${v}`) }))} />
+      <p className="mt-1 text-[11px] text-muted-foreground">{t("appSignupHint")}</p>
     </div>
   );
 }

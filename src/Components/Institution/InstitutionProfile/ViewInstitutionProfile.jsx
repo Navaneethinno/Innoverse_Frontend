@@ -11,7 +11,7 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { Field, LoginMethodsGrid, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, SignupPrefixesField, StoreWalletsField, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
+import { Field, LoginMethodsGrid, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, AppSignupTypesField, SignupPrefixesField, StoreWalletsField, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
@@ -117,6 +117,7 @@ export function ViewInstitutionProfile() {
         portal_edition: institution.portal_edition ?? undefined,
         store_wallets: institution.store_wallets ?? undefined,
         signup_phone_prefixes: institution.signup_phone_prefixes ?? undefined,
+        app_signup_types: institution.app_signup_types ?? undefined,
         narration: "",
       });
     }
@@ -314,6 +315,7 @@ export function ViewInstitutionProfile() {
               <LoginMethodsGrid value={institution.portal_login_methods} />
               <StoreWalletsField value={institution.store_wallets} />
               <SignupPrefixesField value={institution.signup_phone_prefixes} />
+              <AppSignupTypesField value={institution.app_signup_types} />
               <PortalEditionField value={institution.portal_edition} />
               <PortalIdentifiersGrid value={institution.portal_identifiers} />
               <PayToPhoneSettings value={institution.pay_to_phone} />

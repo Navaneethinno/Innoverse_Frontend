@@ -143,6 +143,13 @@ export const login = {
 };
 
 export const institutions = {
+  appSignupTypes: "Quem se pode registar na app",
+  appSignupAll: "Todos os tipos configurados",
+  appSignupHint: "Deixe vazio para permitir todos os tipos. O registo na web não é afetado.",
+  appSignup_CUSTOMER_INDIVIDUAL: "Cliente, individual",
+  appSignup_CUSTOMER_CORPORATE: "Cliente, empresa",
+  appSignup_MERCHANT_INDIVIDUAL: "Comerciante, individual",
+  appSignup_MERCHANT_CORPORATE: "Comerciante, empresa",
   signupPrefixes: "Números de registo",
   signupPrefixesAny: "Qualquer número",
   dialCode: "Código de país",

@@ -148,6 +148,13 @@ export const login = {
 };
 
 export const institutions = {
+  appSignupTypes: "Who can sign up on the app",
+  appSignupAll: "Every type set up",
+  appSignupHint: "Leave empty to allow all types. Web sign-up isn't affected.",
+  appSignup_CUSTOMER_INDIVIDUAL: "Customer, individual",
+  appSignup_CUSTOMER_CORPORATE: "Customer, corporate",
+  appSignup_MERCHANT_INDIVIDUAL: "Merchant, individual",
+  appSignup_MERCHANT_CORPORATE: "Merchant, corporate",
   signupPrefixes: "Sign-up numbers",
   signupPrefixesAny: "Any number",
   dialCode: "Dialling code",
