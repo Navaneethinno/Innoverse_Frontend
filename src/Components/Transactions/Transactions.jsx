@@ -311,9 +311,9 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             x.client_reference && [t("clientReference"), x.client_reference],
             x.merchant_name && [t("merchant"), x.merchant_name],
             // POS: the terminal, the store and the store user who made it.
+            x.store_id && [t("store"), x.store_name ?? `#${x.store_id}`],
             x.terminal_id && [t("terminal"), x.terminal_id],
-            x.store_id && [t("store"), x.store_name ? `${x.store_name} (#${x.store_id})` : `#${x.store_id}`],
-            x.portal_user_id && [t("storeUser"), x.portal_user_name ? `${x.portal_user_name} (#${x.portal_user_id})` : `#${x.portal_user_id}`],
+            x.store_id && [t("doneBy"), x.portal_user_name ?? t("doneByMerchant")],
             (x.device_type || x.device_id) && [t("device"), [x.device_type, x.device_id].filter(Boolean).join(" · ")],
             x.digital_product_name && [t("digitalProduct"), x.digital_product_name],
           ]}

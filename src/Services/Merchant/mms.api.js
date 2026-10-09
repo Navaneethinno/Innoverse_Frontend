@@ -39,11 +39,13 @@ export const storesApi = {
 
 // MMS › Terminals (menu 209): POS terminals the bank registers and assigns
 // to merchants. `auth` and `reset_secret` return terminal_secret once.
+// merchants: { search, inst_profile_id (platform users), page, limit } -> the
+// Active merchant-type parties a terminal can be assigned to.
 const terminal = "/merchant/admin/terminal";
 export const terminalsApi = {
   listPath: `${terminal}/list`,
   ...Object.fromEntries(
-    ["types", "list", "get", "add", "edit", "auth", "deauth", "assign", "unassign", "deactivate", "reactivate", "retire"].map((name) => [name, (body) => request(`${terminal}/${name}`, body ?? {})]),
+    ["types", "list", "get", "add", "edit", "auth", "deauth", "assign", "unassign", "deactivate", "reactivate", "retire", "merchants"].map((name) => [name, (body) => request(`${terminal}/${name}`, body ?? {})]),
   ),
   resetSecret: (body) => request(`${terminal}/reset_secret`, body),
 };

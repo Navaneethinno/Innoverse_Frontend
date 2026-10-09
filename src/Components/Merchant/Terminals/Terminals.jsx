@@ -11,7 +11,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { agentsApi, terminalsApi } from "@/Services/Merchant/mms.api";
+import { terminalsApi } from "@/Services/Merchant/mms.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../../TermDeposits/depositShared";
@@ -235,8 +235,9 @@ function TerminalForm({ terminal, onClose, onSaved }) {
   );
 }
 
-// Search the institution's merchants (parties with the MERCHANT role).
-function MerchantPicker({ value, onChange, optional = false }) {
+// Search the merchants a terminal can be assigned to (Terminals' own call).
+// Platform users search the terminal's institution.
+function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
   const { t } = useTranslation("mms");
   const [term, setTerm] = useState("");
   const [found, setFound] = useState([]);
@@ -246,16 +247,16 @@ function MerchantPicker({ value, onChange, optional = false }) {
     if (q.length < 2) return undefined;
     let cancelled = false;
     const timer = window.setTimeout(() => {
-      agentsApi
-        .list({ search: q, page: 1, limit: 20 })
-        .then((r) => !cancelled && setFound(pageOf(r).items.filter((p) => (p.roles ?? []).includes("MERCHANT"))))
+      terminalsApi
+        .merchants({ search: q, page: 1, limit: 20, ...(instProfileId ? { inst_profile_id: instProfileId } : {}) })
+        .then((r) => !cancelled && setFound(pageOf(r).items))
         .catch((error) => !cancelled && notifications.error(error.message));
     }, 350);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [term]);
+  }, [term, instProfileId]);
 
   return (
     <div>
@@ -439,7 +440,7 @@ function AssignDialog({ terminal, busy, onClose, onSave }) {
       }
     >
       {terminal.merchant && <p className="mb-3 text-sm text-muted-foreground">{t("assignHint", { name: terminal.merchant.name })}</p>}
-      <MerchantPicker value={merchant} onChange={setMerchant} />
+      <MerchantPicker value={merchant} onChange={setMerchant} instProfileId={terminal.inst_profile_id} />
     </Modal>
   );
 }

@@ -3759,6 +3759,8 @@ export const mms = {
 };
 
 export const txn = {
+  doneBy: "Done by",
+  doneByMerchant: "Merchant",
   fromAgentWallet: "From agent wallet",
   toAgentWallet: "To agent wallet",
   leg_COMMISSION: "Commission",
@@ -3766,7 +3768,6 @@ export const txn = {
   leg_TAX: "Tax",
   terminal: "Terminal",
   store: "Store",
-  storeUser: "Store user",
   type_P2P_TO_PHONE: "Money sent",
   type_PHONE_TRANSFER_CLAIM: "Money received",
   type_PHONE_TRANSFER_RETURN: "Money returned",

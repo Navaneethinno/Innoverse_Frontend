@@ -307,7 +307,7 @@ export function StoreWalletsCard({ merchant, permission }) {
             rows={data.wallets}
             rowKey={(w) => w.acct_num}
             columns={[
-              { key: "store_id", label: t("store") },
+              { key: "store_id", label: t("store"), render: (w) => (w.store_name ? `${w.store_name} (${w.store_code})` : `#${w.store_id}`) },
               { key: "acct_num", label: t("wallet"), render: (w) => <span className="font-mono">{w.acct_num}</span> },
               { key: "avail_bal", label: t("balance"), align: "right", render: (w) => `${w.avail_bal} ${w.currency_code}` },
             ]}
