@@ -1,6 +1,9 @@
+import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PiggyBank, Plus, RefreshCw, Search } from "lucide-react";
+import { PiggyBank, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -10,8 +13,6 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { cn } from "@/Utils/Lib/utils";
-import { inputClass } from "../depositShared";
 import { DepositProductView } from "./DepositProductView";
 import { DepositProductWizard } from "./DepositProductWizard";
 import { ProductStatus } from "./productShared";
@@ -31,11 +32,10 @@ export function DepositProducts() {
   const { t } = useTranslation(["deposits", "common"]);
   const can = usePagePermission();
   const [tab, setTab] = useState("all");
-  const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const [applied, setApplied] = useState({ search: "", status: "" });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
@@ -43,7 +43,7 @@ export function DepositProducts() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const body = { page, page_size: limit, ...(applied.search ? { search: applied.search } : {}), ...(applied.status ? { status: Number(applied.status) } : {}) };
+      const body = { page, page_size: limit, ...(term ? { search: term } : {}), ...(status ? { status: Number(status) } : {}) };
       const row = rowsOf(await (tab === "pending" ? depositProductsApi.pending(body) : depositProductsApi.list(body)))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -51,7 +51,7 @@ export function DepositProducts() {
     } finally {
       setLoading(false);
     }
-  }, [tab, applied, page, limit]);
+  }, [tab, term, status, page, limit]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -109,38 +109,26 @@ export function DepositProducts() {
         </div>
       </div>
 
-      <div className="mb-3 flex w-fit gap-1 rounded-2xl border border-border bg-card p-1">
-        {["all", "pending"].map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn("rounded-xl px-4 py-2 text-xs font-bold", tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {t(`tab_${key}`)}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied({ search: search.trim(), status });
+      <ListPanel
+        tabs={PENDING_TABS}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
           setPage(1);
         }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr_auto]"
+        serverFiltered
+        rows={data.items}
+        total={data.total}
+        {...searchBind}
+        searchPlaceholder={t("searchProducts")}
+        filters={
+          <>
+            <FilterSelect value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`pstatus_${k}`) }))]} />
+          </>
+        }
       >
-        <input className={inputClass} placeholder={t("searchProducts")} value={search} onChange={(e) => setSearch(e.target.value)} />
-        <FilterSelect value={status} onChange={setStatus} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`pstatus_${k}`) }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(p) => p.id}
@@ -161,6 +149,7 @@ export function DepositProducts() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

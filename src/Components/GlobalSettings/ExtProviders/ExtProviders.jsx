@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Smartphone, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
+import { ListPanel } from "@/Components/Common/ListPanel";
+import { PENDING_TABS } from "@/Components/Common/listTabs";
 import { DigitChips } from "@/Components/Common/DigitChips";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -146,22 +148,19 @@ export function ExtProviders() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <div className="mb-3 flex w-fit gap-1 rounded-2xl border border-border bg-card p-1">
-        {["all", "pending"].map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn("rounded-xl px-4 py-2 text-xs font-bold", tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {t(`deposits:tab_${key}`)}
-          </button>
-        ))}
-      </div>
+      <ListPanel
+        tabs={PENDING_TABS}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
+          setPage(1);
+        }}
+        serverFiltered
+        rows={data.items}
+        total={data.total}
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(s) => s.id}
@@ -182,6 +181,7 @@ export function ExtProviders() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

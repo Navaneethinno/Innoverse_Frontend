@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, RefreshCw, Scale, Send } from "lucide-react";
@@ -122,19 +122,25 @@ export function BalanceAdjustments() {
         </div>
       </div>
 
-      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr]">
-        <SearchBox {...searchBind} placeholder={t("searchRequests")} />
-        <FilterSelect
-          value={status}
-          onChange={(v) => {
-            setStatus(v);
-            setPage(1);
-          }}
-          options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`txn:reqStatus_${s}`) }))]}
-        />
-      </div>
-
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchRequests")}
+        filters={
+          <>
+            <FilterSelect
+              value={status}
+              onChange={(v) => {
+                setStatus(v);
+                setPage(1);
+              }}
+              options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`txn:reqStatus_${s}`) }))]}
+            />
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(a) => a.id}
@@ -155,6 +161,7 @@ export function BalanceAdjustments() {
           },
         }}
       />
+      </ListPanel>
 
       {adding && (
         <AdjustmentForm

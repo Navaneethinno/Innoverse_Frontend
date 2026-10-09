@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, Power, Receipt, RefreshCw, RotateCcw, Save, Search, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, Power, Receipt, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
+import { ListPanel } from "@/Components/Common/ListPanel";
+import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { useListSearch } from "@/Hooks/useListSearch";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass, ratePct } from "@/Components/TermDeposits/depositShared";
+import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass, ratePct } from "@/Components/TermDeposits/depositShared";
 import { ProductStatus } from "@/Components/TermDeposits/DepositProducts/productShared";
 import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "@/Components/Loans/loanShared";
 import { PlanCard } from "@/Components/Transactions/txnShared";
@@ -66,10 +69,10 @@ export function FeeSchedules() {
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
   const [tab, setTab] = useState("all");
-  const [filters, setFilters] = useState({ search: "", status: "" });
-  const [applied, setApplied] = useState(filters);
+  const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
@@ -77,7 +80,7 @@ export function FeeSchedules() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const body = scope({ page, page_size: limit, ...(applied.search.trim() ? { search: applied.search.trim() } : {}), ...(applied.status ? { status: Number(applied.status) } : {}) });
+      const body = scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(status ? { status: Number(status) } : {}) });
       const row = rowsOf(await (tab === "pending" ? feeSchedulesApi.pending(body) : feeSchedulesApi.list(body)))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -85,7 +88,7 @@ export function FeeSchedules() {
     } finally {
       setLoading(false);
     }
-  }, [tab, applied, page, limit, scope]);
+  }, [tab, term, status, page, limit, scope]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -142,36 +145,22 @@ export function FeeSchedules() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <div className="mb-3 flex w-fit gap-1 rounded-2xl border border-border bg-card p-1">
-        {["all", "pending"].map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn("rounded-xl px-4 py-2 text-xs font-bold", tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {t(`deposits:tab_${key}`)}
-          </button>
-        ))}
-      </div>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(filters);
+      <ListPanel
+        tabs={PENDING_TABS}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
           setPage(1);
         }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[2fr_1fr_auto]"
+        serverFiltered
+        rows={data.items}
+        total={data.total}
+        {...searchBind}
+        searchPlaceholder={t("searchSchedules")}
+        filters={<FilterSelect value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />}
       >
-        <input className={inputClass} placeholder={t("searchSchedules")} value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
-        <FilterSelect value={filters.status} onChange={(v) => setFilters((f) => ({ ...f, status: v }))} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(s) => s.id}
@@ -192,6 +181,7 @@ export function FeeSchedules() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

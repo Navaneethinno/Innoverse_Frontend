@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Power, RotateCcw, Store, XCircle } from "lucide-react";
@@ -78,20 +78,27 @@ export function StoreList({ pendingOnly = false, merchant = null, permission }) 
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap gap-3 rounded-2xl border border-border bg-card p-4">
-        <SearchBox {...searchBind} className="min-w-[14rem] flex-1" placeholder={t("searchStores")} />
-        {!pendingOnly && (
-          <FilterSelect
-            value={status}
-            onChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
-            options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]}
-          />
-        )}
-      </div>
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchStores")}
+        filters={
+          <>
+            {!pendingOnly && (
+              <FilterSelect
+                value={status}
+                onChange={(v) => {
+                  setStatus(v);
+                  setPage(1);
+                }}
+                options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]}
+              />
+            )}
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={result.items}
         rowKey={(r) => r.id}
@@ -111,6 +118,7 @@ export function StoreList({ pendingOnly = false, merchant = null, permission }) 
           },
         }}
       />
+      </ListPanel>
       {viewing && <StoreDetail store={viewing} permission={permission} onClose={() => setViewing(null)} onChanged={load} />}
     </>
   );

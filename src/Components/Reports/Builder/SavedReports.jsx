@@ -1,10 +1,10 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, FolderOpen, Play } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { useListSearch } from "@/Hooks/useListSearch";
@@ -71,10 +71,13 @@ export function SavedReports() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle_saved")}</p>
       </div>
-      <div className="mb-4 rounded-2xl border border-border bg-card p-4">
-        <SearchBox {...bind} placeholder={t("searchSaved")} />
-      </div>
+      <ListPanel
+        tabs={[]}
+        {...bind}
+        searchPlaceholder={t("searchSaved")}
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.rows}
         rowKey={(r) => r.id}
@@ -94,6 +97,7 @@ export function SavedReports() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

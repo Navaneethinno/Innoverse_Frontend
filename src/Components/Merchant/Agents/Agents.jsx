@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Network, UserCog, XCircle } from "lucide-react";
@@ -140,10 +140,13 @@ function AgentList({ filter }) {
 
   return (
     <>
-      <div className="mb-4 flex rounded-2xl border border-border bg-card p-4">
-        <SearchBox {...searchBind} className="min-w-[14rem] flex-1" placeholder={t("searchName")} />
-      </div>
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchName")}
+      >
       <DataTable
+        bare
         columns={columns}
         rows={result.items}
         rowKey={partyKey}
@@ -163,6 +166,7 @@ function AgentList({ filter }) {
           },
         }}
       />
+      </ListPanel>
       {viewing && <AgentDetail party={viewing} onClose={() => setViewing(null)} onChanged={load} />}
     </>
   );

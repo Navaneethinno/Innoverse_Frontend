@@ -42,7 +42,7 @@ const TABS = [
 // a page can wrap it together with its DataTable into one continuous panel
 // (search+filters bar flowing directly into the table, no visible seam) —
 // see InstitutionProfile.jsx for the reference usage.
-export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, onSearchSubmit, searchPlaceholder, bare = false, actions = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
+export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, search = "", onSearch, onSearchSubmit, searchPlaceholder, bare = false, actions = null, filters = null, className, total, serverFiltered = false, sortBy, onSortChange }) {
   const { t } = useTranslation("common");
   const counts = rows.reduce(
     (result, row) => {
@@ -66,6 +66,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
   };
   return (
     <div className={cn("flex flex-col gap-2", bare && "border-b border-border p-3", !bare && "rounded-xl border border-border bg-white p-3 shadow-sm", className)}>
+      {(tabs.length > 0 || actions) && (
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
       <div data-tour="status-tabs" className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
         {tabs.map(([key, labelKey, Icon]) => {
@@ -114,10 +115,13 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
           than a plain label at the same padding). */}
       {actions && <div data-tour="add" className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
+      )}
 
-      {(onSearch || onSortChange) && (
-      <div className="flex w-full items-center gap-2">
-      {onSearch && <SearchBox search={search} onSearch={onSearch} onSearchSubmit={onSearchSubmit} placeholder={searchPlaceholder} />}
+      {(onSearch || onSortChange || filters) && (
+      <div className="flex w-full flex-wrap items-center gap-2 sm:flex-nowrap">
+      {onSearch && <SearchBox search={search} onSearch={onSearch} onSearchSubmit={onSearchSubmit} placeholder={searchPlaceholder} className="min-w-[12rem]" />}
+      {/* A list's own filters (status, type...), beside the search. */}
+      {filters && <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap [&>*]:min-w-[10rem]">{filters}</div>}
       {/* sort_by: newest (desc) or oldest (asc) change first, applied by the
           server across every record, not just the loaded page. */}
       {onSortChange && (

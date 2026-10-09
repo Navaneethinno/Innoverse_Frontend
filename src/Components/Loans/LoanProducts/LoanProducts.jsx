@@ -1,6 +1,9 @@
+import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { useListSearch } from "@/Hooks/useListSearch";
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RefreshCw, RotateCcw, Search, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RefreshCw, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -12,8 +15,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, Section, inputClass } from "../../TermDeposits/depositShared";
+import { ActionButtons, NarrationDialog, Section } from "../../TermDeposits/depositShared";
 import { ProductStatus } from "../../TermDeposits/DepositProducts/productShared";
 import { loanLabel, useInstitutionScope } from "../loanShared";
 import { LoanConfigSummary } from "./loanProductShared";
@@ -38,10 +40,10 @@ export function LoanProducts() {
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
   const [ratesOpen, setRatesOpen] = useState(false);
   const [tab, setTab] = useState("all");
-  const [filters, setFilters] = useState({ search: "", status: "", product_category: "" });
-  const [applied, setApplied] = useState(filters);
+  const [filters, setFilters] = useState({ status: "", product_category: "" });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
@@ -49,7 +51,7 @@ export function LoanProducts() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const body = scope({ page, page_size: limit, ...Object.fromEntries(Object.entries({ ...applied, search: applied.search.trim() }).filter(([, v]) => v)), ...(applied.status ? { status: Number(applied.status) } : {}) });
+      const body = scope({ page, page_size: limit, ...Object.fromEntries(Object.entries({ ...filters, search: term }).filter(([, v]) => v)), ...(filters.status ? { status: Number(filters.status) } : {}) });
       const row = rowsOf(await (tab === "pending" ? loanProductsApi.pending(body) : loanProductsApi.list(body)))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -57,7 +59,7 @@ export function LoanProducts() {
     } finally {
       setLoading(false);
     }
-  }, [tab, applied, page, limit, scope]);
+  }, [tab, term, filters, page, limit, scope]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -71,7 +73,10 @@ export function LoanProducts() {
   }
   if (screen?.kind === "view") return <LoanProductView id={screen.id} onBack={back} onEdit={(product) => setScreen({ kind: "wizard", product })} />;
 
-  const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
+  const set = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
+    setPage(1);
+  };
   const columns = [
     {
       key: "product_name",
@@ -122,39 +127,27 @@ export function LoanProducts() {
         </div>
       )}
 
-      <div className="mb-3 flex w-fit gap-1 rounded-2xl border border-border bg-card p-1">
-        {["all", "pending"].map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn("rounded-xl px-4 py-2 text-xs font-bold", tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {t(`deposits:tab_${key}`)}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(filters);
+      <ListPanel
+        tabs={PENDING_TABS}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
           setPage(1);
         }}
-        className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]"
+        serverFiltered
+        rows={data.items}
+        total={data.total}
+        {...searchBind}
+        searchPlaceholder={t("searchProducts")}
+        filters={
+          <>
+            <FilterSelect value={filters.product_category} onChange={set("product_category")} options={[{ value: "", label: t("anyCategory") }, ...CATEGORIES.map((c) => ({ value: c, label: loanLabel(t, c) }))]} />
+            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
+          </>
+        }
       >
-        <input className={inputClass} placeholder={t("searchProducts")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        <FilterSelect value={filters.product_category} onChange={set("product_category")} options={[{ value: "", label: t("anyCategory") }, ...CATEGORIES.map((c) => ({ value: c, label: loanLabel(t, c) }))]} />
-        <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(p) => p.id}
@@ -175,6 +168,7 @@ export function LoanProducts() {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }

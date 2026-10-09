@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Unlink, XCircle } from "lucide-react";
@@ -113,16 +113,22 @@ export function Terminals() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4">
-        <SearchBox {...searchBind} className="min-w-[14rem] flex-1" placeholder={t("searchTerminals")} />
-        <FilterSelect value={filters.status} onChange={(status) => setFilter({ status })} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
-        <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-          <input type="checkbox" className="h-4 w-4 accent-[var(--primary)]" checked={filters.block_requested} onChange={(e) => setFilter({ block_requested: e.target.checked })} />
-          {t("blockRequestedOnly")}
-        </label>
-      </div>
-
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchTerminals")}
+        filters={
+          <>
+            <FilterSelect value={filters.status} onChange={(status) => setFilter({ status })} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
+            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+              <input type="checkbox" className="h-4 w-4 accent-[var(--primary)]" checked={filters.block_requested} onChange={(e) => setFilter({ block_requested: e.target.checked })} />
+              {t("blockRequestedOnly")}
+            </label>
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={result.items}
         rowKey={(r) => r.id}
@@ -142,6 +148,7 @@ export function Terminals() {
           },
         }}
       />
+      </ListPanel>
       {viewing && (
         <TerminalDetail
           terminal={viewing}

@@ -1,5 +1,5 @@
+import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -540,13 +540,20 @@ function Requests({ openId, onOpenTxn, onClose }) {
           setPage(1);
         }}
       />
-      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-[1fr_auto]">
-        <SearchBox {...searchBind} placeholder={t("searchRequests")} />
-        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-          {t("refresh")}
-        </Button>
-      </div>
+      <ListPanel
+        tabs={[]}
+        {...searchBind}
+        searchPlaceholder={t("searchRequests")}
+        filters={
+          <>
+            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+              {t("refresh")}
+            </Button>
+          </>
+        }
+      >
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(r) => r.id}
@@ -566,6 +573,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
           },
         }}
       />
+      </ListPanel>
       {open && (
         <RequestDialog
           id={open}

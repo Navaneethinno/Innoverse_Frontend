@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Search, Send, Trash2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
+import { ListPanel } from "@/Components/Common/ListPanel";
+import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { useListSearch } from "@/Hooks/useListSearch";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -14,7 +17,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from "../TermDeposits/depositShared";
+import { ActionButtons, NarrationDialog, Problems, Section } from "../TermDeposits/depositShared";
 import { ProductStatus } from "../TermDeposits/DepositProducts/productShared";
 import { useInstitutionScope } from "../Loans/loanShared";
 
@@ -38,11 +41,10 @@ export function CardSetupPage({ kind }) {
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
   const [tab, setTab] = useState("all");
-  const blankFilters = { search: "", status: "", ...(kind.filter ? { [kind.filter.key]: "" } : {}) };
-  const [filters, setFilters] = useState(blankFilters);
-  const [applied, setApplied] = useState(blankFilters);
+  const [filters, setFilters] = useState({ status: "", ...(kind.filter ? { [kind.filter.key]: "" } : {}) });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const { term, bind: searchBind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [options, setOptions] = useState(null);
@@ -55,9 +57,9 @@ export function CardSetupPage({ kind }) {
         const body = scope({
           page,
           page_size: limit,
-          search: applied.search.trim(),
-          ...(applied.status ? { status: Number(applied.status) } : {}),
-          ...(kind.filter && applied[kind.filter.key] ? { [kind.filter.key]: Number(applied[kind.filter.key]) } : {}),
+          search: term,
+          ...(filters.status ? { status: Number(filters.status) } : {}),
+          ...(kind.filter && filters[kind.filter.key] ? { [kind.filter.key]: Number(filters[kind.filter.key]) } : {}),
         });
         const row = rowsOf(await (tab === "pending" ? kind.api.pending(body) : kind.api.list(body)))[0];
         setData({ items: row?.items ?? [], total: row?.total ?? 0 });
@@ -67,7 +69,7 @@ export function CardSetupPage({ kind }) {
         setLoading(false);
       }
     },
-    [kind, tab, applied, page, limit, scope],
+    [kind, tab, term, filters, page, limit, scope],
   );
   useEffect(() => {
     void load();
@@ -93,7 +95,10 @@ export function CardSetupPage({ kind }) {
   }
   if (screen?.kind === "view") return <CardRecordView kind={kind} id={screen.id} onBack={back} onEdit={(record) => setScreen({ kind: "form", record })} />;
 
-  const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
+  const set = (key) => (value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
+    setPage(1);
+  };
   const open = (r) => setScreen({ kind: "view", id: r.id });
   const columns = [
     {
@@ -141,39 +146,27 @@ export function CardSetupPage({ kind }) {
         </div>
       )}
 
-      <div className="mb-3 flex w-fit gap-1 rounded-2xl border border-border bg-card p-1">
-        {["all", "pending"].map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => {
-              setTab(key);
-              setPage(1);
-            }}
-            className={cn("rounded-xl px-4 py-2 text-xs font-bold transition-colors", tab === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary")}
-          >
-            {t(`deposits:tab_${key}`)}
-          </button>
-        ))}
-      </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          setApplied(filters);
+      <ListPanel
+        tabs={PENDING_TABS}
+        value={tab}
+        onChange={(key) => {
+          setTab(key);
           setPage(1);
         }}
-        className={cn("mb-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2", kind.filter ? "lg:grid-cols-[2fr_1fr_1fr_auto]" : "lg:grid-cols-[2fr_1fr_auto]")}
+        serverFiltered
+        rows={data.items}
+        total={data.total}
+        {...searchBind}
+        searchPlaceholder={t(kind.searchHint)}
+        filters={
+          <>
+            {kind.filter && <FilterSelect value={filters[kind.filter.key]} onChange={set(kind.filter.key)} options={[{ value: "", label: t(kind.filter.any) }, ...pickOptions(options?.[kind.filter.from])]} />}
+            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
+          </>
+        }
       >
-        <input className={inputClass} placeholder={t(kind.searchHint)} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        {kind.filter && <FilterSelect value={filters[kind.filter.key]} onChange={set(kind.filter.key)} options={[{ value: "", label: t(kind.filter.any) }, ...pickOptions(options?.[kind.filter.from])]} />}
-        <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-        <Button type="submit" size="sm" icon={Search}>
-          {t("search")}
-        </Button>
-      </form>
-
       <DataTable
+        bare
         columns={columns}
         rows={data.items}
         rowKey={(r) => r.id}
@@ -194,6 +187,7 @@ export function CardSetupPage({ kind }) {
           },
         }}
       />
+      </ListPanel>
     </div>
   );
 }
