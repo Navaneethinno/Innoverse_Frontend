@@ -3951,6 +3951,8 @@ export const txn = {
 };
 
 export const fees = {
+  noProvider: "Sem fornecedor",
+  groupX: "Grupo: {{name}}",
   extProvider: "Fornecedor",
   extProviderGroup: "Grupo de fornecedores",
   anyProvider: "Qualquer fornecedor",

@@ -376,7 +376,7 @@ function ScheduleView({ id, onBack, onEdit }) {
 // would pay under the schedules in effect.
 function FeeQuote({ schedule, options }) {
   const { t } = useTranslation("fees");
-  const [q, setQ] = useState({ txn_type_id: "", channel_id: "", digital_product_id: "", amount: "" });
+  const [q, setQ] = useState({ txn_type_id: "", channel_id: "", digital_product_id: "", provider: "", amount: "" });
   const [fee, setFee] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -391,6 +391,8 @@ function FeeQuote({ schedule, options }) {
         amount: q.amount,
         ...(q.channel_id ? { channel_id: Number(q.channel_id) } : {}),
         ...(q.digital_product_id ? { digital_product_id: Number(q.digital_product_id) } : {}),
+        // "p:1" a provider (its groups count too), "g:1" a group.
+        ...(q.provider ? { [q.provider.startsWith("p:") ? "ext_provider_id" : "ext_provider_group_id"]: Number(q.provider.slice(2)) } : {}),
       };
       setFee(rowsOf(await feeSchedulesApi.quote(body))[0] ?? null);
     } catch (e) {
@@ -422,6 +424,20 @@ function FeeQuote({ schedule, options }) {
           {t("digitalProduct")}
           <Field field={list(options.digital_products, t("anyProduct"))} value={q.digital_product_id} onChange={(v) => setQ((x) => ({ ...x, digital_product_id: v }))} />
         </label>
+        {(options.ext_providers?.length > 0 || options.ext_provider_groups?.length > 0) && (
+          <label className={labelClass}>
+            {t("extProvider")}
+            <Field
+              field={{
+                type: "select",
+                blank: t("noProvider"),
+                options: [...(options.ext_providers ?? []).map((x) => ({ value: `p:${x.id}`, label: x.name })), ...(options.ext_provider_groups ?? []).map((x) => ({ value: `g:${x.id}`, label: t("groupX", { name: x.name }) }))],
+              }}
+              value={q.provider}
+              onChange={(v) => setQ((x) => ({ ...x, provider: v }))}
+            />
+          </label>
+        )}
       </div>
       <Button icon={Calculator} className="mt-3" loading={busy} disabled={!q.txn_type_id || !(Number(q.amount) > 0)} onClick={run}>
         {t("getFee")}

@@ -87,7 +87,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           <PortalEditionField value={form.portal_edition} onChange={setField("portal_edition")} />
           <PortalIdentifiersGrid value={form.portal_identifiers} onChange={setField("portal_identifiers")} />
           <PayToPhoneSettings value={form.pay_to_phone} onChange={setField("pay_to_phone")} />
-          <SignupPrefixesField value={form.signup_phone_prefixes} onChange={setField("signup_phone_prefixes")} />
+          <SignupPrefixesField value={form.signup_phone_prefixes} onChange={setField("signup_phone_prefixes")} phoneCodes={institution?.phone_codes} />
         </div>
       </div>
 
