@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
+import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { Modal } from "@/Components/Common/Modal";
 import { PROBLEM_BULLET } from "@/Services/api/apiErrors";
 import { cn } from "@/Utils/Lib/utils";
@@ -120,5 +121,27 @@ export function Problems({ message }) {
         </ul>
       )}
     </div>
+  );
+}
+
+// A record's history (an `audit` reply, newest first) as a timeline.
+export function AuditTimeline({ audit, empty }) {
+  const { t } = useTranslation("deposits");
+  return (
+    <ol className="relative grid gap-3 border-l border-border pl-4">
+      {audit.map((e, i) => (
+        <li key={`${e.at}-${i}`} className="relative">
+          <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+          <p className="text-xs font-bold">
+            {t(`deposits:audit_${e.action}`, { defaultValue: e.action })} <span className="font-medium text-muted-foreground">· {e.process_status_name ?? e.status_name}</span>
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            {e.actor} · {accountDate(e.at)}
+          </p>
+          {e.narration?.trim() && <p className="mt-0.5 text-xs italic">“{e.narration}”</p>}
+        </li>
+      ))}
+      {!audit.length && <li className="text-sm text-muted-foreground">{empty}</li>}
+    </ol>
   );
 }

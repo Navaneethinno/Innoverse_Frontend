@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, StoreWalletsField, usesPin } from "./InstitutionProfileForm";
+import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, SignupPrefixesField, StoreWalletsField, usesPin } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
 import { useTimezones } from "@/Hooks/Master/masterHooks";
 
@@ -87,6 +87,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
           <PortalEditionField value={form.portal_edition} onChange={setField("portal_edition")} />
           <PortalIdentifiersGrid value={form.portal_identifiers} onChange={setField("portal_identifiers")} />
           <PayToPhoneSettings value={form.pay_to_phone} onChange={setField("pay_to_phone")} />
+          <SignupPrefixesField value={form.signup_phone_prefixes} onChange={setField("signup_phone_prefixes")} />
         </div>
       </div>
 

@@ -8,7 +8,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
-import { ActionButtons, NarrationDialog, Problems, Section, inputClass, labelClass, ratePct } from "@/Components/TermDeposits/depositShared";
+import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass, ratePct } from "@/Components/TermDeposits/depositShared";
 import { ProductStatus } from "@/Components/TermDeposits/DepositProducts/productShared";
 import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "@/Components/Loans/loanShared";
 import { PlanCard } from "@/Components/Transactions/txnShared";
@@ -25,7 +25,7 @@ const STATUSES = [
   [5, "RejectedAdd"],
   [13, "Inactive"],
 ];
-const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", tax_percent: "0", shares: [] });
+const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", tax_percent: "0", shares: [] });
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const idOrNull = (v) => (v === "" || v == null ? null : Number(v));
 
@@ -43,6 +43,9 @@ const toBody = (c) => ({
     txn_type_id: Number(r.txn_type_id),
     channel_id: idOrNull(r.channel_id),
     digital_product_id: idOrNull(r.digital_product_id),
+    // A provider or a group of providers (EXT_WALLET_*), never both.
+    ext_provider_id: idOrNull(r.ext_provider_id),
+    ext_provider_group_id: idOrNull(r.ext_provider_group_id),
     minimum_amount: str(r.minimum_amount),
     maximum_amount: str(r.maximum_amount),
     calculation_type: r.calculation_type,
@@ -232,7 +235,7 @@ function RulesTable({ rules, options, currency, other }) {
       columns={[
         { key: "rule_code", label: t("rule"), render: (r) => <span><b>{r.rule_code}</b> <span className="text-muted-foreground">{r.fee_name}</span></span> },
         { key: "txn_type_id", label: t("txnType"), render: (r) => nameOf(options?.txn_types, r.txn_type_id) },
-        { key: "narrow", label: t("appliesTo"), render: (r) => [nameOf(options?.channels, r.channel_id), nameOf(options?.digital_products, r.digital_product_id)].filter(Boolean).join(" · ") || t("everything") },
+        { key: "narrow", label: t("appliesTo"), render: (r) => [nameOf(options?.channels, r.channel_id), nameOf(options?.digital_products, r.digital_product_id), nameOf(options?.ext_providers, r.ext_provider_id), nameOf(options?.ext_provider_groups, r.ext_provider_group_id)].filter(Boolean).join(" · ") || t("everything") },
         { key: "amounts", label: t("amounts"), render: (r) => `${money(r.minimum_amount, currency)} – ${Number(r.maximum_amount) === 0 ? t("noLimit") : money(r.maximum_amount, currency)}` },
         { key: "price", label: t("fee"), render: (r) => priceText(t, r, currency) },
         { key: "pay_from", label: t("paidBy"), render: (r) => loanLabel(t, r.pay_from) },
@@ -349,21 +352,7 @@ function ScheduleView({ id, onBack, onEdit }) {
       <div className="grid gap-4 lg:grid-cols-2">
         {s.config && options && <FeeQuote schedule={s} options={options} />}
         <Section title={t("history")}>
-          <ol className="relative grid gap-3 border-l border-border pl-4">
-            {audit.map((e, i) => (
-              <li key={`${e.at}-${i}`} className="relative">
-                <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                <p className="text-xs font-bold">
-                  {t(`deposits:audit_${e.action}`, { defaultValue: e.action })} <span className="font-medium text-muted-foreground">· {e.process_status_name ?? e.status_name}</span>
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {e.actor} · {accountDate(e.at)}
-                </p>
-                {e.narration?.trim() && <p className="mt-0.5 text-xs italic">“{e.narration}”</p>}
-              </li>
-            ))}
-            {!audit.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
-          </ol>
+          <AuditTimeline audit={audit} empty={t("nothingYet")} />
         </Section>
       </div>
 
@@ -559,6 +548,9 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             { key: "txn_type_id", label: t("txnType"), ...sel(options.txn_types, t("choose")) },
             { key: "channel_id", label: t("channel"), ...sel(options.channels, t("anyChannel")) },
             { key: "digital_product_id", label: t("digitalProduct"), ...sel(options.digital_products, t("anyProduct")) },
+            // Only one of the two shows once either is picked.
+            options.ext_providers?.length > 0 && { key: "ext_provider_id", label: t("extProvider"), showIf: (r) => !r.ext_provider_group_id, ...sel(options.ext_providers, t("anyProvider")) },
+            options.ext_provider_groups?.length > 0 && { key: "ext_provider_group_id", label: t("extProviderGroup"), showIf: (r) => !r.ext_provider_id, ...sel(options.ext_provider_groups, t("anyProviderGroup")) },
             { key: "minimum_amount", label: t("amountFrom"), type: "amount" },
             { key: "maximum_amount", label: t("upToZero"), type: "amount" },
             { key: "calculation_type", label: t("calculation"), ...codes(options.calculation_types) },
@@ -568,7 +560,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             { key: "maximum_fee", label: t("maximumFee"), type: "amount" },
             { key: "tax_percent", label: t("taxPercent"), type: "rate" },
             { key: "pay_from", label: t("paidBy"), ...codes(options.pay_from) },
-          ]}
+          ].filter(Boolean)}
           renderExtra={(rule, patch) => (
             <div className="mt-3 border-t border-dashed border-border pt-3">
               <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("sharesHint")}</p>

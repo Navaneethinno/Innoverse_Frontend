@@ -1,5 +1,5 @@
 import { DateInput } from "@/Components/Common/DateInput";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
@@ -9,7 +9,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { limitGroupApi, limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/cn";
-import { currencyCode, useLimitLists } from "./useLimitLists";
+import { currencyCode, useLimitLists, useProviderSources } from "./useLimitLists";
 
 import { Button } from "@/Components/Common/Button";
 // The rules of one limit group (Global Settings > Limit handoff, "The rules
@@ -323,7 +323,9 @@ function RulesSummary({ title, rules, t }) {
 
 export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSaved }) {
   const { t } = useTranslation("limits");
-  const lists = useLimitLists();
+  const baseLists = useLimitLists();
+  const providerSources = useProviderSources(group.inst_profile_id);
+  const lists = useMemo(() => baseLists && { ...baseLists, sources: { ...baseLists.sources, ...providerSources } }, [baseLists, providerSources]);
   const [record, setRecord] = useState(group);
   const [rules, setRules] = useState([]);
   const [liveRules, setLiveRules] = useState(null);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { masterApi } from "@/Services/Master/master.api";
+import { extProvidersApi } from "@/Services/Transactions/transactions.api";
 import { masterRows, rowsOf, request } from "@/Services/Epurse/onboarding.api";
 
 // Everything the limit rule editor picks from (Global Settings > Limit
@@ -58,6 +59,28 @@ export function useLimitLists() {
     };
   }, []);
   return lists;
+}
+
+// The EXT_PROVIDER / EXT_PROVIDER_GROUP condition options: the live
+// providers and groups of the limit group's institution.
+export function useProviderSources(instProfileId) {
+  const [sources, setSources] = useState({ EXT_PROVIDER: [], EXT_PROVIDER_GROUP: [] });
+  useEffect(() => {
+    let cancelled = false;
+    extProvidersApi
+      .providers(instProfileId ? { inst_profile_id: instProfileId } : {})
+      .then((r) => {
+        if (cancelled) return;
+        const { providers = [], groups = [] } = rowsOf(r)[0] ?? {};
+        const pick = (rows) => rows.map((x) => ({ value: String(x.id), label: `${x.name} (${x.code})` }));
+        setSources({ EXT_PROVIDER: pick(providers), EXT_PROVIDER_GROUP: pick(groups) });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [instProfileId]);
+  return sources;
 }
 
 export const currencyCode = (c) => c.alpha_code ?? c.code ?? c.currency_code;

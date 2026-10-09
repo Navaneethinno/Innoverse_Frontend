@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { DigitChips } from "@/Components/Common/DigitChips";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { useDialCountries } from "@/Hooks/Institution/institutionCurrencyHooks";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib/numberInput";
 
@@ -289,6 +292,30 @@ export function StoreWalletsField({ value, onChange }) {
     <div>
       <EditSelect label={t("storeWallets")} value={current} onChange={onChange} options={STORE_WALLETS.map((v) => ({ value: v, label: t(`storeWallets_${v}`) }))} />
       <p className="mt-1 text-[11px] text-muted-foreground">{t("storeWalletsHint")}</p>
+    </div>
+  );
+}
+
+// Which numbers may sign up (app, portal, agent or staff): full prefixes
+// with the dialling code ("+25882"); none = any number. Picked as a
+// dialling code plus the digits after it.
+export function SignupPrefixesField({ value, onChange }) {
+  const { t } = useTranslation("institutions");
+  const countries = useDialCountries();
+  const list = value ?? [];
+  const codes = [...new Set(countries.map((c) => c.dial_code))].sort((a, b) => b.length - a.length);
+  const [dial, setDial] = useState("");
+  // Until one is picked: the code the saved prefixes start with.
+  const lead = dial || codes.find((c) => list.some((p) => p.startsWith(c))) || "";
+  if (!onChange) return <Field label={t("signupPrefixes")} value={list.length ? list.join(", ") : t("signupPrefixesAny")} />;
+  return (
+    <div className="sm:col-span-3">
+      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("signupPrefixes")}</p>
+      <div className="grid gap-2 sm:grid-cols-[14rem_1fr]">
+        <FilterSelect value={lead} onChange={setDial} options={[{ value: "", label: t("dialCode") }, ...countries.filter((c, i, all) => all.findIndex((x) => x.dial_code === c.dial_code) === i).map((c) => ({ value: c.dial_code, label: `${c.dial_code} · ${c.name}` }))]} />
+        <DigitChips value={list} onChange={onChange} lead={lead} disabled={!lead && !list.length} placeholder="82" />
+      </div>
+      <p className="mt-1 text-[11px] text-muted-foreground">{t("signupPrefixesHint")}</p>
     </div>
   );
 }

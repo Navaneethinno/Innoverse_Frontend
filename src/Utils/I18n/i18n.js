@@ -56,6 +56,7 @@ void i18n
       "txn",
       "fees",
       "builder",
+      "providers",
       "kycReport",
       "mms",
     ],

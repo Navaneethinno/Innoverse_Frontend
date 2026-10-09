@@ -21,3 +21,9 @@ export const transactionRequestsApi = calls("/config/transaction/request", ["add
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
 // and currency, maker-checker as a whole.
 export const feeSchedulesApi = calls("/config/global/fee_schedule", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "delete", "deactivate", "reactivate", "auth", "deauth", "quote"]);
+
+// GLOBAL SETTINGS > External Providers (menu 210): one setup per
+// institution (its mobile-wallet providers, their prefixes, and groups),
+// maker-checker as a whole like a fee schedule. `providers` lists the live
+// ones with ids, for fee rules and limit conditions.
+export const extProvidersApi = calls("/config/global/ext_provider", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "providers"]);
