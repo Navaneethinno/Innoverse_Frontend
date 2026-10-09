@@ -55,7 +55,7 @@ void i18n
       "loans",
       "txn",
       "fees",
-      "txnReports",
+      "builder",
       "kycReport",
       "mms",
     ],

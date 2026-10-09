@@ -21,15 +21,3 @@ export const transactionRequestsApi = calls("/config/transaction/request", ["add
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
 // and currency, maker-checker as a whole.
 export const feeSchedulesApi = calls("/config/global/fee_schedule", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "delete", "deactivate", "reactivate", "auth", "deauth", "quote"]);
-
-// REPORTS > Transaction Summary, Fee Income, Failed Transactions, Reversals
-// (menus 191-194). Each takes the usual period (or from / to) and filters.
-const report = (name, verbs = ["list"]) => ({ ...calls(`/config/report/${name}`, verbs), export: exporter(`/config/report/${name}/export`, name) });
-export const txnReportsApi = {
-  summary: report("txn_summary"),
-  feeIncome: report("fee_income"),
-  failed: report("failed_txn", ["list", "summary"]),
-  reversals: report("reversals"),
-  // REPORTS > Card Summary (menu 202).
-  cardSummary: report("card_summary"),
-};

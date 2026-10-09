@@ -6,15 +6,15 @@ const UserActivity = lazy(() => import("@/Components/Reports/UserActivity").then
 const AMLScoreBreakdown = lazy(() => import("@/Components/Reports/AMLScoreBreakdown").then((m) => ({ default: m.AMLScoreBreakdown })));
 const RiskScoreBreakdown = lazy(() => import("@/Components/Reports/RiskScoreBreakdown").then((m) => ({ default: m.RiskScoreBreakdown })));
 
-// Transaction reports (menus 191-194).
-const txnReport = (name) => lazy(() => import("@/Components/Reports/Transactions/TxnReports.jsx").then((m) => ({ default: m[name] })));
+// Transaction reports (menus 191-194) and Card Summary (202): the report
+// builder, each opened on its own preset.
+const builderPage = (name) => lazy(() => import("@/Components/Reports/Builder/reportPages.jsx").then((m) => ({ default: m[name] })));
 const TXN_REPORTS = {
-  transactionsummary: txnReport("TransactionSummary"),
-  feeincome: txnReport("FeeIncome"),
-  failedtransactions: txnReport("FailedTransactions"),
-  reversals: txnReport("Reversals"),
-  // Card Summary (menu 202).
-  cardsummary: lazy(() => import("@/Components/Reports/Cards/CardSummary.jsx").then((m) => ({ default: m.CardSummary }))),
+  transactionsummary: builderPage("TransactionSummary"),
+  feeincome: builderPage("FeeIncome"),
+  failedtransactions: builderPage("FailedTransactions"),
+  reversals: builderPage("Reversals"),
+  cardsummary: builderPage("CardSummary"),
   // KYC Report (group 204): Customer (206) and Merchant (205).
   customerkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.CustomerKycReport }))),
   merchantkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.MerchantKycReport }))),
