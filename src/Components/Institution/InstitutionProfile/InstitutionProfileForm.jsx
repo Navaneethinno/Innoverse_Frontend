@@ -52,7 +52,7 @@ export function EditSelect({ label, value, onChange, options, placeholder, disab
         value={value}
         onChange={(next) => onChange?.(next)}
         disabled={disabled}
-        options={[{ value: "", label: placeholder }, ...options]}
+        options={placeholder ? [{ value: "", label: placeholder }, ...options] : options}
       />
     </div>
   );
@@ -228,9 +228,11 @@ export function PayToPhoneSettings({ value, onChange }) {
     <div className="sm:col-span-3 space-y-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("payToPhoneTitle")}</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {switchRow("enabled")}
+        <div className="sm:col-span-2">{switchRow("enabled")}</div>
         {v.enabled && (
           <>
+            {switchRow("sender_can_cancel")}
+            {switchRow("invite_only_signup")}
             {onChange ? (
               <div>
                 <EditField
@@ -244,8 +246,6 @@ export function PayToPhoneSettings({ value, onChange }) {
             ) : (
               <Field label={t("payToPhone_refund_after_days")} value={Number(v.refund_after_days) ? v.refund_after_days : t("payToPhoneNeverReturned")} />
             )}
-            {switchRow("sender_can_cancel")}
-            {switchRow("invite_only_signup")}
           </>
         )}
       </div>
@@ -287,7 +287,7 @@ export function StoreWalletsField({ value, onChange }) {
   if (!onChange) return <Field label={t("storeWallets")} value={t(`storeWallets_${current}`)} />;
   return (
     <div>
-      <EditSelect label={t("storeWallets")} value={current} onChange={onChange} options={STORE_WALLETS.map((v) => ({ value: v, label: t(`storeWallets_${v}`) }))} placeholder={t("storeWallets_SHARED")} />
+      <EditSelect label={t("storeWallets")} value={current} onChange={onChange} options={STORE_WALLETS.map((v) => ({ value: v, label: t(`storeWallets_${v}`) }))} />
       <p className="mt-1 text-[11px] text-muted-foreground">{t("storeWalletsHint")}</p>
     </div>
   );
