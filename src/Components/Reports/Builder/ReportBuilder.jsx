@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  AlertTriangle,
   ArrowDownAZ,
   ArrowUpAZ,
+  Blocks,
   Columns3,
   Filter,
   FolderOpen,
@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -26,18 +25,16 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ExportButtons, glassCard } from "../Shared/reportShared";
 import {
   allComplete,
-  cellText,
   conditionsIn,
-  csvText,
   definitionOf,
-  fileValue,
   newAggregate,
   newSort,
   stateOf,
 } from "./builderShared";
 import { FilterGroup } from "./FilterBuilder";
-import { SaveTemplateDialog, SavedReports } from "./Templates";
-import { xlsxBlob } from "./xlsx";
+import { MyReports, SaveTemplateDialog } from "./Templates";
+import { RunResults, optionLabelsOf, runExporter } from "./RunResults";
+import { usePagePermission } from "@/Hooks/usePermission";
 
 const aggKey = (a) => (a.field ? `${a.fn}:${a.field}` : a.fn);
 
@@ -103,22 +100,19 @@ function Section({ icon: Icon, title, hint, children }) {
   );
 }
 
-// REPORTS: any report the user may open (`sources`), with the columns,
-// filters, sort and totals they pick; run as a paged table, downloaded as
-// Excel / CSV / PDF, saved as a template. Each report menu opens it on its
-// own preset (the screen it replaces).
-export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
+// REPORTS > Report Builder (menu 211): any source, with the columns,
+// filters, sort and totals the user picks; previewed as a paged table,
+// downloaded as Excel / CSV / PDF, saved as a report (Add), changed or
+// deleted by its owner (Edit / Delete).
+export function ReportBuilder() {
   const { t } = useTranslation("builder");
+  const can = usePagePermission();
   const [sources, setSources] = useState(null);
   const [load, setLoad] = useState(null); // { source, definition, template } to open next
   const [meta, setMeta] = useState(null);
   const [state, setState] = useState(null);
   const [template, setTemplate] = useState(null);
   const [runDef, setRunDef] = useState(null);
-  const [result, setResult] = useState(null);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [running, setRunning] = useState(false);
   const [dialog, setDialog] = useState("");
 
@@ -128,18 +122,13 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
       .then((r) => {
         const list = rowsOf(r);
         setSources(list);
-        const start = list.find((s) => s.key === preset.source)
-          ? preset
-          : list[0]
-            ? { source: list[0].key }
-            : null;
-        if (start) setLoad({ source: start.source, definition: start });
+        if (list[0]) setLoad({ source: list[0].key, definition: { source: list[0].key } });
       })
       .catch((e) => {
         setSources([]);
         notifications.error(e.message);
       });
-  }, [preset]);
+  }, []);
 
   // Open a report: its fields, then the definition on them; it runs at once
   // when nothing is left to fill in (User Activity first needs a user).
@@ -147,7 +136,6 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
     if (!load) return undefined;
     let cancelled = false;
     setMeta(null);
-    setResult(null);
     setRunDef(null);
     reportBuilderApi
       .fields({ source: load.source })
@@ -158,7 +146,6 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
         setMeta(m);
         setState(next);
         setTemplate(load.template ?? null);
-        setPage(1);
         if (allComplete(next.filters)) setRunDef(definitionOf(next));
       })
       .catch((e) => !cancelled && notifications.error(e.message));
@@ -167,38 +154,9 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
     };
   }, [load]);
 
-  const runKey = JSON.stringify(runDef);
-  useEffect(() => {
-    if (!runDef) return undefined;
-    let cancelled = false;
-    setRunning(true);
-    reportBuilderApi
-      .run({ ...runDef, page, page_size: limit })
-      .then((r) => {
-        if (cancelled) return;
-        setResult(rowsOf(r)[0] ?? { columns: [], rows: [] });
-        setPagination(r?.pagination ?? {});
-      })
-      .catch((e) => !cancelled && notifications.error(e.message))
-      .finally(() => !cancelled && setRunning(false));
-    return () => {
-      cancelled = true;
-    };
-    // runKey stands for runDef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runKey, page, limit]);
-
   const fields = useMemo(() => meta?.fields ?? [], [meta]);
   const set = (patch) => setState((s) => ({ ...s, ...patch }));
-  const optionLabels = useMemo(
-    () =>
-      Object.fromEntries(
-        fields
-          .filter((f) => f.options)
-          .map((f) => [f.key, Object.fromEntries(f.options.map((o) => [o.value, o.label]))]),
-      ),
-    [fields],
-  );
+  const optionLabels = useMemo(() => optionLabelsOf(fields), [fields]);
 
   // Sorting is on a shown field in rows mode, or a group / total in totals mode.
   const sortOptions = useMemo(() => {
@@ -233,42 +191,7 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
           ? "incomplete"
           : "";
 
-  const run = () => {
-    setPage(1);
-    setRunDef(definition);
-  };
-
-  // A download: every row (up to the report's max_rows) as the user sees it.
-  const exportFile = async (format) => {
-    const r = await reportBuilderApi.run({ ...runDef, all: true });
-    const { columns = [], rows = [] } = rowsOf(r)[0] ?? {};
-    const head = columns.map((c) => c.label);
-    const body = rows.map((row) => row.map((v, i) => fileValue(v, columns[i], optionLabels)));
-    const name = `${(template?.name ?? sources?.find((s) => s.key === runDef.source)?.label ?? "report").replace(/[^\w-]+/g, "_")}_${new Date().toISOString().slice(0, 10)}`;
-    return format === "CSV"
-      ? {
-          blob: new Blob([csvText(head, body)], { type: "text/csv;charset=utf-8" }),
-          fileName: `${name}.csv`,
-        }
-      : { blob: xlsxBlob(head, body), fileName: `${name}.xlsx` };
-  };
-
-  const tableColumns = useMemo(() => {
-    const columns = result?.columns ?? [];
-    const index = Object.fromEntries(columns.map((c, i) => [c.key, i]));
-    return columns.map((c, i) => ({
-      key: `c${i}`,
-      label: c.label,
-      sortable: false,
-      render: (row) => (
-        <span
-          className={`text-xs ${c.type === "text" ? "inline-block min-w-[8rem] max-w-xs whitespace-normal break-words" : "whitespace-nowrap"} ${["money", "number"].includes(c.type) ? "tabular-nums" : ""}`}
-        >
-          {cellText(row[i], c, row, index, optionLabels) || "—"}
-        </span>
-      ),
-    }));
-  }, [result, optionLabels]);
+  const run = () => setRunDef(definition);
 
   const aggFields = fields.filter((f) => f.aggregates?.length);
   const groupable = fields.filter((f) => f.groupable !== false);
@@ -278,9 +201,9 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <Icon size={22} className="text-primary" /> {title}
+            <Blocks size={22} className="text-primary" /> {t("title_builder")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle_builder")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -289,17 +212,19 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
             icon={FolderOpen}
             onClick={() => setDialog("saved")}
           >
-            {t("savedReports")}
+            {t("myReports")}
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={Save}
-            disabled={!definition || Boolean(problem && problem !== "incomplete")}
-            onClick={() => setDialog("save")}
-          >
-            {t("saveReport")}
-          </Button>
+          {(can("Add") || (template?.is_owner && can("Edit"))) && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Save}
+              disabled={!definition || Boolean(problem && problem !== "incomplete")}
+              onClick={() => setDialog("save")}
+            >
+              {t("saveReport")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -530,47 +455,19 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
                     </span>
                   )}
                 </div>
-                <ExportButtons disabled={!runDef} exportFile={exportFile} />
+                <ExportButtons disabled={!runDef} exportFile={runExporter(runDef, template?.name ?? sources?.find((s) => s.key === runDef?.source)?.label, optionLabels)} />
               </div>
             </>
           )}
         </div>
       )}
 
-      {result?.warnings?.map((w) => (
-        <p
-          key={w}
-          className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800"
-        >
-          <AlertTriangle size={14} /> {w}
-        </p>
-      ))}
+      <RunResults body={runDef} title={template?.name ?? t("preview")} optionLabels={optionLabels} maxPageSize={meta?.limits?.max_page_size} onRunning={setRunning} />
 
-      {(result || running) && (
-        <DataTable
-          columns={tableColumns}
-          rows={result?.rows ?? []}
-          rowKey={(_, i) => i}
-          isLoading={running}
-          title={template?.name ?? title}
-          emptyTitle={t("noRows")}
-          serverSorted
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? 0,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (n) => {
-              setLimit(Math.min(n, meta?.limits?.max_page_size ?? 1000));
-              setPage(1);
-            },
-          }}
-        />
-      )}
-
-      <SavedReports
+      <MyReports
         open={dialog === "saved"}
+        canCopy={can("Add")}
+        canDelete={can("Delete")}
         onClose={() => setDialog("")}
         onOpen={(tpl) => {
           setDialog("");
@@ -582,6 +479,8 @@ export function ReportBuilder({ preset, title, subtitle, icon: Icon }) {
         onClose={() => setDialog("")}
         definition={definition}
         current={template}
+        canAdd={can("Add")}
+        canEdit={can("Edit")}
         onSaved={(saved) => {
           setDialog("");
           if (saved) setTemplate(saved);

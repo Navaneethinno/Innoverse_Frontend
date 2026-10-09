@@ -6,22 +6,17 @@ const UserActivity = lazy(() => import("@/Components/Reports/UserActivity").then
 const AMLScoreBreakdown = lazy(() => import("@/Components/Reports/AMLScoreBreakdown").then((m) => ({ default: m.AMLScoreBreakdown })));
 const RiskScoreBreakdown = lazy(() => import("@/Components/Reports/RiskScoreBreakdown").then((m) => ({ default: m.RiskScoreBreakdown })));
 
-// Transaction reports (menus 191-194) and Card Summary (202): the report
-// builder, each opened on its own preset.
-const builderPage = (name) => lazy(() => import("@/Components/Reports/Builder/reportPages.jsx").then((m) => ({ default: m[name] })));
-const TXN_REPORTS = {
-  transactionsummary: builderPage("TransactionSummary"),
-  feeincome: builderPage("FeeIncome"),
-  failedtransactions: builderPage("FailedTransactions"),
-  reversals: builderPage("Reversals"),
-  cardsummary: builderPage("CardSummary"),
+// Report Builder (211) and Saved Reports (212).
+const REPORTS = {
+  reportbuilder: lazy(() => import("@/Components/Reports/Builder/ReportBuilder.jsx").then((m) => ({ default: m.ReportBuilder }))),
+  savedreports: lazy(() => import("@/Components/Reports/Builder/SavedReports.jsx").then((m) => ({ default: m.SavedReports }))),
   // KYC Report (group 204): Customer (206) and Merchant (205).
   customerkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.CustomerKycReport }))),
   merchantkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.MerchantKycReport }))),
 };
 
 export const reportRoutes = [
-  ...Object.entries(TXN_REPORTS).flatMap(([path, Page]) => [
+  ...Object.entries(REPORTS).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
     { path: `${path}/:id`, element: pageElement(Page) },
   ]),

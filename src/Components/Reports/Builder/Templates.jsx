@@ -20,13 +20,15 @@ import { notifications } from "@/Utils/Lib/notifications";
 
 const VISIBILITY = ["PRIVATE", "INSTITUTION", "PROFILES"];
 
-// Saved reports the user may run (their own and those shared with them),
-// by folder. Open loads one into the builder; Copy makes a private copy;
-// only the owner deletes.
-export function SavedReports({ open, onClose, onOpen }) {
+// The user's own saved reports, by folder, to reopen in the builder. Copy
+// (Add) makes a private copy; Delete (the Delete right) removes one. The
+// first 50 show; the search narrows them.
+const MY_PAGE = 50;
+export function MyReports({ open, onClose, onOpen, canCopy, canDelete }) {
   const { t } = useTranslation("builder");
   const { term, bind } = useListSearch();
   const [rows, setRows] = useState([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [version, setVersion] = useState(0);
   const [deleting, setDeleting] = useState(null);
@@ -37,8 +39,12 @@ export function SavedReports({ open, onClose, onOpen }) {
     let cancelled = false;
     setLoading(true);
     reportBuilderApi.template
-      .list(term ? { search: term } : {})
-      .then((r) => !cancelled && setRows(rowsOf(r)))
+      .list({ mine: true, page: 1, page_size: MY_PAGE, ...(term ? { search: term } : {}) })
+      .then((r) => {
+        if (cancelled) return;
+        setRows(rowsOf(r));
+        setTotal(r?.pagination?.totalRecords ?? 0);
+      })
       .catch((e) => !cancelled && notifications.error(e.message))
       .finally(() => !cancelled && setLoading(false));
     return () => {
@@ -71,11 +77,12 @@ export function SavedReports({ open, onClose, onOpen }) {
     <Modal
       open={open}
       onClose={onClose}
-      title={t("savedReports")}
+      title={t("myReports")}
       icon={<FolderOpen size={15} />}
       size="lg"
     >
       <SearchBox {...bind} placeholder={t("searchSaved")} />
+      {total > rows.length && <p className="mt-2 text-xs text-muted-foreground">{t("showingOf", { count: rows.length, total })}</p>}
       <div className="mt-3 grid gap-4">
         {loading && (
           <div className="flex justify-center p-4">
@@ -102,7 +109,6 @@ export function SavedReports({ open, onClose, onOpen }) {
                         {[
                           row.source_label,
                           t(`vis_${row.visibility}`),
-                          row.is_owner ? t("yours") : t("byOwner", { name: row.owner_name }),
                           row.description,
                         ]
                           .filter(Boolean)
@@ -115,16 +121,18 @@ export function SavedReports({ open, onClose, onOpen }) {
                       icon={Play}
                       onClick={() => onOpen(row)}
                     />
-                    <ActionIconButton
-                      label={t("copy")}
-                      intent="edit"
-                      icon={Copy}
-                      disabled={busy}
-                      onClick={() =>
-                        act(() => reportBuilderApi.template.copy({ id: row.id }), t("copied"))
-                      }
-                    />
-                    {row.is_owner && (
+                    {canCopy && (
+                      <ActionIconButton
+                        label={t("copy")}
+                        intent="edit"
+                        icon={Copy}
+                        disabled={busy}
+                        onClick={() =>
+                          act(() => reportBuilderApi.template.copy({ id: row.id }), t("copied"))
+                        }
+                      />
+                    )}
+                    {canDelete && row.is_owner && (
                       <ActionIconButton
                         label={t("delete")}
                         intent="delete"
@@ -155,9 +163,9 @@ export function SavedReports({ open, onClose, onOpen }) {
   );
 }
 
-// Name, folder, description and who sees it. Editing the open template is
-// for its owner; anyone can save the current setup as a new one.
-export function SaveTemplateDialog({ open, onClose, definition, current, onSaved }) {
+// Name, folder, description and who sees it. Saving a new one needs Add;
+// changing the open one needs Edit and being its owner.
+export function SaveTemplateDialog({ open, onClose, definition, current, onSaved, canAdd, canEdit }) {
   const { t } = useTranslation("builder");
   const [form, setForm] = useState({
     name: "",
@@ -168,7 +176,7 @@ export function SaveTemplateDialog({ open, onClose, definition, current, onSaved
   });
   const [profiles, setProfiles] = useState([]);
   const [busy, setBusy] = useState("");
-  const owner = Boolean(current?.is_owner);
+  const owner = Boolean(current?.is_owner) && canEdit;
 
   useEffect(() => {
     if (!open) return;
@@ -227,15 +235,11 @@ export function SaveTemplateDialog({ open, onClose, definition, current, onSaved
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button
-            variant={owner ? "secondary" : "primary"}
-            size="sm"
-            disabled={invalid}
-            loading={busy === "add"}
-            onClick={() => save(true)}
-          >
-            {t(owner ? "saveAsNew" : "save")}
-          </Button>
+          {canAdd && (
+            <Button variant={owner ? "secondary" : "primary"} size="sm" disabled={invalid} loading={busy === "add"} onClick={() => save(true)}>
+              {t(owner ? "saveAsNew" : "save")}
+            </Button>
+          )}
           {owner && (
             <Button
               size="sm"
