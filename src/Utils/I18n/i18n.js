@@ -57,6 +57,7 @@ void i18n
       "fees",
       "builder",
       "providers",
+      "accounting",
       "kycReport",
       "mms",
     ],

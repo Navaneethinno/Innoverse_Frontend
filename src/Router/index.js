@@ -16,6 +16,7 @@ import { mmsRoutes } from "./Merchant/mmsRoutes";
 import { amlRoutes } from "./InnoAML/amlRoutes";
 import { reportRoutes } from "./Reports/reportRoutes";
 import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
+import { accountingRoutes } from "./Accounting/accountingRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -45,3 +46,6 @@ export const reportsRoutes = [...reportRoutes];
 
 // Global Settings: Limit.
 export { globalSettingsRoutes };
+
+// Accounting: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
+export { accountingRoutes };

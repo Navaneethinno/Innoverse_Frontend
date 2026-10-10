@@ -68,6 +68,17 @@ export async function uploadFile(path, fields) {
   return data;
 }
 
+// A multipart call that answers with the usual JSON envelope (e.g. a file
+// to validate or import): the whole reply, like the JSON helpers.
+export async function postForm(path, fields) {
+  const form = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") form.append(key, value);
+  });
+  const { payload } = await send(path, { headers: headers(), body: form });
+  return payload;
+}
+
 // Download a stored file (JSON body) as a Blob.
 export async function downloadFile(path, body) {
   const { response, payload } = await send(path, {
