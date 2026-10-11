@@ -18,20 +18,44 @@ import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass
 import { ProductStatus } from "../TermDeposits/DepositProducts/productShared";
 import { glLabel, useRecordActions } from "./accountingShared";
 
-const LIMITS = ["txn_type", "ext_provider_id", "channel_id", "digital_product_id", "currency_id"];
+const PRODUCT_KEYS = ["digital_product_id", "loan_product_id", "acct_product_id", "card_product_id"];
+const ID_KEYS = ["ext_provider_id", "channel_id", ...PRODUCT_KEYS, "currency_id"];
+const LIMITS = ["txn_type", ...ID_KEYS];
 const isSet = (v) => v !== "" && v != null && v !== 0 && v !== "0";
 const specificity = (r) => LIMITS.filter((k) => isSet(r[k])).length;
-const blankRule = () => ({ leg: "", txn_type: "", ext_provider_id: "", channel_id: "", digital_product_id: "", currency_id: "", gl_account_id: "", note: "" });
+const blankRule = () => ({ leg: "", txn_type: "", ...Object.fromEntries(ID_KEYS.map((k) => [k, ""])), gl_account_id: "", note: "" });
+
+// Which product kind a leg's postings carry: a loan, account or card product
+// limit only fits those legs (the digital product fits every leg).
+const fitsLeg = {
+  loan_product_id: (leg) => leg?.startsWith("LOAN_"),
+  acct_product_id: (leg) => leg?.startsWith("TD_") || leg === "WALLET_INTEREST_EXPENSE",
+  card_product_id: (leg) => leg?.startsWith("CARD_"),
+};
+const showProduct = (key) => (r) => !fitsLeg[key] || fitsLeg[key](r.leg) || isSet(r[key]);
+const PRODUCT_LISTS = { digital_product_id: "products", loan_product_id: "loan_products", acct_product_id: "acct_products", card_product_id: "card_products" };
+const productLabel = { digital_product_id: "product", loan_product_id: "loanProduct", acct_product_id: "acctProduct", card_product_id: "cardProduct" };
+
+// "Loan · Personal Loan" for whichever product limit a rule (or unmapped row)
+// sets, the name from the row or else the options.
+function productOf(r, names, t) {
+  const key = PRODUCT_KEYS.find((k) => isSet(r[k]));
+  if (!key) return null;
+  const name = r[key.replace("_id", "_name")] || names?.[PRODUCT_LISTS[key]]?.[String(r[key])]?.name || `#${r[key]}`;
+  return (
+    <span>
+      <span className="mr-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold">{t(`productKind_${key}`)}</span>
+      {name}
+    </span>
+  );
+}
 
 // The rules as the server takes them: "" / 0 is "any".
 const toRules = (rules) =>
   rules.map((r) => ({
     leg: r.leg,
     txn_type: r.txn_type || "",
-    ext_provider_id: Number(r.ext_provider_id) || 0,
-    channel_id: Number(r.channel_id) || 0,
-    digital_product_id: Number(r.digital_product_id) || 0,
-    currency_id: Number(r.currency_id) || 0,
+    ...Object.fromEntries(ID_KEYS.map((k) => [k, Number(r[k]) || 0])),
     gl_account_id: Number(r.gl_account_id) || 0,
     note: String(r.note ?? "").trim(),
   }));
@@ -152,7 +176,7 @@ export function GlMapping() {
 function useNames(options) {
   return useMemo(() => {
     const by = (list, key = "id") => Object.fromEntries((list ?? []).map((x) => [String(x[key]), x]));
-    return { legs: by(options.legs, "code"), types: by(options.txn_types, "code"), providers: by(options.providers), channels: by(options.channels), products: by(options.products), currencies: by(options.currencies), gls: by(options.gl_accounts) };
+    return { legs: by(options.legs, "code"), types: by(options.txn_types, "code"), providers: by(options.providers), channels: by(options.channels), products: by(options.products), loan_products: by(options.loan_products), acct_products: by(options.acct_products), card_products: by(options.card_products), currencies: by(options.currencies), gls: by(options.gl_accounts) };
   }, [options]);
 }
 
@@ -185,7 +209,7 @@ function MappingView({ mapping, options, other }) {
               { key: "txn_type", label: t("txnType"), render: (r) => (isSet(r.txn_type) ? r.txn_type_name || names.types[r.txn_type]?.name || r.txn_type : any) },
               { key: "provider", label: t("provider"), render: (r) => (isSet(r.ext_provider_id) ? r.ext_provider_name || names.providers[String(r.ext_provider_id)]?.name : any) },
               { key: "channel", label: t("channel"), render: (r) => (isSet(r.channel_id) ? r.channel_name || names.channels[String(r.channel_id)]?.name : any) },
-              { key: "product", label: t("product"), render: (r) => (isSet(r.digital_product_id) ? r.digital_product_name || names.products[String(r.digital_product_id)]?.name : any) },
+              { key: "product", label: t("product"), render: (r) => productOf(r, names, t) ?? any },
               { key: "currency", label: t("currency"), render: (r) => (isSet(r.currency_id) ? r.currency_code || names.currencies[String(r.currency_id)]?.code : any) },
               {
                 key: "gl",
@@ -214,7 +238,7 @@ function MappingView({ mapping, options, other }) {
 function MappingEditor({ setup, options, onClose, onSaved }) {
   const { t } = useTranslation("accounting");
   const source = setup?.draft ?? setup?.pending?.mapping ?? setup?.mapping;
-  const [rules, setRules] = useState(() => (source?.rules ?? []).map((r) => ({ ...r, txn_type: r.txn_type ?? "", ...Object.fromEntries(["ext_provider_id", "channel_id", "digital_product_id", "currency_id", "gl_account_id"].map((k) => [k, isSet(r[k]) ? String(r[k]) : ""])) })));
+  const [rules, setRules] = useState(() => (source?.rules ?? []).map((r) => ({ ...r, txn_type: r.txn_type ?? "", ...Object.fromEntries([...ID_KEYS, "gl_account_id"].map((k) => [k, isSet(r[k]) ? String(r[k]) : ""])) })));
   const [fallback, setFallback] = useState(source?.fallback_gl_account_id ? String(source.fallback_gl_account_id) : "");
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState("");
@@ -270,7 +294,7 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
             { key: "txn_type", label: t("txnType"), ...sel(options.txn_types, "code", (x) => x.name) },
             { key: "ext_provider_id", label: t("provider"), ...sel(options.providers, "id", (x) => x.name) },
             { key: "channel_id", label: t("channel"), ...sel(options.channels, "id", (x) => x.name) },
-            { key: "digital_product_id", label: t("product"), ...sel(options.products, "id", (x) => x.name) },
+            ...PRODUCT_KEYS.map((key) => ({ key, label: t(productLabel[key]), showIf: showProduct(key), ...sel(options[PRODUCT_LISTS[key]], "id", (x) => x.name) })),
             { key: "currency_id", label: t("currency"), ...sel(options.currencies, "id", (x) => x.code) },
             { key: "gl_account_id", label: t("gl"), type: "select", blank: t("choose"), options: glOptions, span: "sm:col-span-2" },
             { key: "note", label: t("note"), span: "sm:col-span-2 lg:col-span-4" },
@@ -306,14 +330,14 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
 // "Test": where a posting with these details would go now, and why.
 function ResolvePanel({ options }) {
   const { t } = useTranslation("accounting");
-  const [q, setQ] = useState({ leg: "", currency_id: String(options.currencies?.[0]?.id ?? ""), txn_type: "", ext_provider_id: "", channel_id: "", digital_product_id: "" });
+  const [q, setQ] = useState({ leg: "", currency_id: String(options.currencies?.[0]?.id ?? ""), txn_type: "", ...Object.fromEntries(ID_KEYS.filter((k) => k !== "currency_id").map((k) => [k, ""])) });
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const set = (key) => (value) => setQ((x) => ({ ...x, [key]: value }));
   const pick = (key, list, value, label, blank = t("any")) => (
-    <label className={labelClass}>
-      {t(key === "currency_id" ? "currency" : key === "ext_provider_id" ? "provider" : key === "channel_id" ? "channel" : key === "digital_product_id" ? "product" : key === "txn_type" ? "txnType" : "leg")}
+    <label key={key} className={labelClass}>
+      {t(productLabel[key] ?? (key === "currency_id" ? "currency" : key === "ext_provider_id" ? "provider" : key === "channel_id" ? "channel" : key === "txn_type" ? "txnType" : "leg"))}
       <FilterSelect className="mt-1.5" value={q[key]} onChange={set(key)} options={[...(blank ? [{ value: "", label: blank }] : []), ...(list ?? []).map((x) => ({ value: String(x[value]), label: label(x) }))]} />
     </label>
   );
@@ -321,7 +345,7 @@ function ResolvePanel({ options }) {
     setBusy(true);
     setError("");
     try {
-      const body = { leg: q.leg, currency_id: Number(q.currency_id), ...(q.txn_type ? { txn_type: q.txn_type } : {}), ...Object.fromEntries(["ext_provider_id", "channel_id", "digital_product_id"].filter((k) => q[k]).map((k) => [k, Number(q[k])])) };
+      const body = { leg: q.leg, currency_id: Number(q.currency_id), ...(q.txn_type ? { txn_type: q.txn_type } : {}), ...Object.fromEntries(ID_KEYS.filter((k) => k !== "currency_id" && q[k] && showProduct(k)(q)).map((k) => [k, Number(q[k])])) };
       setResult(rowsOf(await glMappingApi.resolve(body))[0] ?? null);
     } catch (e) {
       setResult(null);
@@ -339,7 +363,7 @@ function ResolvePanel({ options }) {
         {pick("txn_type", options.txn_types, "code", (x) => x.name)}
         {pick("ext_provider_id", options.providers, "id", (x) => x.name)}
         {pick("channel_id", options.channels, "id", (x) => x.name)}
-        {pick("digital_product_id", options.products, "id", (x) => x.name)}
+        {PRODUCT_KEYS.filter((k) => showProduct(k)(q)).map((k) => pick(k, options[PRODUCT_LISTS[k]], "id", (x) => x.name))}
       </div>
       <Button className="mt-3" icon={FlaskConical} loading={busy} disabled={!q.leg || !q.currency_id} onClick={run}>
         {t("test")}
@@ -383,7 +407,7 @@ function Unmapped() {
           { key: "txn_type", label: t("txnType"), render: (r) => <span className="text-xs">{r.txn_type_name ?? r.txn_type ?? "—"}</span> },
           { key: "provider", label: t("provider"), render: (r) => <span className="text-xs">{r.provider_name ?? r.provider ?? "—"}</span> },
           { key: "channel", label: t("channel"), render: (r) => <span className="text-xs">{r.channel_name ?? r.channel ?? "—"}</span> },
-          { key: "product", label: t("product"), render: (r) => <span className="text-xs">{r.product_name ?? r.product ?? "—"}</span> },
+          { key: "product", label: t("product"), render: (r) => <span className="text-xs">{productOf({ digital_product_name: r.product_name, digital_product_id: r.digital_product_id ?? r.product, ...r }, null, t) ?? "—"}</span> },
           { key: "currency", label: t("currency"), render: (r) => <span className="text-xs">{r.currency_code ?? r.currency ?? "—"}</span> },
           { key: "gl_name", label: t("wentTo"), render: (r) => <span className="text-xs font-bold">{r.gl_name}</span> },
           { key: "uses", label: t("uses"), render: (r) => <span className="text-xs tabular-nums">{r.uses}</span> },

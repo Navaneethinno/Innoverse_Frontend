@@ -12,15 +12,26 @@ import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notific
 import { accountDate, money } from "@/Components/Epurse/Accounts/accountShared";
 import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass } from "@/Components/TermDeposits/depositShared";
 import { ProductStatus } from "@/Components/TermDeposits/DepositProducts/productShared";
-import { MiniTable, RowsEditor, useInstitutionScope } from "@/Components/Loans/loanShared";
+import { MiniTable, RowsEditor, Tabs, useInstitutionScope } from "@/Components/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { extProvidersApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
+
+const BANK_FORMATS = ["NIB_MZ", "IBAN", "ACCOUNT"];
+const formatOf = (p) => p.account_format || "NIB_MZ";
+// Only mobile wallets take money in (top up); the other kinds only send.
+const canPull = (p) => p.kind === "MOBILE_WALLET";
+// Wallets and operators route by number prefix, banks by bank code; an
+// ACCOUNT-format bank, electricity and billers take none.
+const usesPrefixes = (p) => ["MOBILE_WALLET", "AIRTIME"].includes(p.kind) || (p.kind === "BANK" && formatOf(p) !== "ACCOUNT");
+// Providers that can tell the holder's name (the meter's, the bill's).
+const canLookUp = (p) => ["ELECTRICITY", "BILLER"].includes(p.kind);
 
 // The setup as the server takes it: whole lists, providers matched by code.
 const toBody = (c) => ({
@@ -33,13 +44,28 @@ const toBody = (c) => ({
     min_amount: str(p.min_amount),
     max_amount: str(p.max_amount),
     allow_push: Boolean(p.allow_push),
-    allow_pull: Boolean(p.allow_pull),
-    prefixes: p.prefixes ?? [],
+    allow_pull: canPull(p) && Boolean(p.allow_pull),
+    prefixes: usesPrefixes(p) ? (p.prefixes ?? []) : [],
     priority: Number(p.priority) || i + 1,
     active: Boolean(p.active),
+    name_lookup: Boolean(p.name_lookup),
+    ...(p.kind === "BANK" ? { account_format: formatOf(p) } : {}),
+    ...(p.kind === "BILLER" ? { biller: billerBody(p.biller) } : {}),
   })),
   groups: (c.groups ?? []).map((g) => ({ code: code(g.code), name: str(g.name, ""), providers: g.providers ?? [], active: Boolean(g.active) })),
 });
+
+const providerReady = (p) => code(p.code) && str(p.name, "") && p.currency_code && (!usesPrefixes(p) || p.prefixes?.length) && (p.kind !== "BILLER" || billerReady(p.biller));
+
+// One tab per provider kind (the options' order, then any other kind a
+// provider has), with how many providers each holds.
+function useKindTabs(providers, kinds) {
+  const all = [...new Set([...(kinds ?? []), ...providers.map((p) => p.kind)])].filter(Boolean);
+  const [tab, setTab] = useState(null);
+  const current = all.includes(tab) ? tab : (all.find((k) => providers.some((p) => p.kind === k)) ?? all[0]);
+  const tabs = all.map((key) => ({ key, count: providers.filter((p) => p.kind === key).length }));
+  return { tab: current, setTab, tabs };
+}
 
 function useProviderOptions(instProfileId) {
   const [options, setOptions] = useState(null);
@@ -207,23 +233,32 @@ function SetupTables({ config, other }) {
   };
   const providers = config?.providers ?? [];
   const nameOf = (c) => providers.find((p) => p.code === c)?.name ?? c;
+  const { tab, setTab, tabs } = useKindTabs(providers);
+  const services = (p) => (p.biller?.services ?? []).map((x) => x.name || x.code).join(", ");
   return (
     <div className="grid gap-4">
+      <div>
+      {tabs.length > 1 && <Tabs tabs={tabs} value={tab} onChange={setTab} labelOf={(k) => t(`kind_${k}`, { defaultValue: k })} />}
       <MiniTable
-        rows={providers}
+        rows={providers.filter((p) => p.kind === tab)}
         rowKey={(p) => p.code}
         empty={t("noProviders")}
         rowClass={changed("providers")}
         columns={[
           { key: "name", label: t("provider"), render: (p) => <span><b>{p.name}</b> <span className="text-muted-foreground">{p.code}</span></span> },
-          { key: "prefixes", label: t("prefixes"), render: (p) => <Prefixes list={p.prefixes} /> },
+          tab === "BANK" && { key: "account_format", label: t("accountFormat"), render: (p) => t(`format_${formatOf(p)}`) },
+          usesPrefixes({ kind: tab }) && { key: "prefixes", label: t(tab === "BANK" ? "bankCodes" : "prefixes"), render: (p) => <Prefixes list={p.prefixes} /> },
+          tab === "BILLER" && { key: "category", label: t("billerCategory"), render: (p) => t(`category_${p.biller?.category}`, { defaultValue: p.biller?.category ?? "—" }) },
+          tab === "BILLER" && { key: "services", label: t("services"), render: (p) => <span className="block max-w-xs truncate" title={services(p)}>{services(p) || "—"}</span> },
           { key: "amounts", label: t("amounts"), render: (p) => `${money(p.min_amount, p.currency_code)} – ${Number(p.max_amount) > 0 ? money(p.max_amount, p.currency_code) : t("noLimit")}` },
           { key: "allow_push", label: t("send"), render: (p) => yesNo(t, p.allow_push) },
-          { key: "allow_pull", label: t("topUp"), render: (p) => yesNo(t, p.allow_pull) },
-          { key: "how", label: t("adapter"), render: (p) => `${t(`kind_${p.kind}`, { defaultValue: p.kind })} · ${p.adapter}` },
+          tab === "MOBILE_WALLET" && { key: "allow_pull", label: t("topUp"), render: (p) => yesNo(t, p.allow_pull) },
+          canLookUp({ kind: tab }) && { key: "name_lookup", label: t("nameLookup"), render: (p) => yesNo(t, p.name_lookup) },
+          { key: "how", label: t("adapter"), render: (p) => p.adapter },
           { key: "active", label: t("active"), render: (p) => yesNo(t, p.active) },
-        ]}
+        ].filter(Boolean)}
       />
+      </div>
       <MiniTable
         rows={config?.groups ?? []}
         rowKey={(g) => g.code}
@@ -372,22 +407,27 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
     setConfig(structuredClone(source ?? { providers: [], groups: [] }));
   }, [options, setup]);
 
+  const { tab: kind, setTab: setKind, tabs: kindTabs } = useKindTabs(config?.providers ?? [], options?.kinds);
   const blankProvider = () => ({
     code: "",
     name: "",
-    kind: options?.kinds?.[0] ?? "",
+    kind,
     adapter: options?.adapters?.[0] ?? "",
     currency_code: options?.currencies?.find((c) => c.is_base_currency)?.alpha_code ?? options?.currencies?.[0]?.alpha_code ?? "",
     min_amount: "0",
     max_amount: "0",
     allow_push: true,
-    allow_pull: true,
+    allow_pull: kind === "MOBILE_WALLET",
     prefixes: [],
+    name_lookup: false,
+    ...(kind === "BANK" ? { account_format: "NIB_MZ" } : {}),
+    ...(kind === "BILLER" ? { biller: { category: "", services: [] } } : {}),
     priority: String((config?.providers?.length ?? 0) + 1),
     active: true,
   });
   const providerCodes = (config?.providers ?? []).map((p) => code(p.code)).filter(Boolean);
-  const ready = config && config.providers?.every((p) => code(p.code) && str(p.name, "") && p.currency_code && p.prefixes?.length) && config.groups?.every((g) => code(g.code) && str(g.name, "") && g.providers?.length);
+  const incomplete = [...new Set((config?.providers ?? []).filter((p) => !providerReady(p)).map((p) => p.kind))];
+  const ready = config && !incomplete.length && config.groups?.every((g) => code(g.code) && str(g.name, "") && g.providers?.length);
 
   const save = async (submit) => {
     setBusy(true);
@@ -428,9 +468,10 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
 
       <Section title={t("providers")} className="mb-4">
         <p className="mb-3 text-xs text-muted-foreground">{t("providersHint")}</p>
+        <Tabs tabs={kindTabs} value={kind} onChange={setKind} labelOf={(k) => t(`kind_${k}`, { defaultValue: k })} />
         <RowsEditor
-          rows={config.providers ?? []}
-          onChange={(providers) => setConfig((c) => ({ ...c, providers }))}
+          rows={(config.providers ?? []).filter((p) => p.kind === kind)}
+          onChange={(rows) => setConfig((c) => ({ ...c, providers: [...c.providers.filter((p) => p.kind !== kind), ...rows] }))}
           blank={blankProvider}
           addLabel={t("addProvider")}
           decimals={options.currencies?.find((c) => c.is_base_currency)?.amount_decimals ?? 2}
@@ -438,21 +479,27 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
           fields={[
             { key: "code", label: t("fees:code"), placeholder: "MPESA" },
             { key: "name", label: t("fees:name"), placeholder: "M-Pesa" },
-            { key: "kind", label: t("kind"), ...codes(options.kinds) },
+            { key: "account_format", label: t("accountFormat"), type: "select", options: BANK_FORMATS.map((f) => ({ value: f, label: t(`format_${f}`) })), showIf: (p) => p.kind === "BANK" },
             { key: "adapter", label: t("adapter"), ...codes(options.adapters) },
             { key: "currency_code", label: t("fees:currency"), type: "select", options: (options.currencies ?? []).map((c) => ({ value: c.alpha_code, label: `${c.alpha_code} · ${c.name}` })) },
             { key: "min_amount", label: t("minAmount"), type: "amount" },
             { key: "max_amount", label: t("maxAmount"), type: "amount" },
             { key: "priority", label: t("priority"), type: "int" },
             { key: "allow_push", label: t("send"), type: "bool" },
-            { key: "allow_pull", label: t("topUp"), type: "bool" },
+            { key: "allow_pull", label: t("topUp"), type: "bool", showIf: canPull },
+            { key: "name_lookup", label: t("nameLookup"), type: "bool", showIf: canLookUp },
             { key: "active", label: t("active"), type: "bool" },
           ]}
           renderExtra={(provider, patch) => (
-            <label className={cn(labelClass, "mt-3 block border-t border-dashed border-border pt-3")}>
-              {t("prefixes")} <span className="font-normal text-muted-foreground">· {t("prefixesHint", { dial: dial || "+…" })}</span>
-              <DigitChips className="mt-1.5" value={provider.prefixes ?? []} onChange={(prefixes) => patch({ prefixes })} placeholder="84" />
-            </label>
+            <>
+              {usesPrefixes(provider) && (
+                <label className={cn(labelClass, "mt-3 block border-t border-dashed border-border pt-3")}>
+                  {t(provider.kind === "BANK" ? "bankCodes" : "prefixes")} <span className="font-normal text-muted-foreground">· {provider.kind === "BANK" ? t(`bankCodesHint_${formatOf(provider)}`) : t("prefixesHint", { dial: dial || "+…" })}</span>
+                  <DigitChips className="mt-1.5" letters={provider.kind === "BANK" && formatOf(provider) === "IBAN"} value={provider.prefixes ?? []} onChange={(prefixes) => patch({ prefixes })} placeholder={provider.kind === "BANK" ? (formatOf(provider) === "IBAN" ? "NWBK" : "0001") : "84"} />
+                </label>
+              )}
+              {provider.kind === "BILLER" && <BillerEditor biller={provider.biller} onChange={(biller) => patch({ biller })} />}
+            </>
           )}
         />
       </Section>
@@ -474,6 +521,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
         />
       </Section>
 
+      {incomplete.length > 0 && <p className="mt-4 text-xs font-semibold text-amber-800">{t("incompleteIn", { kinds: incomplete.map((k) => t(`kind_${k}`, { defaultValue: k })).join(", ") })}</p>}
       {error && (
         <div className="mt-4">
           <Problems message={error} />

@@ -5,12 +5,14 @@ import { cn } from "@/Utils/Lib/utils";
 
 // A list of number prefixes as chips: type digits, Enter (or a comma, or
 // leaving the box) adds `${lead}${digits}`; × removes one. `lead` is fixed
-// text shown before the box, e.g. a dialling code "+258".
-export function DigitChips({ value = [], onChange, lead = "", placeholder, disabled, className }) {
+// text shown before the box, e.g. a dialling code "+258". With `letters`,
+// letters are kept too (upper-cased), e.g. IBAN bank codes "NWBK".
+export function DigitChips({ value = [], onChange, lead = "", placeholder, disabled, className, letters = false }) {
   const { t } = useTranslation("common");
   const [text, setText] = useState("");
+  const clean = (raw) => (letters ? raw.toUpperCase().replace(/[^A-Z0-9]/g, "") : raw.replace(/\D/g, ""));
   const add = (raw = text) => {
-    const digits = raw.replace(/\D/g, "");
+    const digits = clean(raw);
     setText("");
     if (!digits) return;
     const next = `${lead}${digits}`;
@@ -32,14 +34,14 @@ export function DigitChips({ value = [], onChange, lead = "", placeholder, disab
         <span className="flex min-w-[7rem] flex-1 items-center gap-1 text-sm">
           {lead && <span className="font-mono text-xs text-muted-foreground">{lead}</span>}
           <input
-            inputMode="numeric"
+            inputMode={letters ? "text" : "numeric"}
             className="min-w-0 flex-1 bg-transparent py-1 font-mono text-sm outline-none placeholder:text-muted-foreground/60"
             value={text}
             placeholder={placeholder}
             onChange={(e) => {
               const v = e.target.value;
               if (/[, ]/.test(v)) add(v);
-              else setText(v.replace(/\D/g, ""));
+              else setText(clean(v));
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
