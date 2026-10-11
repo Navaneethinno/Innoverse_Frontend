@@ -23,7 +23,7 @@ const STATUSES = ["PENDING", "ACTIVE", "REJECTED", "INACTIVE"];
 // approves each new one before it trades, and can close or reopen it.
 export function Stores() {
   const { t } = useTranslation("mms");
-  const [tab, setTab] = useState("pending");
+  const [tab, setTab] = useState("all");
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
@@ -32,7 +32,7 @@ export function Stores() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("storesSubtitle")}</p>
       </div>
-      <Tabs tabs={[{ key: "pending" }, { key: "all" }]} value={tab} onChange={setTab} labelOf={(k) => t(`storesTab_${k}`)} />
+      <Tabs tabs={[{ key: "all" }, { key: "pending" }]} value={tab} onChange={setTab} labelOf={(k) => t(`storesTab_${k}`)} />
       <StoreList key={tab} pendingOnly={tab === "pending"} />
     </div>
   );
