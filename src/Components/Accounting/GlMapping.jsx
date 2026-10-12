@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, FlaskConical, Plus, Save, Send } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronDown, FlaskConical, Plus, Save, Send, ShieldCheck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { glMappingApi } from "@/Services/Accounting/accounting.api";
@@ -180,55 +181,154 @@ function useNames(options) {
   }, [options]);
 }
 
-// The fallback GL and the rules grouped by leg, the most specific first;
-// with `other`, rules new or changed are marked.
+// What a rule is limited to, as short labelled chips ("Provider M-Pesa");
+// a rule with no limit applies to every posting of its leg.
+function conditionsOf(r, names, t) {
+  const out = [];
+  if (isSet(r.txn_type)) out.push([t("txnType"), r.txn_type_name || names.types[r.txn_type]?.name || r.txn_type]);
+  if (isSet(r.ext_provider_id)) out.push([t("provider"), r.ext_provider_name || names.providers[String(r.ext_provider_id)]?.name || `#${r.ext_provider_id}`]);
+  if (isSet(r.channel_id)) out.push([t("channel"), r.channel_name || names.channels[String(r.channel_id)]?.name || `#${r.channel_id}`]);
+  const key = PRODUCT_KEYS.find((k) => isSet(r[k]));
+  if (key) out.push([t(`productKind_${key}`), r[key.replace("_id", "_name")] || names[PRODUCT_LISTS[key]]?.[String(r[key])]?.name || `#${r[key]}`]);
+  if (isSet(r.currency_id)) out.push([t("currency"), r.currency_code || names.currencies[String(r.currency_id)]?.code || `#${r.currency_id}`]);
+  return out;
+}
+const glText = (r, names) => {
+  const g = names.gls[String(r.gl_account_id)];
+  return { name: r.gl_name || g?.name || `#${r.gl_account_id}`, codes: [r.gl_code ?? g?.gl_code, r.gl_account_number ?? g?.account_number].filter(Boolean).join(" · ") };
+};
+
+function Conditions({ items }) {
+  const { t } = useTranslation("accounting");
+  if (!items.length) return <span className="text-xs italic text-muted-foreground">{t("allPostings")}</span>;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {items.map(([label, value]) => (
+        <span key={label} className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px]">
+          <span className="text-muted-foreground">{label}</span>
+          <b className="font-semibold">{value}</b>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+const toggleIn = (set, key) => {
+  const next = new Set(set);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  return next;
+};
+
+// The fallback GL and the rules grouped by leg (one card each, the most
+// specific rule first), with a search and a filter by leg; with `other`,
+// rules new or changed are marked.
 function MappingView({ mapping, options, other }) {
   const { t } = useTranslation("accounting");
   const names = useNames(options);
+  const [query, setQuery] = useState("");
+  const [only, setOnly] = useState("");
+  const [closed, setClosed] = useState(() => new Set());
   const before = other ? new Set((other.rules ?? []).map(sig)) : null;
   const rules = mapping?.rules ?? [];
-  const legs = [...new Set(rules.map((r) => r.leg))].sort((a, b) => (options.legs ?? []).findIndex((l) => l.code === a) - (options.legs ?? []).findIndex((l) => l.code === b));
-  const any = <span className="text-muted-foreground">{t("any")}</span>;
+  const order = (leg) => (options.legs ?? []).findIndex((l) => l.code === leg);
+  const legs = [...new Set(rules.map((r) => r.leg))].sort((a, b) => order(a) - order(b));
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const textOf = (r) => {
+    const gl = glText(r, names);
+    return [names.legs[r.leg]?.name, ...conditionsOf(r, names, t).map(([, v]) => v), gl.name, gl.codes, r.note].filter(Boolean).join(" ").toLowerCase();
+  };
+  const shown = rules.filter((r) => (!only || r.leg === only) && words.every((w) => textOf(r).includes(w)));
   const fallback = names.gls[String(mapping?.fallback_gl_account_id)];
+
   return (
-    <div className="grid gap-4">
-      <div className="rounded-xl border border-border bg-card p-3 text-xs">
-        <span className="font-bold text-muted-foreground">{t("fallbackGl")}: </span>
-        {mapping?.fallback_gl_account_id ? <b>{mapping.fallback_gl_name || (fallback ? glLabel(fallback) : `#${mapping.fallback_gl_account_id}`)}</b> : <span className="text-muted-foreground">{t("noFallback")}</span>}
-        <p className="mt-0.5 text-[11px] text-muted-foreground">{t("fallbackHint")}</p>
-      </div>
-      {legs.map((leg) => (
-        <div key={leg}>
-          <p className="mb-1.5 text-xs font-black">{names.legs[leg]?.name ?? leg}</p>
-          <p className="mb-2 text-[11px] text-muted-foreground">{names.legs[leg]?.description}</p>
-          <MiniTable
-            rows={rules.filter((r) => r.leg === leg).sort((a, b) => specificity(b) - specificity(a))}
-            rowKey={(r, i) => `${sig(r)}-${i}`}
-            rowClass={(r) => (before && !before.has(sig(r)) ? "bg-amber-50" : r.gl_status && Number(r.gl_status) !== 1 ? "bg-red-50" : undefined)}
-            columns={[
-              { key: "txn_type", label: t("txnType"), render: (r) => (isSet(r.txn_type) ? r.txn_type_name || names.types[r.txn_type]?.name || r.txn_type : any) },
-              { key: "provider", label: t("provider"), render: (r) => (isSet(r.ext_provider_id) ? r.ext_provider_name || names.providers[String(r.ext_provider_id)]?.name : any) },
-              { key: "channel", label: t("channel"), render: (r) => (isSet(r.channel_id) ? r.channel_name || names.channels[String(r.channel_id)]?.name : any) },
-              { key: "product", label: t("product"), render: (r) => productOf(r, names, t) ?? any },
-              { key: "currency", label: t("currency"), render: (r) => (isSet(r.currency_id) ? r.currency_code || names.currencies[String(r.currency_id)]?.code : any) },
-              {
-                key: "gl",
-                label: t("gl"),
-                render: (r) => {
-                  const g = names.gls[String(r.gl_account_id)];
-                  return (
-                    <span>
-                      <b>{r.gl_name || g?.name || `#${r.gl_account_id}`}</b> <span className="font-mono text-muted-foreground">{[r.gl_code ?? g?.gl_code, r.gl_account_number ?? g?.account_number].filter(Boolean).join(" · ")}</span>
-                    </span>
-                  );
-                },
-              },
-              { key: "note", label: t("note"), render: (r) => <span className="text-muted-foreground">{r.note || "—"}</span> },
-            ]}
-          />
+    <div className="grid min-w-0 gap-4">
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ShieldCheck size={18} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("fallbackGl")}</p>
+          {mapping?.fallback_gl_account_id ? (
+            <p className="text-sm font-black">{mapping.fallback_gl_name || (fallback ? glLabel(fallback) : `#${mapping.fallback_gl_account_id}`)}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("noFallback")}</p>
+          )}
+          <p className="mt-0.5 text-xs text-muted-foreground">{t("fallbackHint")}</p>
         </div>
-      ))}
-      {!legs.length && <p className="text-sm text-muted-foreground">{t("noRules")}</p>}
+      </div>
+
+      {rules.length > 0 && (
+        <div className="grid gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchBox search={query} onSearch={setQuery} placeholder={t("searchRules")} className="max-w-md" />
+            <span className="text-xs font-semibold text-muted-foreground">{words.length || only ? t("rulesMatch", { count: shown.length, total: rules.length }) : t("rulesCount", { count: rules.length, legs: legs.length })}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {[["", t("allLegs"), rules.length], ...legs.map((leg) => [leg, names.legs[leg]?.name ?? leg, rules.filter((r) => r.leg === leg).length])].map(([key, label, count]) => (
+              <button
+                key={key || "all"}
+                type="button"
+                onClick={() => setOnly(key)}
+                className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition", only === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground")}
+              >
+                {label}
+                <span className={cn("rounded-full px-1.5 text-[10px] tabular-nums", only === key ? "bg-white/25" : "bg-muted")}>{count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {legs
+        .filter((leg) => shown.some((r) => r.leg === leg))
+        .map((leg) => {
+          const list = shown.filter((r) => r.leg === leg).sort((a, b) => specificity(b) - specificity(a));
+          const open = !closed.has(leg) || words.length > 0;
+          return (
+            <section key={leg} className="min-w-0 rounded-2xl border border-border bg-card">
+              <button type="button" onClick={() => setClosed((c) => toggleIn(c, leg))} aria-expanded={open} className="flex w-full items-start justify-between gap-3 p-4 text-left">
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 text-sm font-black">
+                    {names.legs[leg]?.name ?? leg}
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">{t("nRules", { count: list.length })}</span>
+                  </span>
+                  {names.legs[leg]?.description && <span className="mt-0.5 block text-xs text-muted-foreground">{names.legs[leg].description}</span>}
+                </span>
+                <ChevronDown size={16} className={cn("mt-0.5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+              </button>
+              {open && (
+                <div className="px-4 pb-4">
+                  <MiniTable
+                    rows={list}
+                    rowKey={(r, i) => `${sig(r)}-${i}`}
+                    rowClass={(r) => (before && !before.has(sig(r)) ? "bg-amber-50" : r.gl_status && Number(r.gl_status) !== 1 ? "bg-red-50" : undefined)}
+                    columns={[
+                      { key: "when", label: t("appliesTo"), wrap: true, render: (r) => <Conditions items={conditionsOf(r, names, t)} /> },
+                      {
+                        key: "gl",
+                        label: t("gl"),
+                        wrap: true,
+                        render: (r) => {
+                          const g = glText(r, names);
+                          return (
+                            <span>
+                              <b className="block">{g.name}</b>
+                              <span className="font-mono text-[11px] text-muted-foreground">{g.codes}</span>
+                            </span>
+                          );
+                        },
+                      },
+                      { key: "note", label: t("note"), wrap: true, render: (r) => <span className="text-muted-foreground">{r.note || "—"}</span> },
+                    ]}
+                  />
+                </div>
+              )}
+            </section>
+          );
+        })}
+      {!rules.length && <p className="text-sm text-muted-foreground">{t("noRules")}</p>}
+      {rules.length > 0 && !shown.length && <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{t("noRulesMatch")}</p>}
     </div>
   );
 }
@@ -247,6 +347,20 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
   const sel = (list, value, label, blank = t("any")) => ({ type: "select", blank, options: (list ?? []).map((x) => ({ value: String(x[value]), label: label(x) })) });
   const glOptions = (options.gl_accounts ?? []).map((g) => ({ value: String(g.id), label: `${g.name} · ${[g.gl_code, g.account_number, g.multi_currency ? t("multi") : g.currency_code].filter(Boolean).join(" · ")}` }));
   const ready = rules.every((r) => r.leg && r.gl_account_id);
+  const names = useNames(options);
+  // The rules grouped by leg, in the legs' order; a group opens on a click
+  // (or by itself while a rule in it still needs its GL).
+  const editLegs = [...new Set(rules.map((r) => r.leg))].sort((a, b) => (options.legs ?? []).findIndex((l) => l.code === a) - (options.legs ?? []).findIndex((l) => l.code === b));
+  const [openLegs, setOpenLegs] = useState(() => new Set());
+  const ruleFields = [
+    { key: "txn_type", label: t("txnType"), ...sel(options.txn_types, "code", (x) => x.name) },
+    { key: "ext_provider_id", label: t("provider"), ...sel(options.providers, "id", (x) => x.name) },
+    { key: "channel_id", label: t("channel"), ...sel(options.channels, "id", (x) => x.name) },
+    ...PRODUCT_KEYS.map((key) => ({ key, label: t(productLabel[key]), showIf: showProduct(key), ...sel(options[PRODUCT_LISTS[key]], "id", (x) => x.name) })),
+    { key: "currency_id", label: t("currency"), ...sel(options.currencies, "id", (x) => x.code) },
+    { key: "gl_account_id", label: t("gl"), type: "select", blank: t("choose"), options: glOptions, span: "sm:col-span-2" },
+    { key: "note", label: t("note"), span: "sm:col-span-2" },
+  ];
 
   const save = async (submit) => {
     setBusy(submit ? "submit" : "draft");
@@ -282,24 +396,41 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
         <FilterSelect value={fallback} onChange={setFallback} options={[{ value: "", label: t("noFallback") }, ...glOptions]} />
         <p className="mt-1 text-[11px] text-muted-foreground">{t("fallbackHint")}</p>
       </Section>
-      <Section title={t("rules")}>
-        <RowsEditor
-          rows={rules}
-          onChange={setRules}
-          blank={blankRule}
-          addLabel={t("addRule")}
-          columns="lg:grid-cols-4"
-          fields={[
-            { key: "leg", label: t("leg"), ...sel(options.legs, "code", (x) => x.name, t("choose")) },
-            { key: "txn_type", label: t("txnType"), ...sel(options.txn_types, "code", (x) => x.name) },
-            { key: "ext_provider_id", label: t("provider"), ...sel(options.providers, "id", (x) => x.name) },
-            { key: "channel_id", label: t("channel"), ...sel(options.channels, "id", (x) => x.name) },
-            ...PRODUCT_KEYS.map((key) => ({ key, label: t(productLabel[key]), showIf: showProduct(key), ...sel(options[PRODUCT_LISTS[key]], "id", (x) => x.name) })),
-            { key: "currency_id", label: t("currency"), ...sel(options.currencies, "id", (x) => x.code) },
-            { key: "gl_account_id", label: t("gl"), type: "select", blank: t("choose"), options: glOptions, span: "sm:col-span-2" },
-            { key: "note", label: t("note"), span: "sm:col-span-2 lg:col-span-4" },
-          ]}
-        />
+      <Section title={t("rules")} action={<span className="text-xs font-semibold text-muted-foreground">{t("rulesCount", { count: rules.length, legs: editLegs.length })}</span>}>
+        <div className="grid gap-3">
+          {editLegs.map((leg) => {
+            const rows = rules.filter((r) => r.leg === leg);
+            const missing = rows.filter((r) => !r.gl_account_id).length;
+            const open = openLegs.has(leg) || missing > 0;
+            return (
+              <div key={leg} className="rounded-xl border border-border">
+                <button type="button" onClick={() => setOpenLegs((o) => toggleIn(o, leg))} aria-expanded={open} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left">
+                  <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-bold">
+                    {names.legs[leg]?.name ?? leg}
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">{t("nRules", { count: rows.length })}</span>
+                    {missing > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900">{t("needGl", { count: missing })}</span>}
+                  </span>
+                  <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+                </button>
+                {open && (
+                  <div className="border-t border-border p-3">
+                    <RowsEditor rows={rows} onChange={(next) => setRules((all) => [...all.filter((r) => r.leg !== leg), ...next])} blank={() => ({ ...blankRule(), leg })} addLabel={t("addRule")} columns="lg:grid-cols-4" fields={ruleFields} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <FilterSelect
+            className="w-full max-w-sm"
+            value=""
+            onChange={(leg) => {
+              if (!leg) return;
+              setRules((all) => [...all, { ...blankRule(), leg }]);
+              setOpenLegs((o) => new Set(o).add(leg));
+            }}
+            options={[{ value: "", label: t("addLeg") }, ...(options.legs ?? []).filter((l) => !editLegs.includes(l.code)).map((l) => ({ value: l.code, label: l.name }))]}
+          />
+        </div>
       </Section>
       <label className={cn(labelClass, "mt-4 block")}>
         {t("narration")}

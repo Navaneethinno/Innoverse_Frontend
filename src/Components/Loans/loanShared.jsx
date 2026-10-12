@@ -116,7 +116,8 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
   );
 }
 
-// A simple read-only table: columns [{ key, label, render?, align? }].
+// A simple read-only table: columns [{ key, label, render?, align?, wrap? }]
+// (`wrap` lets a long cell, a note, break onto lines instead of widening the table).
 export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, rowClass }) {
   const { t } = useTranslation("loans");
   if (!rows?.length) return <p className="py-4 text-center text-sm text-muted-foreground">{empty ?? t("nothingYet")}</p>;
@@ -136,7 +137,7 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
           {rows.map((r, i) => (
             <tr key={rowKey(r, i)} className={cn("border-t border-border", rowClass?.(r))}>
               {columns.map((c) => (
-                <td key={c.key} className={cn("whitespace-nowrap px-3 py-2", c.align === "right" && "text-right tabular-nums")}>
+                <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", c.align === "right" && "text-right tabular-nums")}>
                   {c.render ? c.render(r) : (r[c.key] ?? "—")}
                 </td>
               ))}
