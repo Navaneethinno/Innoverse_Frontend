@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { CheckCircle2, Plus, Trash2, XCircle } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { DateInput } from "@/Components/Common/DateInput";
 import { limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { currencyCode, useLimitLists } from "./useLimitLists";
@@ -14,6 +15,10 @@ import { Button } from "@/Components/Common/Button";
 const input = "mt-1.5 w-full rounded-xl border px-3 py-2 text-sm font-normal";
 const num = (v) => (v === "" || v === undefined ? undefined : Number(v));
 
+// The "at" time: a date from the calendar, then the hour and minute.
+const two = (n) => String(n).padStart(2, "0");
+const HOURS = Array.from({ length: 24 }, (_, h) => two(h));
+const MINUTES = Array.from({ length: 12 }, (_, m) => two(m * 5));
 export function LimitEvaluate({ group, onClose }) {
   const { t } = useTranslation("limits");
   const lists = useLimitLists();
@@ -96,7 +101,22 @@ export function LimitEvaluate({ group, onClose }) {
             </label>
             <label className="text-xs font-semibold text-slate-700">
               {t("at")}
-              <input type="datetime-local" className={input} value={form.at} onChange={(e) => set({ at: e.target.value })} />
+              <div className="mt-1.5 grid grid-cols-[1fr_auto_auto] gap-1.5">
+                <DateInput value={form.at.slice(0, 10)} onChange={(e) => set({ at: e.target.value ? `${e.target.value}T${form.at.slice(11, 16) || "00:00"}` : "" })} />
+                {[
+                  [11, HOURS],
+                  [14, MINUTES],
+                ].map(([at, list]) => (
+                  <FilterSelect
+                    key={at}
+                    className="w-[4.5rem]"
+                    disabled={!form.at}
+                    value={form.at.slice(at, at + 2) || "00"}
+                    onChange={(v) => set({ at: `${form.at.slice(0, at)}${v}${form.at.slice(at + 2)}` })}
+                    options={list.map((x) => ({ value: x, label: x }))}
+                  />
+                ))}
+              </div>
             </label>
             <label className="text-xs font-semibold text-slate-700">
               {t("currency")}
