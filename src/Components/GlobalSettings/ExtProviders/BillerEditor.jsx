@@ -101,7 +101,7 @@ export function BillerEditor({ biller, onChange }) {
           columns="lg:grid-cols-3"
           fields={[
             { key: "code", label: t("fees:code"), placeholder: "SUBSCRIPTION" },
-            { key: "name", label: t("fees:name"), placeholder: "Subscrição" },
+            { key: "name", label: t("fees:name"), placeholder: "Subscription" },
             { key: "amount", label: t("amountMode"), ...sel(AMOUNT_MODES, "amount_") },
             { key: "partial", label: t("partial"), type: "bool", showIf: (s) => s.amount === "DUE" },
             { key: "lookup", label: t("lookup"), type: "bool", showIf: (s) => s.amount !== "DUE" },
@@ -118,7 +118,7 @@ export function BillerEditor({ biller, onChange }) {
                   columns="lg:grid-cols-3"
                   fields={[
                     { key: "key", label: t("fieldKey"), placeholder: "card_number" },
-                    { key: "label", label: t("fieldLabel"), placeholder: "Número do cartão" },
+                    { key: "label", label: t("fieldLabel"), placeholder: "Card number" },
                     { key: "type", label: t("fieldType"), ...sel(FIELD_TYPES.filter((x) => x !== "SELECT"), "fieldType_") },
                   ]}
                 />
@@ -135,7 +135,7 @@ export function BillerEditor({ biller, onChange }) {
                     { key: "label", label: t("fieldLabel") },
                     { key: "type", label: t("fieldType"), ...sel(FIELD_TYPES, "fieldType_") },
                     { key: "required", label: t("required"), type: "bool" },
-                    { key: "options", label: t("selectOptions"), placeholder: "Prata, Ouro", showIf: (f) => f.type === "SELECT", span: "sm:col-span-2" },
+                    { key: "options", label: t("selectOptions"), placeholder: "Silver, Gold", showIf: (f) => f.type === "SELECT", span: "sm:col-span-2" },
                     { key: "pattern", label: t("pattern"), placeholder: "^[0-9]{9}$", span: "sm:col-span-2" },
                   ]}
                 />
@@ -151,7 +151,7 @@ export function BillerEditor({ biller, onChange }) {
                     fields={[
                       { key: "code", label: t("fees:code"), placeholder: "MINI_7D" },
                       { key: "name", label: t("fees:name"), placeholder: "Zap Mini" },
-                      { key: "option", label: t("productOption"), placeholder: "7 dias" },
+                      { key: "option", label: t("productOption"), placeholder: "7 days" },
                       { key: "amount", label: t("price"), type: "amount" },
                       { key: "validity_days", label: t("validityDays"), type: "int" },
                     ]}
