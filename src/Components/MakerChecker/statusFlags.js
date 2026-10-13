@@ -33,29 +33,3 @@ export function deriveStatusFlags(row) {
   return { draft, pending, pendingDelete, active, inactive };
 }
 
-// Builds the standard [method, label, Icon] action-button list in the flow
-// every page should share: Submit (draft) -> Authorize/Reject (pending,
-// excluding a pending delete) -> Delete -> Authorize delete (pending
-// delete only, since /auth never completes a delete — see
-// useInstitutionDeleteAuthMutation's comment) -> Deactivate/Reactivate.
-// `icons` takes the lucide-react icon components the caller already
-// imports, so this stays icon-library-agnostic; `perms` are the booleans
-// from the page's own useHasXAction calls.
-export function buildMakerCheckerActions(flags, icons, perms = {}) {
-  const { draft, pending, pendingDelete, active, inactive } = flags;
-  const { canAuthorize = false, canDelete = false, canChangeStatus = false } = perms;
-  const { Send, ShieldCheck, ShieldOff, Trash2, Power, PowerOff } = icons;
-  return [
-    ...(draft ? [["submit", "Submit", Send]] : []),
-    ...(canAuthorize && pending && !pendingDelete
-      ? [
-          ["auth", "Authorize", ShieldCheck],
-          ["deauth", "Reject", ShieldOff],
-        ]
-      : []),
-    ...(canDelete ? [["delete", "Delete", Trash2]] : []),
-    ...(canAuthorize && pendingDelete ? [["deleteAuth", "Authorize delete", ShieldCheck]] : []),
-    ...(canChangeStatus && active ? [["deactivate", "Deactivate", PowerOff]] : []),
-    ...(canChangeStatus && inactive ? [["reactivate", "Reactivate", Power]] : []),
-  ];
-}

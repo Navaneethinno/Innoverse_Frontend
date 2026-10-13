@@ -1,18 +1,16 @@
 # Frontend Coding Rules
 
-- Use strict TypeScript and the `@/` path alias for application imports.
-- Keep server state in TanStack Query. Use Zustand only for genuine client or
-  global UI state, such as authentication and layout preferences.
-- Keep API calls behind `src/services/api` and feature-owned API modules.
-- Keep business rules, schemas, and workflows inside their owning feature.
-- Reuse shared UI and maker-checker workflow components before creating new
-  components.
-- Do not introduce universal CRUD, entity store, or form abstractions.
-- Preserve existing endpoint paths, HTTP methods, payloads, and response
-  semantics during migrations.
-- Add route metadata when adding routes; keep final route composition in the
-  app router boundary.
-- Run typecheck, lint, formatting, tests, and production build before merging.
+- JavaScript (JSX) with the `@/` path alias for application imports.
+- Session and menu state live in Redux (`src/Redux/`: token, menu); page data
+  is loaded by each screen through its module's API file in `src/Services/`.
+- Everything the backend decides (menus, permissions, options, statuses)
+  comes from the API; don't hard-code it in the frontend.
+- Reuse the shared building blocks (`Common/`, `MakerChecker/`, `ListPanel`,
+  `DataTable`, `RowsEditor`, `useRecordActions`, ...) before creating new ones.
+- Lists must stay usable at ~1000 records: server-side paging, search and
+  filters.
+- No dead code: remove what is no longer used.
+- Run lint, tests and the production build before merging.
 
 ## Folder structure
 
@@ -44,6 +42,8 @@ src/Components/
     Shared/                                screening detail, badges, customer result
   Reports/                                 Reports module
     <UserActivity|RiskScoreBreakdown|AMLScoreBreakdown>/  Shared/ (periods, IST, downloads)
+  GlobalSettings/ Transactions/ Cards/ Loans/ TermDeposits/
+  Merchant/ Accounting/ CaseManagement/ Tour/
 ```
 
 `src/Router/` follows it too: `index.js` builds one route list per module

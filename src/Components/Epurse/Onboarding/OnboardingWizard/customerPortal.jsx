@@ -10,7 +10,7 @@ import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 // Merchant sign-ups (MMS) come from `MerchantPortal` the same way.
 const PORTAL_ACTORS = new Set(["CustomerPortal", "MerchantPortal"]);
 
-export const isPortalCustomer = (record) => PORTAL_ACTORS.has(String(record?.created_by ?? "").trim());
+const isPortalCustomer = (record) => PORTAL_ACTORS.has(String(record?.created_by ?? "").trim());
 
 // A portal draft is the customer's own form, still being filled in. The
 // handoff recommends showing it read-only (no Save/Submit) until the
@@ -63,7 +63,7 @@ export function PortalDraftBanner() {
 // reaches the KYC level asked; nothing for staff to approve.
 const kycUpgradeOf = (record) => String(record?.kyc_upgrade ?? "").toUpperCase();
 export const isKycUpgradeWithCustomer = (record) => ["IN_PROGRESS", "REJECTED"].includes(kycUpgradeOf(record));
-export const isHeldForGuardian = (record) => String(record?.onboarding_status ?? "").toUpperCase() === "HELD_FOR_GUARDIAN";
+const isHeldForGuardian = (record) => String(record?.onboarding_status ?? "").toUpperCase() === "HELD_FOR_GUARDIAN";
 
 const UPGRADE_BADGES = {
   IN_PROGRESS: ["kycUpgradeInProgress", "bg-sky-50 text-sky-700"],

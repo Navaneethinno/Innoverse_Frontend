@@ -16,7 +16,7 @@ import { Facts, Problems, amountInput, dayDate, inputClass, labelClass, ratePct 
 import { earlyText, optionLabel } from "../DepositProducts/productShared";
 
 // The owner of a wallet, as the deposit calls name it.
-export const ownerEntity = (owner) => (owner?.kind && owner?.id ? { entity_type: owner.kind, entity_id: owner.id } : null);
+const ownerEntity = (owner) => (owner?.kind && owner?.id ? { entity_type: owner.kind, entity_id: owner.id } : null);
 
 // Open a deposit for a customer or merchant: find the owner (by name or
 // wallet number, unless given), then options (wallets, products), a live

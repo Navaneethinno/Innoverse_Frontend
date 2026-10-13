@@ -4,8 +4,8 @@ import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 
 // Merchant-side customer types and risk set-ups are for merchants (party
 // type 2) or agents (3). Customer-side ones have no choice: the module sets it.
-export const MERCHANT_PARTY_TYPE = 2;
-export const AGENT_PARTY_TYPE = 3;
+const MERCHANT_PARTY_TYPE = 2;
+const AGENT_PARTY_TYPE = 3;
 
 export const useIsMerchantModule = () => String(useMenuContext()?.module ?? "").toUpperCase() === "MMS";
 

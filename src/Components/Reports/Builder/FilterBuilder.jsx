@@ -25,7 +25,7 @@ import {
 // Picks option values: from the field's own `options`, or, for a lookup
 // field, from `options` on the server as the user types. Selected values
 // keep the labels they were picked with.
-export function OptionPicker({ source, field, multi, value, onChange, invalid }) {
+function OptionPicker({ source, field, multi, value, onChange, invalid }) {
   const { t } = useTranslation("builder");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");

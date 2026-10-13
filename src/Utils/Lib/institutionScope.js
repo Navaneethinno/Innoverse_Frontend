@@ -10,7 +10,7 @@ import { readAuthUser } from "@/Services/api/authStorage";
 //     (the server fills it in).
 // The server enforces all of it; the frontend only follows it. A session
 // from before the scope existed keeps the old behaviour (can choose).
-export const readScope = () => readAuthUser()?.scope ?? null;
+const readScope = () => readAuthUser()?.scope ?? null;
 
 export const canChooseInstitution = (scope = readScope()) => scope?.can_choose_institution !== false;
 

@@ -27,7 +27,7 @@ function AuthSessionInitializer() {
   }, []);
   return null;
 }
-export function App() {
+function App() {
   return (
     <Provider store={store}>
       <AuthSessionInitializer />

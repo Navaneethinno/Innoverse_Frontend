@@ -5,9 +5,6 @@ import { cn } from "./utils";
 function Select({ ...props }) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
-function SelectGroup({ ...props }) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
-}
 function SelectValue({ ...props }) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
@@ -58,15 +55,6 @@ function SelectContent({ className, children, position = "popper", ...props }) {
     </SelectPrimitive.Portal>
   );
 }
-function SelectLabel({ className, ...props }) {
-  return (
-    <SelectPrimitive.Label
-      data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
-      {...props}
-    />
-  );
-}
 function SelectItem({ className, children, ...props }) {
   return (
     <SelectPrimitive.Item
@@ -84,15 +72,6 @@ function SelectItem({ className, children, ...props }) {
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
-  );
-}
-function SelectSeparator({ className, ...props }) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
-      {...props}
-    />
   );
 }
 function SelectScrollUpButton({ className, ...props }) {
@@ -117,15 +96,4 @@ function SelectScrollDownButton({ className, ...props }) {
     </SelectPrimitive.ScrollDownButton>
   );
 }
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
-};
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };

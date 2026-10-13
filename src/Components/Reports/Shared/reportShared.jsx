@@ -10,7 +10,7 @@ import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 // Shared by every Reports screen (read-only; handoffs 08–09).
 
 export const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
-export const dateInput = "w-auto min-w-[8.5rem] rounded-lg border px-2.5 py-1.5 text-xs";
+const dateInput = "w-auto min-w-[8.5rem] rounded-lg border px-2.5 py-1.5 text-xs";
 
 // JSON times are UTC; reports show them in platform time (IST).
 export const atIst = (value) =>
@@ -26,7 +26,7 @@ export const rangeLabel = (range) => {
   return range.from === to ? day(to, true) : `${day(range.from, !sameYear)} – ${day(to, true)}`;
 };
 
-export const PERIODS = ["TODAY", "YESTERDAY", "THIS_WEEK", "LAST_WEEK", "THIS_MONTH", "LAST_MONTH", "THIS_YEAR", "CUSTOM"];
+const PERIODS = ["TODAY", "YESTERDAY", "THIS_WEEK", "LAST_WEEK", "THIS_MONTH", "LAST_MONTH", "THIS_YEAR", "CUSTOM"];
 
 // The period part of a report filter body: nothing for "" (all time, where
 // the report allows it), a preset, or CUSTOM with from/to. null while a

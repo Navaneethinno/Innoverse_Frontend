@@ -17,7 +17,7 @@ import { ValidationResult } from "./ValidationResult";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPT = ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-export const ENTITY_TYPES = ["ANY", "PERSON", "ORGANIZATION"];
+const ENTITY_TYPES = ["ANY", "PERSON", "ORGANIZATION"];
 const DATE_FORMATS = ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD", "DD-MM-YYYY", "DD.MM.YYYY"];
 // Column fields that may name several columns (edited as "A, B").
 const MULTI = ["name", "aliases", "countries", "remarks"];

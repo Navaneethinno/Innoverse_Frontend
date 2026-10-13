@@ -39,7 +39,7 @@ export function Stores() {
 }
 
 // The stores list; `merchant` limits it to one merchant's (its page).
-export function StoreList({ pendingOnly = false, merchant = null, permission }) {
+function StoreList({ pendingOnly = false, merchant = null, permission }) {
   const { t } = useTranslation(["mms", "common"]);
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
@@ -264,7 +264,7 @@ const WALLET_SETTINGS = ["", "SHARED", "PER_STORE"];
 
 // A merchant's own store wallet setting ("" = the institution's), the
 // setting in effect, and its store wallets.
-export function StoreWalletsCard({ merchant, permission }) {
+function StoreWalletsCard({ merchant, permission }) {
   const { t } = useTranslation("mms");
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);

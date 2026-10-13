@@ -5,7 +5,7 @@
 // "Download PDF" saves the same layout (jsPDF, loaded only when needed).
 
 // RFC 4180 CSV: quoted fields, "" inside quotes, CRLF or LF, a leading BOM.
-export function parseCsv(text) {
+function parseCsv(text) {
   const rows = [];
   let row = [];
   let cell = "";

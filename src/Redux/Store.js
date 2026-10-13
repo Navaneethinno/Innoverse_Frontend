@@ -1,6 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authTokenReducer from "./AuthToken";
-import themeReducer from "./ThemeSlice";
 import menuReducer from "./MenuSlice";
 import { loadState, saveState } from "./Middleware";
 function throttle(fn, waitMs) {
@@ -25,12 +24,11 @@ function throttle(fn, waitMs) {
 // one more free ride as preloadedState before selectPersistedState's write
 // guard has a chance to correct it (see that function below for the bug).
 const rawPersistedState = loadState();
-const persistedState = rawPersistedState
-  ? { ...rawPersistedState, menu: { ...rawPersistedState.menu, masterModules: [] } }
-  : rawPersistedState;
+// (A snapshot from an older build may still hold a "theme" slice; it is dropped.)
+const { theme: _retiredTheme, ...keptState } = rawPersistedState ?? {};
+const persistedState = rawPersistedState ? { ...keptState, menu: { ...keptState.menu, masterModules: [] } } : rawPersistedState;
 const reducers = {
   token: authTokenReducer,
-  theme: themeReducer,
   menu: menuReducer,
 };
 // Mirrors payse's selective-persistence pattern: keep slices that shouldn't be
@@ -53,7 +51,7 @@ function selectPersistedState(state) {
     menu: { ...state.menu, masterModules: [] },
   };
 }
-export const store = configureStore({
+const store = configureStore({
   reducer: reducers,
   preloadedState: persistedState,
 });

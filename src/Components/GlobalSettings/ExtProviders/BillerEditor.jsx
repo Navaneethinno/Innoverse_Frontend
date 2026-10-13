@@ -4,7 +4,7 @@ import { RowsEditor } from "@/Components/Loans/loanShared";
 import { labelClass } from "@/Components/TermDeposits/depositShared";
 import { cn } from "@/Utils/Lib/utils";
 
-export const BILLER_CATEGORIES = ["TV", "WATER", "INSURANCE", "INSS", "TAX", "UNIVERSITY", "LAM", "GAS", "BETTING", "OTHER"];
+const BILLER_CATEGORIES = ["TV", "WATER", "INSURANCE", "INSS", "TAX", "UNIVERSITY", "LAM", "GAS", "BETTING", "OTHER"];
 const AMOUNT_MODES = ["DUE", "ENTERED", "PRODUCT"];
 const FIELD_TYPES = ["TEXT", "NUMBER", "PHONE", "DATE", "NUIT", "PLATE", "SELECT"];
 

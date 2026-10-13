@@ -83,7 +83,7 @@ export function EditToggle({ label, value, onChange, hint }) {
 // PIN chosen at sign-up), PASSWORD, or both. Staff on the admin portal always
 // use a password, so it isn't listed. A key the server didn't send is
 // PASSWORD.
-export const LOGIN_PORTALS = ["customer_web", "customer_app", "merchant_web", "merchant_app"];
+const LOGIN_PORTALS = ["customer_web", "customer_app", "merchant_web", "merchant_app"];
 const LOGIN_METHODS = ["PIN", "PASSWORD"];
 export const loginMethodsOf = (value) =>
   Object.fromEntries(LOGIN_PORTALS.map((p) => [p, Array.isArray(value?.[p]) && value[p].length ? value[p] : ["PASSWORD"]]));

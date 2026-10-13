@@ -30,7 +30,7 @@ export function CaseStatus({ status, outcome }) {
 // REJECT / REJECTED): anything starting with APPROV is an approval.
 export const isApproval = (outcome) => /^APPROV/i.test(String(outcome ?? ""));
 
-export const OUTCOME_TONE = {
+const OUTCOME_TONE = {
   APPROVED: "bg-emerald-50 text-emerald-700",
   REJECTED: "bg-red-50 text-red-700",
   WITHDRAWN: "bg-muted text-muted-foreground",

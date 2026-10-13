@@ -13,7 +13,7 @@ export const PERIOD_DAYS = { MONTHLY: 30, QUARTERLY: 90, "HALF YEARLY": 180 };
 const yesNo = (t, value) => t(value ? "deposits:yes" : "deposits:no");
 
 // The policy as label/value pairs, in reading order.
-export function policyRows(t, config, currency) {
+function policyRows(t, config, currency) {
   const amount = (v) => (Number(v) === 0 ? t("deposits:noLimit") : money(v, currency));
   return [
     ["minimumPrincipal", money(config.minimum_principal, currency)],
@@ -66,7 +66,7 @@ const bandKey = (b) => `${b.minimum_principal}|${b.maximum_principal}|${b.annual
 const tenorKey = (x) => `${x.label}|${x.tenor_days}|${x.effective_from ?? ""}|${x.effective_to ?? ""}`;
 
 // The tenors and their bands; with `other`, new or changed rows are marked.
-export function TenorTable({ tenors, other, currency }) {
+function TenorTable({ tenors, other, currency }) {
   const { t } = useTranslation("deposits");
   if (!tenors?.length) return <p className="text-sm text-muted-foreground">{t("noTenors")}</p>;
   const otherTenors = other ? new Set(other.map(tenorKey)) : null;
@@ -109,7 +109,7 @@ export function TenorTable({ tenors, other, currency }) {
   );
 }
 
-export const periodText = (t, x) => (x.effective_to ? t("fromTo", { from: dayDate(x.effective_from), to: dayDate(x.effective_to) }) : t("fromOn", { from: dayDate(x.effective_from) }));
+const periodText = (t, x) => (x.effective_to ? t("fromTo", { from: dayDate(x.effective_from), to: dayDate(x.effective_to) }) : t("fromOn", { from: dayDate(x.effective_from) }));
 
 // The record's status, with what waits for a checker.
 export function ProductStatus({ product }) {

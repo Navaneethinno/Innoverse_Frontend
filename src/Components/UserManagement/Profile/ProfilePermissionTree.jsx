@@ -33,7 +33,7 @@ const numericId = (value) => {
 // Profile grants must be built from master menu/action relations, not from
 // the current user's sidebar permissions. A sidebar action can be permitted
 // for the current user while still being invalid for a different menu.
-export function useMenuTreeSource() {
+function useMenuTreeSource() {
   const [source, setSource] = useState({ modules: [], isLoading: true, error: null });
   const load = useCallback(async () => {
     setSource((current) => ({ ...current, isLoading: true, error: null }));

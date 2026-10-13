@@ -16,7 +16,7 @@ function show(html, ms) {
   window.setTimeout(() => layer.remove(), ms + 300);
 }
 
-export function stamp(approved) {
+function stamp(approved) {
   const word = i18n.t(approved ? "common:stampApproved" : "common:stampRejected");
   show(`<div class="approval-stamp ${approved ? "is-approved" : "is-rejected"}">${escape(word)}</div>`, 900);
 }

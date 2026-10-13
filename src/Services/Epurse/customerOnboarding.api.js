@@ -60,7 +60,6 @@ async function request(path, body = {}, extraHeaders = {}) {
   }
 }
 
-const first = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 export const onboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
 // The customer runtime now follows the same 13-call lifecycle as every
@@ -103,6 +102,3 @@ export const customerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.INDIVIDUAL)
 // merchant, opened from an EPURSE page).
 export const merchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.INDIVIDUAL));
 
-export const startOnboarding = async (payload) => first(await customerOnboardingApi.add(payload));
-export const loadWizard = async (referenceId) => first(await customerOnboardingApi.get(referenceId));
-export const saveSection = async (payload) => first(await customerOnboardingApi.edit(payload));

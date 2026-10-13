@@ -25,9 +25,6 @@ export const amountInput = (value, decimals = 2) => {
   return rest.length ? `${whole}.${rest.join("").slice(0, decimals)}` : whole;
 };
 
-// "0" means no upper limit.
-export const limitText = (t, value, format) => (Number(value) === 0 ? t("deposits:noLimit") : format(value));
-
 // Label / value tiles.
 export function Facts({ rows, className }) {
   return (

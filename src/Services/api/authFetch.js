@@ -28,7 +28,7 @@ async function renew() {
   }
 }
 
-export function refreshSession() {
+function refreshSession() {
   refreshing ??= renew().finally(() => {
     refreshing = null;
   });

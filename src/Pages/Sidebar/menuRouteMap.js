@@ -6,7 +6,7 @@
 // matching route; Innoverse's protected route group has the same mechanism
 // (errorElement: <RouteError />), so an unmapped backend menu shows the app's
 // error/not-found screen instead of a blank page or a silently-inert click.
-export function slugifyMenuName(menuName) {
+function slugifyMenuName(menuName) {
   return String(menuName ?? "")
     .replace(/\s+/g, "")
     .toLowerCase();

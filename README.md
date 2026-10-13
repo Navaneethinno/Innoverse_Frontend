@@ -1,7 +1,9 @@
 # Innoverse Frontend
 
-Innoverse is a Vite + React + TypeScript frontend for institution, user,
-profile, application, menu, KYC, dashboard, and maker-checker workflows.
+The InnoVerse admin portal: a Vite + React (JavaScript) app for institution
+setup, users and profiles, onboarding, e-purse accounts, cards, loans, term
+deposits, merchants, AML, accounting, reports and the maker-checker flows
+around them.
 
 ## Development
 
@@ -10,19 +12,14 @@ npm install
 npm run dev
 ```
 
-Set `VITE_API_BASE_URL` in `.env.local` to the backend API base URL. The
-current prototype defaults and endpoint contracts are preserved by the shared
-API client.
+Set `VITE_API_BASE_URL` (and `VITE_AUTH_BASIC_PASSWORD`) in `.env.local`.
 
 ## Checks
 
 ```bash
-npm run typecheck
 npm run lint
-npm run format:check
 npm run test:run
 npm run build
 ```
 
-See `ARCHITECTURE_MIGRATION.md` for migration status and `CODING_RULES.md` for
-contribution conventions.
+See `CODING_RULES.md` for the folder layout and conventions.

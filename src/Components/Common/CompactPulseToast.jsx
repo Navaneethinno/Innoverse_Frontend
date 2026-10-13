@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./CompactPulseToast.css";
 import { PROBLEM_BULLET } from "@/Services/api/apiErrors";
@@ -21,27 +21,20 @@ function splitMessage(message) {
  *          <App />
  *        </ToastProvider>
  *
- *   2. Fire it from anywhere:
- *        const toast = useToast();
- *        toast.show("Login successful");
- *        toast.show("Save failed", { variant: "error" });
+ *   2. Fire it from anywhere through Utils/Lib/notifications:
+ *        notifications.success("Login successful");
+ *        notifications.error("Save failed");
  *
  * It renders via a portal straight onto document.body with a very high
  * z-index, so it stays visible above modals/popups instead of being
  * trapped behind them or pushed down by page layout.
  */
 
-const ToastContext = createContext(null);
-
 let idCounter = 0;
 
-// notifications.jsx (this app's existing app-wide toast helper) calls
-// notifications.success(...)/error(...) as a plain function from
-// anywhere — API service files, hooks, deep utility modules — not just
-// from inside a React component where useToast() could be called. This
-// module-level handle mirrors the one active ToastProvider's `show` so
-// that plain-function call pattern keeps working unchanged after
-// switching notifications.jsx over to this toast system.
+// notifications.success(...)/error(...) are plain functions called from
+// anywhere (API service files, hooks, utility modules), so the mounted
+// ToastProvider's `show` is kept in this module-level handle.
 let activeShow = null;
 
 export function showPulseToast(message, options) {
@@ -91,7 +84,7 @@ export function ToastProvider({ children }) {
   }, [show]);
 
   return (
-    <ToastContext.Provider value={{ show }}>
+    <>
       {children}
       {createPortal(
         <div className="cpt-layer" aria-live="polite">
@@ -117,7 +110,7 @@ export function ToastProvider({ children }) {
         </div>,
         document.body
       )}
-    </ToastContext.Provider>
+    </>
   );
 }
 
@@ -136,8 +129,3 @@ function ToastBody({ message }) {
   );
 }
 
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error("useToast must be used inside <ToastProvider>");
-  return ctx;
-}

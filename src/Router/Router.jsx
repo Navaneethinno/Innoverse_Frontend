@@ -21,4 +21,3 @@ export const appRouter = createBrowserRouter([
     children: [...pageRoutes, { path: "/:module/*", element: <MenuPage routes={pageRoutes} /> }],
   },
 ]);
-export default appRouter;

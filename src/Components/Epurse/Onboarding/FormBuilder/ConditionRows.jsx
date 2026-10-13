@@ -8,12 +8,12 @@ import { inputClass } from "./FieldOptionsEditor";
 const OPERATORS = ["EQ", "NEQ", "GT", "GTE", "LT", "LTE", "IN", "NOT_IN", "BETWEEN", "IS_SET", "IS_EMPTY"];
 // The age in whole years from a DATE field to today.
 const AGE_OPERATORS = ["AGE_LT", "AGE_LTE", "AGE_GT", "AGE_GTE", "AGE_BETWEEN"];
-export const LIST_OPERATORS = new Set(["IN", "NOT_IN", "BETWEEN", "AGE_BETWEEN"]);
-export const NO_VALUE = new Set(["IS_SET", "IS_EMPTY"]);
+const LIST_OPERATORS = new Set(["IN", "NOT_IN", "BETWEEN", "AGE_BETWEEN"]);
+const NO_VALUE = new Set(["IS_SET", "IS_EMPTY"]);
 
 // Facts about the minor's guardian, offered in checkpoint conditions only:
 // where the request stands, and whether the guardian is at the KYC level.
-export const GUARDIAN_FIELD = "@guardian_status";
+const GUARDIAN_FIELD = "@guardian_status";
 const GUARDIAN_STATUSES = ["NOT_FOUND", "FOUND", "PENDING", "APPROVED", "LINKED", "DECLINED"];
 const GUARDIAN_OPERATORS = ["EQ", "NEQ", "IN", "NOT_IN"];
 const LEVEL_MET_FIELD = "@guardian_level_met";
@@ -22,7 +22,7 @@ const YES_NO_OPERATORS = ["EQ", "NEQ"];
 
 // Condition values are typed as text; numbers go back as numbers (a list
 // field is compared with the chosen row's id).
-export const parseValue = (text) => {
+const parseValue = (text) => {
   const trimmed = String(text ?? "").trim();
   return trimmed !== "" && !Number.isNaN(Number(trimmed)) ? Number(trimmed) : trimmed;
 };

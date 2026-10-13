@@ -8,7 +8,7 @@ import { SearchBox } from "./SearchBox";
 // than a bare literal, since this component is shared across every
 // maker-checker list in the app (Institution sub-entities, MasterConfig,
 // UserManagement, ...) and all of them use the same numeric draft code.
-export const statusBucket = (row) => {
+const statusBucket = (row) => {
   const status = String(row?.status_name ?? row?.auth_status ?? "").toLowerCase();
   const process = String(row?.process_status_name ?? "").toLowerCase();
   // Pending must be checked BEFORE active/inactive: a record awaiting

@@ -32,7 +32,7 @@ const APIS = {
   customer: { individual: customerOnboardingApi, corporate: corpCustomerOnboardingApi },
   merchant: { individual: merchantOnboardingApi, corporate: corpMerchantOnboardingApi },
 };
-export const REPORT_MENU = { customer: "Customer KYC Report", merchant: "Merchant KYC Report" };
+const REPORT_MENU = { customer: "Customer KYC Report", merchant: "Merchant KYC Report" };
 
 // The report call's body for a list row: the onboarding's reference, else
 // the customer's id.

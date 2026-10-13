@@ -54,23 +54,6 @@ export function useTimezones() {
   return { timezones, loading, error };
 }
 
-export function useKycProcesses(enabled = true) {
-  const [processes, setProcesses] = useState([]);
-  const [error, setError] = useState(null);
-  const load = useCallback(async () => {
-    if (!enabled) return;
-    try {
-      setProcesses(await masterApi.kycProcessList());
-      setError(null);
-    } catch (nextError) {
-      setError(nextError instanceof Error ? nextError : new Error("Failed to load KYC processes"));
-    }
-  }, [enabled]);
-  useEffect(() => { void load(); }, [load]);
-  return { processes, error };
-}
-
-
 export function useChannels(enabled = true) {
   const [channels, setChannels] = useState([]);
   const [error, setError] = useState(null);

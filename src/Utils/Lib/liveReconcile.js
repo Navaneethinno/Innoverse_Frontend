@@ -14,7 +14,7 @@
 // Edit-side draft where the row was never touched at all). status 8 is the
 // only reliable "remove this row" signal, and it's the same code on every
 // entity in this app.
-export const STATUS_DELETED = 8;
+const STATUS_DELETED = 8;
 
 // `insertNew: false` was tried for server-paginated views, on the theory
 // that a record this tab has never fetched can't be correctly slotted into

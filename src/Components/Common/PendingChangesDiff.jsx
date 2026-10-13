@@ -110,7 +110,7 @@ function flattenLeaves(value, out, path) {
 // expanded into one row per leaf field, all tagged with that same
 // backend-provided group, instead of dumping the whole section into a
 // single unreadable cell.
-export function expandChangeRows(changes) {
+function expandChangeRows(changes) {
   const rows = [];
   (changes ?? []).forEach((change) => {
     let group = change.group ? change.group : null;

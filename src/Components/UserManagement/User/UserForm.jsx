@@ -24,7 +24,7 @@ export const EMPTY_FORM = {
 // Field labels are looked up via t() inside UserForm at render time (see
 // FIELD_LABEL_KEYS below); this array's second element stays as the
 // English fallback/key source for any other non-i18n consumer of `fields`.
-export const fields = [
+const fields = [
   ["user_name", "Username"],
   ["user_fname", "First name"],
   ["user_lname", "Last name"],

@@ -19,7 +19,7 @@ const empty = (v) => v === null || v === undefined || v === "" || (Array.isArray
 
 // Fields that only mean something to the database.
 const HIDDEN = new Set(["id", "audit_key", "onboarding_id"]);
-export const visibleEntries = (obj) => Object.entries(obj ?? {}).filter(([k]) => !HIDDEN.has(k));
+const visibleEntries = (obj) => Object.entries(obj ?? {}).filter(([k]) => !HIDDEN.has(k));
 
 // One value, whatever its shape.
 export function Value({ field, value, name }) {

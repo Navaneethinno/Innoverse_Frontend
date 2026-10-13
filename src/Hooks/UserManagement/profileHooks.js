@@ -121,23 +121,6 @@ export function useProfilesQuery(params) {
   return { ...query, data: mapped.profiles, pagination: mapped.pagination };
 }
 
-export function useAllProfilesQuery() {
-  const query = useProfileAsyncQuery(useCallback(() => profilesApi.getAll(), []));
-  const mapped = mapProfileListResponse(query.data);
-  return { ...query, data: mapped.profiles };
-}
-
-
-export function useProfileGetQuery(profileId) {
-  const query = useProfileAsyncQuery(
-    useCallback(
-      () => (profileId != null ? profilesApi.get({ profile_id: profileId }) : Promise.resolve(null)),
-      [profileId],
-    ),
-  );
-  return { ...query, data: query.data?.data ?? null };
-}
-
 export function useProfileCreateMutation() {
   return useProfileMutation(useCallback((payload) => profilesApi.add(payload), []));
 }

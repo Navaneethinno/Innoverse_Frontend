@@ -1,2 +1,1 @@
 export { User } from "./User";
-export { User as default } from "./User";

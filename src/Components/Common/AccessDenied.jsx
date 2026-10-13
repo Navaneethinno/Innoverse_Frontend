@@ -20,4 +20,3 @@ export function AccessDenied() {
     </div>
   );
 }
-export default AccessDenied;

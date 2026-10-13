@@ -4,10 +4,6 @@ const authTokenSlice = createSlice({
   name: "token",
   initialState,
   reducers: {
-    setToken: (state, action) => {
-      state.token = action.payload;
-      state.isAuthenticated = Boolean(action.payload);
-    },
     setSession: (state, action) => {
       state.token = action.payload.token;
       state.refreshToken = action.payload.refreshToken ?? null;
@@ -22,5 +18,5 @@ const authTokenSlice = createSlice({
     },
   },
 });
-export const { setToken, setSession, clearToken } = authTokenSlice.actions;
+export const { setSession, clearToken } = authTokenSlice.actions;
 export default authTokenSlice.reducer;

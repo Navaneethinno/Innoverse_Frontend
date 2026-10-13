@@ -16,7 +16,7 @@ const first = (response) => rowsOf(response)[0] ?? null;
 // A customer's current AML result (screening/customer shape, also the `aml`
 // field of the customer get/pending replies): the worst effective score of
 // its latest run, and that run's screenings — one per person or company.
-export function CustomerAmlResult({ result, onOpenScreening }) {
+function CustomerAmlResult({ result, onOpenScreening }) {
   const { t } = useTranslation("aml");
   return (
     <div className="space-y-3">

@@ -13,7 +13,7 @@ import { ConditionRows } from "./ConditionRows";
 
 const CODE = /^[A-Z0-9_]+$/;
 const codeInput = (value) => value.toUpperCase().replace(/[^A-Z0-9_]/g, "");
-export const END = "END";
+const END = "END";
 const OUTCOMES = ["CONTINUE", "STOP", "WAIT", "SUBMIT"];
 // EDIT goes back to a section; GUARDIAN_REQUEST sends the request to the
 // parent/tutor (no section).

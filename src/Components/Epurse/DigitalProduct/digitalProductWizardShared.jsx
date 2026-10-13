@@ -27,7 +27,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 // and buildSectionEditPayload below).
 
 const productApi = () => digitalProductApi("product");
-export const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
+const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 const firstOf = (r) => (Array.isArray(r) ? r[0] : r);
 
 export function emptyValuesFor(entity) {
@@ -79,7 +79,7 @@ function pickPayload(entity, values) {
 // (kyc_level/channel_transaction/residency), in which case this reaches up
 // to its parent section automatically so the nested array lands in the
 // right place.
-export function buildSectionEditPayload(entity, values, recordIds) {
+function buildSectionEditPayload(entity, values, recordIds) {
   const targetEntity = PARENT_SECTION[entity] ?? entity;
   const childEntity = CHILD_OF_SECTION[targetEntity];
   const built = { ...pickPayload(targetEntity, values), ...(recordIds[targetEntity] ? { id: recordIds[targetEntity] } : {}) };
@@ -92,7 +92,7 @@ export function buildSectionEditPayload(entity, values, recordIds) {
 // The product's own basic fields, as sent on every add/edit call — the API
 // merges `sections` incrementally but expects code/name/description/etc.
 // resent every time (they aren't a section).
-export function buildProductBasicPayload(values) {
+function buildProductBasicPayload(values) {
   return pickPayload("product", values);
 }
 

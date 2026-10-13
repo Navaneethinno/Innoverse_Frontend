@@ -21,7 +21,7 @@ import { PlanCard } from "./txnShared";
 // it is a reversal (which returns the original's). A type with needs_card
 // (card load / unload) takes the card; the holder's wallet is optional
 // (the server picks the preferred one in the card's currency).
-export function typeNeeds(option) {
+function typeNeeds(option) {
   const reversal = option?.txn_type === "REVERSAL";
   const org = Boolean(option?.needs_org_txn) || reversal;
   if (option?.needs_card) return { from: false, to: false, org: false, amount: true, card: true, walletSide: option.from === "CARD_HOLDER" ? "from" : "to" };

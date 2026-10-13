@@ -10,7 +10,7 @@ export const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm f
 
 // "master.country" -> "Country", "cust_master_config.indv_document_type" ->
 // "Indv document type": the source list's own name, readable.
-export const sourceLabel = (source) => {
+const sourceLabel = (source) => {
   const name = String(source ?? "").split(".").pop().replace(/_/g, " ");
   return name.charAt(0).toUpperCase() + name.slice(1);
 };

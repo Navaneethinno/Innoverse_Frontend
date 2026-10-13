@@ -75,7 +75,6 @@ export function ViewInstitutionProfile() {
 
   useEffect(() => {
     if (searchParams.get("edit") === "1" && canEdit) setEditMode(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, canEdit]);
 
   useEffect(() => {

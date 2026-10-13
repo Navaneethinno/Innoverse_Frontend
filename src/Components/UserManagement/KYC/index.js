@@ -1,1 +1,1 @@
-export { KYC as default, KYC } from "./KYC";
+export { KYC } from "./KYC";

@@ -21,7 +21,7 @@ const share = (used, max) => (Number(max) > 0 ? Math.min(100, (Number(used) / Nu
 // A party's limits and usage (/config/global/limit/usage): per currency,
 // each DEBIT / CREDIT rule with what is used and left. `entity` is
 // { entity_type, entity_id }.
-export function LimitUsagePanel({ entity, compact = false }) {
+function LimitUsagePanel({ entity, compact = false }) {
   const { t } = useTranslation("limits");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");

@@ -7,7 +7,7 @@
 // no header)") — the header is omitted entirely rather than sent as
 // "en", to stay a literal pass-through of the confirmed contract instead
 // of guessing English also needs an explicit value.
-export const DEFAULT_API_LANGUAGE = "en";
+const DEFAULT_API_LANGUAGE = "en";
 const STORAGE_KEY = "apiLang";
 const CHANGE_EVENT = "api-language-changed";
 

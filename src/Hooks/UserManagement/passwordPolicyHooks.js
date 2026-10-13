@@ -36,25 +36,8 @@ export function usePasswordPoliciesQuery(params = {}) {
   return { ...state, refetch };
 }
 
-export function usePasswordPolicyMutation(method) {
+function usePasswordPolicyMutation(method) {
   return { mutateAsync: async (payload) => { try { const result = await usersApi[method](payload); notifications.success(apiMessage(result, "Password policy action completed")); notify(); return result; } catch (error) { notifications.error(error instanceof Error ? error.message : "Password policy action failed"); throw error; } } };
-}
-
-export function usePasswordPolicyRead(method, payload) {
-  const [state, setState] = useState({ data: null, error: null, isLoading: false });
-  const run = useCallback(async () => {
-    setState((old) => ({ ...old, isLoading: true, error: null }));
-    try {
-      const result = await usersApi[method](payload);
-      setState({ data: result, error: null, isLoading: false });
-      return result;
-    } catch (error) {
-      const normalized = error instanceof Error ? error : new Error("Request failed");
-      setState({ data: null, error: normalized, isLoading: false });
-      throw normalized;
-    }
-  }, [method, payload]);
-  return { ...state, run };
 }
 
 export function usePasswordPolicyActions() {

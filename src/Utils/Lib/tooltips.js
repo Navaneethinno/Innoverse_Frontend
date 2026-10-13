@@ -1,6 +1,6 @@
 // Existing UI hover text is maintained here. This is intentionally static:
 // tooltip labels do not load from APIs or other runtime data sources.
-export const UI_TOOLTIP_TEXT = {
+const UI_TOOLTIP_TEXT = {
   "User Management": "User Management",
   Users: "Users",
   Profiles: "Profiles",

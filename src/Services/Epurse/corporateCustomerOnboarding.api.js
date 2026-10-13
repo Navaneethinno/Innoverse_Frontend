@@ -57,7 +57,6 @@ async function request(path, body = {}, extraHeaders = {}) {
   }
 }
 
-const first = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;
 export const corpOnboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
 const buildApi = (routes) => ({
@@ -93,6 +92,3 @@ export const corpCustomerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.CORPORA
 // merchant, opened from an EPURSE page).
 export const corpMerchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.CORPORATE));
 
-export const startCorpOnboarding = async (payload) => first(await corpCustomerOnboardingApi.add(payload));
-export const loadCorpWizard = async (referenceId) => first(await corpCustomerOnboardingApi.get(referenceId));
-export const saveCorpSection = async (payload) => first(await corpCustomerOnboardingApi.edit(payload));

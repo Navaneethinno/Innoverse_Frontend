@@ -8,7 +8,7 @@ const upTo = (t, v, cur) => (Number(v) === 0 ? t("noLimit") : money(v, cur));
 const charge = (t, type, value, cur) => (type === "NONE" || !type ? t("none") : type === "FIXED" ? money(value, cur) : type === "PERCENT" ? ratePct(value) : `${ratePct(value)} · ${loanLabel(t, type)}`);
 
 // The product's settings as label/value pairs, grouped.
-export function policyGroups(t, c, cur) {
+function policyGroups(t, c, cur) {
   const p = c.policy ?? {};
   const e = c.eligibility_rules ?? {};
   const col = c.collateral_policy ?? {};

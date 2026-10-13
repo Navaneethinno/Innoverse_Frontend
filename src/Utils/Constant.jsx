@@ -8,7 +8,6 @@ const configuredBaseUrl =
 export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, "");
 export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME || "webadmin";
 export const AUTH_BASIC_PASSWORD = import.meta.env.VITE_AUTH_BASIC_PASSWORD;
-export const NON_LOGIN_APIS_ENABLED = import.meta.env.VITE_ENABLE_NON_LOGIN_APIS === "true";
 
 // The numeric `status` code meaning "Draft" (not yet submitted) on an
 // Institution Profile record — confirmed live as 9, but not documented as a

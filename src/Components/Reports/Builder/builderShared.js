@@ -22,7 +22,7 @@ const FIRST_OP = {
   number: "eq",
   money: "gte",
 };
-export const firstOp = (field) =>
+const firstOp = (field) =>
   field.operators.includes(FIRST_OP[field.type]) ? FIRST_OP[field.type] : field.operators[0];
 export function emptyValue(field, op, periods = []) {
   if (NO_VALUE_OPS.includes(op)) return undefined;
@@ -41,7 +41,7 @@ export const newGroup = (rules = []) => ({ id: uid(), match: "ALL", rules });
 export const isGroup = (rule) => Array.isArray(rule.rules);
 
 // A saved / sent filter tree with ids for the screen (and back).
-export const withIds = (node) =>
+const withIds = (node) =>
   isGroup(node)
     ? { id: uid(), match: node.match ?? "ALL", rules: node.rules.map(withIds) }
     : { id: uid(), field: node.field, op: node.op, value: node.value };

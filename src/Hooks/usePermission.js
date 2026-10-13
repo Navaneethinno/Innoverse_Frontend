@@ -11,7 +11,7 @@ import { matchesAction } from "@/Utils/Lib/actionAliases";
 // menu_array, or an action it doesn't list, is denied. (The backend enforces
 // the same rule and answers "Permission Denied" otherwise.)
 
-export function menuHasAction(menu, action) {
+function menuHasAction(menu, action) {
   return Boolean(menu) && (menu.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, action));
 }
 
@@ -30,7 +30,7 @@ function pick(menus, matches, module) {
 // The menu an old one-segment URL (/<menuSlugForItem>/...) belongs to.
 // Sidebar menus now open at /<module>/<menu path>, where MenuPage supplies
 // the menu itself (MenuContext).
-export function findMenuForPath(menus, pathname, module) {
+function findMenuForPath(menus, pathname, module) {
   const slug = String(pathname ?? "").split("/").filter(Boolean)[0]?.toLowerCase();
   if (!slug) return null;
   return pick(menus, (menus ?? []).filter((m) => menuSlugForItem(m, menus) === slug), module);
@@ -91,19 +91,3 @@ export function useMenuPermission(menuName) {
   return useMemo(() => buildCan(menu), [menu]);
 }
 
-// The perms object getMakerCheckerButtons expects, from a `can` function.
-export function makerCheckerPerms(can) {
-  return {
-    canView: can("View"),
-    canAdd: can("Add"),
-    canEdit: can("Edit"),
-    canAuthorize: can("Authorize"),
-    canChangeStatus: can("Change Status"),
-    canDelete: can("Delete"),
-  };
-}
-
-// Hook form of a single check, for code that wants one boolean.
-export function useCan(action, fallbackMenuName) {
-  return usePagePermission(fallbackMenuName)(action);
-}

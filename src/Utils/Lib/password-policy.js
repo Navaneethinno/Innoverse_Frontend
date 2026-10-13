@@ -4,7 +4,7 @@
 // allowlist, and unrelated account-security fields (lockout, 2FA, session
 // limits, ...) that this module ignores since they aren't checkable
 // client-side against a single password string.
-export function normalizePasswordPolicy(raw) {
+function normalizePasswordPolicy(raw) {
   if (!raw) return null;
   return {
     id: raw.id ?? raw.policy_id,

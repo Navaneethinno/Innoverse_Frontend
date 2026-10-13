@@ -46,4 +46,3 @@ export function RouteError() {
     </div>
   );
 }
-export default RouteError;

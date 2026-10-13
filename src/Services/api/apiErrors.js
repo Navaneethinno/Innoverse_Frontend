@@ -11,7 +11,7 @@
 // CompactPulseToast splits that back into a headline plus a list.
 export const PROBLEM_BULLET = "• ";
 
-export function getApiProblems(payload) {
+function getApiProblems(payload) {
   const data = payload?.data;
   const list = Array.isArray(data) ? data.find((item) => Array.isArray(item?.problems))?.problems : data?.problems;
   return Array.isArray(list) ? list.filter((p) => typeof p === "string" && p.trim()) : [];
