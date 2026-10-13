@@ -106,7 +106,7 @@ export const API_ENDPOINTS = {
     INSTITUTION_BRANDING: {
       ADD: "/config/institution/branding/add", SUBMIT: "/config/institution/branding/submit", EDIT: "/config/institution/branding/edit", AUTH: "/config/institution/branding/auth", DEAUTH: "/config/institution/branding/deauth", DELETE: "/config/institution/branding/delete", DELETE_AUTH: "/config/institution/branding/delete_auth", DEACTIVATE: "/config/institution/branding/deactivate", REACTIVATE: "/config/institution/branding/reactivate", LIST: "/config/institution/branding/list", GET_ACTIVE: "/config/institution/branding/get_active", AUDIT: "/config/institution/branding/audit", PENDING: "/config/institution/branding/pending",
       // Logo: multipart upload -> stored path; `file` returns the image.
-      UPLOAD: "/config/institution/branding/upload", FILE: "/config/institution/branding/file",
+      UPLOAD: "/config/institution/branding/upload", FILE: "/config/institution/branding/file", OPTIONS: "/config/institution/branding/options",
     },
     INSTITUTION_CHANNEL: {
       ADD: "/config/institution/channel/add", SUBMIT: "/config/institution/channel/submit", EDIT: "/config/institution/channel/edit", AUTH: "/config/institution/channel/auth", DEAUTH: "/config/institution/channel/deauth", DELETE: "/config/institution/channel/delete", DELETE_AUTH: "/config/institution/channel/delete_auth", DEACTIVATE: "/config/institution/channel/deactivate", REACTIVATE: "/config/institution/channel/reactivate", LIST: "/config/institution/channel/list", GET_ACTIVE: "/config/institution/channel/get_active", AUDIT: "/config/institution/channel/audit", PENDING: "/config/institution/channel/pending",

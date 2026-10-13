@@ -50,13 +50,11 @@ const FIELDS = [
 const value = (row, key) => row?.[key] ?? "—";
 // Each web portal has its own branding, one per institution; a branding's
 // portal is set when it is added and never changes. No portal means ADMIN.
-const PORTALS = [
-  ["ADMIN", "Admin"],
-  ["CUSTOMER", "Customer"],
-  ["MERCHANT", "Merchant"],
-];
+// The portals themselves come from /branding/options: "CUSTOMER" -> "Customer".
 const portalOf = (row) => row?.portal || "ADMIN";
-const portalLabel = (row) => PORTALS.find(([k]) => k === portalOf(row))?.[1] ?? portalOf(row);
+const portalName = (code) => code.charAt(0) + code.slice(1).toLowerCase().replace(/_/g, " ");
+const portalLabel = (row) => portalName(portalOf(row));
+const REJECTED = 5;
 // The form groups the fields (the view and audit keep the API order): name
 // and colours first, beside the live preview, then images, then texts.
 const FORM_SECTIONS = { display_name: "Name and colours", logo: "Images", email_header: "Texts" };
@@ -443,26 +441,32 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
     narration: "",
     is_draft: false,
   });
-  // A new branding may only take a portal the institution has none for yet.
-  const [takenPortals, setTakenPortals] = useState(null);
+  // A new branding may only take a portal the institution has none for yet
+  // (the server counts every branding, drafts hidden from this user too).
+  const [portals, setPortals] = useState(null);
   useEffect(() => {
     if (editing || !form.inst_profile_id) return undefined;
     let cancelled = false;
-    setTakenPortals(null);
+    setPortals(null);
     institutionBrandingApi
-      .list({ inst_profile_id: Number(form.inst_profile_id), page: 1, limit: 50 })
-      .then((r) => !cancelled && setTakenPortals((Array.isArray(r?.data) ? r.data : []).map(portalOf)))
-      .catch(() => !cancelled && setTakenPortals([]));
+      .options({ inst_profile_id: Number(form.inst_profile_id) })
+      .then((r) => {
+        if (cancelled) return;
+        const list = Array.isArray(r?.data) ? r.data : [];
+        setPortals(list);
+        setForm((f) => (list.some((x) => x.free && x.portal === f.portal) ? f : { ...f, portal: list.find((x) => x.free)?.portal ?? "" }));
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        notifications.error(error.message);
+        setPortals([]);
+      });
     return () => {
       cancelled = true;
     };
   }, [editing, form.inst_profile_id]);
-  const freePortals = PORTALS.filter(([k]) => !takenPortals?.includes(k));
-  useEffect(() => {
-    if (editing || !takenPortals) return;
-    setForm((f) => (freePortals.some(([k]) => k === f.portal) ? f : { ...f, portal: freePortals[0]?.[0] ?? "" }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editing, takenPortals]);
+  const freePortals = (portals ?? []).filter((x) => x.free);
+  const rejectedPortals = (portals ?? []).filter((x) => !x.free && Number(x.status) === REJECTED);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   // Lets the hex text field accept "2563EB" as well as "#2563EB" — the
   // native color swatch always emits the "#"-prefixed form, but someone
@@ -590,10 +594,15 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           <FilterSelect
             className="mt-1.5"
             value={form.portal}
-            disabled={!form.inst_profile_id || !takenPortals || !freePortals.length}
+            disabled={!form.inst_profile_id || !portals || !freePortals.length}
             onChange={(portal) => setForm((f) => ({ ...f, portal }))}
-            options={freePortals.length ? freePortals.map(([k, label]) => ({ value: k, label: tr(label) })) : [{ value: "", label: tr(form.inst_profile_id ? "Every portal has a branding" : "Select an institution first") }]}
+            options={freePortals.length ? freePortals.map((x) => ({ value: x.portal, label: tr(portalName(x.portal)) })) : [{ value: "", label: tr(form.inst_profile_id ? "Every portal has a branding" : "Select an institution first") }]}
           />
+        )}
+        {!editing && rejectedPortals.length > 0 && (
+          <span className="mt-1.5 block text-xs font-normal text-amber-800">
+            {rejectedPortals.map((x) => tr(portalName(x.portal))).join(", ")}: {tr("held by a rejected branding. Edit and resubmit it, or delete it, from the list.")}
+          </span>
         )}
       </label>
       {FORM_FIELDS.map(([key, label]) => {

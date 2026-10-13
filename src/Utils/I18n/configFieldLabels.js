@@ -479,6 +479,7 @@ const PT = {
   Admin: "Administração",
   Customer: "Cliente",
   Merchant: "Comerciante",
+  "held by a rejected branding. Edit and resubmit it, or delete it, from the list.": "ocupado por uma identidade visual rejeitada. Edite-a e volte a submeter, ou elimine-a, na lista.",
   "Every portal has a branding": "Todos os portais já têm uma identidade visual",
   "Select document type": "Selecionar tipo de documento",
   "Select process": "Selecionar processo",
