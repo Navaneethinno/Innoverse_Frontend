@@ -1,7 +1,7 @@
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { FileUploadField, StoredFilePreview } from "@/Components/Common/FileUploadField";
@@ -48,6 +48,15 @@ const FIELDS = [
   ["statement_footer", "Statement Footer"],
 ];
 const value = (row, key) => row?.[key] ?? "—";
+// Each web portal has its own branding, one per institution; a branding's
+// portal is set when it is added and never changes. No portal means ADMIN.
+const PORTALS = [
+  ["ADMIN", "Admin"],
+  ["CUSTOMER", "Customer"],
+  ["MERCHANT", "Merchant"],
+];
+const portalOf = (row) => row?.portal || "ADMIN";
+const portalLabel = (row) => PORTALS.find(([k]) => k === portalOf(row))?.[1] ?? portalOf(row);
 // The form groups the fields (the view and audit keep the API order): name
 // and colours first, beside the live preview, then images, then texts.
 const FORM_SECTIONS = { display_name: "Name and colours", logo: "Images", email_header: "Texts" };
@@ -158,6 +167,10 @@ function BrandingActions({ row, onRefresh, onEdit }) {
         size="lg"
       >
         <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-border bg-card p-3">
+            <p className="text-xs font-semibold text-muted-foreground">{tr("Portal")}</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{tr(portalLabel(details))}</p>
+          </div>
           {FIELDS.map(([key, label]) => (
             <div key={key} className="rounded-xl border border-border bg-card p-3">
               <p className="text-xs font-semibold text-muted-foreground">{tr(label)}</p>
@@ -182,7 +195,7 @@ function BrandingActions({ row, onRefresh, onEdit }) {
       {audit && (
         <AuditModal
           title={row.display_name ?? `Branding #${row.id}`}
-          fields={FIELDS}
+          fields={[["portal", "Portal"], ...FIELDS]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
             institutionBrandingApi.audit({ id: row.id, page, limit }).then((r) => ({
@@ -220,6 +233,11 @@ export function InstitutionBranding() {
       render: (r) => (
         <span className="font-semibold text-foreground">{value(r, "display_name")}</span>
       ),
+    },
+    {
+      key: "portal",
+      label: tr("Portal"),
+      render: (r) => <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">{tr(portalLabel(r))}</span>,
     },
     {
       key: "inst_profile_name",
@@ -279,9 +297,10 @@ export function InstitutionBranding() {
     try {
       const instProfileId = editing ? editing.inst_profile_id : values.inst_profile_id;
       if (editing) {
+        const { portal: _portal, ...changes } = values;
         await edit.mutateAsync({
           id: editing.id,
-          ...values,
+          ...changes,
           ...(editing.updated_time ? { expected_updated_time: editing.updated_time } : {}),
         });
         // Confirmed live: /institution/branding/edit only updates a
@@ -310,7 +329,9 @@ export function InstitutionBranding() {
       // refresh's branding payload, same as any other unauthorized change
       // would (there's no live channel for "my own session's branding" to
       // correct it sooner — see BrandThemeProvider.jsx).
+      // Only the admin portal's branding themes this portal.
       if (
+        portalOf(editing ?? values) === "ADMIN" &&
         currentUser?.inst_profile_id != null &&
         String(instProfileId) === String(currentUser.inst_profile_id) &&
         normalizeBranding(values)
@@ -418,9 +439,30 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           : editing?.[key] ?? "",
       ]),
     ),
+    portal: editing ? portalOf(editing) : "",
     narration: "",
     is_draft: false,
   });
+  // A new branding may only take a portal the institution has none for yet.
+  const [takenPortals, setTakenPortals] = useState(null);
+  useEffect(() => {
+    if (editing || !form.inst_profile_id) return undefined;
+    let cancelled = false;
+    setTakenPortals(null);
+    institutionBrandingApi
+      .list({ inst_profile_id: Number(form.inst_profile_id), page: 1, limit: 50 })
+      .then((r) => !cancelled && setTakenPortals((Array.isArray(r?.data) ? r.data : []).map(portalOf)))
+      .catch(() => !cancelled && setTakenPortals([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [editing, form.inst_profile_id]);
+  const freePortals = PORTALS.filter(([k]) => !takenPortals?.includes(k));
+  useEffect(() => {
+    if (editing || !takenPortals) return;
+    setForm((f) => (freePortals.some(([k]) => k === f.portal) ? f : { ...f, portal: freePortals[0]?.[0] ?? "" }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, takenPortals]);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
   // Lets the hex text field accept "2563EB" as well as "#2563EB" — the
   // native color swatch always emits the "#"-prefixed form, but someone
@@ -505,6 +547,10 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           notifications.error("Please select an institution");
           return;
         }
+        if (!editing && !form.portal) {
+          notifications.error("This institution already has a branding for every portal");
+          return;
+        }
         const invalidColorField = FIELDS.find(
           ([key]) => key.includes("color") && form[key] && !HEX_COLOR_RE.test(form[key]),
         );
@@ -536,6 +582,20 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           />
         </label>
       )}
+      <label className="text-sm font-medium sm:col-span-2">
+        {tr("Portal")}
+        {editing ? (
+          <p className="mt-1.5 rounded-xl border border-border bg-muted/40 p-3 text-sm font-semibold">{tr(portalLabel(editing))}</p>
+        ) : (
+          <FilterSelect
+            className="mt-1.5"
+            value={form.portal}
+            disabled={!form.inst_profile_id || !takenPortals || !freePortals.length}
+            onChange={(portal) => setForm((f) => ({ ...f, portal }))}
+            options={freePortals.length ? freePortals.map(([k, label]) => ({ value: k, label: tr(label) })) : [{ value: "", label: tr(form.inst_profile_id ? "Every portal has a branding" : "Select an institution first") }]}
+          />
+        )}
+      </label>
       {FORM_FIELDS.map(([key, label]) => {
         const field = renderField(key, label);
         return FORM_SECTIONS[key] ? (
@@ -569,6 +629,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
                 : {
                     inst_profile_id: Number(form.inst_profile_id),
                     ...Object.fromEntries(FIELDS.map(([key]) => [key, form[key]])),
+                    portal: form.portal,
                     narration: form.narration,
                     is_draft: true,
                   },
