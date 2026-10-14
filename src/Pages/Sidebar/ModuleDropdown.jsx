@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, ChevronRight, LayoutGrid } from "lucide-react";
+import { ChevronRight, LayoutGrid } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { getModuleIcon } from "./moduleIcons";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
@@ -52,12 +53,21 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
           <LayoutGrid size={15} strokeWidth={1.8} className="shrink-0" />
           {!isCollapsed && <span className="truncate">{t("selectModule")}</span>}
         </span>
-        {!isCollapsed && (isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />)}
+        {!isCollapsed && (
+          <motion.span animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
+            <ChevronRight size={14} />
+          </motion.span>
+        )}
       </button>
 
+      <AnimatePresence>
       {isOpen && (
-        <div
-          className="thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
+        <motion.div
+          initial={{ opacity: 0, y: -6, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.98 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          className="origin-top thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
           style={{
             background: "var(--popover)",
             borderColor: "var(--border)",
@@ -99,8 +109,9 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
           {(modules || []).length === 0 && !isCollapsed && (
             <p className="px-3.5 py-2 text-[11px] text-muted-foreground">{t("noModulesAvailable")}</p>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

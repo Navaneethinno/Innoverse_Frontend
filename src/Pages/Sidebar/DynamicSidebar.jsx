@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, MotionConfig } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { useSidebar } from "@/Components/Layout/SidebarContext";
 import { useIsMobile } from "@/Hooks/useIsMobile";
@@ -212,8 +212,9 @@ export function DynamicSidebar() {
     return undefined;
   }, [isExpanded, focusSearch]);
 
+  // Everyone who asked their system for less motion gets plain swaps.
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       {/* Backdrop — mobile only, only while the drawer is open. Click
           anywhere on it to close, same as tapping outside any other
           overlay in the app. */}
@@ -408,7 +409,7 @@ export function DynamicSidebar() {
         )}
       </div>
       </motion.aside>
-    </>
+    </MotionConfig>
   );
 }
 

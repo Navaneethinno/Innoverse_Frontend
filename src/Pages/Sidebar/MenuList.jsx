@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { MenuItem } from "./MenuItem";
 import { getRootMenuItems } from "./menuSearchUtils";
 import { useTranslation } from "react-i18next";
+import { motion } from "motion/react";
 
 // Ported from payseFrontend src/Pages/Sidebar/MenuList.jsx: root menus are
 // parent_menu_id === 0, sorted by backend priority (never alphabetically).
@@ -52,10 +53,18 @@ export function MenuList({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    // A new module's menus fade up one after another (keyed by the module's
+    // menus, so switching module replays it; searching does not).
+    <motion.div
+      key={isSearching ? "search" : sortedRootMenus.map((m) => m.menu_id).join(",")}
+      className="flex flex-col gap-1"
+      initial="hidden"
+      animate="shown"
+      variants={{ shown: { transition: { staggerChildren: 0.03 } } }}
+    >
       {sortedRootMenus.map((item) => (
+        <motion.div key={item.menu_id} variants={{ hidden: { opacity: 0, y: 6 }, shown: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } } }}>
         <MenuItem
-          key={item.menu_id}
           item={item}
           menuItems={menuItems}
           navigate={navigate}
@@ -65,7 +74,8 @@ export function MenuList({
           activeMenuId={activeMenuId}
           onNavigate={setActiveMenuId}
         />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }

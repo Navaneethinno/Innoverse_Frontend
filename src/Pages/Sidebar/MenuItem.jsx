@@ -1,5 +1,6 @@
 import { createElement, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPathForItem } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
@@ -18,6 +19,16 @@ import { getMenuIcon } from "./moduleIcons";
 function sortedChildrenOf(menuItems, parentId) {
   return getChildMenuItems(menuItems, parentId);
 }
+
+// Submenus open by easing their height to the content's (no max-height cap
+// to jerk against), and the children slide in one after another.
+const EASE = [0.22, 1, 0.36, 1];
+const groupMotion = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: "auto", opacity: 1, transition: { height: { duration: 0.28, ease: EASE }, opacity: { duration: 0.2 }, when: "beforeChildren", staggerChildren: 0.025 } },
+  exit: { height: 0, opacity: 0, transition: { height: { duration: 0.22, ease: EASE }, opacity: { duration: 0.12 } } },
+};
+const childMotion = { initial: { opacity: 0, x: -6 }, animate: { opacity: 1, x: 0, transition: { duration: 0.18, ease: EASE } } };
 
 // Whether the active leaf lives anywhere under this node — used to force a
 // group open even when its own `manuallyExpanded` state was just reset (see
@@ -84,10 +95,12 @@ export function MenuItem({
   // a lighter left-accent treatment instead: real nesting is shown by the
   // tree line + indent in the children wrapper below, and the active state
   // never looks like "another root module" no matter how deep it is.
+  // The open page's light pill is one shared element that glides from the
+  // last page's row to this one (layoutId) instead of blinking across.
   const highlightClasses = isHighlighted
     ? isRoot
       ? "bg-[var(--primary)] text-white shadow-sm"
-      : "bg-[var(--primary-light)] text-[var(--primary)] font-semibold"
+      : cn("text-[var(--primary)] font-semibold", !isActiveLeaf && "bg-[var(--primary-light)]")
     : "text-muted-foreground hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
 
   return (
@@ -97,17 +110,21 @@ export function MenuItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-colors",
+          "relative flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-[color,background-color,transform] duration-200",
+          !isRoot && !isHighlighted && !isCollapsed && "hover:translate-x-0.5",
           isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-8 px-2.5 text-[11px] font-medium",
           isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
           highlightClasses,
         )}
       >
-        <span className="flex min-w-0 items-center gap-1.5">
+        {isActiveLeaf && !isRoot && (
+          <motion.span layoutId="sidebar-active-page" className="absolute inset-0 rounded-lg bg-[var(--primary-light)]" transition={{ type: "spring", stiffness: 500, damping: 40 }} />
+        )}
+        <span className="relative flex min-w-0 items-center gap-1.5">
           {!isCollapsed && hasChildren && (
-            <span className="shrink-0">
-              {isExpanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-            </span>
+            <motion.span className="shrink-0" animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.2, ease: EASE }}>
+              <ChevronRight size={13} />
+            </motion.span>
           )}
           {createElement(getMenuIcon(item?.menu_name), {
             size: isRoot ? 14 : 12,
@@ -119,21 +136,17 @@ export function MenuItem({
       </button>
       </UiTooltip>
 
-      {hasChildren && !isCollapsed && (
-        <div
-          className={cn(
-            "overflow-hidden transition-all duration-300 ease-in-out",
-            isExpanded ? "max-h-[999px] opacity-100" : "max-h-0 opacity-0",
-          )}
-        >
+      <AnimatePresence initial={false}>
+      {hasChildren && !isCollapsed && isExpanded && (
+        <motion.div className="overflow-hidden" variants={groupMotion} initial="initial" animate="animate" exit="exit">
           {/* The tree guide line + indent is what actually shows nesting —
               every level adds its own line/indent recursively, so depth is
               legible at a glance instead of relying on a ~12px margin that
               disappears in a long flat list. */}
           <div className="ml-[0.95rem] flex flex-col gap-1 border-l pl-2" style={{ borderColor: "var(--border)" }}>
             {children.map((child) => (
+              <motion.div key={child.menu_id} variants={childMotion}>
               <MenuItem
-                key={child.menu_id}
                 item={child}
                 menuItems={menuItems}
                 navigate={navigate}
@@ -144,10 +157,12 @@ export function MenuItem({
                 onNavigate={onNavigate}
                 depth={depth + 1}
               />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
