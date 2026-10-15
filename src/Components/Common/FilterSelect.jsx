@@ -66,7 +66,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
 
   useLayoutEffect(() => {
     if (!isOpen) return undefined;
-    const PANEL_MAX_HEIGHT = 224; // matches max-h-56 below
+    const PANEL_MAX_HEIGHT = 320;
     const PANEL_MAX_WIDTH = 420;
     const GAP = 6;
     const EDGE = 8;
@@ -75,9 +75,9 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       if (!rect) return;
       const spaceBelow = window.innerHeight - rect.bottom;
       const openUpward = spaceBelow < PANEL_MAX_HEIGHT && rect.top > spaceBelow;
-      // At least as wide as the trigger, wider for long options, never
+      // As wide as the trigger (however wide), wider for long options, never
       // past the viewport; near the right edge it lines up on the right.
-      const maxWidth = Math.min(PANEL_MAX_WIDTH, window.innerWidth - EDGE * 2);
+      const maxWidth = Math.min(Math.max(PANEL_MAX_WIDTH, rect.width), window.innerWidth - EDGE * 2);
       const alignRight = rect.left + maxWidth > window.innerWidth - EDGE;
       setPlacement({
         left: alignRight ? undefined : rect.left,
