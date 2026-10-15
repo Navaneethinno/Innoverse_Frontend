@@ -20,6 +20,7 @@ const InstitutionModule = lazy(() => import("@/Components/Institution/Institutio
 const InstitutionModuleView = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModuleView })));
 const InstitutionLegal = lazy(() => import("@/Components/Institution/InstitutionLegal").then((m) => ({ default: m.InstitutionLegal })));
 const InstitutionBranding = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBranding })));
+const InstitutionDocuments = lazy(() => import("@/Components/Institution/InstitutionDocuments/InstitutionDocuments.jsx").then((m) => ({ default: m.InstitutionDocuments })));
 const InstitutionChannel = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannel })));
 const InstitutionCurrency = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrency })));
 const InstitutionPhoneCode = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionPhoneCode })));
@@ -45,6 +46,7 @@ export const institutionRoutes = [
   { path: "/institutionbranding", element: pageElement(InstitutionBranding) },
   { path: "/institutionbranding/:id", element: pageElement(InstitutionBranding) },
   { path: "/institution/branding", element: pageElement(InstitutionBranding) },
+  { path: "/institutiondocuments", element: pageElement(InstitutionDocuments) },
   { path: "/institution/branding/:id", element: pageElement(InstitutionBranding) },
   { path: "/institutionchannel", element: pageElement(InstitutionChannel) },
   { path: "/institutionchannel/:id", element: pageElement(InstitutionChannel) },

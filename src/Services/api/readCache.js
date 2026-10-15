@@ -12,7 +12,7 @@
 
 const JOIN_MS = 300;
 const CACHE_MS = 60000;
-const READ = /\/(list|get|get_active|pending|audit|options|summary|lookup|status|view)$/;
+const READ = /\/(list|get|get_active|pending|audit|options|summary|lookup|status|view|versions|version_get|acceptances)$/;
 const CACHED = /\/(get_active|options)$|^\/master\/[a-z_]+\/list$/;
 
 const inflight = new Map();

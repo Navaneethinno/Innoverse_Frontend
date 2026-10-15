@@ -18,6 +18,7 @@ const SEGMENT_LABELS = {
   institutionmodule: { titleKey: "crumbInstitutionModule", breadcrumb: ["crumbInstitution", "crumbInstitutionModule"] },
   institutionlegal: { titleKey: "crumbInstitutionLegal", breadcrumb: ["crumbInstitution", "crumbInstitutionLegal"] },
   institutionbranding: { titleKey: "crumbInstitutionBranding", breadcrumb: ["crumbInstitution", "crumbInstitutionBranding"] },
+  institutiondocuments: { titleKey: "crumbInstitutionDocuments", breadcrumb: ["crumbInstitution", "crumbInstitutionDocuments"] },
   institutionchannel: { titleKey: "crumbInstitutionChannel", breadcrumb: ["crumbInstitution", "crumbInstitutionChannel"] },
   institutioncurrency: { titleKey: "crumbInstitutionCurrency", breadcrumb: ["crumbInstitution", "crumbInstitutionCurrency"] },
   institutionphonecode: { titleKey: "crumbInstitutionPhoneCode", breadcrumb: ["crumbInstitution", "crumbInstitutionPhoneCode"] },

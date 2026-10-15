@@ -55,6 +55,7 @@ void i18n
       "loans",
       "txn",
       "fees",
+      "documents",
       "builder",
       "providers",
       "accounting",

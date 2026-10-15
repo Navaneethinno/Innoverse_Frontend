@@ -404,6 +404,7 @@ const PT = {
   "Edit institution legal": "Editar jurídico da instituição",
   "Add institution legal": "Adicionar jurídico da instituição",
   "Institution Branding": "Marca da Instituição",
+  "Institution Documents": "Documentos da Instituição",
   "Manage institution branding and white-label configuration.": "Gerencie a marca e a configuração de marca branca da instituição.",
   "No branding profiles found": "Nenhum perfil de marca encontrado",
   "Branding profiles will appear here when available.": "Os perfis de marca aparecerão aqui quando disponíveis.",
