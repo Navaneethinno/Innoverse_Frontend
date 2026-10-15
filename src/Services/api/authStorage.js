@@ -1,4 +1,5 @@
 import { STORAGE_KEYS } from "@/Services/api/storageKeys";
+import { clearReadCache } from "@/Services/api/readCache";
 
 // A JWT's payload (the middle base64url segment) carries `exp` as a Unix
 // timestamp in seconds. Decoded locally, without a library, purely to check
@@ -57,6 +58,7 @@ export function persistAuthSession(user, token, refreshToken) {
   }
 }
 export function clearAuthSession() {
+  clearReadCache();
   try {
     window.sessionStorage.removeItem(STORAGE_KEYS.accessToken);
     window.sessionStorage.removeItem(STORAGE_KEYS.refreshToken);

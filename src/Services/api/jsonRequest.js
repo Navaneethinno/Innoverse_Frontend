@@ -1,0 +1,45 @@
+import { scopedBody } from "@/Utils/Lib/institutionScope";
+import { authFetch } from "@/Services/api/authFetch";
+import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
+import { API_BASE_URL } from "@/Utils/Constant";
+import { DEVICE_INFO } from "@/Services/Auth/auth.service";
+import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
+
+const REQUEST_TIMEOUT = 10000;
+
+// The institution setup screens' POST: JSON body in, the reply envelope out.
+export async function jsonRequest(path, body = {}) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+  const token = getAccessToken();
+  try {
+    const response = await authFetch(`${API_BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Deviceinfo: JSON.stringify(DEVICE_INFO),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...apiLanguageHeader(),
+      },
+      body: JSON.stringify(scopedBody(body)),
+      signal: controller.signal,
+    });
+    const type = response.headers.get("content-type") ?? "";
+    const payload = type.includes("application/json") ? await response.json().catch(() => null) : null;
+    if (response.status === 401) {
+      clearAuthSession();
+      window.dispatchEvent(new Event("auth:unauthorized"));
+      throw new Error("Session expired. Please sign in again.");
+    }
+    const statusError = getStatusErrorMessage(response.status, payload);
+    if (statusError) throw new Error(statusError);
+    if (!response.ok) throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));
+    return payload;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw new Error("Request timed out");
+    throw error instanceof Error ? error : new Error("Unexpected API error");
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}

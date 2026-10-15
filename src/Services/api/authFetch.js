@@ -1,6 +1,7 @@
 import store from "@/Redux/Store";
 import { setSession } from "@/Redux/AuthToken";
 import { refreshTokenRequest } from "@/Services/Auth/auth.service";
+import { cachedFetch } from "@/Services/api/readCache";
 import { getAccessToken, getRefreshToken, persistAuthSession, readAuthUser } from "@/Services/api/authStorage";
 
 // Silent session renewal. Every request helper calls authFetch instead of
@@ -38,7 +39,7 @@ function refreshSession() {
 const bearer = (init) => String(init?.headers?.Authorization ?? "").startsWith("Bearer ");
 
 export async function authFetch(url, init = {}) {
-  const response = await fetch(url, init);
+  const response = await cachedFetch(url, init, () => fetch(url, init));
   if (response.status !== 401 || !bearer(init) || !getRefreshToken()) return response;
   if (!(await refreshSession())) return response;
   return fetch(url, { ...init, headers: { ...init.headers, Authorization: `Bearer ${getAccessToken()}` } });
