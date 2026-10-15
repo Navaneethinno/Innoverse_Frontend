@@ -14,7 +14,7 @@ import { DrCr, TxnDialog } from "@/Components/Epurse/Accounts/AccountStatement";
 import { money } from "@/Components/Epurse/Accounts/accountShared";
 import { atIst } from "@/Components/Reports/Shared/reportShared";
 import { RequestDialog } from "@/Components/Transactions/Transactions";
-import { PlanCard, typeLabel } from "@/Components/Transactions/txnShared";
+import { PlanCard, TotalCell, typeLabel } from "@/Components/Transactions/txnShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { balanceAdjustmentsApi } from "@/Services/TermDeposits/termDeposits.api";
@@ -93,7 +93,7 @@ export function BalanceAdjustments() {
         </span>
       ),
     },
-    { key: "amount", label: t("amount"), render: (a) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(a.amount, a.currency_code)}</span> },
+    { key: "total_amount", label: t("amount"), render: (a) => <TotalCell total={a.total_amount} amount={a.amount} fee={a.fee_amount} currency={a.currency_code} /> },
     { key: "fee_amount", label: t("txn:fee"), render: (a) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(a.fee_amount) ? money(Number(a.fee_amount) + Number(a.tax_amount ?? 0), a.currency_code) : "—"}</span> },
     { key: "reason", label: t("reason"), align: "left", render: (a) => <span className={cn("line-clamp-2 text-xs", a.status === "FAILED" && "text-red-700")}>{a.status === "FAILED" ? a.status_desc : a.reason}</span> },
     { key: "status", label: t("status"), render: (a) => <StatusBadge status={a.status} variant="subtle" /> },

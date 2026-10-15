@@ -2640,6 +2640,8 @@ export const accounts = {
   underDigitalProduct: "via {{name}}",
   chooseDigitalProduct: "Escolha o produto digital desta integração",
   digitalProductHint: "O produto de conta principal dele é a conta aberta na aprovação.",
+  fee: "Tarifa",
+  total: "Total",
 };
 
 export const deposits = {
@@ -3960,6 +3962,8 @@ export const txn = {
   posted: "Lançada",
   postedAtOnce: "Lançada na hora como {{rrn}}.",
   done: "Concluir",
+  total: "Total",
+  amountPlusFee: "{{amount}} + {{fee}} tarifa",
 };
 
 export const fees = {

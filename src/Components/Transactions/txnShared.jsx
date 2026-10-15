@@ -24,6 +24,18 @@ export const typeLabel = (t, code, name) => (name && name !== code ? name : t(`t
 
 // The quote ("Plan"): who pays whom, the fee and tax, what leaves the payer
 // and reaches the receiver, and each party's limits with what is left.
+// An amount cell in a list: the total (amount + fee), with the split under it
+// when there is a fee.
+export function TotalCell({ total, amount, fee, currency }) {
+  const { t } = useTranslation("txn");
+  return (
+    <span className="flex flex-col whitespace-nowrap text-xs">
+      <b className="tabular-nums">{money(total ?? amount, currency)}</b>
+      {Number(fee) > 0 && <span className="text-[10px] text-muted-foreground">{t("amountPlusFee", { amount: money(amount, currency), fee: money(fee, currency) })}</span>}
+    </span>
+  );
+}
+
 export function PlanCard({ plan }) {
   const { t } = useTranslation("txn");
   const cur = plan.currency_code;

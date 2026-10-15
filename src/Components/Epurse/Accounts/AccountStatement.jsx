@@ -177,6 +177,8 @@ export function TxnDetail({ txn }) {
   const facts = [
     ["txnType", txnTypeLabel(t, txn.txn_type)],
     ["amount", money(txn.txn_amount, txn.currency_code)],
+    ...(Number(txn.fee_amount) > 0 ? [["fee", money(txn.fee_amount, txn.currency_code)]] : []),
+    ...(txn.total_amount != null ? [["total", money(txn.total_amount, txn.currency_code)]] : []),
     ["businessDate", dayDate(txn.business_date)],
     ["date", accountDate(txn.tran_date_time)],
     ["source", [txn.source_module, txn.source_id].filter(Boolean).join(" #") || "—"],

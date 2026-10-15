@@ -24,7 +24,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../TermDeposits/depositShared";
 import { MiniTable, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
-import { PlanCard, ReceiptDialog, typeLabel } from "./txnShared";
+import { PlanCard, ReceiptDialog, TotalCell, typeLabel } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const STATUSES = ["POSTED", "REVERSED", "FAILED"];
@@ -119,7 +119,7 @@ function Journal({ onOpen }) {
       ),
     },
     { key: "txn_type", label: t("type"), render: (x) => <span className="text-xs font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</span> },
-    { key: "txn_amount", label: t("amount"), render: (x) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(x.txn_amount, x.currency_code)}</span> },
+    { key: "total_amount", label: t("amount"), render: (x) => <TotalCell total={x.total_amount} amount={x.txn_amount} fee={x.fee_amount} currency={x.currency_code} /> },
     { key: "fee_amount", label: t("fee"), render: (x) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(x.fee_amount) ? money(x.fee_amount, x.currency_code) : "—"}</span> },
     { key: "txn_desc", label: t("description"), align: "left", render: (x) => <span className="line-clamp-2 text-xs">{x.status === "FAILED" ? <span className="text-red-700">{x.status_desc}</span> : x.txn_desc || "—"}</span> },
     { key: "channel_type", label: t("channel"), render: (x) => <span className="text-[11px]">{x.channel_type} · {x.initiator_type}</span> },
@@ -283,8 +283,12 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             </p>
           </div>
           <div className="min-w-0 text-right">
-            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(x.txn_amount)}</p>
-            {Number(x.fee_amount) > 0 && <p className="text-xs text-muted-foreground">{t("plusFee", { fee: m(x.fee_amount), name: x.fee_name || t("fee"), payer: t(`payFrom_${x.fee_pay_from}`, { defaultValue: x.fee_pay_from ?? "" }) })}</p>}
+            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(x.total_amount ?? x.txn_amount)}</p>
+            {Number(x.fee_amount) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {t("amount")} {m(x.txn_amount)} {t("plusFee", { fee: m(x.fee_amount), name: x.fee_name || t("fee"), payer: t(`payFrom_${x.fee_pay_from}`, { defaultValue: x.fee_pay_from ?? "" }) })}
+              </p>
+            )}
           </div>
         </div>
         {x.status === "FAILED" && (
@@ -362,6 +366,9 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
               { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono">{p.acct_num}</span> },
               { key: "direction", label: t("drCr"), render: (p) => <DrCr type={p.direction} /> },
               { key: "description", label: t("description") },
+              { key: "amount", label: t("amount"), align: "right", render: (p) => m(p.amount) },
+              { key: "fee_amount", label: t("fee"), align: "right", render: (p) => (Number(p.fee_amount) ? m(p.fee_amount) : "—") },
+              { key: "total_amount", label: t("total"), align: "right", render: (p) => m(p.total_amount) },
               { key: "net_amount", label: t("net"), align: "right", render: (p) => <b className={Number(p.net_amount) < 0 ? "text-red-700" : "text-emerald-700"}>{m(p.net_amount)}</b> },
               { key: "balance_after", label: t("balanceAfter"), align: "right", render: (p) => m(p.balance_after) },
               { key: "counterparty_name", label: t("counterparty"), render: (p) => p.counterparty_name || p.merchant_name || "—" },
@@ -436,6 +443,7 @@ export function PartyHistory({ party, onClose, onOpen }) {
     { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono text-[11px]">{p.acct_num}</span> },
     { key: "net_amount", label: t("net"), render: (p) => <span className={cn("whitespace-nowrap text-xs font-bold tabular-nums", Number(p.net_amount) < 0 ? "text-red-700" : "text-emerald-700")}>{money(p.net_amount, p.currency_code)}</span> },
     { key: "fee_amount", label: t("fee"), render: (p) => <span className="text-xs tabular-nums">{Number(p.fee_amount) ? money(p.fee_amount, p.currency_code) : "—"}</span> },
+    { key: "total_amount", label: t("total"), render: (p) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{p.total_amount != null ? money(p.total_amount, p.currency_code) : "—"}</span> },
     { key: "balance_after", label: t("balanceAfter"), render: (p) => <span className="whitespace-nowrap text-xs tabular-nums">{money(p.balance_after, p.currency_code)}</span> },
     { key: "status", label: t("status"), render: (p) => <StatusBadge status={p.status} variant="subtle" /> },
   ];
@@ -535,7 +543,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
           </div>
         ),
       },
-      { key: "amount", label: t("amount"), render: (r) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(r.amount, r.currency_code)}</span> },
+      { key: "total_amount", label: t("amount"), render: (r) => <TotalCell total={r.total_amount} amount={r.amount} fee={r.fee_amount} currency={r.currency_code} /> },
       { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
       { key: "requested_by", label: t("requestedBy"), render: (r) => <span className="text-xs">{r.requested_userid_name ?? r.requested_by}</span> },
       { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpen(r.id)} /> },
@@ -652,7 +660,7 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
       ) : (
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(req.amount)}</p>
+            <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(req.total_amount ?? req.amount)}</p>
             <StatusBadge status={req.status} />
           </div>
           {req.status === "FAILED" && (
@@ -672,7 +680,9 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
               req.card_pan_masked && [t("card"), req.card_pan_masked],
               req.counter_acct_num && [t("counterparty"), `${req.counter_owner_name} · ${req.counter_acct_num}`],
               req.org_rrn && [t("original"), req.org_rrn],
+              [t("amount"), m(req.amount)],
               [t("fee"), `${m(req.fee_amount)}${Number(req.tax_amount) ? ` + ${t("tax")} ${m(req.tax_amount)}` : ""}`],
+              req.total_amount != null && [t("total"), m(req.total_amount)],
               [t("reason"), req.reason],
               req.reference && [t("voucher"), req.reference],
               req.client_reference && [t("clientReference"), req.client_reference],

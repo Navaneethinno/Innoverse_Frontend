@@ -35,7 +35,7 @@ export function receiptSlip(r, t, brand) {
       row(t("reason"), p.reason),
     ],
     [row(t("rcptDate"), r.txn_time ? atIst(r.txn_time) : null), row(t("status"), r.status_name ?? r.status), row(t("rcptRef"), r.rrn), row(t("original"), r.org_rrn)],
-    [row(t("rcptTotal"), m(p.total_debit ?? r.txn_amount), { strong: true }), row(t("netCredit"), m(p.net_credit)), row(t("balanceAfter"), m(r.entry_amount))],
+    [row(t("rcptTotal"), m(r.total_amount ?? p.total_debit ?? r.txn_amount), { strong: true }), row(t("netCredit"), m(p.net_credit)), row(t("balanceAfter"), m(r.entry_amount))],
   ]
     .map((section) => section.filter(Boolean))
     .filter((section) => section.length);

@@ -2626,6 +2626,8 @@ export const accounts = {
   underDigitalProduct: "via {{name}}",
   chooseDigitalProduct: "Choose the digital product this onboarding is for",
   digitalProductHint: "Its primary account product is the account opened on approval.",
+  fee: "Fee",
+  total: "Total",
 };
 
 export const deposits = {
@@ -3946,6 +3948,8 @@ export const txn = {
   posted: "Posted",
   postedAtOnce: "Posted at once as {{rrn}}.",
   done: "Done",
+  total: "Total",
+  amountPlusFee: "{{amount}} + {{fee}} fee",
 };
 
 export const fees = {
