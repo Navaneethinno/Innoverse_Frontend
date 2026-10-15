@@ -77,7 +77,6 @@ function useMenuTreeSource() {
         menusByModule.get(moduleId).push({
           menu_id: menuId,
           menu_name: menu?.menu_name ?? menu?.name ?? `Menu #${menuId}`,
-          priority: Number(menu?.priority ?? 0),
           actions: [...actions].sort(byActionOrder),
         });
       });
@@ -85,9 +84,9 @@ function useMenuTreeSource() {
         .map(([moduleId, menus]) => ({
           moduleId,
           moduleName: moduleNames.get(moduleId) ?? `Module #${moduleId}`,
-          menus: menus.sort((a, b) => a.priority - b.priority),
+          menus: menus.sort((a, b) => a.menu_name.localeCompare(b.menu_name, undefined, { sensitivity: "base" })),
         }))
-        .sort((a, b) => a.moduleName.localeCompare(b.moduleName));
+        .sort((a, b) => a.moduleName.localeCompare(b.moduleName, undefined, { sensitivity: "base" }));
       setSource({ modules, isLoading: false, error: null });
     } catch (error) {
       setSource({
