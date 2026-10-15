@@ -132,8 +132,22 @@ const DECISIONS = {
 };
 const OFFERED = { PENDING: ["approve", "reject"], ACTIVE: ["deactivate"], INACTIVE: ["reactivate"] };
 
+// Opening hours as the merchant set them (day 1 is Monday), e.g.
+// "Mon–Fri 08:00–18:00, Sat 09:00–13:00".
+function hoursText(hours, locale) {
+  if (!Array.isArray(hours) || !hours.length) return null;
+  const day = (n) => new Date(Date.UTC(2024, 0, n)).toLocaleDateString(locale, { timeZone: "UTC", weekday: "short" });
+  const runs = (days) => {
+    const sorted = [...new Set(days.map(Number))].sort((a, b) => a - b);
+    const out = [];
+    sorted.forEach((d) => (out.length && out.at(-1)[1] === d - 1 ? (out.at(-1)[1] = d) : out.push([d, d])));
+    return out.map(([a, b]) => (a === b ? day(a) : `${day(a)}–${day(b)}`)).join(", ");
+  };
+  return hours.map((h) => `${runs(h.days ?? [])} ${h.opens}–${h.closes}`).join(" · ");
+}
+
 function StoreDetail({ store, permission, onClose, onChanged }) {
-  const { t } = useTranslation("mms");
+  const { t, i18n } = useTranslation("mms");
   const pageCan = usePagePermission();
   const can = permission ?? pageCan;
   const [full, setFull] = useState(null);
@@ -178,6 +192,8 @@ function StoreDetail({ store, permission, onClose, onChanged }) {
     ["address", s.address],
     ["province", s.province],
     ["phone", s.phone_number],
+    ["whatsapp", s.whatsapp_number],
+    ["openingHours", hoursText(s.opening_hours, i18n.language)],
     ["added", mmsDate(s.created_at)],
     ["decided", s.decided_at ? `${mmsDate(s.decided_at)}${s.decision_note ? ` · ${s.decision_note}` : ""}` : null],
   ];

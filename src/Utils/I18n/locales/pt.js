@@ -3789,6 +3789,8 @@ export const mms = {
   secretTitle: "Credencial do terminal {{tid}}",
   secretWarning: "Não voltará a ser mostrada. Copie-a já para a app do terminal POS; se se perder, emita uma nova credencial.",
   secretSaved: "Já copiei",
+  whatsapp: "WhatsApp",
+  openingHours: "Horário de funcionamento",
 };
 
 export const txn = {
