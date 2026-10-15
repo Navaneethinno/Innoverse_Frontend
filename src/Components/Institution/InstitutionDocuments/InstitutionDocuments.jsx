@@ -38,7 +38,6 @@ const toBody = (c) => ({
   description: String(c.description ?? "").trim(),
   audience: c.audience,
   requires_acceptance: Boolean(c.requires_acceptance),
-  display_order: Number(c.display_order) || 0,
   texts: (c.texts ?? []).map((x) => ({ channel: x.channel, language: x.language ?? "", title: String(x.title ?? "").trim(), content: x.content ?? "", content_format: x.content_format || "MARKDOWN" })),
 });
 
@@ -286,7 +285,7 @@ function DocumentView({ id, onBack, onEdit }) {
               <ProductStatus product={d} />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {d.code} · {t(`audience_${shown?.audience ?? d.audience}`, { defaultValue: shown?.audience ?? d.audience })} · {(shown?.requires_acceptance ?? d.requires_acceptance) ? t("mustAccept") : t("infoOnly")} · {t("orderX", { n: shown?.display_order ?? d.display_order })} · {d.inst_profile_name}
+              {d.code} · {t(`audience_${shown?.audience ?? d.audience}`, { defaultValue: shown?.audience ?? d.audience })} · {(shown?.requires_acceptance ?? d.requires_acceptance) ? t("mustAccept") : t("infoOnly")} · {d.inst_profile_name}
             </p>
             {shown?.description && <p className="mt-2 text-sm">{shown.description}</p>}
           </div>
@@ -499,7 +498,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
     if (!options || started.current) return;
     started.current = true;
     const source = doc ? (doc.draft ?? doc.pending?.config ?? doc.config) : options.defaults;
-    setConfig(structuredClone(source ?? { audience: "ALL", requires_acceptance: false, display_order: 100, texts: [] }));
+    setConfig(structuredClone(source ?? { audience: "ALL", requires_acceptance: false, texts: [] }));
   }, [options, doc]);
 
   if (!config || !options) return <PageSkeleton />;
@@ -568,7 +567,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
             ))}
           </div>
         )}
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <label className={labelClass}>
             {t("code")}
             <Field field={{ placeholder: "TERMS" }} disabled={Boolean(doc)} value={doc?.code ?? code} onChange={(v) => setCode(v.toUpperCase().replace(/[^A-Z0-9_]/g, "").slice(0, 64))} />
@@ -582,11 +581,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
             {t("audience")}
             <Field field={{ type: "select", options: (options.audiences ?? ["ALL", "CUSTOMER", "MERCHANT"]).map((a) => ({ value: a, label: t(`audience_${a}`, { defaultValue: a }) })) }} value={config.audience} onChange={(v) => setConfig((c) => ({ ...c, audience: v }))} />
           </label>
-          <label className={labelClass}>
-            {t("displayOrder")}
-            <Field field={{ type: "int" }} value={String(config.display_order ?? "")} onChange={(v) => setConfig((c) => ({ ...c, display_order: v }))} />
-          </label>
-          <label className={cn(labelClass, "md:col-span-2 lg:col-span-3")}>
+          <label className={cn(labelClass, "md:col-span-2 lg:col-span-2")}>
             {t("description")}
             <Field field={{ placeholder: "What the customer agrees to" }} value={config.description} onChange={(v) => setConfig((c) => ({ ...c, description: v }))} />
           </label>
