@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, FileText, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { ListPanel } from "@/Components/Common/ListPanel";
-import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -21,14 +24,8 @@ import { institutionDocumentsApi as api } from "@/Services/Institution/instituti
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 
-const STATUSES = [
-  [1, "Active"],
-  [9, "Draft"],
-  [2, "PendingAdd"],
-  [5, "RejectedAdd"],
-  [13, "Inactive"],
-];
-const CODE = /^[A-Z0-9_]{1,64}$/;
+// The status tabs, as the list call filters them (Pending is its own call).
+const TAB_STATUS = { active: 1, draft: 9, inactive: 13 };const CODE = /^[A-Z0-9_]{1,64}$/;
 const blankText = () => ({ channel: "ALL", language: "", title: "", content: "", content_format: "MARKDOWN" });
 const pairOf = (x) => `${x.channel}|${x.language ?? ""}`;
 
@@ -60,11 +57,10 @@ const nameIn = (list, code) => (list ?? []).find((x) => x.code === (code ?? ""))
 // INSTITUTION > Institution Documents (menu 217): terms, privacy and other
 // texts for customers and merchants, each text per channel and language.
 export function InstitutionDocuments() {
-  const { t } = useTranslation(["documents", "deposits", "common"]);
+  const { t } = useTranslation(["documents", "common"]);
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
   const [tab, setTab] = useState("all");
-  const [status, setStatus] = useState("");
   const [audience, setAudience] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -76,7 +72,7 @@ export function InstitutionDocuments() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const body = scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(status ? { status: Number(status) } : {}), ...(audience ? { audience } : {}) });
+      const body = scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(TAB_STATUS[tab] ? { status: TAB_STATUS[tab] } : {}), ...(audience ? { audience } : {}) });
       const row = rowsOf(await (tab === "pending" ? api.pending(body) : api.list(body)))[0];
       setData({ items: row?.items ?? [], total: row?.total ?? 0 });
     } catch (error) {
@@ -84,7 +80,7 @@ export function InstitutionDocuments() {
     } finally {
       setLoading(false);
     }
-  }, [tab, term, status, audience, page, limit, scope]);
+  }, [tab, term, audience, page, limit, scope]);
   useEffect(() => {
     void load();
   }, [load]);
@@ -94,83 +90,89 @@ export function InstitutionDocuments() {
     void load();
   };
   if (screen?.kind === "edit") return <DocumentEditor doc={screen.doc} scope={scope} onClose={() => (screen.doc ? setScreen({ kind: "view", id: screen.doc.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
-  if (screen?.kind === "view") return <DocumentView id={screen.id} onBack={back} onEdit={(doc) => setScreen({ kind: "edit", doc })} />;
+  if (screen?.kind === "view") return <DocumentView id={screen.id} initialTab={screen.tab} onBack={back} onEdit={(doc) => setScreen({ kind: "edit", doc })} />;
+
+  // A row's Edit needs the whole document (its texts), so it is read first.
+  const openEditor = async (id) => {
+    try {
+      setScreen({ kind: "edit", doc: rowsOf(await api.get({ id }))[0] });
+    } catch (error) {
+      notifications.error(error.message);
+    }
+  };
 
   const columns = [
     {
       key: "name",
       label: t("document"),
-      align: "left",
       render: (d) => (
-        <button type="button" onClick={() => setScreen({ kind: "view", id: d.id })} className="text-left">
-          <p className="text-xs font-bold text-primary hover:underline">{d.name || d.code}</p>
-          <p className="text-[10px] text-muted-foreground">{d.code}</p>
-        </button>
+        <div>
+          <p className="font-semibold text-foreground">{d.name || d.code}</p>
+          <p className="text-[11px] text-muted-foreground">{d.code}</p>
+        </div>
       ),
     },
-    { key: "audience", label: t("audience"), render: (d) => <span className="text-xs font-semibold">{t(`audience_${d.audience}`, { defaultValue: d.audience })}</span> },
-    { key: "text_count", label: t("texts"), render: (d) => <span className="text-xs tabular-nums">{d.text_count ?? "—"}</span> },
-    { key: "requires_acceptance", label: t("acceptance"), render: (d) => <span className="text-xs">{d.requires_acceptance ? t("mustAccept") : t("infoOnly")}</span> },
-    { key: "status", label: t("status"), render: (d) => <ProductStatus product={d} /> },
-    { key: "inst_profile_name", label: t("institution"), render: (d) => <span className="text-xs">{d.inst_profile_name}</span> },
-    { key: "updated_time", label: t("updated"), render: (d) => <span className="whitespace-nowrap text-xs">{accountDate(d.updated_time ?? d.created_time)}</span> },
-    { key: "actions", label: t("common:actions"), sortable: false, render: (d) => <RowActions buttons={{ view: true }} onView={() => setScreen({ kind: "view", id: d.id })} /> },
+    { key: "audience", label: t("audience"), render: (d) => <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">{t(`audience_${d.audience}`, { defaultValue: d.audience })}</span> },
+    { key: "text_count", label: t("texts"), render: (d) => <span className="tabular-nums">{d.text_count ?? "—"}</span> },
+    { key: "requires_acceptance", label: t("acceptance"), render: (d) => (d.requires_acceptance ? t("mustAccept") : t("infoOnly")) },
+    { key: "inst_profile_name", label: t("institution"), render: (d) => d.inst_profile_name ?? "—" },
+    { key: "status", label: t("status"), sortValue: (d) => d.status_name ?? "", render: (d) => (d.status_name ? <StatusBadge status={String(d.status_name)} /> : "—") },
+    { key: "process_status_name", label: t("processStatus"), sortValue: (d) => d.process_status_name ?? "", render: (d) => (d.process_status_name ? <StatusBadge status={String(d.process_status_name)} variant="subtle" /> : "—") },
+    { key: "auth_status", label: t("authStatus"), sortValue: (d) => d.auth_status ?? "", render: (d) => (d.auth_status ? <StatusBadge status={String(d.auth_status)} variant="subtle" /> : "—") },
+    {
+      key: "actions",
+      label: t("common:actions"),
+      sortable: false,
+      render: (d) => {
+        const b = getMakerCheckerButtons(d, { canEdit: can("Edit") });
+        return <RowActions buttons={{ view: b.view, edit: b.edit, audit: b.audit }} onView={() => setScreen({ kind: "view", id: d.id })} onEdit={() => void openEditor(d.id)} onAudit={() => setScreen({ kind: "view", id: d.id, tab: "history" })} />;
+      },
+    },
   ];
 
   return (
-    <div className="pb-8 pt-4">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <FileText size={22} className="text-primary" /> {t("title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })}>
-              {t("newDocument")}
-            </Button>
-          )}
-        </div>
+    <div className="space-y-4 pb-6">
+      <div>
+        <PageTitle>{t("title")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
       {chooser && (
-        <div className="mb-4 max-w-sm">
+        <div className="max-w-sm">
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <ListPanel
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-        {...searchBind}
-        searchPlaceholder={t("searchDocuments")}
-        filters={
-          <>
-            <FilterSelect value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-            <FilterSelect value={audience} onChange={(v) => { setAudience(v); setPage(1); }} options={[{ value: "", label: t("anyAudience") }, ...["ALL", "CUSTOMER", "MERCHANT"].map((a) => ({ value: a, label: t(`audience_${a}`) }))]} />
-          </>
-        }
-      >
+      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
+        <StatusFilterTabs
+          bare
+          serverFiltered
+          rows={data.items}
+          total={data.total}
+          value={tab}
+          onChange={(next) => {
+            setTab(next);
+            setPage(1);
+          }}
+          {...searchBind}
+          searchPlaceholder={t("searchDocuments")}
+          filters={<FilterSelect value={audience} onChange={(v) => { setAudience(v); setPage(1); }} options={[{ value: "", label: t("anyAudience") }, ...["ALL", "CUSTOMER", "MERCHANT"].map((a) => ({ value: a, label: t(`audience_${a}`) }))]} />}
+          actions={
+            can("Add") && (
+              <button type="button" disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
+                <Plus size={14} /> {t("newDocument")}
+              </button>
+            )
+          }
+        />
         <DataTable
           bare
+          serverSorted
           columns={columns}
           rows={data.items}
           rowKey={(d) => d.id}
           isLoading={loading}
-          title={t(`deposits:tab_${tab}`)}
+          title={t("title")}
           emptyTitle={t("noDocuments")}
           emptyDescription={t("noDocumentsHint")}
-          serverSorted
           serverPagination={{
             page,
             totalPages: Math.max(1, Math.ceil(data.total / limit)),
@@ -183,7 +185,7 @@ export function InstitutionDocuments() {
             },
           }}
         />
-      </ListPanel>
+      </div>
     </div>
   );
 }
@@ -217,12 +219,12 @@ function TextsTable({ texts, options, other, onOpen }) {
 
 // One document: what is in effect, what waits for a checker, and its
 // versions, acceptances and history.
-function DocumentView({ id, onBack, onEdit }) {
+function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
   const { t } = useTranslation(["documents", "deposits"]);
   const can = usePagePermission();
   const [d, setD] = useState(null);
   const [audit, setAudit] = useState([]);
-  const [tab, setTab] = useState("texts");
+  const [tab, setTab] = useState(initialTab);
   const [dialog, setDialog] = useState(null);
   const [reading, setReading] = useState(null);
   const [busy, setBusy] = useState(false);

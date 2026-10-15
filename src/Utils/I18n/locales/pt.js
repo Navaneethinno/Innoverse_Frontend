@@ -5326,10 +5326,8 @@ export const accounting = {
 export const documents = {
   title: "Documentos da Instituição",
   subtitle: "Termos, privacidade e outros documentos mostrados a clientes e comerciantes. Cada texto é para um canal e idioma; as alterações entram em vigor quando um verificador as aprova.",
-  refresh: "Atualizar",
   newDocument: "Novo documento",
   searchDocuments: "Pesquisar código ou nome",
-  anyStatus: "Qualquer estado",
   anyAudience: "Qualquer público",
   noDocuments: "Ainda sem documentos",
   noDocumentsHint: "Adicione um, como Termos e Condições, escreva os textos e submeta para aprovação.",
@@ -5344,7 +5342,6 @@ export const documents = {
   infoOnly: "Apenas informativo",
   status: "Estado",
   institution: "Instituição",
-  updated: "Atualizado",
   backToDocuments: "Voltar aos documentos",
   edit: "Editar",
   submit: "Submeter",
@@ -5419,6 +5416,8 @@ export const documents = {
   confirmHint_reactivate: "Proposto a um verificador. Volta a ser visível após aprovação.",
   confirm_delete: "Eliminar este documento?",
   confirmHint_delete: "Um rascunho é eliminado de imediato; caso contrário um verificador aprova. As versões antigas são mantidas.",
+  processStatus: "Estado do Processo",
+  authStatus: "Estado de Autorização",
 };
 
 export default {

@@ -5312,10 +5312,8 @@ export const accounting = {
 export const documents = {
   title: "Institution Documents",
   subtitle: "Terms, privacy and other documents shown to customers and merchants. Each text is for a channel and language; changes take effect when a checker approves them.",
-  refresh: "Refresh",
   newDocument: "New document",
   searchDocuments: "Search code or name",
-  anyStatus: "Any status",
   anyAudience: "Any audience",
   noDocuments: "No documents yet",
   noDocumentsHint: "Add one, such as Terms and Conditions, write its texts, then submit it for approval.",
@@ -5330,7 +5328,6 @@ export const documents = {
   infoOnly: "Information only",
   status: "Status",
   institution: "Institution",
-  updated: "Updated",
   backToDocuments: "Back to documents",
   edit: "Edit",
   submit: "Submit",
@@ -5405,6 +5402,8 @@ export const documents = {
   confirmHint_reactivate: "Proposed for a checker. Customers and merchants see it again once approved.",
   confirm_delete: "Delete this document?",
   confirmHint_delete: "A draft is deleted at once; otherwise a checker approves the delete. Old versions are kept.",
+  processStatus: "Process Status",
+  authStatus: "Authorization Status",
 };
 
 export default {
