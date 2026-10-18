@@ -4,8 +4,8 @@ import { ArrowLeft, CheckCircle2, Eye, MessageSquarePlus, MessageSquare, Refresh
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { CustomerAccounts } from "@/Components/Epurse/Accounts/accountShared";
-import { StaffOnboardingWizard } from "@/Components/Epurse/Onboarding/OnboardingWizard/StaffOnboardingWizard";
+import { CustomerAccounts } from "@/Components/Finance/Accounts/accountShared";
+import { StaffOnboardingWizard } from "@/Components/Epurse/Customers/StaffOnboardingWizard";
 import { ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
 import { corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";

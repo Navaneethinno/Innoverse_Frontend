@@ -1,0 +1,551 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AlertTriangle, ArrowLeft, ChevronDown, FlaskConical, Plus, Save, Send, ShieldCheck } from "lucide-react";
+import { Button } from "@/Components/Common/Button";
+import { DataTable } from "@/Components/Common/DataTable";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { ListPanel } from "@/Components/Common/ListPanel";
+import { PageSkeleton } from "@/Components/Common/PageSkeleton";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { SearchBox } from "@/Components/Common/SearchBox";
+import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { usePagePermission } from "@/Hooks/usePermission";
+import { glMappingApi } from "@/Services/Accounting/accounting.api";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { notifications } from "@/Utils/Lib/notifications";
+import { cn } from "@/Utils/Lib/utils";
+import { MiniTable, RowsEditor, Tabs } from "../Loans/loanShared";
+import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass } from "../Deposits/depositShared";
+import { ProductStatus } from "./DepositProducts/productShared";
+import { glLabel, useRecordActions } from "../accountingShared";
+
+const PRODUCT_KEYS = ["digital_product_id", "loan_product_id", "acct_product_id", "card_product_id"];
+const ID_KEYS = ["ext_provider_id", "channel_id", ...PRODUCT_KEYS, "currency_id"];
+const LIMITS = ["txn_type", ...ID_KEYS];
+const isSet = (v) => v !== "" && v != null && v !== 0 && v !== "0";
+const specificity = (r) => LIMITS.filter((k) => isSet(r[k])).length;
+const blankRule = () => ({ leg: "", txn_type: "", ...Object.fromEntries(ID_KEYS.map((k) => [k, ""])), gl_account_id: "", note: "" });
+
+// Which product kind a leg's postings carry: a loan, account or card product
+// limit only fits those legs (the digital product fits every leg).
+const fitsLeg = {
+  loan_product_id: (leg) => leg?.startsWith("LOAN_"),
+  acct_product_id: (leg) => leg?.startsWith("TD_") || leg === "WALLET_INTEREST_EXPENSE",
+  card_product_id: (leg) => leg?.startsWith("CARD_"),
+};
+const showProduct = (key) => (r) => !fitsLeg[key] || fitsLeg[key](r.leg) || isSet(r[key]);
+const PRODUCT_LISTS = { digital_product_id: "products", loan_product_id: "loan_products", acct_product_id: "acct_products", card_product_id: "card_products" };
+const productLabel = { digital_product_id: "product", loan_product_id: "loanProduct", acct_product_id: "acctProduct", card_product_id: "cardProduct" };
+
+// "Loan · Personal Loan" for whichever product limit a rule (or unmapped row)
+// sets, the name from the row or else the options.
+function productOf(r, names, t) {
+  const key = PRODUCT_KEYS.find((k) => isSet(r[k]));
+  if (!key) return null;
+  const name = r[key.replace("_id", "_name")] || names?.[PRODUCT_LISTS[key]]?.[String(r[key])]?.name || `#${r[key]}`;
+  return (
+    <span>
+      <span className="mr-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold">{t(`productKind_${key}`)}</span>
+      {name}
+    </span>
+  );
+}
+
+// The rules as the server takes them: "" / 0 is "any".
+const toRules = (rules) =>
+  rules.map((r) => ({
+    leg: r.leg,
+    txn_type: r.txn_type || "",
+    ...Object.fromEntries(ID_KEYS.map((k) => [k, Number(r[k]) || 0])),
+    gl_account_id: Number(r.gl_account_id) || 0,
+    note: String(r.note ?? "").trim(),
+  }));
+const sig = (r) => JSON.stringify(toRules([r])[0]);
+
+// ACCOUNTING > GL Mapping (menu 214): which GL each posting leg goes to.
+// A rule limits a leg by type, provider, channel, product and currency; the
+// most specific rule that fits wins, and the fallback GL takes the rest.
+// One mapping per institution, approved as a whole.
+export function GlMapping() {
+  const { t } = useTranslation("accounting");
+  const can = usePagePermission();
+  const [tab, setTab] = useState("rules");
+  const [setup, setSetup] = useState(undefined);
+  const [options, setOptions] = useState(null);
+  const [audit, setAudit] = useState([]);
+  const [editing, setEditing] = useState(false);
+
+  const load = useCallback(async () => {
+    const [got, opts] = await Promise.all([glMappingApi.get({}), glMappingApi.options({})]);
+    const s = rowsOf(got)[0] ?? null;
+    setSetup(s);
+    setOptions(rowsOf(opts)[0] ?? {});
+    setAudit(s?.id ? rowsOf(await glMappingApi.audit({ id: s.id }).catch(() => null)) : []);
+  }, []);
+  useEffect(() => {
+    load().catch((e) => {
+      notifications.error(e.message);
+      setSetup(null);
+    });
+  }, [load]);
+
+  const { buttons, busy, dialog } = useRecordActions({
+    actions: setup?.actions,
+    labels: { edit: () => setEditing(true) },
+    run: async (verb, narration) => {
+      const r = await glMappingApi[verb]({ id: setup.id, ...(narration ? { narration } : {}) });
+      notifications.success(r?.message ?? t("done"));
+      await load();
+    },
+  });
+
+  if (setup === undefined || !options) return <PageSkeleton />;
+  if (editing)
+    return (
+      <MappingEditor
+        setup={setup}
+        options={options}
+        onClose={() => setEditing(false)}
+        onSaved={async () => {
+          setEditing(false);
+          await load();
+        }}
+      />
+    );
+
+  const shownMapping = setup?.draft ?? setup?.mapping;
+  return (
+    <div className="pb-8 pt-4">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <PageTitle>{t("mapTitle")}</PageTitle>
+          <p className="mt-1 text-sm text-muted-foreground">{t("mapSubtitle")}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {setup && <ProductStatus product={setup} />}
+          {setup ? (
+            <ActionButtons buttons={buttons} busy={busy} />
+          ) : (
+            can("Add") && (
+              <Button size="sm" icon={Plus} onClick={() => setEditing(true)}>
+                {t("setUpMapping")}
+              </Button>
+            )
+          )}
+        </div>
+      </div>
+      {setup?.warnings?.length > 0 && (
+        <ul className="mb-4 grid gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+          {setup.warnings.map((w) => (
+            <li key={w} className="flex items-start gap-1.5">
+              <AlertTriangle size={13} className="mt-0.5 shrink-0" /> {w}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Tabs tabs={[{ key: "rules" }, { key: "test" }, { key: "unmapped" }, { key: "history" }]} value={tab} onChange={setTab} labelOf={(k) => t(`mapTab_${k}`)} />
+
+      {tab === "rules" &&
+        (!setup ? (
+          <p className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">{t("noMapping")}</p>
+        ) : setup.pending ? (
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Section title={t("inEffect")}>
+              <MappingView mapping={setup.mapping} options={options} />
+            </Section>
+            <Section title={t("proposedBy", { name: setup.pending.proposed_by?.name ?? setup.pending.proposed_by ?? "—", date: accountDate(setup.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+              <MappingView mapping={setup.pending.mapping ?? setup.pending.config} options={options} other={setup.mapping} />
+            </Section>
+          </div>
+        ) : (
+          <MappingView mapping={shownMapping} options={options} />
+        ))}
+      {tab === "test" && <ResolvePanel options={options} />}
+      {tab === "unmapped" && <Unmapped />}
+      {tab === "history" && (
+        <Section title={t("history")}>
+          <AuditTimeline audit={audit} empty={t("nothingYet")} />
+        </Section>
+      )}
+      {dialog}
+    </div>
+  );
+}
+
+// Labels for a rule's limits, from options when the rule has no names (a
+// proposed or edited rule).
+function useNames(options) {
+  return useMemo(() => {
+    const by = (list, key = "id") => Object.fromEntries((list ?? []).map((x) => [String(x[key]), x]));
+    return { legs: by(options.legs, "code"), types: by(options.txn_types, "code"), providers: by(options.providers), channels: by(options.channels), products: by(options.products), loan_products: by(options.loan_products), acct_products: by(options.acct_products), card_products: by(options.card_products), currencies: by(options.currencies), gls: by(options.gl_accounts) };
+  }, [options]);
+}
+
+// What a rule is limited to, as short labelled chips ("Provider M-Pesa");
+// a rule with no limit applies to every posting of its leg.
+function conditionsOf(r, names, t) {
+  const out = [];
+  if (isSet(r.txn_type)) out.push([t("txnType"), r.txn_type_name || names.types[r.txn_type]?.name || r.txn_type]);
+  if (isSet(r.ext_provider_id)) out.push([t("provider"), r.ext_provider_name || names.providers[String(r.ext_provider_id)]?.name || `#${r.ext_provider_id}`]);
+  if (isSet(r.channel_id)) out.push([t("channel"), r.channel_name || names.channels[String(r.channel_id)]?.name || `#${r.channel_id}`]);
+  const key = PRODUCT_KEYS.find((k) => isSet(r[k]));
+  if (key) out.push([t(`productKind_${key}`), r[key.replace("_id", "_name")] || names[PRODUCT_LISTS[key]]?.[String(r[key])]?.name || `#${r[key]}`]);
+  if (isSet(r.currency_id)) out.push([t("currency"), r.currency_code || names.currencies[String(r.currency_id)]?.code || `#${r.currency_id}`]);
+  return out;
+}
+const glText = (r, names) => {
+  const g = names.gls[String(r.gl_account_id)];
+  return { name: r.gl_name || g?.name || `#${r.gl_account_id}`, codes: [r.gl_code ?? g?.gl_code, r.gl_account_number ?? g?.account_number].filter(Boolean).join(" · ") };
+};
+
+function Conditions({ items }) {
+  const { t } = useTranslation("accounting");
+  if (!items.length) return <span className="text-xs italic text-muted-foreground">{t("allPostings")}</span>;
+  return (
+    <span className="flex flex-wrap gap-1">
+      {items.map(([label, value]) => (
+        <span key={label} className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[11px]">
+          <span className="text-muted-foreground">{label}</span>
+          <b className="font-semibold">{value}</b>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+const toggleIn = (set, key) => {
+  const next = new Set(set);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  return next;
+};
+
+// The fallback GL and the rules grouped by leg (one card each, the most
+// specific rule first), with a search and a filter by leg; with `other`,
+// rules new or changed are marked.
+function MappingView({ mapping, options, other }) {
+  const { t } = useTranslation("accounting");
+  const names = useNames(options);
+  const [query, setQuery] = useState("");
+  const [only, setOnly] = useState("");
+  const [closed, setClosed] = useState(() => new Set());
+  const before = other ? new Set((other.rules ?? []).map(sig)) : null;
+  const rules = mapping?.rules ?? [];
+  const order = (leg) => (options.legs ?? []).findIndex((l) => l.code === leg);
+  const legs = [...new Set(rules.map((r) => r.leg))].sort((a, b) => order(a) - order(b));
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const textOf = (r) => {
+    const gl = glText(r, names);
+    return [names.legs[r.leg]?.name, ...conditionsOf(r, names, t).map(([, v]) => v), gl.name, gl.codes, r.note].filter(Boolean).join(" ").toLowerCase();
+  };
+  const shown = rules.filter((r) => (!only || r.leg === only) && words.every((w) => textOf(r).includes(w)));
+  const fallback = names.gls[String(mapping?.fallback_gl_account_id)];
+
+  return (
+    <div className="grid min-w-0 gap-4">
+      <div className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ShieldCheck size={18} />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t("fallbackGl")}</p>
+          {mapping?.fallback_gl_account_id ? (
+            <p className="text-sm font-black">{mapping.fallback_gl_name || (fallback ? glLabel(fallback) : `#${mapping.fallback_gl_account_id}`)}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">{t("noFallback")}</p>
+          )}
+          <p className="mt-0.5 text-xs text-muted-foreground">{t("fallbackHint")}</p>
+        </div>
+      </div>
+
+      {rules.length > 0 && (
+        <div className="grid gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchBox search={query} onSearch={setQuery} placeholder={t("searchRules")} className="max-w-md" />
+            <span className="text-xs font-semibold text-muted-foreground">{words.length || only ? t("rulesMatch", { count: shown.length, total: rules.length }) : t("rulesCount", { count: rules.length, legs: legs.length })}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {[["", t("allLegs"), rules.length], ...legs.map((leg) => [leg, names.legs[leg]?.name ?? leg, rules.filter((r) => r.leg === leg).length])].map(([key, label, count]) => (
+              <button
+                key={key || "all"}
+                type="button"
+                onClick={() => setOnly(key)}
+                className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition", only === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground")}
+              >
+                {label}
+                <span className={cn("rounded-full px-1.5 text-[10px] tabular-nums", only === key ? "bg-white/25" : "bg-muted")}>{count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {legs
+        .filter((leg) => shown.some((r) => r.leg === leg))
+        .map((leg) => {
+          const list = shown.filter((r) => r.leg === leg).sort((a, b) => specificity(b) - specificity(a));
+          const open = !closed.has(leg) || words.length > 0;
+          return (
+            <section key={leg} className="min-w-0 rounded-2xl border border-border bg-card">
+              <button type="button" onClick={() => setClosed((c) => toggleIn(c, leg))} aria-expanded={open} className="flex w-full items-start justify-between gap-3 p-4 text-left">
+                <span className="min-w-0">
+                  <span className="flex items-center gap-2 text-sm font-black">
+                    {names.legs[leg]?.name ?? leg}
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">{t("nRules", { count: list.length })}</span>
+                  </span>
+                  {names.legs[leg]?.description && <span className="mt-0.5 block text-xs text-muted-foreground">{names.legs[leg].description}</span>}
+                </span>
+                <ChevronDown size={16} className={cn("mt-0.5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+              </button>
+              {open && (
+                <div className="px-4 pb-4">
+                  <MiniTable
+                    rows={list}
+                    rowKey={(r, i) => `${sig(r)}-${i}`}
+                    rowClass={(r) => (before && !before.has(sig(r)) ? "bg-amber-50" : r.gl_status && Number(r.gl_status) !== 1 ? "bg-red-50" : undefined)}
+                    columns={[
+                      { key: "when", label: t("appliesTo"), wrap: true, render: (r) => <Conditions items={conditionsOf(r, names, t)} /> },
+                      {
+                        key: "gl",
+                        label: t("gl"),
+                        wrap: true,
+                        render: (r) => {
+                          const g = glText(r, names);
+                          return (
+                            <span>
+                              <b className="block">{g.name}</b>
+                              <span className="font-mono text-[11px] text-muted-foreground">{g.codes}</span>
+                            </span>
+                          );
+                        },
+                      },
+                      { key: "note", label: t("note"), wrap: true, render: (r) => <span className="text-muted-foreground">{r.note || "—"}</span> },
+                    ]}
+                  />
+                </div>
+              )}
+            </section>
+          );
+        })}
+      {!rules.length && <p className="text-sm text-muted-foreground">{t("noRules")}</p>}
+      {rules.length > 0 && !shown.length && <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{t("noRulesMatch")}</p>}
+    </div>
+  );
+}
+
+// The whole rule table, edited and submitted at once (or saved as a draft
+// for a new mapping). The rules in effect stay until a checker approves.
+function MappingEditor({ setup, options, onClose, onSaved }) {
+  const { t } = useTranslation("accounting");
+  const source = setup?.draft ?? setup?.pending?.mapping ?? setup?.mapping;
+  const [rules, setRules] = useState(() => (source?.rules ?? []).map((r) => ({ ...r, txn_type: r.txn_type ?? "", ...Object.fromEntries([...ID_KEYS, "gl_account_id"].map((k) => [k, isSet(r[k]) ? String(r[k]) : ""])) })));
+  const [fallback, setFallback] = useState(source?.fallback_gl_account_id ? String(source.fallback_gl_account_id) : "");
+  const [narration, setNarration] = useState("");
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const drafting = !setup || [9, 5].includes(Number(setup.status));
+  const sel = (list, value, label, blank = t("any")) => ({ type: "select", blank, options: (list ?? []).map((x) => ({ value: String(x[value]), label: label(x) })) });
+  const glOptions = (options.gl_accounts ?? []).map((g) => ({ value: String(g.id), label: `${g.name} · ${[g.gl_code, g.account_number, g.multi_currency ? t("multi") : g.currency_code].filter(Boolean).join(" · ")}` }));
+  const ready = rules.every((r) => r.leg && r.gl_account_id);
+  const names = useNames(options);
+  // The rules grouped by leg, in the legs' order; a group opens on a click
+  // (or by itself while a rule in it still needs its GL).
+  const editLegs = [...new Set(rules.map((r) => r.leg))].sort((a, b) => (options.legs ?? []).findIndex((l) => l.code === a) - (options.legs ?? []).findIndex((l) => l.code === b));
+  const [openLegs, setOpenLegs] = useState(() => new Set());
+  const ruleFields = [
+    { key: "txn_type", label: t("txnType"), ...sel(options.txn_types, "code", (x) => x.name) },
+    { key: "ext_provider_id", label: t("provider"), ...sel(options.providers, "id", (x) => x.name) },
+    { key: "channel_id", label: t("channel"), ...sel(options.channels, "id", (x) => x.name) },
+    ...PRODUCT_KEYS.map((key) => ({ key, label: t(productLabel[key]), showIf: showProduct(key), ...sel(options[PRODUCT_LISTS[key]], "id", (x) => x.name) })),
+    { key: "currency_id", label: t("currency"), ...sel(options.currencies, "id", (x) => x.code) },
+    { key: "gl_account_id", label: t("gl"), type: "select", blank: t("choose"), options: glOptions, span: "sm:col-span-2" },
+    { key: "note", label: t("note"), span: "sm:col-span-2" },
+  ];
+
+  const save = async (submit) => {
+    setBusy(submit ? "submit" : "draft");
+    setError("");
+    try {
+      const body = { rules: toRules(rules), fallback_gl_account_id: Number(fallback) || 0, ...(narration.trim() ? { narration: narration.trim() } : {}) };
+      let id = setup?.id;
+      if (!id) {
+        const r = await glMappingApi.add({ ...body, is_draft: !submit });
+        id = rowsOf(r)[0]?.id;
+        notifications.success(r?.message ?? t("saved"));
+      } else {
+        const r = await glMappingApi.edit({ id, ...body, ...(drafting ? { is_draft: true } : {}) });
+        if (drafting && submit) await glMappingApi.submit({ id });
+        notifications.success(r?.message ?? t("saved"));
+      }
+      onSaved();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy("");
+    }
+  };
+
+  return (
+    <div className="pb-8 pt-4">
+      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+        <ArrowLeft size={15} /> {t("backToMapping")}
+      </button>
+      <PageTitle>{t(setup ? "editMapping" : "setUpMapping")}</PageTitle>
+      <p className="mb-4 mt-1 text-sm text-muted-foreground">{t("editMappingHint")}</p>
+      <Section title={t("fallbackGl")} className="mb-4">
+        <FilterSelect value={fallback} onChange={setFallback} options={[{ value: "", label: t("noFallback") }, ...glOptions]} />
+        <p className="mt-1 text-[11px] text-muted-foreground">{t("fallbackHint")}</p>
+      </Section>
+      <Section title={t("rules")} action={<span className="text-xs font-semibold text-muted-foreground">{t("rulesCount", { count: rules.length, legs: editLegs.length })}</span>}>
+        <div className="grid gap-3">
+          {editLegs.map((leg) => {
+            const rows = rules.filter((r) => r.leg === leg);
+            const missing = rows.filter((r) => !r.gl_account_id).length;
+            const open = openLegs.has(leg) || missing > 0;
+            return (
+              <div key={leg} className="rounded-xl border border-border">
+                <button type="button" onClick={() => setOpenLegs((o) => toggleIn(o, leg))} aria-expanded={open} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left">
+                  <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-bold">
+                    {names.legs[leg]?.name ?? leg}
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">{t("nRules", { count: rows.length })}</span>
+                    {missing > 0 && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-900">{t("needGl", { count: missing })}</span>}
+                  </span>
+                  <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+                </button>
+                {open && (
+                  <div className="border-t border-border p-3">
+                    <RowsEditor rows={rows} onChange={(next) => setRules((all) => [...all.filter((r) => r.leg !== leg), ...next])} blank={() => ({ ...blankRule(), leg })} addLabel={t("addRule")} columns="lg:grid-cols-4" fields={ruleFields} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <FilterSelect
+            className="w-full max-w-sm"
+            value=""
+            onChange={(leg) => {
+              if (!leg) return;
+              setRules((all) => [...all, { ...blankRule(), leg }]);
+              setOpenLegs((o) => new Set(o).add(leg));
+            }}
+            options={[{ value: "", label: t("addLeg") }, ...(options.legs ?? []).filter((l) => !editLegs.includes(l.code)).map((l) => ({ value: l.code, label: l.name }))]}
+          />
+        </div>
+      </Section>
+      <label className={cn(labelClass, "mt-4 block")}>
+        {t("narration")}
+        <input className={cn(inputClass, "mt-1.5")} value={narration} onChange={(e) => setNarration(e.target.value)} />
+      </label>
+      {error && (
+        <div className="mt-4">
+          <Problems message={error} />
+        </div>
+      )}
+      <div className="sticky bottom-0 mt-4 flex flex-wrap justify-end gap-2 border-t border-border bg-[var(--background)] py-3">
+        <Button variant="ghost" onClick={onClose}>
+          {t("cancel")}
+        </Button>
+        {drafting && (
+          <Button variant="secondary" icon={Save} loading={busy === "draft"} disabled={!ready} onClick={() => save(false)}>
+            {t("saveDraft")}
+          </Button>
+        )}
+        <Button icon={Send} loading={busy === "submit"} disabled={!ready} onClick={() => save(true)}>
+          {t(drafting ? "submitForApproval" : "proposeChange")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// "Test": where a posting with these details would go now, and why.
+function ResolvePanel({ options }) {
+  const { t } = useTranslation("accounting");
+  const [q, setQ] = useState({ leg: "", currency_id: String(options.currencies?.[0]?.id ?? ""), txn_type: "", ...Object.fromEntries(ID_KEYS.filter((k) => k !== "currency_id").map((k) => [k, ""])) });
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const set = (key) => (value) => setQ((x) => ({ ...x, [key]: value }));
+  const pick = (key, list, value, label, blank = t("any")) => (
+    <label key={key} className={labelClass}>
+      {t(productLabel[key] ?? (key === "currency_id" ? "currency" : key === "ext_provider_id" ? "provider" : key === "channel_id" ? "channel" : key === "txn_type" ? "txnType" : "leg"))}
+      <FilterSelect className="mt-1.5" value={q[key]} onChange={set(key)} options={[...(blank ? [{ value: "", label: blank }] : []), ...(list ?? []).map((x) => ({ value: String(x[value]), label: label(x) }))]} />
+    </label>
+  );
+  const run = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const body = { leg: q.leg, currency_id: Number(q.currency_id), ...(q.txn_type ? { txn_type: q.txn_type } : {}), ...Object.fromEntries(ID_KEYS.filter((k) => k !== "currency_id" && q[k] && showProduct(k)(q)).map((k) => [k, Number(q[k])])) };
+      setResult(rowsOf(await glMappingApi.resolve(body))[0] ?? null);
+    } catch (e) {
+      setResult(null);
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Section title={t("testTitle")}>
+      <p className="mb-3 text-xs text-muted-foreground">{t("testHint")}</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {pick("leg", options.legs, "code", (x) => x.name, t("choose"))}
+        {pick("currency_id", options.currencies, "id", (x) => x.code, null)}
+        {pick("txn_type", options.txn_types, "code", (x) => x.name)}
+        {pick("ext_provider_id", options.providers, "id", (x) => x.name)}
+        {pick("channel_id", options.channels, "id", (x) => x.name)}
+        {PRODUCT_KEYS.filter((k) => showProduct(k)(q)).map((k) => pick(k, options[PRODUCT_LISTS[k]], "id", (x) => x.name))}
+      </div>
+      <Button className="mt-3" icon={FlaskConical} loading={busy} disabled={!q.leg || !q.currency_id} onClick={run}>
+        {t("test")}
+      </Button>
+      {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
+      {result && (
+        <div className="mt-3 rounded-xl border border-border bg-card p-3 text-sm">
+          <span className={cn("mr-2 rounded-full px-2 py-0.5 text-[10px] font-black", result.by === "RULE" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900")}>{t(`by_${result.by}`, { defaultValue: result.by })}</span>
+          <b>{result.gl_name ?? result.gl_account_name}</b> <span className="font-mono text-xs text-muted-foreground">{[result.gl_code, result.account_number].filter(Boolean).join(" · ")}</span>
+        </div>
+      )}
+    </Section>
+  );
+}
+
+// Kinds of posting no rule fitted: where they went and how often.
+function Unmapped() {
+  const { t } = useTranslation("accounting");
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    glMappingApi
+      .unmapped({})
+      .then((r) => setRows(rowsOf(r)))
+      .catch((e) => {
+        notifications.error(e.message);
+        setRows([]);
+      });
+  }, []);
+  return (
+    <ListPanel tabs={[]}>
+      <DataTable
+        bare
+        isLoading={rows === null}
+        rows={rows ?? []}
+        rowKey={(r, i) => `${r.leg}-${r.txn_type}-${r.provider}-${r.channel}-${r.product}-${r.currency}-${i}`}
+        title={t("mapTab_unmapped")}
+        emptyTitle={t("noUnmapped")}
+        emptyDescription={t("noUnmappedHint")}
+        columns={[
+          { key: "leg", label: t("leg"), render: (r) => <span className="text-xs font-semibold">{r.leg_name ?? r.leg}</span> },
+          { key: "txn_type", label: t("txnType"), render: (r) => <span className="text-xs">{r.txn_type_name ?? r.txn_type ?? "—"}</span> },
+          { key: "provider", label: t("provider"), render: (r) => <span className="text-xs">{r.provider_name ?? r.provider ?? "—"}</span> },
+          { key: "channel", label: t("channel"), render: (r) => <span className="text-xs">{r.channel_name ?? r.channel ?? "—"}</span> },
+          { key: "product", label: t("product"), render: (r) => <span className="text-xs">{productOf({ digital_product_name: r.product_name, digital_product_id: r.digital_product_id ?? r.product, ...r }, null, t) ?? "—"}</span> },
+          { key: "currency", label: t("currency"), render: (r) => <span className="text-xs">{r.currency_code ?? r.currency ?? "—"}</span> },
+          { key: "gl_name", label: t("wentTo"), render: (r) => <span className="text-xs font-bold">{r.gl_name}</span> },
+          { key: "uses", label: t("uses"), render: (r) => <span className="text-xs tabular-nums">{r.uses}</span> },
+          { key: "last_at", label: t("lastSeen"), render: (r) => <span className="whitespace-nowrap text-xs">{accountDate(r.last_at)}</span> },
+        ]}
+      />
+    </ListPanel>
+  );
+}
+

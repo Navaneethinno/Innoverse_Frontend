@@ -23,7 +23,7 @@ import {
 import { notifications } from "@/Utils/Lib/notifications";
 import { ExportButtons, glassCard, useReportDetail } from "../Shared/reportShared";
 import { KycReportView } from "./KycReportView";
-import { CustomerStateBadges } from "@/Components/Epurse/Onboarding/OnboardingWizard/customerPortal";
+import { CustomerStateBadges } from "@/Components/Epurse/Customers/customerPortal";
 
 // Reports > KYC Report (group 204): Customer KYC Report (206) and Merchant
 // KYC Report (205). A list of the onboarding records, Individual |

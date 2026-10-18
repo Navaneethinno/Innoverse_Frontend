@@ -6,7 +6,7 @@ import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
-import { accountDate } from "@/Components/Epurse/Accounts/accountShared";
+import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { reportBuilderApi } from "@/Services/Reports/reportBuilder.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";

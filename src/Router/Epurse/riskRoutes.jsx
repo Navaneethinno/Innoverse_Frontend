@@ -3,10 +3,10 @@ import { pageElement } from "../routeSupport";
 
 // EPURSE > Risk Assessment.
 const IndividualRisk = lazy(() =>
-  import("@/Components/Epurse/RiskAssessment").then((m) => ({ default: m.IndividualRisk })),
+  import("@/Components/Epurse/Settings/RiskAssessment").then((m) => ({ default: m.IndividualRisk })),
 );
 const CorporateRisk = lazy(() =>
-  import("@/Components/Epurse/RiskAssessment").then((m) => ({ default: m.CorporateRisk })),
+  import("@/Components/Epurse/Settings/RiskAssessment").then((m) => ({ default: m.CorporateRisk })),
 );
 
 export const riskRoutes = [

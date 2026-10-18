@@ -14,10 +14,10 @@ import { pageElement } from "../routeSupport";
 // CorporateOnboardingConfigurationPage here now redirect to
 // onboardingconfiguration?type=corporate instead — see onboardingRoutes.jsx.
 const Definitions = lazy(() =>
-  import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
+  import("@/Components/Epurse/Settings/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
-const Master = lazy(() => import("@/Components/Epurse/Onboarding/OnboardingMaster/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
-const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
+const Master = lazy(() => import("@/Components/Epurse/Settings/Lists/MasterResource.jsx").then((m) => ({ default: m.MasterResource })));
+const KycSchemes = lazy(() => import("@/Components/Epurse/Settings/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
 
 const slugs = {
   Definitions: ["customertypes", "customertype", "onboardingdefinition", "onboardingdefinitions"],

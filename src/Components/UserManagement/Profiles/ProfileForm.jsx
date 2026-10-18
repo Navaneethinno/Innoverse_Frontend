@@ -1,0 +1,59 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useTranslation } from "react-i18next";
+import { ProfilePermissionTree } from "@/Components/UserManagement/Profiles/ProfilePermissionTree";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+
+export function EMPTY_FORM() {
+  return { profile_name: "", inst_profile_id: "", menu_info: [] };
+}
+
+export function profileId(profile) {
+  return profile?.profile_id ?? profile?.id;
+}
+
+// Shared create/edit form fields for a Profile — extracted out of the old
+// monolithic ProfilesPage.jsx so AddProfile/EditProfile both render the same
+// markup. Still uses the existing ProfilePermissionTree.jsx building block
+// for the menu/action grant tree (not duplicated here).
+export function ProfileForm({ form, setForm, institutions, onSubmit }) {
+  const { t } = useTranslation("profiles");
+  // A bank / fintech user is always in its own institution: no picker.
+  const canChooseInstitution = useCanChooseInstitution();
+  return (
+    <form onSubmit={onSubmit} className="space-y-4" id="profile-form">
+      <label className="block text-sm text-slate-700">
+        <span className="mb-1.5 block font-medium">{t("profileName")}</span>
+        <input
+          required
+          value={form.profile_name}
+          onChange={(e) => setForm({ ...form, profile_name: e.target.value })}
+          className="w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]"
+        />
+      </label>
+      {canChooseInstitution && (
+      <label className="block text-sm text-slate-700">
+        <span className="mb-1.5 block font-medium">{t("institution")}</span>
+        <FilterSelect
+          className="w-full"
+          value={form.inst_profile_id}
+          onChange={(next) => setForm({ ...form, inst_profile_id: next })}
+          options={[
+            { value: "", label: t("selectInstitution") },
+            ...institutions.map((inst) => {
+              const id = inst.id ?? inst.inst_id ?? inst.institution_id;
+              return { value: id, label: inst.name ?? id };
+            }),
+          ]}
+        />
+      </label>
+      )}
+      <div>
+        <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
+        <ProfilePermissionTree
+          selected={form.menu_info}
+          onChange={(menu_info) => setForm({ ...form, menu_info })}
+        />
+      </div>
+    </form>
+  );
+}

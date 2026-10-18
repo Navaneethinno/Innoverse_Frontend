@@ -5,7 +5,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { riskBreakdownApi } from "@/Services/Reports/riskBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { LevelBar } from "@/Components/Epurse/RiskAssessment/riskShared";
+import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 
 function Section({ title, children }) {

@@ -2,10 +2,10 @@ import { lazy } from "react";
 import { pageElement } from "../routeSupport";
 import { PasswordPolicy } from "@/Components/UserManagement/PasswordPolicy";
 const UsersPage = lazy(() =>
-  import("@/Components/UserManagement/User").then((m) => ({ default: m.User })),
+  import("@/Components/UserManagement/Users").then((m) => ({ default: m.User })),
 );
 const KycPage = lazy(() =>
-  import("@/Components/UserManagement/KYC").then((m) => ({ default: m.KYC })),
+  import("@/Components/UserManagement/UserKYC").then((m) => ({ default: m.KYC })),
 );
 const PasswordPolicyPage = PasswordPolicy;
 // The sidebar's leaf-click navigation (MenuItem.jsx, ported from

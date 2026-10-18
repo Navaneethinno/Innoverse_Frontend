@@ -2,13 +2,13 @@ import { lazy } from "react";
 import { pageElement } from "../routeSupport";
 
 // GLOBAL SETTINGS > Limit: limit groups, their rules and members.
-const LimitGroups = lazy(() => import("@/Components/GlobalSettings/Limit/LimitGroups.jsx").then((m) => ({ default: m.LimitGroups })));
+const LimitGroups = lazy(() => import("@/Components/GlobalSettings/Limits/LimitGroups.jsx").then((m) => ({ default: m.LimitGroups })));
 
 // GLOBAL SETTINGS > Fee Schedules (menu 190).
 const FeeSchedules = lazy(() => import("@/Components/GlobalSettings/FeeSchedules/FeeSchedules.jsx").then((m) => ({ default: m.FeeSchedules })));
 
 // GLOBAL SETTINGS > External Providers (menu 210).
-const ExtProviders = lazy(() => import("@/Components/GlobalSettings/ExtProviders/ExtProviders.jsx").then((m) => ({ default: m.ExtProviders })));
+const ExtProviders = lazy(() => import("@/Components/GlobalSettings/ExternalProviders/ExtProviders.jsx").then((m) => ({ default: m.ExtProviders })));
 
 export const globalSettingsRoutes = [
   { path: "feeschedules", element: pageElement(FeeSchedules) },

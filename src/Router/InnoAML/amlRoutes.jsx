@@ -2,11 +2,11 @@ import { lazy } from "react";
 import { pageElement } from "../routeSupport";
 
 // InnoAML (module 4). Slugs are the menu names, as everywhere else.
-const AMLSetup = lazy(() => import("@/Components/InnoAML/AMLConfiguration/AMLSetup").then((m) => ({ default: m.AMLSetup })));
-const InternalWatchlists = lazy(() => import("@/Components/InnoAML/AMLConfiguration/InternalWatchlists").then((m) => ({ default: m.InternalWatchlists })));
-const Screenings = lazy(() => import("@/Components/InnoAML/AMLScreening/Screenings").then((m) => ({ default: m.Screenings })));
-const NameLookup = lazy(() => import("@/Components/InnoAML/AMLScreening/NameLookup").then((m) => ({ default: m.NameLookup })));
-const MatchReview = lazy(() => import("@/Components/InnoAML/AMLScreening/MatchReview").then((m) => ({ default: m.MatchReview })));
+const AMLSetup = lazy(() => import("@/Components/InnoAML/Settings/AMLSetup").then((m) => ({ default: m.AMLSetup })));
+const InternalWatchlists = lazy(() => import("@/Components/InnoAML/Settings/InternalWatchlists").then((m) => ({ default: m.InternalWatchlists })));
+const Screenings = lazy(() => import("@/Components/InnoAML/Screenings").then((m) => ({ default: m.Screenings })));
+const NameLookup = lazy(() => import("@/Components/InnoAML/NameLookup").then((m) => ({ default: m.NameLookup })));
+const MatchReview = lazy(() => import("@/Components/InnoAML/MatchReview").then((m) => ({ default: m.MatchReview })));
 
 const pages = {
   amlsetup: AMLSetup, // AML Configuration > AML Setup (menu 100)

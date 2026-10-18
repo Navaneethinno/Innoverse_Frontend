@@ -1,4 +1,4 @@
-import { dayDate, money } from "@/Components/Epurse/Accounts/accountShared";
+import { dayDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { atIst } from "../Shared/reportShared";
 
 // The report builder's pure parts: filter rules, the definition sent to

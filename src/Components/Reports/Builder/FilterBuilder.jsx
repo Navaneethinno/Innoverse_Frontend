@@ -7,7 +7,7 @@ import { DateInput } from "@/Components/Common/DateInput";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
-import { inputClass } from "@/Components/TermDeposits/depositShared";
+import { inputClass } from "@/Components/Finance/Deposits/depositShared";
 import { reportBuilderApi } from "@/Services/Reports/reportBuilder.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";

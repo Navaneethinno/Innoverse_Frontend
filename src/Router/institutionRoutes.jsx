@@ -2,28 +2,28 @@ import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import { pageElement } from "./routeSupport";
 const InstitutionListPage = lazy(() =>
-  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+  import("@/Components/Institution/Profile").then((m) => ({
     default: m.InstitutionProfile,
   })),
 );
 const InstitutionCreatePage = lazy(() =>
-  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+  import("@/Components/Institution/Profile").then((m) => ({
     default: m.AddInstitutionProfile,
   })),
 );
 const InstitutionDetailPage = lazy(() =>
-  import("@/Components/Institution/InstitutionProfile").then((m) => ({
+  import("@/Components/Institution/Profile").then((m) => ({
     default: m.ViewInstitutionProfile,
   })),
 );
-const InstitutionModule = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModule })));
-const InstitutionModuleView = lazy(() => import("@/Components/Institution/InstitutionModule").then((m) => ({ default: m.InstitutionModuleView })));
-const InstitutionLegal = lazy(() => import("@/Components/Institution/InstitutionLegal").then((m) => ({ default: m.InstitutionLegal })));
-const InstitutionBranding = lazy(() => import("@/Components/Institution/InstitutionBranding").then((m) => ({ default: m.InstitutionBranding })));
-const InstitutionDocuments = lazy(() => import("@/Components/Institution/InstitutionDocuments/InstitutionDocuments.jsx").then((m) => ({ default: m.InstitutionDocuments })));
-const InstitutionChannel = lazy(() => import("@/Components/Institution/InstitutionChannel").then((m) => ({ default: m.InstitutionChannel })));
-const InstitutionCurrency = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionCurrency })));
-const InstitutionPhoneCode = lazy(() => import("@/Components/Institution/InstitutionCurrency").then((m) => ({ default: m.InstitutionPhoneCode })));
+const InstitutionModule = lazy(() => import("@/Components/Institution/Modules").then((m) => ({ default: m.InstitutionModule })));
+const InstitutionModuleView = lazy(() => import("@/Components/Institution/Modules").then((m) => ({ default: m.InstitutionModuleView })));
+const InstitutionLegal = lazy(() => import("@/Components/Institution/Legal").then((m) => ({ default: m.InstitutionLegal })));
+const InstitutionBranding = lazy(() => import("@/Components/Institution/Branding").then((m) => ({ default: m.InstitutionBranding })));
+const InstitutionDocuments = lazy(() => import("@/Components/Institution/Documents/InstitutionDocuments.jsx").then((m) => ({ default: m.InstitutionDocuments })));
+const InstitutionChannel = lazy(() => import("@/Components/Institution/Channels").then((m) => ({ default: m.InstitutionChannel })));
+const InstitutionCurrency = lazy(() => import("@/Components/Institution/Currencies").then((m) => ({ default: m.InstitutionCurrency })));
+const InstitutionPhoneCode = lazy(() => import("@/Components/Institution/Currencies").then((m) => ({ default: m.InstitutionPhoneCode })));
 export const institutionRoutes = [
   { path: "/institutions", element: pageElement(InstitutionListPage) },
   { path: "/institutions/pending", element: <Navigate to="/institutions" replace /> },

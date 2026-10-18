@@ -5,7 +5,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { amlBreakdownApi } from "@/Services/Reports/amlBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { LevelBar } from "@/Components/Epurse/RiskAssessment/riskShared";
+import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
 import { EntityRecord, ReviewStateBadge, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 

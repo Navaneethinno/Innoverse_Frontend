@@ -14,7 +14,7 @@ import { amlBreakdownApi } from "@/Services/Reports/amlBreakdown.api";
 import { riskActionApi } from "@/Services/Epurse/risk.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { useAmlBands } from "@/Components/InnoAML/AMLScreening/Screenings/useAmlBands";
+import { useAmlBands } from "@/Components/InnoAML/Screenings/useAmlBands";
 import {
   BandChip,
   ExportButtons,

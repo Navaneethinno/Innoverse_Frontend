@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Clock, History, Send, X } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Switch } from "@/Components/UI/switch";
-import { InstitutionField } from "@/Components/Epurse/NotificationCenter/notificationShared";
+import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { caseSettingsApi } from "@/Services/CaseManagement/onboardingCases.api";

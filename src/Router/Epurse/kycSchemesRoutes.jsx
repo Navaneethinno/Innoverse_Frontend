@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { pageElement } from "../routeSupport";
 
-const KycSchemes = lazy(() => import("@/Components/Epurse/Configuration/KYC/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
+const KycSchemes = lazy(() => import("@/Components/Epurse/Settings/KycSchemes/KycSchemes.jsx").then((m) => ({ default: m.KycSchemes })));
 // The old KYC Group / Group Level / Level Data / Level Process / Level
 // Document endpoints (/config/kyc_group*) no longer exist on the backend — a
 // KYC scheme and all its levels are now one record edited whole via

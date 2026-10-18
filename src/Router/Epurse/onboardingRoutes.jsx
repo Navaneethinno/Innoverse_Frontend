@@ -11,10 +11,10 @@ import { pageElement } from "../routeSupport";
 // to the unified page with ?type=corporate instead of 404ing or staying
 // pages of their own.
 const OnboardingConfigHub = lazy(() =>
-  import("@/Components/Epurse/Onboarding/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
+  import("@/Components/Epurse/Settings/OnboardingConfiguration/OnboardingConfiguration.jsx").then((m) => ({ default: m.OnboardingConfiguration })),
 );
 const OnboardingWizard = lazy(() =>
-  import("@/Components/Epurse/Onboarding/OnboardingWizard/OnboardingWizard.jsx").then((m) => ({ default: m.OnboardingWizard })),
+  import("@/Components/Epurse/Customers/OnboardingWizard.jsx").then((m) => ({ default: m.OnboardingWizard })),
 );
 
 // The old `/customer/indv_profile/*` maker-checker list+wizard is gone —
@@ -45,8 +45,8 @@ onboardingRoutes.push(
 
 // Onboarding form builder: the institution's field library and sections
 // (menus "Form Fields" / "Form Sections", customers and merchants).
-const FormFields = lazy(() => import("@/Components/Epurse/Onboarding/FormBuilder/FormFields.jsx").then((m) => ({ default: m.FormFields })));
-const FormSections = lazy(() => import("@/Components/Epurse/Onboarding/FormBuilder/FormSections.jsx").then((m) => ({ default: m.FormSections })));
+const FormFields = lazy(() => import("@/Components/Epurse/Settings/FormBuilder/FormFields.jsx").then((m) => ({ default: m.FormFields })));
+const FormSections = lazy(() => import("@/Components/Epurse/Settings/FormBuilder/FormSections.jsx").then((m) => ({ default: m.FormSections })));
 onboardingRoutes.push(
   { path: "formfields", element: pageElement(FormFields) },
   { path: "formfields/:id", element: pageElement(FormFields) },
@@ -55,7 +55,7 @@ onboardingRoutes.push(
 );
 
 // EPURSE > Accounts (menu 178): customers' and merchants' accounts, read only.
-const Accounts = lazy(() => import("@/Components/Epurse/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
+const Accounts = lazy(() => import("@/Components/Finance/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
 onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { path: "accounts/:id", element: pageElement(Accounts) });
 
 // CASE MANAGEMENT > Onboarding Cases (menu 179).
@@ -65,10 +65,10 @@ onboardingRoutes.push({ path: "onboardingcases", element: pageElement(Onboarding
 // Term Deposits (Admin Portal: Term Deposits handoff): TERM DEPOSITS >
 // Deposit Products (180) and Deposits (181), EPURSE > Balance Adjustments
 // (182), GLOBAL SETTINGS > Scheduled Jobs (183).
-const DepositProducts = lazy(() => import("@/Components/TermDeposits/DepositProducts/DepositProducts.jsx").then((m) => ({ default: m.DepositProducts })));
-const Deposits = lazy(() => import("@/Components/TermDeposits/Deposits/Deposits.jsx").then((m) => ({ default: m.Deposits })));
-const BalanceAdjustments = lazy(() => import("@/Components/TermDeposits/BalanceAdjustments/BalanceAdjustments.jsx").then((m) => ({ default: m.BalanceAdjustments })));
-const ScheduledJobs = lazy(() => import("@/Components/TermDeposits/ScheduledJobs/ScheduledJobs.jsx").then((m) => ({ default: m.ScheduledJobs })));
+const DepositProducts = lazy(() => import("@/Components/Finance/Settings/DepositProducts/DepositProducts.jsx").then((m) => ({ default: m.DepositProducts })));
+const Deposits = lazy(() => import("@/Components/Finance/Deposits/TermDeposits/Deposits.jsx").then((m) => ({ default: m.Deposits })));
+const BalanceAdjustments = lazy(() => import("@/Components/Finance/BalanceAdjustments/BalanceAdjustments.jsx").then((m) => ({ default: m.BalanceAdjustments })));
+const ScheduledJobs = lazy(() => import("@/Components/GlobalSettings/ScheduledJobs/ScheduledJobs.jsx").then((m) => ({ default: m.ScheduledJobs })));
 onboardingRoutes.push(
   ...Object.entries({ depositproducts: DepositProducts, deposits: Deposits, balanceadjustments: BalanceAdjustments, scheduledjobs: ScheduledJobs }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
@@ -79,11 +79,11 @@ onboardingRoutes.push(
 // Loans (Admin Portal: Loans handoff), module LOANS: Loan Products (184),
 // Lending Regulatory Profile (185), Loan Applications (186), Loan
 // Facilities (187), Regulatory Submissions (188).
-const LoanProducts = lazy(() => import("@/Components/Loans/LoanProducts/LoanProducts.jsx").then((m) => ({ default: m.LoanProducts })));
-const RegulatoryProfile = lazy(() => import("@/Components/Loans/RegulatoryProfile/RegulatoryProfile.jsx").then((m) => ({ default: m.RegulatoryProfile })));
-const LoanApplications = lazy(() => import("@/Components/Loans/Applications/LoanApplications.jsx").then((m) => ({ default: m.LoanApplications })));
-const LoanFacilities = lazy(() => import("@/Components/Loans/Facilities/LoanFacilities.jsx").then((m) => ({ default: m.LoanFacilities })));
-const RegulatorySubmissions = lazy(() => import("@/Components/Loans/Submissions/RegulatorySubmissions.jsx").then((m) => ({ default: m.RegulatorySubmissions })));
+const LoanProducts = lazy(() => import("@/Components/Finance/Settings/LoanProducts/LoanProducts.jsx").then((m) => ({ default: m.LoanProducts })));
+const RegulatoryProfile = lazy(() => import("@/Components/Finance/Settings/RegulatoryProfile/RegulatoryProfile.jsx").then((m) => ({ default: m.RegulatoryProfile })));
+const LoanApplications = lazy(() => import("@/Components/Finance/Loans/Applications/LoanApplications.jsx").then((m) => ({ default: m.LoanApplications })));
+const LoanFacilities = lazy(() => import("@/Components/Finance/Loans/Facilities/LoanFacilities.jsx").then((m) => ({ default: m.LoanFacilities })));
+const RegulatorySubmissions = lazy(() => import("@/Components/Finance/Loans/Submissions/RegulatorySubmissions.jsx").then((m) => ({ default: m.RegulatorySubmissions })));
 onboardingRoutes.push(
   ...Object.entries({ loanproducts: LoanProducts, lendingregulatoryprofile: RegulatoryProfile, loanapplications: LoanApplications, loanfacilities: LoanFacilities, regulatorysubmissions: RegulatorySubmissions }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
@@ -95,17 +95,17 @@ onboardingRoutes.push(
 // Issuance Groups (197); operations — Cards (198), Card Requests (199), Card
 // Orders (200), Card Stock (201). "cards" has no "cards/:id" form: the
 // module is CARDS too, and that route would swallow every /cards/<menu>.
-const cardPage = (name) => lazy(() => import("@/Components/Cards/CardPages.jsx").then((m) => ({ default: m[name] })));
-const CardsPage = lazy(() => import("@/Components/Cards/Operations/Cards.jsx").then((m) => ({ default: m.Cards })));
+const cardPage = (name) => lazy(() => import("@/Components/InnoCMS/Settings/CardPages.jsx").then((m) => ({ default: m[name] })));
+const CardsPage = lazy(() => import("@/Components/InnoCMS/Cards.jsx").then((m) => ({ default: m.Cards })));
 onboardingRoutes.push(
   { path: "cards", element: pageElement(CardsPage) },
   ...Object.entries({
     cardbins: cardPage("CardBins"),
     cardproducts: cardPage("CardProducts"),
     issuancegroups: cardPage("IssuanceGroups"),
-    cardrequests: lazy(() => import("@/Components/Cards/Operations/CardRequests.jsx").then((m) => ({ default: m.CardRequests }))),
-    cardorders: lazy(() => import("@/Components/Cards/Operations/CardOrders.jsx").then((m) => ({ default: m.CardOrders }))),
-    cardstock: lazy(() => import("@/Components/Cards/Operations/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
+    cardrequests: lazy(() => import("@/Components/InnoCMS/CardRequests.jsx").then((m) => ({ default: m.CardRequests }))),
+    cardorders: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.CardOrders }))),
+    cardstock: lazy(() => import("@/Components/InnoCMS/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
   }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
     { path: `${path}/:id`, element: pageElement(Page) },
@@ -113,7 +113,7 @@ onboardingRoutes.push(
 );
 
 // EPURSE > Transactions (menu 189): the journal and staff requests.
-const Transactions = lazy(() => import("@/Components/Transactions/Transactions.jsx").then((m) => ({ default: m.Transactions })));
+const Transactions = lazy(() => import("@/Components/Finance/Transactions/Transactions.jsx").then((m) => ({ default: m.Transactions })));
 onboardingRoutes.push({ path: "transactions", element: pageElement(Transactions) }, { path: "transactions/:id", element: pageElement(Transactions) });
 
 // Old corporate-only links (this app's own earlier best-guess slugs, since
