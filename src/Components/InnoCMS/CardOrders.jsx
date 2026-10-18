@@ -37,10 +37,12 @@ function saveEmbossFile(reply) {
 // orders take a quantity (blank stock), personalised ones take requests.
 // Authorise (card numbers made), emboss (the file for the bureau), receive
 // the plastics, and authorise the receipt.
-export function CardOrders() {
+export function CardOrders({ receiving = false }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
-  const list = usePagedFilters({ search: "", order_status: "", issuance_group_id: "", pending: false });
+  // Receive Cards: the orders whose PRE file went to the bureau.
+  const list = usePagedFilters({ search: "", order_status: receiving ? "PREFILED" : "", issuance_group_id: "", pending: false });
+  const titleKey = receiving ? "receiveTitle" : "ordersTitle";
   const { applied, page, limit } = list;
   const [options, setOptions] = useState({});
   const [data, setData] = useState({ items: [], total: 0 });
@@ -112,15 +114,15 @@ export function CardOrders() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-            <PackageCheck size={22} className="text-primary" /> {t("ordersTitle")}
+            <PackageCheck size={22} className="text-primary" /> {t(titleKey)}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("ordersSubtitle")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t(receiving ? "receiveSubtitle" : "ordersSubtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
             {t("refresh")}
           </Button>
-          {can("Add") && (
+          {!receiving && can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
               {t("newOrder")}
             </Button>
@@ -138,7 +140,7 @@ export function CardOrders() {
             <Toggle showLabel label={t("waitingForChecker")} checked={list.filters.pending} onChange={list.set("pending")} />
           </>
         }
-        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("ordersTitle")} emptyTitle={t("noOrders")} emptyDescription={t("noOrdersHint")} />
+        columns={columns} rows={data.items} total={data.total} loading={loading} title={t(titleKey)} emptyTitle={t(receiving ? "noOrdersToReceive" : "noOrders")} emptyDescription={t(receiving ? "noOrdersToReceiveHint" : "noOrdersHint")} />
 
       {adding && (
         <NewOrder
@@ -578,3 +580,7 @@ function EmbossDialog({ again, busy, onClose, onMake }) {
     </Modal>
   );
 }
+
+// InnoCMS > Receive Cards (menu 159): Card Orders narrowed to orders back
+// from the bureau; the order view records and approves the receipt.
+export const ReceiveCards = () => <CardOrders receiving />;

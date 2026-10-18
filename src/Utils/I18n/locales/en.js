@@ -4764,6 +4764,10 @@ export const cards = {
   byCustomer: "by customer {{name}}",
   byMerchant: "by merchant {{name}}",
   bySystem: "by the system",
+  receiveTitle: "Receive Cards",
+  receiveSubtitle: "Orders whose PRE file went to the bureau: record the cards that came back, then a checker approves the receipt.",
+  noOrdersToReceive: "No orders to receive",
+  noOrdersToReceiveHint: "Orders show here once their cards are in a PRE file.",
 };
 
 export const kycReport = {

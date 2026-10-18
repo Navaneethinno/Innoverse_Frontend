@@ -4778,6 +4778,10 @@ export const cards = {
   byCustomer: "pelo cliente {{name}}",
   byMerchant: "pelo comerciante {{name}}",
   bySystem: "pelo sistema",
+  receiveTitle: "Receber Cartões",
+  receiveSubtitle: "Encomendas cujo ficheiro PRE foi para o bureau: registe os cartões recebidos e um verificador aprova a receção.",
+  noOrdersToReceive: "Sem encomendas a receber",
+  noOrdersToReceiveHint: "As encomendas aparecem aqui quando os cartões estão num ficheiro PRE.",
 };
 
 export const kycReport = {
