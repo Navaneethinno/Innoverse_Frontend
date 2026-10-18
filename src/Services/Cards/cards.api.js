@@ -16,6 +16,8 @@ const cardSetup = (base) => calls(base, SETUP);
 export const cardBinsApi = cardSetup("/config/card/bin");
 export const cardProductsApi = cardSetup("/config/card/product");
 export const issuanceGroupsApi = cardSetup("/config/card/issuance_group");
+// Card Number Layout (154): the same routes, plus `preview` (saves nothing).
+export const cardNumberLayoutsApi = calls("/config/card/number_layout", [...SETUP, "preview"]);
 
 // Operations: Cards (198), Card Requests (199), Card Orders (200), Card Stock (201).
 export const cardsApi = calls("/config/card/instance", ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue"]);

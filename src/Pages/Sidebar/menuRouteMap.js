@@ -113,7 +113,6 @@ const MENU_PAGES = {
   "term deposits": "deposits",
   // InnoCMS
   bins: "cardbins",
-  "card number layout": { soon: true },
   "pre files": { soon: true },
   "receive cards": { soon: true },
   // Global Settings

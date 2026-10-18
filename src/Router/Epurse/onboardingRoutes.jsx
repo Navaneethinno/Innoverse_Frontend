@@ -103,6 +103,7 @@ onboardingRoutes.push(
     cardbins: cardPage("CardBins"),
     cardproducts: cardPage("CardProducts"),
     issuancegroups: cardPage("IssuanceGroups"),
+    cardnumberlayout: cardPage("CardNumberLayouts"),
     cardrequests: lazy(() => import("@/Components/InnoCMS/CardRequests.jsx").then((m) => ({ default: m.CardRequests }))),
     cardorders: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.CardOrders }))),
     cardstock: lazy(() => import("@/Components/InnoCMS/CardStock.jsx").then((m) => ({ default: m.CardStock }))),

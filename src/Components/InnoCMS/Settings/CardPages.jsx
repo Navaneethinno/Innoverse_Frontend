@@ -1,7 +1,8 @@
 import { CardSetupPage } from "./CardSetup";
-import { binKind, groupKind, productKind } from "./cardKinds";
+import { binKind, groupKind, layoutKind, productKind } from "./cardKinds";
 
-// CARDS > Card BINs (195), Card Products (196), Issuance Groups (197).
+// InnoCMS > Settings: BINs, Card Number Layout, Card Products, Issuance Groups.
 export const CardBins = () => <CardSetupPage key="bins" kind={binKind} />;
 export const CardProducts = () => <CardSetupPage key="products" kind={productKind} />;
 export const IssuanceGroups = () => <CardSetupPage key="groups" kind={groupKind} />;
+export const CardNumberLayouts = () => <CardSetupPage key="layouts" kind={layoutKind} />;

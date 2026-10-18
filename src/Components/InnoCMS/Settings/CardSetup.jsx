@@ -21,7 +21,8 @@ import { ActionButtons, NarrationDialog, Problems, Section } from "../../Finance
 import { ProductStatus } from "../../Finance/Settings/DepositProducts/productShared";
 import { useInstitutionScope } from "../../Finance/Loans/loanShared";
 
-// The three CARDS screens (Card BINs, Card Products, Issuance Groups) are one
+// The CARDS setup screens (BINs, Card Number Layout, Card Products, Issuance
+// Groups) are one
 // maker-checker pattern: All / Pending list, a view with what is in effect
 // next to what waits for a checker, the history, and one form that saves a
 // draft, submits, or proposes a change. Each screen passes a `kind` (see
