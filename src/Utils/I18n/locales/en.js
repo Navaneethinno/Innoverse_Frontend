@@ -4746,6 +4746,15 @@ export const cards = {
   noPreFileCardsHint: "Cards of this group's orders show here once their numbers are made.",
   noPreFileCardsAgainHint: "Cards already in a file show here.",
   noPreFiles: "No files made yet",
+  accept: "Accept",
+  acceptRequest: "Accept the request",
+  acceptAs_INSTANT: "Instant card",
+  acceptAs_PERSONALIZED: "Personalised card",
+  acceptHint_INSTANT: "A stock card is issued to the holder now. No second fee: the request already paid.",
+  acceptHint_PERSONALIZED: "The request goes into a new card order of the group, which waits for a checker.",
+  searchStockLast4: "Search the last 4 digits",
+  noStockForProduct: "No available stock card of this product.",
+  noPersonalisedGroup: "This product has no personalised issuance group.",
 };
 
 export const kycReport = {

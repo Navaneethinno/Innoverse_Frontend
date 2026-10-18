@@ -4760,6 +4760,15 @@ export const cards = {
   noPreFileCardsHint: "Os cartões das encomendas deste grupo aparecem aqui quando os números são gerados.",
   noPreFileCardsAgainHint: "Os cartões que já estão num ficheiro aparecem aqui.",
   noPreFiles: "Ainda sem ficheiros gerados",
+  accept: "Aceitar",
+  acceptRequest: "Aceitar o pedido",
+  acceptAs_INSTANT: "Cartão instantâneo",
+  acceptAs_PERSONALIZED: "Cartão personalizado",
+  acceptHint_INSTANT: "Um cartão do stock é emitido ao titular agora. Sem segunda taxa: o pedido já pagou.",
+  acceptHint_PERSONALIZED: "O pedido entra numa nova encomenda do grupo, que aguarda um verificador.",
+  searchStockLast4: "Pesquisar os últimos 4 dígitos",
+  noStockForProduct: "Sem cartão disponível em stock deste produto.",
+  noPersonalisedGroup: "Este produto não tem grupo de emissão personalizado.",
 };
 
 export const kycReport = {

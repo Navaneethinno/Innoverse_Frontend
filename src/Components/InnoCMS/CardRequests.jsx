@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Inbox, Plus, RefreshCw, Truck, XCircle } from "lucide-react";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -9,7 +10,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { cardRequestsApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
+import { cardOrdersApi, cardRequestsApi, cardStockApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../Finance/Deposits/depositShared";
@@ -166,6 +167,7 @@ function RequestDialog({ id, onClose, onChanged }) {
   const r = request;
   const buttons = r
     ? [
+        r.actions?.accept && can("Authorize") && { key: "accept", label: t("accept"), icon: CheckCircle2, variant: "primary", run: () => setDialog("accept") },
         r.actions?.reject && can("Authorize") && { key: "reject", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("reject") },
         r.actions?.deliver && can("Edit") && { key: "deliver", label: t("deliver"), icon: Truck, variant: "primary", run: () => setDialog("deliver") },
       ]
@@ -200,8 +202,109 @@ function RequestDialog({ id, onClose, onChanged }) {
           />
         </div>
       )}
+      {dialog === "accept" && <AcceptRequest request={r} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act(() => cardRequestsApi.accept({ id, ...body }))} />}
       {dialog === "reject" && <NarrationDialog title={t("rejectRequest")} hint={t("rejectRequestHint")} label={t("reason")} confirmLabel={t("reject")} variant="danger" required busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act(() => cardRequestsApi.reject({ id, reason }))} />}
       {dialog === "deliver" && <NarrationDialog title={t("deliverTitle")} hint={t("deliverHint")} confirmLabel={t("deliver")} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(() => cardRequestsApi.deliver({ id, ...(narration ? { narration } : {}) }))} />}
+    </Modal>
+  );
+}
+
+// Accept a customer's new-card request: give an instant card from stock now
+// (no second fee), or put it in a new order of a personalised group of the
+// request's product (waits for a checker).
+function AcceptRequest({ request, busy, onClose, onSave }) {
+  const { t } = useTranslation("cards");
+  const [mode, setMode] = useState("INSTANT");
+  const [search, setSearch] = useState("");
+  const [stock, setStock] = useState(null);
+  const [inventoryId, setInventoryId] = useState("");
+  const [groups, setGroups] = useState(null);
+  const [groupId, setGroupId] = useState("");
+  const [name, setName] = useState(request.name_on_card ?? "");
+
+  useEffect(() => {
+    if (mode !== "INSTANT") return undefined;
+    let current = true;
+    const timer = setTimeout(() => {
+      cardStockApi
+        .list({ card_product_id: request.card_product_id, inventory_status: "AVAILABLE", page: 1, page_size: 20, ...(search.trim() ? { search: search.trim() } : {}) })
+        .then((r) => current && setStock(rowsOf(r)[0]?.items ?? []))
+        .catch((e) => current && (setStock([]), notifications.error(e.message)));
+    }, 300);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [mode, search, request.card_product_id]);
+
+  useEffect(() => {
+    if (mode !== "PERSONALIZED" || groups) return;
+    cardOrdersApi
+      .options({})
+      .then((r) => {
+        const list = (rowsOf(r)[0]?.issuance_groups ?? []).filter((g) => g.perso_mode === "PERSONALIZED" && String(g.card_product_id) === String(request.card_product_id));
+        setGroups(list);
+        if (list[0]) setGroupId(String(list[0].id));
+      })
+      .catch((e) => (setGroups([]), notifications.error(e.message)));
+  }, [mode, groups, request.card_product_id]);
+
+  const ready = mode === "INSTANT" ? Boolean(inventoryId) : Boolean(groupId);
+  const save = () =>
+    onSave(mode === "INSTANT" ? { mode, inventory_id: Number(inventoryId) } : { mode, issuance_group_id: Number(groupId), ...(name.trim() ? { name_on_card: name.trim() } : {}) });
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      title={t("acceptRequest")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button icon={CheckCircle2} loading={busy} disabled={!ready} onClick={save}>
+            {t("accept")}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-3">
+        <SegmentedSwitch options={["INSTANT", "PERSONALIZED"].map((m) => ({ value: m, label: t(`acceptAs_${m}`) }))} value={mode} onChange={setMode} />
+        <p className="text-xs text-muted-foreground">{t(`acceptHint_${mode}`)}</p>
+        {mode === "INSTANT" ? (
+          <>
+            <input className={inputClass} placeholder={t("searchStockLast4")} value={search} onChange={(e) => setSearch(e.target.value)} />
+            {stock === null ? (
+              <Spinner size={16} />
+            ) : stock.length ? (
+              <div className="grid max-h-64 gap-1.5 overflow-y-auto">
+                {stock.map((s) => (
+                  <label key={s.id} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-xs transition-colors ${String(s.id) === inventoryId ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50"}`}>
+                    <input type="radio" name="stock" checked={String(s.id) === inventoryId} onChange={() => setInventoryId(String(s.id))} className="accent-[var(--primary)]" />
+                    <span className="min-w-0 flex-1">
+                      <span className="font-mono font-bold">{s.pan_masked}</span> · {s.expiry}
+                      <span className="block text-[10px] text-muted-foreground">{[s.card_serial_number, s.order_ref].filter(Boolean).join(" · ")}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("noStockForProduct")}</p>
+            )}
+          </>
+        ) : (
+          <>
+            <Labelled label={t("group")} hint={groups && !groups.length && t("noPersonalisedGroup")}>
+              {groups === null ? <Spinner size={16} /> : <FilterSelect value={groupId} onChange={setGroupId} options={groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))} />}
+            </Labelled>
+            <Labelled label={t("nameOnCard")}>
+              <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />
+            </Labelled>
+          </>
+        )}
+      </div>
     </Modal>
   );
 }
