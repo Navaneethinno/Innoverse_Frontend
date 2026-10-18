@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { BookOpenCheck, Plus, Scale, Send } from "lucide-react";
+import { BookOpenCheck, Plus, Scale, Send, X } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -9,6 +9,7 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
 import { statusTabs } from "@/Components/Common/listTabs";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
@@ -17,8 +18,9 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { glAccountsApi, glJournalsApi } from "@/Services/Accounting/accounting.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { decimalSeparator, formatNumber, plainDecimal } from "@/Utils/Lib/numberFormat";
 import { cn } from "@/Utils/Lib/utils";
-import { MiniTable, RowsEditor, Tabs } from "./Loans/loanShared";
+import { MiniTable, Tabs } from "./Loans/loanShared";
 import { ActionButtons, Problems, inputClass, labelClass } from "./Deposits/depositShared";
 import { ProductStatus } from "./Settings/DepositProducts/productShared";
 import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingShared";
@@ -26,8 +28,9 @@ import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingS
 const STATUSES = ["2", "1", "5", "8"];
 const today = () => new Date().toISOString().slice(0, 10);
 
-// ACCOUNTING > Manual Journal (menu 215): moving money between GL accounts,
-// mostly to settle with providers (DR the settlement GL, CR the bank GL).
+// Finance > Finance Transaction (the manual journal API): moving money
+// between GLs and customers' / merchants' accounts, in any mix, e.g. to
+// settle with providers (DR the settlement GL, CR the bank GL).
 // A journal posts only when a checker authorises it; a posted one is undone
 // by a reversal journal.
 export function ManualJournal() {
@@ -178,28 +181,42 @@ function JournalList({ version, onView }) {
   );
 }
 
-const blankLine = (op = "DR") => ({ gl_account_id: "", op, amount: "", note: "" });
+const blankLine = (op = "DR") => ({ kind: "GL", gl_account_id: "", account: null, op, amount: "", note: "" });
+const SIDES = ["DR", "CR"];
+const OWNER_KINDS = { CUST_INDV: "ownerCustIndv", CUST_CORP: "ownerCustCorp", MERCH_INDV: "ownerMerchIndv", MERCH_CORP: "ownerMerchCorp" };
 
-// A new journal: currency, narration, reference and two or more lines whose
-// debits equal their credits. `prefill` comes from Settle.
+// A total as whole units of the last decimal, so totals compare exactly.
+const units = (lines, op, decimals) => lines.filter((l) => l.op === op).reduce((n, l) => n + Math.round((Number(l.amount) || 0) * 10 ** decimals), 0);
+
+// A new journal: currency, narration, reference, then debit and credit rows,
+// each a GL or a customer's / merchant's account, in any mix. Submit waits
+// until the totals are equal to the last decimal. `prefill` comes from
+// Settle.
 function JournalForm({ prefill, currencies, onClose, onSaved }) {
   const { t } = useTranslation("accounting");
   const accounts = useGlAccounts();
   const [head, setHead] = useState({ currency_id: String(prefill.currency_id ?? currencies.find((c) => c.is_base_currency)?.id ?? currencies[0]?.id ?? ""), narration: prefill.narration ?? "", reference: prefill.reference ?? "" });
-  const [lines, setLines] = useState(prefill.lines ?? [blankLine("DR"), blankLine("CR")]);
+  const [lines, setLines] = useState(() => (prefill.lines ?? [blankLine("DR"), blankLine("CR")]).map((l) => ({ ...blankLine(l.op), ...l })));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const currency = currencies.find((c) => String(c.id) === String(head.currency_id));
   const code = currency?.alpha_code;
-  const total = (op) => lines.filter((l) => l.op === op).reduce((n, l) => n + (Number(l.amount) || 0), 0);
-  const dr = total("DR");
-  const cr = total("CR");
-  const balanced = dr > 0 && Math.abs(dr - cr) < 1e-9;
-  const ready = head.currency_id && head.narration.trim() && lines.length >= 2 && lines.every((l) => l.gl_account_id && Number(l.amount) > 0) && balanced;
-  const glOptions = useMemo(
-    () => (accounts ?? []).filter((g) => g.multi_currency || !code || g.currency_code === code).map((g) => ({ value: String(g.id), label: `${g.name} · ${[g.gl_code, g.account_number].filter(Boolean).join(" · ")}` })),
-    [accounts, code],
-  );
+  const decimals = Number(currency?.amount_decimals ?? 2);
+  const dr = units(lines, "DR", decimals);
+  const cr = units(lines, "CR", decimals);
+  const balanced = dr > 0 && dr === cr;
+  const picked = (l) => (l.kind === "GL" ? Boolean(l.gl_account_id) : Boolean(l.account));
+  const ready = head.currency_id && head.narration.trim() && SIDES.every((op) => lines.some((l) => l.op === op)) && lines.every((l) => picked(l) && Number(l.amount) > 0) && balanced;
+  const gls = useMemo(() => (accounts ?? []).filter((g) => g.multi_currency || !code || g.currency_code === code), [accounts, code]);
+  const glOptions = useMemo(() => gls.map((g) => ({ value: String(g.id), label: `${g.name} · ${[g.gl_code, g.account_number].filter(Boolean).join(" · ")}` })), [gls]);
+  const fromUnits = (n) => money(n / 10 ** decimals, code);
+
+  // A new currency: picked accounts of another currency no longer fit.
+  const setCurrency = (v) => {
+    setHead((h) => ({ ...h, currency_id: v }));
+    setLines((ls) => ls.map((l) => (l.account && String(l.account.currency_id) !== String(v) ? { ...l, account: null } : l)));
+  };
+  const setLine = (i, patch) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
 
   const save = async () => {
     setBusy(true);
@@ -209,7 +226,12 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
         currency_id: Number(head.currency_id),
         narration: head.narration.trim(),
         ...(head.reference.trim() ? { reference: head.reference.trim() } : {}),
-        lines: lines.map((l) => ({ gl_account_id: Number(l.gl_account_id), op: l.op, amount: String(l.amount), ...(String(l.note ?? "").trim() ? { note: l.note.trim() } : {}) })),
+        lines: lines.map((l) => ({
+          ...(l.kind === "GL" ? { gl_account_id: Number(l.gl_account_id) } : { acct_num: l.account.acct_num }),
+          op: l.op,
+          amount: String(l.amount),
+          ...(String(l.note ?? "").trim() ? { note: l.note.trim() } : {}),
+        })),
       });
       notifications.success(r?.message ?? t("saved"));
       onSaved(rowsOf(r)[0]);
@@ -230,7 +252,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
       footer={
         <>
           <span className={cn("mr-auto text-xs font-bold tabular-nums", balanced ? "text-emerald-700" : "text-amber-700")}>
-            {t("drCrTotals", { dr: money(dr, code), cr: money(cr, code) })} {!balanced && dr + cr > 0 && `· ${t("differenceX", { value: money(Math.abs(dr - cr), code) })}`}
+            {t("drCrTotals", { dr: fromUnits(dr), cr: fromUnits(cr) })} {!balanced && dr + cr > 0 && `· ${t("differenceX", { value: fromUnits(Math.abs(dr - cr)) })}`}
           </span>
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("cancel")}
@@ -250,7 +272,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
           <div className="grid gap-3 sm:grid-cols-3">
             <label className={labelClass}>
               {t("currency")}
-              <FilterSelect className="mt-1.5" value={head.currency_id} onChange={(v) => setHead((h) => ({ ...h, currency_id: v }))} options={currencies.map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}` }))} />
+              <FilterSelect className="mt-1.5" value={head.currency_id} onChange={setCurrency} options={currencies.map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}` }))} />
             </label>
             <label className={labelClass}>
               {t("reference")}
@@ -261,24 +283,157 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
               <input className={cn(inputClass, "mt-1.5")} value={head.narration} onChange={(e) => setHead((h) => ({ ...h, narration: e.target.value }))} />
             </label>
           </div>
-          <RowsEditor
-            rows={lines}
-            onChange={setLines}
-            blank={() => blankLine(dr > cr ? "CR" : "DR")}
-            addLabel={t("addLine")}
-            decimals={currency?.amount_decimals ?? 2}
-            columns="lg:grid-cols-[3fr_1fr_1fr_2fr]"
-            fields={[
-              { key: "gl_account_id", label: t("gl"), type: "select", blank: t("choose"), options: glOptions },
-              { key: "op", label: t("side"), type: "select", options: [{ value: "DR", label: t("debit") }, { value: "CR", label: t("credit") }] },
-              { key: "amount", label: t("amount"), type: "amount" },
-              { key: "note", label: t("note") },
-            ]}
-          />
+          {SIDES.map((op) => (
+            <section key={op} className="rounded-2xl border border-border p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-sm font-black text-slate-700">{t(op === "DR" ? "debits" : "credits")}</p>
+                <span className="text-xs font-bold tabular-nums text-muted-foreground">{fromUnits(op === "DR" ? dr : cr)}</span>
+              </div>
+              <ul className="grid gap-2">
+                {lines.map((l, i) =>
+                  l.op !== op ? null : (
+                    <JournalLine
+                      key={i}
+                      line={l}
+                      gls={gls}
+                      glOptions={glOptions}
+                      currencyId={head.currency_id}
+                      code={code}
+                      decimals={decimals}
+                      onChange={(patch) => setLine(i, patch)}
+                      onRemove={lines.filter((x) => x.op === op).length > 1 ? () => setLines((ls) => ls.filter((_, j) => j !== i)) : null}
+                    />
+                  ),
+                )}
+              </ul>
+              <button type="button" onClick={() => setLines((ls) => [...ls, blankLine(op)])} className="mt-2 flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                <Plus size={13} /> {t(op === "DR" ? "addDebit" : "addCredit")}
+              </button>
+            </section>
+          ))}
           {error && <Problems message={error} />}
         </div>
       )}
     </Modal>
+  );
+}
+
+// One row: a GL or an account, its balance under the picker, the amount
+// (in the institution's number format) and remarks.
+function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onChange, onRemove }) {
+  const { t } = useTranslation("accounting");
+  const gl = l.kind === "GL" && gls.find((g) => String(g.id) === String(l.gl_account_id));
+  const glBalance = gl && (gl.balances ?? []).find((b) => !code || b.currency_code === code);
+  return (
+    <li className="grid gap-2 rounded-xl border border-border bg-card p-2.5 lg:grid-cols-[auto_3fr_1.2fr_2fr_auto] lg:items-start">
+      <SegmentedSwitch value={l.kind} onChange={(kind) => onChange({ kind, gl_account_id: "", account: null })} options={[{ value: "GL", label: t("lineGl") }, { value: "ACCOUNT", label: t("lineAccount") }]} />
+      <div className="min-w-0">
+        {l.kind === "GL" ? (
+          <FilterSelect value={String(l.gl_account_id || "")} onChange={(v) => onChange({ gl_account_id: v })} options={[{ value: "", label: t("choose") }, ...glOptions]} />
+        ) : (
+          <AccountPicker value={l.account} currencyId={currencyId} onChange={(account) => onChange({ account })} />
+        )}
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          {gl && t("balanceX", { value: glBalance ? money(glBalance.balance, glBalance.currency_code) : money(0, code) })}
+          {l.account && (
+            <>
+              {t("availableX", { value: money(l.account.avail_bal, l.account.currency_code) })} · {t("ledgerX", { value: money(l.account.ledger_bal, l.account.currency_code) })}
+              {l.account.restriction && <b className="ml-1 text-red-700">{t(`restriction_${l.account.restriction}`)}</b>}
+            </>
+          )}
+        </p>
+      </div>
+      <AmountInput value={l.amount} decimals={decimals} onChange={(amount) => onChange({ amount })} />
+      <input className={inputClass} placeholder={t("note")} value={l.note} onChange={(e) => onChange({ note: e.target.value })} />
+      {onRemove ? (
+        <button type="button" onClick={onRemove} aria-label={t("removeLine")} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive">
+          <X size={14} />
+        </button>
+      ) : (
+        <span />
+      )}
+    </li>
+  );
+}
+
+// An amount typed in the institution's number format; kept as a plain
+// decimal ("1234.5") and shown formatted once the field is left.
+function AmountInput({ value, decimals, onChange }) {
+  const [focused, setFocused] = useState(false);
+  const shown = focused || value === "" ? String(value).replace(".", decimalSeparator()) : formatNumber(value, { min: decimals, max: decimals });
+  return (
+    <input
+      className={cn(inputClass, "text-right tabular-nums")}
+      inputMode="decimal"
+      value={shown}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      onChange={(e) => onChange(plainDecimal(e.target.value, decimals))}
+    />
+  );
+}
+
+// Active customer and merchant wallets in the journal's currency: part of
+// the account number, the holder's name or reference.
+function AccountPicker({ value, currencyId, onChange }) {
+  const { t } = useTranslation("accounting");
+  const [term, setTerm] = useState("");
+  const [found, setFound] = useState(null);
+  useEffect(() => {
+    const search = term.trim();
+    if (!search) {
+      setFound(null);
+      return undefined;
+    }
+    let current = true;
+    const timer = setTimeout(() => {
+      glJournalsApi
+        .accounts({ search, ...(currencyId ? { currency_id: Number(currencyId) } : {}), limit: 20 })
+        .then((r) => current && setFound(rowsOf(r)[0]?.items ?? []))
+        .catch((e) => current && (setFound([]), notifications.error(e.message)));
+    }, 300);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [term, currencyId]);
+
+  if (value) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs">
+        <span className="min-w-0">
+          <b className="font-mono">{value.acct_num}</b> · {value.owner_name}
+          <span className="block truncate text-[10px] text-muted-foreground">{[t(OWNER_KINDS[value.owner_kind] ?? "", { defaultValue: value.owner_kind }), value.acct_product_name].filter(Boolean).join(" · ")}</span>
+        </span>
+        <button type="button" onClick={() => onChange(null)} className="shrink-0 text-[11px] font-bold text-primary hover:underline">
+          {t("change")}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="relative">
+      <input className={inputClass} placeholder={t("searchAccounts")} value={term} onChange={(e) => setTerm(e.target.value)} />
+      {found && (
+        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+          {found.length ? (
+            found.map((a) => (
+              <li key={a.acct_num}>
+                <button type="button" onClick={() => onChange(a)} className="block w-full px-3 py-2 text-left text-xs hover:bg-muted">
+                  <b className="font-mono">{a.acct_num}</b> · {a.owner_name}
+                  <span className="block text-[10px] text-muted-foreground">
+                    {[t(OWNER_KINDS[a.owner_kind] ?? "", { defaultValue: a.owner_kind }), a.acct_product_name, money(a.avail_bal, a.currency_code)].filter(Boolean).join(" · ")}
+                    {a.restriction && <b className="ml-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
+                  </span>
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-2 text-xs text-muted-foreground">{t("noAccountsFound")}</li>
+          )}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -345,8 +500,20 @@ function JournalDetail({ id, onClose, onChanged, onOpen }) {
             rows={j.lines ?? []}
             rowKey={(l, i) => i}
             columns={[
-              { key: "gl", label: t("gl"), render: (l) => <span><b>{l.gl_name}</b> <span className="font-mono text-muted-foreground">{[l.gl_code, l.account_number].filter(Boolean).join(" · ")}</span></span> },
-              { key: "type", label: t("glType"), render: (l) => <GlType value={l.gl_type} /> },
+              {
+                key: "gl",
+                label: t("glOrAccount"),
+                render: (l) =>
+                  l.line_kind === "ACCOUNT" ? (
+                    <span>
+                      <b>{l.owner_name}</b> <span className="font-mono text-muted-foreground">{l.account_number}</span>
+                      <span className="block text-[10px] text-muted-foreground">{[t(OWNER_KINDS[l.owner_kind] ?? "", { defaultValue: l.owner_kind }), l.acct_product_name].filter(Boolean).join(" · ")}</span>
+                    </span>
+                  ) : (
+                    <span><b>{l.gl_name}</b> <span className="font-mono text-muted-foreground">{[l.gl_code, l.account_number].filter(Boolean).join(" · ")}</span></span>
+                  ),
+              },
+              { key: "type", label: t("glType"), render: (l) => (l.line_kind === "ACCOUNT" ? <span className="text-xs text-muted-foreground">{t("lineAccount")}</span> : <GlType value={l.gl_type} />) },
               { key: "debit", label: t("debit"), align: "right", render: (l) => (l.op === "DR" ? <b className="tabular-nums">{money(l.amount, j.currency_code)}</b> : "") },
               { key: "credit", label: t("credit"), align: "right", render: (l) => (l.op === "CR" ? <b className="tabular-nums">{money(l.amount, j.currency_code)}</b> : "") },
               { key: "note", label: t("note"), render: (l) => <span className="text-muted-foreground">{l.note || "—"}</span> },

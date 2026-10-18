@@ -19,6 +19,7 @@ import {
 import { Skeleton } from "@/Components/UI/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/Components/UI/alert";
 import { DateFormatField } from "@/Components/Institution/Profile/DateFormatField";
+import { NumberFormatField, numberFormatLabel } from "@/Components/Institution/Profile/NumberFormatField";
 import { EditSelect, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, AppSignupTypesField, SignupPrefixesField, StoreWalletsField, loginMethodsOf, payToPhoneOf, portalIdentifiersOf, usesPin } from "@/Components/Institution/Profile/InstitutionProfileForm";
 import { useInstitutionTypes, useLanguages, useTimezones } from "@/Hooks/Master/masterHooks";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -42,6 +43,7 @@ const EMPTY = {
   languageDefault: "en",
   languageSupported: ["en"],
   date_format: "DD-MM-YYYY",
+  number_format: "WESTERN",
   has_branch: false,
   max_branches_allowed: 1,
   kyc_enabled: false,
@@ -90,6 +92,7 @@ function buildPayload(form, isDraft) {
     timezone: form.timezone,
     language: { default: form.languageDefault, supported: form.languageSupported },
     date_format: form.date_format,
+    number_format: form.number_format || "WESTERN",
     has_branch: form.has_branch,
     max_branches_allowed: Number(form.max_branches_allowed) || 0,
     kyc_enabled: form.kyc_enabled,
@@ -218,6 +221,7 @@ function LivePreview({ form, step, steps, t }) {
             <PreviewItem label={t("reviewType")} value={form.type} />
             <PreviewItem label={t("reviewTimezone")} value={form.timezone} />
             <PreviewItem label={t("reviewDateFormat")} value={form.date_format} />
+            <PreviewItem label={t("institutions:numberFormat")} value={numberFormatLabel(t, form.number_format)} />
           </PreviewSection>
           <PreviewSection title="Configuration">
             <PreviewItem label={t("defaultLanguage")} value={form.languageDefault} />
@@ -523,6 +527,7 @@ export function AddInstitutionProfile() {
                         value={form.date_format}
                         onChange={(value) => setField("date_format", value)}
                       />
+                      <NumberFormatField value={form.number_format} onChange={(value) => setField("number_format", value)} />
                     </div>
                     <div className="space-y-3">
                       <label className="block text-sm font-medium text-slate-700">{t("defaultLanguage")}</label>
@@ -696,6 +701,7 @@ export function AddInstitutionProfile() {
                         <ReviewRow label={t("reviewType")} value={form.type} />
                         <ReviewRow label={t("reviewTimezone")} value={form.timezone} />
                         <ReviewRow label={t("reviewDateFormat")} value={form.date_format} />
+                        <ReviewRow label={t("institutions:numberFormat")} value={numberFormatLabel(t, form.number_format)} />
                         <ReviewRow label={t("reviewHasBranch")} value={form.has_branch} />
                       </div>
                     </div>

@@ -26,7 +26,7 @@ export const glMappingApi = calls("/config/accounting/gl_mapping", ["get", "opti
 
 // Manual Journal (menu 215): balanced DR/CR lines between GL accounts,
 // posted when a checker authorises; settlement shows the settlement GLs for a day.
-export const glJournalsApi = calls("/config/accounting/gl_journal", ["add", "get", "list", "auth", "deauth", "cancel", "reverse", "settlement"]);
+export const glJournalsApi = calls("/config/accounting/gl_journal", ["add", "get", "list", "accounts", "auth", "deauth", "cancel", "reverse", "settlement"]);
 
 // GL Reports (menu 216): statement of one GL account, and the trial balance.
 const exporter = (verb, name) => (body) => downloadAttachment(`/config/accounting/gl_report/${verb}`, body, `${name}.${body.format === "CSV" ? "csv" : "xlsx"}`);

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { EditField, EditSelect, EditToggle, LoginMethodsGrid, OTP_LENGTHS, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, AppSignupTypesField, SignupPrefixesField, StoreWalletsField, usesPin } from "./InstitutionProfileForm";
 import { DateFormatField } from "./DateFormatField";
+import { NumberFormatField } from "./NumberFormatField";
 import { useTimezones } from "@/Hooks/Master/masterHooks";
 
 // Edit-institution form fields — split out of the old monolithic
@@ -38,6 +39,7 @@ export function EditInstitutionProfile({ institution, form, setField }) {
             placeholder={t("selectTimezone")}
           />
           <DateFormatField value={form.date_format} onChange={setField("date_format")} />
+          <NumberFormatField value={form.number_format} onChange={setField("number_format")} />
           <EditToggle label={t("hasBranch")} value={form.has_branch} onChange={setField("has_branch")} />
         </div>
       </div>

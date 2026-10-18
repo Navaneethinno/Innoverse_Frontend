@@ -56,6 +56,9 @@ function parseSessionResponse(payload) {
       ? {
           ...data.user_details,
           ...(data?.scope ? { scope: data.scope } : {}),
+          // The institution's date and number formats (number_format: WESTERN,
+          // INDIAN, EUROPEAN or SPACE; Utils/Lib/numberFormat.js).
+          ...(data?.formats ? { formats: data.formats } : {}),
           ...(sessionInfo?.user_id ? { session_user_id: sessionInfo.user_id } : {}),
           ...(data?.inactivity_timeout != null ? { inactivity_timeout: data.inactivity_timeout } : {}),
         }

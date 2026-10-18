@@ -5,6 +5,7 @@ import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { Modal } from "@/Components/Common/Modal";
 import { PROBLEM_BULLET } from "@/Services/api/apiErrors";
 import { cn } from "@/Utils/Lib/utils";
+import { formatNumber } from "@/Utils/Lib/numberFormat";
 
 // Pieces shared by the Term Deposits screens (products, deposits, balance
 // adjustments, scheduled jobs).
@@ -15,7 +16,7 @@ export const labelClass = "text-xs font-semibold text-slate-700";
 export { dayDate } from "@/Components/Finance/Accounts/accountShared";
 
 // A rate in percent a year, as many decimals as it has (up to 6).
-export const ratePct = (value) => (value == null || value === "" ? "—" : `${Number(value).toLocaleString(undefined, { maximumFractionDigits: 6 })}%`);
+export const ratePct = (value) => (value == null || value === "" ? "—" : `${formatNumber(value, { min: 0, max: 6 })}%`);
 
 // An amount typed by staff: digits and one point, at most `decimals`
 // decimals (the currency's). Kept a string, as the server wants it.

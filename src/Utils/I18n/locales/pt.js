@@ -324,6 +324,11 @@ export const institutions = {
   configurationField: "Configuração",
   dateFormat: "Formato de Data",
   selectDateFormat: "Selecione um formato de data",
+  numberFormat: "Formato numérico",
+  numberFormat_WESTERN: "1,234,567.89 (Ocidental)",
+  numberFormat_INDIAN: "12,34,567.89 (Indiano)",
+  numberFormat_EUROPEAN: "1.234.567,89 (Europeu)",
+  numberFormat_SPACE: "1 234 567,89 (Espaço)",
 };
 
 export const profiles = {
@@ -5457,6 +5462,24 @@ export const accounting = {
   rule_NO_POSITIVE: "Nunca acima de zero",
   field_balance_rule: "Regra de saldo",
   field_has_pl: "GL de controlo",
+  addDebit: "Adicionar débito",
+  addCredit: "Adicionar crédito",
+  lineGl: "GL",
+  lineAccount: "Conta",
+  glOrAccount: "GL ou conta",
+  balanceX: "Saldo {{value}}",
+  availableX: "Disponível {{value}}",
+  ledgerX: "contabilístico {{value}}",
+  restriction_FROZEN: "Congelada: sem débitos",
+  restriction_BLOCKED: "Bloqueada: sem débitos nem créditos",
+  searchAccounts: "Número da conta, nome ou referência do titular",
+  noAccountsFound: "Nenhuma conta ativa nesta moeda corresponde.",
+  change: "Alterar",
+  removeLine: "Remover linha",
+  ownerCustIndv: "Cliente individual",
+  ownerCustCorp: "Cliente corporativo",
+  ownerMerchIndv: "Comerciante individual",
+  ownerMerchCorp: "Comerciante corporativo",
 };
 
 export const documents = {

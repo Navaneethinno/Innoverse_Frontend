@@ -15,6 +15,7 @@ const AUDIT_FIELDS = [
   ["type", "Type"],
   ["timezone", "Timezone"],
   ["date_format", "Date Format"],
+  ["number_format", "Number Format"],
   ["has_branch", "Has Branch"],
   ["max_branches_allowed", "Max Branches"],
   ["kyc_enabled", "KYC Enabled"],

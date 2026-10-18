@@ -5,11 +5,12 @@ import { cn } from "@/Utils/Lib/utils";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { formatNumber } from "@/Utils/Lib/numberFormat";
 
 // Account display shared by the Accounts screen and the customer/merchant
 // detail. Balances come rounded to the currency's decimals already.
-export const money = (value, currency) =>
-  value == null ? "—" : `${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}${currency ? ` ${currency}` : ""}`;
+// Amounts in the institution's number format (login formats.number_format).
+export const money = (value, currency) => (value == null ? "—" : `${formatNumber(value, { min: 2, max: 6 })}${currency ? ` ${currency}` : ""}`);
 
 export const accountDate = (value) => (value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
 

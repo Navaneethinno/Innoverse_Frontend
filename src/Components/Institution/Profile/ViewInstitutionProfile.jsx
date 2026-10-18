@@ -13,6 +13,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { Field, LoginMethodsGrid, PayToPhoneSettings, PortalEditionField, PortalIdentifiersGrid, AppSignupTypesField, SignupPrefixesField, StoreWalletsField, institutionId, loginMethodsOf, usesPin } from "./InstitutionProfileForm";
 import { EditInstitutionProfile } from "./EditInstitutionProfile";
+import { numberFormatLabel } from "./NumberFormatField";
 
 // GAP: the confirmed Postman collection ("Institution/Profile" folder) has
 // no GET/get-by-id endpoint — only list, get_active, add, edit, auth,
@@ -92,6 +93,7 @@ export function ViewInstitutionProfile() {
         type: institution.type ?? "",
         timezone: institution.timezone ?? "",
         date_format: institution.date_format ?? "",
+        number_format: institution.number_format || "WESTERN",
         has_branch: Boolean(institution.has_branch),
         max_branches_allowed: institution.max_branches_allowed ?? 0,
         kyc_enabled: Boolean(institution.kyc_enabled),
@@ -295,6 +297,7 @@ export function ViewInstitutionProfile() {
               <Field label={t("institutionType")} value={institution.type_name ?? institution.type} />
               <Field label={t("timezoneLabel")} value={institution.timezone} />
               <Field label={t("reviewDateFormat")} value={institution.date_format} />
+              <Field label={t("institutions:numberFormat")} value={numberFormatLabel(t, institution.number_format || "WESTERN")} />
               <Field label={t("hasBranch")} value={institution.has_branch} />
             </div>
           </div>
