@@ -4390,7 +4390,7 @@ export const cards = {
   requestsTitle: "Pedidos de cartão",
   requestsSubtitle: "Pedidos de cartões físicos: feitos para um cliente, encomendados e entregues.",
   requestsToOrder: "Pedidos a encomendar ({{count}} escolhidos)",
-  searchCards: "Últimos 4 dígitos, nome, série ou titular",
+  searchCards: "Número do cartão, últimos 4 dígitos, nome ou série",
   searchOrders: "Referência do pedido",
   searchRequests: "Referência, nome no cartão ou titular",
   select: "Selecionar",
@@ -4769,6 +4769,10 @@ export const cards = {
   searchStockLast4: "Pesquisar os últimos 4 dígitos",
   noStockForProduct: "Sem cartão disponível em stock deste produto.",
   noPersonalisedGroup: "Este produto não tem grupo de emissão personalizado.",
+  byStaff: "pelo administrador {{name}}",
+  byCustomer: "pelo cliente {{name}}",
+  byMerchant: "pelo comerciante {{name}}",
+  bySystem: "pelo sistema",
 };
 
 export const kycReport = {

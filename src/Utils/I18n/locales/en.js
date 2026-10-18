@@ -4376,7 +4376,7 @@ export const cards = {
   requestsTitle: "Card Requests",
   requestsSubtitle: "Requests for physical cards: made for a customer, ordered, and delivered.",
   requestsToOrder: "Requests to order ({{count}} picked)",
-  searchCards: "Last 4 digits, name, serial or holder",
+  searchCards: "Card number, last 4 digits, name or serial",
   searchOrders: "Order reference",
   searchRequests: "Reference, name on card or holder",
   select: "Select",
@@ -4755,6 +4755,10 @@ export const cards = {
   searchStockLast4: "Search the last 4 digits",
   noStockForProduct: "No available stock card of this product.",
   noPersonalisedGroup: "This product has no personalised issuance group.",
+  byStaff: "by admin {{name}}",
+  byCustomer: "by customer {{name}}",
+  byMerchant: "by merchant {{name}}",
+  bySystem: "by the system",
 };
 
 export const kycReport = {

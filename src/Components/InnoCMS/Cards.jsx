@@ -90,7 +90,16 @@ export function Cards() {
     { key: "holder_name", label: t("holder"), render: (c) => <span className="text-xs font-semibold">{c.holder_name || t("inStock")}</span> },
     { key: "product_code", label: t("product"), render: (c) => <span className="text-xs">{c.product_code} · {cardWord(t, "opt", c.product_class)}</span> },
     { key: "form_factor", label: t("formFactor"), render: (c) => <span className="text-xs">{cardWord(t, "opt", c.form_factor)}</span> },
-    { key: "ops_status", label: t("opsStatus"), render: (c) => <CardPill prefix="ops" code={c.ops_status} /> },
+    {
+      key: "ops_status",
+      label: t("opsStatus"),
+      render: (c) => (
+        <span className="grid gap-0.5">
+          <CardPill prefix="ops" code={c.ops_status} />
+          <StatusBy by={c.status_by} short />
+        </span>
+      ),
+    },
     { key: "issuance_status", label: t("issuanceStatus"), render: (c) => <CardPill prefix="iss" code={c.issuance_status} /> },
     { key: "issued_at", label: t("issuedAt"), render: (c) => <span className="whitespace-nowrap text-xs">{c.issued_at ? accountDate(c.issued_at) : "—"}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (c) => <RowActions buttons={{ view: true }} onView={() => setOpenId(c.id)} /> },
@@ -303,6 +312,7 @@ function CardView({ id, options, onBack, onOpen }) {
               <CardPill prefix="ops" code={card.ops_status} />
               <CardPill prefix="iss" code={card.issuance_status} />
             </div>
+            <StatusBy by={card.status_by} />
             <p className="mt-1 text-xs text-muted-foreground">{[card.holder_name || t("inStock"), card.name_on_card, `${card.product_code} · ${cardWord(t, "opt", card.product_class)}`, cardWord(t, "opt", card.form_factor), card.network_code, card.inst_profile_name].filter(Boolean).join(" · ")}</p>
             {card.replaced_by_card_id > 0 && (
               <button type="button" onClick={() => onOpen(card.replaced_by_card_id)} className="mt-1 text-xs font-bold text-primary hover:underline">
@@ -556,5 +566,20 @@ function PlasticDialog({ card, onClose, onDone }) {
         <Problems message={error} />
       </div>
     </Modal>
+  );
+}
+
+// Who put the card in its status: "Blocked by customer, 17 Oct 20:29", or
+// "by admin BankA1: customer called". Nothing when there is no change on
+// record. `short` leaves the reason out (list rows).
+function StatusBy({ by, short = false }) {
+  const { t } = useTranslation("cards");
+  if (!by) return null;
+  const who = by.actor_type === "STAFF" ? t("byStaff", { name: by.changed_by }) : by.actor_type === "SYSTEM" ? t("bySystem") : t(by.actor_type === "MERCHANT" ? "byMerchant" : "byCustomer", { name: by.changed_by });
+  return (
+    <span className="block text-[10px] text-muted-foreground">
+      {who}, {accountDate(by.changed_time)}
+      {!short && by.reason_text ? `: ${by.reason_text}` : ""}
+    </span>
   );
 }
