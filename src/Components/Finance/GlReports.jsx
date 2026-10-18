@@ -16,7 +16,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { Tabs } from "./Loans/loanShared";
 import { ExportButtons } from "../Reports/Shared/reportShared";
 import { inputClass } from "./Deposits/depositShared";
-import { GlType, glAmount, useGlAccounts } from "./accountingShared";
+import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingShared";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => `${today().slice(0, 8)}01`;
@@ -259,6 +259,7 @@ function TrialBalance({ currencies }) {
                         <span className="w-[18px]" />
                       )}
                       <span className={cn("text-xs", !n.is_account && "font-bold")}>{n.name}</span>
+                      {n.has_pl && <ControlGlBadge />}
                       {n.account_number && <span className="font-mono text-[10px] text-muted-foreground">{n.account_number}</span>}
                     </span>
                   </td>

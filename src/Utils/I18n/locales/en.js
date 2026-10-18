@@ -5432,6 +5432,17 @@ export const accounting = {
   notGls: "accounts that aren't GLs",
   totals: "Totals",
   balanced: "The books balance",
+  controlGl: "Control GL",
+  kindControl: "Control GL",
+  kindControlHint: "Holds no money and has no account number. Customer and merchant accounts link to it through their account product; its balance is theirs.",
+  controlBalanceHint: "The total of the accounts linked to it through their account product.",
+  balanceRule: "Balance rule",
+  balanceRuleHint: "On the GL's normal side. A posting that would break it is refused.",
+  rule_NONE: "No rule",
+  rule_NO_NEGATIVE: "Never below zero",
+  rule_NO_POSITIVE: "Never above zero",
+  field_balance_rule: "Balance rule",
+  field_has_pl: "Control GL",
 };
 
 export const documents = {

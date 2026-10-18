@@ -5446,6 +5446,17 @@ export const accounting = {
   notGls: "contas que não são GLs",
   totals: "Totais",
   balanced: "Os livros estão equilibrados",
+  controlGl: "GL de controlo",
+  kindControl: "GL de controlo",
+  kindControlHint: "Não tem dinheiro próprio nem número de conta. As contas de clientes e comerciantes ligam-se a ele pelo produto de conta; o seu saldo é o delas.",
+  controlBalanceHint: "O total das contas ligadas a ele pelo produto de conta.",
+  balanceRule: "Regra de saldo",
+  balanceRuleHint: "No lado normal do GL. Um lançamento que a viole é recusado.",
+  rule_NONE: "Sem regra",
+  rule_NO_NEGATIVE: "Nunca abaixo de zero",
+  rule_NO_POSITIVE: "Nunca acima de zero",
+  field_balance_rule: "Regra de saldo",
+  field_has_pl: "GL de controlo",
 };
 
 export const documents = {

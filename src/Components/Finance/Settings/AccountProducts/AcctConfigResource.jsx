@@ -20,6 +20,7 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { glAccountsApi } from "@/Services/Accounting/accounting.api";
 import { configKycApi } from "@/Services/Epurse/config.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -69,6 +70,8 @@ const CONFIGS = {
     // ... violates not-null constraint"). Guarded client-side same as the
     // lookup fields below, so a user gets one clear toast instead of that.
     required: ["effective_from", "effective_to"],
+    // Lookups that may stay blank (sent as 0: none / unlink).
+    optional: ["control_gl_account_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number", "institutions"],
       ["product_code", "Product code", "text"],
@@ -85,6 +88,8 @@ const CONFIGS = {
       ["effective_from", "Effective from", "date"],
       ["effective_to", "Effective to", "date"],
       ["currency_code", "Currency", "text", "currencies"],
+      // A control GL (Has PL) whose balance is this product's accounts.
+      ["control_gl_account_id", "Control GL", "number", "controlGls"],
       ["branch_required", "Branch required", "boolean"],
       ["kyc_required", "KYC required", "boolean"],
       ["minimum_kyc_level", "Minimum KYC level", "number"],
@@ -406,6 +411,14 @@ export function AcctConfigResource({ entity }) {
   const { dormancyActions = [] } = useAcctDormancyActions(entity === "acct_product_dormancy_config");
   const { sequenceTypes = [] } = useAcctSequenceTypes(entity === "acct_product_numbering_config");
   const { frequencies = [] } = useFrequencies(entity === "acct_product_statement_config");
+  const [controlGls, setControlGls] = useState([]);
+  useEffect(() => {
+    if (entity !== "acct_product") return;
+    glAccountsApi
+      .list({ has_pl: true, status: 1, page_size: 500 })
+      .then((response) => setControlGls(rowsOf(response)[0]?.items ?? []))
+      .catch((error) => notifications.error(error.message));
+  }, [entity]);
   const [acctProducts, setAcctProducts] = useState([]);
   useEffect(() => {
     if (!needsAcctProducts) return;
@@ -448,8 +461,9 @@ export function AcctConfigResource({ entity }) {
       dormancyActions: { idBased: true, items: dormancyActions },
       sequenceTypes: { idBased: true, items: sequenceTypes },
       frequencies: { idBased: true, items: frequencies },
+      controlGls: { idBased: true, items: controlGls },
     }),
-    [institutions, acctProducts, ownershipTypes, partyTypes, channels, transactions, acctProdTypes, currencies, operationModes, dormancyActions, sequenceTypes, frequencies],
+    [controlGls, institutions, acctProducts, ownershipTypes, partyTypes, channels, transactions, acctProdTypes, currencies, operationModes, dormancyActions, sequenceTypes, frequencies],
   );
   const optionsFor = (lookupKey) => {
     const { idBased, items } = lookups[lookupKey] ?? { idBased: false, items: [] };
@@ -531,7 +545,7 @@ export function AcctConfigResource({ entity }) {
     // instead of a real validation message.
     const missingField = config.fields.find(
       ([key, , , lookupKey]) =>
-        (lookupKey || config.required?.includes(key)) && (form[key] === "" || form[key] == null),
+        (lookupKey || config.required?.includes(key)) && !config.optional?.includes(key) && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
       const label = tr(missingField[1]).toLowerCase();
@@ -552,7 +566,7 @@ export function AcctConfigResource({ entity }) {
             // of thing this backend rejects as "not valid JSON".
             .map(([key, , type, lookupKey]) => [
               key,
-              !lookupKey && type === "number" && (form[key] === "" || form[key] == null) ? 0 : form[key],
+              (!lookupKey || config.optional?.includes(key)) && type === "number" && (form[key] === "" || form[key] == null) ? 0 : form[key],
             ]),
         ),
         is_draft: draft,

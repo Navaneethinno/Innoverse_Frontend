@@ -28,6 +28,13 @@ export function GlType({ value }) {
 // An amount on the GL's normal side: negative means the other side.
 export const glAmount = (value, currency) => money(Number(value ?? 0), currency);
 
+// A control GL (Has PL): no money of its own, no account number; its
+// balance is the accounts linked to it through their account product.
+export function ControlGlBadge() {
+  const { t } = useTranslation("accounting");
+  return <span className="rounded-full bg-sky-50 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-sky-800">{t("controlGl")}</span>;
+}
+
 // One line per currency: "1,234.00 MZN".
 export function Balances({ balances, className }) {
   if (!balances?.length) return <span className="text-xs text-muted-foreground">—</span>;

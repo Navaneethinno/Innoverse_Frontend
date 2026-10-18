@@ -22,7 +22,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { Tabs } from "../Loans/loanShared";
 import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass } from "../Deposits/depositShared";
 import { ProductStatus } from "./DepositProducts/productShared";
-import { Balances, GL_TYPES, GlType, useRecordActions } from "../accountingShared";
+import { Balances, ControlGlBadge, GL_TYPES, GlType, useRecordActions } from "../accountingShared";
 import { GlUploads, UploadDialog } from "../GlUploads";
 
 // ACCOUNTING > Chart of Accounts (menu 213): the institution's GL tree.
@@ -223,7 +223,7 @@ function GlTree({ version, onView, onAdd }) {
                       <button type="button" onClick={() => onView(n.id)} className={cn("text-left hover:text-primary hover:underline", n.is_account ? "text-xs" : "text-xs font-bold")}>
                         {n.name}
                       </button>
-                      {!n.is_account && <span className="text-[10px] text-muted-foreground">({n.children?.length ?? 0})</span>}
+                      {n.has_pl ? <ControlGlBadge /> : !n.is_account && <span className="text-[10px] text-muted-foreground">({n.children?.length ?? 0})</span>}
                     </span>
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{n.gl_code || "—"}</td>
@@ -239,7 +239,7 @@ function GlTree({ version, onView, onAdd }) {
                   </td>
                   <td className="px-3 py-2">
                     <span className="flex justify-end gap-1">
-                      {!n.is_account && onAdd && <ActionIconButton label={t("addUnder")} intent="edit" icon={Plus} onClick={() => onAdd(n)} />}
+                      {!n.is_account && !n.has_pl && onAdd && <ActionIconButton label={t("addUnder")} intent="edit" icon={Plus} onClick={() => onAdd(n)} />}
                       <ActionIconButton label={t("view")} intent="view" icon={Eye} onClick={() => onView(n.id)} />
                     </span>
                   </td>
@@ -298,7 +298,7 @@ function GlFlatList({ search = "", pending = false, version, onView, bare = fals
       ),
     },
     { key: "gl_code", label: t("glCode"), render: (g) => <span className="font-mono text-xs">{g.gl_code || "—"}</span> },
-    { key: "account_number", label: t("accountNumber"), render: (g) => <span className="font-mono text-xs">{g.account_number || (g.is_account ? "—" : t("parent"))}</span> },
+    { key: "account_number", label: t("accountNumber"), render: (g) => (g.has_pl ? <ControlGlBadge /> : <span className="font-mono text-xs">{g.account_number || (g.is_account ? "—" : t("parent"))}</span>) },
     { key: "gl_type", label: t("glType"), render: (g) => <GlType value={g.gl_type} /> },
     { key: "balances", label: t("balance"), sortable: false, render: (g) => <Balances balances={g.balances} /> },
     { key: "status", label: t("status"), render: (g) => <ProductStatus product={g} /> },
@@ -330,14 +330,18 @@ function GlFlatList({ search = "", pending = false, version, onView, bare = fals
   return bare ? table : <ListPanel tabs={[]}>{table}</ListPanel>;
 }
 
-const FIELDS = ["parent_id", "is_account", "name", "description", "gl_code", "gl_type", "posting_type", "fsa", "sub_fsa", "remarks", "currency_id", "multi_currency"];
+const FIELDS = ["parent_id", "is_account", "has_pl", "name", "description", "gl_code", "gl_type", "posting_type", "fsa", "sub_fsa", "remarks", "currency_id", "multi_currency", "balance_rule"];
+const BALANCE_RULES = ["NONE", "NO_NEGATIVE", "NO_POSITIVE"];
+// Parent (groups GLs), Account (takes postings) or Control GL (Has PL: its
+// balance is the accounts linked to it through their account product).
+const kindOf = (v) => (v.is_account ? "account" : v.has_pl ? "control" : "parent");
 const formOf = (gl, parent, options) => {
   const base = currencyDefault(options);
   if (gl) {
     const source = { ...gl, ...(gl.draft ?? {}), ...(gl.pending?.fields ?? {}) };
-    return Object.fromEntries(FIELDS.map((k) => [k, source[k] ?? ""]));
+    return { ...Object.fromEntries(FIELDS.map((k) => [k, source[k] ?? ""])), has_pl: Boolean(source.has_pl), balance_rule: source.balance_rule || "NONE" };
   }
-  return { parent_id: parent?.id ?? 0, is_account: true, name: "", description: "", gl_code: "", gl_type: parent?.gl_type ?? "", posting_type: "", fsa: "", sub_fsa: "", remarks: "", currency_id: base, multi_currency: false };
+  return { parent_id: parent?.id ?? 0, is_account: true, has_pl: false, balance_rule: "NONE", name: "", description: "", gl_code: "", gl_type: parent?.gl_type ?? "", posting_type: "", fsa: "", sub_fsa: "", remarks: "", currency_id: base, multi_currency: false };
 };
 const currencyDefault = (options) => (options.currencies ?? []).find((c) => c.is_base_currency)?.id ?? options.currencies?.[0]?.id ?? "";
 
@@ -367,6 +371,8 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
       remarks: values.remarks.trim(),
       currency_id: values.is_account && !values.multi_currency ? Number(values.currency_id) || 0 : 0,
       multi_currency: Boolean(values.is_account && values.multi_currency),
+      has_pl: !values.is_account && Boolean(values.has_pl),
+      balance_rule: values.is_account ? values.balance_rule || "NONE" : "NONE",
     };
     if (!gl) return clean;
     const before = formOf(gl, null, options);
@@ -415,14 +421,15 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <SegmentedSwitch
-            value={values.is_account ? "account" : "parent"}
-            onChange={(k) => set("is_account")(k === "account")}
+            value={kindOf(values)}
+            onChange={(k) => setValues((v) => ({ ...v, is_account: k === "account", has_pl: k === "control" }))}
             options={[
               { value: "account", label: t("kindAccount") },
               { value: "parent", label: t("kindParent") },
+              { value: "control", label: t("kindControl") },
             ]}
           />
-          <p className="mt-1 text-[11px] text-muted-foreground">{t(values.is_account ? "kindAccountHint" : "kindParentHint")}</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{t({ account: "kindAccountHint", parent: "kindParentHint", control: "kindControlHint" }[kindOf(values)])}</p>
         </div>
         <label className={cn(labelClass, "sm:col-span-2")}>
           {t("parentGl")}
@@ -433,7 +440,7 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
               const p = (options.parents ?? []).find((x) => String(x.id) === v);
               setValues((x) => ({ ...x, parent_id: Number(v), ...(p ? { gl_type: p.gl_type } : {}) }));
             }}
-            options={[{ value: "0", label: t("topLevel") }, ...(options.parents ?? []).filter((p) => p.id !== gl?.id).map((p) => ({ value: String(p.id), label: p.path }))]}
+            options={[{ value: "0", label: t("topLevel") }, ...(options.parents ?? []).filter((p) => p.id !== gl?.id && !p.has_pl).map((p) => ({ value: String(p.id), label: p.path }))]}
           />
         </label>
         <label className={labelClass}>
@@ -462,6 +469,11 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
             <div className="flex items-end">
               <Toggle showLabel label={t("multiCurrency")} checked={Boolean(values.multi_currency)} onChange={set("multi_currency")} />
             </div>
+            <label className={cn(labelClass, "sm:col-span-2")}>
+              {t("balanceRule")}
+              <FilterSelect className="mt-1.5" value={values.balance_rule || "NONE"} onChange={set("balance_rule")} options={BALANCE_RULES.map((r) => ({ value: r, label: t(`rule_${r}`) }))} />
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("balanceRuleHint")}</span>
+            </label>
           </>
         )}
         <label className={labelClass}>
@@ -494,8 +506,9 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
   );
 }
 
-const DETAIL_FIELDS = ["gl_code", "gl_type", "normal_balance", "posting_type", "fsa", "sub_fsa", "currency", "purpose", "source", "description", "remarks"];
+const DETAIL_FIELDS = ["gl_code", "gl_type", "normal_balance", "posting_type", "fsa", "sub_fsa", "currency", "balance_rule", "purpose", "source", "description", "remarks"];
 const shown = (g, key, t) => {
+  if (key === "balance_rule") return g.is_account ? t(`rule_${g.balance_rule || "NONE"}`) : "—";
   if (key === "currency") return g.is_account ? (g.multi_currency ? t("multiCurrency") : g.currency_code || g.currency_name || "—") : "—";
   if (key === "gl_type") return g.gl_type ? t(`type_${g.gl_type}`) : "—";
   return g[key] === "" || g[key] == null ? "—" : String(g[key]);
@@ -543,7 +556,7 @@ function GlDetail({ id, onClose, onEdit, onChanged }) {
               <div className="flex flex-wrap items-center gap-2">
                 <GlType value={gl.gl_type} />
                 <ProductStatus product={gl} />
-                <span className="font-mono text-xs text-muted-foreground">{gl.account_number || (gl.is_account ? t("numberOnApproval") : t("parent"))}</span>
+                {gl.has_pl ? <ControlGlBadge /> : <span className="font-mono text-xs text-muted-foreground">{gl.account_number || (gl.is_account ? t("numberOnApproval") : t("parent"))}</span>}
               </div>
               <p className="mt-1 text-xs text-muted-foreground">{[...(gl.path ?? []).map((p) => p.name), gl.name].join(" › ")}</p>
             </div>
@@ -580,7 +593,7 @@ function GlDetail({ id, onClose, onEdit, onChanged }) {
             </Section>
             <Section title={t("balance")}>
               <Balances balances={gl.balances} className="items-start" />
-              {!gl.is_account && <p className="mt-2 text-[11px] text-muted-foreground">{t("parentBalanceHint", { count: gl.children ?? 0 })}</p>}
+              {gl.has_pl ? <p className="mt-2 text-[11px] text-muted-foreground">{t("controlBalanceHint")}</p> : !gl.is_account && <p className="mt-2 text-[11px] text-muted-foreground">{t("parentBalanceHint", { count: gl.children ?? 0 })}</p>}
             </Section>
           </div>
           <Section title={t("history")}>

@@ -293,6 +293,7 @@ const PT = {
   "Select currency": "Selecionar moeda",
   "Base Currency": "Moeda Base",
   Currency: "Moeda",
+  "Control GL": "GL de controlo",
   Email: "E-mail",
   "Employee ID": "ID do Funcionário",
   Mobile: "Celular",
