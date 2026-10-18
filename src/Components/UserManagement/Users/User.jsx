@@ -1,4 +1,6 @@
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
+import { TxnLimits } from "./TxnLimits";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -53,6 +55,7 @@ const numericId = (value) => {
 
 export function User() {
   const tr = useConfigLabel();
+  const [view, setView] = useState("users");
   // Real permission source — same menu_array the sidebar itself reads.
   // View is the one exception: it's not consistently granted via login's
   // menu_array actions[] the way the others are, so it's always shown
@@ -351,6 +354,12 @@ export function User() {
           {tr("Manage application users and access.")}
         </p>
       </div>
+      {/* Transaction limits (handoff 13): same menu and permissions. */}
+      <SegmentedSwitch className="mb-3" value={view} onChange={setView} options={[{ value: "users", label: tr("Users") }, { value: "limits", label: tr("Transaction limits") }]} />
+      {view === "limits" ? (
+        <TxnLimits />
+      ) : (
+        <>
 
       <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={params.sort_by} onSortChange={(sort_by) => setParams((current) => ({ ...current, page: 1, sort_by }))} total={usersQuery.pagination?.totalRecords}
           actions={canAdd && (
@@ -461,6 +470,8 @@ export function User() {
       </ConfirmDialog>
 
       <AuditUser audit={audit} onClose={() => setAudit(null)} />
+        </>
+      )}
     </div>
   );
 }

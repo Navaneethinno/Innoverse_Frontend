@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpenCheck, Plus, Scale, Send, X } from "lucide-react";
+import { AmountInput } from "@/Components/Common/AmountInput";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -18,7 +19,6 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { glAccountsApi, glJournalsApi } from "@/Services/Accounting/accounting.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { decimalSeparator, formatNumber, plainDecimal } from "@/Utils/Lib/numberFormat";
 import { cn } from "@/Utils/Lib/utils";
 import { MiniTable, Tabs } from "./Loans/loanShared";
 import { ActionButtons, Problems, inputClass, labelClass } from "./Deposits/depositShared";
@@ -343,7 +343,7 @@ function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onCh
           )}
         </p>
       </div>
-      <AmountInput value={l.amount} decimals={decimals} onChange={(amount) => onChange({ amount })} />
+      <AmountInput className={inputClass} value={l.amount} decimals={decimals} onChange={(amount) => onChange({ amount })} />
       <input className={inputClass} placeholder={t("note")} value={l.note} onChange={(e) => onChange({ note: e.target.value })} />
       {onRemove ? (
         <button type="button" onClick={onRemove} aria-label={t("removeLine")} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive">
@@ -353,23 +353,6 @@ function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onCh
         <span />
       )}
     </li>
-  );
-}
-
-// An amount typed in the institution's number format; kept as a plain
-// decimal ("1234.5") and shown formatted once the field is left.
-function AmountInput({ value, decimals, onChange }) {
-  const [focused, setFocused] = useState(false);
-  const shown = focused || value === "" ? String(value).replace(".", decimalSeparator()) : formatNumber(value, { min: decimals, max: decimals });
-  return (
-    <input
-      className={cn(inputClass, "text-right tabular-nums")}
-      inputMode="decimal"
-      value={shown}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-      onChange={(e) => onChange(plainDecimal(e.target.value, decimals))}
-    />
   );
 }
 
