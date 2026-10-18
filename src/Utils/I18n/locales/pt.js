@@ -120,6 +120,16 @@ export const common = {
   somethingWentWrong: "Algo deu errado",
   menu: "Menu",
   dismiss: "Dispensar",
+  comingSoonTitle: "Em breve",
+  comingSoonHint: "Este ecrã ainda não está disponível.",
+  view_individual: "Individual",
+  view_corporate: "Corporativo",
+  view_fields: "Campos",
+  view_sections: "Secções",
+  view_groups: "Grupos",
+  view_alerts: "Alertas",
+  view_customer: "Cliente",
+  view_merchant: "Comerciante",
 };
 
 export const auth = {

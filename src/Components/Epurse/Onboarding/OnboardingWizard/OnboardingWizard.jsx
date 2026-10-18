@@ -2,7 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
 import { NoAccess } from "@/Components/Common/NoAccess";
-import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
+import { usePartyMenuPermission } from "@/Hooks/usePermission";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { CustomerOnboardingResource } from "./CustomerOnboardingResource";
 import { CorporateCustomerOnboardingResource } from "./CorporateCustomerOnboardingResource";
@@ -24,10 +24,9 @@ export function OnboardingWizard() {
   const [searchParams, setSearchParams] = useSearchParams();
   // Individual and Corporate are separate menus; each half shows only when
   // the user's profile grants View on it.
-  const individualCan = usePagePermission("Onboarding Wizard");
-  const corporateCan = useMenuPermission("Corporate Onboarding Wizard");
-  // Opened from Onboarding > Individual|Corporate > Onboarding Wizard: that
-  // half only, no switch.
+  const individualCan = usePartyMenuPermission("individual");
+  const corporateCan = usePartyMenuPermission("corporate");
+  // Opened from Individual or Corporate Customers: that half only, no switch.
   const branch = useMenuContext()?.branch;
   const allowed = TYPES.filter((o) => (!branch || o.value === branch) && (o.value === "corporate" ? corporateCan : individualCan)("View"));
   const requested = branch ?? (searchParams.get("type") === "corporate" ? "corporate" : "individual");

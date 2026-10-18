@@ -12,7 +12,7 @@ import { blockNegativeKeyDown, blurOnWheel, clampNonNegative } from "@/Utils/Lib
 export const CONFIGS = {
   product: {
     title: "Digital Product",
-    menuName: "Digital Product",
+    menuName: "Digital Products",
     readOnlyOnEdit: ["inst_profile_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number"],

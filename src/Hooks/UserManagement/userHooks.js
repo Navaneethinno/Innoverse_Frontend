@@ -13,7 +13,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 // (the module name) or "Profile" (the sibling menu under the same module).
 // Delegates to the one permission source (exact menu, fail-closed).
 export function useHasUserAction(actionName) {
-  return useMenuPermission("User")(actionName);
+  return useMenuPermission("Users")(actionName);
 }
 
 const USERS_CHANGED_EVENT = "users:data-changed";

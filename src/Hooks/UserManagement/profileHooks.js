@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // Delegates to the one permission source (exact menu, fail-closed).
 export function useHasProfileAction(actionName) {
-  return useMenuPermission("Profile")(actionName);
+  return useMenuPermission("Profiles")(actionName);
 }
 
 // The current user's own "Profiles" menu item — used as the checker context
@@ -18,7 +18,7 @@ export function useProfileMenuItem() {
   return useMemo(
     () =>
       // Exact "Profile" — a loose /profile/i hit "Institution Profile" first.
-      findMenuByName(menuArray, "Profile"),
+      findMenuByName(menuArray, "Profiles"),
     [menuArray],
   );
 }

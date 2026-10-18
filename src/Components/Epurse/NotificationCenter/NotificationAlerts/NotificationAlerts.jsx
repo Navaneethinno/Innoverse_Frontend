@@ -90,7 +90,7 @@ function AlertsList({ onShowMessages }) {
         title={t("notification:alertTitle")}
         subtitle={t("notification:alertSubtitle")}
         api={notificationAlertApi}
-        menuName="Notification Alerts"
+        menuName="Notifications"
         columns={columns}
         reloadKey={reloadKey}
         onEdit={(row) => void openEdit(row)}

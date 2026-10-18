@@ -32,7 +32,6 @@ const APIS = {
   customer: { individual: customerOnboardingApi, corporate: corpCustomerOnboardingApi },
   merchant: { individual: merchantOnboardingApi, corporate: corpMerchantOnboardingApi },
 };
-const REPORT_MENU = { customer: "Customer KYC Report", merchant: "Merchant KYC Report" };
 
 // The report call's body for a list row: the onboarding's reference, else
 // the customer's id.
@@ -199,11 +198,11 @@ export function MerchantKycReport() {
   return <KycReportList audience="merchant" />;
 }
 
-// "View report" on an Onboarding Wizard row: shown only with View on the
-// report menu (206 customers, 205 merchants).
-export function ViewReportButton({ audience, onClick }) {
+// "View report" on an onboarding row: shown only with View on the KYC
+// Report menu.
+export function ViewReportButton({ onClick }) {
   const { t } = useTranslation("kycReport");
-  const can = useMenuPermission(REPORT_MENU[audience]);
+  const can = useMenuPermission("KYC Report");
   if (!can.menu || !can("View")) return null;
   return <ActionIconButton label={t("viewReport")} icon={FileSearch} onClick={onClick} />;
 }

@@ -1,24 +1,18 @@
-// Route-fabrication convention ported verbatim from payseFrontend
-// (src/Pages/Sidebar/MenuItem.jsx `handleNavigation`): the menu_name is
-// slugged into a path segment and navigated to directly, without checking
-// whether a page is registered for it. payse relies on its "/body" route
-// group's errorElement (Components/Error.jsx) to catch any slug that has no
-// matching route; Innoverse's protected route group has the same mechanism
-// (errorElement: <RouteError />), so an unmapped backend menu shows the app's
-// error/not-found screen instead of a blank page or a silently-inert click.
+// A menu's page is registered under a one-segment slug (the old menu name,
+// slugged); MENU_PAGES below maps each menu of the current tree to it. A
+// menu with no registered page shows the app's not-found screen (the
+// protected route group's errorElement, RouteError).
 function slugifyMenuName(menuName) {
   return String(menuName ?? "")
     .replace(/\s+/g, "")
     .toLowerCase();
 }
 
-// Menu names repeat — Onboarding Master/Configuration/Wizard under both
-// Individual and Corporate, and every EPURSE menu copied into MMS — so the
-// sidebar routes by module + full menu path (Menus handoff 12):
-// EPURSE > Onboarding > Corporate > Onboarding Wizard ->
-// /epurse/onboarding/corporate/onboarding-wizard. MenuPage resolves the
-// path back to its menu. A per-click nonce in history state remounts the
-// page when the same menu is clicked again.
+// Menu names repeat — every EPURSE menu is copied into MMS — so the sidebar
+// routes by module + full menu path: EPURSE > Settings > Form Builder ->
+// /epurse/settings/form-builder. MenuPage resolves the path back to its
+// menu. A per-click nonce in history state remounts the page when the same
+// menu is clicked again.
 export function buildMenuPathForItem(item, menuItems) {
   return menuPathForItem(item, menuItems);
 }
@@ -64,38 +58,83 @@ export function findMenuByPath(menuItems, pathname) {
   return (menuItems ?? []).find((m) => menuPathForItem(m, menuItems) === target) ?? null;
 }
 
-// "individual" / "corporate" when the menu sits under an Individual or
-// Corporate branch (the nearest one up the chain), else null.
-export function menuBranch(item, menuItems) {
-  const branch = menuChain(item, menuItems)
-    .reverse()
-    .slice(1)
-    .find((m) => ["individual", "corporate"].includes(kebab(m.menu_name)));
-  return branch ? kebab(branch.menu_name) : null;
-}
-
-// Menu names known to collide with an unrelated menu elsewhere in the tree;
-// only these get their parent's name folded into the slug.
-const DISAMBIGUATE_BY_PARENT = new Set(["Profile"]);
-
-// The page registry key for a menu: the legacy one-segment slug its page is
-// registered under (routes by menu name). Menus under a Corporate branch
-// get "corp" in front (Address Type -> corpaddresstype) so they don't open
-// Individual's page; the reorganized Corporate Onboarding Configuration /
-// Wizard open their corporate pages. usePagePermission also reverses this
-// for the legacy one-segment URLs.
-const CORPORATE_PAGES = {
-  onboardingconfiguration: "corporateonboardingconfiguration",
-  onboardingwizard: "corporateonboardingwizard",
+// Each menu's page, by menu name (Admin menu tree, 2026-10-18). EPURSE and
+// MMS share names and pages; the module picks the API prefix. A menu not
+// listed here opens the page registered under its slugged name.
+//   "slug"              the page registered under that slug
+//   { slug, branch }    the Individual or Corporate half of a shared page
+//   { views }           one menu over several pages, picked by a switch on
+//                       the page (the first is the default)
+//   { soon: true }      a new menu with no backend yet
+//   also                old one-segment links that belong to this menu
+const indvCorp = (slug) => ({ views: [{ key: "individual", slug }, { key: "corporate", slug: `corp${slug}` }] });
+const ACCOUNT_CONFIGS = ["productownership", "productpartytype", "producttransaction", "productchannel", "productbalanceconfiguration", "productgroupconfiguration", "interestconfiguration", "jointconfiguration", "lifecycleconfiguration", "dormancyconfiguration", "minorconfiguration", "alertconfiguration", "nomineeconfiguration", "numberingconfiguration", "openingconfiguration", "statementconfiguration"];
+const MENU_PAGES = {
+  // Institution
+  profile: "institutionprofile",
+  modules: "institutionmodule",
+  currencies: "institutioncurrency",
+  channels: "institutionchannel",
+  "phone codes": "institutionphonecode",
+  branding: "institutionbranding",
+  legal: "institutionlegal",
+  documents: "institutiondocuments",
+  // User Management
+  profiles: "profile",
+  users: "user",
+  "user kyc": "kyc",
+  // EPURSE / MMS > Settings > Lists
+  "relationship type": indvCorp("relationshiptype"),
+  "address type": indvCorp("addresstype"),
+  "document type": indvCorp("documenttype"),
+  "business nature": indvCorp("businessnature"),
+  "company type": "corpcompanytype",
+  "identification type": "corpidentificationtype",
+  "tax type": "corptaxtype",
+  "screening type": "corpscreeningtype",
+  "industry sector": "corpindustrysector",
+  "merchant category": "corpmerchantcategory",
+  "merchant group": "corpmerchantgroup",
+  "gst registration status": "corpgstregistrationstatus",
+  "tax exemption status": "corptaxexemptionstatus",
+  // EPURSE / MMS > Settings
+  "form builder": { views: [{ key: "fields", slug: "formfields" }, { key: "sections", slug: "formsections" }] },
+  "risk actions": "riskaction",
+  "risk assessment": { views: [{ key: "individual", slug: "individualrisk" }, { key: "corporate", slug: "corporaterisk" }] },
+  // EPURSE / MMS
+  "individual customers": { slug: "onboardingwizard", branch: "individual" },
+  "corporate customers": { slug: "onboardingwizard", branch: "corporate" },
+  "individual merchants": { slug: "onboardingwizard", branch: "individual" },
+  "corporate merchants": { slug: "onboardingwizard", branch: "corporate" },
+  "bulk registration": { soon: true },
+  // Finance
+  "account products": { slug: "accountproduct", also: ACCOUNT_CONFIGS },
+  "finance transaction": "manualjournal",
+  "term deposits": "deposits",
+  // InnoCMS
+  bins: "cardbins",
+  "card number layout": { soon: true },
+  "pre files": { soon: true },
+  "receive cards": { soon: true },
+  // Global Settings
+  notifications: { views: [{ key: "groups", slug: "notificationgroup" }, { key: "alerts", slug: "notificationalerts" }] },
+  limits: "limit",
+  "digital products": "digitalproduct",
+  // Reports
+  "kyc report": { views: [{ key: "customer", slug: "customerkycreport" }, { key: "merchant", slug: "merchantkycreport" }] },
 };
 
-export function menuSlugForItem(item, menuItems) {
-  const parent = byId(menuItems, item?.parent_menu_id);
-  const parentName = String(parent?.menu_name ?? "").trim();
-  const slug = slugifyMenuName(item?.menu_name);
-  if (menuBranch(item, menuItems) === "corporate") return CORPORATE_PAGES[slug] ?? `corp${slug}`;
-  if (parentName && DISAMBIGUATE_BY_PARENT.has(String(item?.menu_name ?? "").trim())) {
-    return slugifyMenuName(`${parentName} ${item?.menu_name}`);
-  }
-  return slug;
+// { slug, branch, views, soon, slugs } for a menu; slugs is every
+// one-segment page the menu covers.
+export function menuPage(item) {
+  const entry = MENU_PAGES[String(item?.menu_name ?? "").trim().toLowerCase()] ?? slugifyMenuName(item?.menu_name);
+  const page = typeof entry === "string" ? { slug: entry } : entry;
+  const slug = page.slug ?? page.views?.[0]?.slug ?? null;
+  return { ...page, slug, slugs: [...(page.views ?? []).map((v) => v.slug), ...(page.slug ? [page.slug] : []), ...(page.also ?? [])] };
 }
+
+// The Individual / Corporate half a menu opens, or null.
+export const menuBranch = (item) => menuPage(item).branch ?? null;
+
+// The page registry key for a menu (the slug its page is registered under).
+export const menuSlugForItem = (item) => menuPage(item).slug;

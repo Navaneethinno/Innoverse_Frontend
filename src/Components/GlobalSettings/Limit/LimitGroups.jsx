@@ -22,7 +22,7 @@ const codeOf = (v) => v.toUpperCase().replace(/[^A-Z0-9_]/g, "");
 
 export function LimitGroups() {
   const { t } = useTranslation(["limits", "common"]);
-  const can = usePagePermission("Limit");
+  const can = usePagePermission("Limits");
   const [form, setForm] = useState(null);
   const [clone, setClone] = useState(null);
   const [editor, setEditor] = useState(null);
@@ -86,7 +86,7 @@ export function LimitGroups() {
         title={t("limits:title")}
         subtitle={t("limits:subtitle")}
         api={limitGroupApi}
-        menuName="Limit"
+        menuName="Limits"
         columns={columns}
         reloadKey={reloadKey}
         onEdit={(row) => setEditor({ group: row, readOnly: false })}

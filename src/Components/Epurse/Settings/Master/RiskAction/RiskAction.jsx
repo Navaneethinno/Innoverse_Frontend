@@ -53,7 +53,7 @@ export function RiskAction() {
         title={t("risk:actionTitle")}
         subtitle={t("risk:actionSubtitle")}
         api={riskActionApi}
-        menuName="Risk Action"
+        menuName="Risk Actions"
         columns={columns}
         reloadKey={reloadKey}
         onEdit={(row) => void openEdit(row)}

@@ -132,7 +132,10 @@ export function DynamicSidebar() {
 
   const filteredModules = useMemo(
     () =>
-      (masterModules || []).filter((module) => allowedModuleIds.includes(Number(module.module_id))),
+      (masterModules || [])
+        .filter((module) => allowedModuleIds.includes(Number(module.module_id)))
+        // Modules in backend priority order.
+        .sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0)),
     [masterModules, allowedModuleIds],
   );
 

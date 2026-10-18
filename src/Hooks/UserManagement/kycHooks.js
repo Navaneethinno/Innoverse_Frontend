@@ -11,7 +11,7 @@ const notify = () => window.dispatchEvent(new Event(KYC_CHANGED));
 
 // Delegates to the one permission source (exact menu, fail-closed).
 export function useHasKycAction(actionName) {
-  return useMenuPermission("KYC")(actionName);
+  return useMenuPermission("User KYC")(actionName);
 }
 
 function useQuery(queryFn) {

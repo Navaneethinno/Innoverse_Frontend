@@ -20,7 +20,7 @@ import { customerOnboardingApi, onboardingRowsOf } from "@/Services/Epurse/custo
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeWithCustomer, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
-import { usePagePermission } from "@/Hooks/usePermission";
+import { usePartyMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
@@ -146,7 +146,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 
 export function CustomerOnboardingResource() {
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
-  const can = usePagePermission("Onboarding Wizard");
+  const can = usePartyMenuPermission("individual");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
@@ -243,7 +243,7 @@ export function CustomerOnboardingResource() {
           onRefresh={load}
           onOpen={(row, opts) => setWizard({ referenceId: row.reference_id, forceReadOnly: Boolean(opts?.forceReadOnly) })}
         />
-        <ViewReportButton audience={audience} onClick={() => setReportRow(r)} />
+        <ViewReportButton onClick={() => setReportRow(r)} />
         </div>
       ),
     },

@@ -9,13 +9,13 @@ import { corporateRiskApi, individualRiskApi } from "@/Services/Epurse/risk.api"
 export const RISK_KINDS = {
   individual: {
     api: individualRiskApi,
-    menuName: "Individual Risk",
+    menuName: "Risk Assessment",
     titleKey: "individualTitle",
     subtitleKey: "individualSubtitle",
   },
   corporate: {
     api: corporateRiskApi,
-    menuName: "Corporate Risk",
+    menuName: "Risk Assessment",
     titleKey: "corporateTitle",
     subtitleKey: "corporateSubtitle",
   },

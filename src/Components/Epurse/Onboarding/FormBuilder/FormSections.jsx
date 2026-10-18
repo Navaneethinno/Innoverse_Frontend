@@ -289,7 +289,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
 // create / edit / delete, approved as part of the definition that uses them.
 export function FormSections() {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
-  const can = usePagePermission("Form Sections");
+  const can = usePagePermission("Form Builder");
   const vocabulary = useFieldTypes();
   const library = useFieldLibrary();
   const [rows, setRows] = useState([]);

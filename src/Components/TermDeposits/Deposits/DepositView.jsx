@@ -38,7 +38,7 @@ const EVENT_TONE = {
 export function DepositView({ id: initialId, onBack, embedded = false }) {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
   // By name: the view also opens inside a customer's detail (another menu).
-  const can = useMenuPermission("Deposits");
+  const can = useMenuPermission("Term Deposits");
   const [id, setId] = useState(initialId);
   const [deposit, setDeposit] = useState(null);
   const [tab, setTab] = useState("summary");

@@ -69,6 +69,8 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/^finance$/i, Calculator],
+  [/innocms/i, CreditCard],
   [/accounting/i, Calculator],
   [/case management/i, Briefcase],
   [/term deposit/i, PiggyBank],
@@ -105,6 +107,12 @@ export function getModuleIcon(moduleName = "") {
 // fallback below them — otherwise they'd all resolve to the same Landmark
 // icon (which is exactly what was happening before this list was reordered).
 const MENU_ICON_RULES = [
+  [/(customers|merchants)$/i, UsersRound],
+  [/^lists$/i, Database],
+  [/form builder/i, Blocks],
+  [/^bins$/i, Hash],
+  [/term deposits/i, Landmark],
+  [/finance transaction/i, BookOpenCheck],
   [/^limits?$/i, Gauge],
   [/^accounts$/i, Wallet],
   [/deposit products/i, PiggyBank],

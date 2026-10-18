@@ -122,6 +122,16 @@ export const common = {
   somethingWentWrong: "Something went wrong",
   menu: "Menu",
   dismiss: "Dismiss",
+  comingSoonTitle: "Coming soon",
+  comingSoonHint: "This screen is not available yet.",
+  view_individual: "Individual",
+  view_corporate: "Corporate",
+  view_fields: "Fields",
+  view_sections: "Sections",
+  view_groups: "Groups",
+  view_alerts: "Alerts",
+  view_customer: "Customer",
+  view_merchant: "Merchant",
 };
 
 export const auth = {

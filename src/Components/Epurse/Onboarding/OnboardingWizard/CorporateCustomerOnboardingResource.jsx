@@ -20,7 +20,7 @@ import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epur
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
-import { useMenuPermission } from "@/Hooks/usePermission";
+import { usePartyMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/RiskAssessment/CustomerRisk";
 import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
@@ -40,7 +40,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   const [audit, setAudit] = useState(false);
   const [narration, setNarration] = useState("");
   const [working, setWorking] = useState(false);
-  const corpCan = useMenuPermission("Corporate Onboarding Wizard");
+  const corpCan = usePartyMenuPermission("corporate");
   const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
   if (row.can_authorise === false) {
     buttons.authorize = false;
@@ -142,7 +142,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 
 export function CorporateCustomerOnboardingResource() {
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
-  const can = useMenuPermission("Corporate Onboarding Wizard");
+  const can = usePartyMenuPermission("corporate");
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
@@ -232,7 +232,7 @@ export function CorporateCustomerOnboardingResource() {
           onRefresh={load}
           onOpen={(row, opts) => setWizard({ referenceId: row.reference_id, forceReadOnly: Boolean(opts?.forceReadOnly) })}
         />
-        <ViewReportButton audience={audience} onClick={() => setReportRow(r)} />
+        <ViewReportButton onClick={() => setReportRow(r)} />
         </div>
       ),
     },

@@ -22,7 +22,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useDropdownRows } from "@/Hooks/Master/masterHooks";
 import { corpMasterApis, corpOnboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
-import { useMenuPermission } from "@/Hooks/usePermission";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
@@ -158,7 +158,7 @@ const emptyForm = {
 export function CorporateOnboardingConfigurationPage() {
   const openMenu = useOpenMenu();
   const { t } = useAudienceTranslation(["onboarding", "common"]);
-  const can = useMenuPermission("Corporate Onboarding Configuration");
+  const can = usePagePermission("Onboarding Configuration");
   const isMerchant = useIsMerchantModule();
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);

@@ -202,7 +202,7 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
 // them.
 export function FormFields() {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
-  const can = usePagePermission("Form Fields");
+  const can = usePagePermission("Form Builder");
   const vocabulary = useFieldTypes();
   const library = useFieldLibrary();
   const [rows, setRows] = useState([]);

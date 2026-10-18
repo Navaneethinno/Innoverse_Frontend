@@ -12,7 +12,7 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 // itself already uses (DynamicSidebar.jsx, Phase 24C).
 // Delegates to the one permission source (current page's menu, fail-closed).
 export function useHasInstitutionAction(actionName) {
-  return usePagePermission("Institution Profile")(actionName);
+  return usePagePermission("Profile")(actionName);
 }
 
 const INSTITUTIONS_CHANGED_EVENT = "institutions:data-changed";

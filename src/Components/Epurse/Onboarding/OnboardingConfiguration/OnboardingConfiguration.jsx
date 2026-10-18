@@ -2,7 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { NoAccess } from "@/Components/Common/NoAccess";
-import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { OnboardingConfigurationPage } from "./OnboardingConfigurationPage";
 import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfigurationPage";
@@ -22,14 +22,10 @@ const TYPES = [
 export function OnboardingConfiguration() {
   const { t } = useAudienceTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Individual and Corporate are separate menus; each half shows only when
-  // the user's profile grants View on it.
-  const individualCan = usePagePermission("Onboarding Configuration");
-  const corporateCan = useMenuPermission("Corporate Onboarding Configuration");
-  // Opened from Onboarding > Individual|Corporate > Onboarding Configuration: that
-  // half only, no switch.
+  // One menu covers both halves.
+  const can = usePagePermission("Onboarding Configuration");
   const branch = useMenuContext()?.branch;
-  const allowed = TYPES.filter((o) => (!branch || o.value === branch) && (o.value === "corporate" ? corporateCan : individualCan)("View"));
+  const allowed = TYPES.filter((o) => (!branch || o.value === branch) && can("View"));
   const requested = branch ?? (searchParams.get("type") === "corporate" ? "corporate" : "individual");
   const type = allowed.some((o) => o.value === requested) ? requested : allowed[0]?.value;
   const setType = (next) => {

@@ -129,7 +129,7 @@ export function LimitUsageDialog({ onClose }) {
 // who may view the Limit menu.
 export function OwnerLimitUsage({ owner }) {
   const { t } = useTranslation("limits");
-  const can = useMenuPermission("Limit");
+  const can = useMenuPermission("Limits");
   if (!owner || !can("View")) return null;
   return (
     <div className="mb-4 rounded-2xl border border-border bg-card p-4">

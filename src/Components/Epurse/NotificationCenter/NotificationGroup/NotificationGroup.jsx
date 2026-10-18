@@ -29,7 +29,7 @@ export function NotificationGroup() {
         title={t("notification:groupTitle")}
         subtitle={t("notification:groupSubtitle")}
         api={notificationGroupApi}
-        menuName="Notification Group"
+        menuName="Notifications"
         columns={columns}
         reloadKey={reloadKey}
         onEdit={(row) => void openEdit(row)}

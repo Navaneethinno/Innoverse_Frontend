@@ -58,26 +58,10 @@ import { Button } from "@/Components/Common/Button";
 // list.
 const CONFIGS = {
   acct_product: {
-    // Confirmed straight from a real /user/login menu_array: this entity's
-    // menu_name is literally "Account Product" (menu_id 49, parent_menu_id
-    // 48 = "Account", the non-clickable group header — see
-    // accountRoutes.jsx). menuName MUST match that exactly (it's the
-    // permission fallback name), or every permission check silently
-    // evaluates false and every action button (Add/Edit/Authorize/Delete)
-    // stays hidden regardless of the user's actual grants — this is NOT
-    // the same as Digital Product's own child, which really is named just
-    // "Digital Product" (menu_id 31); the two only look alike in a
-    // truncated sidebar label.
-    // Was bare "Product" — inconsistent with Digital Product's own
-    // corresponding entity, which names itself "Digital Product" in full
-    // rather than just "Product" (see DigitalProduct.jsx's
-    // CONFIGS.product.title). "Account Product" matches that convention and
-    // the page's own real menu_name (menuName below), so the header,
-    // breadcrumb (routeConfig.js), Add button, and Modal titles all read
-    // clearly instead of an ambiguous bare "Product".
+    // Every configuration is part of the one Account Products menu.
     title: "Account Product",
     subtitle: "The account products customers and merchants hold, and their settings.",
-    menuName: "Account Product",
+    menuName: "Account Products",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
     // Confirmed live: the backend has a NOT-NULL DB constraint on
     // effective_from — submitting without it doesn't even get a clean
@@ -129,7 +113,7 @@ const CONFIGS = {
   acct_product_ownership: {
     title: "Product Ownership",
     subtitle: "Which ownership types (individual, corporate...) each product is open to.",
-    menuName: "Product Ownership",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -142,7 +126,7 @@ const CONFIGS = {
   acct_product_party_type: {
     title: "Product Party Type",
     subtitle: "Which kinds of party (customer, merchant, agent...) each product is open to.",
-    menuName: "Product Party Type",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -153,7 +137,7 @@ const CONFIGS = {
   acct_product_transaction: {
     title: "Product Transaction",
     subtitle: "The transactions each product allows.",
-    menuName: "Product Transaction",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -166,7 +150,7 @@ const CONFIGS = {
   acct_product_channel: {
     title: "Product Channel",
     subtitle: "The channels each product can be used from.",
-    menuName: "Product Channel",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -177,7 +161,7 @@ const CONFIGS = {
   acct_product_balance_config: {
     title: "Product Balance Configuration",
     subtitle: "The balances each product keeps and their limits.",
-    menuName: "Product Balance Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -194,7 +178,7 @@ const CONFIGS = {
   acct_product_group_config: {
     title: "Product Group Configuration",
     subtitle: "The groups products belong to.",
-    menuName: "Product Group Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -207,7 +191,7 @@ const CONFIGS = {
   acct_product_interest_config: {
     title: "Interest Configuration",
     subtitle: "How each product earns or charges interest.",
-    menuName: "Interest Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -228,7 +212,7 @@ const CONFIGS = {
   acct_product_joint_config: {
     title: "Joint Configuration",
     subtitle: "How joint holding works for each product.",
-    menuName: "Joint Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -241,7 +225,7 @@ const CONFIGS = {
   acct_product_lifecycle_config: {
     title: "Lifecycle Configuration",
     subtitle: "The states an account of each product goes through.",
-    menuName: "Lifecycle Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -258,7 +242,7 @@ const CONFIGS = {
   },
   acct_product_dormancy_config: {
     title: "Dormancy Configuration",
-    menuName: "Dormancy Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -272,7 +256,7 @@ const CONFIGS = {
   },
   acct_product_minor_config: {
     title: "Minor Configuration",
-    menuName: "Minor Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -286,7 +270,7 @@ const CONFIGS = {
   },
   acct_product_nominee_config: {
     title: "Nominee Configuration",
-    menuName: "Nominee Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -299,7 +283,7 @@ const CONFIGS = {
   },
   acct_product_numbering_config: {
     title: "Numbering Configuration",
-    menuName: "Numbering Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -315,7 +299,7 @@ const CONFIGS = {
   },
   acct_product_opening_config: {
     title: "Opening Configuration",
-    menuName: "Opening Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -330,7 +314,7 @@ const CONFIGS = {
   },
   acct_product_statement_config: {
     title: "Statement Configuration",
-    menuName: "Statement Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],
@@ -344,7 +328,7 @@ const CONFIGS = {
   },
   acct_product_alert_config: {
     title: "Alert Configuration",
-    menuName: "Alert Configuration",
+    menuName: "Account Products",
     readOnlyOnEdit: ["acct_product_id"],
     fields: [
       ["acct_product_id", "Account product", "number", "acctProducts"],

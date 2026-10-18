@@ -61,7 +61,7 @@ function depositColumns(t, can, onOpen, compact) {
 // merchants. Filters, "Open deposit", and the deposit's own page.
 export function Deposits() {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
-  const can = useMenuPermission("Deposits");
+  const can = useMenuPermission("Term Deposits");
   const [filters, setFilters] = useState(EMPTY);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -188,7 +188,7 @@ export function Deposits() {
 // staff who may open one. Shown only to users with the Deposits menu.
 export function OwnerDeposits({ owner }) {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
-  const can = useMenuPermission("Deposits");
+  const can = useMenuPermission("Term Deposits");
   const [items, setItems] = useState(null);
   const [openId, setOpenId] = useState(null);
   const [opening, setOpening] = useState(false);
