@@ -15,8 +15,9 @@ export const chainLevels = (levels) =>
 const NEXT_COLOURS = ["#2196F3", "#9C27B0", "#795548", "#607D8B"];
 
 // `title`/`hint` let another screen with the same shape (AML Setup's score
-// bands) label it its own way.
-export function LevelsEditor({ levels, riskActions, onChange, title, hint }) {
+// bands) label it its own way. `merchantRiskActions` adds a second action
+// per level, for merchants (AML bands).
+export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChange, title, hint }) {
   const { t } = useTranslation("risk");
   const chained = chainLevels(levels);
   const last = chained[chained.length - 1];
@@ -26,7 +27,9 @@ export function LevelsEditor({ levels, riskActions, onChange, title, hint }) {
     onChange(chainLevels([...levels, { code: "", name: "", min_score: last?.max_score ?? 0, max_score: 100, color_code: colour, risk_action_id: "" }]));
   };
 
-  const actionOptions = [{ value: "", label: t("selectAction") }, ...riskActions.map((a) => ({ value: a.id, label: a.name }))];
+  const optionsOf = (actions) => [{ value: "", label: t("selectAction") }, ...actions.map((a) => ({ value: a.id, label: a.name }))];
+  const actionOptions = optionsOf(riskActions);
+  const merchantOptions = merchantRiskActions ? optionsOf(merchantRiskActions) : null;
 
   return (
     <section data-tour="risk-levels">
@@ -70,7 +73,20 @@ export function LevelsEditor({ levels, riskActions, onChange, title, hint }) {
               <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: e.target.value })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-right font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
             </label>
 
-            <FilterSelect size="sm" className="w-40 shrink-0" value={l.risk_action_id} onChange={(v) => set(index, { risk_action_id: v === "" ? "" : Number(v) })} options={actionOptions} />
+            {merchantOptions ? (
+              <span className="flex shrink-0 flex-wrap gap-2">
+                <label className="text-[10px] font-semibold text-muted-foreground">
+                  {t("actionForCustomers")} <span className="text-red-500">*</span>
+                  <FilterSelect size="sm" className="mt-0.5 w-40" value={l.risk_action_id} onChange={(v) => set(index, { risk_action_id: v === "" ? "" : Number(v) })} options={actionOptions} />
+                </label>
+                <label className="text-[10px] font-semibold text-muted-foreground">
+                  {t("actionForMerchants")} <span className="text-red-500">*</span>
+                  <FilterSelect size="sm" className="mt-0.5 w-40" value={l.merchant_risk_action_id ?? ""} onChange={(v) => set(index, { merchant_risk_action_id: v === "" ? "" : Number(v) })} options={merchantOptions} />
+                </label>
+              </span>
+            ) : (
+              <FilterSelect size="sm" className="w-40 shrink-0" value={l.risk_action_id} onChange={(v) => set(index, { risk_action_id: v === "" ? "" : Number(v) })} options={actionOptions} />
+            )}
 
             <UiTooltip label={t("removeLevel")}>
               <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">

@@ -27,3 +27,7 @@ export const corporateRiskApi = riskApi(API_ENDPOINTS.RISK.CORPORATE);
 // Reject) that each risk level points at. `get_active` with view=dropdown
 // and inst_profile_id returns [{id, name}].
 export const riskActionApi = createLifecycle(API_ENDPOINTS.RISK.ACTION);
+
+// Merchants' own risk actions (/merchant/master_config/risk_action), for
+// screens outside MMS that need both sides (AML setup, AML report).
+export const merchantRiskActionApi = createLifecycle(API_ENDPOINTS.RISK.ACTION.replace(/^\/customer\//, "/merchant/"));

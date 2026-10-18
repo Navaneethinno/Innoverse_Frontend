@@ -70,7 +70,22 @@ export function AMLSetup() {
                   <li key={l.code} className="flex items-center justify-between gap-2">
                     <LevelChip level={l} />
                     <span className="tabular-nums text-muted-foreground">
-                      {l.min_score}–{l.max_score} · {l.risk_action_name ?? (l.risk_action_id ? `#${l.risk_action_id}` : "-")}
+                      {l.min_score}–{l.max_score}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </ViewItem>
+            <ViewItem label={t("aml:bandActions")}>
+              <ul className="mt-1 space-y-2 font-normal">
+                {(row.levels ?? []).map((l) => (
+                  <li key={l.code} className="grid gap-0.5 text-xs">
+                    <span className="font-semibold">{l.name || l.code}</span>
+                    <span className="text-muted-foreground">
+                      {t("aml:actionForCustomers")}: {l.risk_action_name ?? (l.risk_action_id ? `#${l.risk_action_id}` : "-")}
+                    </span>
+                    <span className={l.merchant_risk_action_id ? "text-muted-foreground" : "font-semibold text-amber-700"}>
+                      {t("aml:actionForMerchants")}: {l.merchant_risk_action_id ? (l.merchant_risk_action_name ?? `#${l.merchant_risk_action_id}`) : t("aml:merchantActionNotSet")}
                     </span>
                   </li>
                 ))}

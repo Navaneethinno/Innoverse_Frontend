@@ -4,32 +4,33 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { Modal } from "@/Components/Common/Modal";
 import { useAuth } from "@/Hooks/useAuth";
 import { amlSetupApi } from "@/Services/InnoAML/aml.api";
-import { riskActionApi } from "@/Services/Epurse/risk.api";
+import { merchantRiskActionApi, riskActionApi } from "@/Services/Epurse/risk.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, inputClass, labelClass, saveRecord } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { LevelsEditor, chainLevels } from "@/Components/Epurse/Settings/RiskAssessment/LevelsEditor";
 
 const DEFAULT_BANDS = [
-  { code: "CLEAR", name: "Clear", min_score: 0, max_score: 60, color_code: "#2E7D32", risk_action_id: "" },
-  { code: "POSSIBLE", name: "Possible match", min_score: 60, max_score: 85, color_code: "#F9A825", risk_action_id: "" },
-  { code: "STRONG", name: "Strong match", min_score: 85, max_score: 100, color_code: "#C62828", risk_action_id: "" },
+  { code: "CLEAR", name: "Clear", min_score: 0, max_score: 60, color_code: "#2E7D32", risk_action_id: "", merchant_risk_action_id: "" },
+  { code: "POSSIBLE", name: "Possible match", min_score: 60, max_score: 85, color_code: "#F9A825", risk_action_id: "", merchant_risk_action_id: "" },
+  { code: "STRONG", name: "Strong match", min_score: 85, max_score: 100, color_code: "#C62828", risk_action_id: "", merchant_risk_action_id: "" },
 ];
 const idOrEmpty = (v) => (v === null || v === undefined ? "" : v);
 
-// The institution's active risk actions, for each band's action.
-function useRiskActions(instProfileId) {
+// The institution's active risk actions of one side (customers or
+// merchants), for each band's actions.
+function useRiskActions(api, instProfileId) {
   const [actions, setActions] = useState([]);
   useEffect(() => {
     if (!instProfileId) {
       setActions([]);
       return;
     }
-    riskActionApi
+    api
       .getActive({ inst_profile_id: Number(instProfileId), view: "dropdown" })
       .then((r) => setActions(rowsOf(r)))
       .catch(() => setActions([]));
-  }, [instProfileId]);
+  }, [api, instProfileId]);
   return actions;
 }
 
@@ -44,15 +45,22 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
     description: editing?.description ?? "",
     min_match_score: String(editing?.min_match_score ?? 50),
     ongoing_rescreen: editing?.ongoing_rescreen ?? true,
-    levels: editing?.levels?.length ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id) })) : DEFAULT_BANDS,
+    levels: editing?.levels?.length ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id), merchant_risk_action_id: idOrEmpty(l.merchant_risk_action_id) })) : DEFAULT_BANDS,
   }));
   const [saving, setSaving] = useState(false);
-  const riskActions = useRiskActions(form.inst_profile_id);
+  const riskActions = useRiskActions(riskActionApi, form.inst_profile_id);
+  const merchantRiskActions = useRiskActions(merchantRiskActionApi, form.inst_profile_id);
 
   const save = async (draft) => {
     const minScore = Number(form.min_match_score);
     if (!Number.isFinite(minScore) || minScore < 30 || minScore > 100) {
       notifications.error(t("aml:minMatchScoreRange"));
+      return;
+    }
+    // Optional in the API, but a band without a merchant action sends
+    // every merchant onboarding in it to review.
+    if (form.levels.some((l) => l.risk_action_id === "" || l.merchant_risk_action_id === "")) {
+      notifications.error(t("aml:bandActionsRequired"));
       return;
     }
     setSaving(true);
@@ -68,6 +76,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
           max_score: Number(l.max_score),
           color_code: l.color_code || null,
           risk_action_id: l.risk_action_id === "" ? null : Number(l.risk_action_id),
+          merchant_risk_action_id: l.merchant_risk_action_id === "" ? null : Number(l.merchant_risk_action_id),
         })),
         ...(editing ? {} : { inst_profile_id: form.inst_profile_id }),
       };
@@ -111,6 +120,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
             hint={t("aml:bandsHint")}
             levels={form.levels}
             riskActions={riskActions}
+            merchantRiskActions={merchantRiskActions}
             onChange={(levels) => setForm((f) => ({ ...f, levels }))}
           />
         </div>

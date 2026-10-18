@@ -1504,6 +1504,8 @@ export const risk = {
   assessedAt: "Avaliado em {{when}}",
   whyScore: "Porquê",
   noAnswer: "Sem resposta",
+  actionForCustomers: "Ação para clientes",
+  actionForMerchants: "Ação para comerciantes",
 };
 
 // InnoAML (AML handoffs 03–07).
@@ -1694,6 +1696,11 @@ export const aml = {
   reviewHistory: "Histórico de revisões",
   noReviewsYet: "Ainda não há revisões",
   waitingForChecker: "{{decision}} proposto por {{by}}, a aguardar um verificador",
+  actionForCustomers: "Ação para clientes",
+  actionForMerchants: "Ação para comerciantes",
+  bandActions: "Ações das faixas",
+  merchantActionNotSet: "não definida (comerciantes vão para revisão)",
+  bandActionsRequired: "Escolha uma ação para clientes e uma ação para comerciantes em cada faixa.",
 };
 
 // Reports (handoff 08).
@@ -1845,6 +1852,8 @@ export const reports = {
   partiesScreened_other: "{{count}} partes triadas",
   sincePreviousScreening: "O que mudou desde a triagem anterior",
   screeningHistory: "Histórico de triagens",
+  allCustomerRiskActions: "Ação de risco (clientes)",
+  allMerchantRiskActions: "Ação de risco (comerciantes)",
 };
 
 export const tour = {
@@ -2482,6 +2491,10 @@ export const cases = {
   action_decide: "Revisar decisão",
   action_reopen: "Reabrir",
   action_release: "Liberar contato",
+  reason_NO_AML_ACTION: "Sem ação AML",
+  reasonHint_NO_AML_ACTION: "A faixa AML não tem ação para este lado (para um comerciante: a ação para comerciantes não está definida). Enviado para revisão.",
+  reason_NO_RISK_ACTION: "Sem ação de risco",
+  reasonHint_NO_RISK_ACTION: "O nível de risco não tem ação para este lado. Enviado para revisão.",
 };
 
 export const accounts = {

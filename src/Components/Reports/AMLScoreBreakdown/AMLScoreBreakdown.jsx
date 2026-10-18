@@ -11,7 +11,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { amlBreakdownApi } from "@/Services/Reports/amlBreakdown.api";
-import { riskActionApi } from "@/Services/Epurse/risk.api";
+import { merchantRiskActionApi, riskActionApi } from "@/Services/Epurse/risk.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useAmlBands } from "@/Components/InnoAML/Screenings/useAmlBands";
@@ -30,14 +30,16 @@ const KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPO
 const TRIGGERS = ["SUBMIT", "RESCREEN", "ONGOING"];
 const numberInput = "w-20 rounded-lg border px-2.5 py-1.5 text-xs";
 
-function useRiskActions() {
+// One side's active risk actions (customers and merchants are numbered
+// separately).
+function useRiskActions(api) {
   const [actions, setActions] = useState([]);
   useEffect(() => {
-    riskActionApi
-      .list({ page: 1, limit: 200 })
-      .then((r) => setActions(rowsOf(r).filter((a) => Number(a.status) === 1)))
+    api
+      .getActive({ view: "dropdown" })
+      .then((r) => setActions(rowsOf(r)))
       .catch(() => setActions([]));
-  }, []);
+  }, [api]);
   return actions;
 }
 
@@ -47,7 +49,8 @@ function useRiskActions() {
 export function AMLScoreBreakdown() {
   const { t } = useTranslation(["reports", "common"]);
   const bands = useAmlBands();
-  const actions = useRiskActions();
+  const actions = useRiskActions(riskActionApi);
+  const merchantActions = useRiskActions(merchantRiskActionApi);
   const [filters, setFilters] = useState({
     customer_kind: "",
     period: "",
@@ -55,6 +58,7 @@ export function AMLScoreBreakdown() {
     to: "",
     band_code: "",
     risk_action_id: "",
+    merchant_risk_action_id: "",
     min_score: "",
     max_score: "",
     trigger: "",
@@ -87,6 +91,7 @@ export function AMLScoreBreakdown() {
         latest_only: f.latest_only,
         band_codes: f.band_code ? [f.band_code] : undefined,
         risk_action_ids: f.risk_action_id ? [Number(f.risk_action_id)] : undefined,
+        merchant_risk_action_ids: f.merchant_risk_action_id ? [Number(f.merchant_risk_action_id)] : undefined,
         min_score: num(f.min_score),
         max_score: num(f.max_score),
         matched_only: f.matched_only || undefined,
@@ -301,13 +306,14 @@ export function AMLScoreBreakdown() {
               className="w-44"
               value={filters.risk_action_id}
               onChange={(v) => set({ risk_action_id: v })}
-              options={[
-                { value: "", label: t("allRiskActions") },
-                ...actions.map((a) => ({
-                  value: String(a.id),
-                  label: a.inst_profile_name ? `${a.name} · ${a.inst_profile_name}` : a.name,
-                })),
-              ]}
+              options={[{ value: "", label: t("allCustomerRiskActions") }, ...actions.map((a) => ({ value: String(a.id), label: a.name }))]}
+            />
+            <FilterSelect
+              size="sm"
+              className="w-44"
+              value={filters.merchant_risk_action_id}
+              onChange={(v) => set({ merchant_risk_action_id: v })}
+              options={[{ value: "", label: t("allMerchantRiskActions") }, ...merchantActions.map((a) => ({ value: String(a.id), label: a.name }))]}
             />
             <FilterSelect
               size="sm"

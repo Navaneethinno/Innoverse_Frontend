@@ -1490,6 +1490,8 @@ export const risk = {
   assessedAt: "Assessed {{when}}",
   whyScore: "Why",
   noAnswer: "No answer",
+  actionForCustomers: "Action for customers",
+  actionForMerchants: "Action for merchants",
 };
 
 // InnoAML (AML handoffs 03–07).
@@ -1680,6 +1682,11 @@ export const aml = {
   reviewHistory: "Review history",
   noReviewsYet: "No reviews yet",
   waitingForChecker: "{{decision}} proposed by {{by}}, waiting for a checker",
+  actionForCustomers: "Action for customers",
+  actionForMerchants: "Action for merchants",
+  bandActions: "Band actions",
+  merchantActionNotSet: "not set (merchants go to review)",
+  bandActionsRequired: "Choose an action for customers and an action for merchants on every band.",
 };
 
 // Reports (handoff 08).
@@ -1831,6 +1838,8 @@ export const reports = {
   partiesScreened_other: "{{count}} parties screened",
   sincePreviousScreening: "What changed since the previous screening",
   screeningHistory: "Screening history",
+  allCustomerRiskActions: "Risk action (customers)",
+  allMerchantRiskActions: "Risk action (merchants)",
 };
 
 export const tour = {
@@ -2468,6 +2477,10 @@ export const cases = {
   action_decide: "Review decision",
   action_reopen: "Reopen",
   action_release: "Release contact",
+  reason_NO_AML_ACTION: "No AML action",
+  reasonHint_NO_AML_ACTION: "The AML band has no action for this side (for a merchant: Action for merchants is not set). Sent to review.",
+  reason_NO_RISK_ACTION: "No risk action",
+  reasonHint_NO_RISK_ACTION: "The risk level has no action for this side. Sent to review.",
 };
 
 export const accounts = {
