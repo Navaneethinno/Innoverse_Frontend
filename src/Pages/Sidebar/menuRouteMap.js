@@ -113,7 +113,6 @@ const MENU_PAGES = {
   "term deposits": "deposits",
   // InnoCMS
   bins: "cardbins",
-  "pre files": { soon: true },
   "receive cards": { soon: true },
   // Global Settings
   notifications: { views: [{ key: "groups", slug: "notificationgroup" }, { key: "alerts", slug: "notificationalerts" }] },

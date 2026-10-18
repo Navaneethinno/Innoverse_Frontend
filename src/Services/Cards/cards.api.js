@@ -24,6 +24,8 @@ export const cardsApi = calls("/config/card/instance", ["options", "list", "get"
 export const cardRequestsApi = calls("/config/card/request", ["list", "get", "add", "reject", "deliver"]);
 export const cardOrdersApi = calls("/config/card/order", ["options", "holders", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
 export const cardStockApi = calls("/config/card/stock", ["options", "list", "assign", "issue"]);
+// PRE Files (158): one emboss file from cards across an issuance group's orders.
+export const preFilesApi = calls("/config/card/prefile", ["list", "generate", "jobs"]);
 
 // A fresh idempotency key per click (issue, request, reissue): sent again,
 // the server answers what it already did and charges nothing twice.
