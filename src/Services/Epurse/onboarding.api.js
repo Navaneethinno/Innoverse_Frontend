@@ -13,12 +13,11 @@ import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 // and the standard {status, message, remark, data[]} envelope; a failure
 // throws an Error built by getApiErrorMessage (`message` + `problems`,
 // never `remark` — see apiErrors.js).
-export async function request(path, body = {}, { timeoutMs = 30000 } = {}) {
+export async function request(path, body = {}) {
   const controller = new AbortController();
   // save_config carries a whole configuration tree — allow more than the 10s
-  // the small master calls use. A call that works through a whole batch
-  // passes its own (timeoutMs).
-  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  // the small master calls use.
+  const timeout = window.setTimeout(() => controller.abort(), 30000);
   try {
     const token = getAccessToken();
     const response = await authFetch(`${API_BASE_URL}${scopedPath(path)}`, {

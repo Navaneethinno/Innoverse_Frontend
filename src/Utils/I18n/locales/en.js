@@ -4394,7 +4394,7 @@ export const cards = {
   waitingForChecker: "Waiting for a checker",
   withdrawOrder: "Withdraw order",
   withdrawOrderHint: "Only an order not yet approved, by the user who filed it.",
-  orderPersoHint: "Personalised: pick the requests to make.",
+  orderPersoHint: "Personalised: pick the holders (a card request is made for each) and/or open requests.",
   orderInstantHint: "Instant: blank cards for stock.",
   toHint_BLOCKED: "The card stops working until it is unblocked. A customer cannot unblock a staff block.",
   toHint_ACTIVE: "Unblocks it (a card never activated goes back to waiting for activation).",
@@ -4768,6 +4768,13 @@ export const cards = {
   receiveSubtitle: "Orders whose PRE file went to the bureau: record the cards that came back, then a checker approves the receipt.",
   noOrdersToReceive: "No orders to receive",
   noOrdersToReceiveHint: "Orders show here once their cards are in a PRE file.",
+  narrationOptional: "Narration (optional)",
+  loadingWallets: "Finding the wallet that pays the card fee…",
+  noPayingWallet: "This holder has no active wallet that can pay for a card of this product.",
+  feeFrom: "Card fee from {{wallet}}",
+  feeWallet: "Wallet that pays the card fee",
+  defaultWallet: "default",
+  layoutInUse: "Cards have been numbered by this layout: only its name and description can change.",
 };
 
 export const kycReport = {
@@ -5637,7 +5644,7 @@ export const bulkReg = {
   customerRef: "Customer reference",
   account: "Account",
   reason: "Reason / notes",
-  registering: "Registering {{count}} people. This can take a few minutes; keep this page open.",
+  registering: "Registering: {{done}} of {{count}} people done. You can leave this page; it carries on.",
   cardOrder: "Card order",
   narration: "Narration",
   decisionNarration: "Checker's note",
@@ -5645,9 +5652,13 @@ export const bulkReg = {
   people_other: "{{count}} people",
   noRows: "No rows",
   authoriseTitle: "Authorise the batch",
-  authoriseHint: "Each of the {{count}} people is registered through the normal onboarding now. It can take a few minutes.",
+  authoriseHint: "Each of the {{count}} people is then registered through the normal onboarding, in the background.",
   rejectTitle: "Reject the batch",
   rejectHint: "Nobody in the batch is registered.",
+  searchBatches: "Batch reference or narration",
+  searchEmployers: "Search a company: name, reference, phone or email",
+  noEmployersFound: "No company matches.",
+  change: "Change",
 };
 
 export default {

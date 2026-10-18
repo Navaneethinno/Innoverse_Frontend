@@ -2,10 +2,11 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { cn } from "@/Utils/Lib/utils";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Small pieces shared by the case queue and the case screen.
 
-export const caseDate = (value) => (value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
+export const caseDate = formatDateTime;
 
 // "5h" / "3d 4h" from the case's age in hours.
 export function ageText(hours) {

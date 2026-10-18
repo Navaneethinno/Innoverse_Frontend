@@ -37,7 +37,8 @@ function parseSessionResponse(payload) {
   // array (payload.data: [{ user_session_info, user_details, menu_array }]),
   // unlike other list endpoints that return the array directly as the payload.
   const data = Array.isArray(rawData) ? rawData[0] : rawData;
-  const sessionInfo = data?.user_session_info;
+  // The refresh may send the session fields flat on data[0].
+  const sessionInfo = data?.user_session_info ?? (data?.jwt_token ? data : undefined);
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");
   // The institution's branding (colours, name, logo, favicon, login
@@ -64,6 +65,8 @@ function parseSessionResponse(payload) {
         }
       : null,
     branding,
+    // The institution's date and number formats (login and refresh).
+    formats: data?.formats ?? null,
     // The authenticated user's permission/navigation dataset (menu_id,
     // parent_menu_id, module_id, menu_name, priority, status, actions[]).
     // Kept separate from Master reference data per Phase 24C spec.

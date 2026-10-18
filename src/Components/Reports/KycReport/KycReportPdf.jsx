@@ -6,6 +6,7 @@ import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ink, loadLogo, rgb, tint } from "../Shared/reportPdf";
 import { scoredRisk, screenedAml } from "./kycShared";
+import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 
 // The KYC Report as a printed bank form (A4 portrait): the institution's
 // logo and name on top, its logo faint behind every page, the selfie in a
@@ -14,8 +15,8 @@ import { scoredRisk, screenedAml } from "./kycShared";
 // block for the reviewer.
 
 const rowsOf = (v) => (Array.isArray(v) ? v : []);
-const when = (v) => (v ? new Date(v).toLocaleString() : "");
-const day = (v) => (v ? new Date(v).toLocaleDateString() : "");
+const when = (v) => (v ? formatDateTime(v) : "");
+const day = (v) => (v ? formatDay(v) : "");
 // A status code as words: PENDING_REVIEW -> Pending review.
 const words = (v) => (v ? String(v).toLowerCase().replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()) : "");
 const text = (v) => (v === null || v === undefined ? "" : typeof v === "object" ? Object.values(v).filter((x) => x !== null && x !== "").join(" · ") : String(v));
@@ -183,7 +184,7 @@ async function buildPdf({ data, t, title, brand, logo, selfie, photos }) {
   doc.setFontSize(8);
   doc.setTextColor(71, 85, 105);
   if (brand?.name) doc.text(brand.name, PAGE.w - PAGE.m, y + 9.5, { align: "right" });
-  doc.text(`${t("generatedOn")}: ${new Date().toLocaleString()}`, PAGE.w - PAGE.m, y + 13.5, { align: "right" });
+  doc.text(`${t("generatedOn")}: ${formatDateTime(new Date())}`, PAGE.w - PAGE.m, y + 13.5, { align: "right" });
   y += logoH + 4;
   doc.setFillColor(...accent);
   doc.rect(PAGE.m, y, full, 0.8, "F");

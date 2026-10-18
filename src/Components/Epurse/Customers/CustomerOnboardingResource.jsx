@@ -26,6 +26,7 @@ import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
 import { isStoredCustomerFile } from "./customerFiles";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Customer onboarding — now the same 13-call maker-checker lifecycle as
 // every other entity (Customer_Onboarding_API.md §1): the row's own
@@ -226,7 +227,7 @@ export function CustomerOnboardingResource() {
       label: t("common:authorizationStatus"),
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
     },
-    { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "-") },
+    { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? formatDateTime(r.updated_time) : "-") },
     {
       key: "actions",
       label: t("common:actions"),

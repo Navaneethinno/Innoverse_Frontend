@@ -32,6 +32,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Finance/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
 import { glassCard } from "../Shared/reportShared";
+import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 
 // KYC Report: everything about one customer or merchant on one read-only
 // page (Admin portal handoff "KYC Report"). `api` is the onboarding API of
@@ -40,8 +41,8 @@ import { glassCard } from "../Shared/reportShared";
 
 const rowsOf = (v) => (Array.isArray(v) ? v : []);
 // Every time is ISO 8601 with its offset: shown in the user's local time.
-const when = (v) => (v ? new Date(v).toLocaleString() : "—");
-const day = (v) => (v ? new Date(v).toLocaleDateString() : "—");
+const when = (v) => (v ? formatDateTime(v) : "—");
+const day = (v) => (v ? formatDay(v) : "—");
 const show = (v) => (v === null || v === undefined || v === "" ? "—" : String(v));
 
 function Card({ id, icon, title, count, children, className }) {

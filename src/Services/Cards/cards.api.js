@@ -22,7 +22,7 @@ export const cardNumberLayoutsApi = calls("/config/card/number_layout", [...SETU
 // Operations: Cards (198), Card Requests (199), Card Orders (200), Card Stock (201).
 export const cardsApi = calls("/config/card/instance", ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue"]);
 export const cardRequestsApi = calls("/config/card/request", ["list", "get", "add", "accept", "reject", "deliver"]);
-export const cardOrdersApi = calls("/config/card/order", ["options", "holders", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
+export const cardOrdersApi = calls("/config/card/order", ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
 export const cardStockApi = calls("/config/card/stock", ["options", "list", "assign", "issue"]);
 // PRE Files (158): one emboss file from cards across an issuance group's orders.
 export const preFilesApi = calls("/config/card/prefile", ["list", "generate", "jobs"]);

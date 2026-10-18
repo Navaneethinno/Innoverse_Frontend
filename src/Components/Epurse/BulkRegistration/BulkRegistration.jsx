@@ -28,13 +28,84 @@ function Pill({ tones, code }) {
   return <span className={cn("inline-block rounded-full px-2 py-0.5 text-[10px] font-bold", tones[code] ?? "bg-muted")}>{t(`status_${code}`, { defaultValue: code })}</span>;
 }
 
+// processed_count / row_count while a batch registers.
+function Progress({ batch }) {
+  const pct = batch.row_count ? Math.min(100, Math.round(((batch.processed_count ?? 0) / batch.row_count) * 100)) : 0;
+  return (
+    <span className="block h-1.5 w-full min-w-24 overflow-hidden rounded-full bg-muted" title={`${batch.processed_count ?? 0} / ${batch.row_count}`}>
+      <span className="block h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+    </span>
+  );
+}
+
+// A corporate customer as the batch's employer: a type-ahead (name,
+// reference, phone or email; at most 20 back).
+function EmployerPicker({ value, onChange }) {
+  const { t } = useTranslation("bulkReg");
+  const [term, setTerm] = useState("");
+  const [found, setFound] = useState(null);
+  useEffect(() => {
+    const search = term.trim();
+    if (search.length < 2) {
+      setFound(null);
+      return undefined;
+    }
+    let current = true;
+    const timer = setTimeout(() => {
+      api
+        .employers({ search })
+        .then((r) => current && setFound(rowsOf(r)))
+        .catch((e) => current && (setFound([]), notifications.error(e.message)));
+    }, 300);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [term]);
+  const describe = (e) => [e.phone_number, e.email, e.reference_id && `${e.reference_id.slice(0, 8)}…`].filter(Boolean).join(" · ");
+  if (value) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs">
+        <span className="min-w-0">
+          <b>{value.name || t("unnamed")}</b>
+          <span className="block truncate text-[10px] text-muted-foreground">{describe(value)}</span>
+        </span>
+        <button type="button" onClick={() => onChange(null)} className="shrink-0 text-[11px] font-bold text-primary hover:underline">
+          {t("change")}
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="relative">
+      <input className={inputClass} placeholder={t("searchEmployers")} value={term} onChange={(e) => setTerm(e.target.value)} />
+      {found && (
+        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+          {found.length ? (
+            found.map((e) => (
+              <li key={e.id}>
+                <button type="button" onClick={() => onChange(e)} className="block w-full px-3 py-2 text-left text-xs hover:bg-muted">
+                  <b>{e.name || t("unnamed")}</b>
+                  <span className="block text-[10px] text-muted-foreground">{describe(e)}</span>
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-2 text-xs text-muted-foreground">{t("noEmployersFound")}</li>
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 // EPURSE > Bulk Registration (menu 71): batches of people (a company's
 // employees, say) onboarded as customers once a checker authorises them,
 // with a prepaid card if the batch asks for one.
 export function BulkRegistration() {
   const { t } = useTranslation(["bulkReg", "common"]);
   const can = usePagePermission();
-  const list = usePagedFilters({ batch_status: "" });
+  const list = usePagedFilters({ search: "", batch_status: "" });
   const { applied, page, limit } = list;
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);
@@ -88,7 +159,7 @@ export function BulkRegistration() {
     { key: "card_mode", label: t("card"), render: (b) => <span className="text-xs">{t(`card_${b.card_mode}`, { defaultValue: b.card_mode })}{b.issuance_group_name ? ` · ${b.issuance_group_name}` : ""}</span> },
     { key: "row_count", label: t("rows"), render: (b) => <span className="text-xs font-bold tabular-nums">{b.row_count}</span> },
     { key: "counts", label: t("outcomes"), sortable: false, render: counts },
-    { key: "batch_status", label: t("common:status"), render: (b) => <Pill tones={BATCH_TONES} code={b.batch_status} /> },
+    { key: "batch_status", label: t("common:status"), render: (b) => <span className="grid gap-1"><Pill tones={BATCH_TONES} code={b.batch_status} />{b.batch_status === "PROCESSING" && <Progress batch={b} />}</span> },
     { key: "created_by", label: t("maker"), render: (b) => <span className="whitespace-nowrap text-xs">{b.created_by}<span className="block text-[10px] text-muted-foreground">{accountDate(b.created_time)}</span></span> },
     { key: "decided_by", label: t("checker"), render: (b) => <span className="whitespace-nowrap text-xs">{b.decided_by || "—"}{b.decided_time && <span className="block text-[10px] text-muted-foreground">{accountDate(b.decided_time)}</span>}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (b) => <RowActions buttons={{ view: true }} onView={() => setScreen({ id: b.id })} /> },
@@ -116,6 +187,7 @@ export function BulkRegistration() {
       </div>
       <PagedTable
         {...list}
+        searchPlaceholder={t("searchBatches")}
         filterFields={<FilterSelect value={list.filters.batch_status} onChange={list.set("batch_status")} options={[{ value: "", label: t("anyStatus") }, ...BATCH_STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />}
         columns={columns}
         rows={data.items}
@@ -134,7 +206,7 @@ export function BulkRegistration() {
 function NewBatch({ onClose, onSaved }) {
   const { t } = useTranslation(["bulkReg", "common"]);
   const [options, setOptions] = useState(null);
-  const [form, setForm] = useState({ ownership_sub_type_id: "", employer_id: "", card_mode: "NONE", issuance_group_id: "", narration: "" });
+  const [form, setForm] = useState({ ownership_sub_type_id: "", employer_id: "", employer: null, card_mode: "NONE", issuance_group_id: "", narration: "" });
   const [file, setFile] = useState(null);
   const [checked, setChecked] = useState(null);
   const [busy, setBusy] = useState("");
@@ -225,7 +297,7 @@ function NewBatch({ onClose, onSaved }) {
               <FilterSelect value={form.ownership_sub_type_id} onChange={(v) => set({ ownership_sub_type_id: v })} options={[{ value: "", label: t("choose") }, ...(options.customer_types ?? []).map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))]} />
             </Labelled>
             <Labelled label={t("employerOptional")}>
-              <FilterSelect value={form.employer_id} onChange={(v) => set({ employer_id: v })} options={[{ value: "", label: t("noEmployer") }, ...(options.employers ?? []).map((e) => ({ value: String(e.id), label: `${e.name || t("unnamed")} · #${e.id}` }))]} />
+              <EmployerPicker value={form.employer} onChange={(employer) => set({ employer, employer_id: employer ? String(employer.id) : "" })} />
             </Labelled>
             <Labelled label={t("card")}>
               <FilterSelect value={form.card_mode} onChange={(v) => set({ card_mode: v, issuance_group_id: "" })} options={(options.card_modes ?? ["NONE"]).map((m) => ({ value: m, label: t(`card_${m}`, { defaultValue: m }) }))} />
@@ -316,6 +388,14 @@ function BatchView({ id, onBack }) {
     void reload();
   }, [reload]);
   useLiveChannel(api.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
+  // While the rows register, ask again every few seconds (the live channel's
+  // `done` also refreshes it).
+  const processing = batch?.batch_status === "PROCESSING";
+  useEffect(() => {
+    if (!processing) return undefined;
+    const timer = setInterval(() => void reload(), 4000);
+    return () => clearInterval(timer);
+  }, [processing, reload]);
 
   const decide = async (verb, narration) => {
     setBusy(verb);
@@ -379,10 +459,13 @@ function BatchView({ id, onBack }) {
           </div>
           <ActionButtons buttons={buttons} busy={Boolean(busy)} />
         </div>
-        {busy === "auth" && (
-          <p className="mt-3 flex items-center gap-2 rounded-xl bg-[var(--primary-light)] px-3 py-2 text-xs font-semibold text-primary">
-            <Spinner size={14} /> {t("registering", { count: batch.row_count })}
-          </p>
+        {processing && (
+          <div className="mt-3 grid gap-1.5 rounded-xl bg-[var(--primary-light)] px-3 py-2 text-xs font-semibold text-primary">
+            <span className="flex items-center gap-2">
+              <Spinner size={14} /> {t("registering", { done: batch.processed_count ?? 0, count: batch.row_count })}
+            </span>
+            <Progress batch={batch} />
+          </div>
         )}
       </div>
 

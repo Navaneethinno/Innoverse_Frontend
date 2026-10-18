@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "motion/react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
+import { formatDay } from "@/Utils/Lib/dateFormat";
 
 // The app's date picker, in place of <input type="date">: same props
 // (value / min / max as YYYY-MM-DD, onChange gets { target: { value } }),
@@ -81,9 +82,8 @@ export function DateInput({ value, onChange, min, max, disabled, className, titl
     };
   }, [open]);
 
-  const label = selected
-    ? new Date(Date.UTC(selected.y, selected.m, selected.d)).toLocaleDateString(locale, { timeZone: "UTC", day: "2-digit", month: "short", year: "numeric" })
-    : "";
+  // Shown in the institution's date format; the value stays YYYY-MM-DD.
+  const label = selected ? formatDay(`${selected.y}-${String(selected.m + 1).padStart(2, "0")}-${String(selected.d).padStart(2, "0")}`) : "";
   const monthName = (m, style = "long") => new Date(Date.UTC(2000, m, 1)).toLocaleDateString(locale, { timeZone: "UTC", month: style });
   const weekdays = Array.from({ length: 7 }, (_, i) => new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(locale, { timeZone: "UTC", weekday: "narrow" }));
 

@@ -7,6 +7,7 @@ import { useHasUserAction, useMyProfileQuery } from "@/Hooks/UserManagement/user
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { Skeleton } from "@/Components/UI/skeleton";
+import { formatDay } from "@/Utils/Lib/dateFormat";
 
 // "My profile", opened from the header's user menu: the signed-in user's own
 // record from /config/user/get. Read-only — changes to a user go through the
@@ -28,10 +29,8 @@ const initials = (u) => {
   return source.map((p) => String(p)[0]).join("").slice(0, 2).toUpperCase();
 };
 
-function formatDate(value, language) {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString(language, { year: "numeric", month: "long", day: "numeric" });
+function formatDate(value) {
+  return value ? formatDay(value) : null;
 }
 
 function Field({ label, value, copy, href, wrap = false }) {

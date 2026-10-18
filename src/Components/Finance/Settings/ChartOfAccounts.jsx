@@ -440,7 +440,7 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
               const p = (options.parents ?? []).find((x) => String(x.id) === v);
               setValues((x) => ({ ...x, parent_id: Number(v), ...(p ? { gl_type: p.gl_type } : {}) }));
             }}
-            options={[{ value: "0", label: t("topLevel") }, ...(options.parents ?? []).filter((p) => p.id !== gl?.id && !p.has_pl).map((p) => ({ value: String(p.id), label: p.path }))]}
+            options={[{ value: "0", label: t("topLevel") }, ...(options.parents ?? []).filter((p) => p.id !== gl?.id).map((p) => ({ value: String(p.id), label: p.path }))]}
           />
         </label>
         <label className={labelClass}>

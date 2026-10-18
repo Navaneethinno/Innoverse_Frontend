@@ -7,20 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/Components/UI/select";
+import { DATE_FORMATS } from "@/Utils/Lib/dateFormat";
 
-// Matches the `date_format` string the real /institution/profile/add and
-// /edit endpoints expect verbatim (confirmed via Postman collection, e.g.
-// "DD-MM-YYYY" in the sample body) — these are just the common choices a
-// picker offers; the value sent to the API is unchanged, still a plain
-// string in this same format.
-const DATE_FORMAT_OPTIONS = [
-  "DD-MM-YYYY",
-  "MM-DD-YYYY",
-  "YYYY-MM-DD",
-  "DD/MM/YYYY",
-  "MM/DD/YYYY",
-  "YYYY/MM/DD",
-];
+// The values the API accepts for `date_format` (any other is refused);
+// display only, dates are still sent as YYYY-MM-DD.
+const DATE_FORMAT_OPTIONS = DATE_FORMATS;
 
 export function DateFormatField({ label, value, onChange }) {
   const { t } = useTranslation();

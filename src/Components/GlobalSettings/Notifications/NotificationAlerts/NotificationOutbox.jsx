@@ -13,6 +13,7 @@ import { notificationAlertApi, notificationOutboxApi } from "@/Services/Epurse/n
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ViewItem } from "../notificationShared";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Tabs are delivery_status (the maker-checker `filter` tabs don't apply).
 const TABS = [
@@ -21,7 +22,7 @@ const TABS = [
   ["SENT", "notification:tabSent", CheckCircle2],
   ["FAILED", "notification:tabFailed", XCircle],
 ];
-const when = (value) => (value ? new Date(value).toLocaleString() : "-");
+const when = (value) => (value ? formatDateTime(value) : "-");
 const ChannelIcon = ({ channel }) => (channel === "SMS" ? <MessageSquare size={13} /> : <Mail size={13} />);
 
 // Read-only list of the messages alerts produced — one row per recipient and

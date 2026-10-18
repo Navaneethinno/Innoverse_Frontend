@@ -6,16 +6,18 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
+import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 
 // Account display shared by the Accounts screen and the customer/merchant
 // detail. Balances come rounded to the currency's decimals already.
 // Amounts in the institution's number format (login formats.number_format).
 export const money = (value, currency) => (value == null ? "—" : `${formatNumber(value, { min: 2, max: 6 })}${currency ? ` ${currency}` : ""}`);
 
-export const accountDate = (value) => (value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
+// Dates in the institution's date format (login formats.date_format).
+export const accountDate = formatDateTime;
 
 // A date-only value (YYYY-MM-DD), as a local date without a time shift.
-export const dayDate = (value) => (value ? new Date(`${String(value).slice(0, 10)}T00:00:00`).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—");
+export const dayDate = formatDay;
 
 export const productLabel = (code, name) => [name, code].filter(Boolean).join(" · ") || "—";
 

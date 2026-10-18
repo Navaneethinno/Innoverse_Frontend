@@ -4408,7 +4408,7 @@ export const cards = {
   waitingForChecker: "À espera de um verificador",
   withdrawOrder: "Retirar pedido",
   withdrawOrderHint: "Só um pedido ainda não aprovado, pelo utilizador que o registou.",
-  orderPersoHint: "Personalizado: escolha os pedidos a fazer.",
+  orderPersoHint: "Personalizado: escolha os titulares (é criado um pedido para cada um) e/ou pedidos em aberto.",
   orderInstantHint: "Imediato: cartões em branco para stock.",
   toHint_BLOCKED: "O cartão deixa de funcionar até ser desbloqueado. Um cliente não pode desbloquear um bloqueio da equipa.",
   toHint_ACTIVE: "Desbloqueia-o (um cartão nunca ativado volta a aguardar ativação).",
@@ -4782,6 +4782,13 @@ export const cards = {
   receiveSubtitle: "Encomendas cujo ficheiro PRE foi para o bureau: registe os cartões recebidos e um verificador aprova a receção.",
   noOrdersToReceive: "Sem encomendas a receber",
   noOrdersToReceiveHint: "As encomendas aparecem aqui quando os cartões estão num ficheiro PRE.",
+  narrationOptional: "Narração (opcional)",
+  loadingWallets: "A procurar a carteira que paga a taxa do cartão…",
+  noPayingWallet: "Este titular não tem carteira ativa que possa pagar um cartão deste produto.",
+  feeFrom: "Taxa do cartão de {{wallet}}",
+  feeWallet: "Carteira que paga a taxa do cartão",
+  defaultWallet: "padrão",
+  layoutInUse: "Já foram numerados cartões com este layout: só o nome e a descrição podem mudar.",
 };
 
 export const kycReport = {
@@ -5651,7 +5658,7 @@ export const bulkReg = {
   customerRef: "Referência do cliente",
   account: "Conta",
   reason: "Motivo / notas",
-  registering: "A registar {{count}} pessoas. Pode demorar alguns minutos; mantenha esta página aberta.",
+  registering: "A registar: {{done}} de {{count}} pessoas concluídas. Pode sair desta página; o processo continua.",
   cardOrder: "Encomenda de cartões",
   narration: "Narração",
   decisionNarration: "Nota do verificador",
@@ -5659,9 +5666,13 @@ export const bulkReg = {
   people_other: "{{count}} pessoas",
   noRows: "Sem linhas",
   authoriseTitle: "Autorizar o lote",
-  authoriseHint: "Cada uma das {{count}} pessoas é registada agora pelo processo normal de integração. Pode demorar alguns minutos.",
+  authoriseHint: "Cada uma das {{count}} pessoas é depois registada pelo processo normal de integração, em segundo plano.",
   rejectTitle: "Rejeitar o lote",
   rejectHint: "Ninguém do lote é registado.",
+  searchBatches: "Referência do lote ou narração",
+  searchEmployers: "Pesquisar empresa: nome, referência, telefone ou email",
+  noEmployersFound: "Nenhuma empresa corresponde.",
+  change: "Alterar",
 };
 
 export default {

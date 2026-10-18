@@ -9,7 +9,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { cardOrdersApi, cardRequestsApi, cardsApi } from "@/Services/Cards/cards.api";
@@ -202,6 +202,7 @@ function NewOrder({ groups, onClose, onDone }) {
               entity_id: h.entity_id,
               ...(h.name_on_card.trim() ? { name_on_card: h.name_on_card.trim() } : {}),
               ...(h.delivery_mode ? { delivery_mode: h.delivery_mode, ...(h.delivery_ref.trim() ? { delivery_ref: h.delivery_ref.trim() } : {}) } : {}),
+              ...(h.funding_acct_id ? { funding_acct_id: Number(h.funding_acct_id) } : {}),
             })),
             ...(picked.length ? { request_ids: picked } : {}),
           }
@@ -216,8 +217,21 @@ function NewOrder({ groups, onClose, onDone }) {
     }
   };
   const toggle = (id) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
-  const addHolder = (h) =>
-    setHolders((list) => (list.some((x) => x.entity_type === h.entity_type && x.entity_id === h.entity_id) ? list : [...list, { ...h, name_on_card: h.name ?? "", delivery_mode: "", delivery_ref: "" }]));
+  const sameHolder = (a, b) => a.entity_type === b.entity_type && a.entity_id === b.entity_id;
+  // A new holder, then the wallets that can pay for the card (the first is
+  // the default the server uses when none is sent).
+  const addHolder = (h) => {
+    if (holders.some((x) => sameHolder(x, h))) return;
+    setHolders((list) => [...list, { ...h, name_on_card: h.name ?? "", delivery_mode: "", delivery_ref: "", wallets: null, funding_acct_id: "" }]);
+    cardOrdersApi
+      .holder_wallets({ entity_type: h.entity_type, entity_id: h.entity_id, card_product_id: group.card_product_id })
+      .then((r) => {
+        const wallets = rowsOf(r);
+        const preset = wallets.find((w) => w.is_default) ?? wallets[0];
+        setHolders((list) => list.map((x) => (sameHolder(x, h) ? { ...x, wallets, funding_acct_id: preset ? String(preset.acct_id) : "" } : x)));
+      })
+      .catch(() => setHolders((list) => list.map((x) => (sameHolder(x, h) ? { ...x, wallets: [] } : x))));
+  };
   const setHolder = (i, patch) => setHolders((list) => list.map((h, j) => (j === i ? { ...h, ...patch } : h)));
 
   return (
@@ -268,6 +282,9 @@ function NewOrder({ groups, onClose, onDone }) {
                         <FilterSelect size="sm" value={h.delivery_mode} onChange={(v) => setHolder(i, { delivery_mode: v })} options={[{ value: "", label: t("deliveryDefault") }, ...["BRANCH_PICKUP", "COURIER", "AGENT"].map((m) => ({ value: m, label: cardWord(t, "opt", m) }))]} />
                         {h.delivery_mode && h.delivery_mode !== "BRANCH_PICKUP" && <input className={inputClass} placeholder={t("deliveryRef")} value={h.delivery_ref} onChange={(e) => setHolder(i, { delivery_ref: e.target.value })} />}
                       </div>
+                      <div className="sm:col-span-3">
+                        <HolderWallet holder={h} onChange={(funding_acct_id) => setHolder(i, { funding_acct_id })} />
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -304,6 +321,22 @@ function NewOrder({ groups, onClose, onDone }) {
         <Problems message={error} />
       </div>
     </Modal>
+  );
+}
+
+// The wallet that pays the holder's card fee: a picker only when there is
+// more than one; none means the holder cannot pay (the server refuses).
+function HolderWallet({ holder, onChange }) {
+  const { t } = useTranslation("cards");
+  const { wallets, funding_acct_id: picked } = holder;
+  if (wallets === null) return <span className="text-[11px] text-muted-foreground">{t("loadingWallets")}</span>;
+  if (!wallets.length) return <span className="text-[11px] font-semibold text-amber-700">{t("noPayingWallet")}</span>;
+  const label = (w) => `${w.acct_num} · ${w.acct_product_name} · ${money(w.avail_bal, w.currency_code)}`;
+  if (wallets.length === 1) return <span className="text-[11px] text-muted-foreground">{t("feeFrom", { wallet: label(wallets[0]) })}</span>;
+  return (
+    <Labelled label={t("feeWallet")}>
+      <FilterSelect size="sm" value={picked} onChange={onChange} options={wallets.map((w) => ({ value: String(w.acct_id), label: `${label(w)}${w.is_default ? ` · ${t("defaultWallet")}` : ""}` }))} />
+    </Labelled>
   );
 }
 

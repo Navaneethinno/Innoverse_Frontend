@@ -24,6 +24,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ExportButtons, glassCard, useReportDetail } from "../Shared/reportShared";
 import { KycReportView } from "./KycReportView";
 import { CustomerStateBadges } from "@/Components/Epurse/Customers/customerPortal";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Reports > KYC Report (group 204): Customer KYC Report (206) and Merchant
 // KYC Report (205). A list of the onboarding records, Individual |
@@ -110,7 +111,7 @@ function KycReportList({ audience }) {
     {
       key: "updated_time",
       label: t("lastActivity"),
-      render: (r) => (r.updated_time ? new Date(r.updated_time).toLocaleString() : "—"),
+      render: (r) => (r.updated_time ? formatDateTime(r.updated_time) : "—"),
     },
     {
       key: "actions",

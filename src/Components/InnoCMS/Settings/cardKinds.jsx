@@ -671,9 +671,11 @@ function LayoutPreview({ answer }) {
   );
 }
 
-function LayoutForm({ values: v, set, options, locked }) {
+function LayoutForm({ values: v, set, options, locked, record }) {
   const { t } = useTranslation("cards");
   const answer = useLayoutPreview(v);
+  // Cards are numbered by it: only the name and description can change.
+  const limited = Boolean(record?.actions?.edit_limited);
   const widths = options.widths ?? {};
   const bad = codeProblems(v);
   const setCode = (part, value, code) => set({ part_codes: { ...v.part_codes, [part]: { ...(v.part_codes?.[part] ?? {}), [value]: code.replace(/\D/g, "") } } });
@@ -691,7 +693,7 @@ function LayoutForm({ values: v, set, options, locked }) {
             <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, (b) => b.extra && t("binLengthMin", { value: b.extra })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
           </F>
           <F label={t("panLength")}>
-            <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />
+            <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} disabled={limited} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />
           </F>
           <F label={t("description")} span="md:col-span-2">
             <Field field={{}} value={v.description} onChange={(x) => set({ description: x })} />
@@ -699,11 +701,11 @@ function LayoutForm({ values: v, set, options, locked }) {
         </div>
       </Section>
       <Section title={t("layoutParts")}>
-        <p className="mb-3 text-xs text-muted-foreground">{t("layoutPartsHint")}</p>
+        <p className={cn("mb-3 text-xs", limited ? "font-semibold text-amber-700" : "text-muted-foreground")}>{t(limited ? "layoutInUse" : "layoutPartsHint")}</p>
         <div className={cn(grid, "lg:grid-cols-4")}>
           {PARTS.map((part) => (
             <F key={part} label={t(`part_${part}`)} hint={t("widthUpTo", { count: widths[part] ?? 2 })}>
-              <Field field={{ type: "select", options: Array.from({ length: (widths[part] ?? 2) + 1 }, (_, n) => ({ value: String(n), label: n ? t("digitsN", { count: n }) : t("notInNumber") })) }} value={String(v[widthKey(part)] ?? 0)} onChange={(x) => set({ [widthKey(part)]: x })} />
+              <Field field={{ type: "select", options: Array.from({ length: (widths[part] ?? 2) + 1 }, (_, n) => ({ value: String(n), label: n ? t("digitsN", { count: n }) : t("notInNumber") })) }} disabled={limited} value={String(v[widthKey(part)] ?? 0)} onChange={(x) => set({ [widthKey(part)]: x })} />
             </F>
           ))}
         </div>
@@ -715,7 +717,7 @@ function LayoutForm({ values: v, set, options, locked }) {
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
               {(options.part_values?.[part] ?? []).map((value) => (
                 <F key={value} label={t(part === "customer_type" ? `holder_${value}` : value, { defaultValue: loanLabel(t, value) })}>
-                  <Field field={{}} value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, num(v[widthKey(part)])))} />
+                  <Field field={{}} disabled={limited} value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, num(v[widthKey(part)])))} />
                 </F>
               ))}
             </div>

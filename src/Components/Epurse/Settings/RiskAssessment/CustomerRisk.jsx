@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { RISK_KINDS, RiskPointsTable } from "./riskShared";
 import { useRiskOptions } from "./useRiskOptions";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // A customer's risk as the customer APIs return it. For now it is only
 // recorded and shown — onboarding carries on the same whatever the action.
@@ -105,7 +106,7 @@ function RiskScores({ kind, instProfileId, entries }) {
 
 const assessedNote = (t, result) =>
   result?.assessed_at
-    ? t("assessedAt", { when: new Date(result.assessed_at).toLocaleString() })
+    ? t("assessedAt", { when: formatDateTime(result.assessed_at) })
     : null;
 
 // Customer detail (wizard): `risk` follows the answers as the maker fills

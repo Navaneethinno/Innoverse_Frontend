@@ -37,7 +37,12 @@ function useRiskActions(api) {
   useEffect(() => {
     api
       .getActive({ view: "dropdown" })
-      .then((r) => setActions(rowsOf(r)))
+      .then((r) => {
+        const list = rowsOf(r);
+        // Several institutions in scope: say whose each action is.
+        const many = new Set(list.map((a) => a.inst_profile_id)).size > 1;
+        setActions(list.map((a) => ({ ...a, label: many && a.inst_profile_name ? `${a.name} · ${a.inst_profile_name}` : a.name })));
+      })
       .catch(() => setActions([]));
   }, [api]);
   return actions;
@@ -306,14 +311,14 @@ export function AMLScoreBreakdown() {
               className="w-44"
               value={filters.risk_action_id}
               onChange={(v) => set({ risk_action_id: v })}
-              options={[{ value: "", label: t("allCustomerRiskActions") }, ...actions.map((a) => ({ value: String(a.id), label: a.name }))]}
+              options={[{ value: "", label: t("allCustomerRiskActions") }, ...actions.map((a) => ({ value: String(a.id), label: a.label }))]}
             />
             <FilterSelect
               size="sm"
               className="w-44"
               value={filters.merchant_risk_action_id}
               onChange={(v) => set({ merchant_risk_action_id: v })}
-              options={[{ value: "", label: t("allMerchantRiskActions") }, ...merchantActions.map((a) => ({ value: String(a.id), label: a.name }))]}
+              options={[{ value: "", label: t("allMerchantRiskActions") }, ...merchantActions.map((a) => ({ value: String(a.id), label: a.label }))]}
             />
             <FilterSelect
               size="sm"

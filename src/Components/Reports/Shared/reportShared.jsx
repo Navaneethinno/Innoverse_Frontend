@@ -6,15 +6,22 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
+import { formatDay } from "@/Utils/Lib/dateFormat";
 
 // Shared by every Reports screen (read-only; handoffs 08–09).
 
 export const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 const dateInput = "w-auto min-w-[8.5rem] rounded-lg border px-2.5 py-1.5 text-xs";
 
-// JSON times are UTC; reports show them in platform time (IST).
-export const atIst = (value) =>
-  value ? new Date(value).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "-";
+// JSON times are UTC; reports show them in platform time (IST), the date
+// in the institution's date format.
+const IST = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+export const atIst = (value) => {
+  const d = value ? new Date(value) : null;
+  if (!d || Number.isNaN(d.getTime())) return "-";
+  const p = Object.fromEntries(IST.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${formatDay(`${p.year}-${p.month}-${p.day}`)} ${p.hour}:${p.minute}:${p.second}`;
+};
 
 // "22 Sep – 28 Sep 2026" for a resolved range of YYYY-MM-DD days.
 const day = (iso, withYear) =>

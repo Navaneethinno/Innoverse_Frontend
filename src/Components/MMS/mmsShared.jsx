@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // A merchant-side party is addressed by { entity_type, entity_id }.
 export const partyRef = (p) => (p ? { entity_type: p.entity_type, entity_id: p.entity_id } : null);
@@ -38,4 +39,4 @@ export function RoleBadge({ value }) {
   return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold", TIER_TONES[value] ?? "bg-muted")}>{t(`role_${value}`, { defaultValue: value })}</span>;
 }
 
-export const mmsDate = (value) => (value ? new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—");
+export const mmsDate = formatDateTime;

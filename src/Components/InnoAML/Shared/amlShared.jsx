@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ExternalLink } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Shared by every InnoAML screen (AML handoffs 03–07). The AML score and band
 // are separate from the risk-assessment score: shown side by side, never
@@ -9,7 +10,7 @@ import { useAuth } from "@/Hooks/useAuth";
 const GOOD = "bg-[color-mix(in_srgb,var(--success)_14%,transparent)] text-success";
 const BAD = "bg-[color-mix(in_srgb,var(--destructive)_12%,transparent)] text-destructive";
 
-export const when = (value) => (value ? new Date(value).toLocaleString() : "-");
+export const when = (value) => (value ? formatDateTime(value) : "-");
 export const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 
 // Calls that take inst_profile_id only from Service Provider users (upload,

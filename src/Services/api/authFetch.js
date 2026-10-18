@@ -20,7 +20,9 @@ async function renew() {
     const response = await refreshTokenRequest();
     // Refresh may not re-send scope or the session user id: keep the login's.
     const stored = readAuthUser();
-    const user = response.user ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope } : stored;
+    const base = response.user ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope } : stored;
+    // The refresh carries the institution's current formats: replace them.
+    const user = base && response.formats ? { ...base, formats: response.formats } : base;
     persistAuthSession(user, response.access_token, response.refresh_token);
     store.dispatch(setSession({ token: response.access_token, refreshToken: response.refresh_token, user }));
     return true;
