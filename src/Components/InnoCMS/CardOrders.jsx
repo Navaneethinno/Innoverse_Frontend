@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, RefreshCw, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, RefreshCw, X, XCircle } from "lucide-react";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -154,12 +155,15 @@ export function CardOrders() {
   );
 }
 
-// A new order: an instant group takes a quantity, a personalised group the
-// requests an order can take now.
+// A new order: an instant group takes a quantity; a personalised group
+// takes holders picked here (the server makes a card request for each, fee
+// from the holder's wallet) and/or open requests. All holders or nothing.
 function NewOrder({ groups, onClose, onDone }) {
   const { t } = useTranslation("cards");
   const [groupId, setGroupId] = useState(groups[0] ? String(groups[0].id) : "");
   const [quantity, setQuantity] = useState("");
+  const [holders, setHolders] = useState([]);
+  const [narration, setNarration] = useState("");
   const [requests, setRequests] = useState(null);
   const [picked, setPicked] = useState([]);
   const [error, setError] = useState("");
@@ -170,6 +174,7 @@ function NewOrder({ groups, onClose, onDone }) {
 
   useEffect(() => {
     setPicked([]);
+    setHolders([]);
     setRequests(null);
     if (!personalised) return undefined;
     let cancelled = false;
@@ -180,14 +185,26 @@ function NewOrder({ groups, onClose, onDone }) {
     return () => {
       cancelled = true;
     };
-  }, [personalised, group?.card_product_id]);
+  }, [personalised, group?.id, group?.card_product_id]);
 
-  const ready = group && (personalised ? picked.length > 0 : Number(quantity) >= 1 && Number(quantity) <= max);
+  const count = holders.length + picked.length;
+  const ready = group && (personalised ? count > 0 && count <= max && (!group.emboss_name_required || holders.every((h) => h.name_on_card.trim())) : Number(quantity) >= 1 && Number(quantity) <= max);
   const send = async () => {
     setBusy(true);
     setError("");
     try {
-      const response = await cardOrdersApi.add({ issuance_group_id: group.id, ...(personalised ? { request_ids: picked } : { quantity: Number(quantity) }) });
+      const body = personalised
+        ? {
+            holders: holders.map((h) => ({
+              entity_type: h.entity_type,
+              entity_id: h.entity_id,
+              ...(h.name_on_card.trim() ? { name_on_card: h.name_on_card.trim() } : {}),
+              ...(h.delivery_mode ? { delivery_mode: h.delivery_mode, ...(h.delivery_ref.trim() ? { delivery_ref: h.delivery_ref.trim() } : {}) } : {}),
+            })),
+            ...(picked.length ? { request_ids: picked } : {}),
+          }
+        : { quantity: Number(quantity) };
+      const response = await cardOrdersApi.add({ issuance_group_id: group.id, ...body, ...(narration.trim() ? { narration: narration.trim() } : {}) });
       notifications.success(response?.message ?? t("orderFiled"));
       onDone(rowsOf(response)[0]);
     } catch (e) {
@@ -197,12 +214,15 @@ function NewOrder({ groups, onClose, onDone }) {
     }
   };
   const toggle = (id) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  const addHolder = (h) =>
+    setHolders((list) => (list.some((x) => x.entity_type === h.entity_type && x.entity_id === h.entity_id) ? list : [...list, { ...h, name_on_card: h.name ?? "", delivery_mode: "", delivery_ref: "" }]));
+  const setHolder = (i, patch) => setHolders((list) => list.map((h, j) => (j === i ? { ...h, ...patch } : h)));
 
   return (
     <Modal
       open
       onClose={onClose}
-      size="md"
+      size={personalised ? "lg" : "md"}
       title={t("newOrder")}
       footer={
         <>
@@ -210,7 +230,7 @@ function NewOrder({ groups, onClose, onDone }) {
             {t("cancel")}
           </Button>
           <Button icon={CheckCircle2} loading={busy} disabled={!ready} onClick={send}>
-            {t("fileOrder")}
+            {personalised ? t("fileOrderN", { count }) : t("fileOrder")}
           </Button>
         </>
       }
@@ -219,38 +239,123 @@ function NewOrder({ groups, onClose, onDone }) {
         <Labelled label={t("group")} hint={group && t(personalised ? "orderPersoHint" : "orderInstantHint")}>
           <FilterSelect value={groupId} onChange={setGroupId} options={groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name} · ${cardWord(t, "opt", g.perso_mode)}` }))} />
         </Labelled>
+        {group && personalised && group.customer_type && group.customer_type !== "ALL" && <p className="text-xs text-muted-foreground">{t("groupHolderType", { type: t(`holder_${group.customer_type}`, { defaultValue: group.customer_type }) })}</p>}
         {group && !personalised && (
-          <Labelled label={t("quantity")} hint={t("upToN", { count: max })}>
+          <Labelled label={t("numberOfCards")} hint={t("upToN", { count: max })}>
             <input className={inputClass} inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, "").slice(0, 4))} />
           </Labelled>
         )}
         {personalised && (
-          <div>
-            <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("requestsToOrder", { count: picked.length })}</p>
-            {requests === null ? (
-              <Spinner size={16} />
-            ) : requests.length ? (
-              <div className="grid max-h-72 gap-1.5 overflow-y-auto">
-                {requests.map((r) => (
-                  <label key={r.id} className={cn("flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-xs transition-colors", picked.includes(r.id) ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50")}>
-                    <input type="checkbox" checked={picked.includes(r.id)} onChange={() => toggle(r.id)} className="accent-[var(--primary)]" />
-                    <span className="min-w-0 flex-1">
-                      <span className="font-bold">{r.holder_name}</span> · {r.name_on_card}
-                      <span className="block text-[10px] text-muted-foreground">
-                        {r.request_ref} · {cardWord(t, "rtype", r.request_type)} · {cardWord(t, "opt", r.delivery_mode)}
+          <>
+            <div>
+              <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("holdersN", { count: holders.length })}</p>
+              <HolderSearch customerType={group.customer_type} onPick={addHolder} />
+              {holders.length > 0 && (
+                <ul className="mt-2 grid max-h-80 gap-1.5 overflow-y-auto">
+                  {holders.map((h, i) => (
+                    <li key={`${h.entity_type}:${h.entity_id}`} className="grid gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                      <span className="min-w-0">
+                        <span className="block truncate font-bold">{h.name}</span>
+                        <span className="block truncate text-[10px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
                       </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t("noOrderableRequests")}</p>
-            )}
-          </div>
+                      <Labelled label={t("nameOnCard")} hint={!group.emboss_name_required ? t("nameOnCardBlankHint") : undefined}>
+                        <input className={inputClass} value={h.name_on_card} onChange={(e) => setHolder(i, { name_on_card: e.target.value.slice(0, 26) })} />
+                      </Labelled>
+                      <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => setHolders((list) => list.filter((_, j) => j !== i))} />
+                      <div className="grid gap-2 sm:col-span-3 sm:grid-cols-2">
+                        <FilterSelect size="sm" value={h.delivery_mode} onChange={(v) => setHolder(i, { delivery_mode: v })} options={[{ value: "", label: t("deliveryDefault") }, ...["BRANCH_PICKUP", "COURIER", "AGENT"].map((m) => ({ value: m, label: cardWord(t, "opt", m) }))]} />
+                        {h.delivery_mode && h.delivery_mode !== "BRANCH_PICKUP" && <input className={inputClass} placeholder={t("deliveryRef")} value={h.delivery_ref} onChange={(e) => setHolder(i, { delivery_ref: e.target.value })} />}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("requestsToOrder", { count: picked.length })}</p>
+              {requests === null ? (
+                <Spinner size={16} />
+              ) : requests.length ? (
+                <div className="grid max-h-56 gap-1.5 overflow-y-auto">
+                  {requests.map((r) => (
+                    <label key={r.id} className={cn("flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 text-xs transition-colors", picked.includes(r.id) ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50")}>
+                      <input type="checkbox" checked={picked.includes(r.id)} onChange={() => toggle(r.id)} className="accent-[var(--primary)]" />
+                      <span className="min-w-0 flex-1">
+                        <span className="font-bold">{r.holder_name}</span> · {r.name_on_card}
+                        <span className="block text-[10px] text-muted-foreground">
+                          {r.request_ref} · {cardWord(t, "rtype", r.request_type)} · {cardWord(t, "opt", r.delivery_mode)}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">{t("noOrderableRequests")}</p>
+              )}
+            </div>
+            {count > max && <p className="text-xs font-semibold text-amber-700">{t("upToN", { count: max })}</p>}
+          </>
         )}
+        <Labelled label={t("narrationOptional")}>
+          <input className={inputClass} value={narration} onChange={(e) => setNarration(e.target.value.slice(0, 255))} />
+        </Labelled>
         <Problems message={error} />
       </div>
     </Modal>
+  );
+}
+
+// Type-ahead over Active holders of the group's type (at least 2
+// characters of a name, phone number or email; the server sends at most 20).
+function HolderSearch({ customerType, onPick }) {
+  const { t } = useTranslation("cards");
+  const [term, setTerm] = useState("");
+  const [found, setFound] = useState(null);
+  useEffect(() => {
+    const search = term.trim();
+    if (search.length < 2) {
+      setFound(null);
+      return undefined;
+    }
+    let current = true;
+    const timer = setTimeout(() => {
+      cardOrdersApi
+        .holders({ search, customer_type: customerType || "ALL" })
+        .then((r) => current && setFound(rowsOf(r)))
+        .catch((e) => current && (setFound([]), notifications.error(e.message)));
+    }, 300);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [term, customerType]);
+  return (
+    <div className="relative">
+      <input className={inputClass} placeholder={t("searchHolders")} value={term} onChange={(e) => setTerm(e.target.value)} />
+      {found && (
+        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
+          {found.length ? (
+            found.map((h) => (
+              <li key={`${h.entity_type}:${h.entity_id}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPick(h);
+                    setTerm("");
+                  }}
+                  className="block w-full px-3 py-2 text-left text-xs hover:bg-muted"
+                >
+                  <span className="font-bold">{h.name}</span>
+                  <span className="block text-[10px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-2 text-xs text-muted-foreground">{t("noHoldersFound")}</li>
+          )}
+        </ul>
+      )}
+    </div>
   );
 }
 

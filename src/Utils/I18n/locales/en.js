@@ -4708,6 +4708,16 @@ export const cards = {
   needLayoutCode: "Enter a layout code (A–Z, 0–9, _).",
   needLayoutName: "Enter a layout name.",
   needPartCodes: "Fix the part codes.",
+  numberOfCards: "Number of cards",
+  holdersN_one: "{{count}} holder",
+  holdersN_other: "{{count}} holders",
+  searchHolders: "Search a holder by name, phone or email (2+ characters)",
+  noHoldersFound: "No active holder of this type matches.",
+  nameOnCardBlankHint: "Left empty, the holder's name is used.",
+  deliveryDefault: "Delivery: default",
+  groupHolderType: "This group orders cards for: {{type}}.",
+  fileOrderN_one: "File order ({{count}} card)",
+  fileOrderN_other: "File order ({{count}} cards)",
 };
 
 export const kycReport = {
