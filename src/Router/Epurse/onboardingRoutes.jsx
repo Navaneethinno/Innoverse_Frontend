@@ -59,6 +59,9 @@ const Accounts = lazy(() => import("@/Components/Finance/Accounts/Accounts.jsx")
 onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { path: "accounts/:id", element: pageElement(Accounts) });
 
 // CASE MANAGEMENT > Onboarding Cases (menu 179).
+const BulkRegistration = lazy(() => import("@/Components/Epurse/BulkRegistration/BulkRegistration.jsx").then((m) => ({ default: m.BulkRegistration })));
+onboardingRoutes.push({ path: "bulkregistration", element: pageElement(BulkRegistration) }, { path: "bulkregistration/:id", element: pageElement(BulkRegistration) });
+
 const OnboardingCases = lazy(() => import("@/Components/CaseManagement/OnboardingCases/OnboardingCases.jsx").then((m) => ({ default: m.OnboardingCases })));
 onboardingRoutes.push({ path: "onboardingcases", element: pageElement(OnboardingCases) }, { path: "onboardingcases/:id", element: pageElement(OnboardingCases) });
 

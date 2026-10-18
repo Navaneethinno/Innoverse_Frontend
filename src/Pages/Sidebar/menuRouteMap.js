@@ -106,7 +106,6 @@ const MENU_PAGES = {
   "corporate customers": { slug: "onboardingwizard", branch: "corporate" },
   "individual merchants": { slug: "onboardingwizard", branch: "individual" },
   "corporate merchants": { slug: "onboardingwizard", branch: "corporate" },
-  "bulk registration": { soon: true },
   // Finance
   "account products": { slug: "accountproduct", also: ACCOUNT_CONFIGS },
   "finance transaction": "manualjournal",
