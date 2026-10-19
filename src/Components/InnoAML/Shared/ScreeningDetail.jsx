@@ -1,17 +1,38 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ChevronDown, History, Send } from "lucide-react";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { amlLookupApi, amlReviewApi, amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone, when } from "./amlShared";
+import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, ReviewStateBadge, WeightNote, matchScore, when } from "./amlShared";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
+
+// "innoverse_aml_list_os_peps_v35" -> "OS_PEPS": the list, not its index.
+const listCode = (index) => String(index).replace(/^innoverse_aml_list_/, "").replace(/_v\d+$/, "").toUpperCase();
+
+// A score as a ring, coloured like the match tone.
+function ScoreRing({ score, size = 52, colour }) {
+  const value = Math.max(0, Math.min(100, Number(score) || 0));
+  const r = 20;
+  const c = 2 * Math.PI * r;
+  const stroke = colour ?? (value >= 85 ? "#dc2626" : value >= 60 ? "#d97706" : "#059669");
+  return (
+    <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 48 48" width={size} height={size} className="-rotate-90">
+        <circle cx="24" cy="24" r={r} fill="none" stroke="var(--border)" strokeWidth="4" />
+        <circle cx="24" cy="24" r={r} fill="none" stroke={stroke} strokeWidth="4" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - value / 100)} />
+      </svg>
+      <span className="absolute text-sm font-black tabular-nums" style={{ color: stroke }}>
+        {Math.round(value)}
+      </span>
+    </span>
+  );
+}
 
 // One labelled value in the subject strip.
 function Fact({ label, children }) {
@@ -92,13 +113,17 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
   const [history, setHistory] = useState(false);
   const waiting = Boolean(match.review?.pending) || match.review?.state === "PENDING";
   return (
-    <li className="rounded-xl border p-3">
-      <div className="flex flex-wrap items-start gap-3">
-        <span className={`w-10 shrink-0 text-2xl font-black tabular-nums ${scoreTone(matchScore(match))}`}>{matchScore(match)}</span>
+    <li className="overflow-hidden rounded-xl border bg-card p-3" style={{ boxShadow: `inset 4px 0 0 ${matchScore(match) >= 85 ? "#dc2626" : matchScore(match) >= 60 ? "#d97706" : "#059669"}` }}>
+      <div className="flex flex-wrap items-start gap-3 pl-1">
+        <ScoreRing score={matchScore(match)} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-slate-700">{match.matched_name}</p>
-          <p className="text-[11px] text-muted-foreground">
-            {[match.list, match.category, match.entity_type].filter(Boolean).join(" · ")} · {t("nameScore", { score: match.name_score })}
+          <p className="text-sm font-bold text-slate-800">{match.matched_name}</p>
+          {match.entity?.name && match.entity.name !== match.matched_name && <p className="text-[11px] text-muted-foreground">{t("listedAs", { name: match.entity.name })}</p>}
+          <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
+            <span className="rounded-full bg-slate-800 px-2 py-0.5 font-mono font-bold text-white">{match.list}</span>
+            {match.category && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`category_${match.category}`, { defaultValue: match.category })}</span>}
+            {match.entity_type && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`entity_${match.entity_type}`, { defaultValue: match.entity_type })}</span>}
+            <span className="text-muted-foreground">{t("nameScore", { score: match.name_score })}</span>
           </p>
           <WeightNote match={match} />
           <div className="mt-1 grid gap-1">
@@ -123,27 +148,37 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
         <ReviewSummary review={match.review} />
         {open && <EntityRecord entity={match.entity} />}
         {reviewing && (
-          <div className="grid gap-2 rounded-lg border border-dashed p-2 sm:grid-cols-[12rem_1fr]">
-            <FilterSelect
-              size="sm"
-              disabled={waiting}
-              disabledReason={t("decisionWaiting")}
-              value={draft?.decision ?? ""}
-              onChange={(v) => onDraft({ ...draft, decision: v })}
-              options={[
-                { value: "", label: t("noDecision") },
-                { value: "FALSE_POSITIVE", label: t("review_FALSE_POSITIVE") },
-                { value: "TRUE_MATCH", label: t("review_TRUE_MATCH") },
-              ]}
-            />
-            <input
-              value={draft?.comment ?? ""}
-              disabled={waiting || !draft?.decision}
-              maxLength={MAX_COMMENT}
-              onChange={(e) => onDraft({ ...draft, comment: e.target.value })}
-              placeholder={t("commentRequired")}
-              className="rounded-lg border px-2.5 py-1.5 text-xs disabled:bg-muted"
-            />
+          <div className="grid gap-2 rounded-lg bg-muted/40 p-2">
+            {waiting ? (
+              <p className="text-[11px] font-semibold text-amber-700">{t("decisionWaiting")}</p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-semibold text-muted-foreground">{t("yourDecision")}</span>
+                {[
+                  ["FALSE_POSITIVE", "border-emerald-300 bg-emerald-50 text-emerald-800"],
+                  ["TRUE_MATCH", "border-red-300 bg-red-50 text-red-800"],
+                ].map(([value, tone]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onDraft({ ...draft, decision: draft?.decision === value ? "" : value })}
+                    className={`rounded-full border px-3 py-1 text-[11px] font-bold transition-colors ${draft?.decision === value ? tone : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {t(`review_${value}`)}
+                  </button>
+                ))}
+              </div>
+            )}
+            {draft?.decision && !waiting && (
+              <input
+                autoFocus
+                value={draft?.comment ?? ""}
+                maxLength={MAX_COMMENT}
+                onChange={(e) => onDraft({ ...draft, comment: e.target.value })}
+                placeholder={t("commentRequired")}
+                className="rounded-lg border bg-card px-2.5 py-1.5 text-xs"
+              />
+            )}
           </div>
         )}
       </div>
@@ -186,16 +221,34 @@ export function ScreeningDetail({ screening, onChange }) {
   };
 
   const subject = screening.subject ?? {};
+  const band = screening.effective_band ?? screening.band;
+  const colour = band?.color_code || "#64748b";
+  const score = screening.effective_score ?? screening.score;
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-base font-black text-slate-800">{screening.name ?? subject.name}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4" style={{ borderColor: `${colour}66`, background: `linear-gradient(120deg, ${colour}1f, transparent 70%)` }}>
+        <div className="min-w-0">
+          <p className="text-lg font-black text-slate-800">{screening.name ?? subject.name}</p>
           <p className="text-[11px] text-muted-foreground">
-            {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`), screening.screened_by, when(screening.screened_at)].filter(Boolean).join(" · ")}
+            {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), screening.screened_by, when(screening.screened_at)].filter(Boolean).join(" · ")}
           </p>
         </div>
-        <EffectiveResult row={screening} />
+        {failed ? (
+          <EffectiveResult row={screening} />
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-xl font-black leading-tight" style={{ color: colour }}>
+                {band?.name ?? t("noSetup")}
+              </p>
+              <p className="text-[11px] font-semibold text-muted-foreground">
+                {[band?.risk_action_name, t("matchCount", { count: matches.length })].filter(Boolean).join(" · ")}
+              </p>
+              {screening.effective_score != null && screening.score !== screening.effective_score && <p className="text-[10px] text-muted-foreground">{t("rawScore", { score: screening.score })}</p>}
+            </div>
+            <ScoreRing score={score} size={64} colour={colour} />
+          </div>
+        )}
       </div>
 
       {failed && (
@@ -214,7 +267,18 @@ export function ScreeningDetail({ screening, onChange }) {
         <Fact label={t("gender")}>{subject.gender}</Fact>
         <Fact label={t("altNames")}>{screening.alt_names}</Fact>
         <Fact label={t("minMatchScore")}>{screening.min_match_score}</Fact>
-        <Fact label={t("searched")}>{screening.searched}</Fact>
+        {screening.searched?.length > 0 && (
+          <div className="sm:col-span-3">
+            <dt className="text-[10px] font-bold uppercase text-muted-foreground">{t("listsSearchedN", { count: screening.searched.length })}</dt>
+            <dd className="mt-1 flex flex-wrap gap-1">
+              {screening.searched.map((index) => (
+                <span key={index} title={index} className="rounded-full border border-border bg-card px-2 py-0.5 font-mono text-[10px] font-bold text-slate-600">
+                  {listCode(index)}
+                </span>
+              ))}
+            </dd>
+          </div>
+        )}
       </dl>
 
       {matches.length === 0 ? (
@@ -228,7 +292,7 @@ export function ScreeningDetail({ screening, onChange }) {
       )}
 
       {reviewing && (
-        <div className="flex items-center justify-end gap-2">
+        <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-2 backdrop-blur">
           <span className="text-[11px] text-muted-foreground">{t("decisionsSelected", { count: decisions.length })}</span>
           <button
             type="button"

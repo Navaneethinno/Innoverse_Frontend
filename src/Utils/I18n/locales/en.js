@@ -1877,6 +1877,11 @@ export const aml = {
   mediaInvestigationTitle: "News investigation",
   mediaTimelineHint_one: "{{count}} adverse article. Click a dot to see it.",
   mediaTimelineHint_other: "{{count}} adverse articles over time. Click a dot to see it.",
+  trigger_LOOKUP: "Name lookup",
+  listedAs: "Listed as {{name}}",
+  yourDecision: "Decision:",
+  listsSearchedN_one: "{{count}} list searched",
+  listsSearchedN_other: "{{count}} lists searched",
 };
 
 // Reports (handoff 08).
