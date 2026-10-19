@@ -1736,6 +1736,18 @@ export const aml = {
   bandActions: "Band actions",
   merchantActionNotSet: "not set (merchants go to review)",
   bandActionsRequired: "Choose an action for customers and an action for merchants on every band.",
+  categoryWeights: "Category weights",
+  categoryWeightsHint: "The percent of a match's score kept for each category. 100 counts in full; PEP at 50 makes a 100 PEP match count as 50.",
+  categoryWeightRange: "Each category weight must be a whole number from 1 to 100.",
+  noCategoryWeights: "None: every category counts in full",
+  category_SANCTIONS: "Sanctions",
+  category_PEP: "PEP",
+  category_CRIME: "Crime",
+  category_DEBARMENT: "Debarment",
+  category_REGULATORY: "Regulatory",
+  category_INTERNAL: "Internal lists",
+  weightedFrom: "{{score}} → {{weighted}} ({{category}} {{weight}}%)",
+  alsoOn: "Also on",
 };
 
 // Reports (handoff 08).

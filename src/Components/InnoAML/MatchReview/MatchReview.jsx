@@ -12,7 +12,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlReviewApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { ReviewStateBadge, scoreTone, when } from "../Shared/amlShared";
+import { ReviewStateBadge, matchScore, scoreTone, when } from "../Shared/amlShared";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 
 const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
@@ -110,7 +110,7 @@ export function MatchReview() {
         </span>
       ),
     },
-    { key: "score", label: t("aml:score"), render: (row) => <span className={`font-black tabular-nums ${scoreTone(row.score)}`}>{row.score}</span> },
+    { key: "score", label: t("aml:score"), render: (row) => <span className={`font-black tabular-nums ${scoreTone(matchScore(row))}`}>{matchScore(row)}</span> },
     { key: "decision", label: t("aml:proposedDecision"), render: (row) => <ReviewStateBadge state={row.decision} /> },
     { key: "comment", label: t("aml:comment"), align: "left", render: (row) => <span className="line-clamp-2 max-w-64 text-xs">{row.comment}</span> },
     { key: "proposed_by", label: t("aml:maker"), render: (row) => row.proposed_by ?? "-" },

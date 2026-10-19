@@ -61,6 +61,11 @@ export function AMLSetup() {
             {row.description && <ViewItem label={t("common:description")}>{row.description}</ViewItem>}
             <ViewItem label={t("aml:minMatchScore")}>{row.min_match_score}</ViewItem>
             <ViewItem label={t("aml:ongoingRescreen")}>{row.ongoing_rescreen ? t("common:yes") : t("common:no")}</ViewItem>
+            <ViewItem label={t("aml:categoryWeights")}>
+              {Object.keys(row.category_weights ?? {}).length
+                ? Object.entries(row.category_weights).map(([c, w]) => `${t(`aml:category_${c}`, { defaultValue: c })} ${w}%`).join(" · ")
+                : t("aml:noCategoryWeights")}
+            </ViewItem>
             <ViewItem label={t("aml:bands")}>
               <div className="mt-1">
                 <LevelBar levels={row.levels} />

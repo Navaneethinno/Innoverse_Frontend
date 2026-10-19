@@ -9,6 +9,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, inputClass, labelClass, saveRecord } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { LevelsEditor, chainLevels } from "@/Components/Epurse/Settings/RiskAssessment/LevelsEditor";
+import { AML_CATEGORIES } from "@/Components/InnoAML/Shared/amlShared";
 
 const DEFAULT_BANDS = [
   { code: "CLEAR", name: "Clear", min_score: 0, max_score: 60, color_code: "#2E7D32", risk_action_id: "", merchant_risk_action_id: "" },
@@ -45,6 +46,8 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
     description: editing?.description ?? "",
     min_match_score: String(editing?.min_match_score ?? 50),
     ongoing_rescreen: editing?.ongoing_rescreen ?? true,
+    // Every category shown; one left out of the saved weights counts in full.
+    weights: Object.fromEntries(AML_CATEGORIES.map((c) => [c, String(editing?.category_weights?.[c] ?? 100)])),
     levels: editing?.levels?.length ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id), merchant_risk_action_id: idOrEmpty(l.merchant_risk_action_id) })) : DEFAULT_BANDS,
   }));
   const [saving, setSaving] = useState(false);
@@ -59,6 +62,11 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
     }
     // Optional in the API, but a band without a merchant action sends
     // every merchant onboarding in it to review.
+    const weights = Object.entries(form.weights).map(([c, v]) => [c, Number(v)]);
+    if (weights.some(([, w]) => !Number.isInteger(w) || w < 1 || w > 100)) {
+      notifications.error(t("aml:categoryWeightRange"));
+      return;
+    }
     if (form.levels.some((l) => l.risk_action_id === "" || l.merchant_risk_action_id === "")) {
       notifications.error(t("aml:bandActionsRequired"));
       return;
@@ -69,6 +77,8 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
         description: form.description.trim(),
         min_match_score: minScore,
         ongoing_rescreen: form.ongoing_rescreen,
+        // Only the weights that cut a score; the rest count in full.
+        category_weights: Object.fromEntries(weights.filter(([, w]) => w !== 100)),
         levels: chainLevels(form.levels).map((l) => ({
           code: l.code.trim(),
           name: l.name.trim(),
@@ -113,6 +123,21 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
         <div className="md:col-span-2">
           <CheckboxPill checked={form.ongoing_rescreen} onChange={(checked) => setForm({ ...form, ongoing_rescreen: checked })} label={t("aml:ongoingRescreen")} />
           <p className="mt-1 text-[11px] text-muted-foreground">{t("aml:ongoingRescreenHint")}</p>
+        </div>
+        <div className="md:col-span-2">
+          <p className={labelClass}>{t("aml:categoryWeights")}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{t("aml:categoryWeightsHint")}</p>
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {AML_CATEGORIES.map((c) => (
+              <label key={c} className="text-xs font-semibold text-slate-700">
+                {t(`aml:category_${c}`, { defaultValue: c })}
+                <div className="relative">
+                  <input type="number" min={1} max={100} value={form.weights[c]} onChange={(e) => setForm((f) => ({ ...f, weights: { ...f.weights, [c]: e.target.value.replace(/\D/g, "").slice(0, 3) } }))} className={`${inputClass} pr-7`} />
+                  <span className="pointer-events-none absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                </div>
+              </label>
+            ))}
+          </div>
         </div>
         <div className="md:col-span-2">
           <LevelsEditor

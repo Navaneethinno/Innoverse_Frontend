@@ -1750,6 +1750,18 @@ export const aml = {
   bandActions: "Ações das faixas",
   merchantActionNotSet: "não definida (comerciantes vão para revisão)",
   bandActionsRequired: "Escolha uma ação para clientes e uma ação para comerciantes em cada faixa.",
+  categoryWeights: "Pesos por categoria",
+  categoryWeightsHint: "A percentagem da pontuação de uma correspondência mantida para cada categoria. 100 conta por inteiro; PEP a 50 faz uma correspondência PEP de 100 contar como 50.",
+  categoryWeightRange: "Cada peso de categoria tem de ser um número inteiro de 1 a 100.",
+  noCategoryWeights: "Nenhum: todas as categorias contam por inteiro",
+  category_SANCTIONS: "Sanções",
+  category_PEP: "PEP",
+  category_CRIME: "Crime",
+  category_DEBARMENT: "Exclusão",
+  category_REGULATORY: "Regulatório",
+  category_INTERNAL: "Listas internas",
+  weightedFrom: "{{score}} → {{weighted}} ({{category}} {{weight}}%)",
+  alsoOn: "Também em",
 };
 
 // Reports (handoff 08).

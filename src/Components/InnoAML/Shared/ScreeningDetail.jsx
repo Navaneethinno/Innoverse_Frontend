@@ -8,7 +8,7 @@ import { useMenuPermission } from "@/Hooks/usePermission";
 import { amlLookupApi, amlReviewApi, amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AdjustmentChips, EffectiveResult, EntityRecord, ReviewStateBadge, scoreTone, when } from "./amlShared";
+import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone, when } from "./amlShared";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
@@ -94,14 +94,16 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
   return (
     <li className="rounded-xl border p-3">
       <div className="flex flex-wrap items-start gap-3">
-        <span className={`w-10 shrink-0 text-2xl font-black tabular-nums ${scoreTone(match.score)}`}>{match.score}</span>
+        <span className={`w-10 shrink-0 text-2xl font-black tabular-nums ${scoreTone(matchScore(match))}`}>{matchScore(match)}</span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-700">{match.matched_name}</p>
           <p className="text-[11px] text-muted-foreground">
             {[match.list, match.category, match.entity_type].filter(Boolean).join(" · ")} · {t("nameScore", { score: match.name_score })}
           </p>
-          <div className="mt-1">
+          <WeightNote match={match} />
+          <div className="mt-1 grid gap-1">
             <AdjustmentChips adjustments={match.adjustments} />
+            <AlsoOnChips alsoOn={match.also_on} />
           </div>
         </div>
         <div className="flex items-center gap-2">

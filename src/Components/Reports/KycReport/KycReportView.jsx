@@ -33,6 +33,7 @@ import { MiniTable } from "@/Components/Finance/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
 import { glassCard } from "../Shared/reportShared";
 import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
+import { AlsoOnChips, WeightNote, matchScore } from "@/Components/InnoAML/Shared/amlShared";
 
 // KYC Report: everything about one customer or merchant on one read-only
 // page (Admin portal handoff "KYC Report"). `api` is the onboarding API of
@@ -764,9 +765,11 @@ function AmlMatches({ screening }) {
         <li key={j} className="rounded-lg border border-border px-2.5 py-1.5 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold">{m.matched_name}</span>
-            <span className="rounded bg-red-50 px-1.5 text-[10px] font-black tabular-nums text-red-700">{m.score}</span>
-            <span className="text-muted-foreground">{[m.list_code, m.category, m.entity_type].filter(Boolean).join(" · ")}</span>
+            <span className="rounded bg-red-50 px-1.5 text-[10px] font-black tabular-nums text-red-700">{matchScore(m)}</span>
+            <span className="text-muted-foreground">{[m.list_code ?? m.list, m.category, m.entity_type].filter(Boolean).join(" · ")}</span>
+            <WeightNote match={m} />
           </div>
+          <AlsoOnChips alsoOn={m.also_on} />
           <Details value={m.entity} />
         </li>
       ))}

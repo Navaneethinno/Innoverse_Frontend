@@ -79,6 +79,35 @@ const ADJUSTMENT_KEYS = {
   COUNTRY_DIFFER: "adjCountryDiffer",
   GENDER_DIFFER: "adjGenderDiffer",
 };
+// AML Setup's category weights (handoff 18): percent kept of a match's score.
+export const AML_CATEGORIES = ["SANCTIONS", "PEP", "CRIME", "DEBARMENT", "REGULATORY", "INTERNAL"];
+
+// What the bands use: the weighted score, or the plain one before weights.
+export const matchScore = (m) => m?.weighted_score ?? m?.score;
+
+// "100 → 50 (PEP 50%)" when a weight cut the score.
+export function WeightNote({ match }) {
+  const { t } = useTranslation("aml");
+  if (!(Number(match?.weight) < 100)) return null;
+  return <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">{t("weightedFrom", { score: match.score, weighted: matchScore(match), category: t(`category_${match.category}`, { defaultValue: match.category }), weight: match.weight })}</span>;
+}
+
+// The other lists the same person was found on.
+export function AlsoOnChips({ alsoOn }) {
+  const { t } = useTranslation("aml");
+  if (!alsoOn?.length) return null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1">
+      <span className="text-[10px] font-semibold text-muted-foreground">{t("alsoOn")}</span>
+      {alsoOn.map((o) => (
+        <span key={o.entity_id ?? o.list} title={`${o.entity_id} · ${t(`category_${o.category}`, { defaultValue: o.category })} · ${o.score}`} className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">
+          {o.list} <span className="font-sans font-semibold">· {t(`category_${o.category}`, { defaultValue: o.category })} {o.score}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function AdjustmentChips({ adjustments }) {
   const { t } = useTranslation("aml");
   if (!adjustments?.length) return null;
