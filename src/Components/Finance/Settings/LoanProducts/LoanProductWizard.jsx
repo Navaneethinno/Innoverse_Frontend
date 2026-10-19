@@ -15,16 +15,8 @@ import { Problems, Section, inputClass, labelClass, ratePct } from "../../Deposi
 import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
-// The step a refusal's problem belongs to, from its wording (English or
-// Portuguese); the first match wins.
-const PROBLEM_STEPS = [
-  ["terms", /term|prazo|rate band|pricing|faixa/i],
-  ["fees", /\bfee|comiss/i],
-  ["approvals", /approv|aprova/i],
-  ["collateral", /collateral|garantia/i],
-  ["eligibility", /eligib|eleg|\bage\b|idade|income|rendimento/i],
-  ["repayment", /repay|reembols|grace|car[eê]ncia|moratorium|morat[oó]ria|charge|penal/i],
-];
+// The step for a refusal's problem_keys[].section.
+const SECTION_STEPS = { product: "product", policy: "repayment", eligibility_rules: "eligibility", collateral_policy: "collateral", approval_matrix: "approvals", terms: "terms", fees: "fees" };
 const today = () => new Date().toISOString().slice(0, 10);
 const blankBand = (from = "0") => ({ minimum_amount: from, maximum_amount: "0", pricing_type: "FIXED", annual_rate: "", calculation_method: "REDUCING_BALANCE", day_count_convention: "ACT_365", effective_from: today() });
 const blankTerm = () => ({ term_code: "", term_value: "", term_unit: "MONTHS", minimum_amount: "", maximum_amount: "", effective_from: today(), pricing: [blankBand()] });
@@ -179,9 +171,8 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
     } catch (e) {
       setError(e.message);
       // Go to the step the first problem belongs to.
-      const problems = String(e.message).split(/\r?\n/).slice(1).join(" ");
-      const target = PROBLEM_STEPS.find(([, pattern]) => pattern.test(problems));
-      if (target) setStep(STEPS.indexOf(target[0]));
+      const target = (e.problemKeys ?? []).map((p) => SECTION_STEPS[p.section]).find(Boolean);
+      if (target) setStep(STEPS.indexOf(target));
     } finally {
       setBusy(false);
     }

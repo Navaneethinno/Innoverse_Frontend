@@ -17,6 +17,14 @@ function getApiProblems(payload) {
   return Array.isArray(list) ? list.filter((p) => typeof p === "string" && p.trim()) : [];
 }
 
+// A "Has Problems" refusal's data[0].problem_keys, one per problem in the
+// same order: { key, section, field, params }. [] when absent.
+export function getApiProblemKeys(payload) {
+  const data = payload?.data;
+  const list = Array.isArray(data) ? data.find((item) => Array.isArray(item?.problem_keys))?.problem_keys : data?.problem_keys;
+  return Array.isArray(list) ? list : [];
+}
+
 export function getApiErrorMessage(payload, fallback) {
   const readable = (value) => {
     if (typeof value === "string" && value.trim()) return value;

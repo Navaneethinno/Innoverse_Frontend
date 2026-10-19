@@ -3,7 +3,7 @@ import { authFetch } from "@/Services/api/authFetch";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { getApiErrorMessage, getApiProblemKeys, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
@@ -47,7 +47,8 @@ export async function request(path, body = {}) {
     // instead of its own user-facing message ("Maximum Value Must Be...").
     if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
-      throw new Error(getApiErrorMessage(payload, "Request failed"));
+      // problemKeys: where each problem is, for wizards to open that step.
+      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed")), { problemKeys: getApiProblemKeys(payload) });
     }
     return payload;
   } finally {
