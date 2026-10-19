@@ -2429,6 +2429,9 @@ export const formBuilder = {
   usesRelatedName: "Name",
   usesRelatedRole: "Role",
   valueWrongFormat: "This is not in the right format.",
+  phoneDigitsExact_one: "The number must be {{count}} digit.",
+  phoneDigitsExact_other: "The number must be {{count}} digits.",
+  phoneDigitsRange: "The number must be {{min}} to {{max}} digits.",
 };
 
 export const cases = {

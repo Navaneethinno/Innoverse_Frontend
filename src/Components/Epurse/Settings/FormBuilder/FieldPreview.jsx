@@ -130,8 +130,7 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
     case "DATE":
       return <DateInput min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "PHONE":
-      // max_length: at most that many digits.
-      return <input type="tel" inputMode="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(capDigits(phoneInput(e.target.value), options.max_length))} />;
+      return <PhoneField options={options} value={value} disabled={off} placeholder={field.hint} onChange={set} />;
     case "EMAIL":
       return <input type="email" className={control} disabled={off} placeholder={field.hint} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "DROPDOWN":
@@ -241,12 +240,57 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
   }
 }
 
+// A PHONE field's options: `country_codes` (e.g. ["+258"]) and
+// `min_digits` / `max_digits` for the number after the code. The value
+// stays one string, "+258841234567".
+const phoneCodes = (options) => (options.country_codes ?? []).map((c) => `+${String(c).replace(/\D/g, "")}`).filter((c) => c.length > 1);
+function splitPhone(value, codes) {
+  const text = String(value ?? "");
+  const code = [...codes].sort((a, b) => b.length - a.length).find((c) => text.startsWith(c));
+  return code ? [code, text.slice(code.length)] : [codes[0] ?? "", text.replace(/\D/g, "")];
+}
+
+function PhoneField({ options, value, disabled, placeholder, onChange }) {
+  const codes = phoneCodes(options);
+  const max = Number(options.max_digits) || 15;
+  if (!codes.length) {
+    return <input type="tel" inputMode="tel" className={control} disabled={disabled} placeholder={placeholder || "+258841234567"} value={value ?? ""} onChange={(e) => onChange(capDigits(phoneInput(e.target.value), max))} />;
+  }
+  const [code, national] = splitPhone(value, codes);
+  const set = (nextCode, digits) => onChange(digits ? `${nextCode}${digits}` : "");
+  return (
+    <div className="flex items-stretch gap-2">
+      {codes.length > 1 ? (
+        <select className={cn(control, "!w-28 shrink-0")} disabled={disabled} value={code} onChange={(e) => set(e.target.value, national)}>
+          {codes.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <span className="flex shrink-0 items-center rounded-xl border bg-muted/40 px-3 text-sm font-bold text-muted-foreground">{code}</span>
+      )}
+      <input type="tel" inputMode="numeric" className={control} disabled={disabled} placeholder={placeholder || "841234567890123".slice(0, max)} maxLength={max} value={national} onChange={(e) => set(code, e.target.value.replace(/\D/g, "").slice(0, max))} />
+    </div>
+  );
+}
+
 // A phone number cut to `max` digits (a leading "+" kept).
 function capDigits(phone, max) {
-  const n = Number(max);
-  if (!n) return phone;
   const plus = phone.startsWith("+") ? "+" : "";
-  return plus + phone.slice(plus.length, plus.length + n);
+  return plus + phone.slice(plus.length, plus.length + max);
+}
+
+// A PHONE value against its digit rules: digits after the country code.
+function phoneIssue(field, value, t) {
+  const options = field.options ?? {};
+  const min = Number(options.min_digits) || 0;
+  const max = Number(options.max_digits) || 0;
+  if (!min && !max) return null;
+  const digits = splitPhone(value, phoneCodes(options))[1].replace(/\D/g, "").length;
+  if ((min && digits < min) || (max && digits > max)) return min && min === max ? t("phoneDigitsExact", { count: min }) : t("phoneDigitsRange", { min: min || 1, max: max || 15 });
+  return null;
 }
 
 // The field's own `pattern` option, checked as the user types (the server
@@ -254,7 +298,9 @@ function capDigits(phone, max) {
 function usePatternIssue(field, value, editable) {
   const { t } = useAudienceTranslation("formBuilder");
   const pattern = field.options?.pattern;
-  if (!editable || !pattern || value === "" || value == null || typeof value === "object") return null;
+  if (!editable || value === "" || value == null || typeof value === "object") return null;
+  if (field.field_type === "PHONE") return phoneIssue(field, value, t);
+  if (!pattern) return null;
   try {
     return new RegExp(pattern).test(String(value)) ? null : field.options.pattern_message || t("valueWrongFormat");
   } catch {
