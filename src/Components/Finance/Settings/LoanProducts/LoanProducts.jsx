@@ -264,10 +264,10 @@ function LoanProductView({ id, onBack, onEdit }) {
 
       {pending ? (
         <div className="mb-4 grid gap-4 xl:grid-cols-2">
-          <Section title={t("inEffect")}>
+          <Section title={t("inEffect")} className="min-w-0">
             <LoanConfigSummary config={product.config} currency={cur} compact />
           </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="min-w-0 border-amber-300 ring-1 ring-amber-200">
             {pending.config ? <LoanConfigSummary config={pending.config} other={product.config} currency={cur} compact /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

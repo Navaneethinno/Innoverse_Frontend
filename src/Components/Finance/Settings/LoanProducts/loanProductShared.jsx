@@ -45,26 +45,37 @@ function policyGroups(t, c, cur) {
   ];
 }
 
+// A part of the config as compared: without ids and stamps the server adds.
+const comparable = (value) => JSON.stringify(value ?? null, (key, v) => (key === "id" || /_(time|by|at)$/.test(key) ? undefined : v));
+
 // The whole product: settings, terms with rate bands, fees and the
-// approval matrix. With `other` (the one in effect), changed values are
-// marked.
+// approval matrix. With `other` (the one in effect), only what changes is
+// shown, with the value it replaces struck through.
 export function LoanConfigSummary({ config, other, currency, compact = false }) {
   const { t } = useTranslation("loans");
   if (!config) return <p className="text-sm text-muted-foreground">{t("noConfigYet")}</p>;
   const before = other ? Object.fromEntries(policyGroups(t, other, currency).flatMap(([, rows]) => rows)) : null;
+  const differs = (key) => !other || comparable(config[key]) !== comparable(other[key]);
+  const groups = policyGroups(t, config, currency)
+    .map(([group, rows]) => [group, before ? rows.filter(([key, value]) => String(before[key]) !== String(value)) : rows])
+    .filter(([, rows]) => rows.length);
+  const showTerms = differs("terms");
+  const showFees = differs("fees");
+  const showMatrix = differs("approval_matrix");
+  if (other && !groups.length && !showTerms && !showFees && !showMatrix) return <p className="text-sm text-muted-foreground">{t("noChangesFound")}</p>;
   return (
-    <div className="grid gap-4">
-      {policyGroups(t, config, currency).map(([group, rows]) => (
+    <div className="grid min-w-0 gap-4">
+      {groups.map(([group, rows]) => (
         <div key={group}>
           <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t(group)}</p>
           <dl className={cn("grid grid-cols-2 gap-2", compact ? "sm:grid-cols-2" : "sm:grid-cols-3 lg:grid-cols-4")}>
             {rows.map(([key, value]) => {
-              const changed = before && String(before[key]) !== String(value);
+              const changed = Boolean(before);
               return (
-                <div key={key} className={cn("rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border bg-card")}>
+                <div key={key} className={cn("min-w-0 rounded-xl border px-3 py-2", changed ? "border-amber-300 bg-amber-50" : "border-border bg-card")}>
                   <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
-                  <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
-                  {changed && <dd className="text-[10px] text-amber-900 line-through">{before[key]}</dd>}
+                  <dd className="mt-0.5 break-words text-sm font-semibold text-foreground">{value}</dd>
+                  {changed && <dd className="break-words text-[10px] text-amber-900 line-through">{before[key]}</dd>}
                 </div>
               );
             })}
@@ -72,7 +83,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
         </div>
       ))}
 
-      <div>
+      {showTerms && <div>
         <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("termsAndRates")}</p>
         <div className="grid gap-2">
           {(config.terms ?? []).map((term, i) => (
@@ -98,10 +109,10 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
           ))}
           {!config.terms?.length && <p className="text-sm text-muted-foreground">{t("noTerms")}</p>}
         </div>
-      </div>
+      </div>}
 
       <div className={cn("grid gap-4", !compact && "lg:grid-cols-2")}>
-        <div>
+        {showFees && <div>
           <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("fees")}</p>
           <MiniTable
             rows={config.fees}
@@ -113,8 +124,8 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
               { key: "refundable", label: t("refundable"), render: (f) => t(f.refundable ? "yes" : "no") },
             ]}
           />
-        </div>
-        <div>
+        </div>}
+        {showMatrix && <div>
           <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("approvalMatrix")}</p>
           <MiniTable
             rows={config.approval_matrix}
@@ -125,7 +136,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
               { key: "required_approvals", label: t("approvers"), align: "right" },
             ]}
           />
-        </div>
+        </div>}
       </div>
     </div>
   );

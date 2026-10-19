@@ -3712,6 +3712,7 @@ export const loans = {
   event_RECOVERED: "Recuperação lançada",
   event_REVERSED: "Estornado",
   event_OVERDUE: "Parcela em atraso",
+  noChangesFound: "Nada difere do produto em vigor.",
 };
 
 export const mms = {

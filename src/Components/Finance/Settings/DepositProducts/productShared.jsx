@@ -114,7 +114,7 @@ const periodText = (t, x) => (x.effective_to ? t("fromTo", { from: dayDate(x.eff
 // The record's status, with what waits for a checker.
 export function ProductStatus({ product }) {
   const { t } = useTranslation("deposits");
-  const pending = product.pending?.action ?? product.pending_action;
+  const pending = Number(product.status) === 2 ? null : product.pending?.action ?? product.pending_action;
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold", STATUS_TONE[product.status] ?? "bg-muted text-muted-foreground")}>{product.status_name ?? product.status}</span>
