@@ -12,6 +12,7 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
+import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
 import { statusTabs } from "@/Components/Common/listTabs";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { useListSearch } from "@/Hooks/useListSearch";
@@ -311,6 +312,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
               </button>
             </section>
           ))}
+          {balanced && <TxnLimitWarning currencyCode={code} amount={dr / 10 ** decimals} />}
           {error && <Problems message={error} />}
         </div>
       )}

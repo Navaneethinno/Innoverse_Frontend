@@ -224,7 +224,7 @@ function NewOrder({ groups, onClose, onDone }) {
     if (holders.some((x) => sameHolder(x, h))) return;
     setHolders((list) => [...list, { ...h, name_on_card: h.name ?? "", delivery_mode: "", delivery_ref: "", wallets: null, funding_acct_id: "" }]);
     cardOrdersApi
-      .holder_wallets({ entity_type: h.entity_type, entity_id: h.entity_id, card_product_id: group.card_product_id })
+      .holder_wallets({ entity_type: h.entity_type, entity_id: h.entity_id, card_product_id: group.card_product_id, request_type: "NEW" })
       .then((r) => {
         const wallets = rowsOf(r);
         const preset = wallets.find((w) => w.is_default) ?? wallets[0];
@@ -332,10 +332,25 @@ function HolderWallet({ holder, onChange }) {
   if (wallets === null) return <span className="text-[11px] text-muted-foreground">{t("loadingWallets")}</span>;
   if (!wallets.length) return <span className="text-[11px] font-semibold text-amber-700">{t("noPayingWallet")}</span>;
   const label = (w) => `${w.acct_num} · ${w.acct_product_name} · ${money(w.avail_bal, w.currency_code)}`;
-  if (wallets.length === 1) return <span className="text-[11px] text-muted-foreground">{t("feeFrom", { wallet: label(wallets[0]) })}</span>;
+  // The fee (with tax) and whether the picked wallet covers it.
+  const chosen = wallets.find((w) => String(w.acct_id) === String(picked)) ?? wallets[0];
+  const fee = Number(chosen.fee) > 0 && (
+    <span className={cn("text-[11px] font-semibold", chosen.enough_for_fee === false ? "text-amber-700" : "text-muted-foreground")}>
+      {t("feeX", { value: money(chosen.fee, chosen.currency_code) })}
+      {chosen.enough_for_fee === false && ` · ${t("feeShort")}`}
+    </span>
+  );
+  if (wallets.length === 1)
+    return (
+      <span className="grid gap-0.5">
+        <span className="text-[11px] text-muted-foreground">{t("feeFrom", { wallet: label(wallets[0]) })}</span>
+        {fee}
+      </span>
+    );
   return (
     <Labelled label={t("feeWallet")}>
       <FilterSelect size="sm" value={picked} onChange={onChange} options={wallets.map((w) => ({ value: String(w.acct_id), label: `${label(w)}${w.is_default ? ` · ${t("defaultWallet")}` : ""}` }))} />
+      {fee}
     </Labelled>
   );
 }

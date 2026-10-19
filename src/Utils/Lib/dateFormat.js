@@ -1,9 +1,9 @@
+import i18n from "i18next";
 import store from "@/Redux/Store";
 
 // The institution's date format (login / refresh `formats.date_format`, set
 // on Institution > Profile). Display only: the API always gets YYYY-MM-DD.
 export const DATE_FORMATS = ["YYYY-MM-DD", "DD-MM-YYYY", "DD/MM/YYYY", "MM/DD/YYYY", "DD.MM.YYYY", "DD MMM YYYY"];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const dateFormat = () => {
   const value = store.getState()?.token?.user?.formats?.date_format;
@@ -12,8 +12,16 @@ export const dateFormat = () => {
 
 const pad = (n) => String(n).padStart(2, "0");
 
+// MMM: the short month name in the user's language ("Oct", "out").
+const monthNames = {};
+function monthName(m) {
+  const lang = i18n.language || "en";
+  monthNames[lang] ??= Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(lang, { month: "short", timeZone: "UTC" }).format(Date.UTC(2000, i, 1)));
+  return monthNames[lang][m];
+}
+
 function ymd(y, m, d) {
-  const parts = { YYYY: String(y), MM: pad(m + 1), DD: pad(d), MMM: MONTHS[m] };
+  const parts = { YYYY: String(y), MM: pad(m + 1), DD: pad(d), MMM: monthName(m) };
   return dateFormat().replace(/YYYY|MMM|MM|DD/g, (token) => parts[token]);
 }
 

@@ -31,14 +31,15 @@ export function getBasicAuthorization() {
   return `Basic ${window.btoa(`${AUTH_BASIC_USERNAME}:${AUTH_BASIC_PASSWORD}`)}`;
 }
 
-function parseSessionResponse(payload) {
+function parseSessionResponse(payload, { flat = false } = {}) {
   const rawData = payload?.data ?? unwrapApiResponse(payload, payload);
   // The login/refresh endpoints wrap the session object in a single-element
   // array (payload.data: [{ user_session_info, user_details, menu_array }]),
   // unlike other list endpoints that return the array directly as the payload.
   const data = Array.isArray(rawData) ? rawData[0] : rawData;
-  // The refresh may send the session fields flat on data[0].
-  const sessionInfo = data?.user_session_info ?? (data?.jwt_token ? data : undefined);
+  // Login nests the tokens under user_session_info; the refresh sends them
+  // flat on data[0].
+  const sessionInfo = flat ? data : data?.user_session_info;
   const accessToken = sessionInfo?.jwt_token;
   if (!accessToken) throw new Error("No access token in response");
   // The institution's branding (colours, name, logo, favicon, login
@@ -143,7 +144,7 @@ export async function refreshTokenRequest() {
     },
     body: JSON.stringify({}),
   });
-  return parseSessionResponse(payload);
+  return parseSessionResponse(payload, { flat: true });
 }
 
 // Ends every session of the user, on every browser and device: every token

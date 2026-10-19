@@ -9,6 +9,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
+import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DrCr, TxnDialog } from "@/Components/Finance/Accounts/AccountStatement";
 import { money } from "@/Components/Finance/Accounts/accountShared";
@@ -285,6 +286,7 @@ function AdjustmentForm({ onClose, onSaved }) {
             {t("amountIn", { currency: plan?.currency_code ?? "" })}
             <input className={cn(inputClass, "mt-1.5 text-base font-bold tabular-nums")} inputMode="decimal" value={form.amount} onChange={(e) => set("amount")(amountInput(e.target.value, plan?.amount_decimals ?? 2))} placeholder="0.00" />
           </label>
+          {plan && <TxnLimitWarning currencyCode={plan.currency_code} amount={form.amount} />}
           <label className={labelClass}>
             {t("reason")}
             <input className={cn(inputClass, "mt-1.5")} maxLength={255} value={form.reason} onChange={(e) => set("reason")(e.target.value)} placeholder={t("reasonPlaceholder")} />
