@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, CheckCircle, ChevronRight, Settings } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -123,8 +124,10 @@ export function SetupPage() {
                   <input
                     className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm"
                     placeholder={t("contactPhonePlaceholder")}
+                    type="tel"
+                    inputMode="tel"
                     value={data.contactPhone}
-                    onChange={(e) => setData({ ...data, contactPhone: e.target.value })}
+                    onChange={(e) => setData({ ...data, contactPhone: phoneInput(e.target.value) })}
                   />
                 </div>
               )}

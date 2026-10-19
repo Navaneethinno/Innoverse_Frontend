@@ -26,6 +26,7 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 const FIELDS = [
   ["legal_name", "Legal Name"],
@@ -321,7 +322,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
     narration: "",
     is_draft: false,
   });
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: key === "contact_phone" ? phoneInput(e.target.value) : e.target.value }));
   return (
     <form
       className="grid gap-4 sm:grid-cols-2"
@@ -359,7 +360,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
           {label}
           <TypedInput
             required={key === "legal_name"}
-            type={key.includes("date") ? "date" : key === "contact_email" ? "email" : "text"}
+            type={key.includes("date") ? "date" : key === "contact_email" ? "email" : key === "contact_phone" ? "tel" : "text"}
             value={form[key]}
             onChange={set(key)}
             className="mt-1.5 w-full rounded-xl border border-border p-3"

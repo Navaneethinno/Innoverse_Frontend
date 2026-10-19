@@ -7,6 +7,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { notificationGroupApi } from "@/Services/Epurse/notification.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 const emptyMember = () => ({ type: "EMAIL", value: "" });
 
@@ -108,7 +109,7 @@ export function NotificationGroupForm({ editing, onClose, onSaved }) {
                 <input
                   value={member.value}
                   type={member.type === "EMAIL" ? "email" : "tel"}
-                  onChange={(e) => setMember(index, { value: e.target.value })}
+                  onChange={(e) => setMember(index, { value: member.type === "EMAIL" ? e.target.value : phoneInput(e.target.value) })}
                   placeholder={member.type === "EMAIL" ? t("notification:emailPlaceholder") : t("notification:mobilePlaceholder")}
                   className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"
                 />

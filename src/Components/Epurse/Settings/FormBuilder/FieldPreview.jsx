@@ -9,6 +9,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/cn";
 import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { usePrimaryCurrency } from "@/Hooks/Institution/institutionCurrencyHooks";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 const control = "w-full rounded-xl border bg-white/80 px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] disabled:bg-muted disabled:text-muted-foreground";
 const sameValue = (a, b) => a !== undefined && a !== null && a !== "" && String(a) === String(b);
@@ -129,7 +130,7 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
     case "DATE":
       return <DateInput min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "PHONE":
-      return <input type="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
+      return <input type="tel" inputMode="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(phoneInput(e.target.value))} />;
     case "EMAIL":
       return <input type="email" className={control} disabled={off} placeholder={field.hint} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "DROPDOWN":

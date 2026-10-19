@@ -20,6 +20,7 @@ import { OwnerLimitUsage } from "@/Components/GlobalSettings/Limits/LimitUsage";
 import { OwnerHistoryButton } from "@/Components/Finance/Transactions/OwnerHistory";
 import { OwnerDeposits } from "@/Components/Finance/Deposits/TermDeposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 // The staff onboarding wizard on the institution's own form (Admin portal
 // handoff: onboarding form builder, §8), for individual and corporate.
 // Every section the customer is asked comes at once (a section a rule
@@ -425,7 +426,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             </label>
             <label className="text-sm font-semibold text-slate-700">
               {t("customer:phoneNumber")}
-              <input type="tel" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" value={pick.phone_number} onChange={(e) => setPick({ ...pick, phone_number: e.target.value })} />
+              <input type="tel" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" inputMode="tel" value={pick.phone_number} onChange={(e) => setPick({ ...pick, phone_number: phoneInput(e.target.value) })} />
             </label>
           </div>
           <p className="text-[11px] text-muted-foreground">{t("customer:atLeastOneOfEmailOrPhone")}</p>

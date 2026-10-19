@@ -12,6 +12,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { accountDate } from "./accountShared";
 import { TxnDialog } from "./AccountStatement";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 const STATUSES = ["PENDING", "CLAIMED", "CANCELLED", "RETURNED"];
 const STATUS_TONES = {
@@ -149,7 +150,8 @@ export function PhoneTransfers() {
             <FilterSelect value={filters.status} onChange={setFilter("status")} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`ptStatus_${s}`) }))]} />
             <input
               value={filters.phone_number}
-              onChange={(e) => setFilter("phone_number")(e.target.value)}
+              inputMode="tel"
+              onChange={(e) => setFilter("phone_number")(phoneInput(e.target.value))}
               placeholder={t("ptPhone")}
               className="h-10 w-40 rounded-xl border border-border bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30"
             />

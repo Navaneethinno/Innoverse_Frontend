@@ -16,6 +16,7 @@ import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 const EMPTY = {
   user_id: "",
@@ -48,6 +49,9 @@ const FORM_FIELDS = [
 const idOf = (row) => row?.user_id ?? row?.id;
 const displayName = (row) =>
   row?.user_name || `${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""}`.trim();
+
+// Fields that hold a phone number: digits only (and a leading "+").
+const PHONE_KEYS = ["mobile", "alternate_mob"];
 
 function normalizeForm(row) {
   return {
@@ -125,9 +129,10 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
               <input
                 required={["user_id", "user_fname", "user_lname"].includes(key)}
                 disabled={editing && key === "user_id"}
-                type={key.includes("email") ? "email" : "text"}
+                type={key.includes("email") ? "email" : PHONE_KEYS.includes(key) ? "tel" : "text"}
+                inputMode={PHONE_KEYS.includes(key) ? "tel" : undefined}
                 value={form[key] ?? ""}
-                onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+                onChange={(event) => setForm({ ...form, [key]: PHONE_KEYS.includes(key) ? phoneInput(event.target.value) : event.target.value })}
                 className="w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-muted disabled:text-muted-foreground"
               />
             )}

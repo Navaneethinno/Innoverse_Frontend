@@ -5,6 +5,7 @@ import { ChevronDown, Check, Eye, EyeOff } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cn } from "@/Utils/Lib/cn";
 import { checkPasswordRequirements } from "@/Utils/Lib/password-policy";
+import { phoneInput } from "@/Utils/Lib/phoneInput";
 
 export const EMPTY_FORM = {
   user_name: "",
@@ -177,10 +178,13 @@ export function UserForm({
                       : "password"
                     : key === "email"
                       ? "email"
-                      : "text"
+                      : key === "mobile"
+                        ? "tel"
+                        : "text"
                 }
+                inputMode={key === "mobile" ? "tel" : undefined}
                 value={editing && key === "user_pwd" ? "" : form[key]}
-                onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+                onChange={(event) => setForm({ ...form, [key]: key === "mobile" ? phoneInput(event.target.value) : event.target.value })}
                 className={`w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-muted text-muted-foreground" : ""}`}
               />
             )}
