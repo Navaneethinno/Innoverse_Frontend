@@ -132,8 +132,6 @@ export const common = {
   view_alerts: "Alerts",
   view_customer: "Customer",
   view_merchant: "Merchant",
-  goToMenu: "Go to {{menu}}",
-  askSomeoneWithMenu: "Ask someone with access to {{menu}}.",
 };
 
 export const auth = {
@@ -1307,6 +1305,7 @@ export const onboarding = {
   onboardingConfigurationSubtitle_merchant: "Each merchant type is one record — its identity, its configuration and its maker-checker state together. Reopening an approved one for changes moves it back to Draft in place; there is no separate version.",
   noCustomerTypesYet_merchant: "No merchant types yet",
   noPublishedDefinition: "No published onboarding configuration yet. Publish one under Onboarding Configuration first.",
+  openOnboardingConfiguration: "Open Onboarding Configuration",
 };
 
 export const statusLabels = {
@@ -1461,6 +1460,7 @@ export const notification = {
   saveAsDraft: "Save as draft",
   saveChanges: "Save changes",
   saved: "Saved",
+  addNotificationGroup: "Add notification group",
 };
 
 export const risk = {
@@ -3075,6 +3075,7 @@ export const deposits = {
   instruction_HOLD: "Held",
   failuresN_one: "{{count}} record failed: retried next run",
   failuresN_other: "{{count}} records failed: retried next run",
+  addAccountProduct: "Add account product",
 };
 
 export const loans = {

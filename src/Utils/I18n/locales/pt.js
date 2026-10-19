@@ -130,8 +130,6 @@ export const common = {
   view_alerts: "Alertas",
   view_customer: "Cliente",
   view_merchant: "Comerciante",
-  goToMenu: "Ir para {{menu}}",
-  askSomeoneWithMenu: "Peça a alguém com acesso a {{menu}}.",
 };
 
 export const auth = {
@@ -1287,6 +1285,7 @@ export const onboarding = {
   onboardingConfigurationSubtitle_merchant: "Cada tipo de comerciante é um único registro — sua identidade, sua configuração e seu estado de aprovação juntos. Reabrir um aprovado para alterações o devolve a Rascunho no mesmo registro; não há versão separada.",
   noCustomerTypesYet_merchant: "Nenhum tipo de comerciante ainda",
   noPublishedDefinition: "Ainda não há configuração de integração publicada. Publique uma em Configuração de Integração primeiro.",
+  openOnboardingConfiguration: "Abrir configuração de integração",
 };
 
 export const statusLabels = {
@@ -1475,6 +1474,7 @@ export const notification = {
   saveAsDraft: "Salvar como rascunho",
   saveChanges: "Salvar alterações",
   saved: "Salvo",
+  addNotificationGroup: "Adicionar grupo de notificação",
 };
 
 export const risk = {
@@ -3089,6 +3089,7 @@ export const deposits = {
   instruction_HOLD: "Em espera",
   failuresN_one: "{{count}} registro falhou: tentado de novo na próxima execução",
   failuresN_other: "{{count}} registros falharam: tentados de novo na próxima execução",
+  addAccountProduct: "Adicionar produto de conta",
 };
 
 export const loans = {

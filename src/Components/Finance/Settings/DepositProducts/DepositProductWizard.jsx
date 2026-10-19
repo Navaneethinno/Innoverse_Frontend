@@ -6,12 +6,12 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
-import { MenuLink } from "@/Components/Common/MenuLink";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, Section, amountInput, inputClass, labelClass } from "../../Deposits/depositShared";
 import { PERIOD_DAYS, optionLabel } from "./productShared";
@@ -57,6 +57,7 @@ function toBody(config) {
 // for a checker to approve.
 export function DepositProductWizard({ product, onClose, onSaved }) {
   const { t } = useTranslation(["deposits", "common"]);
+  const openMenu = useOpenMenu();
   const [options, setOptions] = useState(null);
   const [step, setStep] = useState(0);
   const [id, setId] = useState(product?.id ?? null);
@@ -175,6 +176,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                     className="mt-1.5"
                     value={productId}
                     onChange={setProductId}
+                    addAction={{ label: t("addAccountProduct"), onClick: () => openMenu("accountproduct") }}
                     options={[{ value: "", label: options.available_products?.length ? t("chooseProduct") : t("noProductsAvailable") }, ...(options.available_products ?? []).map((p) => ({ value: String(p.id ?? p.acct_product_id), label: `${p.product_name} · ${p.product_code} (${p.currency_code})` }))]}
                   />
                 </label>
@@ -189,7 +191,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("zeroNoLimit")}</span>
               </label>
             </div>
-            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint")} <MenuLink menu="Account Products" /></p>}
+            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint")}</p>}
           </Section>
 
           <Section title={t("interestTitle")}>

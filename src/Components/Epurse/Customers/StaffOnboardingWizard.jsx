@@ -406,7 +406,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
           <label className="text-sm font-semibold text-slate-700">
             {corporate ? t("onboarding:companyType") : t("onboarding:subType")} <span className="text-red-500">*</span>
             {options && !typeOptions.length ? (
-              <p className="mt-1.5 rounded-xl border border-dashed p-3 text-xs font-normal text-muted-foreground">{t("onboarding:noPublishedDefinition")} <MenuLink menu="Onboarding Configuration" /></p>
+              <p className="mt-1.5 rounded-xl border border-dashed p-3 text-xs font-normal text-muted-foreground">{t("onboarding:noPublishedDefinition")} <MenuLink slug="onboardingconfiguration" label={t("onboarding:openOnboardingConfiguration")} /></p>
             ) : (
               <FilterSelect className="mt-1.5" value={chosenType ?? ""} onChange={(v) => setPick({ ...pick, type: v })} options={typeOptions.length ? typeOptions : [{ value: "", label: "…" }]} />
             )}
