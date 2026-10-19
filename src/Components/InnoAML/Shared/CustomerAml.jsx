@@ -116,6 +116,18 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
   );
 }
 
+// A list row's AML result and news level (`aml`, `adverse_media` on the
+// customer and merchant list rows); the news level opens its search.
+export function AmlCell({ row }) {
+  if (!row?.aml && !row?.adverse_media) return <span className="text-xs text-muted-foreground">—</span>;
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      {row.aml && <BandBadge band={row.aml.band} score={row.aml.score} />}
+      <AdverseMediaBadge media={row.adverse_media} />
+    </span>
+  );
+}
+
 // The AML result on the existing customer screens (wizard and the checker's
 // dialog), next to risk but never combined with it. Absent until the
 // customer's first submit.

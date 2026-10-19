@@ -22,7 +22,7 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeWithCustomer, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
 import { usePartyMenuPermission } from "@/Hooks/usePermission";
 import { PendingRiskCompare } from "@/Components/Epurse/Settings/RiskAssessment/CustomerRisk";
-import { CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
+import { AmlCell, CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerAml";
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
 import { isStoredCustomerFile } from "./customerFiles";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
@@ -227,6 +227,7 @@ export function CustomerOnboardingResource() {
       label: t("common:authorizationStatus"),
       render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
     },
+    { key: "aml", label: t("aml:amlResult"), sortable: false, render: (r) => <AmlCell row={r} /> },
     { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? formatDateTime(r.updated_time) : "-") },
     {
       key: "actions",

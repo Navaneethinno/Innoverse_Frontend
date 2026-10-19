@@ -7,6 +7,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { CustomerAccounts } from "@/Components/Finance/Accounts/accountShared";
 import { StaffOnboardingWizard } from "@/Components/Epurse/Customers/StaffOnboardingWizard";
 import { ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
+import { AdverseMediaBadge } from "@/Components/InnoAML/AdverseMedia/AdverseMedia";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
 import { corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
@@ -162,7 +163,7 @@ export function CaseView({ id, onBack }) {
         />
       )}
       {tab === "risk" && <RiskTab assessment={kase.risk_assessment} />}
-      {tab === "aml" && <AmlTab result={kase.aml_result} openMatches={kase.aml_open_matches} onChanged={reload} />}
+      {tab === "aml" && <AmlTab result={kase.aml_result} media={kase.adverse_media} openMatches={kase.aml_open_matches} onChanged={reload} />}
       {tab === "timeline" && <TimelineTab events={kase.timeline} canNote={allowed.note && edit} onNote={(body) => act("note", { body })} busy={busy} />}
       {tab === "account" && (kase.accounts?.length ? <CustomerAccounts accounts={kase.accounts} /> : <Empty text={t("noAccountYet")} />)}
 
@@ -326,10 +327,19 @@ function RiskTab({ assessment }) {
   );
 }
 
-function AmlTab({ result, openMatches, onChanged }) {
+function AmlTab({ result, media, openMatches, onChanged }) {
   const { t } = useTranslation("cases");
   const [screeningId, setScreeningId] = useState(null);
-  if (!result || !Object.keys(result).length) return <Empty text={t("noAmlResult")} />;
+  if (!result || !Object.keys(result).length) {
+    return media ? (
+      <div className="grid gap-3">
+        <AdverseMediaBadge media={media} />
+        <Empty text={t("noAmlResult")} />
+      </div>
+    ) : (
+      <Empty text={t("noAmlResult")} />
+    );
+  }
   const screenings = result.screenings ?? [];
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
@@ -340,6 +350,9 @@ function AmlTab({ result, openMatches, onChanged }) {
         ) : (
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">{t("noOpenMatches")}</span>
         )}
+        <span className="ml-auto">
+          <AdverseMediaBadge media={media} />
+        </span>
       </div>
       {screenings.length ? (
         <ul className="divide-y divide-border rounded-xl border border-border">
