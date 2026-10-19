@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { MenuLink } from "@/Components/Common/MenuLink";
 import { useTranslation } from "react-i18next";
 import { Braces, Info, Search } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
@@ -227,7 +228,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
           {options.groups.length ? (
             <GroupPicker groups={options.groups} value={form.group_ids} onChange={(ids) => setForm((f) => ({ ...f, group_ids: ids }))} />
           ) : (
-            !loading && <p className="mt-2 text-xs text-muted-foreground">{t("notification:noActiveGroups")}</p>
+            !loading && <p className="mt-2 text-xs text-muted-foreground">{t("notification:noActiveGroups")} <MenuLink menu="Notification Group" /></p>
           )}
           <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={form.notify_maker} onChange={(e) => setForm({ ...form, notify_maker: e.target.checked })} className="h-4 w-4 accent-[var(--primary)]" />

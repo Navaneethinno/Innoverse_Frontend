@@ -130,6 +130,8 @@ export const common = {
   view_alerts: "Alertas",
   view_customer: "Cliente",
   view_merchant: "Comerciante",
+  goToMenu: "Ir para {{menu}}",
+  askSomeoneWithMenu: "Peça a alguém com acesso a {{menu}}.",
 };
 
 export const auth = {

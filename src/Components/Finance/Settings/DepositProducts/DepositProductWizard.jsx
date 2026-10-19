@@ -6,6 +6,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
+import { MenuLink } from "@/Components/Common/MenuLink";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -188,7 +189,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("zeroNoLimit")}</span>
               </label>
             </div>
-            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint")}</p>}
+            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint")} <MenuLink menu="Account Products" /></p>}
           </Section>
 
           <Section title={t("interestTitle")}>

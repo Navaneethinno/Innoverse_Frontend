@@ -132,6 +132,8 @@ export const common = {
   view_alerts: "Alerts",
   view_customer: "Customer",
   view_merchant: "Merchant",
+  goToMenu: "Go to {{menu}}",
+  askSomeoneWithMenu: "Ask someone with access to {{menu}}.",
 };
 
 export const auth = {
