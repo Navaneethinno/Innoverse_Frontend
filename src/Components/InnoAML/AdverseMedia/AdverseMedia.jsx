@@ -786,9 +786,13 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
           <div className="flex flex-wrap justify-center gap-1.5">
             {others.map((r) => (
               <button key={r.id} type="button" onClick={() => onPick(picked === r.id ? null : r.id)} className={cn("flex items-center gap-1.5 rounded-full border bg-card py-0.5 pl-0.5 pr-2.5 text-[11px] font-semibold hover:border-primary/40", picked === r.id ? "border-primary" : "border-border")} style={flagColour(r.watch, r.review) ? { borderColor: flagColour(r.watch, r.review) } : undefined}>
-                <span className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-black text-white" style={{ background: GROUP_COLOUR.FAMILY }}>
-                  {initialsOf(r.name)}
-                </span>
+                {r.photo ? (
+                  <img src={r.photo} alt="" className="h-5 w-5 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-black text-white" style={{ background: GROUP_COLOUR.FAMILY }}>
+                    {initialsOf(r.name)}
+                  </span>
+                )}
                 {r.name}
               </button>
             ))}
@@ -806,7 +810,13 @@ function RelationDetail({ r, articlesByNo, search, onChange }) {
   const link = r.wikidata_id ? `https://www.wikidata.org/wiki/${r.wikidata_id}` : r.entity_key ? `https://www.opensanctions.org/entities/${r.entity_key}` : null;
   return (
     <div className="grid gap-1.5 rounded-xl border border-border bg-card p-3 text-xs">
-      <p className="text-sm font-bold">{r.name}</p>
+      <div className="flex items-start gap-2.5">
+        <div className="grid justify-items-center gap-0.5">
+          <Avatar name={r.name} photo={r.photo} size={44} />
+          {r.photo && <PhotoCredit profile={r} />}
+        </div>
+        <p className="pt-1 text-sm font-bold">{r.name}</p>
+      </div>
       <p className="text-muted-foreground">
         {[r.label, years(r), t(`mediaSource_${r.source}`, { defaultValue: r.source })].filter(Boolean).join(" · ")}
       </p>
@@ -993,6 +1003,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false,
                   {list.map((r) => (
                     <li key={r.id}>
                       <button type="button" onClick={() => setPicked(picked === r.id ? null : r.id)} className={cn("flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors", picked === r.id ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/40")}>
+                        <Avatar name={r.name} photo={r.photo} size={26} />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-semibold">{r.name}</span>
                           <span className="block truncate text-[10px] text-muted-foreground">{[r.label, years(r)].filter(Boolean).join(" · ")}</span>
