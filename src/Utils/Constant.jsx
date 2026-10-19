@@ -859,5 +859,7 @@ export const API_ENDPOINTS = {
     SCREENING: "/config/aml/screening",
     LOOKUP: "/config/aml/lookup",
     REVIEW: "/config/aml/review",
+    MEDIA: "/config/aml/media",
+    MEDIA_REVIEW: "/config/aml/media_review",
   },
 };

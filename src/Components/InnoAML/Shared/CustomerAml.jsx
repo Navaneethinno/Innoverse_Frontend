@@ -9,6 +9,8 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, EffectiveResult, partyLabel, when } from "./amlShared";
 import { ScreeningDetailModal } from "./ScreeningDetail";
+import { AdverseMediaCustomer } from "../AdverseMedia/AdverseMedia";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
 const first = (response) => rowsOf(response)[0] ?? null;
@@ -51,6 +53,8 @@ function CustomerAmlResult({ result, onOpenScreening }) {
 export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
   const { t } = useTranslation("aml");
   const canRescreen = useMenuPermission("Screenings")("Edit");
+  const canMedia = useMenuPermission("Name Lookup")("View");
+  const [view, setView] = useState("lists");
   const [result, setResult] = useState(null);
   const [missing, setMissing] = useState("");
   const [busy, setBusy] = useState(false);
@@ -83,9 +87,10 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
     <Modal
       open
       onClose={onClose}
-      size="lg"
+      size={view === "media" ? "xl" : "lg"}
       title={t("customerResult")}
       footer={
+        view === "lists" &&
         canRescreen && (
           <Button disabled={busy} onClick={() => void rescreen()}>
             {busy ? <Spinner size={13} /> : <RefreshCw size={14} />} {t("rescreen")}
@@ -93,7 +98,10 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
         )
       }
     >
-      {missing ? (
+      {canMedia && <SegmentedSwitch className="mb-4" value={view} onChange={setView} options={[{ value: "lists", label: t("tabLists") }, { value: "media", label: t("mediaTitle") }]} />}
+      {view === "media" ? (
+        <AdverseMediaCustomer customerKind={customerKind} referenceId={referenceId} />
+      ) : missing ? (
         <p className="py-6 text-center text-sm text-muted-foreground">{missing}</p>
       ) : !result ? (
         <div className="flex justify-center py-8">

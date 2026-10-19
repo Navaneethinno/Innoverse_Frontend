@@ -13,24 +13,65 @@ import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 // and the standard {status, message, remark, data[]} envelope; a failure
 // throws an Error built by getApiErrorMessage (`message` + `problems`,
 // never `remark` — see apiErrors.js).
+// The signed POST every admin call makes (headers, scope, session renewal).
+function post(path, body, signal) {
+  const token = getAccessToken();
+  return authFetch(`${API_BASE_URL}${scopedPath(path)}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Deviceinfo: JSON.stringify(DEVICE_INFO),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...apiLanguageHeader(),
+    },
+    body: JSON.stringify(scopedBody(body)),
+    signal,
+  });
+}
+
+// A call that answers with server-sent events (text/event-stream): each
+// event goes to onEvent(kind, data, id) as it arrives; ": ping" lines are
+// skipped. Resolves when the server closes the stream. A refusal comes back
+// as ordinary JSON and is thrown like any other.
+export async function requestStream(path, body, onEvent, signal) {
+  const response = await post(path, body, signal);
+  if (!(response.headers.get("content-type") ?? "").startsWith("text/event-stream")) {
+    const payload = await response.json().catch(() => null);
+    if (response.status === 401) {
+      clearAuthSession();
+      window.dispatchEvent(new Event("auth:unauthorized"));
+    }
+    throw new Error(getApiErrorMessage(payload, getStatusErrorMessage(response.status, payload) || "Request failed"));
+  }
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) return;
+    buffer += value.replace(/\r\n/g, "\n");
+    let end;
+    while ((end = buffer.indexOf("\n\n")) >= 0) {
+      const block = buffer.slice(0, end);
+      buffer = buffer.slice(end + 2);
+      let id, kind;
+      const data = [];
+      for (const line of block.split("\n")) {
+        if (line.startsWith("id:")) id = Number(line.slice(3).trim());
+        else if (line.startsWith("event:")) kind = line.slice(6).trim();
+        else if (line.startsWith("data:")) data.push(line.slice(5).replace(/^ /, ""));
+      }
+      if (kind) onEvent(kind, data.length ? JSON.parse(data.join("\n")) : null, id);
+    }
+  }
+}
+
 export async function request(path, body = {}) {
   const controller = new AbortController();
   // save_config carries a whole configuration tree — allow more than the 10s
   // the small master calls use.
   const timeout = window.setTimeout(() => controller.abort(), 30000);
   try {
-    const token = getAccessToken();
-    const response = await authFetch(`${API_BASE_URL}${scopedPath(path)}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Deviceinfo: JSON.stringify(DEVICE_INFO),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...apiLanguageHeader(),
-      },
-      body: JSON.stringify(scopedBody(body)),
-      signal: controller.signal,
-    });
+    const response = await post(path, body, controller.signal);
     const payload = (response.headers.get("content-type") ?? "").includes("application/json")
       ? await response.json().catch(() => null)
       : null;

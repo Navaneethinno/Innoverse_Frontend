@@ -19,6 +19,8 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { InstitutionField, inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { EffectiveResult, glassCard, partyLabel, useInstitutionScope, when } from "../Shared/amlShared";
 import { ScreeningDetail, ScreeningDetailModal } from "../Shared/ScreeningDetail";
+import { AdverseMediaLookup } from "../AdverseMedia/AdverseMedia";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
 const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: [], gender: "", reason: "" });
@@ -43,6 +45,8 @@ export function NameLookup() {
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [openId, setOpenId] = useState(null);
   const { countries } = useCountries();
+  // Lists screening, or the news (Adverse Media).
+  const [view, setView] = useState("lists");
 
   const load = useCallback(
     async ({ silent = false } = {}) => {
@@ -109,6 +113,11 @@ export function NameLookup() {
         <PageTitle>{t("aml:lookupTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("aml:lookupSubtitle")}</p>
       </div>
+      <SegmentedSwitch className="mb-4" value={view} onChange={setView} options={[{ value: "lists", label: t("aml:tabLists") }, { value: "media", label: t("aml:mediaTitle") }]} />
+      {view === "media" ? (
+        <AdverseMediaLookup />
+      ) : (
+        <>
 
       {can("Add") && (
         <form onSubmit={(e) => void screen(e)} className="mb-4 grid gap-x-4 gap-y-3 rounded-2xl p-4 md:grid-cols-3" style={glassCard}>
@@ -170,6 +179,8 @@ export function NameLookup() {
         />
       </ListPanel>
       {openId && <ScreeningDetailModal id={openId} lookup onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
+        </>
+      )}
     </div>
   );
 }
