@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Calculator, Save, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
@@ -14,6 +15,16 @@ import { Problems, Section, inputClass, labelClass, ratePct } from "../../Deposi
 import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
+// The step a refusal's problem belongs to, from its wording (English or
+// Portuguese); the first match wins.
+const PROBLEM_STEPS = [
+  ["terms", /term|prazo|rate band|pricing|faixa/i],
+  ["fees", /\bfee|comiss/i],
+  ["approvals", /approv|aprova/i],
+  ["collateral", /collateral|garantia/i],
+  ["eligibility", /eligib|eleg|\bage\b|idade|income|rendimento/i],
+  ["repayment", /repay|reembols|grace|car[eê]ncia|moratorium|morat[oó]ria|charge|penal/i],
+];
 const today = () => new Date().toISOString().slice(0, 10);
 const blankBand = (from = "0") => ({ minimum_amount: from, maximum_amount: "0", pricing_type: "FIXED", annual_rate: "", calculation_method: "REDUCING_BALANCE", day_count_convention: "ACT_365", effective_from: today() });
 const blankTerm = () => ({ term_code: "", term_value: "", term_unit: "MONTHS", minimum_amount: "", maximum_amount: "", effective_from: today(), pricing: [blankBand()] });
@@ -88,6 +99,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   const [head, setHead] = useState({ product_code: "", currency_code: "" });
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
+  // What was last saved (or loaded), to warn before leaving with changes.
+  const [saved, setSaved] = useState(null);
+  const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const drafting = !product || [9, 5].includes(Number(product.status));
   const close = useRef(onClose);
@@ -101,7 +115,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       .then((r) => {
         const o = rowsOf(r)[0] ?? {};
         setOptions(o);
-        setConfig(structuredClone(product ? (product.draft ?? product.pending?.config ?? product.config ?? o.defaults) : o.defaults));
+        const start = structuredClone(product ? (product.draft ?? product.pending?.config ?? product.config ?? o.defaults) : o.defaults);
+        setConfig(start);
+        setSaved(JSON.stringify({ config: start, head: { product_code: "", currency_code: "" } }));
       })
       .catch((e) => {
         notifications.error(e.message);
@@ -140,6 +156,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       const response = id ? await loanProductsApi.edit({ id, ...body }) : await loanProductsApi.add(scope({ product_code: head.product_code, currency_code: Number(head.currency_code), ...body }));
       const newId = rowsOf(response)[0]?.id ?? id;
       setId(newId);
+      setSaved(JSON.stringify({ config, head }));
       return newId;
     } catch (e) {
       setError(e.message);
@@ -161,6 +178,10 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       onSaved(savedId);
     } catch (e) {
       setError(e.message);
+      // Go to the step the first problem belongs to.
+      const problems = String(e.message).split(/\r?\n/).slice(1).join(" ");
+      const target = PROBLEM_STEPS.find(([, pattern]) => pattern.test(problems));
+      if (target) setStep(STEPS.indexOf(target[0]));
     } finally {
       setBusy(false);
     }
@@ -172,6 +193,8 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
     );
   }
 
+  const dirty = saved !== JSON.stringify({ config, head });
+  const leave = () => (dirty ? setLeaving(true) : onClose());
   const p = config.policy ?? {};
   const e = config.eligibility_rules ?? {};
   const col = config.collateral_policy ?? {};
@@ -186,9 +209,12 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <button type="button" onClick={leave} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
         <ArrowLeft size={15} /> {t("backToProducts")}
       </button>
+      <ConfirmDialog open={leaving} title={t("leaveUnsavedTitle")} confirmLabel={t("leaveWithoutSaving")} destructive onClose={() => setLeaving(false)} onConfirm={onClose}>
+        <p className="text-sm text-muted-foreground">{t("leaveUnsavedHint")}</p>
+      </ConfirmDialog>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{product ? t("editProductX", { name: product.product_name }) : t("newLoanProduct")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("wizardDraftHint") : t("wizardProposeHint")}</p>
       <HorizontalStepper className="mb-4" steps={STEPS.map((s) => ({ id: s, label: t(`step_${s}`) }))} activeIndex={step} onStepClick={(i) => i < step && setStep(i)} />
@@ -366,7 +392,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} onClick={async () => (!drafting || (await saveDraft())) && setStep((s) => s + 1)}>
+            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} onClick={() => (setError(""), setStep((s) => s + 1))}>
               {t("next")}
             </Button>
           ) : (

@@ -3699,6 +3699,9 @@ export const loans = {
   event_REVERSED: "Reversed",
   event_OVERDUE: "Instalment overdue",
   noChangesFound: "Nothing differs from the product in effect.",
+  leaveUnsavedTitle: "Leave without saving?",
+  leaveWithoutSaving: "Leave without saving",
+  leaveUnsavedHint: "Your changes since the last save will be lost. Use Save draft to keep them.",
 };
 
 export const mms = {

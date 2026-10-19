@@ -3713,6 +3713,9 @@ export const loans = {
   event_REVERSED: "Estornado",
   event_OVERDUE: "Parcela em atraso",
   noChangesFound: "Nada difere do produto em vigor.",
+  leaveUnsavedTitle: "Sair sem guardar?",
+  leaveWithoutSaving: "Sair sem guardar",
+  leaveUnsavedHint: "As alterações desde a última gravação serão perdidas. Use Guardar rascunho para as manter.",
 };
 
 export const mms = {
