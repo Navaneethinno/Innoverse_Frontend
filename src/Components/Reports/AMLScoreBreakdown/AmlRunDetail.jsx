@@ -6,7 +6,7 @@ import { amlBreakdownApi } from "@/Services/Reports/amlBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
-import { EntityRecord, ReviewStateBadge, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
+import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 
 function Section({ title, children }) {
@@ -90,6 +90,9 @@ function MatchRow({ m }) {
           >
             {m.listed_name} <ChevronDown size={11} className={open ? "rotate-180" : ""} />
           </button>
+          <span className="mt-0.5 block font-normal">
+            <AlsoOnChips alsoOn={m.also_on} />
+          </span>
         </td>
         <td className="py-1.5 pr-2">{m.matched_name}</td>
         <td className="py-1.5 pr-2 text-right tabular-nums">{m.name_score}</td>
@@ -97,9 +100,12 @@ function MatchRow({ m }) {
           <Adjustments list={m.adjustments} />
         </td>
         <td
-          className={`py-1.5 pr-2 text-right font-black tabular-nums ${cleared ? "line-through" : scoreTone(m.score)}`}
+          className={`py-1.5 pr-2 text-right font-black tabular-nums ${cleared ? "line-through" : scoreTone(matchScore(m))}`}
         >
-          {m.score}
+          {matchScore(m)}
+          <span className="block font-normal">
+            <WeightNote match={m} />
+          </span>
         </td>
         <td className="py-1.5">
           <ReviewStateBadge state={m.review?.state} />
