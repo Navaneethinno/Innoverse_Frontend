@@ -4,6 +4,7 @@ import { Eye, RefreshCw, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
+import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -118,8 +119,12 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
 // The AML result on the existing customer screens (wizard and the checker's
 // dialog), next to risk but never combined with it. Absent until the
 // customer's first submit.
-export function CustomerAmlBadge({ aml, adverseMedia, customerKind, referenceId, className = "mb-4" }) {
+export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, referenceId, className = "mb-4" }) {
   const { t } = useTranslation("aml");
+  // The onboarding screens are shared with MMS, where the record is a
+  // merchant: AML knows it as MERCHANT_INDIVIDUAL / MERCHANT_CORPORATE.
+  const merchant = useMenuContext()?.module === "MMS";
+  const customerKind = merchant && !String(kind).startsWith("MERCHANT_") ? `MERCHANT_${kind}` : kind;
   const canView = useMenuPermission("Screenings")("View");
   const [open, setOpen] = useState(false);
   if (!aml && !adverseMedia) return null;
