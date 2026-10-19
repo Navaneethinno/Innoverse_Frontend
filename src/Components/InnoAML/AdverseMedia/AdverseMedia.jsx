@@ -189,7 +189,7 @@ function QueryChips({ queries }) {
 function Funnel({ steps }) {
   const { t } = useTranslation("aml");
   return (
-    <div className="grid grid-cols-5 gap-1.5">
+    <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
       {steps.map(([key, value]) => (
         <div key={key} className="rounded-xl border border-border bg-card px-2 py-1.5 text-center">
           <p className="text-lg font-black tabular-nums">{value ?? "—"}</p>
@@ -248,7 +248,7 @@ function Source({ a }) {
 function LiveCard({ card }) {
   if (card.reading) {
     return (
-      <li className="animate-pulse rounded-xl border border-dashed border-border bg-muted/40 p-2.5">
+      <li className="animate-pulse rounded-xl border border-dashed border-border bg-muted/40 p-2.5" style={{ animation: "amSlide 400ms ease-out" }}>
         <Source a={card} />
         <p className="mt-1 line-clamp-2 text-xs font-semibold text-muted-foreground">{card.title}</p>
       </li>
@@ -256,7 +256,7 @@ function LiveCard({ card }) {
   }
   const adverse = card.verdict === "ADVERSE";
   return (
-    <li className={cn("rounded-xl border p-2.5 transition-colors", adverse ? (card.score >= 50 ? "border-red-200 bg-red-50/60" : "border-amber-200 bg-amber-50/60") : "border-border bg-card")}>
+    <li style={{ animation: "amSlide 400ms ease-out" }} className={cn("rounded-xl border p-2.5 transition-colors", adverse ? (card.score >= 50 ? "border-red-200 bg-red-50/60" : "border-amber-200 bg-amber-50/60") : "border-border bg-card")}>
       <div className="flex items-start justify-between gap-2">
         <Source a={card} />
         {adverse && <b className="text-xs tabular-nums text-red-700">{card.score}</b>}
@@ -298,39 +298,161 @@ function StoryHeader({ story }) {
 
 // ------------------------------------------------------------ live view --
 
+// Keyframes the investigation uses (scoped names).
+const LIVE_CSS = `
+@keyframes amSweep { to { transform: rotate(360deg); } }
+@keyframes amPop { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes amRing { 0% { transform: scale(0.6); opacity: 0.7; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes amSlide { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes amFade { to { opacity: 0.25; } }
+`;
+
+// A number that counts up to its value.
+function CountUp({ value }) {
+  const [shown, setShown] = useState(0);
+  const target = Number(value) || 0;
+  useEffect(() => {
+    let frame;
+    const from = shown;
+    const startedAt = performance.now();
+    const step = (now) => {
+      const p = Math.min(1, (now - startedAt) / 600);
+      setShown(Math.round(from + (target - from) * (1 - (1 - p) ** 3)));
+      if (p < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+    // Counts from wherever it is now.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+  return value == null ? "—" : shown;
+}
+
+// Where an article sits on the radar: its angle from its number, nearer the
+// centre the more it matters.
+function radarPoint(card) {
+  const angle = ((Number(card.id) * 137.508) % 360) * (Math.PI / 180);
+  const weight = card.reading ? 0.9 : card.verdict === "ADVERSE" ? 0.25 + (1 - Math.min(100, card.score) / 100) * 0.45 : card.verdict === "MENTION" ? 0.7 : 0.88;
+  return { x: 50 + Math.cos(angle) * 46 * weight, y: 50 + Math.sin(angle) * 46 * weight };
+}
+const dotTone = (c) => (c.reading ? "#94a3b8" : c.verdict === "ADVERSE" ? (c.score >= 50 ? "#dc2626" : "#d97706") : c.verdict === "MENTION" ? "#0284c7" : "#cbd5e1");
+
+// The search as a radar: a sweep while it works, one blip per article read,
+// red the more adverse, grey when it's about someone else.
+function Radar({ live }) {
+  const cards = live.order.map((no) => live.cards[no]).filter(Boolean);
+  const working = live.phase !== "done";
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[300px]">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full">
+        <defs>
+          <radialGradient id="amGlow">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="amBeam" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.35" />
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="48" fill="url(#amGlow)" stroke="var(--border)" strokeWidth="0.4" />
+        {[36, 24, 12].map((r) => <circle key={r} cx="50" cy="50" r={r} fill="none" stroke="var(--border)" strokeWidth="0.3" strokeDasharray="1 1.5" />)}
+        <line x1="2" y1="50" x2="98" y2="50" stroke="var(--border)" strokeWidth="0.2" />
+        <line x1="50" y1="2" x2="50" y2="98" stroke="var(--border)" strokeWidth="0.2" />
+        {working && (
+          <g style={{ transformOrigin: "50px 50px", animation: "amSweep 2.4s linear infinite" }}>
+            <path d="M50 50 L98 50 A48 48 0 0 0 83.9 16.1 Z" fill="url(#amBeam)" />
+          </g>
+        )}
+        {cards.map((c) => {
+          const p = radarPoint(c);
+          const big = c.verdict === "ADVERSE";
+          return (
+            <g key={c.id} style={{ transformOrigin: `${p.x}px ${p.y}px`, animation: c.verdict === "NOT_SUBJECT" ? "amFade 1.2s forwards" : "amPop 450ms ease-out" }}>
+              {big && <circle cx={p.x} cy={p.y} r="2.4" fill={dotTone(c)} style={{ transformOrigin: `${p.x}px ${p.y}px`, animation: "amRing 1.6s ease-out infinite" }} />}
+              <circle cx={p.x} cy={p.y} r={big ? 1.9 : 1.2} fill={dotTone(c)}>
+                <title>{c.title}</title>
+              </circle>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <ScoreGauge score={live.score.score} level={live.score.level} size={118} />
+      </div>
+    </div>
+  );
+}
+
+// The investigation while it runs: radar and score, the steps, the queries,
+// the funnel, and the newest findings sliding in.
 function LiveView({ subject, live, error }) {
   const { t } = useTranslation("aml");
   const cards = live.order.map((no) => live.cards[no]).filter((c) => c && c.verdict !== "NOT_SUBJECT");
   const ruledOut = live.order.filter((no) => live.cards[no]?.verdict === "NOT_SUBJECT").length;
-  const stories = Object.values(live.stories).sort((a, b) => b.score - a.score);
-  const inStory = new Set(stories.flatMap((s) => s.articles ?? []));
   const judged = Object.values(live.cards).filter((c) => !c.reading).length;
+  const stories = Object.values(live.stories).sort((a, b) => b.score - a.score).slice(0, 4);
+  const feed = [...cards].reverse().slice(0, 6);
   return (
     <IconsContext.Provider value={live.icons}>
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <SubjectCard subject={subject} />
-        <ScoreGauge score={live.score.score} level={live.score.level} />
-      </div>
-      <PhaseRail phase={live.phase} />
-      <QueryChips queries={live.queries} />
-      <Funnel steps={[["found", live.candidates?.found], ["unique", live.candidates?.unique], ["read", live.candidates ? `${judged}/${live.candidates.reading}` : null], ["about", live.score.about_subject], ["adverse", live.score.adverse]]} />
-      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{error}</p>}
-      <div className="grid gap-3">
-        {stories.map((s) => (
-          <section key={s.id} className="rounded-2xl border border-border p-3">
-            <StoryHeader story={s} />
-            <ul className="mt-2 grid gap-2 md:grid-cols-2">
-              {(s.articles ?? []).map((no) => live.cards[no]).filter(Boolean).map((c) => <LiveCard key={c.id} card={c} />)}
+      <style>{LIVE_CSS}</style>
+      <div className="grid min-w-0 gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SubjectCard subject={subject} />
+          <PhaseRail phase={live.phase} />
+        </div>
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
+          <div className="grid content-start gap-3">
+            <Radar live={live} />
+            <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+              {[["ADVERSE", "#dc2626"], ["MENTION", "#0284c7"], ["READING", "#94a3b8"], ["NOT_SUBJECT", "#cbd5e1"]].map(([k, c]) => (
+                <li key={k} className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full" style={{ background: c }} /> {t(`mediaDot_${k}`)}
+                </li>
+              ))}
             </ul>
-          </section>
-        ))}
-        <ul className="grid gap-2 md:grid-cols-2">
-          {cards.filter((c) => !inStory.has(c.id)).map((c) => <LiveCard key={c.id} card={c} />)}
-        </ul>
-        {ruledOut > 0 && <p className="text-[11px] text-muted-foreground">{t("mediaRuledOutN", { count: ruledOut })}</p>}
+          </div>
+          <div className="grid min-w-0 content-start gap-3">
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
+              {[["found", live.candidates?.found], ["unique", live.candidates?.unique], ["read", live.candidates ? judged : null], ["about", live.score.about_subject], ["adverse", live.score.adverse]].map(([key, value]) => (
+                <div key={key} className={cn("rounded-xl border px-2 py-1.5 text-center", key === "adverse" && value ? "border-red-200 bg-red-50" : "border-border bg-card")}>
+                  <p className={cn("text-xl font-black tabular-nums", key === "adverse" && value ? "text-red-700" : "")}>
+                    <CountUp value={value} />
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t(`mediaFunnel_${key}`)}</p>
+                </div>
+              ))}
+            </div>
+            {live.candidates?.reading > 0 && (
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (judged / live.candidates.reading) * 100)}%` }} />
+              </div>
+            )}
+            <QueryChips queries={live.queries} />
+            {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{error}</p>}
+            {stories.length > 0 && (
+              <div className="grid gap-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaStoriesForming")}</p>
+                {stories.map((st) => (
+                  <div key={st.id} className="rounded-xl border border-border bg-card px-3 py-2" style={{ animation: "amSlide 400ms ease-out" }}>
+                    <StoryHeader story={st} />
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="grid gap-1.5">
+              <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaLatestFindings")}</p>
+              <ul className="grid gap-1.5">
+                {feed.map((c) => (
+                  <LiveCard key={c.id} card={c} />
+                ))}
+                {!feed.length && <li className="text-xs text-muted-foreground">{t(`mediaWaiting_${live.phase}`)}</li>}
+              </ul>
+              {ruledOut > 0 && <p className="text-[11px] text-muted-foreground">{t("mediaRuledOutN", { count: ruledOut })}</p>}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
     </IconsContext.Provider>
   );
 }
@@ -465,7 +587,7 @@ function ResultView({ search, onChange }) {
 
   return (
     <IconsContext.Provider value={search.icons ?? {}}>
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <SubjectCard subject={search.subject} />
         <div className="flex items-center gap-4">
@@ -484,7 +606,7 @@ function ResultView({ search, onChange }) {
           <p className={labelClass}>{t("mediaCategories")}</p>
           <ul className="mt-2 grid gap-1.5">
             {categories.map(([c, v]) => (
-              <li key={c} className="grid grid-cols-[9rem_1fr_2rem] items-center gap-2 text-xs">
+              <li key={c} className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_2rem] items-center gap-2 text-xs">
                 <span className="truncate font-semibold">{t(`mediaCode_${c}`, { defaultValue: c })}</span>
                 <span className="h-2 overflow-hidden rounded-full bg-muted">
                   <span className="block h-full rounded-full bg-red-500" style={{ width: `${Math.min(100, v)}%` }} />
@@ -497,7 +619,7 @@ function ResultView({ search, onChange }) {
       )}
 
       {timeline.length > 0 && (
-        <section>
+        <section className="min-w-0">
           <p className={labelClass}>{t("mediaTimeline")}</p>
           <ol className="mt-2 flex gap-2 overflow-x-auto pb-1">
             {timeline.map((a) => (
@@ -558,10 +680,14 @@ function ResultView({ search, onChange }) {
 }
 
 // One search: live while it runs, then its result. A finished one opens on
-// its result straight away.
-export function MediaSearchView({ searchId, initial }) {
+// its result straight away. `popup`: the live investigation opens in its
+// own window and the result lands on the page when it's done (Name Lookup);
+// without it (already inside a window) it plays in place.
+export function MediaSearchView({ searchId, initial, popup = false }) {
+  const { t } = useTranslation("aml");
   const [search, setSearch] = useState(initial ?? null);
   const [loading, setLoading] = useState(!initial);
+  const [hidden, setHidden] = useState(false);
   const load = useCallback(async () => {
     try {
       setSearch(rowsOf(await amlMediaApi.get({ search_id: searchId }))[0] ?? null);
@@ -586,7 +712,25 @@ export function MediaSearchView({ searchId, initial }) {
     );
   }
   if (!search) return null;
-  return running ? <LiveView subject={search.subject} live={live} error={error} /> : <ResultView search={search} onChange={setSearch} />;
+  if (!running) return <ResultView search={search} onChange={setSearch} />;
+  if (!popup) return <LiveView subject={search.subject} live={live} error={error} />;
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-primary/40 p-3">
+        <span className="flex items-center gap-2 text-sm font-semibold">
+          <Spinner size={14} /> {t("mediaInvestigating", { name: search.subject?.name ?? "" })}
+        </span>
+        {hidden && (
+          <Button size="sm" variant="secondary" onClick={() => setHidden(false)}>
+            {t("mediaWatch")}
+          </Button>
+        )}
+      </div>
+      <Modal open={!hidden} onClose={() => setHidden(true)} size="xl" title={t("mediaInvestigationTitle")}>
+        <LiveView subject={search.subject} live={live} error={error} />
+      </Modal>
+    </>
+  );
 }
 
 function LevelPill({ row }) {
@@ -685,7 +829,7 @@ export function AdverseMediaLookup() {
   ];
 
   return (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       {can("Add") && (
         <form onSubmit={(e) => void start(e)} className="grid gap-x-4 gap-y-3 rounded-2xl p-4 md:grid-cols-3" style={glassCard}>
           <InstitutionField value={form.inst_profile_id} onChange={set("inst_profile_id")} />
@@ -735,8 +879,8 @@ export function AdverseMediaLookup() {
       )}
 
       {current && (
-        <div className="rounded-2xl p-4" style={glassCard}>
-          <MediaSearchView key={current.id} searchId={current.id} initial={current.initial} />
+        <div className="min-w-0 overflow-hidden rounded-2xl p-4" style={glassCard}>
+          <MediaSearchView key={current.id} searchId={current.id} initial={current.initial} popup />
         </div>
       )}
 

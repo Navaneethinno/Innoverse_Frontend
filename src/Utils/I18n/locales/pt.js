@@ -1875,6 +1875,20 @@ export const aml = {
   mediaProposedBy: "Proposto por",
   mediaNoPending: "Nenhuma revisão de artigo está pendente.",
   mediaSearchAgainHint: "A pesquisa de notícias foi interrompida: abra-a para pesquisar novamente.",
+  mediaDot_ADVERSE: "Adverso",
+  mediaDot_MENTION: "Menção",
+  mediaDot_READING: "A ler",
+  mediaDot_NOT_SUBJECT: "Outra pessoa",
+  mediaStoriesForming: "Histórias a formar-se",
+  mediaLatestFindings: "Últimos resultados",
+  mediaWaiting_planning: "A planear as pesquisas…",
+  mediaWaiting_searching: "A consultar as fontes de notícias…",
+  mediaWaiting_reading: "A ler os primeiros artigos…",
+  mediaWaiting_analysing: "A analisar…",
+  mediaWaiting_done: "A terminar…",
+  mediaInvestigating: "A pesquisar notícias sobre {{name}}…",
+  mediaWatch: "Ver",
+  mediaInvestigationTitle: "Investigação de notícias",
 };
 
 // Reports (handoff 08).

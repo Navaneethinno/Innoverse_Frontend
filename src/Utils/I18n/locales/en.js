@@ -1861,6 +1861,20 @@ export const aml = {
   mediaProposedBy: "Proposed by",
   mediaNoPending: "No article reviews are waiting.",
   mediaSearchAgainHint: "The news search was interrupted: open it to search again.",
+  mediaDot_ADVERSE: "Adverse",
+  mediaDot_MENTION: "Mention",
+  mediaDot_READING: "Reading",
+  mediaDot_NOT_SUBJECT: "Someone else",
+  mediaStoriesForming: "Stories forming",
+  mediaLatestFindings: "Latest findings",
+  mediaWaiting_planning: "Planning the searches…",
+  mediaWaiting_searching: "Asking the news sources…",
+  mediaWaiting_reading: "Reading the first articles…",
+  mediaWaiting_analysing: "Analysing…",
+  mediaWaiting_done: "Finishing…",
+  mediaInvestigating: "Searching the news for {{name}}…",
+  mediaWatch: "Watch",
+  mediaInvestigationTitle: "News investigation",
 };
 
 // Reports (handoff 08).
