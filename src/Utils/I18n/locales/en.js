@@ -5251,6 +5251,14 @@ export const providers = {
   groups: "Groups",
   groupsHint: "Fee rules and limits can name a group instead of each provider. A provider can be in several groups.",
   addGroup: "Add group",
+  inEnglish: "{{label}} (English)",
+  optionLabels: "Option labels",
+  optionLabelsHint: "what each code is shown as; blank shows the code",
+  optionShownAs: "Shown as",
+  productsAfter: "Ask the plan after",
+  productsAfterAll: "Every field",
+  productsAfterAccount: "The identifier",
+  productsAfterField: "Field: {{field}}",
 };
 
 // ACCOUNTING: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.

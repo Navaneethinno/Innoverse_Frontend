@@ -5265,6 +5265,14 @@ export const providers = {
   groups: "Grupos",
   groupsHint: "As regras de taxas e os limites podem indicar um grupo em vez de cada fornecedor. Um fornecedor pode estar em vários grupos.",
   addGroup: "Adicionar grupo",
+  inEnglish: "{{label}} (inglês)",
+  optionLabels: "Rótulos das opções",
+  optionLabelsHint: "como cada código é mostrado; em branco mostra o código",
+  optionShownAs: "Mostrado como",
+  productsAfter: "Pedir o plano depois de",
+  productsAfterAll: "Todos os campos",
+  productsAfterAccount: "O identificador",
+  productsAfterField: "Campo: {{field}}",
 };
 
 // ACCOUNTING: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
