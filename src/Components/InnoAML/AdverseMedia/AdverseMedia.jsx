@@ -161,6 +161,19 @@ function Thumb({ image, domain, className = "h-16 w-24" }) {
   );
 }
 
+// "Photo: <author>, <licence>, Wikimedia Commons", each part linked.
+function PhotoCredit({ profile }) {
+  const { t } = useTranslation("aml");
+  const link = (href, text) => (href ? <a href={href} target="_blank" rel="noreferrer" className="hover:underline">{text}</a> : text);
+  return (
+    <span className="max-w-[9rem] text-center text-[9px] leading-tight text-muted-foreground">
+      {t("mediaPhoto")}: {profile.photo_author && <>{link(profile.photo_source, profile.photo_author)}, </>}
+      {profile.photo_licence && <>{link(profile.photo_licence_url, profile.photo_licence)}, </>}
+      {link(profile.photo_source, "Wikimedia Commons")}
+    </span>
+  );
+}
+
 // The subject, with their public profile (Wikidata) when one entry fits.
 function SubjectCard({ subject, profile }) {
   const { t } = useTranslation("aml");
@@ -169,11 +182,7 @@ function SubjectCard({ subject, profile }) {
     <div className="flex min-w-0 items-start gap-3">
       <div className="grid justify-items-center gap-0.5">
         <Avatar name={subject.name} photo={profile?.photo} />
-        {profile?.photo && profile.photo_source && (
-          <a href={profile.photo_source} target="_blank" rel="noreferrer" className="text-[9px] text-muted-foreground hover:underline">
-            {t("mediaPhotoCredit")}
-          </a>
-        )}
+        {profile?.photo && <PhotoCredit profile={profile} />}
       </div>
       <div className="min-w-0">
       <p className="truncate text-lg font-black text-foreground">{subject.name}</p>
@@ -188,7 +197,11 @@ function SubjectCard({ subject, profile }) {
               Wikipedia <ExternalLink size={10} />
             </a>
           )}
-          <span>{t("mediaMatchedOn", { on: (profile.matched_on ?? []).map((m) => t(`mediaMatched_${m}`, { defaultValue: m })).join(", ") })}</span>
+          {(profile.matched_on ?? []).some((m) => m !== "NAME") ? (
+            <span>{t("mediaMatchedOn", { on: (profile.matched_on ?? []).map((m) => t(`mediaMatched_${m}`, { defaultValue: m })).join(", ") })}</span>
+          ) : (
+            <span className="font-semibold text-amber-700">{t("mediaPossibleWikipedia")}</span>
+          )}
         </p>
       )}
       {subject.countries?.length > 0 && (
@@ -326,6 +339,8 @@ function LiveCard({ card }) {
     </li>
   );
 }
+
+const storyImage = (story, article) => article(story.best_article ?? story.articles?.[0])?.image || (story.articles ?? []).map((no) => article(no)?.image).find(Boolean);
 
 function StoryHeader({ story, image }) {
   const { t } = useTranslation("aml");
@@ -504,7 +519,7 @@ function LiveView({ subject, live, error }) {
                 <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaStoriesForming")}</p>
                 {stories.map((st) => (
                   <div key={st.id} className="rounded-xl border border-border bg-card px-3 py-2" style={{ animation: "amSlide 400ms ease-out" }}>
-                    <StoryHeader story={st} image={(st.articles ?? []).map((no) => live.cards[no]?.image).find(Boolean)} />
+                    <StoryHeader story={st} image={storyImage(st, (no) => live.cards[no])} />
                   </div>
                 ))}
               </div>
@@ -531,7 +546,7 @@ function LiveView({ subject, live, error }) {
 const GROUP_COLOUR = { FAMILY: "#8b5cf6", AFFILIATION: "#0ea5e9", OWNERSHIP: "#10b981", ASSOCIATE: "#f97316", NEWS: "#64748b" };
 const GROUPS = Object.keys(GROUP_COLOUR);
 // A flagged related party: red for sanctions or crime, amber otherwise.
-const flagColour = (watch) => (!watch ? null : ["SANCTIONS", "CRIME"].includes(watch.category) ? "#dc2626" : "#d97706");
+const flagColour = (watch, review) => (!watch || review?.state === "NOT_RELEVANT" ? null : ["SANCTIONS", "CRIME"].includes(watch.category) ? "#dc2626" : "#d97706");
 const years = (r) => (r.from || r.to ? `${r.from ?? "…"}–${r.to ?? ""}` : "");
 const shortName = (name, n = 16) => (String(name).length > n ? `${String(name).slice(0, n - 1)}…` : String(name));
 const nodeGlyph = (r) => (r.entity_type === "ORGANIZATION" ? "🏢" : r.entity_type === "POSITION" ? "🎖" : r.entity_type === "VESSEL" ? "⚓" : "");
@@ -611,7 +626,7 @@ function Network3D({ subject, profile, relations, picked, onPick, height = 420 }
     return (
       <g key={r.id} onClick={() => onPick(picked === r.id ? null : r.id)} className="cursor-pointer" opacity={dim ? 0.3 : depth}>
         <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
-        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagColour(r.watch)} selected={picked === r.id} />
+        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagColour(r.watch, r.review)} selected={picked === r.id} />
         {(p.z < 0.2 || picked === r.id) && (
           <text x={p.x} y={p.y + size + 11} textAnchor="middle" className="fill-foreground" style={{ fontSize: 9, fontWeight: 600 }}>
             {shortName(r.name)}
@@ -695,7 +710,7 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
   const person = (p) => (
     <g key={p.r.id} onClick={() => onPick(picked === p.r.id ? null : p.r.id)} className="cursor-pointer" opacity={picked && picked !== p.r.id ? 0.4 : 1} style={{ animation: "amPop 450ms ease-out", transformOrigin: `${p.x}px ${p.y}px` }}>
       <title>{[p.r.name, p.r.label, years(p.r), p.r.watch && `${p.r.watch.list} · ${p.r.watch.category}`].filter(Boolean).join(" · ")}</title>
-      <SvgFace id={`amFam${p.r.id}`} x={p.x} y={p.y} r={24} photo={p.r.photo} text={initialsOf(p.r.name)} fill={GROUP_COLOUR.FAMILY} ring={flagColour(p.r.watch)} selected={picked === p.r.id} />
+      <SvgFace id={`amFam${p.r.id}`} x={p.x} y={p.y} r={24} photo={p.r.photo} text={initialsOf(p.r.name)} fill={GROUP_COLOUR.FAMILY} ring={flagColour(p.r.watch, p.r.review)} selected={picked === p.r.id} />
       <text x={p.x} y={p.y + 40} textAnchor="middle" className="fill-foreground" style={{ fontSize: 10, fontWeight: 700 }}>
         {shortName(p.r.name, 18)}
       </text>
@@ -740,7 +755,7 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
 
 // One related party in full: what links them, their own watchlist match
 // (a lead, not a finding about the subject), and where it came from.
-function RelationDetail({ r, articlesByNo }) {
+function RelationDetail({ r, articlesByNo, search, onChange }) {
   const { t } = useTranslation("aml");
   const link = r.wikidata_id ? `https://www.wikidata.org/wiki/${r.wikidata_id}` : r.entity_key ? `https://www.opensanctions.org/entities/${r.entity_key}` : null;
   return (
@@ -772,13 +787,92 @@ function RelationDetail({ r, articlesByNo }) {
           {r.wikidata_id ? "Wikidata" : "OpenSanctions"} <ExternalLink size={10} />
         </a>
       )}
+      {search && <RelationReview key={r.id} r={r} search={search} onChange={onChange} />}
+    </div>
+  );
+}
+
+// A relationship's review: where it stands, a proposal (Relevant / Not
+// relevant with a comment), and the checker's approve / reject.
+function RelationReview({ r, search, onChange }) {
+  const { t } = useTranslation("aml");
+  const canPropose = useMenuPermission("Match Review")("Add");
+  const canAuthorize = useMenuPermission("Match Review")("Authorize");
+  const [decision, setDecision] = useState("");
+  const [comment, setComment] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [dialog, setDialog] = useState(null);
+  const review = r.review ?? { state: "OPEN" };
+  const waiting = review.state === "PENDING" ? { review_id: review.review_id, decision: review.decision, proposed_by: review.proposed_by } : review.pending;
+  const run = async (fn) => {
+    setBusy(true);
+    try {
+      const response = await fn();
+      notifications.success(apiMessage(response, t("done")));
+      onChange?.(rowsOf(response)[0] ?? search);
+      return true;
+    } catch (e) {
+      notifications.error(e.message);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="mt-1 grid gap-1.5 border-t border-dashed border-border pt-2">
+      <p className="flex items-center gap-1.5">
+        <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", REVIEW_TONE[review.state] ?? REVIEW_TONE.OPEN)}>{t(`mediaReview_${review.state}`, { defaultValue: review.state })}</span>
+        {review.comment && <span className="truncate italic text-muted-foreground">“{review.comment}”</span>}
+      </p>
+      {waiting ? (
+        canAuthorize && (
+          <div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
+            <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: waiting.proposed_by ?? "" })}</span>
+            <span className="ml-auto flex gap-1">
+              <Button size="sm" variant="danger" icon={XCircle} onClick={() => setDialog({ verb: "deauth", id: waiting.review_id })}>{t("reject")}</Button>
+              <Button size="sm" icon={CheckCircle2} onClick={() => setDialog({ verb: "auth", id: waiting.review_id })}>{t("approve")}</Button>
+            </span>
+          </div>
+        )
+      ) : (
+        canPropose && search.status === "DONE" && (
+          <div className="grid gap-1.5">
+            <div className="flex flex-wrap gap-1">
+              {["NOT_RELEVANT", "RELEVANT"].map((d) => (
+                <button key={d} type="button" onClick={() => setDecision(decision === d ? "" : d)} className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-bold", decision === d ? REVIEW_TONE[d] : "border-border text-muted-foreground")}>
+                  {t(`mediaReview_${d}`)}
+                </button>
+              ))}
+            </div>
+            {decision && (
+              <div className="flex gap-1.5">
+                <input autoFocus className="min-w-0 flex-1 rounded-lg border border-border px-2 py-1 text-xs" maxLength={2000} placeholder={t("mediaComment")} value={comment} onChange={(e) => setComment(e.target.value)} />
+                <Button size="sm" loading={busy} disabled={!comment.trim()} onClick={async () => (await run(() => amlMediaReviewApi.propose({ search_id: search.id, decisions: [{ relation_id: r.id, decision, comment: comment.trim() }] }))) && (setDecision(""), setComment(""))}>
+                  {t("mediaPropose")}
+                </Button>
+              </div>
+            )}
+          </div>
+        )
+      )}
+      {dialog && (
+        <NarrationDialog
+          title={t(dialog.verb === "auth" ? "mediaApproveTitle" : "mediaRejectTitle")}
+          confirmLabel={t(dialog.verb === "auth" ? "approve" : "reject")}
+          variant={dialog.verb === "auth" ? "primary" : "danger"}
+          required={dialog.verb === "deauth"}
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={async (narration) => (await run(() => amlMediaReviewApi[dialog.verb]({ id: dialog.id, ...(narration ? { narration } : {}) }))) && setDialog(null)}
+        />
+      )}
     </div>
   );
 }
 
 // The relationships: the graph, a grouped list with filters, and the one
 // picked in full.
-function Relations({ subject, profile, relations, articlesByNo, compact = false }) {
+function Relations({ subject, profile, relations, articlesByNo, compact = false, search, onChange }) {
   const { t } = useTranslation("aml");
   const [picked, setPicked] = useState(null);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
@@ -787,7 +881,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false 
   if (!relations?.length) return null;
   const hasFamily = relations.some((r) => r.group === "FAMILY" && ["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
   const shown = relations.filter((r) => (!flaggedOnly || r.watch) && (!source || r.source === source));
-  const flagged = relations.filter((r) => r.watch).length;
+  const flagged = relations.filter((r) => r.watch && r.review?.state !== "NOT_RELEVANT").length;
   const current = relations.find((r) => r.id === picked);
   const legend = (
     <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
@@ -834,7 +928,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false 
           {legend}
         </div>
         <div className="grid content-start gap-3">
-          {current && <RelationDetail r={current} articlesByNo={articlesByNo} />}
+          {current && <RelationDetail r={current} articlesByNo={articlesByNo} search={search} onChange={onChange} />}
           {GROUPS.map((g) => {
             const list = shown.filter((r) => r.group === g);
             if (!list.length) return null;
@@ -1018,6 +1112,7 @@ function ResultView({ search, onChange }) {
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState(null);
   const [ruledOut, setRuledOut] = useState(false);
+  const [order, setOrder] = useState("stories");
 
   const articles = search.articles ?? [];
   const byNo = Object.fromEntries(articles.map((a) => [a.no, a]));
@@ -1110,7 +1205,7 @@ function ResultView({ search, onChange }) {
         </section>
       )}
 
-      <Relations subject={search.subject} profile={search.profile} relations={search.relations} articlesByNo={byNo} />
+      <Relations subject={search.subject} profile={search.profile} relations={search.relations} articlesByNo={byNo} search={search} onChange={onChange} />
 
       {selectable && picked.length > 0 && (
         <div className="sticky top-0 z-10 flex flex-wrap items-end gap-2 rounded-xl border border-primary/30 bg-card p-2.5 shadow">
@@ -1124,9 +1219,14 @@ function ResultView({ search, onChange }) {
       )}
 
       <div className="grid gap-3">
+        {articles.length > 0 && <SegmentedSwitch className="w-fit" value={order} onChange={setOrder} options={[{ value: "stories", label: t("mediaByStory") }, { value: "latest", label: t("mediaLatestFirst") }]} />}
+        {order === "latest" ? (
+          <ul className="grid gap-2">{[...articles].sort((x, y) => String(y.published_at ?? "").localeCompare(String(x.published_at ?? ""))).map(card)}</ul>
+        ) : (
+        <>
         {stories.map((s) => (
           <section key={s.id} className="rounded-2xl border border-border p-3">
-            <StoryHeader story={s} image={(s.articles ?? []).map((no) => byNo[no]?.image).find(Boolean)} />
+            <StoryHeader story={s} image={storyImage(s, (no) => byNo[no])} />
             <ul className="mt-2 grid gap-2">{(s.articles ?? []).map((no) => byNo[no]).filter(Boolean).map(card)}</ul>
           </section>
         ))}
@@ -1135,6 +1235,8 @@ function ResultView({ search, onChange }) {
             <p className={labelClass}>{t("mediaOtherArticles")}</p>
             <ul className="mt-2 grid gap-2">{loose.map(card)}</ul>
           </section>
+        )}
+        </>
         )}
         {!articles.length && <p className="py-6 text-center text-sm text-muted-foreground">{t("mediaNothingFound")}</p>}
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -1219,8 +1321,25 @@ function LevelPill({ row }) {
   const tone = LEVEL_TONE[level];
   if (!tone || ["RUNNING", "ERROR"].includes(row.status)) return <span className="text-xs text-muted-foreground">{t(`mediaStatus_${row.status}`, { defaultValue: row.status })}</span>;
   return (
-    <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-black", tone.bg, tone.text)}>
-      {t(`mediaLevel_${level}`)} · {row.effective_score ?? row.score}
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-black", tone.bg, tone.text)}>
+        {t(`mediaLevel_${level}`)} · {row.effective_score ?? row.score}
+      </span>
+      <FlaggedRelations row={row} />
+    </span>
+  );
+}
+
+// "2 related parties on a watchlist (PEP)": context beside the level, not
+// part of it.
+function FlaggedRelations({ row }) {
+  const { t } = useTranslation("aml");
+  const count = Number(row?.flagged_relations) || 0;
+  if (!count) return null;
+  const colour = ["SANCTIONS", "CRIME"].includes(row.flagged_category) ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800";
+  return (
+    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", colour)}>
+      {t("mediaFlaggedRelations", { count, category: t(`category_${row.flagged_category}`, { defaultValue: row.flagged_category }) })}
     </span>
   );
 }
@@ -1545,14 +1664,23 @@ export function MediaReviews() {
       key: "title",
       label: t("aml:mediaArticle"),
       align: "left",
-      render: (r) => (
-        <a href={r.url} target="_blank" rel="noreferrer" className="block max-w-sm hover:text-primary">
-          <span className="line-clamp-2 text-xs font-semibold">{r.title}</span>
-          <span className="text-[11px] text-muted-foreground">
-            {r.domain} · <Badges a={r} />
+      render: (r) =>
+        r.relation_id ? (
+          <span className="block max-w-sm">
+            <span className="text-xs font-semibold">{r.title}</span>
+            <span className="block text-[11px] text-muted-foreground">
+              {t("aml:mediaRelationship")} · {t(`aml:mediaRel_${r.stage}`, { defaultValue: r.stage })}
+              {r.category && ` · ${t(`aml:category_${r.category}`, { defaultValue: r.category })}`}
+            </span>
           </span>
-        </a>
-      ),
+        ) : (
+          <a href={r.url} target="_blank" rel="noreferrer" className="block max-w-sm hover:text-primary">
+            <span className="line-clamp-2 text-xs font-semibold">{r.title}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {r.domain} · <Badges a={r} />
+            </span>
+          </a>
+        ),
     },
     {
       key: "decision",
