@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { Spinner } from "@/Components/Common/Spinner";
+import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
 import { cardsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { transactionRequestsApi, transactionsApi } from "@/Services/Transactions/transactions.api";
@@ -241,6 +242,7 @@ export function NewRequest({ preset, onClose, onDone }) {
           )}
           {quoteError && <Problems message={quoteError} />}
           {plan && <PlanCard plan={plan} />}
+          {plan && <TxnLimitWarning currencyCode={plan.currency_code} amount={needs.amount ? form.amount : plan.amount} />}
           {plan && <p className="text-[11px] text-muted-foreground">{t("checkedAgainOnApproval")}</p>}
         </div>
       )}
