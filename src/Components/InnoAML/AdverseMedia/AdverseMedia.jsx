@@ -576,100 +576,115 @@ function SvgFace({ id, x, y, r, photo, text, fill, ring, selected }) {
 const initialsOf = (name) => String(name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
 const faceText = (r) => nodeGlyph(r) || initialsOf(r.name);
 
-// The relationships as a globe around the subject: drag to turn it, the
-// + / − buttons to zoom (the page keeps its own scroll), click a node to open it. It turns slowly by
-// itself unless the user prefers less motion.
+// The relationships as a globe around the subject, each group in its own
+// slice (family together, affiliations together…): drag to turn it, the
+// + / − buttons to zoom, hover for a name, click to open. It turns slowly
+// by itself unless the user prefers less motion.
 function Network3D({ subject, profile, relations, picked, onPick, height = 420 }) {
   const { t } = useTranslation("aml");
-  const [rot, setRot] = useState({ x: -0.35, y: 0 });
+  const [rot, setRot] = useState({ x: -0.3, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [hover, setHover] = useState(null);
   const drag = useRef(null);
   const idle = useRef(0);
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
     let frame;
     const step = () => {
-      if (!drag.current && Date.now() > idle.current) setRot((r) => ({ ...r, y: r.y + 0.0035 }));
+      if (!drag.current && Date.now() > idle.current) setRot((r) => ({ ...r, y: r.y + 0.003 }));
       frame = requestAnimationFrame(step);
     };
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
   }, []);
-  const W = 460;
+  const W = 480;
   const H = height;
   const cx = W / 2;
   const cy = H / 2;
-  const R = Math.min(W, H) * 0.36 * zoom;
-  const n = relations.length;
+  const R = Math.min(W, H) * 0.38 * zoom;
+  // Each group gets a slice of the globe; its members spread over that
+  // slice from pole to pole.
+  const groups = GROUPS.filter((g) => relations.some((r) => r.group === g));
+  const slice = (2 * Math.PI) / Math.max(1, groups.length);
   const [sx, cxr, sy, cyr] = [Math.sin(rot.x), Math.cos(rot.x), Math.sin(rot.y), Math.cos(rot.y)];
-  const points = relations.map((r, i) => {
-    // An even spread over a sphere (Fibonacci), then turned and projected.
-    const y0 = 1 - ((i + 0.5) / n) * 2;
-    const ring = Math.sqrt(1 - y0 * y0);
-    const th = i * 2.399963;
-    const x0 = Math.cos(th) * ring;
-    const z0 = Math.sin(th) * ring;
-    const x1 = x0 * cyr + z0 * sy;
-    const z1 = -x0 * sy + z0 * cyr;
-    const y2 = y0 * cxr - z1 * sx;
-    const z2 = y0 * sx + z1 * cxr;
-    const f = 2.6 / (2.6 + z2);
-    return { r, x: cx + x1 * R * f, y: cy + y2 * R * f, z: z2, f };
+  const points = groups.flatMap((g, gi) => {
+    const members = relations.filter((r) => r.group === g);
+    return members.map((r, j) => {
+      const lat = Math.asin(1 - (2 * (j + 0.5)) / members.length) * 0.82;
+      const lon = gi * slice + slice * (0.15 + 0.7 * ((j * 0.618034) % 1));
+      const x0 = Math.cos(lat) * Math.cos(lon);
+      const z0 = Math.cos(lat) * Math.sin(lon);
+      const y0 = Math.sin(lat);
+      const x1 = x0 * cyr + z0 * sy;
+      const z1 = -x0 * sy + z0 * cyr;
+      const y2 = y0 * cxr - z1 * sx;
+      const z2 = y0 * sx + z1 * cxr;
+      const f = 3 / (3 + z2);
+      return { r, x: cx + x1 * R * f, y: cy + y2 * R * f, z: z2, f };
+    });
   });
   const back = points.filter((p) => p.z > 0).sort((p, q) => q.z - p.z);
   const front = points.filter((p) => p.z <= 0).sort((p, q) => q.z - p.z);
   const node = (p) => {
     const { r } = p;
-    const depth = Math.max(0.35, Math.min(1, 1.15 - p.z * 0.55));
-    const size = 15 * p.f;
+    const flagged = flagColour(r.watch, r.review);
+    const focus = picked === r.id || hover === r.id;
     const dim = picked && picked !== r.id;
+    const size = (flagged ? 12 : 10) * (0.85 + 0.2 * p.f);
+    const label = focus || (flagged && p.z < 0);
     return (
-      <g key={r.id} onClick={() => onPick(picked === r.id ? null : r.id)} className="cursor-pointer" opacity={dim ? 0.3 : depth}>
+      <g key={r.id} onClick={() => onPick(picked === r.id ? null : r.id)} onPointerEnter={() => setHover(r.id)} onPointerLeave={() => setHover(null)} className="cursor-pointer" opacity={dim ? 0.25 : Math.max(0.4, Math.min(1, 1.1 - p.z * 0.5))}>
         <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
-        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagColour(r.watch, r.review)} selected={picked === r.id} />
-        {(p.z < 0.2 || picked === r.id) && (
-          <text x={p.x} y={p.y + size + 11} textAnchor="middle" className="fill-foreground" style={{ fontSize: 9, fontWeight: 600 }}>
-            {shortName(r.name)}
-          </text>
+        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagged} selected={picked === r.id} />
+        {label && (
+          <g>
+            <rect x={p.x - 52} y={p.y + size + 4} width="104" height="15" rx="7.5" fill="var(--card)" stroke="var(--border)" strokeWidth="0.6" />
+            <text x={p.x} y={p.y + size + 14.5} textAnchor="middle" className="fill-foreground" style={{ fontSize: 8.5, fontWeight: 700 }}>
+              {shortName(r.name, 20)}
+            </text>
+          </g>
         )}
       </g>
     );
   };
   const edge = (p) => (
-    <line key={`e${p.r.id}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={GROUP_COLOUR[p.r.group] ?? "#94a3b8"} strokeOpacity={(picked && picked !== p.r.id ? 0.08 : 0.45) * Math.max(0.3, 1 - p.z * 0.6)} strokeWidth={p.r.watch ? 2 : 1.1} strokeDasharray={p.r.source === "NEWS" ? "4 3" : undefined} />
+    <line key={`e${p.r.id}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={GROUP_COLOUR[p.r.group] ?? "#94a3b8"} strokeOpacity={(picked ? (picked === p.r.id ? 0.9 : 0.05) : 0.22) * Math.max(0.4, 1 - p.z * 0.5)} strokeWidth={picked === p.r.id ? 2 : 0.8} strokeDasharray={p.r.source === "NEWS" ? "3 3" : undefined} />
   );
   return (
     <div className="relative">
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        className="mx-auto w-full max-w-[520px] touch-none select-none"
+        className="mx-auto w-full max-w-[540px] touch-none select-none"
         role="img"
         aria-label={t("mediaRelations")}
         onPointerDown={(e) => {
-          drag.current = { x: e.clientX, y: e.clientY, rot };
-          e.currentTarget.setPointerCapture?.(e.pointerId);
+          drag.current = { x: e.clientX, y: e.clientY, rot, moved: false };
         }}
         onPointerMove={(e) => {
           if (!drag.current) return;
           const d = drag.current;
-          setRot({ y: d.rot.y + (e.clientX - d.x) / 160, x: Math.max(-1.3, Math.min(1.3, d.rot.x + (e.clientY - d.y) / 160)) });
+          if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 3) d.moved = true;
+          setRot({ y: d.rot.y + (e.clientX - d.x) / 170, x: Math.max(-1.2, Math.min(1.2, d.rot.x + (e.clientY - d.y) / 170)) });
         }}
         onPointerUp={() => {
           drag.current = null;
           idle.current = Date.now() + 4000;
         }}
+        onPointerLeave={() => {
+          drag.current = null;
+        }}
       >
         <defs>
           <radialGradient id="amOrb">
-            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.12" />
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.1" />
             <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <circle cx={cx} cy={cy} r={R * 1.15} fill="url(#amOrb)" />
-        <ellipse cx={cx} cy={cy} rx={R} ry={R * Math.abs(sx) + 2} fill="none" stroke="var(--border)" strokeDasharray="2 4" />
+        <circle cx={cx} cy={cy} r={R * 1.12} fill="url(#amOrb)" />
+        <ellipse cx={cx} cy={cy} rx={R} ry={R * Math.abs(sx) + 2} fill="none" stroke="var(--border)" strokeDasharray="2 5" />
         {back.map(edge)}
         {back.map(node)}
-        <SvgFace id="amSubjectFace" x={cx} y={cy} r={30} photo={profile?.photo} text={initialsOf(subject?.name)} fill="var(--primary)" />
+        <SvgFace id="amSubjectFace" x={cx} y={cy} r={28} photo={profile?.photo} text={initialsOf(subject?.name)} fill="var(--primary)" />
         {front.map(edge)}
         {front.map(node)}
       </svg>
@@ -685,8 +700,47 @@ function Network3D({ subject, profile, relations, picked, onPick, height = 420 }
   );
 }
 
-// The family as a tree: parents above, the subject with spouses and
-// siblings in the middle, children below, other relatives at the side.
+// One person in the family tree: photo or initials, full name (wrapping),
+// how they're related, the years, and a flag pill when on a watchlist.
+function PersonCard({ r, subject, profile, picked, onPick, main = false }) {
+  const { t } = useTranslation("aml");
+  const flag = r && flagColour(r.watch, r.review);
+  const name = main ? subject?.name : r.name;
+  const photo = main ? profile?.photo : r.photo;
+  const initials = initialsOf(name);
+  return (
+    <button
+      type="button"
+      onClick={main ? undefined : () => onPick(picked === r.id ? null : r.id)}
+      className={cn(
+        "relative flex w-[7.5rem] flex-col items-center gap-1 rounded-2xl border bg-card px-2 pb-2 pt-3 text-center shadow-sm transition-all",
+        main ? "w-[9rem] border-primary ring-2 ring-primary/25" : "hover:-translate-y-0.5 hover:shadow-md",
+        !main && picked === r.id && "border-primary ring-2 ring-primary/30",
+        !main && picked && picked !== r.id && "opacity-50",
+        main && "cursor-default",
+      )}
+      style={flag ? { borderColor: flag } : undefined}
+    >
+      {flag && (
+        <span className="absolute -top-2 rounded-full px-2 py-0.5 text-[9px] font-black text-white" style={{ background: flag }}>
+          {t(`category_${r.watch.category}`, { defaultValue: r.watch.category })}
+        </span>
+      )}
+      {photo ? (
+        <img src={photo} alt="" className={cn("rounded-full object-cover", main ? "h-16 w-16" : "h-11 w-11")} />
+      ) : (
+        <span className={cn("flex items-center justify-center rounded-full font-black text-white", main ? "h-16 w-16 text-xl" : "h-11 w-11 text-sm")} style={{ background: main ? "var(--primary)" : GROUP_COLOUR.FAMILY }}>
+          {initials}
+        </span>
+      )}
+      <span className={cn("line-clamp-2 font-bold leading-tight", main ? "text-sm" : "text-[11px]")}>{name}</span>
+      {!main && <span className="line-clamp-1 text-[10px] text-muted-foreground">{[r.label, years(r)].filter(Boolean).join(" · ")}</span>}
+    </button>
+  );
+}
+
+// The family as a tree: parents above, the subject between their siblings
+// and spouses, children below, other relatives under it.
 function FamilyTree({ subject, profile, relations, picked, onPick }) {
   const { t } = useTranslation("aml");
   const of = (...kinds) => relations.filter((r) => kinds.includes(r.relation));
@@ -694,60 +748,52 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
   const spouses = of("SPOUSE");
   const siblings = of("SIBLING");
   const children = of("CHILD");
-  const others = relations.filter((r) => r.group === "FAMILY" && !["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
-  const W = 560;
-  const slot = 92;
-  const row = (list, y) => list.map((r, i) => ({ r, x: W / 2 + (i - (list.length - 1) / 2) * slot, y }));
-  const top = row(parents, 60);
-  const middleList = [...siblings, null, ...spouses];
-  const middle = middleList.map((r, i) => ({ r, x: W / 2 + (i - siblings.length) * slot, y: 185 }));
-  const me = middle.find((p) => p.r === null);
-  const bottom = row(children, 310);
-  const height = children.length ? 370 : 245;
-  const span = [...top, ...middle, ...bottom].map((p) => p.x);
-  const minX = Math.min(...span, 60) - 60;
-  const maxX = Math.max(...span, W - 60) + 60;
-  const person = (p) => (
-    <g key={p.r.id} onClick={() => onPick(picked === p.r.id ? null : p.r.id)} className="cursor-pointer" opacity={picked && picked !== p.r.id ? 0.4 : 1} style={{ animation: "amPop 450ms ease-out", transformOrigin: `${p.x}px ${p.y}px` }}>
-      <title>{[p.r.name, p.r.label, years(p.r), p.r.watch && `${p.r.watch.list} · ${p.r.watch.category}`].filter(Boolean).join(" · ")}</title>
-      <SvgFace id={`amFam${p.r.id}`} x={p.x} y={p.y} r={24} photo={p.r.photo} text={initialsOf(p.r.name)} fill={GROUP_COLOUR.FAMILY} ring={flagColour(p.r.watch, p.r.review)} selected={picked === p.r.id} />
-      <text x={p.x} y={p.y + 40} textAnchor="middle" className="fill-foreground" style={{ fontSize: 10, fontWeight: 700 }}>
-        {shortName(p.r.name, 18)}
-      </text>
-      <text x={p.x} y={p.y + 52} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8.5 }}>
-        {[p.r.label, years(p.r)].filter(Boolean).join(" · ")}
-      </text>
-      {p.r.watch && (
-        <text x={p.x} y={p.y - 30} textAnchor="middle" style={{ fontSize: 8.5, fontWeight: 800, fill: flagColour(p.r.watch) }}>
-          {t(`category_${p.r.watch.category}`, { defaultValue: p.r.watch.category })}
-        </text>
-      )}
-    </g>
-  );
-  const elbow = (from, to, key) => <path key={key} d={`M${from.x} ${from.y} V${(from.y + to.y) / 2} H${to.x} V${to.y}`} fill="none" stroke="var(--border)" strokeWidth="1.5" />;
+  const others = relations.filter((r) => !["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
+  const card = (r) => <PersonCard key={r.id} r={r} picked={picked} onPick={onPick} />;
+  const side = (title, list) =>
+    list.length > 0 && (
+      <div className="grid justify-items-center gap-1.5 rounded-2xl border border-dashed border-border p-2">
+        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{title}</p>
+        <div className="flex flex-wrap justify-center gap-2">{list.map(card)}</div>
+      </div>
+    );
   return (
-    <div className="grid gap-2">
-      <svg viewBox={`${minX} 0 ${maxX - minX} ${height}`} className="mx-auto w-full max-w-[620px]" role="img" aria-label={t("mediaFamilyTree")}>
-        {top.map((p, i) => elbow({ x: p.x, y: p.y + 24 }, { x: me.x, y: me.y - 34 }, `p${i}`))}
-        {middle.filter((p) => p.r).map((p, i) => <line key={`m${i}`} x1={me.x} y1={me.y} x2={p.x} y2={p.y} stroke="var(--border)" strokeWidth="1.5" strokeDasharray={p.r.relation === "SIBLING" ? "4 3" : undefined} />)}
-        {bottom.map((p, i) => elbow({ x: me.x, y: me.y + 34 }, { x: p.x, y: p.y - 24 }, `c${i}`))}
-        {top.map(person)}
-        {middle.filter((p) => p.r).map(person)}
-        {bottom.map(person)}
-        <SvgFace id="amFamMe" x={me.x} y={me.y} r={32} photo={profile?.photo} text={initialsOf(subject?.name)} fill="var(--primary)" />
-        <text x={me.x} y={me.y + 48} textAnchor="middle" className="fill-foreground" style={{ fontSize: 11, fontWeight: 900 }}>
-          {shortName(subject?.name ?? "", 22)}
-        </text>
-      </svg>
+    <div className="grid justify-items-center gap-0">
+      {parents.length > 0 && (
+        <>
+          <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaParents")}</p>
+          <div className="flex flex-wrap justify-center gap-3">{parents.map(card)}</div>
+          <span className="h-5 w-px bg-border" />
+        </>
+      )}
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {side(t("mediaSiblings"), siblings)}
+        <PersonCard main subject={subject} profile={profile} />
+        {side(t("mediaSpouses"), spouses)}
+      </div>
+      {children.length > 0 && (
+        <>
+          <span className="h-5 w-px bg-border" />
+          <div className="w-full max-w-3xl rounded-2xl border-t-2 border-border pt-3">
+            <p className="mb-2 text-center text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaChildren")}</p>
+            <div className="flex flex-wrap justify-center gap-3">{children.map(card)}</div>
+          </div>
+        </>
+      )}
       {others.length > 0 && (
-        <p className="flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
-          <span className="text-muted-foreground">{t("mediaOtherRelatives")}</span>
-          {others.map((r) => (
-            <button key={r.id} type="button" onClick={() => onPick(r.id)} className="rounded-full border border-border bg-card px-2 py-0.5 font-semibold hover:border-primary/40">
-              {r.name}
-            </button>
-          ))}
-        </p>
+        <div className="mt-4 grid w-full justify-items-center gap-1.5 border-t border-dashed border-border pt-3">
+          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaOtherRelatives")}</p>
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {others.map((r) => (
+              <button key={r.id} type="button" onClick={() => onPick(picked === r.id ? null : r.id)} className={cn("flex items-center gap-1.5 rounded-full border bg-card py-0.5 pl-0.5 pr-2.5 text-[11px] font-semibold hover:border-primary/40", picked === r.id ? "border-primary" : "border-border")} style={flagColour(r.watch, r.review) ? { borderColor: flagColour(r.watch, r.review) } : undefined}>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-black text-white" style={{ background: GROUP_COLOUR.FAMILY }}>
+                  {initialsOf(r.name)}
+                </span>
+                {r.name}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -878,18 +924,24 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false,
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [source, setSource] = useState("");
   const [view, setView] = useState("network");
+  const [hiddenGroups, setHiddenGroups] = useState([]);
   if (!relations?.length) return null;
   const hasFamily = relations.some((r) => r.group === "FAMILY" && ["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
-  const shown = relations.filter((r) => (!flaggedOnly || r.watch) && (!source || r.source === source));
+  const shown = relations.filter((r) => (!flaggedOnly || r.watch) && (!source || r.source === source) && !hiddenGroups.includes(r.group));
   const flagged = relations.filter((r) => r.watch && r.review?.state !== "NOT_RELEVANT").length;
   const current = relations.find((r) => r.id === picked);
   const legend = (
     <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-      {GROUPS.filter((g) => relations.some((r) => r.group === g)).map((g) => (
-        <li key={g} className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full" style={{ background: GROUP_COLOUR[g] }} /> {t(`mediaGroup_${g}`)}
-        </li>
-      ))}
+      {GROUPS.filter((g) => relations.some((r) => r.group === g)).map((g) => {
+        const off = hiddenGroups.includes(g);
+        return (
+          <li key={g}>
+            <button type="button" onClick={() => setHiddenGroups((h) => (off ? h.filter((x) => x !== g) : [...h, g]))} className={cn("flex items-center gap-1 rounded-full border px-2 py-0.5", off ? "border-dashed border-border opacity-50" : "border-border bg-card")} title={t(off ? "mediaShowGroup" : "mediaHideGroup")}>
+              <span className="h-2 w-2 rounded-full" style={{ background: GROUP_COLOUR[g] }} /> {t(`mediaGroup_${g}`)} · {relations.filter((r) => r.group === g).length}
+            </button>
+          </li>
+        );
+      })}
       <li className="flex items-center gap-1">
         <span className="h-2.5 w-2.5 rounded-full border-2 border-red-600" /> {t("mediaFlagged")}
       </li>
@@ -899,7 +951,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false,
     return (
       <div className="grid gap-1">
         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaRelationsN", { count: relations.length, flagged })}</p>
-        <Network3D subject={subject} profile={profile} relations={relations} picked={picked} onPick={setPicked} height={300} />
+        <Network3D subject={subject} profile={profile} relations={relations.filter((r) => !hiddenGroups.includes(r.group))} picked={picked} onPick={setPicked} height={300} />
         {legend}
         {current && <RelationDetail r={current} articlesByNo={articlesByNo} />}
       </div>

@@ -1925,6 +1925,12 @@ export const aml = {
   mediaRel_ASSOCIATE: "associate",
   mediaRel_ACTING_FOR: "acting for",
   mediaRel_POSITION: "position held",
+  mediaParents: "Parents",
+  mediaSiblings: "Siblings",
+  mediaSpouses: "Spouses",
+  mediaChildren: "Children",
+  mediaHideGroup: "Hide this group",
+  mediaShowGroup: "Show this group",
 };
 
 // Reports (handoff 08).

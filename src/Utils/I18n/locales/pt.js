@@ -1939,6 +1939,12 @@ export const aml = {
   mediaRel_ASSOCIATE: "associado",
   mediaRel_ACTING_FOR: "age em nome de",
   mediaRel_POSITION: "cargo ocupado",
+  mediaParents: "Pais",
+  mediaSiblings: "Irmãos",
+  mediaSpouses: "Cônjuges",
+  mediaChildren: "Filhos",
+  mediaHideGroup: "Ocultar este grupo",
+  mediaShowGroup: "Mostrar este grupo",
 };
 
 // Reports (handoff 08).
