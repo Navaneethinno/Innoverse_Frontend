@@ -593,7 +593,7 @@ function LevelPill({ row }) {
   const { t } = useTranslation("aml");
   const level = row.effective_level ?? row.level;
   const tone = LEVEL_TONE[level];
-  if (!tone) return <span className="text-xs text-muted-foreground">{t(`mediaStatus_${row.status}`, { defaultValue: row.status })}</span>;
+  if (!tone || ["RUNNING", "ERROR"].includes(row.status)) return <span className="text-xs text-muted-foreground">{t(`mediaStatus_${row.status}`, { defaultValue: row.status })}</span>;
   return (
     <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-black", tone.bg, tone.text)}>
       {t(`mediaLevel_${level}`)} · {row.effective_score ?? row.score}
@@ -782,7 +782,7 @@ export function AdverseMediaCustomer({ customerKind, referenceId }) {
   useEffect(() => {
     amlScreeningApi
       .customer({ customer_kind: customerKind, reference_id: referenceId })
-      .then((r) => setParties((rowsOf(r)[0]?.screenings ?? []).filter((s) => s.party_key && s.party_key !== "CUSTOMER")))
+      .then((r) => setParties((rowsOf(r)[0]?.screenings ?? []).filter((s) => s.party_key && !["CUSTOMER", "COMPANY"].includes(s.party_key))))
       .catch(() => setParties([]));
   }, [customerKind, referenceId]);
   const loadLatest = useCallback(() => {
@@ -837,11 +837,12 @@ export function AdverseMediaCustomer({ customerKind, referenceId }) {
 
 // The latest news result beside the AML result on customer screens
 // (`adverse_media` on the customer replies: the worst party's latest).
-export function AdverseMediaBadge({ media }) {
+export function AdverseMediaBadge({ media, customerKind, referenceId }) {
   const { t } = useTranslation("aml");
   const [open, setOpen] = useState(false);
   if (!media) return null;
   const running = media.status === "RUNNING";
+  const customer = customerKind && referenceId;
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-[11px] font-bold">
@@ -850,9 +851,10 @@ export function AdverseMediaBadge({ media }) {
       </button>
       {open && (
         <Modal open onClose={() => setOpen(false)} size="xl" title={t("mediaTitle")}>
-          <MediaSearchView searchId={media.search_id} />
+          {customer ? <AdverseMediaCustomer customerKind={customerKind} referenceId={referenceId} /> : <MediaSearchView searchId={media.search_id} />}
         </Modal>
       )}
+      {media.status === "ERROR" && customer && <span className="text-[11px] font-semibold text-primary">{t("mediaSearchAgainHint")}</span>}
     </>
   );
 }

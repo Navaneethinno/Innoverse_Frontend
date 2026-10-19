@@ -1860,6 +1860,7 @@ export const aml = {
   mediaDecision: "Proposed",
   mediaProposedBy: "Proposed by",
   mediaNoPending: "No article reviews are waiting.",
+  mediaSearchAgainHint: "The news search was interrupted: open it to search again.",
 };
 
 // Reports (handoff 08).

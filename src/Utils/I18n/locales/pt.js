@@ -1874,6 +1874,7 @@ export const aml = {
   mediaDecision: "Proposto",
   mediaProposedBy: "Proposto por",
   mediaNoPending: "Nenhuma revisão de artigo está pendente.",
+  mediaSearchAgainHint: "A pesquisa de notícias foi interrompida: abra-a para pesquisar novamente.",
 };
 
 // Reports (handoff 08).

@@ -5,6 +5,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -137,9 +138,22 @@ export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, refere
   // merchant: AML knows it as MERCHANT_INDIVIDUAL / MERCHANT_CORPORATE.
   const merchant = useMenuContext()?.module === "MMS";
   const customerKind = merchant && !String(kind).startsWith("MERCHANT_") ? `MERCHANT_${kind}` : kind;
+  // The news summary changes while the dialog is open (a search finishing,
+  // a review decided): the customer's own list channel pushes it.
+  const [media, setMedia] = useState(adverseMedia);
+  useEffect(() => setMedia(adverseMedia), [adverseMedia]);
+  const [side, group] = customerKind.startsWith("MERCHANT_") ? ["merchant", customerKind.slice(9)] : ["customer", customerKind];
+  useLiveChannel(
+    `/${side}/admin/${String(group).toLowerCase()}/list`,
+    (action, records) => {
+      const mine = action === "adverse_media" && records?.find((r) => r.reference_id === referenceId);
+      if (mine) setMedia(mine.adverse_media);
+    },
+    { enabled: Boolean(referenceId) },
+  );
   const canView = useMenuPermission("Screenings")("View");
   const [open, setOpen] = useState(false);
-  if (!aml && !adverseMedia) return null;
+  if (!aml && !media) return null;
   return (
     <div className={`flex flex-wrap items-center gap-2 rounded-xl border p-3 ${className}`}>
       <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
@@ -147,7 +161,7 @@ export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, refere
       </span>
       {aml && (aml.status === "ERROR" ? <span className="text-[11px] font-semibold text-destructive">{t("screeningFailed")}</span> : <BandBadge band={aml.band} score={aml.score} showAction />)}
       {aml && <span className="text-[11px] text-muted-foreground">{t("partiesMatched", { matched: aml.matched_parties ?? 0, parties: aml.parties ?? 0 })}</span>}
-      <AdverseMediaBadge media={adverseMedia} />
+      <AdverseMediaBadge media={media} customerKind={referenceId ? customerKind : undefined} referenceId={referenceId} />
       {canView && referenceId && (
         <button type="button" onClick={() => setOpen(true)} className="ml-auto text-[11px] font-bold text-primary">
           {t("viewScreenings")}
