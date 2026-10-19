@@ -2289,6 +2289,7 @@ export const formBuilder = {
   usesRelatedNone: "None",
   usesRelatedName: "Name",
   usesRelatedRole: "Role",
+  valueWrongFormat: "This is not in the right format.",
 };
 
 export const cases = {

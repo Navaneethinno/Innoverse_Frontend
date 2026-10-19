@@ -130,7 +130,8 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
     case "DATE":
       return <DateInput min={options.min_date} max={options.max_date} className={control} disabled={off} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "PHONE":
-      return <input type="tel" inputMode="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(phoneInput(e.target.value))} />;
+      // max_length: at most that many digits.
+      return <input type="tel" inputMode="tel" className={control} disabled={off} placeholder={field.hint || "+258841234567"} value={value ?? ""} onChange={(e) => set(capDigits(phoneInput(e.target.value), options.max_length))} />;
     case "EMAIL":
       return <input type="email" className={control} disabled={off} placeholder={field.hint} value={value ?? ""} onChange={(e) => set(e.target.value)} />;
     case "DROPDOWN":
@@ -240,9 +241,31 @@ function FormFieldInput({ field, value, onChange, choices, disabled, file, instP
   }
 }
 
+// A phone number cut to `max` digits (a leading "+" kept).
+function capDigits(phone, max) {
+  const n = Number(max);
+  if (!n) return phone;
+  const plus = phone.startsWith("+") ? "+" : "";
+  return plus + phone.slice(plus.length, plus.length + n);
+}
+
+// The field's own `pattern` option, checked as the user types (the server
+// checks it again on submit): its `pattern_message`, or a general one.
+function usePatternIssue(field, value, editable) {
+  const { t } = useAudienceTranslation("formBuilder");
+  const pattern = field.options?.pattern;
+  if (!editable || !pattern || value === "" || value == null || typeof value === "object") return null;
+  try {
+    return new RegExp(pattern).test(String(value)) ? null : field.options.pattern_message || t("valueWrongFormat");
+  } catch {
+    return null;
+  }
+}
+
 // A field with its question, required mark, help text and issue.
 // `instProfileId`: whose currency an amount shows (default: the user's own).
 export function FieldPreview({ field, value, onChange, choices, disabled, file, issue, note, instProfileId }) {
+  const patternIssue = usePatternIssue(field, value, Boolean(onChange) && !disabled);
   return (
     <div data-field={field.key}>
       <label className="mb-1.5 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-700">
@@ -254,7 +277,7 @@ export function FieldPreview({ field, value, onChange, choices, disabled, file, 
       </label>
       <FormFieldInput field={field} value={value} onChange={onChange} choices={choices} disabled={disabled} file={file} instProfileId={instProfileId} />
       {field.help_text && <p className="mt-1 text-[11px] text-muted-foreground">{field.help_text}</p>}
-      {issue && <p className="mt-1 text-xs font-medium text-red-600">{issue}</p>}
+      {(issue || patternIssue) && <p className="mt-1 text-xs font-medium text-red-600">{issue || patternIssue}</p>}
     </div>
   );
 }
