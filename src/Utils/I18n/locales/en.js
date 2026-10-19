@@ -1875,6 +1875,8 @@ export const aml = {
   mediaInvestigating: "Searching the news for {{name}}…",
   mediaWatch: "Watch",
   mediaInvestigationTitle: "News investigation",
+  mediaTimelineHint_one: "{{count}} adverse article. Click a dot to see it.",
+  mediaTimelineHint_other: "{{count}} adverse articles over time. Click a dot to see it.",
 };
 
 // Reports (handoff 08).

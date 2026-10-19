@@ -523,6 +523,77 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
   );
 }
 
+// Adverse articles on a date axis: one dot each, stacked when they fall
+// together, red and larger the higher the score. A dot shows its article
+// below; the whole range fits the width.
+const COLUMNS = 48;
+const STACK = 4;
+function Timeline({ articles }) {
+  const { t } = useTranslation("aml");
+  const [picked, setPicked] = useState(null);
+  const times = articles.map((a) => new Date(a.published_at).getTime());
+  let from = Math.min(...times);
+  let to = Math.max(...times);
+  if (to - from < 30 * 86400000) {
+    const middle = (from + to) / 2;
+    from = middle - 15 * 86400000;
+    to = middle + 15 * 86400000;
+  }
+  const columns = new Map();
+  articles.forEach((a, i) => {
+    const col = Math.round(((times[i] - from) / (to - from)) * COLUMNS);
+    columns.set(col, [...(columns.get(col) ?? []), a].sort((x, y) => y.score - x.score));
+  });
+  const ticks = Array.from({ length: 5 }, (_, i) => from + ((to - from) * i) / 4);
+  const shown = picked && articles.find((a) => a.id === picked);
+  return (
+    <div className="mt-2 grid gap-2">
+      <div className="relative h-28 rounded-xl border border-border bg-card px-4">
+        {/* the axis and its date ticks */}
+        <div className="absolute inset-x-4 bottom-6 border-t border-border" />
+        {ticks.map((tick, i) => (
+          <span key={i} className={cn("absolute bottom-1 whitespace-nowrap text-[10px] tabular-nums text-muted-foreground", i === 0 ? "" : i === 4 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: `calc(1rem + (100% - 2rem) * ${i / 4})` }}>
+            {formatDay(new Date(tick).toISOString())}
+          </span>
+        ))}
+        {[...columns.entries()].map(([col, list]) => (
+          <div key={col} className="absolute bottom-6 flex -translate-x-1/2 flex-col-reverse items-center gap-1 pb-1" style={{ left: `calc(1rem + (100% - 2rem) * ${col / COLUMNS})` }}>
+            {list.slice(0, STACK).map((a) => {
+              const size = 8 + Math.round((Math.min(100, a.score) / 100) * 8);
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setPicked(picked === a.id ? null : a.id)}
+                  title={`${formatDay(a.published_at)} · ${a.title}`}
+                  aria-label={a.title}
+                  className={cn("rounded-full ring-2 ring-card transition-transform hover:scale-125", picked === a.id && "ring-primary")}
+                  style={{ width: size, height: size, background: a.score >= 50 ? "#dc2626" : a.score >= 20 ? "#f59e0b" : "#fcd34d" }}
+                />
+              );
+            })}
+            {list.length > STACK && <span className="text-[9px] font-bold text-muted-foreground">+{list.length - STACK}</span>}
+          </div>
+        ))}
+      </div>
+      {shown ? (
+        <a href={shown.url} target="_blank" rel="noreferrer" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50/50 p-2.5 hover:border-red-300">
+          <span className="min-w-0">
+            <Source a={shown} />
+            <span className="mt-0.5 block text-xs font-semibold">{shown.title}</span>
+            <span className="mt-1 block">
+              <Badges a={shown} />
+            </span>
+          </span>
+          <b className="text-sm tabular-nums text-red-700">{shown.score}</b>
+        </a>
+      ) : (
+        <p className="text-[11px] text-muted-foreground">{t("mediaTimelineHint", { count: articles.length })}</p>
+      )}
+    </div>
+  );
+}
+
 function ResultView({ search, onChange }) {
   const { t } = useTranslation("aml");
   const canPropose = useMenuPermission("Match Review")("Add");
@@ -621,14 +692,7 @@ function ResultView({ search, onChange }) {
       {timeline.length > 0 && (
         <section className="min-w-0">
           <p className={labelClass}>{t("mediaTimeline")}</p>
-          <ol className="mt-2 flex gap-2 overflow-x-auto pb-1">
-            {timeline.map((a) => (
-              <li key={a.id} title={a.title} className="w-40 shrink-0 rounded-lg border border-red-200 bg-red-50/50 p-2 text-[11px]">
-                <b>{formatDay(a.published_at)}</b>
-                <p className="line-clamp-2 text-muted-foreground">{a.title}</p>
-              </li>
-            ))}
-          </ol>
+          <Timeline articles={timeline} />
         </section>
       )}
 
