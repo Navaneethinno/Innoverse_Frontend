@@ -1918,6 +1918,10 @@ export const aml = {
   mediaGroup_OWNERSHIP: "Propriedade",
   mediaGroup_ASSOCIATE: "Associados",
   mediaGroup_NEWS: "Mencionados nas notícias",
+  mediaNetwork: "Rede",
+  mediaFamilyTree: "Árvore familiar",
+  mediaOtherRelatives: "Outros familiares:",
+  mediaDragHint: "Arraste para rodar · + e − para ampliar · clique numa pessoa para detalhes",
 };
 
 // Reports (handoff 08).

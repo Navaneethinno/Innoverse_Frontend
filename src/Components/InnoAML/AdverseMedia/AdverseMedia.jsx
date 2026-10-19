@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, ChevronDown, ExternalLink, Newspaper, Search, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -7,6 +7,7 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
@@ -425,9 +426,21 @@ function Radar({ live }) {
           return (
             <g key={c.id} style={{ transformOrigin: `${p.x}px ${p.y}px`, animation: c.verdict === "NOT_SUBJECT" ? "amFade 1.2s forwards" : "amPop 450ms ease-out" }}>
               {big && <circle cx={p.x} cy={p.y} r="2.4" fill={dotTone(c)} style={{ transformOrigin: `${p.x}px ${p.y}px`, animation: "amRing 1.6s ease-out infinite" }} />}
-              <circle cx={p.x} cy={p.y} r={big ? 1.9 : 1.2} fill={dotTone(c)}>
-                <title>{c.title}</title>
-              </circle>
+              {big && c.image ? (
+                <>
+                  <clipPath id={`amBlip${c.id}`}>
+                    <circle cx={p.x} cy={p.y} r="4.2" />
+                  </clipPath>
+                  <image href={c.image} x={p.x - 4.2} y={p.y - 4.2} width="8.4" height="8.4" clipPath={`url(#amBlip${c.id})`} preserveAspectRatio="xMidYMid slice">
+                    <title>{c.title}</title>
+                  </image>
+                  <circle cx={p.x} cy={p.y} r="4.4" fill="none" stroke={dotTone(c)} strokeWidth="0.9" />
+                </>
+              ) : (
+                <circle cx={p.x} cy={p.y} r={big ? 1.9 : 1.2} fill={dotTone(c)}>
+                  <title>{c.title}</title>
+                </circle>
+              )}
             </g>
           );
         })}
@@ -523,68 +536,205 @@ const years = (r) => (r.from || r.to ? `${r.from ?? "…"}–${r.to ?? ""}` : ""
 const shortName = (name, n = 16) => (String(name).length > n ? `${String(name).slice(0, n - 1)}…` : String(name));
 const nodeGlyph = (r) => (r.entity_type === "ORGANIZATION" ? "🏢" : r.entity_type === "POSITION" ? "🎖" : r.entity_type === "VESSEL" ? "⚓" : "");
 
-// Where each related party sits: one ring, or two when there are many.
-function layout(relations) {
-  const inner = relations.length > 14 ? Math.ceil(relations.length * 0.4) : relations.length;
-  return relations.map((r, i) => {
-    const ring = i < inner ? 0 : 1;
-    const count = ring === 0 ? inner : relations.length - inner;
-    const at = ring === 0 ? i : i - inner;
-    const angle = (at / Math.max(1, count)) * 2 * Math.PI - Math.PI / 2 + (ring ? Math.PI / Math.max(1, count) : 0);
-    const radius = relations.length > 14 ? (ring ? 172 : 112) : 150;
-    return { r, x: 210 + Math.cos(angle) * radius, y: 210 + Math.sin(angle) * radius };
-  });
-}
-
-// The subject in the centre, a spoke per relationship. `compact` for the
-// live view (no side list).
-function RelationsGraph({ subject, profile, relations, picked, onPick }) {
-  const { t } = useTranslation("aml");
-  const nodes = layout(relations);
-  const showEdgeLabels = relations.length <= 10;
-  const initials = String(subject?.name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+// A round picture in SVG: the photo clipped to a circle, or initials /
+// a glyph on the group colour; a red or amber ring when flagged.
+function SvgFace({ id, x, y, r, photo, text, fill, ring, selected }) {
   return (
-    <svg viewBox="0 0 420 420" className="mx-auto w-full max-w-[460px]" role="img" aria-label={t("mediaRelations")}>
-      <defs>
-        <clipPath id="amSubjectClip">
-          <circle cx="210" cy="210" r="30" />
-        </clipPath>
-      </defs>
-      {nodes.map(({ r, x, y }) => (
-        <g key={`e${r.id}`}>
-          <line x1="210" y1="210" x2={x} y2={y} stroke={GROUP_COLOUR[r.group] ?? "#94a3b8"} strokeOpacity={picked && picked !== r.id ? 0.15 : 0.5} strokeWidth={r.watch ? 2 : 1.2} strokeDasharray={r.source === "NEWS" ? "4 3" : undefined} />
-          {showEdgeLabels && (
-            <text x={(210 + x) / 2} y={(210 + y) / 2 - 3} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8 }}>
-              {shortName([r.label, years(r)].filter(Boolean).join(" · "), 22)}
-            </text>
-          )}
-        </g>
-      ))}
-      {nodes.map(({ r, x, y }) => {
-        const ring = flagColour(r.watch);
-        return (
-          <g key={`n${r.id}`} onClick={() => onPick(picked === r.id ? null : r.id)} className="cursor-pointer" style={{ transformOrigin: `${x}px ${y}px`, animation: "amPop 450ms ease-out", opacity: picked && picked !== r.id ? 0.45 : 1 }}>
-            <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
-            {ring && <circle cx={x} cy={y} r="19" fill="none" stroke={ring} strokeWidth="3" />}
-            <circle cx={x} cy={y} r="14" fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} stroke={picked === r.id ? "var(--foreground)" : "var(--card)"} strokeWidth="2" />
-            <text x={x} y={y + 4} textAnchor="middle" fill="white" style={{ fontSize: 10, fontWeight: 800 }}>
-              {nodeGlyph(r) || String(r.name).charAt(0).toUpperCase()}
-            </text>
-            <text x={x} y={y + 28} textAnchor="middle" className="fill-foreground" style={{ fontSize: 8.5, fontWeight: 600 }}>
-              {shortName(r.name)}
-            </text>
-          </g>
-        );
-      })}
-      <circle cx="210" cy="210" r="33" fill="var(--card)" stroke="var(--primary)" strokeWidth="2.5" />
-      {profile?.photo ? (
-        <image href={profile.photo} x="180" y="180" width="60" height="60" clipPath="url(#amSubjectClip)" preserveAspectRatio="xMidYMid slice" />
+    <>
+      {ring && <circle cx={x} cy={y} r={r + 4} fill="none" stroke={ring} strokeWidth={Math.max(2, r / 5)} />}
+      <circle cx={x} cy={y} r={r} fill={fill} stroke={selected ? "var(--foreground)" : "var(--card)"} strokeWidth="2" />
+      {photo ? (
+        <>
+          <clipPath id={id}>
+            <circle cx={x} cy={y} r={r - 1} />
+          </clipPath>
+          <image href={photo} x={x - r} y={y - r} width={r * 2} height={r * 2} clipPath={`url(#${id})`} preserveAspectRatio="xMidYMid slice" />
+        </>
       ) : (
-        <text x="210" y="216" textAnchor="middle" className="fill-foreground" style={{ fontSize: 17, fontWeight: 900 }}>
-          {initials}
+        <text x={x} y={y + r * 0.32} textAnchor="middle" fill="white" style={{ fontSize: r * 0.85, fontWeight: 800 }}>
+          {text}
         </text>
       )}
-    </svg>
+    </>
+  );
+}
+const initialsOf = (name) => String(name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+const faceText = (r) => nodeGlyph(r) || initialsOf(r.name);
+
+// The relationships as a globe around the subject: drag to turn it, the
+// + / − buttons to zoom (the page keeps its own scroll), click a node to open it. It turns slowly by
+// itself unless the user prefers less motion.
+function Network3D({ subject, profile, relations, picked, onPick, height = 420 }) {
+  const { t } = useTranslation("aml");
+  const [rot, setRot] = useState({ x: -0.35, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const drag = useRef(null);
+  const idle = useRef(0);
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+    let frame;
+    const step = () => {
+      if (!drag.current && Date.now() > idle.current) setRot((r) => ({ ...r, y: r.y + 0.0035 }));
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const W = 460;
+  const H = height;
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = Math.min(W, H) * 0.36 * zoom;
+  const n = relations.length;
+  const [sx, cxr, sy, cyr] = [Math.sin(rot.x), Math.cos(rot.x), Math.sin(rot.y), Math.cos(rot.y)];
+  const points = relations.map((r, i) => {
+    // An even spread over a sphere (Fibonacci), then turned and projected.
+    const y0 = 1 - ((i + 0.5) / n) * 2;
+    const ring = Math.sqrt(1 - y0 * y0);
+    const th = i * 2.399963;
+    const x0 = Math.cos(th) * ring;
+    const z0 = Math.sin(th) * ring;
+    const x1 = x0 * cyr + z0 * sy;
+    const z1 = -x0 * sy + z0 * cyr;
+    const y2 = y0 * cxr - z1 * sx;
+    const z2 = y0 * sx + z1 * cxr;
+    const f = 2.6 / (2.6 + z2);
+    return { r, x: cx + x1 * R * f, y: cy + y2 * R * f, z: z2, f };
+  });
+  const back = points.filter((p) => p.z > 0).sort((p, q) => q.z - p.z);
+  const front = points.filter((p) => p.z <= 0).sort((p, q) => q.z - p.z);
+  const node = (p) => {
+    const { r } = p;
+    const depth = Math.max(0.35, Math.min(1, 1.15 - p.z * 0.55));
+    const size = 15 * p.f;
+    const dim = picked && picked !== r.id;
+    return (
+      <g key={r.id} onClick={() => onPick(picked === r.id ? null : r.id)} className="cursor-pointer" opacity={dim ? 0.3 : depth}>
+        <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
+        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagColour(r.watch)} selected={picked === r.id} />
+        {(p.z < 0.2 || picked === r.id) && (
+          <text x={p.x} y={p.y + size + 11} textAnchor="middle" className="fill-foreground" style={{ fontSize: 9, fontWeight: 600 }}>
+            {shortName(r.name)}
+          </text>
+        )}
+      </g>
+    );
+  };
+  const edge = (p) => (
+    <line key={`e${p.r.id}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={GROUP_COLOUR[p.r.group] ?? "#94a3b8"} strokeOpacity={(picked && picked !== p.r.id ? 0.08 : 0.45) * Math.max(0.3, 1 - p.z * 0.6)} strokeWidth={p.r.watch ? 2 : 1.1} strokeDasharray={p.r.source === "NEWS" ? "4 3" : undefined} />
+  );
+  return (
+    <div className="relative">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="mx-auto w-full max-w-[520px] touch-none select-none"
+        role="img"
+        aria-label={t("mediaRelations")}
+        onPointerDown={(e) => {
+          drag.current = { x: e.clientX, y: e.clientY, rot };
+          e.currentTarget.setPointerCapture?.(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!drag.current) return;
+          const d = drag.current;
+          setRot({ y: d.rot.y + (e.clientX - d.x) / 160, x: Math.max(-1.3, Math.min(1.3, d.rot.x + (e.clientY - d.y) / 160)) });
+        }}
+        onPointerUp={() => {
+          drag.current = null;
+          idle.current = Date.now() + 4000;
+        }}
+      >
+        <defs>
+          <radialGradient id="amOrb">
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx={cx} cy={cy} r={R * 1.15} fill="url(#amOrb)" />
+        <ellipse cx={cx} cy={cy} rx={R} ry={R * Math.abs(sx) + 2} fill="none" stroke="var(--border)" strokeDasharray="2 4" />
+        {back.map(edge)}
+        {back.map(node)}
+        <SvgFace id="amSubjectFace" x={cx} y={cy} r={30} photo={profile?.photo} text={initialsOf(subject?.name)} fill="var(--primary)" />
+        {front.map(edge)}
+        {front.map(node)}
+      </svg>
+      <div className="absolute right-1 top-1 flex flex-col gap-1">
+        {[["+", 0.2], ["−", -0.2]].map(([label, d]) => (
+          <button key={label} type="button" onClick={() => setZoom((z) => Math.max(0.6, Math.min(1.8, z + d)))} className="h-6 w-6 rounded-md border border-border bg-card text-sm font-bold text-muted-foreground hover:text-primary">
+            {label}
+          </button>
+        ))}
+      </div>
+      <p className="text-center text-[10px] text-muted-foreground">{t("mediaDragHint")}</p>
+    </div>
+  );
+}
+
+// The family as a tree: parents above, the subject with spouses and
+// siblings in the middle, children below, other relatives at the side.
+function FamilyTree({ subject, profile, relations, picked, onPick }) {
+  const { t } = useTranslation("aml");
+  const of = (...kinds) => relations.filter((r) => kinds.includes(r.relation));
+  const parents = of("PARENT");
+  const spouses = of("SPOUSE");
+  const siblings = of("SIBLING");
+  const children = of("CHILD");
+  const others = relations.filter((r) => r.group === "FAMILY" && !["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
+  const W = 560;
+  const slot = 92;
+  const row = (list, y) => list.map((r, i) => ({ r, x: W / 2 + (i - (list.length - 1) / 2) * slot, y }));
+  const top = row(parents, 60);
+  const middleList = [...siblings, null, ...spouses];
+  const middle = middleList.map((r, i) => ({ r, x: W / 2 + (i - siblings.length) * slot, y: 185 }));
+  const me = middle.find((p) => p.r === null);
+  const bottom = row(children, 310);
+  const height = children.length ? 370 : 245;
+  const span = [...top, ...middle, ...bottom].map((p) => p.x);
+  const minX = Math.min(...span, 60) - 60;
+  const maxX = Math.max(...span, W - 60) + 60;
+  const person = (p) => (
+    <g key={p.r.id} onClick={() => onPick(picked === p.r.id ? null : p.r.id)} className="cursor-pointer" opacity={picked && picked !== p.r.id ? 0.4 : 1} style={{ animation: "amPop 450ms ease-out", transformOrigin: `${p.x}px ${p.y}px` }}>
+      <title>{[p.r.name, p.r.label, years(p.r), p.r.watch && `${p.r.watch.list} · ${p.r.watch.category}`].filter(Boolean).join(" · ")}</title>
+      <SvgFace id={`amFam${p.r.id}`} x={p.x} y={p.y} r={24} photo={p.r.photo} text={initialsOf(p.r.name)} fill={GROUP_COLOUR.FAMILY} ring={flagColour(p.r.watch)} selected={picked === p.r.id} />
+      <text x={p.x} y={p.y + 40} textAnchor="middle" className="fill-foreground" style={{ fontSize: 10, fontWeight: 700 }}>
+        {shortName(p.r.name, 18)}
+      </text>
+      <text x={p.x} y={p.y + 52} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8.5 }}>
+        {[p.r.label, years(p.r)].filter(Boolean).join(" · ")}
+      </text>
+      {p.r.watch && (
+        <text x={p.x} y={p.y - 30} textAnchor="middle" style={{ fontSize: 8.5, fontWeight: 800, fill: flagColour(p.r.watch) }}>
+          {t(`category_${p.r.watch.category}`, { defaultValue: p.r.watch.category })}
+        </text>
+      )}
+    </g>
+  );
+  const elbow = (from, to, key) => <path key={key} d={`M${from.x} ${from.y} V${(from.y + to.y) / 2} H${to.x} V${to.y}`} fill="none" stroke="var(--border)" strokeWidth="1.5" />;
+  return (
+    <div className="grid gap-2">
+      <svg viewBox={`${minX} 0 ${maxX - minX} ${height}`} className="mx-auto w-full max-w-[620px]" role="img" aria-label={t("mediaFamilyTree")}>
+        {top.map((p, i) => elbow({ x: p.x, y: p.y + 24 }, { x: me.x, y: me.y - 34 }, `p${i}`))}
+        {middle.filter((p) => p.r).map((p, i) => <line key={`m${i}`} x1={me.x} y1={me.y} x2={p.x} y2={p.y} stroke="var(--border)" strokeWidth="1.5" strokeDasharray={p.r.relation === "SIBLING" ? "4 3" : undefined} />)}
+        {bottom.map((p, i) => elbow({ x: me.x, y: me.y + 34 }, { x: p.x, y: p.y - 24 }, `c${i}`))}
+        {top.map(person)}
+        {middle.filter((p) => p.r).map(person)}
+        {bottom.map(person)}
+        <SvgFace id="amFamMe" x={me.x} y={me.y} r={32} photo={profile?.photo} text={initialsOf(subject?.name)} fill="var(--primary)" />
+        <text x={me.x} y={me.y + 48} textAnchor="middle" className="fill-foreground" style={{ fontSize: 11, fontWeight: 900 }}>
+          {shortName(subject?.name ?? "", 22)}
+        </text>
+      </svg>
+      {others.length > 0 && (
+        <p className="flex flex-wrap items-center justify-center gap-1.5 text-[11px]">
+          <span className="text-muted-foreground">{t("mediaOtherRelatives")}</span>
+          {others.map((r) => (
+            <button key={r.id} type="button" onClick={() => onPick(r.id)} className="rounded-full border border-border bg-card px-2 py-0.5 font-semibold hover:border-primary/40">
+              {r.name}
+            </button>
+          ))}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -633,7 +783,9 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false 
   const [picked, setPicked] = useState(null);
   const [flaggedOnly, setFlaggedOnly] = useState(false);
   const [source, setSource] = useState("");
+  const [view, setView] = useState("network");
   if (!relations?.length) return null;
+  const hasFamily = relations.some((r) => r.group === "FAMILY" && ["PARENT", "SPOUSE", "SIBLING", "CHILD"].includes(r.relation));
   const shown = relations.filter((r) => (!flaggedOnly || r.watch) && (!source || r.source === source));
   const flagged = relations.filter((r) => r.watch).length;
   const current = relations.find((r) => r.id === picked);
@@ -653,7 +805,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false 
     return (
       <div className="grid gap-1">
         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaRelationsN", { count: relations.length, flagged })}</p>
-        <RelationsGraph subject={subject} profile={profile} relations={relations} picked={picked} onPick={setPicked} />
+        <Network3D subject={subject} profile={profile} relations={relations} picked={picked} onPick={setPicked} height={300} />
         {legend}
         {current && <RelationDetail r={current} articlesByNo={articlesByNo} />}
       </div>
@@ -673,7 +825,12 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false 
       </div>
       <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="grid content-start gap-2">
-          <RelationsGraph subject={subject} profile={profile} relations={shown} picked={picked} onPick={setPicked} />
+          {hasFamily && <SegmentedSwitch className="mx-auto" value={view} onChange={setView} options={[{ value: "network", label: t("mediaNetwork") }, { value: "family", label: t("mediaFamilyTree") }]} />}
+          {view === "family" && hasFamily ? (
+            <FamilyTree subject={subject} profile={profile} relations={shown.filter((r) => r.group === "FAMILY")} picked={picked} onPick={setPicked} />
+          ) : (
+            <Network3D subject={subject} profile={profile} relations={shown} picked={picked} onPick={setPicked} />
+          )}
           {legend}
         </div>
         <div className="grid content-start gap-3">
