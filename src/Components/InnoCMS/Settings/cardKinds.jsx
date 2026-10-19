@@ -656,16 +656,84 @@ function useLayoutPreview(v) {
   return answer;
 }
 
-function LayoutPreview({ answer }) {
+// Each segment of the number, in order, with its colour (the parts editor
+// uses the same dots).
+const SEGMENT_TONES = {
+  bin: "bg-slate-500/15 text-slate-700 ring-slate-400/40",
+  product_code: "bg-sky-500/15 text-sky-800 ring-sky-400/40",
+  customer_type: "bg-violet-500/15 text-violet-800 ring-violet-400/40",
+  perso_mode: "bg-amber-500/15 text-amber-800 ring-amber-400/40",
+  form_factor: "bg-emerald-500/15 text-emerald-800 ring-emerald-400/40",
+  serial: "bg-muted text-muted-foreground ring-border",
+  check: "bg-rose-500/15 text-rose-800 ring-rose-400/40",
+};
+const DOT = { bin: "bg-slate-500", product_code: "bg-sky-500", customer_type: "bg-violet-500", perso_mode: "bg-amber-500", form_factor: "bg-emerald-500", serial: "bg-muted-foreground/50", check: "bg-rose-500" };
+
+// The number as coloured blocks: BIN, the parts in it, the serial, the
+// check digit. Digits come from the server's preview.
+function LayoutPreview({ answer, v }) {
   const { t } = useTranslation("cards");
   if (!answer) return <p className="text-xs text-muted-foreground">{t("layoutPickBin")}</p>;
+  const length = num(v.pan_length);
+  const parts = PARTS.map((p) => [p, num(v[widthKey(p)])]).filter(([, w]) => w > 0);
+  const serial = Number(answer.serial_digits);
+  const binLength = length - parts.reduce((n, [, w]) => n + w, 0) - serial - 1;
+  const digits = String(answer.preview ?? "").replace(/\s/g, "");
+  const segments = Number.isFinite(serial) && binLength > 0 ? [["bin", binLength], ...parts, ["serial", serial], ["check", 1]] : [];
+  let at = 0;
   return (
-    <div className="grid gap-2">
-      {answer.preview && <p className="font-mono text-lg font-bold tracking-wider text-foreground">{answer.preview}</p>}
+    <div className="grid gap-3">
+      {segments.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {segments.map(([key, width]) => {
+            const text = digits.length === length ? digits.slice(at, at + width) : "•".repeat(width);
+            at += width;
+            return (
+              <span key={key} title={t(`seg_${key}`)} className={cn("rounded-lg px-1.5 py-1 font-mono text-base font-bold tracking-wider ring-1", SEGMENT_TONES[key])}>
+                {text}
+              </span>
+            );
+          })}
+        </div>
+      )}
+      {segments.length > 0 && (
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
+          {segments.map(([key, width]) => (
+            <li key={key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className={cn("h-2 w-2 shrink-0 rounded-full", DOT[key])} />
+              <span className="truncate">{t(`seg_${key}`)}</span>
+              <span className="ml-auto tabular-nums font-semibold text-foreground">{width}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!segments.length && answer.preview && <p className="font-mono text-lg font-bold tracking-wider text-foreground">{answer.preview}</p>}
       {answer.serial_digits != null && <p className="text-xs text-muted-foreground">{t("serialDigitsN", { count: Number(answer.serial_digits), min: answer.min_serial_digits })}</p>}
-      <p className="text-[11px] text-muted-foreground">{t("layoutPreviewLegend")}</p>
       {(answer.problems ?? []).map((p) => (
-        <p key={p} className="text-xs font-semibold text-amber-700">{p}</p>
+        <p key={p} className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">{p}</p>
+      ))}
+    </div>
+  );
+}
+
+// 0 (not in the number) to `max` digits, as chips.
+function WidthPicker({ value, max, onChange, disabled }) {
+  const { t } = useTranslation("cards");
+  return (
+    <div className="flex flex-wrap gap-1">
+      {Array.from({ length: max + 1 }, (_, n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(String(n))}
+          className={cn(
+            "min-w-9 rounded-lg border px-2 py-1 text-xs font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+            num(value) === n ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary/50",
+          )}
+        >
+          {n ? n : t("partOff")}
+        </button>
       ))}
     </div>
   );
@@ -680,55 +748,66 @@ function LayoutForm({ values: v, set, options, locked, record }) {
   const bad = codeProblems(v);
   const setCode = (part, value, code) => set({ part_codes: { ...v.part_codes, [part]: { ...(v.part_codes?.[part] ?? {}), [value]: code.replace(/\D/g, "") } } });
   return (
-    <>
-      <Section title={t("groupLayout")}>
-        <div className={grid}>
-          <F label={t("layoutCode")} hint={!locked && t("fixedOnceAdded")}>
-            <Field field={{ placeholder: "PREPAID_16" }} disabled={locked} value={v.code} onChange={(x) => set({ code: upperCode(x) })} />
-          </F>
-          <F label={t("layoutName")}>
-            <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
-          </F>
-          <F label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
-            <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, (b) => b.extra && t("binLengthMin", { value: b.extra })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
-          </F>
-          <F label={t("panLength")}>
-            <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} disabled={limited} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />
-          </F>
-          <F label={t("description")} span="md:col-span-2">
-            <Field field={{}} value={v.description} onChange={(x) => set({ description: x })} />
-          </F>
-        </div>
-      </Section>
-      <Section title={t("layoutParts")}>
-        <p className={cn("mb-3 text-xs", limited ? "font-semibold text-amber-700" : "text-muted-foreground")}>{t(limited ? "layoutInUse" : "layoutPartsHint")}</p>
-        <div className={cn(grid, "lg:grid-cols-4")}>
-          {PARTS.map((part) => (
-            <F key={part} label={t(`part_${part}`)} hint={t("widthUpTo", { count: widths[part] ?? 2 })}>
-              <Field field={{ type: "select", options: Array.from({ length: (widths[part] ?? 2) + 1 }, (_, n) => ({ value: String(n), label: n ? t("digitsN", { count: n }) : t("notInNumber") })) }} disabled={limited} value={String(v[widthKey(part)] ?? 0)} onChange={(x) => set({ [widthKey(part)]: x })} />
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid min-w-0 gap-4">
+        <Section title={t("groupLayout")}>
+          <div className="grid gap-3 md:grid-cols-2">
+            <F label={t("layoutCode")} hint={!locked && t("fixedOnceAdded")}>
+              <Field field={{ placeholder: "PREPAID_16" }} disabled={locked} value={v.code} onChange={(x) => set({ code: upperCode(x) })} />
             </F>
-          ))}
-        </div>
-        {CODED_PARTS.filter((part) => num(v[widthKey(part)]) > 0).map((part) => (
-          <div key={part} className="mt-4">
-            <p className={cn("mb-1.5 text-[10px] font-black uppercase tracking-wider", bad.includes(part) ? "text-amber-700" : "text-muted-foreground")}>
-              {t("partCodes", { part: t(`part_${part}`) })}
-            </p>
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              {(options.part_values?.[part] ?? []).map((value) => (
-                <F key={value} label={t(part === "customer_type" ? `holder_${value}` : value, { defaultValue: loanLabel(t, value) })}>
-                  <Field field={{}} disabled={limited} value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, num(v[widthKey(part)])))} />
-                </F>
-              ))}
-            </div>
-            {bad.includes(part) && <p className="mt-1 text-[11px] font-semibold text-amber-700">{t("partCodesInvalid", { count: num(v[widthKey(part)]) })}</p>}
+            <F label={t("layoutName")}>
+              <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
+            </F>
+            <F label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
+              <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, (b) => b.extra && t("binLengthMin", { value: b.extra })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
+            </F>
+            <F label={t("panLength")}>
+              <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} disabled={limited} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />
+            </F>
+            <F label={t("description")} span="md:col-span-2">
+              <Field field={{}} value={v.description} onChange={(x) => set({ description: x })} />
+            </F>
           </div>
-        ))}
+        </Section>
+        <Section title={t("layoutParts")}>
+          <p className={cn("mb-3 text-xs", limited ? "font-semibold text-amber-700" : "text-muted-foreground")}>{t(limited ? "layoutInUse" : "layoutPartsHint")}</p>
+          <ul className="divide-y divide-border rounded-xl border border-border">
+            {PARTS.map((part) => {
+              const width = num(v[widthKey(part)]);
+              const coded = CODED_PARTS.includes(part) && width > 0;
+              return (
+                <li key={part} className="grid gap-3 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-sm font-bold">
+                      <span className={cn("h-2.5 w-2.5 rounded-full", DOT[part])} />
+                      {t(`part_${part}`)}
+                      <span className="text-[11px] font-medium text-muted-foreground">{t("widthUpTo", { count: widths[part] ?? 2 })}</span>
+                    </span>
+                    <WidthPicker value={width} max={widths[part] ?? 2} disabled={limited} onChange={(x) => set({ [widthKey(part)]: x })} />
+                  </div>
+                  {coded && (
+                    <div>
+                      <p className={cn("mb-1.5 text-[10px] font-black uppercase tracking-wider", bad.includes(part) ? "text-amber-700" : "text-muted-foreground")}>{t("partCodes", { part: t(`part_${part}`) })}</p>
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        {(options.part_values?.[part] ?? []).map((value) => (
+                          <F key={value} label={t(part === "customer_type" ? `holder_${value}` : value, { defaultValue: loanLabel(t, value) })}>
+                            <Field field={{}} disabled={limited} value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, width))} />
+                          </F>
+                        ))}
+                      </div>
+                      {bad.includes(part) && <p className="mt-1 text-[11px] font-semibold text-amber-700">{t("partCodesInvalid", { count: width })}</p>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      </div>
+      <Section title={t("layoutPreview")} className="min-w-0 xl:sticky xl:top-4">
+        <LayoutPreview answer={answer} v={v} />
       </Section>
-      <Section title={t("layoutPreview")}>
-        <LayoutPreview answer={answer} />
-      </Section>
-    </>
+    </div>
   );
 }
 

@@ -4773,7 +4773,6 @@ export const cards = {
   partCodesInvalid: "Os códigos devem ser dígitos, no máximo {{count}}, e diferentes entre si.",
   layoutPreview: "Pré-visualização",
   layoutPickBin: "Escolha um BIN para ver o número que este layout gera.",
-  layoutPreviewLegend: "X é um dígito de série, C o dígito de verificação.",
   serialDigits: "Dígitos de série",
   serialDigitsN: "{{count}} dígitos de série (o BIN precisa de pelo menos {{min}})",
   serialDigitsShort: "{{count}} dígitos de série",
@@ -4844,6 +4843,14 @@ export const cards = {
   layoutInUse: "Já foram numerados cartões com este layout: só o nome e a descrição podem mudar.",
   feeX: "Taxa {{value}}",
   feeShort: "a carteira não a cobre, por isso a encomenda será recusada",
+  partOff: "Não",
+  seg_bin: "BIN",
+  seg_product_code: "Código do produto",
+  seg_customer_type: "Tipo de cliente",
+  seg_perso_mode: "Personalização",
+  seg_form_factor: "Tipo de cartão",
+  seg_serial: "Série",
+  seg_check: "Dígito de controlo",
 };
 
 export const kycReport = {

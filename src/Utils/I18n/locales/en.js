@@ -4759,7 +4759,6 @@ export const cards = {
   partCodesInvalid: "Codes must be digits, at most {{count}} long, and different from each other.",
   layoutPreview: "Preview",
   layoutPickBin: "Pick a BIN to see the number this layout makes.",
-  layoutPreviewLegend: "X is a serial digit, C the check digit.",
   serialDigits: "Serial digits",
   serialDigitsN: "{{count}} serial digits (the BIN needs at least {{min}})",
   serialDigitsShort: "{{count}} serial digits",
@@ -4830,6 +4829,14 @@ export const cards = {
   layoutInUse: "Cards have been numbered by this layout: only its name and description can change.",
   feeX: "Fee {{value}}",
   feeShort: "the wallet does not cover it, so the order will be refused",
+  partOff: "Off",
+  seg_bin: "BIN",
+  seg_product_code: "Product code",
+  seg_customer_type: "Customer type",
+  seg_perso_mode: "Personalisation",
+  seg_form_factor: "Card type",
+  seg_serial: "Serial",
+  seg_check: "Check digit",
 };
 
 export const kycReport = {
