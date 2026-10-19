@@ -61,7 +61,7 @@ const pct = (v) => `${Math.round(Number(v ?? 0) * 100)}%`;
 
 // ------------------------------------------------------------ the stream --
 
-const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, icons: {}, profile: null, score: { score: 0, level: "NONE" }, done: null };
+const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, icons: {}, profile: null, relations: [], score: { score: 0, level: "NONE" }, done: null };
 const sameQuery = (a, b) => a.provider === b.provider && a.edition === b.edition && a.lang === b.lang && a.text === b.text;
 
 function liveReducer(state, { kind, data }) {
@@ -82,6 +82,8 @@ function liveReducer(state, { kind, data }) {
       return { ...state, stories: { ...state.stories, [data.id]: data } };
     case "score":
       return { ...state, score: data };
+    case "relation":
+      return { ...state, relations: state.relations.some((r) => r.id === data.id) ? state.relations.map((r) => (r.id === data.id ? data : r)) : [...state.relations, data] };
     case "profile":
       return { ...state, profile: data?.found ? data.profile : null };
     case "icon":
@@ -464,6 +466,7 @@ function LiveView({ subject, live, error }) {
                 </li>
               ))}
             </ul>
+            <Relations compact subject={subject} profile={live.profile} relations={live.relations} />
           </div>
           <div className="grid min-w-0 content-start gap-3">
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-5">
@@ -507,6 +510,206 @@ function LiveView({ subject, live, error }) {
         </div>
       </div>
     </IconsContext.Provider>
+  );
+}
+
+// -------------------------------------------------------- relationships --
+
+const GROUP_COLOUR = { FAMILY: "#8b5cf6", AFFILIATION: "#0ea5e9", OWNERSHIP: "#10b981", ASSOCIATE: "#f97316", NEWS: "#64748b" };
+const GROUPS = Object.keys(GROUP_COLOUR);
+// A flagged related party: red for sanctions or crime, amber otherwise.
+const flagColour = (watch) => (!watch ? null : ["SANCTIONS", "CRIME"].includes(watch.category) ? "#dc2626" : "#d97706");
+const years = (r) => (r.from || r.to ? `${r.from ?? "…"}–${r.to ?? ""}` : "");
+const shortName = (name, n = 16) => (String(name).length > n ? `${String(name).slice(0, n - 1)}…` : String(name));
+const nodeGlyph = (r) => (r.entity_type === "ORGANIZATION" ? "🏢" : r.entity_type === "POSITION" ? "🎖" : r.entity_type === "VESSEL" ? "⚓" : "");
+
+// Where each related party sits: one ring, or two when there are many.
+function layout(relations) {
+  const inner = relations.length > 14 ? Math.ceil(relations.length * 0.4) : relations.length;
+  return relations.map((r, i) => {
+    const ring = i < inner ? 0 : 1;
+    const count = ring === 0 ? inner : relations.length - inner;
+    const at = ring === 0 ? i : i - inner;
+    const angle = (at / Math.max(1, count)) * 2 * Math.PI - Math.PI / 2 + (ring ? Math.PI / Math.max(1, count) : 0);
+    const radius = relations.length > 14 ? (ring ? 172 : 112) : 150;
+    return { r, x: 210 + Math.cos(angle) * radius, y: 210 + Math.sin(angle) * radius };
+  });
+}
+
+// The subject in the centre, a spoke per relationship. `compact` for the
+// live view (no side list).
+function RelationsGraph({ subject, profile, relations, picked, onPick }) {
+  const { t } = useTranslation("aml");
+  const nodes = layout(relations);
+  const showEdgeLabels = relations.length <= 10;
+  const initials = String(subject?.name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  return (
+    <svg viewBox="0 0 420 420" className="mx-auto w-full max-w-[460px]" role="img" aria-label={t("mediaRelations")}>
+      <defs>
+        <clipPath id="amSubjectClip">
+          <circle cx="210" cy="210" r="30" />
+        </clipPath>
+      </defs>
+      {nodes.map(({ r, x, y }) => (
+        <g key={`e${r.id}`}>
+          <line x1="210" y1="210" x2={x} y2={y} stroke={GROUP_COLOUR[r.group] ?? "#94a3b8"} strokeOpacity={picked && picked !== r.id ? 0.15 : 0.5} strokeWidth={r.watch ? 2 : 1.2} strokeDasharray={r.source === "NEWS" ? "4 3" : undefined} />
+          {showEdgeLabels && (
+            <text x={(210 + x) / 2} y={(210 + y) / 2 - 3} textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: 8 }}>
+              {shortName([r.label, years(r)].filter(Boolean).join(" · "), 22)}
+            </text>
+          )}
+        </g>
+      ))}
+      {nodes.map(({ r, x, y }) => {
+        const ring = flagColour(r.watch);
+        return (
+          <g key={`n${r.id}`} onClick={() => onPick(picked === r.id ? null : r.id)} className="cursor-pointer" style={{ transformOrigin: `${x}px ${y}px`, animation: "amPop 450ms ease-out", opacity: picked && picked !== r.id ? 0.45 : 1 }}>
+            <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
+            {ring && <circle cx={x} cy={y} r="19" fill="none" stroke={ring} strokeWidth="3" />}
+            <circle cx={x} cy={y} r="14" fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} stroke={picked === r.id ? "var(--foreground)" : "var(--card)"} strokeWidth="2" />
+            <text x={x} y={y + 4} textAnchor="middle" fill="white" style={{ fontSize: 10, fontWeight: 800 }}>
+              {nodeGlyph(r) || String(r.name).charAt(0).toUpperCase()}
+            </text>
+            <text x={x} y={y + 28} textAnchor="middle" className="fill-foreground" style={{ fontSize: 8.5, fontWeight: 600 }}>
+              {shortName(r.name)}
+            </text>
+          </g>
+        );
+      })}
+      <circle cx="210" cy="210" r="33" fill="var(--card)" stroke="var(--primary)" strokeWidth="2.5" />
+      {profile?.photo ? (
+        <image href={profile.photo} x="180" y="180" width="60" height="60" clipPath="url(#amSubjectClip)" preserveAspectRatio="xMidYMid slice" />
+      ) : (
+        <text x="210" y="216" textAnchor="middle" className="fill-foreground" style={{ fontSize: 17, fontWeight: 900 }}>
+          {initials}
+        </text>
+      )}
+    </svg>
+  );
+}
+
+// One related party in full: what links them, their own watchlist match
+// (a lead, not a finding about the subject), and where it came from.
+function RelationDetail({ r, articlesByNo }) {
+  const { t } = useTranslation("aml");
+  const link = r.wikidata_id ? `https://www.wikidata.org/wiki/${r.wikidata_id}` : r.entity_key ? `https://www.opensanctions.org/entities/${r.entity_key}` : null;
+  return (
+    <div className="grid gap-1.5 rounded-xl border border-border bg-card p-3 text-xs">
+      <p className="text-sm font-bold">{r.name}</p>
+      <p className="text-muted-foreground">
+        {[r.label, years(r), t(`mediaSource_${r.source}`, { defaultValue: r.source })].filter(Boolean).join(" · ")}
+      </p>
+      {r.description && <p>{r.description}</p>}
+      {r.watch && (
+        <p className="rounded-lg px-2 py-1 font-semibold" style={{ background: `${flagColour(r.watch)}1a`, color: flagColour(r.watch) }}>
+          {t("mediaRelationFlag", { label: r.label, name: r.name, category: t(`category_${r.watch.category}`, { defaultValue: r.watch.category }), list: r.watch.list, score: r.watch.score })}
+        </p>
+      )}
+      {r.source === "NEWS" && <p className="text-[11px] text-amber-700">{t("mediaNewsLead")}</p>}
+      {(r.articles ?? []).length > 0 && (
+        <ul className="grid gap-1">
+          {r.articles.map((no) => articlesByNo?.[no]).filter(Boolean).map((a) => (
+            <li key={a.no}>
+              <a href={a.url} target="_blank" rel="noreferrer" className="inline-flex items-start gap-1 hover:text-primary">
+                <ExternalLink size={11} className="mt-0.5 shrink-0" /> <span className="line-clamp-1">{a.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {link && (
+        <a href={link} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1 font-bold text-primary hover:underline">
+          {r.wikidata_id ? "Wikidata" : "OpenSanctions"} <ExternalLink size={10} />
+        </a>
+      )}
+    </div>
+  );
+}
+
+// The relationships: the graph, a grouped list with filters, and the one
+// picked in full.
+function Relations({ subject, profile, relations, articlesByNo, compact = false }) {
+  const { t } = useTranslation("aml");
+  const [picked, setPicked] = useState(null);
+  const [flaggedOnly, setFlaggedOnly] = useState(false);
+  const [source, setSource] = useState("");
+  if (!relations?.length) return null;
+  const shown = relations.filter((r) => (!flaggedOnly || r.watch) && (!source || r.source === source));
+  const flagged = relations.filter((r) => r.watch).length;
+  const current = relations.find((r) => r.id === picked);
+  const legend = (
+    <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+      {GROUPS.filter((g) => relations.some((r) => r.group === g)).map((g) => (
+        <li key={g} className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full" style={{ background: GROUP_COLOUR[g] }} /> {t(`mediaGroup_${g}`)}
+        </li>
+      ))}
+      <li className="flex items-center gap-1">
+        <span className="h-2.5 w-2.5 rounded-full border-2 border-red-600" /> {t("mediaFlagged")}
+      </li>
+    </ul>
+  );
+  if (compact) {
+    return (
+      <div className="grid gap-1">
+        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaRelationsN", { count: relations.length, flagged })}</p>
+        <RelationsGraph subject={subject} profile={profile} relations={relations} picked={picked} onPick={setPicked} />
+        {legend}
+        {current && <RelationDetail r={current} articlesByNo={articlesByNo} />}
+      </div>
+    );
+  }
+  return (
+    <section className="grid min-w-0 gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className={labelClass}>{t("mediaRelationsN", { count: relations.length, flagged })}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs">
+            <input type="checkbox" checked={flaggedOnly} onChange={(e) => setFlaggedOnly(e.target.checked)} className="accent-[var(--primary)]" />
+            {t("mediaFlaggedOnly")}
+          </label>
+          <FilterSelect size="sm" className="w-40" value={source} onChange={setSource} options={[{ value: "", label: t("mediaAnySource") }, ...["WIKIDATA", "OPENSANCTIONS", "NEWS"].map((v) => ({ value: v, label: t(`mediaSource_${v}`) }))]} />
+        </div>
+      </div>
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="grid content-start gap-2">
+          <RelationsGraph subject={subject} profile={profile} relations={shown} picked={picked} onPick={setPicked} />
+          {legend}
+        </div>
+        <div className="grid content-start gap-3">
+          {current && <RelationDetail r={current} articlesByNo={articlesByNo} />}
+          {GROUPS.map((g) => {
+            const list = shown.filter((r) => r.group === g);
+            if (!list.length) return null;
+            return (
+              <div key={g}>
+                <p className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider" style={{ color: GROUP_COLOUR[g] }}>
+                  <span className="h-2 w-2 rounded-full" style={{ background: GROUP_COLOUR[g] }} /> {t(`mediaGroup_${g}`)}
+                </p>
+                <ul className="grid gap-1">
+                  {list.map((r) => (
+                    <li key={r.id}>
+                      <button type="button" onClick={() => setPicked(picked === r.id ? null : r.id)} className={cn("flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors", picked === r.id ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/40")}>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold">{r.name}</span>
+                          <span className="block truncate text-[10px] text-muted-foreground">{[r.label, years(r)].filter(Boolean).join(" · ")}</span>
+                        </span>
+                        {r.watch && (
+                          <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold text-white" style={{ background: flagColour(r.watch) }}>
+                            {t(`category_${r.watch.category}`, { defaultValue: r.watch.category })}
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+          {!shown.length && <p className="text-xs text-muted-foreground">{t("mediaNoRelationsShown")}</p>}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -749,6 +952,8 @@ function ResultView({ search, onChange }) {
           <Timeline articles={timeline} />
         </section>
       )}
+
+      <Relations subject={search.subject} profile={search.profile} relations={search.relations} articlesByNo={byNo} />
 
       {selectable && picked.length > 0 && (
         <div className="sticky top-0 z-10 flex flex-wrap items-end gap-2 rounded-xl border border-primary/30 bg-card p-2.5 shadow">

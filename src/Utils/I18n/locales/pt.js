@@ -1901,6 +1901,23 @@ export const aml = {
   mediaMatched_NAME: "nome",
   mediaMatched_BIRTH_YEAR: "ano de nascimento",
   mediaMatched_COUNTRY: "país",
+  mediaRelations: "Relações",
+  mediaRelationsN_one: "{{count}} relação · {{flagged}} sinalizadas",
+  mediaRelationsN_other: "{{count}} relações · {{flagged}} sinalizadas",
+  mediaFlagged: "Numa lista de vigilância",
+  mediaFlaggedOnly: "Só sinalizadas",
+  mediaAnySource: "Qualquer fonte",
+  mediaNoRelationsShown: "Nenhuma relação corresponde a estes filtros.",
+  mediaSource_WIKIDATA: "Wikidata",
+  mediaSource_OPENSANCTIONS: "Ligações das listas",
+  mediaSource_NEWS: "Notícias",
+  mediaRelationFlag: "Pista a verificar: {{label}} {{name}} está em {{list}} ({{category}}, {{score}}). Diz respeito a essa pessoa, não ao sujeito.",
+  mediaNewsLead: "Encontrado automaticamente nas notícias: trate-o como uma pista e verifique-o.",
+  mediaGroup_FAMILY: "Família",
+  mediaGroup_AFFILIATION: "Afiliações",
+  mediaGroup_OWNERSHIP: "Propriedade",
+  mediaGroup_ASSOCIATE: "Associados",
+  mediaGroup_NEWS: "Mencionados nas notícias",
 };
 
 // Reports (handoff 08).

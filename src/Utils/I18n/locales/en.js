@@ -1887,6 +1887,23 @@ export const aml = {
   mediaMatched_NAME: "name",
   mediaMatched_BIRTH_YEAR: "birth year",
   mediaMatched_COUNTRY: "country",
+  mediaRelations: "Relationships",
+  mediaRelationsN_one: "{{count}} relationship · {{flagged}} flagged",
+  mediaRelationsN_other: "{{count}} relationships · {{flagged}} flagged",
+  mediaFlagged: "On a watchlist",
+  mediaFlaggedOnly: "Flagged only",
+  mediaAnySource: "Any source",
+  mediaNoRelationsShown: "No relationships match these filters.",
+  mediaSource_WIKIDATA: "Wikidata",
+  mediaSource_OPENSANCTIONS: "Watchlist links",
+  mediaSource_NEWS: "News",
+  mediaRelationFlag: "Lead to check: {{label}} {{name}} is on {{list}} ({{category}}, {{score}}). This is about them, not the subject.",
+  mediaNewsLead: "Found automatically in the news: treat it as a lead and check it.",
+  mediaGroup_FAMILY: "Family",
+  mediaGroup_AFFILIATION: "Affiliations",
+  mediaGroup_OWNERSHIP: "Ownership",
+  mediaGroup_ASSOCIATE: "Associates",
+  mediaGroup_NEWS: "Named in the news",
 };
 
 // Reports (handoff 08).
