@@ -1,7 +1,7 @@
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2, Search } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2 } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { NoDataAnimation } from "@/Components/Common/NoDataAnimation";
 import { Modal } from "@/Components/Common/Modal";
@@ -124,8 +124,22 @@ function useChangedKeys(rows, rowKey) {
   return seen.changed;
 }
 
+// React keys must be unique: a repeated rowKey (one user with several KYC
+// records, say) gets its position added, or React would reuse the wrong row
+// and leave stale or duplicated rows on screen.
+function uniqueKeys(rows, rowKey) {
+  const seen = new Set();
+  return rows.map((row, i) => {
+    const key = String(rowKey(row, i));
+    const unique = seen.has(key) ? `${key}#${i}` : key;
+    seen.add(unique);
+    return unique;
+  });
+}
+
 function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, rowKey, t, selectable = false, selectedKeys = new Set(), onToggleRow, compact = false }) {
   const changed = useChangedKeys(rows, rowKey);
+  const keys = uniqueKeys(rows, rowKey);
   if (isLoading) {
     return (
       <tbody>
@@ -159,7 +173,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
     <tbody>
       {rows.map((row, i) => (
         <tr
-          key={rowKey(row, i)}
+          key={keys[i]}
           className={cn("border-b transition-colors hover:bg-[var(--primary-light)]", changed.has(String(rowKey(row, i))) && "row-flash", selectedKeys.has(String(rowKey(row, i))) && "bg-[var(--primary-light)]")}
           style={{ borderColor: "color-mix(in srgb, var(--border) 40%, transparent)" }}
         >
@@ -201,17 +215,12 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
  *   a page-size selector (only shown when `onLimitChange` is passed) and a
  *   "Go to page" input, all driven off these values.
  * - title: used as the "View all" modal heading
- * - searchableKeys: fields to search against inside the "View all" modal
  * - emptyTitle / emptyDescription
- * - fetchMore(page, limit): when provided, the "View all" modal switches
- *   from rendering the already-loaded `rows` to its own infinite-scroll
- *   fetch loop against the backend — loads page 1 on open, then the next
- *   page automatically as the user scrolls near the bottom, appending
- *   rows instead of ever holding the whole dataset in memory or in one
- *   request. Must resolve to { rows, totalPages }. Without this prop the
- *   modal falls back to listing whatever's already in `rows` (unchanged
- *   behavior for tables too small to matter).
- * - infiniteScrollLimit: page size used by fetchMore, default 50.
+ * "View all" lists every record. On a server-paginated table it pages
+ * through the server itself (the page's own call, so its tab, search and
+ * sort apply): 50 a page, the next page as the user scrolls near the
+ * bottom, never everything in one call. The table's page and page size
+ * come back when it closes. Nothing is filtered in the browser.
  * - persistKey: when set, the sort and (client-side) page / page size are
  *   kept for the browser-tab session under this key, so returning to the
  *   list after opening a record on its own route restores the same view.
@@ -226,12 +235,9 @@ export function DataTable({
   pageSize = 10,
   serverPagination = null,
   title = "Records",
-  searchableKeys = [],
   emptyTitle,
   emptyDescription,
   className,
-  fetchMore = null,
-  infiniteScrollLimit = 50,
   // Skip the top rounding/border on this table's own card so it can sit
   // directly beneath a StatusFilterTabs rendered with its own `bare` prop,
   // reading as one continuous panel instead of two stacked cards with a
@@ -265,59 +271,9 @@ export function DataTable({
   const [page, setPage] = useSessionState(stateKey("tablePage"), 1);
   const [clientPageSize, setClientPageSize] = useSessionState(stateKey("tablePageSize"), pageSize);
   const [viewAllOpen, setViewAllOpen] = useState(false);
-  const [viewAllSearch, setViewAllSearch] = useState("");
   const [selectedKeys, setSelectedKeys] = useState(() => new Set());
 
-  const [infiniteRows, setInfiniteRows] = useState([]);
-  const [infinitePage, setInfinitePage] = useState(0);
-  const [infiniteHasMore, setInfiniteHasMore] = useState(true);
-  const [infiniteLoading, setInfiniteLoading] = useState(false);
-  const [infiniteError, setInfiniteError] = useState(null);
   const scrollRef = useRef(null);
-
-  const loadNextInfinitePage = useCallback(async () => {
-    if (!fetchMore || infiniteLoading || !infiniteHasMore) return;
-    setInfiniteLoading(true);
-    setInfiniteError(null);
-    const nextPage = infinitePage + 1;
-    try {
-      const result = await fetchMore(nextPage, infiniteScrollLimit);
-      setInfiniteRows((current) => [...current, ...(result?.rows ?? [])]);
-      setInfinitePage(nextPage);
-      setInfiniteHasMore(nextPage < (result?.totalPages ?? nextPage));
-    } catch (error) {
-      setInfiniteError(error instanceof Error ? error.message : t("failedToLoadMoreRecords"));
-    } finally {
-      setInfiniteLoading(false);
-    }
-  }, [fetchMore, infiniteLoading, infiniteHasMore, infinitePage, infiniteScrollLimit]);
-
-  // Reset and fetch page 1 fresh every time the modal opens, rather than
-  // keeping stale data from a previous open (records may have changed via
-  // an auth/edit/delete action in between).
-  useEffect(() => {
-    if (!fetchMore || !viewAllOpen) return;
-    setInfiniteRows([]);
-    setInfinitePage(0);
-    setInfiniteHasMore(true);
-    setInfiniteError(null);
-  }, [fetchMore, viewAllOpen]);
-
-  useEffect(() => {
-    if (!fetchMore || !viewAllOpen) return;
-    if (infinitePage === 0 && infiniteRows.length === 0 && infiniteHasMore) {
-      void loadNextInfinitePage();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchMore, viewAllOpen, infinitePage, infiniteRows.length, infiniteHasMore]);
-
-  const handleModalScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120;
-    if (nearBottom) void loadNextInfinitePage();
-  };
-
   const onSort = (key) => {
     setSort((current) => {
       if (current.key !== key) return { key, direction: "asc" };
@@ -379,22 +335,56 @@ export function DataTable({
     }
   };
 
-  const sortedInfiniteRows = useSortedRows(infiniteRows, columns, sort);
-  const modalSourceRows = fetchMore ? sortedInfiniteRows : sortedRows;
-
-  const modalRows = useMemo(() => {
-    const q = viewAllSearch.trim().toLowerCase();
-    if (!q) return modalSourceRows;
-    return modalSourceRows.filter((row) =>
-      searchableKeys.some((key) => String(row[key] ?? "").toLowerCase().includes(q)),
-    );
-  }, [modalSourceRows, viewAllSearch, searchableKeys]);
+  // "View all" on a server table: the page's own paging, page by page.
+  // loaded: { [page]: rows }, so a page delivered again (a live refresh)
+  // replaces itself instead of adding twice.
+  const VIEW_ALL_LIMIT = 50;
+  const [loaded, setLoaded] = useState({});
+  const restore = useRef(null);
+  const serverPage = isServer ? serverPagination.page : null;
+  useEffect(() => {
+    // Kept once the table shows the asked page at the View all size.
+    const sized = !serverPagination?.onLimitChange || effectivePageSize === VIEW_ALL_LIMIT;
+    if (!viewAllOpen || !isServer || isLoading || !sized) return;
+    // Pages often pass a fresh array each render: store only real changes.
+    setLoaded((current) => (current[serverPage] && JSON.stringify(current[serverPage]) === JSON.stringify(rows) ? current : { ...current, [serverPage]: rows }));
+    // `rows` arrives with the page it belongs to.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewAllOpen, isServer, isLoading, serverPage, rows, effectivePageSize]);
+  const openViewAll = () => {
+    if (isServer) {
+      restore.current = { page: serverPagination.page, limit: effectivePageSize };
+      setLoaded({});
+      if (serverPagination.onLimitChange && effectivePageSize !== VIEW_ALL_LIMIT) serverPagination.onLimitChange(VIEW_ALL_LIMIT);
+      serverPagination.onPageChange(1);
+    }
+    setViewAllOpen(true);
+  };
+  const closeViewAll = () => {
+    setViewAllOpen(false);
+    if (isServer && restore.current) {
+      const back = restore.current;
+      restore.current = null;
+      setLoaded({});
+      if (serverPagination.onLimitChange && back.limit !== effectivePageSize) serverPagination.onLimitChange(back.limit);
+      serverPagination.onPageChange(back.page);
+    }
+  };
+  const loadedPages = Object.keys(loaded).map(Number).sort((x, y) => x - y);
+  const lastLoaded = loadedPages.length ? loadedPages[loadedPages.length - 1] : 0;
+  const hasMore = isServer && lastLoaded < totalPages;
+  const handleModalScroll = () => {
+    const el = scrollRef.current;
+    if (!el || !isServer || isLoading || !hasMore || lastLoaded === 0) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120) serverPagination.onPageChange(lastLoaded + 1);
+  };
+  const modalRows = isServer ? loadedPages.flatMap((p) => loaded[p]) : sortedRows;
 
   const viewAllButton = (
     <button
       type="button"
       data-tour="view-all"
-      onClick={() => setViewAllOpen(true)}
+      onClick={openViewAll}
       className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-[var(--primary)] hover:bg-[var(--primary-light)]"
     >
       <Maximize2 size={12} /> {t("viewAll")}
@@ -516,60 +506,24 @@ export function DataTable({
 
       <Modal
         open={viewAllOpen}
-        onClose={() => setViewAllOpen(false)}
+        onClose={closeViewAll}
         title={title}
-        subtitle={
-          fetchMore
-            ? `${modalRows.length} ${t("loaded")}${infiniteHasMore ? " · " + t("scrollForMore") : " · " + t("allLoaded")}`
-            : `${modalRows.length} ${t("of")} ${sortedRows.length} ${t("recordsWord")}`
-        }
+        subtitle={isServer ? `${modalRows.length} ${t("of")} ${totalRecords} ${t("recordsWord")}${hasMore ? " · " + t("scrollForMore") : ""}` : `${sortedRows.length} ${t("recordsWord")}`}
         size="xl"
         bodyClassName="px-0 py-0"
       >
-        {searchableKeys.length > 0 && (
-          <div className="border-b border-border px-5 py-3">
-            <div className="relative max-w-xs">
-              <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={viewAllSearch}
-                onChange={(e) => setViewAllSearch(e.target.value)}
-                placeholder={t("searchPlaceholder")}
-                className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-            {fetchMore && viewAllSearch.trim() !== "" && (
-              <p className="mt-1.5 text-[11px] text-amber-600">
-                {t("searchLoadedOnlyHint")}
-              </p>
-            )}
-          </div>
-        )}
-        <div ref={scrollRef} onScroll={fetchMore ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto overflow-x-auto px-5 py-3">
+        <div ref={scrollRef} onScroll={isServer ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto overflow-x-auto px-5 py-3">
           <table data-tour="table" className="w-full min-w-max">
-            <TableHead columns={columns} sort={sort} onSort={onSort} />
-            <TableBody
-              columns={columns}
-              rows={modalRows}
-              isLoading={fetchMore ? infiniteRows.length === 0 && infiniteLoading : false}
-              emptyTitle={emptyTitle}
-              emptyDescription={emptyDescription}
-              rowKey={rowKey}
-              t={t}
-            />
+            <TableHead columns={columns} sort={serverOrdered ? {} : sort} onSort={onSort} sortable={!serverOrdered} />
+            <TableBody columns={columns} rows={modalRows} isLoading={isServer && !modalRows.length && isLoading} emptyTitle={emptyTitle} emptyDescription={emptyDescription} rowKey={rowKey} t={t} />
           </table>
-          {fetchMore && infiniteRows.length > 0 && (
+          {isServer && modalRows.length > 0 && (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {infiniteError ? (
-                <button type="button" onClick={() => void loadNextInfinitePage()} className="font-semibold text-[var(--primary)] underline">
-                  {t("failedLoadMoreRetry")}
+              {isLoading ? t("loadingMore") : hasMore ? (
+                <button type="button" onClick={() => serverPagination.onPageChange(lastLoaded + 1)} className="font-semibold text-[var(--primary)] hover:underline">
+                  {t("scrollForMore")}
                 </button>
-              ) : infiniteLoading ? (
-                t("loadingMore")
-              ) : infiniteHasMore ? (
-                t("scrollForMore")
-              ) : (
-                t("allRecordsLoaded")
-              )}
+              ) : t("allRecordsLoaded")}
             </div>
           )}
         </div>

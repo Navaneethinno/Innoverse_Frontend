@@ -292,7 +292,6 @@ export function InstitutionChannel() {
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr("Institution Channel")}
-        searchableKeys={["channel_name", "inst_profile_name"]}
         emptyTitle={tr("No channels found")}
         emptyDescription={tr("Channel assignments will appear here when available.")}
       bare /></div><Modal

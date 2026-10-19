@@ -321,7 +321,6 @@ export function KYC() {
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
         title={tr("User KYC")}
-        searchableKeys={["user_name", "first_name", "last_name", "employee_id", "email", "mobile"]}
         emptyTitle={tr("No KYC records found")}
         serverPagination={{
           page,
@@ -333,13 +332,6 @@ export function KYC() {
             setLimit(next);
             setPage(1);
           },
-        }}
-        fetchMore={async (nextPage, limit) => {
-          const result = await usersApi.kycList({ page: nextPage, limit, filter: tab, sort_by: sortBy });
-          return {
-            rows: Array.isArray(result?.data) ? result.data : [],
-            totalPages: result?.pagination?.totalPages ?? 1,
-          };
         }}
       bare /></div>
 

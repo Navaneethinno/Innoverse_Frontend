@@ -16,7 +16,6 @@ import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import {
-  mapProfileListResponse,
   useHasProfileAction,
   useProfileAuthMutation,
   useProfileCreateMutation,
@@ -28,7 +27,6 @@ import {
   useProfileUpdateMutation,
   useProfilesQuery,
 } from "@/Hooks/UserManagement/profileHooks";
-import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
@@ -339,13 +337,8 @@ export function Profile() {
         rowKey={(p) => profileId(p)}
         isLoading={profilesQuery.isLoading}
         title={t("profilesTitle")}
-        searchableKeys={["profile_name"]}
         emptyTitle={t("noProfilesFound")}
         emptyDescription={t("adjustSearchOrFilter")}
-        fetchMore={async (page, limit) => {
-          const mapped = mapProfileListResponse(await profilesApi.list({ page, limit, filter: activeTab, sort_by: sortBy }));
-          return { rows: mapped.profiles, totalPages: mapped.pagination.totalPages };
-        }}
         serverPagination={
               {
                 page: profilesQuery.pagination?.currentPage ?? page,

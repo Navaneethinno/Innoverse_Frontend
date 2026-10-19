@@ -283,7 +283,6 @@ export function InstitutionModule() {
         rowKey={(row) => row.id}
         isLoading={query.isLoading}
         title={tr("Institution Module")}
-        searchableKeys={["module_name", "inst_profile_name"]}
         emptyTitle={tr("No institution modules found")}
         emptyDescription={tr("Module assignments will appear here when available.")}
       bare /></div><Modal

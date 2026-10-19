@@ -463,7 +463,6 @@ export function PasswordPolicy() {
         isLoading={query.isLoading}
         rowKey={(row) => idOf(row)}
         title="Password Policy"
-        searchableKeys={["policy_name", "description", "status_name", "auth_status"]}
         emptyTitle="No password policies found"
         serverPagination={{
           page,
@@ -475,13 +474,6 @@ export function PasswordPolicy() {
             setLimit(next);
             setPage(1);
           },
-        }}
-        fetchMore={async (nextPage, limit) => {
-          const result = await usersApi.passwordPolicyList({ page: nextPage, limit, filter: tab, sort_by: sortBy });
-          return {
-            rows: Array.isArray(result?.data) ? result.data : [],
-            totalPages: result?.pagination?.totalPages ?? 1,
-          };
         }}
       bare /></div>
 

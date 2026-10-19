@@ -10,7 +10,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import {
-  mapUserListResponse,
   useHasUserAction,
   useUserAuthMutation,
   useUserCreateMutation,
@@ -394,14 +393,7 @@ export function User() {
         rowKey={(u) => userId(u)}
         isLoading={usersQuery.isLoading}
         title={tr("Users")}
-        searchableKeys={["user_name", "email"]}
         emptyTitle={tr("No users found")}
-        fetchMore={async (page, limit) => {
-          const mapped = mapUserListResponse(
-            await usersApi.list({ page, limit, ...(searchTerm ? { search: searchTerm } : {}), status: 0, filter: params.filter, sort_by: params.sort_by }),
-          );
-          return { rows: mapped.users, totalPages: mapped.pagination.totalPages };
-        }}
         serverPagination={
           {
                 page: usersQuery.pagination?.currentPage ?? params.page,

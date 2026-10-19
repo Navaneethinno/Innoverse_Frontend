@@ -320,7 +320,6 @@ function AssignmentPage({ kind }) {
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr(kind.title)}
-        searchableKeys={[kind.nameKey, "inst_profile_name"]}
         emptyTitle={tr(kind.emptyTitle)}
         emptyDescription={tr(kind.emptyDescription)}
       bare /></div><Modal

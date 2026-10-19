@@ -393,7 +393,6 @@ export function InstitutionBranding() {
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr("Institution Branding")}
-        searchableKeys={["display_name", "inst_profile_name", "primary_color_light"]}
         emptyTitle={tr("No branding profiles found")}
         emptyDescription={tr("Branding profiles will appear here when available.")}
       bare /></div><Modal

@@ -289,7 +289,6 @@ export function InstitutionLegal() {
         rowKey={(r) => r.id}
         isLoading={query.isLoading}
         title={tr("Institution Legal")}
-        searchableKeys={["legal_name", "inst_profile_name", "registration_number"]}
         emptyTitle={tr("No legal profiles found")}
         emptyDescription={tr("Legal profiles will appear here when available.")}
       bare /></div><Modal

@@ -13,7 +13,6 @@ import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { useSessionState } from "@/Hooks/useSessionState";
 import {
-  mapInstitutionListResponse,
   useHasInstitutionAction,
   useInstitutionAuthMutation,
   useInstitutionDeactivateMutation,
@@ -292,13 +291,8 @@ export function InstitutionProfile() {
         rowKey={(inst) => institutionId(inst)}
         isLoading={institutionsQuery.isLoading}
         title={t("institutions:listTitle")}
-        searchableKeys={["name", "code"]}
         emptyTitle={t("institutions:emptyTitle")}
         emptyDescription={t("institutions:emptyDescription")}
-        fetchMore={async (page, limit) => {
-          const mapped = mapInstitutionListResponse(await institutionsApi.list({ page, limit, filter: activeTab, sort_by: sortBy }));
-          return { rows: mapped.institutions, totalPages: mapped.pagination.totalPages };
-        }}
         serverPagination={
               {
                 page: institutionsQuery.pagination?.currentPage ?? page,
