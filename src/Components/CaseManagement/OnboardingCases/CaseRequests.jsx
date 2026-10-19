@@ -256,10 +256,10 @@ export function RequestDialog({ api, referenceId, busy, onClose, onSave }) {
               </label>
             </div>
             {it.kind === "FIELDS" && (
-              <KeyPicker label={t("fieldsToChange")} options={fieldOptions} value={it.fields} onChange={(fields) => update(i, { fields })} empty={t("loadingForm")} />
+              <KeyPicker label={t("fieldsToChange")} options={fieldOptions.filter((o) => !items.some((other, j) => j !== i && other.kind === "FIELDS" && other.fields.includes(o.value)))} value={it.fields} onChange={(fields) => update(i, { fields })} empty={t("loadingForm")} />
             )}
             {it.kind === "SECTION" && (
-              <KeyPicker label={t("sectionsToAnswer")} options={sectionOptions} value={it.sections} onChange={(s) => update(i, { sections: s })} empty={t("loadingForm")} />
+              <KeyPicker label={t("sectionsToAnswer")} options={sectionOptions.filter((o) => !items.some((other, j) => j !== i && other.kind === "SECTION" && other.sections.includes(o.value)))} value={it.sections} onChange={(s) => update(i, { sections: s })} empty={t("loadingForm")} />
             )}
             {it.kind === "DOCUMENT" && (
               <label className={`${labelClass} mt-3 block`}>

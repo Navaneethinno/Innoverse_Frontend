@@ -491,10 +491,13 @@ function ModuleForm({
                   onChange={(next) => setModuleRow(index, "module_id")({ target: { value: next } })}
                   options={[
                     { value: "", label: tr("Select module") },
-                    ...masterModules.map((item) => ({
-                      value: item.module_id ?? item.id,
-                      label: item.module_name ?? item.name,
-                    })),
+                    // A module picked on another row is not offered again.
+                    ...masterModules
+                      .filter((item) => !moduleRows.some((other, j) => j !== index && String(other.module_id) === String(item.module_id ?? item.id)))
+                      .map((item) => ({
+                        value: item.module_id ?? item.id,
+                        label: item.module_name ?? item.name,
+                      })),
                   ]}
                 />
               </label>
