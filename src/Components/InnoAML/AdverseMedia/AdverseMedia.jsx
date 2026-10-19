@@ -61,7 +61,7 @@ const pct = (v) => `${Math.round(Number(v ?? 0) * 100)}%`;
 
 // ------------------------------------------------------------ the stream --
 
-const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, icons: {}, score: { score: 0, level: "NONE" }, done: null };
+const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, icons: {}, profile: null, score: { score: 0, level: "NONE" }, done: null };
 const sameQuery = (a, b) => a.provider === b.provider && a.edition === b.edition && a.lang === b.lang && a.text === b.text;
 
 function liveReducer(state, { kind, data }) {
@@ -82,6 +82,8 @@ function liveReducer(state, { kind, data }) {
       return { ...state, stories: { ...state.stories, [data.id]: data } };
     case "score":
       return { ...state, score: data };
+    case "profile":
+      return { ...state, profile: data?.found ? data.profile : null };
     case "icon":
       return { ...state, icons: { ...state.icons, [data.domain]: data.icon } };
     case "done":
@@ -131,15 +133,61 @@ function ScoreGauge({ score = 0, level = "NONE", size = 132 }) {
   );
 }
 
-function SubjectCard({ subject }) {
+// A round picture: the photo, or the initials on a colour from the name.
+function Avatar({ name, photo, size = 56 }) {
+  const initials = String(name ?? "?").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const hue = [...String(name ?? "")].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 11);
+  if (photo) return <img src={photo} alt="" className="shrink-0 rounded-full object-cover ring-2 ring-card shadow" style={{ width: size, height: size }} />;
+  return (
+    <span className="inline-flex shrink-0 items-center justify-center rounded-full font-black text-white shadow" style={{ width: size, height: size, fontSize: size / 2.8, background: `hsl(${hue} 45% 45%)` }}>
+      {initials || "?"}
+    </span>
+  );
+}
+
+// An article's own picture, with its site's icon on the corner.
+function Thumb({ image, domain, className = "h-16 w-24" }) {
+  if (!image) return null;
+  return (
+    <span className={cn("relative shrink-0", className)}>
+      <img src={image} alt="" loading="lazy" className="h-full w-full rounded-lg object-cover" />
+      <span className="absolute -bottom-1 -right-1 rounded bg-card p-0.5 shadow">
+        <SiteIcon domain={domain} className="h-3.5 w-3.5" />
+      </span>
+    </span>
+  );
+}
+
+// The subject, with their public profile (Wikidata) when one entry fits.
+function SubjectCard({ subject, profile }) {
   const { t } = useTranslation("aml");
   if (!subject) return null;
   return (
-    <div className="min-w-0">
+    <div className="flex min-w-0 items-start gap-3">
+      <div className="grid justify-items-center gap-0.5">
+        <Avatar name={subject.name} photo={profile?.photo} />
+        {profile?.photo && profile.photo_source && (
+          <a href={profile.photo_source} target="_blank" rel="noreferrer" className="text-[9px] text-muted-foreground hover:underline">
+            {t("mediaPhotoCredit")}
+          </a>
+        )}
+      </div>
+      <div className="min-w-0">
       <p className="truncate text-lg font-black text-foreground">{subject.name}</p>
+      {profile?.description && <p className="text-xs font-semibold text-slate-600">{profile.description}</p>}
       <p className="text-xs text-muted-foreground">
         {[t(`entity_${subject.entity_type ?? "PERSON"}`), subject.birth_date && t("mediaBorn", { date: subject.birth_date })].filter(Boolean).join(" · ")}
       </p>
+      {profile && (
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+          {profile.wikipedia_url && (
+            <a href={profile.wikipedia_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-bold text-primary hover:underline">
+              Wikipedia <ExternalLink size={10} />
+            </a>
+          )}
+          <span>{t("mediaMatchedOn", { on: (profile.matched_on ?? []).map((m) => t(`mediaMatched_${m}`, { defaultValue: m })).join(", ") })}</span>
+        </p>
+      )}
       {subject.countries?.length > 0 && (
         <p className="mt-1 flex flex-wrap gap-1.5 text-xs">
           {subject.countries.map((c) => (
@@ -149,6 +197,7 @@ function SubjectCard({ subject }) {
           ))}
         </p>
       )}
+      </div>
     </div>
   );
 }
@@ -256,7 +305,9 @@ function LiveCard({ card }) {
   }
   const adverse = card.verdict === "ADVERSE";
   return (
-    <li style={{ animation: "amSlide 400ms ease-out" }} className={cn("rounded-xl border p-2.5 transition-colors", adverse ? (card.score >= 50 ? "border-red-200 bg-red-50/60" : "border-amber-200 bg-amber-50/60") : "border-border bg-card")}>
+    <li style={{ animation: "amSlide 400ms ease-out" }} className={cn("flex gap-2.5 rounded-xl border p-2.5 transition-colors", adverse ? (card.score >= 50 ? "border-red-200 bg-red-50/60" : "border-amber-200 bg-amber-50/60") : "border-border bg-card")}>
+      <Thumb image={card.image} domain={card.domain} />
+      <div className="min-w-0 flex-1">
       <div className="flex items-start justify-between gap-2">
         <Source a={card} />
         {adverse && <b className="text-xs tabular-nums text-red-700">{card.score}</b>}
@@ -268,15 +319,17 @@ function LiveCard({ card }) {
           {card.evidence?.[0] && <Highlighted text={card.evidence[0].text} highlights={card.evidence[0].highlights} />}
         </div>
       )}
+      </div>
     </li>
   );
 }
 
-function StoryHeader({ story }) {
+function StoryHeader({ story, image }) {
   const { t } = useTranslation("aml");
   return (
     <div className="flex flex-wrap items-start justify-between gap-2">
-      <div className="min-w-0">
+      <Thumb image={image} domain={story.best_source} className="h-14 w-20" />
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-bold">{story.headline}</p>
         <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span className="flex -space-x-1">
@@ -398,7 +451,7 @@ function LiveView({ subject, live, error }) {
       <style>{LIVE_CSS}</style>
       <div className="grid min-w-0 gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <SubjectCard subject={subject} />
+          <SubjectCard subject={subject} profile={live.profile} />
           <PhaseRail phase={live.phase} />
         </div>
         <div className="grid min-w-0 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -435,7 +488,7 @@ function LiveView({ subject, live, error }) {
                 <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaStoriesForming")}</p>
                 {stories.map((st) => (
                   <div key={st.id} className="rounded-xl border border-border bg-card px-3 py-2" style={{ animation: "amSlide 400ms ease-out" }}>
-                    <StoryHeader story={st} />
+                    <StoryHeader story={st} image={(st.articles ?? []).map((no) => live.cards[no]?.image).find(Boolean)} />
                   </div>
                 ))}
               </div>
@@ -471,6 +524,7 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
     <li className={cn("rounded-xl border p-3", a.verdict === "NOT_SUBJECT" ? "border-dashed opacity-70" : adverse ? "border-red-200" : "border-border")}>
       <div className="flex items-start gap-2">
         {selectable && <input type="checkbox" checked={selected} onChange={onSelect} aria-label={t("mediaSelectArticle")} className="mt-1 accent-[var(--primary)]" />}
+        <Thumb image={a.image} domain={a.domain} className="hidden h-20 w-28 sm:block" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Source a={a} />
@@ -660,7 +714,7 @@ function ResultView({ search, onChange }) {
     <IconsContext.Provider value={search.icons ?? {}}>
     <div className="grid min-w-0 gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <SubjectCard subject={search.subject} />
+        <SubjectCard subject={search.subject} profile={search.profile} />
         <div className="flex items-center gap-4">
           {search.effective_score != null && search.effective_score !== search.score && <p className="max-w-[12rem] text-[11px] text-muted-foreground">{t("mediaFoundBefore", { score: search.score, level: t(`mediaLevel_${search.level}`, { defaultValue: search.level }) })}</p>}
           <ScoreGauge score={score} level={level} />
@@ -710,7 +764,7 @@ function ResultView({ search, onChange }) {
       <div className="grid gap-3">
         {stories.map((s) => (
           <section key={s.id} className="rounded-2xl border border-border p-3">
-            <StoryHeader story={s} />
+            <StoryHeader story={s} image={(s.articles ?? []).map((no) => byNo[no]?.image).find(Boolean)} />
             <ul className="mt-2 grid gap-2">{(s.articles ?? []).map((no) => byNo[no]).filter(Boolean).map(card)}</ul>
           </section>
         ))}
@@ -885,7 +939,17 @@ export function AdverseMediaLookup() {
 
   const columns = [
     { key: "started_at", label: t("aml:mediaStarted"), render: (r) => <span className="whitespace-nowrap text-xs">{formatDateTime(r.started_at)}</span> },
-    { key: "name", label: t("aml:name"), align: "left", render: (r) => <span className="font-semibold">{[r.name, r.reason].filter(Boolean).join(" · ")}</span> },
+    {
+      key: "name",
+      label: t("aml:name"),
+      align: "left",
+      render: (r) => (
+        <span className="flex items-center gap-2">
+          <Avatar name={r.name} photo={r.photo} size={28} />
+          <span className="font-semibold">{[r.name, r.reason].filter(Boolean).join(" · ")}</span>
+        </span>
+      ),
+    },
     { key: "level", label: t("aml:result"), render: (r) => <LevelPill row={r} /> },
     { key: "adverse", label: t("aml:mediaFunnel_adverse"), render: (r) => <span className="tabular-nums">{r.stats?.adverse ?? "—"}</span> },
     { key: "searched_by", label: t("aml:screenedBy"), render: (r) => r.searched_by ?? "—" },

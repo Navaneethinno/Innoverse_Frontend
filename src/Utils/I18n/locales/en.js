@@ -1882,6 +1882,11 @@ export const aml = {
   yourDecision: "Decision:",
   listsSearchedN_one: "{{count}} list searched",
   listsSearchedN_other: "{{count}} lists searched",
+  mediaPhotoCredit: "Photo: Wikimedia Commons",
+  mediaMatchedOn: "Profile matched on {{on}}",
+  mediaMatched_NAME: "name",
+  mediaMatched_BIRTH_YEAR: "birth year",
+  mediaMatched_COUNTRY: "country",
 };
 
 // Reports (handoff 08).
