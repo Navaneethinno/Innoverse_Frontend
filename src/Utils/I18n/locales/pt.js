@@ -1866,6 +1866,14 @@ export const aml = {
   mediaSignal_COUNTRY_OTHER: "Outro país",
   mediaSignal_ALSO_OTHER_PERSON: "Também outra pessoa",
   mediaSignal_OTHER_PERSON: "Outra pessoa",
+  mediaParty: "Notícias de quem",
+  mediaPartyCustomer: "O cliente",
+  tabMatches: "Correspondências",
+  tabNews: "Notícias",
+  mediaArticle: "Artigo",
+  mediaDecision: "Proposto",
+  mediaProposedBy: "Proposto por",
+  mediaNoPending: "Nenhuma revisão de artigo está pendente.",
 };
 
 // Reports (handoff 08).

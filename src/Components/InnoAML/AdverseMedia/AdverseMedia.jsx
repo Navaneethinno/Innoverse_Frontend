@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, ChevronDown, ExternalLink, Newspaper, Search, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -14,13 +14,14 @@ import { InstitutionField, inputClass, labelClass } from "@/Components/GlobalSet
 import { useCountries } from "@/Hooks/Master/masterHooks";
 import { useAuth } from "@/Hooks/useAuth";
 import { useListSearch } from "@/Hooks/useListSearch";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { amlMediaApi, amlMediaReviewApi } from "@/Services/InnoAML/aml.api";
+import { amlMediaApi, amlMediaReviewApi, amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { formatDay, formatDateTime } from "@/Utils/Lib/dateFormat";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { glassCard, useInstitutionScope } from "../Shared/amlShared";
+import { glassCard, partyLabel, useInstitutionScope } from "../Shared/amlShared";
 
 // AML > Adverse Media (handoff 20): news searched for a person or company on
 // demand, judged article by article. Not part of the AML score. Search and
@@ -42,12 +43,25 @@ const HIGHLIGHT = {
   ROLE: "rounded bg-muted px-0.5 text-muted-foreground",
 };
 const flag = (code) => (/^[A-Z]{2}$/.test(code ?? "") ? String.fromCodePoint(...[...code].map((c) => 0x1f1a5 + c.charCodeAt(0))) : "");
-const favicon = (domain) => `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain ?? "")}&sz=32`;
+// Each site's icon comes from the backend (`icon` events, `icons` on get)
+// as a data: URI; a site without one gets a letter avatar.
+const IconsContext = createContext({});
+function SiteIcon({ domain, className = "h-4 w-4" }) {
+  const icons = useContext(IconsContext);
+  const icon = icons[domain];
+  if (icon) return <img src={icon} alt="" title={domain} className={cn(className, "shrink-0 rounded")} />;
+  const hue = [...String(domain ?? "")].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+  return (
+    <span title={domain} className={cn(className, "inline-flex shrink-0 items-center justify-center rounded text-[9px] font-black uppercase text-white")} style={{ background: `hsl(${hue} 55% 45%)` }}>
+      {String(domain ?? "?").charAt(0)}
+    </span>
+  );
+}
 const pct = (v) => `${Math.round(Number(v ?? 0) * 100)}%`;
 
 // ------------------------------------------------------------ the stream --
 
-const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, score: { score: 0, level: "NONE" }, done: null };
+const startLive = { phase: "planning", queries: [], candidates: null, cards: {}, order: [], stories: {}, icons: {}, score: { score: 0, level: "NONE" }, done: null };
 const sameQuery = (a, b) => a.provider === b.provider && a.edition === b.edition && a.lang === b.lang && a.text === b.text;
 
 function liveReducer(state, { kind, data }) {
@@ -68,6 +82,8 @@ function liveReducer(state, { kind, data }) {
       return { ...state, stories: { ...state.stories, [data.id]: data } };
     case "score":
       return { ...state, score: data };
+    case "icon":
+      return { ...state, icons: { ...state.icons, [data.domain]: data.icon } };
     case "done":
       return { ...state, phase: "done", done: data };
     default:
@@ -221,7 +237,7 @@ function Badges({ a }) {
 function Source({ a }) {
   return (
     <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-      <img src={favicon(a.domain)} alt="" loading="lazy" className="h-4 w-4 shrink-0 rounded" />
+      <SiteIcon domain={a.domain} />
       <span className="truncate">{a.source || a.domain}</span>
       {(a.published_at || a.published) && <span className="shrink-0">· {formatDay(a.published_at || a.published)}</span>}
     </span>
@@ -265,7 +281,7 @@ function StoryHeader({ story }) {
         <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span className="flex -space-x-1">
             {(story.sources ?? []).slice(0, 5).map((d) => (
-              <img key={d} src={favicon(d)} alt="" title={d} loading="lazy" className="h-4 w-4 rounded-full ring-2 ring-card" />
+              <SiteIcon key={d} domain={d} className="h-4 w-4 ring-2 ring-card" />
             ))}
           </span>
           {t("mediaSources", { count: story.sources?.length ?? 0 })}
@@ -290,6 +306,7 @@ function LiveView({ subject, live, error }) {
   const inStory = new Set(stories.flatMap((s) => s.articles ?? []));
   const judged = Object.values(live.cards).filter((c) => !c.reading).length;
   return (
+    <IconsContext.Provider value={live.icons}>
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <SubjectCard subject={subject} />
@@ -314,6 +331,7 @@ function LiveView({ subject, live, error }) {
         {ruledOut > 0 && <p className="text-[11px] text-muted-foreground">{t("mediaRuledOutN", { count: ruledOut })}</p>}
       </div>
     </div>
+    </IconsContext.Provider>
   );
 }
 
@@ -428,7 +446,7 @@ function ResultView({ search, onChange }) {
     }
   };
   const propose = async () => {
-    if (await run(() => amlMediaReviewApi.propose({ search_id: search.id, decisions: picked.map((article_id) => ({ article_id, decision, ...(comment.trim() ? { comment: comment.trim() } : {}) })) }))) {
+    if (await run(() => amlMediaReviewApi.propose({ search_id: search.id, decisions: picked.map((article_id) => ({ article_id, decision, comment: comment.trim().slice(0, 2000) })) }))) {
       setPicked([]);
       setComment("");
     }
@@ -446,6 +464,7 @@ function ResultView({ search, onChange }) {
   );
 
   return (
+    <IconsContext.Provider value={search.icons ?? {}}>
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <SubjectCard subject={search.subject} />
@@ -495,8 +514,8 @@ function ResultView({ search, onChange }) {
         <div className="sticky top-0 z-10 flex flex-wrap items-end gap-2 rounded-xl border border-primary/30 bg-card p-2.5 shadow">
           <span className="text-xs font-bold">{t("mediaPickedN", { count: picked.length })}</span>
           <FilterSelect className="w-44" size="sm" value={decision} onChange={setDecision} options={["NOT_RELEVANT", "RELEVANT"].map((d) => ({ value: d, label: t(`mediaReview_${d}`) }))} />
-          <input className="min-w-[12rem] flex-1 rounded-lg border border-border px-2.5 py-1.5 text-xs" placeholder={t("mediaComment")} value={comment} onChange={(e) => setComment(e.target.value)} />
-          <Button size="sm" loading={busy} onClick={() => void propose()}>
+          <input className="min-w-[12rem] flex-1 rounded-lg border border-border px-2.5 py-1.5 text-xs" placeholder={t("mediaComment")} maxLength={2000} value={comment} onChange={(e) => setComment(e.target.value)} />
+          <Button size="sm" loading={busy} disabled={!comment.trim()} onClick={() => void propose()}>
             {t("mediaPropose")}
           </Button>
         </div>
@@ -534,6 +553,7 @@ function ResultView({ search, onChange }) {
         />
       )}
     </div>
+    </IconsContext.Provider>
   );
 }
 
@@ -555,6 +575,8 @@ export function MediaSearchView({ searchId, initial }) {
     if (!initial) void load();
   }, [initial, load]);
   const running = search && !["DONE", "ERROR"].includes(search.status);
+  // A review decided elsewhere changes the effective score.
+  useLiveChannel(amlMediaApi.listPath, (action, records) => !running && action === "review" && records?.some((r) => r.id === searchId) && void load(), { enabled: Boolean(search) });
   const { live, error } = useLiveSearch(running ? searchId : null, load);
   if (loading) {
     return (
@@ -616,6 +638,12 @@ export function AdverseMediaLookup() {
   useEffect(() => {
     void load();
   }, [load]);
+  // start / done / review pushes carry the row as list returns it.
+  useLiveChannel(amlMediaApi.listPath, (_action, records) => {
+    const fresh = Object.fromEntries((records ?? []).map((r) => [r.id, r]));
+    if (records?.length && rows.some((r) => fresh[r.id]) && records.every((r) => rows.some((x) => x.id === r.id))) setRows((list) => list.map((r) => fresh[r.id] ?? r));
+    else void load();
+  });
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const start = async (event) => {
@@ -741,24 +769,37 @@ export function AdverseMediaLookup() {
 
 // --------------------------------------------------- a customer's media --
 
-// The customer's latest search (from their latest AML screening's details),
-// with a new search on demand.
+// A customer's news: the customer itself, or any party screened with it
+// (directors, owners: `party_key` from the latest screening), each with its
+// latest search and a new search on demand.
 export function AdverseMediaCustomer({ customerKind, referenceId }) {
   const { t } = useTranslation("aml");
   const can = useMenuPermission("Name Lookup");
+  const [parties, setParties] = useState([]);
+  const [party, setParty] = useState("");
   const [latest, setLatest] = useState(undefined);
   const [starting, setStarting] = useState(false);
   useEffect(() => {
+    amlScreeningApi
+      .customer({ customer_kind: customerKind, reference_id: referenceId })
+      .then((r) => setParties((rowsOf(r)[0]?.screenings ?? []).filter((s) => s.party_key && s.party_key !== "CUSTOMER")))
+      .catch(() => setParties([]));
+  }, [customerKind, referenceId]);
+  const loadLatest = useCallback(() => {
     amlMediaApi
-      .list({ customer_kind: customerKind, reference_id: referenceId, page: 1, limit: 1 })
+      .list({ customer_kind: customerKind, reference_id: referenceId, ...(party ? { party_key: party } : {}), page: 1, limit: 1 })
       .then((r) => setLatest(rowsOf(r)[0] ?? null))
       .catch(() => setLatest(null));
-  }, [customerKind, referenceId]);
+  }, [customerKind, referenceId, party]);
+  useEffect(() => {
+    setLatest(undefined);
+    loadLatest();
+  }, [loadLatest]);
 
   const start = async () => {
     setStarting(true);
     try {
-      const started = rowsOf(await amlMediaApi.search({ customer_kind: customerKind, reference_id: referenceId }))[0];
+      const started = rowsOf(await amlMediaApi.search({ customer_kind: customerKind, reference_id: referenceId, ...(party ? { party_key: party } : {}) }))[0];
       if (started?.search_id) setLatest({ id: started.search_id, status: started.status, subject: started.subject, fresh: true });
     } catch (e) {
       notifications.error(e.message);
@@ -769,8 +810,14 @@ export function AdverseMediaCustomer({ customerKind, referenceId }) {
 
   return (
     <div className="grid gap-3">
+      {parties.length > 0 && (
+        <label className={`${labelClass} max-w-md`}>
+          {t("mediaParty")}
+          <FilterSelect className="mt-1.5" value={party} onChange={setParty} options={[{ value: "", label: t("mediaPartyCustomer") }, ...parties.map((p) => ({ value: p.party_key, label: partyLabel(p) }))]} />
+        </label>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">{latest ? t("mediaLatest", { date: formatDateTime(latest.started_at) || "…" }) : latest === null ? t("mediaNoneYet") : ""}</p>
+        <p className="text-xs text-muted-foreground">{latest ? (latest.started_at ? t("mediaLatest", { date: formatDateTime(latest.started_at) }) : "") : latest === null ? t("mediaNoneYet") : ""}</p>
         {can("Add") && (
           <Button size="sm" icon={Search} loading={starting} onClick={() => void start()}>
             {t("mediaSearchAgain")}
@@ -785,5 +832,140 @@ export function AdverseMediaCustomer({ customerKind, referenceId }) {
         latest && <MediaSearchView key={latest.id} searchId={latest.id} initial={latest.fresh ? latest : undefined} />
       )}
     </div>
+  );
+}
+
+// The latest news result beside the AML result on customer screens
+// (`adverse_media` on the customer replies: the worst party's latest).
+export function AdverseMediaBadge({ media }) {
+  const { t } = useTranslation("aml");
+  const [open, setOpen] = useState(false);
+  if (!media) return null;
+  const running = media.status === "RUNNING";
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="inline-flex items-center gap-1.5 text-[11px] font-bold">
+        <Newspaper size={13} className="text-muted-foreground" /> {t("mediaTitle")}
+        {running ? <Spinner size={12} /> : <LevelPill row={media} />}
+      </button>
+      {open && (
+        <Modal open onClose={() => setOpen(false)} size="xl" title={t("mediaTitle")}>
+          <MediaSearchView searchId={media.search_id} />
+        </Modal>
+      )}
+    </>
+  );
+}
+
+// ------------------------------------------- Match Review > News view ----
+
+// Article reviews waiting for a checker, across every search the user can
+// see; each opens its search to read the article in full.
+export function MediaReviews() {
+  const { t } = useTranslation(["aml", "common"]);
+  const [rows, setRows] = useState([]);
+  const [pagination, setPagination] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [openId, setOpenId] = useState(null);
+  const [dialog, setDialog] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const response = await amlMediaReviewApi.pending({ page, limit });
+      setRows(rowsOf(response));
+      setPagination(response?.pagination ?? {});
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  useLiveChannel(amlMediaReviewApi.listPath, () => void load());
+
+  const decide = async (narration) => {
+    setBusy(true);
+    try {
+      const response = await amlMediaReviewApi[dialog.verb]({ id: dialog.row.id, ...(narration ? { narration } : {}) });
+      notifications.success(apiMessage(response, t("aml:done")));
+      setDialog(null);
+      void load();
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const columns = [
+    { key: "proposed_at", label: t("aml:proposedAt"), render: (r) => <span className="whitespace-nowrap text-xs">{formatDateTime(r.proposed_at)}</span> },
+    { key: "name", label: t("aml:name"), align: "left", render: (r) => <span className="font-semibold">{r.name}</span> },
+    {
+      key: "title",
+      label: t("aml:mediaArticle"),
+      align: "left",
+      render: (r) => (
+        <a href={r.url} target="_blank" rel="noreferrer" className="block max-w-sm hover:text-primary">
+          <span className="line-clamp-2 text-xs font-semibold">{r.title}</span>
+          <span className="text-[11px] text-muted-foreground">
+            {r.domain} · <Badges a={r} />
+          </span>
+        </a>
+      ),
+    },
+    {
+      key: "decision",
+      label: t("aml:mediaDecision"),
+      render: (r) => (
+        <span className="grid gap-0.5">
+          <span className={cn("w-fit rounded-full px-2 py-0.5 text-[10px] font-bold", REVIEW_TONE[r.decision])}>{t(`aml:mediaReview_${r.decision}`, { defaultValue: r.decision })}</span>
+          {r.comment && <span className="max-w-xs text-[11px] italic text-muted-foreground">“{r.comment}”</span>}
+        </span>
+      ),
+    },
+    { key: "proposed_by", label: t("aml:mediaProposedBy"), render: (r) => r.proposed_by ?? "—" },
+    {
+      key: "actions",
+      label: t("common:actions"),
+      sortable: false,
+      render: (r) => <RowActions buttons={{ view: true, authorize: true, deauthorize: true }} onView={() => setOpenId(r.search_id)} onAuthorize={() => setDialog({ verb: "auth", row: r })} onDeauthorize={() => setDialog({ verb: "deauth", row: r })} />,
+    },
+  ];
+
+  return (
+    <>
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        isLoading={loading}
+        title={t("aml:tabNews")}
+        emptyTitle={t("aml:mediaNoPending")}
+        serverSorted
+        serverPagination={{ page, totalPages: pagination.totalPages ?? 1, totalRecords: pagination.totalRecords ?? rows.length, onPageChange: setPage, limit, onLimitChange: (n) => (setLimit(n), setPage(1)) }}
+      />
+      {dialog && (
+        <NarrationDialog
+          title={t(dialog.verb === "auth" ? "aml:mediaApproveTitle" : "aml:mediaRejectTitle")}
+          hint={dialog.row.title}
+          confirmLabel={t(dialog.verb === "auth" ? "aml:approve" : "aml:reject")}
+          variant={dialog.verb === "auth" ? "primary" : "danger"}
+          required={dialog.verb === "deauth"}
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={(narration) => void decide(narration)}
+        />
+      )}
+      {openId && (
+        <Modal open onClose={() => (setOpenId(null), void load())} size="xl" title={t("aml:mediaTitle")}>
+          <MediaSearchView searchId={openId} />
+        </Modal>
+      )}
+    </>
   );
 }

@@ -455,7 +455,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         <OwnerDeposits owner={owner} />
         <OwnerLimitUsage owner={owner} />
         <CustomerRiskPanel kind={kind} instProfileId={wizard.onboarding?.inst_profile_id} risk={wizard.risk} saved={wizard.risk_saved} />
-        <CustomerAmlBadge aml={wizard.aml} customerKind={corporate ? "CORPORATE" : "INDIVIDUAL"} referenceId={wizard.onboarding?.reference_id} />
+        <CustomerAmlBadge aml={wizard.aml} adverseMedia={wizard.adverse_media} customerKind={corporate ? "CORPORATE" : "INDIVIDUAL"} referenceId={wizard.onboarding?.reference_id} />
         <HorizontalStepper
           className="mb-4"
           steps={sections.map((s) => ({ id: s.key, label: s.heading ?? s.key }))}

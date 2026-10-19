@@ -1852,6 +1852,14 @@ export const aml = {
   mediaSignal_COUNTRY_OTHER: "Other country",
   mediaSignal_ALSO_OTHER_PERSON: "Also another person",
   mediaSignal_OTHER_PERSON: "Another person",
+  mediaParty: "Whose news",
+  mediaPartyCustomer: "The customer",
+  tabMatches: "Matches",
+  tabNews: "News",
+  mediaArticle: "Article",
+  mediaDecision: "Proposed",
+  mediaProposedBy: "Proposed by",
+  mediaNoPending: "No article reviews are waiting.",
 };
 
 // Reports (handoff 08).

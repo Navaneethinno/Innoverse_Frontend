@@ -111,7 +111,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} renderValue={showFile} />}
         {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="corporate" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
-        {["auth", "deauth"].includes(action?.method) && <CustomerAmlBadge className="mt-3" aml={pendingInfo.data?.aml} customerKind="CORPORATE" referenceId={row.reference_id} />}
+        {["auth", "deauth"].includes(action?.method) && <CustomerAmlBadge className="mt-3" aml={pendingInfo.data?.aml} adverseMedia={pendingInfo.data?.adverse_media} customerKind="CORPORATE" referenceId={row.reference_id} />}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}

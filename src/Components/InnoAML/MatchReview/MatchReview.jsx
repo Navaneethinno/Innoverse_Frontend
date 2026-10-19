@@ -14,6 +14,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { AlsoOnChips, ReviewStateBadge, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
+import { MediaReviews } from "../AdverseMedia/AdverseMedia";
 
 const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
 const DECISIONS = ["FALSE_POSITIVE", "TRUE_MATCH"];
@@ -57,8 +58,8 @@ export function MatchReview() {
     [searchBody, latestList, view, page, limit, filterKey],
   );
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (view !== "news") void load();
+  }, [load, view]);
   useLiveChannel(amlReviewApi.listPath, () => void load({ silent: true }));
 
   const decide = async () => {
@@ -157,10 +158,15 @@ export function MatchReview() {
         options={[
           { value: "pending", label: t("aml:waitingForApproval") },
           { value: "all", label: t("aml:allReviews") },
+          // Adverse Media article reviews.
+          { value: "news", label: t("aml:tabNews") },
         ]}
         value={view}
         onChange={switchView}
       />
+      {view === "news" ? (
+        <MediaReviews />
+      ) : (
       <ListPanel
         tabs={[]}
         {...searchBind}
@@ -200,6 +206,7 @@ export function MatchReview() {
           bare
         />
       </ListPanel>
+      )}
 
       <ConfirmDialog
         open={Boolean(action)}

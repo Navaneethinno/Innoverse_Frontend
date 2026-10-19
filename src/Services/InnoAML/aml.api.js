@@ -62,6 +62,7 @@ export const amlReviewApi = {
 // again from the last event on `continue` or a dropped connection, until
 // `done`. Search and view use Name Lookup's permission.
 export const amlMediaApi = {
+  listPath: `${MEDIA}/list`,
   search: call(MEDIA, "search"),
   get: call(MEDIA, "get"),
   list: call(MEDIA, "list"),
@@ -93,6 +94,7 @@ export const amlMediaApi = {
 
 // Article reviews (RELEVANT / NOT_RELEVANT), maker-checker on Match Review.
 export const amlMediaReviewApi = {
+  listPath: `${MEDIA_REVIEW}/list`,
   propose: call(MEDIA_REVIEW, "propose"),
   auth: call(MEDIA_REVIEW, "auth"),
   deauth: call(MEDIA_REVIEW, "deauth"),

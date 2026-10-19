@@ -9,7 +9,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, EffectiveResult, partyLabel, when } from "./amlShared";
 import { ScreeningDetailModal } from "./ScreeningDetail";
-import { AdverseMediaCustomer } from "../AdverseMedia/AdverseMedia";
+import { AdverseMediaBadge, AdverseMediaCustomer } from "../AdverseMedia/AdverseMedia";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
@@ -118,18 +118,19 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
 // The AML result on the existing customer screens (wizard and the checker's
 // dialog), next to risk but never combined with it. Absent until the
 // customer's first submit.
-export function CustomerAmlBadge({ aml, customerKind, referenceId, className = "mb-4" }) {
+export function CustomerAmlBadge({ aml, adverseMedia, customerKind, referenceId, className = "mb-4" }) {
   const { t } = useTranslation("aml");
   const canView = useMenuPermission("Screenings")("View");
   const [open, setOpen] = useState(false);
-  if (!aml) return null;
+  if (!aml && !adverseMedia) return null;
   return (
     <div className={`flex flex-wrap items-center gap-2 rounded-xl border p-3 ${className}`}>
       <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
         <ShieldAlert size={14} className="text-muted-foreground" /> {t("amlResult")}
       </span>
-      {aml.status === "ERROR" ? <span className="text-[11px] font-semibold text-destructive">{t("screeningFailed")}</span> : <BandBadge band={aml.band} score={aml.score} showAction />}
-      <span className="text-[11px] text-muted-foreground">{t("partiesMatched", { matched: aml.matched_parties ?? 0, parties: aml.parties ?? 0 })}</span>
+      {aml && (aml.status === "ERROR" ? <span className="text-[11px] font-semibold text-destructive">{t("screeningFailed")}</span> : <BandBadge band={aml.band} score={aml.score} showAction />)}
+      {aml && <span className="text-[11px] text-muted-foreground">{t("partiesMatched", { matched: aml.matched_parties ?? 0, parties: aml.parties ?? 0 })}</span>}
+      <AdverseMediaBadge media={adverseMedia} />
       {canView && referenceId && (
         <button type="button" onClick={() => setOpen(true)} className="ml-auto text-[11px] font-bold text-primary">
           {t("viewScreenings")}
