@@ -1,15 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "innoverse-color-mode";
+// New key: the old one saved the system theme on every visit, so everyone
+// now starts in light mode until they pick dark themselves.
+const STORAGE_KEY = "innoverse-color-mode-v2";
 
 const ColorModeContext = createContext(null);
 
 function getInitialMode() {
   if (typeof window === "undefined") return "light";
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "light" || stored === "dark") return stored;
-  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-  return prefersDark ? "dark" : "light";
+  return stored === "dark" ? "dark" : "light";
 }
 
 export function ColorModeProvider({ children }) {
