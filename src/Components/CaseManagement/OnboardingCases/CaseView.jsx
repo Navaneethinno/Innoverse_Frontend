@@ -24,6 +24,10 @@ const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "ac
 // instead of onboarding requests.
 const AML_TABS = ["overview", "conversation", "risk", "aml", "timeline", "account"];
 
+// Who closed a case: the staff user, or the customer (withdrawn) or the
+// system (the onboarding decision).
+const closedBy = (t, kase) => kase.closed_by_user?.name ?? (kase.closed_by ? t(`closedBy_${kase.closed_by}`, { defaultValue: kase.closed_by }) : "");
+
 // The staff onboarding calls for the case's subject (customer or merchant,
 // individual or corporate).
 const subjectApi = (subject) =>
@@ -196,7 +200,7 @@ export function CaseView({ id, config, onBack }) {
       {(dialog === "approve" || dialog === "reject") && (
         <ProposeDialog outcome={dialog === "approve" ? "APPROVE" : "REJECT"} openMatches={kase.aml_open_matches} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("propose", body)} />
       )}
-      {dialog === "decide" && <DecideDialog proposal={kase.proposal} noteToReturn={aml} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("decide", body)} canConfirm={allowed.confirm} canReturn={allowed.return} />}
+      {dialog === "decide" && <DecideDialog proposal={kase.proposal} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("decide", body)} canConfirm={allowed.confirm} canReturn={allowed.return} />}
       {dialog === "message" && <NoteDialog title={t("action_message")} hint={t("messageHint")} label={t("messageToCustomer")} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("message", { body })} />}
       {dialog === "close" && <CloseCaseDialog busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("close", body)} />}
       {dialog === "amlPropose" && (
@@ -307,7 +311,7 @@ function OverviewTab({ kase }) {
           {kase.closed_at ? (
             <>
               <p>{caseDate(kase.closed_at)}</p>
-              <p className="text-xs text-muted-foreground">{kase.closed_by?.name ?? ""}{kase.released ? ` · ${t("contactReleased")}` : ""}</p>
+              <p className="text-xs text-muted-foreground">{closedBy(t, kase)}{kase.released ? ` · ${t("contactReleased")}` : ""}</p>
             </>
           ) : (
             "—"
@@ -470,7 +474,7 @@ function AmlOverviewTab({ kase }) {
       )}
       <Tile label={t("lastStaff")}>{kase.last_staff_at ? caseDate(kase.last_staff_at) : "—"}</Tile>
       <Tile label={t("lastCustomer")}>{kase.last_customer_at ? caseDate(kase.last_customer_at) : "—"}</Tile>
-      <Tile label={t("closed")}>{kase.closed_at ? `${caseDate(kase.closed_at)} · ${kase.closed_by?.name ?? kase.closed_by ?? ""}` : "—"}</Tile>
+      <Tile label={t("closed")}>{kase.closed_at ? `${caseDate(kase.closed_at)} · ${closedBy(t, kase)}` : "—"}</Tile>
     </div>
   );
 }

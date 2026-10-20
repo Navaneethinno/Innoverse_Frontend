@@ -2138,7 +2138,6 @@ export const aml = {
   allKinds: "Todos os tipos de cliente",
   blacklistAny: "Lista negra: qualquer",
   blacklistYes: "Na lista negra",
-  blacklistNo: "Fora da lista negra",
   noOpenFlags: "Sem alertas abertos",
   noFlags: "Sem alertas",
   dismissFlag: "Dispensar",
@@ -3021,6 +3020,9 @@ export const cases = {
   messageEvent_CASE_MESSAGE: "Mensagem ao cliente",
   messageEvent_CASE_CLOSED: "Caso fechado",
   messageEvent_CASE_REMINDER: "Lembrete (sem resposta há 3 dias)",
+  anyCategory: "Qualquer categoria",
+  closedBy_CUSTOMER: "o cliente (retirado)",
+  closedBy_SYSTEM: "o sistema",
 };
 
 export const accounts = {

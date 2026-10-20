@@ -148,4 +148,6 @@ export const amlFlagApi = {
   listPath: `${FLAG}/list`,
   list: call(FLAG, "list"),
   dismiss: call(FLAG, "dismiss"),
+  // { open, open_customers }: the menu's badge.
+  count: call(FLAG, "count"),
 };

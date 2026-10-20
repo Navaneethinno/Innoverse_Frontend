@@ -58,7 +58,7 @@ export function Flags() {
           state,
           ...(term ? { search: term } : {}),
           ...(filters.customer_kind ? { customer_kind: filters.customer_kind } : {}),
-          ...(filters.blacklisted ? { blacklisted: filters.blacklisted === "YES" } : {}),
+          ...(filters.blacklisted ? { blacklisted: true } : {}),
         };
         const row = rowsOf(await latest(amlFlagApi.list(body)))[0] ?? {};
         setData({ flags: row.flags ?? [], total: row.total ?? 0, open: row.open ?? 0 });
@@ -195,7 +195,6 @@ export function Flags() {
               options={[
                 { value: "", label: t("aml:blacklistAny") },
                 { value: "YES", label: t("aml:blacklistYes") },
-                { value: "NO", label: t("aml:blacklistNo") },
               ]}
             />
           </>

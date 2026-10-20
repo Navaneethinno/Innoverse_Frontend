@@ -15,6 +15,7 @@ import { getModuleIcon } from "./moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
+import { MenuBadgeContext, useMenuBadges } from "./menuBadges";
 import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "./menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
@@ -55,6 +56,7 @@ export function DynamicSidebar() {
   };
 
   const menuArray = useSelector((store) => store.menu.menuArray);
+  const badges = useMenuBadges(menuArray);
   const { masterModules } = useMasterModules();
 
   // The selected module is tracked by id, sourced from the user's own
@@ -217,6 +219,7 @@ export function DynamicSidebar() {
 
   // Everyone who asked their system for less motion gets plain swaps.
   return (
+    <MenuBadgeContext.Provider value={badges}>
     <MotionConfig reducedMotion="user">
       {/* Backdrop — mobile only, only while the drawer is open. Click
           anywhere on it to close, same as tapping outside any other
@@ -413,6 +416,7 @@ export function DynamicSidebar() {
       </div>
       </motion.aside>
     </MotionConfig>
+    </MenuBadgeContext.Provider>
   );
 }
 

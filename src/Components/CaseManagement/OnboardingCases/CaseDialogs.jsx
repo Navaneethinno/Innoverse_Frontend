@@ -127,8 +127,8 @@ export function ProposeDialog({ outcome, openMatches, busy, onClose, onSave }) {
 }
 
 // The checker's view of a proposal: Confirm or Return, with a note.
-// `noteToReturn`: returning needs a note (AML cases).
-export function DecideDialog({ proposal, canConfirm, canReturn, noteToReturn = false, busy, onClose, onSave }) {
+// Returning a proposal needs a note (every case type).
+export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
   const [note, setNote] = useState("");
   const approve = isApproval(proposal?.outcome) || proposal?.outcome === "CLEARED" || proposal?.outcome === "NO_ACTION";
@@ -141,7 +141,7 @@ export function DecideDialog({ proposal, canConfirm, canReturn, noteToReturn = f
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          {canReturn && <Button variant="secondary" loading={busy} disabled={noteToReturn && !note.trim()} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
+          {canReturn && <Button variant="secondary" loading={busy} disabled={!note.trim()} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
           {canConfirm && (
             <Button variant={approve ? "primary" : "danger"} loading={busy} onClick={() => onSave({ confirm: true, note: note.trim() })}>
               {amlOutcome ? t("confirmOutcome", { outcome: outcomeWord(t, proposal.outcome) }) : t(approve ? "confirmApprove" : "confirmReject")}

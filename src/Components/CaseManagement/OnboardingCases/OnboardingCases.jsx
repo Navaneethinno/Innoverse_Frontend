@@ -31,7 +31,7 @@ const TABS = [
   { key: "CLOSED", icon: CheckCircle2, body: { status: "CLOSED" } },
 ];
 const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_RISK_ACTION", "NO_AML_SCREENING", "NO_AML_SETUP", "NO_AML_ACTION", "AML_ERROR", "BLACKLISTED", "MANUAL_POLICY", "PRODUCT_NOT_ELIGIBLE"];
-const EMPTY = { priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "" };
+const EMPTY = { priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "", category: "" };
 
 // What differs between the case queues (Onboarding Cases, AML Cases).
 export const ONBOARDING_QUEUE = {
@@ -49,7 +49,8 @@ export const AML_QUEUE = {
   kind: "aml",
   api: amlCasesApi,
   tabs: [...TABS.slice(0, 5), { key: "CUSTOMER_REPLIED", icon: MessageCircleReply, body: { status: "CUSTOMER_REPLIED" } }, ...TABS.slice(5)],
-  reasons: [],
+  // Where the case came from: a flag, a screening, or raised by hand.
+  reasons: ["FLAG", "SCREENING", "MANUAL"],
   outcomes: ["CLEARED", "CONFIRMED", "NO_ACTION"],
   titleKey: "amlTitle",
   subtitleKey: "amlSubtitle",
@@ -61,6 +62,8 @@ export const SUPPORT_QUEUE = {
   ...AML_QUEUE,
   kind: "support",
   api: supportCasesApi,
+  reasons: [],
+  categories: ["ACCOUNT", "TRANSACTION", "CARD", "COMPLAINT", "OTHER"],
   outcomes: ["RESOLVED", "WITHDRAWN"],
   titleKey: "supportTitle",
   subtitleKey: "supportSubtitle",
@@ -239,6 +242,7 @@ export function CaseQueue({ config }) {
           <>
             <FilterSelect value={filters.priority} onChange={setFilter("priority")} options={[{ value: "", label: t("anyPriority") }, { value: "HIGH", label: t("high") }, { value: "NORMAL", label: t("normal") }, ...(aml ? [{ value: "LOW", label: t("low") }] : [])]} />
             {REASONS.length > 0 && <FilterSelect value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("anyReason") }, ...REASONS.map((r) => ({ value: r, label: t(`reason_${r}`) }))]} />}
+            {config.categories && <FilterSelect value={filters.category} onChange={setFilter("category")} options={[{ value: "", label: t("anyCategory") }, ...config.categories.map((c) => ({ value: c, label: t(`category_${c}`) }))]} />}
             <FilterSelect value={filters.party} onChange={setFilter("party")} options={[{ value: "", label: t("anyParty") }, { value: "CUSTOMER", label: t("customer") }, { value: "MERCHANT", label: t("merchant") }]} />
             {tab === "CLOSED" ? (
               <FilterSelect value={filters.outcome} onChange={setFilter("outcome")} options={[{ value: "", label: t("anyOutcome") }, ...config.outcomes.map((o) => ({ value: o, label: t(`outcome_${o}`) }))]} />

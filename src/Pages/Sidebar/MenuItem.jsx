@@ -6,6 +6,7 @@ import { buildMenuPathForItem } from "./menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { getMenuIcon } from "./moduleIcons";
+import { useMenuBadge } from "./menuBadges";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -53,6 +54,7 @@ export function MenuItem({
   onNavigate,
   depth = 0,
 }) {
+  const badge = useMenuBadge(item?.menu_name);
   // Tri-state, not a plain boolean: `null` means "no explicit click yet,
   // derive it" (auto-open for the active branch); `true`/`false` means the
   // user explicitly clicked this row open or shut, which always wins —
@@ -133,6 +135,12 @@ export function MenuItem({
           })}
           {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
         </span>
+        {badge > 0 &&
+          (isCollapsed ? (
+            <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-amber-500" aria-label={String(badge)} />
+          ) : (
+            <span className="relative ml-auto shrink-0 rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{badge > 99 ? "99+" : badge}</span>
+          ))}
       </button>
       </UiTooltip>
 
