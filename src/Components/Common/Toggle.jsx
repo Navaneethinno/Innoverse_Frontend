@@ -14,7 +14,7 @@ export function Toggle({ checked, onChange, disabled = false, label, showLabel =
       onClick={() => onChange(!checked)}
       className={cn("relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-50", checked ? "bg-primary" : "bg-slate-300", !showLabel && className)}
     >
-      <span className={cn("absolute start-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-out", checked && "translate-x-5 rtl:-translate-x-5")} />
+      <span className={cn("absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ease-out", checked && "translate-x-5")} />
     </button>
   );
   if (!showLabel) return knob;

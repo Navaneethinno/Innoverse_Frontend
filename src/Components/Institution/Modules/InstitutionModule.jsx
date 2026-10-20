@@ -242,7 +242,7 @@ export function InstitutionModule() {
           <button
             type="button"
             onClick={() => void query.refetch()}
-            className="ms-auto text-xs font-bold underline"
+            className="ml-auto text-xs font-bold underline"
           >
             {tr("Retry")}
           </button>

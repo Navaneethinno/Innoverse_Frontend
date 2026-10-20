@@ -83,7 +83,7 @@ function RiskScores({ kind, instProfileId, entries }) {
                 type="button"
                 aria-expanded={open === key}
                 onClick={() => setOpen(open === key ? null : key)}
-                className="ms-auto flex items-center gap-1 text-[11px] font-bold text-primary"
+                className="ml-auto flex items-center gap-1 text-[11px] font-bold text-primary"
               >
                 {t("whyScore")}
                 <ChevronDown

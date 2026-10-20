@@ -74,7 +74,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
             scope="col"
             className={cn(
               "whitespace-nowrap px-4 py-3 text-xs font-semibold text-slate-600",
-              col.align === "left" ? "text-start" : "text-center",
+              col.align === "left" ? "text-left" : "text-center",
             )}
           >
             {!sortable || col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
@@ -183,7 +183,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
               key={col.key}
               className={cn(
                 "whitespace-nowrap px-3 py-2.5 text-xs text-slate-700",
-                col.align === "left" ? "text-start" : "text-center",
+                col.align === "left" ? "text-left" : "text-center",
               )}
             >
               {col.render ? col.render(row) : (row[col.key] ?? "—")}
@@ -454,7 +454,7 @@ export function DataTable({
                 onClick={() => goToPage(currentPage - 1)}
                 className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
               >
-                <ChevronLeft size={13} className="rtl:-scale-x-100" /> {t("prev")}
+                <ChevronLeft size={13} /> {t("prev")}
               </button>
               {getPageNumbers(currentPage, totalPages).map((p, i) =>
                 p === "…" ? (
@@ -484,7 +484,7 @@ export function DataTable({
                 onClick={() => goToPage(currentPage + 1)}
                 className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
               >
-                {t("next")} <ChevronRight size={13} className="rtl:-scale-x-100" />
+                {t("next")} <ChevronRight size={13} />
               </button>
             </div>
 

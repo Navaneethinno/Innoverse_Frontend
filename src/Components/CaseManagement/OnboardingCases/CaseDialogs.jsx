@@ -214,7 +214,7 @@ export function AmlProposeDialog({ allowCleared, allowClose, openMatches, busy, 
               type="button"
               disabled={!outcomes.includes(o)}
               onClick={() => setOutcome(o)}
-              className={`rounded-xl border p-2.5 text-start text-xs disabled:opacity-40 ${outcome === o ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border"}`}
+              className={`rounded-xl border p-2.5 text-left text-xs disabled:opacity-40 ${outcome === o ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border"}`}
             >
               <span className="block font-bold">{t(`outcome_${o}`)}</span>
               <span className="mt-0.5 block text-[11px] text-muted-foreground">{t(`outcomeHint_${o}`)}</span>

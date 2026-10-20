@@ -35,7 +35,7 @@ function ScoreBar({ levels, score, minMatch }) {
         </span>
         {minMatch != null && (
           <span
-            className="absolute bottom-4 top-5 z-10 border-s-2 border-dashed border-slate-700"
+            className="absolute bottom-4 top-5 z-10 border-l-2 border-dashed border-slate-700"
             style={{ left: pct(minMatch) }}
           />
         )}
@@ -76,17 +76,17 @@ function MatchRow({ m }) {
   return (
     <>
       <tr className={`border-t align-top ${cleared ? "text-muted-foreground" : ""}`}>
-        <td className="py-1.5 pe-2">
+        <td className="py-1.5 pr-2">
           <span className="font-mono text-[11px]">{m.list}</span>
           {m.category && (
             <span className="block text-[10px] text-muted-foreground">{m.category}</span>
           )}
         </td>
-        <td className={`py-1.5 pe-2 font-semibold ${cleared ? "line-through" : ""}`}>
+        <td className={`py-1.5 pr-2 font-semibold ${cleared ? "line-through" : ""}`}>
           <button
             type="button"
             onClick={() => setOpen(!open)}
-            className="inline-flex items-center gap-1 text-start hover:text-primary"
+            className="inline-flex items-center gap-1 text-left hover:text-primary"
           >
             {m.listed_name} <ChevronDown size={11} className={open ? "rotate-180" : ""} />
           </button>
@@ -94,13 +94,13 @@ function MatchRow({ m }) {
             <AlsoOnChips alsoOn={m.also_on} />
           </span>
         </td>
-        <td className="py-1.5 pe-2">{m.matched_name}</td>
-        <td className="py-1.5 pe-2 text-end tabular-nums">{m.name_score}</td>
-        <td className="py-1.5 pe-2">
+        <td className="py-1.5 pr-2">{m.matched_name}</td>
+        <td className="py-1.5 pr-2 text-right tabular-nums">{m.name_score}</td>
+        <td className="py-1.5 pr-2">
           <Adjustments list={m.adjustments} />
         </td>
         <td
-          className={`py-1.5 pe-2 text-end font-black tabular-nums ${cleared ? "line-through" : scoreTone(matchScore(m))}`}
+          className={`py-1.5 pr-2 text-right font-black tabular-nums ${cleared ? "line-through" : scoreTone(matchScore(m))}`}
         >
           {matchScore(m)}
           <span className="block font-normal">
@@ -173,13 +173,13 @@ function PartyCard({ party }) {
         <div className="mt-2 overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-start text-muted-foreground">
-                <th className="py-1 pe-2 font-semibold">{t("list")}</th>
-                <th className="py-1 pe-2 font-semibold">{t("listedName")}</th>
-                <th className="py-1 pe-2 font-semibold">{t("matchedOn")}</th>
-                <th className="py-1 pe-2 text-end font-semibold">{t("nameScore")}</th>
-                <th className="py-1 pe-2 font-semibold">{t("adjustments")}</th>
-                <th className="py-1 pe-2 text-end font-semibold">{t("score")}</th>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-1 pr-2 font-semibold">{t("list")}</th>
+                <th className="py-1 pr-2 font-semibold">{t("listedName")}</th>
+                <th className="py-1 pr-2 font-semibold">{t("matchedOn")}</th>
+                <th className="py-1 pr-2 text-right font-semibold">{t("nameScore")}</th>
+                <th className="py-1 pr-2 font-semibold">{t("adjustments")}</th>
+                <th className="py-1 pr-2 text-right font-semibold">{t("score")}</th>
                 <th className="py-1 font-semibold">{t("review")}</th>
               </tr>
             </thead>
@@ -218,7 +218,7 @@ function Changes({ changes }) {
           name={changes.band_before?.name ?? t("noBand")}
           color={changes.band_before?.color_code}
         />
-        <ArrowRight size={12} className="text-muted-foreground rtl:-scale-x-100" />
+        <ArrowRight size={12} className="text-muted-foreground" />
         <b className="tabular-nums">{changes.score_after}</b>
         <BandChip
           name={changes.band_after?.name ?? t("noBand")}
@@ -230,10 +230,10 @@ function Changes({ changes }) {
           <div key={p.party_key} className="rounded-lg border p-2 text-xs">
             <p className="font-semibold">
               {p.name} <span className="text-muted-foreground">· {p.party_role}</span>
-              <span className="ms-2 rounded-full bg-muted px-1.5 text-[10px] font-bold">
+              <span className="ml-2 rounded-full bg-muted px-1.5 text-[10px] font-bold">
                 {t(`partyChange_${p.change}`, { defaultValue: p.change })}
               </span>
-              <span className="ms-2 tabular-nums text-muted-foreground">
+              <span className="ml-2 tabular-nums text-muted-foreground">
                 {p.score_before} → {p.score_after}
               </span>
             </p>
@@ -334,17 +334,17 @@ export function AmlRunDetail({ runId, onClose }) {
 
           {item.history?.length > 1 && (
             <Section title={t("screeningHistory")}>
-              <ol className="relative space-y-2 border-s ps-4">
+              <ol className="relative space-y-2 border-l pl-4">
                 {item.history.map((h) => (
                   <li key={h.run_id} className="relative text-xs">
                     <span
-                      className={`absolute -start-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card ${h.run_id === item.run_id ? "bg-primary" : "bg-muted-foreground"}`}
+                      className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card ${h.run_id === item.run_id ? "bg-primary" : "bg-muted-foreground"}`}
                     />
                     <button
                       type="button"
                       disabled={h.run_id === item.run_id}
                       onClick={() => setId(h.run_id)}
-                      className="flex flex-wrap items-center gap-2 text-start enabled:hover:text-primary"
+                      className="flex flex-wrap items-center gap-2 text-left enabled:hover:text-primary"
                     >
                       <span className="text-muted-foreground">{atIst(h.screened_at)}</span>
                       <b className="tabular-nums">{h.score}</b>

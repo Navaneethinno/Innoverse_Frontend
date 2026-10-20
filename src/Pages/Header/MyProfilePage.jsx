@@ -115,7 +115,7 @@ export function MyProfilePage() {
         onClick={() => navigate(-1)}
         className="mb-4 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
       >
-        <ArrowLeft size={16} className="rtl:-scale-x-100" /> {t("common:back")}
+        <ArrowLeft size={16} /> {t("common:back")}
       </button>
 
       {isLoading && !data ? (

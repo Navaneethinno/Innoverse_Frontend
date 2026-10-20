@@ -154,7 +154,7 @@ function Thumb({ image, domain, className = "h-16 w-24" }) {
   return (
     <span className={cn("relative shrink-0", className)}>
       <img src={image} alt="" loading="lazy" className="h-full w-full rounded-lg object-cover" />
-      <span className="absolute -bottom-1 -end-1 rounded bg-card p-0.5 shadow">
+      <span className="absolute -bottom-1 -right-1 rounded bg-card p-0.5 shadow">
         <SiteIcon domain={domain} className="h-3.5 w-3.5" />
       </span>
     </span>
@@ -688,7 +688,7 @@ function Network3D({ subject, profile, relations, picked, onPick, height = 420 }
         {front.map(edge)}
         {front.map(node)}
       </svg>
-      <div className="absolute end-1 top-1 flex flex-col gap-1">
+      <div className="absolute right-1 top-1 flex flex-col gap-1">
         {[["+", 0.2], ["−", -0.2]].map(([label, d]) => (
           <button key={label} type="button" onClick={() => setZoom((z) => Math.max(0.6, Math.min(1.8, z + d)))} className="h-6 w-6 rounded-md border border-border bg-card text-sm font-bold text-muted-foreground hover:text-primary">
             {label}
@@ -785,7 +785,7 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
           <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("mediaOtherRelatives")}</p>
           <div className="flex flex-wrap justify-center gap-1.5">
             {others.map((r) => (
-              <button key={r.id} type="button" onClick={() => onPick(picked === r.id ? null : r.id)} className={cn("flex items-center gap-1.5 rounded-full border bg-card py-0.5 ps-0.5 pe-2.5 text-[11px] font-semibold hover:border-primary/40", picked === r.id ? "border-primary" : "border-border")} style={flagColour(r.watch, r.review) ? { borderColor: flagColour(r.watch, r.review) } : undefined}>
+              <button key={r.id} type="button" onClick={() => onPick(picked === r.id ? null : r.id)} className={cn("flex items-center gap-1.5 rounded-full border bg-card py-0.5 pl-0.5 pr-2.5 text-[11px] font-semibold hover:border-primary/40", picked === r.id ? "border-primary" : "border-border")} style={flagColour(r.watch, r.review) ? { borderColor: flagColour(r.watch, r.review) } : undefined}>
                 {r.photo ? (
                   <img src={r.photo} alt="" className="h-5 w-5 rounded-full object-cover" />
                 ) : (
@@ -884,7 +884,7 @@ function RelationReview({ r, search, onChange }) {
         canAuthorize && (
           <div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
             <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: waiting.proposed_by ?? "" })}</span>
-            <span className="ms-auto flex gap-1">
+            <span className="ml-auto flex gap-1">
               <Button size="sm" variant="danger" icon={XCircle} onClick={() => setDialog({ verb: "deauth", id: waiting.review_id })}>{t("reject")}</Button>
               <Button size="sm" icon={CheckCircle2} onClick={() => setDialog({ verb: "auth", id: waiting.review_id })}>{t("approve")}</Button>
             </span>
@@ -1002,7 +1002,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false,
                 <ul className="grid gap-1">
                   {list.map((r) => (
                     <li key={r.id}>
-                      <button type="button" onClick={() => setPicked(picked === r.id ? null : r.id)} className={cn("flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-start text-xs transition-colors", picked === r.id ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/40")}>
+                      <button type="button" onClick={() => setPicked(picked === r.id ? null : r.id)} className={cn("flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors", picked === r.id ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/40")}>
                         <Avatar name={r.name} photo={r.photo} size={26} />
                         <span className="min-w-0 flex-1">
                           <span dir="auto" className="block truncate font-semibold">{r.name}</span>
@@ -1082,7 +1082,7 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
           {waiting && onDecide && (
             <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-900">
               <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: waiting.proposed_by ?? "" })}</span>
-              <span className="ms-auto flex gap-1.5">
+              <span className="ml-auto flex gap-1.5">
                 <Button size="sm" variant="danger" icon={XCircle} onClick={() => onDecide("deauth", waiting.review_id)}>{t("reject")}</Button>
                 <Button size="sm" icon={CheckCircle2} onClick={() => onDecide("auth", waiting.review_id)}>{t("approve")}</Button>
               </span>
@@ -1254,7 +1254,7 @@ function ResultView({ search, onChange }) {
                 <span className="h-2 overflow-hidden rounded-full bg-muted">
                   <span className="block h-full rounded-full bg-red-500" style={{ width: `${Math.min(100, v)}%` }} />
                 </span>
-                <b className="text-end tabular-nums">{v}</b>
+                <b className="text-right tabular-nums">{v}</b>
               </li>
             ))}
           </ul>

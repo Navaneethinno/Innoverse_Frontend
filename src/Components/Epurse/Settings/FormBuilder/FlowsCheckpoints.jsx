@@ -28,7 +28,7 @@ function ItemCard({ icon: Icon, title, summary, invalid, startOpen, onRemove, re
   return (
     <div className={cn("rounded-2xl border bg-white/70", invalid && "border-amber-300")}>
       <div className="flex items-center gap-2 px-4 py-3">
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2.5 text-start">
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--primary-light)] text-[var(--primary)]">
             <Icon size={14} />
           </span>
@@ -70,7 +70,7 @@ function StepProblems({ problems, prefix }) {
   const mine = (problems ?? []).map((p) => (typeof p === "string" ? p : (p?.message ?? ""))).filter((p) => p.toLowerCase().startsWith(prefix));
   if (!mine.length) return null;
   return (
-    <ul className="list-disc rounded-xl border border-red-200 bg-red-50 px-4 py-2 ps-8 text-xs text-red-700">
+    <ul className="list-disc rounded-xl border border-red-200 bg-red-50 px-4 py-2 pl-8 text-xs text-red-700">
       {mine.map((p, i) => (
         <li key={i}>{p}</li>
       ))}

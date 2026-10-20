@@ -114,7 +114,7 @@ export function DateInput({ value, onChange, min, max, disabled, className, titl
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : show())}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 text-start text-sm disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-3 py-2 text-left text-sm disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground",
           className,
           open && "border-[var(--primary)] ring-2 ring-[var(--primary)]/20",
         )}
@@ -137,7 +137,7 @@ export function DateInput({ value, onChange, min, max, disabled, className, titl
             >
               <div className="mb-2 flex items-center justify-between gap-1">
                 <button type="button" onClick={() => step(-1)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-[var(--primary-light)] hover:text-[var(--primary)]" aria-label={t("previous", "Previous")}>
-                  <ChevronLeft size={15} className="rtl:-scale-x-100" />
+                  <ChevronLeft size={15} />
                 </button>
                 <div className="flex items-center gap-1 text-sm font-bold text-foreground">
                   {view === "days" && (
@@ -156,7 +156,7 @@ export function DateInput({ value, onChange, min, max, disabled, className, titl
                   )}
                 </div>
                 <button type="button" onClick={() => step(1)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-[var(--primary-light)] hover:text-[var(--primary)]" aria-label={t("next", "Next")}>
-                  <ChevronRight size={15} className="rtl:-scale-x-100" />
+                  <ChevronRight size={15} />
                 </button>
               </div>
 

@@ -39,12 +39,12 @@ export function SidebarBrand({ isCollapsed }) {
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="group relative w-full overflow-hidden rounded-2xl border border-[var(--primary-light)] px-3 py-3 text-start shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--primary)_45%,transparent)] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group relative w-full overflow-hidden rounded-2xl border border-[var(--primary-light)] px-3 py-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--primary)_45%,transparent)] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, var(--card)) 0%, var(--card) 72%)" }}
     >
       {/* A soft brand glow in the corner, and the home hint on hover. */}
-      <span className="pointer-events-none absolute -end-8 -top-10 h-24 w-24 rounded-full opacity-60 blur-2xl transition-opacity group-hover:opacity-90" style={{ background: "color-mix(in srgb, var(--primary) 35%, transparent)" }} aria-hidden="true" />
-      <span className="absolute end-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-lg bg-card/80 text-muted-foreground opacity-0 shadow-sm ring-1 ring-black/5 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary" aria-hidden="true">
+      <span className="pointer-events-none absolute -right-8 -top-10 h-24 w-24 rounded-full opacity-60 blur-2xl transition-opacity group-hover:opacity-90" style={{ background: "color-mix(in srgb, var(--primary) 35%, transparent)" }} aria-hidden="true" />
+      <span className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-lg bg-card/80 text-muted-foreground opacity-0 shadow-sm ring-1 ring-black/5 transition-all duration-200 group-hover:opacity-100 group-hover:text-primary" aria-hidden="true">
         <House size={12} />
       </span>
       {wide ? (
@@ -55,7 +55,7 @@ export function SidebarBrand({ isCollapsed }) {
           {displayName && (
             <p className="truncate px-0.5 text-xs font-bold text-foreground" title={displayName}>
               {displayName}
-              <span className="ms-1.5 font-semibold text-muted-foreground">· {caption}</span>
+              <span className="ml-1.5 font-semibold text-muted-foreground">· {caption}</span>
             </p>
           )}
         </div>

@@ -115,7 +115,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
           className matching pixel-for-pixel (a 4px mismatch was visible
           before: the tabs' icon+count-badge content stack renders taller
           than a plain label at the same padding). */}
-      {actions && <div data-tour="add" className="order-1 ms-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
+      {actions && <div data-tour="add" className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
       )}
 

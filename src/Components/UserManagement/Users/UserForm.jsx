@@ -196,7 +196,7 @@ export function UserForm({
                 inputMode={key === "mobile" ? "tel" : undefined}
                 value={editing && key === "user_pwd" ? "" : form[key]}
                 onChange={(event) => setForm({ ...form, [key]: key === "mobile" ? phoneInput(event.target.value) : event.target.value })}
-                className={`w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pe-10" : ""}${readOnly ? " bg-muted text-muted-foreground" : ""}`}
+                className={`w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)]${key === "user_pwd" ? " pr-10" : ""}${readOnly ? " bg-muted text-muted-foreground" : ""}`}
               />
             )}
             {key === "user_pwd" && !readOnly && (
@@ -204,7 +204,7 @@ export function UserForm({
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
                 aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>

@@ -55,7 +55,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         </span>
         {!isCollapsed && (
           <motion.span animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
-            <ChevronRight size={14} className="rtl:-scale-x-100" />
+            <ChevronRight size={14} />
           </motion.span>
         )}
       </button>
@@ -67,7 +67,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="origin-top thin-scrollbar absolute start-0 end-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
+          className="origin-top thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
           style={{
             background: "var(--popover)",
             borderColor: "var(--border)",
@@ -87,7 +87,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold truncate transition-colors",
-                  isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full text-start",
+                  isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3.5 w-full text-left",
                   isActive
                     ? "bg-primary-light text-primary"
                     : "text-muted-foreground hover:text-primary hover:bg-primary-light",

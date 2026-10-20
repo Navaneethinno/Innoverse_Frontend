@@ -87,7 +87,7 @@ export function LimitMembers({ group, canMove, onClose }) {
     <Modal open onClose={onClose} size="lg" title={t("membersTitle", { name: group.name ?? group.code })}>
       <div className="flex flex-col gap-4">
         <div className="relative">
-          <Search size={14} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search}
             onChange={(e) => {
@@ -95,7 +95,7 @@ export function LimitMembers({ group, canMove, onClose }) {
               setPage(1);
             }}
             placeholder={t("searchMembers")}
-            className="w-full rounded-lg border bg-white/70 py-2 ps-8 pe-3 text-sm outline-none focus:border-primary"
+            className="w-full rounded-lg border bg-white/70 py-2 pl-8 pr-3 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="overflow-hidden rounded-xl border">

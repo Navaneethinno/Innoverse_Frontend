@@ -201,7 +201,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={leave} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToProducts")}
+        <ArrowLeft size={15} /> {t("backToProducts")}
       </button>
       <ConfirmDialog open={leaving} title={t("leaveUnsavedTitle")} confirmLabel={t("leaveWithoutSaving")} destructive onClose={() => setLeaving(false)} onConfirm={onClose}>
         <p className="text-sm text-muted-foreground">{t("leaveUnsavedHint")}</p>

@@ -112,7 +112,7 @@ function Journal({ onOpen }) {
       key: "rrn",
       label: "RRN",
       render: (x) => (
-        <button type="button" onClick={() => onOpen({ id: x.id })} className="text-start">
+        <button type="button" onClick={() => onOpen({ id: x.id })} className="text-left">
           <span className="block font-mono text-xs font-bold text-primary hover:underline">{x.rrn}</span>
           <span className="block text-[10px] text-muted-foreground">{atIst(x.tran_date_time)}</span>
         </button>
@@ -268,7 +268,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToJournal")}
+        <ArrowLeft size={15} /> {t("backToJournal")}
       </button>
       <div className={cn("mb-4 rounded-2xl border bg-card p-4", x.status === "FAILED" ? "border-red-300" : "border-border")}>
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -282,7 +282,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
               {atIst(x.tran_date_time)} · {t("businessDateX", { date: x.business_date })} · {x.user_name || "—"} · {x.inst_profile_name}
             </p>
           </div>
-          <div className="min-w-0 text-end">
+          <div className="min-w-0 text-right">
             <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(x.total_amount ?? x.txn_amount)}</p>
             {Number(x.fee_amount) > 0 && (
               <p className="text-xs text-muted-foreground">
@@ -430,11 +430,11 @@ export function PartyHistory({ party, onClose, onOpen }) {
           <p className="text-[10px] text-muted-foreground">
             {[p.counterparty_name, p.merchant_name, p.operator_name].filter(Boolean).join(" · ")}
             {onOpen ? (
-              <button type="button" onClick={() => onOpen(p.rrn)} className="ms-1 font-mono text-primary hover:underline">
+              <button type="button" onClick={() => onOpen(p.rrn)} className="ml-1 font-mono text-primary hover:underline">
                 {p.rrn}
               </button>
             ) : (
-              <span className="ms-1 font-mono">{p.rrn}</span>
+              <span className="ml-1 font-mono">{p.rrn}</span>
             )}
           </p>
         </div>
@@ -518,7 +518,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
         key: "request_reference",
         label: t("request"),
         render: (r) => (
-          <button type="button" onClick={() => setOpen(r.id)} className="text-start">
+          <button type="button" onClick={() => setOpen(r.id)} className="text-left">
             <span className="block font-mono text-xs font-bold text-primary hover:underline">{r.request_reference}</span>
             <span className="block text-[10px] text-muted-foreground">{atIst(r.requested_at)}</span>
           </button>

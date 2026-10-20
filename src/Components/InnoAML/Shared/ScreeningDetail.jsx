@@ -101,7 +101,7 @@ function ReviewSummary({ review }) {
           <b className="text-slate-700">{t(`review_${review.decision}`)}</b>: {review.comment} — {review.proposed_by}
           {review.decided_by ? ` / ${review.decided_by}` : ""} {review.decided_at ? `· ${when(review.decided_at)}` : ""}
           {review.expires_on && (
-            <span className={`ms-1 font-semibold ${review.state === "EXPIRED" ? "text-amber-700" : ""}`}>
+            <span className={`ml-1 font-semibold ${review.state === "EXPIRED" ? "text-amber-700" : ""}`}>
               · {t(review.state === "EXPIRED" ? "expiredOn" : "expiresOn", { date: formatDay(review.expires_on) })}
             </span>
           )}
@@ -131,7 +131,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
   const locked = blacklistByIdentifier(match);
   return (
     <li className="overflow-hidden rounded-xl border bg-card p-3" style={{ boxShadow: `inset 4px 0 0 ${matchScore(match) >= 85 ? "#dc2626" : matchScore(match) >= 60 ? "#d97706" : "#059669"}` }}>
-      <div className="flex flex-wrap items-start gap-3 ps-1">
+      <div className="flex flex-wrap items-start gap-3 pl-1">
         <ScoreRing score={matchScore(match)} />
         <div className="min-w-0 flex-1">
           <NameText name={match.matched_name} latin={match.matched_name_latin} className="text-sm font-bold text-slate-800" />
@@ -293,7 +293,7 @@ export function ScreeningDetail({ screening, onChange }) {
           <EffectiveResult row={screening} />
         ) : (
           <div className="flex items-center gap-3">
-            <div className="text-end">
+            <div className="text-right">
               <p className="text-xl font-black leading-tight" style={{ color: colour }}>
                 {band?.name ?? t("noSetup")}
               </p>

@@ -238,7 +238,7 @@ function SubmissionView({ id, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToReports")}
+        <ArrowLeft size={15} /> {t("backToReports")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

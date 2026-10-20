@@ -51,11 +51,11 @@ function PlacementRow({ placement, index, count, libraryField, typeName, disable
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-800">
             {placement.label || libraryField?.label || placement.field_key}
-            {!libraryField && <span className="ms-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
+            {!libraryField && <span className="ml-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
           </p>
           <p className="truncate text-[11px] text-muted-foreground">
             <code>{placement.field_key}</code> · {typeName(libraryField?.field_type)}
-            {overridden && <span className="ms-1.5 rounded bg-amber-100 px-1.5 text-amber-700">{t("formBuilder:overridden")}</span>}
+            {overridden && <span className="ml-1.5 rounded bg-amber-100 px-1.5 text-amber-700">{t("formBuilder:overridden")}</span>}
           </p>
         </div>
         <button type="button" onClick={() => setOpen((v) => !v)} className="rounded-lg p-1.5 text-slate-500 hover:bg-muted" aria-label={t("formBuilder:overrides")}>
@@ -341,7 +341,7 @@ export function FormSections() {
   const columns = [
     { key: "name", label: t("formBuilder:staffName"), render: (r) => <span className="font-semibold text-slate-800">{r.name}</span> },
     { key: "key", label: t("formBuilder:key"), render: (r) => <code className="text-xs">{r.key}</code> },
-    { key: "heading", label: t("formBuilder:heading"), render: (r) => <span className="line-clamp-2 text-start">{r.heading}</span> },
+    { key: "heading", label: t("formBuilder:heading"), render: (r) => <span className="line-clamp-2 text-left">{r.heading}</span> },
     { key: "fields", label: t("formBuilder:fieldsCount"), render: (r) => (r.fields ?? []).length },
     { key: "multi_row", label: t("formBuilder:repeatable"), render: (r) => (r.multi_row ? (r.max_rows ? t("formBuilder:upToRows", { count: r.max_rows }) : t("common:yes")) : t("common:no")) },
     { key: "updated_by", label: t("formBuilder:updatedBy"), render: (r) => r.updated_by ?? r.created_by ?? "-" },

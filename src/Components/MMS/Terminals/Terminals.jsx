@@ -314,7 +314,7 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
                 <p className="px-3 py-2 text-xs text-muted-foreground">{t("noMerchantsFound")}</p>
               ) : (
                 found.map((p) => (
-                  <button key={partyKey(p)} type="button" onClick={() => onChange(p)} className="block w-full px-3 py-2 text-start text-sm hover:bg-muted">
+                  <button key={partyKey(p)} type="button" onClick={() => onChange(p)} className="block w-full px-3 py-2 text-left text-sm hover:bg-muted">
                     {p.name} <span className="text-[11px] text-muted-foreground">{p.inst_profile_name}</span>
                   </button>
                 ))

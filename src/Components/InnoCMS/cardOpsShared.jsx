@@ -68,7 +68,7 @@ export function CardFace({ card, className }) {
       )}
       style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #1e1b4b))" }}
     >
-      <span className="pointer-events-none absolute -end-10 -top-12 h-36 w-36 rounded-full bg-white/10" aria-hidden="true" />
+      <span className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full bg-white/10" aria-hidden="true" />
       <span className="flex items-start justify-between gap-2">
         <span className="min-w-0 truncate text-sm font-bold">{card.product_code}</span>
         <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-white/75">{cardWord(t, "opt", card.form_factor)}</span>
@@ -129,7 +129,7 @@ export function CardNumber({ card, className }) {
   return (
     <span className={cn("whitespace-nowrap font-mono text-xs font-bold", className)}>
       {card.pan_masked}
-      {card.expiry && <span className="ms-1.5 font-sans text-[10px] font-semibold text-muted-foreground">{card.expiry}</span>}
+      {card.expiry && <span className="ml-1.5 font-sans text-[10px] font-semibold text-muted-foreground">{card.expiry}</span>}
     </span>
   );
 }

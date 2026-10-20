@@ -215,7 +215,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
             <label className={`${labelClass} mt-4`}>
               {t("notification:smsBody")} <span className="text-red-500">*</span>
               <textarea ref={smsBodyRef} {...messageProps("sms_body")} maxLength={SMS_MAX} className={`${inputClass} min-h-16`} />
-              <span className="mt-1 block text-end text-[11px] font-normal text-muted-foreground">
+              <span className="mt-1 block text-right text-[11px] font-normal text-muted-foreground">
                 {form.sms_body.length}/{SMS_MAX}
               </span>
             </label>
@@ -241,7 +241,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
         {options.events.length > 0 && (
           <div className={section}>
             <p className={sectionTitle}>
-              {t("notification:eventTriggers")} <span className="ms-1 text-xs font-semibold text-muted-foreground">{t("notification:eventCount", { count: form.events.size })}</span>
+              {t("notification:eventTriggers")} <span className="ml-1 text-xs font-semibold text-muted-foreground">{t("notification:eventCount", { count: form.events.size })}</span>
             </p>
             <p className="text-[11px] text-muted-foreground">{t("notification:eventTriggersHint")}</p>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -278,7 +278,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <p className={sectionTitle}>
-                {t("notification:triggers")} <span className="ms-1 text-xs font-semibold text-muted-foreground">{t("notification:triggerCount", { count: form.triggers.size })}</span>
+                {t("notification:triggers")} <span className="ml-1 text-xs font-semibold text-muted-foreground">{t("notification:triggerCount", { count: form.triggers.size })}</span>
               </p>
               <p className="text-[11px] text-muted-foreground">{t("notification:triggersHint")}</p>
             </div>

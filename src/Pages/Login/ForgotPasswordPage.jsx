@@ -24,7 +24,7 @@ export function ForgotPasswordPage() {
           onClick={() => navigate("/login")}
           className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)]"
         >
-          <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToSignIn")}
+          <ArrowLeft size={15} /> {t("backToSignIn")}
         </button>
       </div>
     </div>

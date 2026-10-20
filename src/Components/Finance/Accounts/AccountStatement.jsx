@@ -201,12 +201,12 @@ export function TxnDetail({ txn }) {
       <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("lines")}</p>
       <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-xs">
-          <thead className="bg-muted/50 text-start text-[10px] uppercase tracking-wider text-muted-foreground">
+          <thead className="bg-muted/50 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-3 py-2">{t("accountNumber")}</th>
               <th className="px-3 py-2">{t("drCr")}</th>
-              <th className="px-3 py-2 text-end">{t("amount")}</th>
-              <th className="px-3 py-2 text-end">{t("balanceAfter")}</th>
+              <th className="px-3 py-2 text-right">{t("amount")}</th>
+              <th className="px-3 py-2 text-right">{t("balanceAfter")}</th>
             </tr>
           </thead>
           <tbody>
@@ -214,8 +214,8 @@ export function TxnDetail({ txn }) {
               <tr key={l.id} className="border-t border-border">
                 <td className="px-3 py-2 font-mono">{l.acct_num}</td>
                 <td className="px-3 py-2"><DrCr type={l.operation_type} /></td>
-                <td className="px-3 py-2 text-end font-semibold tabular-nums">{money(l.txn_amount, l.currency_code)}</td>
-                <td className="px-3 py-2 text-end tabular-nums">{money(l.entry_amount, l.currency_code)}</td>
+                <td className="px-3 py-2 text-right font-semibold tabular-nums">{money(l.txn_amount, l.currency_code)}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{money(l.entry_amount, l.currency_code)}</td>
               </tr>
             ))}
           </tbody>

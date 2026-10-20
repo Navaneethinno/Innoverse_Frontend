@@ -33,9 +33,7 @@ const SIDEBAR_COLLAPSED_W = 56;
 //     -> parent/child/sub-child hierarchy built from menu_id/parent_menu_id
 //        (MenuList/MenuItem), sorted by backend priority, status===1 only.
 export function DynamicSidebar() {
-  const { t, i18n } = useTranslation("sidebar");
-  // The drawer hides off the page's start edge: the right one in Arabic.
-  const offCanvas = i18n.dir() === "rtl" ? "110%" : "-110%";
+  const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
   const { collapsed, hovering, setHovering, toggle, mobileOpen, closeMobile } = useSidebar();
   const logout = useAuth((state) => state.logout);
@@ -243,7 +241,7 @@ export function DynamicSidebar() {
         onMouseLeave={() => !isMobile && setHovering(false)}
         animate={
           isMobile
-            ? { x: mobileOpen ? 0 : offCanvas, width: sidebarWidth }
+            ? { x: mobileOpen ? 0 : "-110%", width: sidebarWidth }
             : { x: 0, width: sidebarWidth }
         }
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
@@ -252,7 +250,7 @@ export function DynamicSidebar() {
           // Desktop: a persistent rail, always in view. Mobile: a
           // full-height off-canvas drawer above the backdrop, translated
           // fully off-screen (via the `animate` x above) until opened.
-          isMobile ? "fixed start-3 top-3 bottom-3 z-50" : "fixed start-3 top-3 bottom-3 z-30",
+          isMobile ? "fixed left-3 top-3 bottom-3 z-50" : "fixed left-3 top-3 bottom-3 z-30",
         )}
         style={{
           // Same "frosted glass with color bleeding through it" treatment as
@@ -396,9 +394,9 @@ export function DynamicSidebar() {
             )}
           >
             {collapsed ? (
-              <PanelLeftOpen size={15} strokeWidth={1.8} className="rtl:-scale-x-100" />
+              <PanelLeftOpen size={15} strokeWidth={1.8} />
             ) : (
-              <PanelLeftClose size={15} strokeWidth={1.8} className="rtl:-scale-x-100" />
+              <PanelLeftClose size={15} strokeWidth={1.8} />
             )}
             <AnimatePresence initial={false}>
               {isExpanded && (

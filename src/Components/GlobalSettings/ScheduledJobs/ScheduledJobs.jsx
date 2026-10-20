@@ -110,7 +110,7 @@ export function ScheduledJobs() {
                     {t("save")}
                   </Button>
                 )}
-                <div className="ms-auto flex gap-2">
+                <div className="ml-auto flex gap-2">
                   <Button variant="secondary" size="sm" icon={History} onClick={() => setRunsOf(job)}>
                     {t("runs")}
                   </Button>

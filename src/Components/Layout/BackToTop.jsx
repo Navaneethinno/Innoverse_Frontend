@@ -30,7 +30,7 @@ export function BackToTop() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label={t("backToTop", "Back to top")}
           title={t("backToTop", "Back to top")}
-          className="fixed bottom-5 end-5 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#fff)] shadow-lg ring-4 ring-[var(--primary-light)] print:hidden"
+          className="fixed bottom-5 right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--primary-foreground,#fff)] shadow-lg ring-4 ring-[var(--primary-light)] print:hidden"
         >
           <ArrowUp size={18} strokeWidth={2.4} />
         </motion.button>

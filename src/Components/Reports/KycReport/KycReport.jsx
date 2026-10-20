@@ -78,7 +78,7 @@ function KycReportList({ audience }) {
       label: t("name"),
       align: "left",
       render: (r) => (
-        <div className="min-w-0 text-start">
+        <div className="min-w-0 text-left">
           <button
             type="button"
             onClick={() => detail.show(r)}

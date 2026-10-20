@@ -45,7 +45,7 @@ function productOf(r, names, t) {
   const name = r[key.replace("_id", "_name")] || names?.[PRODUCT_LISTS[key]]?.[String(r[key])]?.name || `#${r[key]}`;
   return (
     <span>
-      <span className="me-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold">{t(`productKind_${key}`)}</span>
+      <span className="mr-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-bold">{t(`productKind_${key}`)}</span>
       {name}
     </span>
   );
@@ -287,7 +287,7 @@ function MappingView({ mapping, options, other }) {
           const open = !closed.has(leg) || words.length > 0;
           return (
             <section key={leg} className="min-w-0 rounded-2xl border border-border bg-card">
-              <button type="button" onClick={() => setClosed((c) => toggleIn(c, leg))} aria-expanded={open} className="flex w-full items-start justify-between gap-3 p-4 text-start">
+              <button type="button" onClick={() => setClosed((c) => toggleIn(c, leg))} aria-expanded={open} className="flex w-full items-start justify-between gap-3 p-4 text-left">
                 <span className="min-w-0">
                   <span className="flex items-center gap-2 text-sm font-black">
                     {names.legs[leg]?.name ?? leg}
@@ -388,7 +388,7 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToMapping")}
+        <ArrowLeft size={15} /> {t("backToMapping")}
       </button>
       <PageTitle>{t(setup ? "editMapping" : "setUpMapping")}</PageTitle>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">{t("editMappingHint")}</p>
@@ -404,7 +404,7 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
             const open = openLegs.has(leg) || missing > 0;
             return (
               <div key={leg} className="rounded-xl border border-border">
-                <button type="button" onClick={() => setOpenLegs((o) => toggleIn(o, leg))} aria-expanded={open} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-start">
+                <button type="button" onClick={() => setOpenLegs((o) => toggleIn(o, leg))} aria-expanded={open} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left">
                   <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-bold">
                     {names.legs[leg]?.name ?? leg}
                     <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tabular-nums text-muted-foreground">{t("nRules", { count: rows.length })}</span>
@@ -502,7 +502,7 @@ function ResolvePanel({ options }) {
       {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
       {result && (
         <div className="mt-3 rounded-xl border border-border bg-card p-3 text-sm">
-          <span className={cn("me-2 rounded-full px-2 py-0.5 text-[10px] font-black", result.by === "RULE" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900")}>{t(`by_${result.by}`, { defaultValue: result.by })}</span>
+          <span className={cn("mr-2 rounded-full px-2 py-0.5 text-[10px] font-black", result.by === "RULE" ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900")}>{t(`by_${result.by}`, { defaultValue: result.by })}</span>
           <b>{result.gl_name ?? result.gl_account_name}</b> <span className="font-mono text-xs text-muted-foreground">{[result.gl_code, result.account_number].filter(Boolean).join(" · ")}</span>
         </div>
       )}

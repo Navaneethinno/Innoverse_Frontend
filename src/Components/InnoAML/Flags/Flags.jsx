@@ -115,7 +115,7 @@ export function Flags() {
       render: (f) => (
         <span className="inline-flex flex-wrap items-center justify-center gap-1.5">
           {band(f.old_band, f.old_score)}
-          <ArrowRight size={13} className="text-muted-foreground rtl:-scale-x-100" />
+          <ArrowRight size={13} className="text-muted-foreground" />
           {band(f.new_band, f.new_score)}
         </span>
       ),

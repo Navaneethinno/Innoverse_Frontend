@@ -55,14 +55,14 @@ function PendingLevels({ inForce, proposed, holders, fieldName }) {
   const byNo = (list, n) => list.find((l) => Number(l.level_no) === n);
   return (
     <div className="rounded-2xl border border-amber-300 bg-amber-50/60">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2 px-4 py-3 text-start">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left">
         <span className="text-sm font-bold text-amber-800">{t("onboarding:pendingLevelChanges")}</span>
         <span className="text-xs font-semibold text-amber-700">{open ? t("onboarding:hideCompare") : t("onboarding:showCompare")}</span>
       </button>
       {open && (
         <div className="overflow-x-auto border-t border-amber-200 p-3">
           <table className="w-full min-w-[36rem] text-xs">
-            <thead className="text-start text-[10px] uppercase tracking-wider text-muted-foreground">
+            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="w-28 px-2 py-1.5">{t("onboarding:level")}</th>
                 <th className="px-2 py-1.5">{t("onboarding:inForce")}</th>
@@ -267,7 +267,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
           </Button>
           {!readOnly && (
             <>
-              {saveError && <span className="me-auto max-w-md text-xs font-semibold text-red-600">{saveError}</span>}
+              {saveError && <span className="mr-auto max-w-md text-xs font-semibold text-red-600">{saveError}</span>}
               <Button variant="secondary" disabled={Boolean(busy)} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
                 {t("onboarding:validate")}
               </Button>
@@ -303,7 +303,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
             <div className={`rounded-xl border p-4 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
               <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>{problems.length ? `${problems.length} problem(s)` : "No problems found"}</p>
               {problems.length > 0 && (
-                <ul className="mt-2 list-disc ps-5 text-sm text-red-700">
+                <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
                   {problems.map((p) => (
                     <li key={p}>{p}</li>
                   ))}

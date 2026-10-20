@@ -94,7 +94,7 @@ export function CardOrders({ receiving = false }) {
       label: t("order"),
       align: "left",
       render: (o) => (
-        <button type="button" onClick={() => setOpenId(o.id)} className="text-start">
+        <button type="button" onClick={() => setOpenId(o.id)} className="text-left">
           <p className="font-mono text-xs font-bold text-primary hover:underline">{o.order_ref}</p>
           <p className="text-[10px] text-muted-foreground">{o.issuance_group_code} · {o.issuance_group_name}</p>
         </button>
@@ -393,7 +393,7 @@ function HolderSearch({ customerType, onPick }) {
                     onPick(h);
                     setTerm("");
                   }}
-                  className="block w-full px-3 py-2 text-start text-xs hover:bg-muted"
+                  className="block w-full px-3 py-2 text-left text-xs hover:bg-muted"
                 >
                   <span className="font-bold">{h.name}</span>
                   <span className="block text-[10px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
@@ -476,7 +476,7 @@ function OrderView({ id, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToOrders")}
+        <ArrowLeft size={15} /> {t("backToOrders")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

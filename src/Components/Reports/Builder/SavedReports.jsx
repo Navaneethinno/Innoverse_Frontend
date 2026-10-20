@@ -50,7 +50,7 @@ export function SavedReports() {
       label: t("name"),
       align: "left",
       render: (r) => (
-        <button type="button" onClick={() => setOpen(r)} className="text-start">
+        <button type="button" onClick={() => setOpen(r)} className="text-left">
           <p className="text-xs font-bold text-primary hover:underline">{r.name}</p>
           {r.description && <p className="max-w-xs truncate text-[11px] text-muted-foreground">{r.description}</p>}
         </button>
@@ -139,7 +139,7 @@ function RunSaved({ report, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToSaved")}
+        <ArrowLeft size={15} /> {t("backToSaved")}
       </button>
       <div className="mb-4 grid gap-3 rounded-2xl p-4" style={glassCard}>
         <div className="flex flex-wrap items-start justify-between gap-3">

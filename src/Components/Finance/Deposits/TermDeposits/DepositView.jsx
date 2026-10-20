@@ -104,7 +104,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
     <div className={embedded ? "" : "pb-8 pt-4"}>
       {!embedded && (
         <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-          <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToDeposits")}
+          <ArrowLeft size={15} /> {t("backToDeposits")}
         </button>
       )}
 
@@ -118,7 +118,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
               {owner.name}
-              <span className="ms-2 text-xs font-medium text-muted-foreground">
+              <span className="ml-2 text-xs font-medium text-muted-foreground">
                 {t(owner.party === "MERCHANT" ? "accounts:merchant" : "accounts:customer")} · {t(owner.ownership === "CORPORATE" ? "accounts:corporate" : "accounts:individual")}
               </span>
             </p>
@@ -126,7 +126,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
               {deposit.product_name} · {deposit.tenor_label} · {deposit.inst_profile_name}
             </p>
           </div>
-          <div className="min-w-0 text-end">
+          <div className="min-w-0 text-right">
             <p className="amount-fit text-xl font-black tabular-nums text-foreground sm:text-2xl">{money(deposit.principal, cur)}</p>
             <p className="text-sm font-bold text-primary">{t("rateAYear", { rate: ratePct(deposit.annual_rate) })}</p>
           </div>
@@ -195,10 +195,10 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
 
       {tab === "history" && (
         <Section>
-          <ol className="relative grid gap-4 border-s border-border ps-5">
+          <ol className="relative grid gap-4 border-l border-border pl-5">
             {(deposit.events ?? []).map((e, i) => (
               <li key={`${e.at}-${i}`} className="relative">
-                <span className={cn("absolute -start-[26px] top-1 h-3 w-3 rounded-full ring-4 ring-card", EVENT_TONE[e.event] ?? "bg-primary")} />
+                <span className={cn("absolute -left-[26px] top-1 h-3 w-3 rounded-full ring-4 ring-card", EVENT_TONE[e.event] ?? "bg-primary")} />
                 <p className="text-sm font-bold text-foreground">
                   {t(`event_${e.event}`, { defaultValue: e.event })} <span className="text-xs font-medium text-muted-foreground">· {e.actor} · {accountDate(e.at)}</span>
                 </p>
@@ -394,20 +394,20 @@ function InterestTab({ deposit }) {
         <Section title={t("payouts")}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-start text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="py-1 pe-3">{t("period")}</th>
-                  <th className="py-1 pe-3 text-end">{t("grossInterest")}</th>
-                  <th className="py-1 pe-3 text-end">{t("netInterest")}</th>
+                  <th className="py-1 pr-3">{t("period")}</th>
+                  <th className="py-1 pr-3 text-right">{t("grossInterest")}</th>
+                  <th className="py-1 pr-3 text-right">{t("netInterest")}</th>
                   <th className="py-1">RRN</th>
                 </tr>
               </thead>
               <tbody>
                 {interest.payouts.map((p) => (
                   <tr key={`${p.period_start}-${p.rrn}`} className="border-t border-border">
-                    <td className="py-1.5 pe-3">{dayDate(p.period_start)} – {dayDate(p.period_end)}</td>
-                    <td className="py-1.5 pe-3 text-end tabular-nums">{money(p.gross_interest, cur)}</td>
-                    <td className="py-1.5 pe-3 text-end font-bold tabular-nums">{money(p.net_interest, cur)}</td>
+                    <td className="py-1.5 pr-3">{dayDate(p.period_start)} – {dayDate(p.period_end)}</td>
+                    <td className="py-1.5 pr-3 text-right tabular-nums">{money(p.gross_interest, cur)}</td>
+                    <td className="py-1.5 pr-3 text-right font-bold tabular-nums">{money(p.net_interest, cur)}</td>
                     <td className="py-1.5 font-mono">{p.rrn}</td>
                   </tr>
                 ))}

@@ -58,7 +58,7 @@ export function PlanCard({ plan }) {
     <div className="grid gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
       <div className="flex items-center gap-2">
         {side(plan.from, t("cash"))}
-        <ArrowRight size={18} className="shrink-0 text-emerald-700 rtl:-scale-x-100" />
+        <ArrowRight size={18} className="shrink-0 text-emerald-700" />
         {side(plan.to, t("cash"))}
       </div>
       <dl className="grid gap-1 text-sm">
@@ -100,7 +100,7 @@ function Line({ label, value, strong, muted, tone }) {
   return (
     <div className={cn("flex min-w-0 justify-between gap-3", strong && "font-black", muted && "text-muted-foreground")}>
       <dt className={strong ? "" : "text-muted-foreground"}>{label}</dt>
-      <dd className={cn("amount-fit text-end tabular-nums", tone)}>{value}</dd>
+      <dd className={cn("amount-fit text-right tabular-nums", tone)}>{value}</dd>
     </div>
   );
 }
@@ -166,7 +166,7 @@ export function ReceiptDialog({ txnId, rrn, onClose }) {
       footer={
         slip && (
           <>
-            <ActionIconButton label={t("rcptReplay")} icon={RotateCcw} onClick={() => pos.current?.replay()} className="me-auto" />
+            <ActionIconButton label={t("rcptReplay")} icon={RotateCcw} onClick={() => pos.current?.replay()} className="mr-auto" />
             <Button variant="secondary" icon={Download} loading={downloading} onClick={download}>
               {t("rcptDownload")}
             </Button>

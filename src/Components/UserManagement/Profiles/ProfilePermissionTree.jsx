@@ -296,13 +296,13 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         <div className="relative">
           <Search
             size={13}
-            className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("profiles:searchModulesOrMenus")}
-            className="w-full rounded-xl border border-border py-2 ps-8 pe-3 text-sm outline-none focus:border-[var(--primary)]"
+            className="w-full rounded-xl border border-border py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--primary)]"
           />
         </div>
       )}
@@ -328,7 +328,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         </label>
       )}
 
-      <div className="max-h-96 space-y-2 overflow-y-auto pe-1">
+      <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
         {visibleModules.map((module) => {
           const allGranted =
             !readOnly &&
@@ -348,7 +348,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                   {isOpen(module.moduleId) ? (
                     <ChevronDown size={13} className="shrink-0" />
                   ) : (
-                    <ChevronRight size={13} className="shrink-0 rtl:-scale-x-100" />
+                    <ChevronRight size={13} className="shrink-0" />
                   )}
                   <span className="truncate">{module.moduleName}</span>
                   {readOnly ? (
@@ -404,7 +404,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                         </label>
 
                         {granted && (
-                          <div className="mt-2 flex flex-wrap items-center gap-1.5 ps-6">
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-6">
                             {(menu.actions || []).map((action) => {
                               const active = !!grant?.actions.includes(action.action_id);
                               return (

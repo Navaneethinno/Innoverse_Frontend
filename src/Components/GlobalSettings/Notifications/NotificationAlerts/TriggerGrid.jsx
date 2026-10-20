@@ -77,8 +77,8 @@ export function TriggerGrid({ groups, selected, onChange }) {
         </colgroup>
         <thead className="sticky top-0 z-10">
           <tr className="bg-muted">
-            <th className="border-b px-4 py-2.5 text-start text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t("menu")}</th>
-            <th className="border-b border-s bg-primary-light px-2 py-2">
+            <th className="border-b px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t("menu")}</th>
+            <th className="border-b border-l bg-primary-light px-2 py-2">
               <div className="flex flex-col items-center gap-1.5">
                 <span className="text-[11px] font-black uppercase tracking-wide text-slate-700">{t("all")}</span>
                 <Tick size="sm" state={stateOf(allKeys, selected)} onChange={() => toggle(allKeys)} label={t("selectAll")} />
@@ -121,7 +121,7 @@ export function TriggerGrid({ groups, selected, onChange }) {
                       )}
                     </span>
                   </td>
-                  <td className="border-b border-s px-2 py-2 text-center">
+                  <td className="border-b border-l px-2 py-2 text-center">
                     <Tick size="sm" state={rowState} onChange={() => toggle(rowKeys)} label={t("selectAllMenu", { menu: menu.menu_name })} />
                   </td>
                   {columns.map((col) => {

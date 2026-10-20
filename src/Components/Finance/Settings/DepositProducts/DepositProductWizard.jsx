@@ -157,7 +157,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToProducts")}
+        <ArrowLeft size={15} /> {t("backToProducts")}
       </button>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{product ? t("editProductX", { name: product.acct_product?.product_name }) : t("newDepositProduct")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("wizardDraftHint") : t("wizardProposeHint")}</p>

@@ -67,7 +67,7 @@ export function BalanceAdjustments() {
       key: "request_reference",
       label: t("txn:request"),
       render: (a) => (
-        <button type="button" onClick={() => setOpenId(a.id)} className="text-start">
+        <button type="button" onClick={() => setOpenId(a.id)} className="text-left">
           <span className="block font-mono text-xs font-bold text-primary hover:underline">{a.request_reference ?? `#${a.id}`}</span>
           <span className="block text-[10px] text-muted-foreground">{atIst(a.requested_at)}</span>
         </button>
@@ -271,7 +271,7 @@ function AdjustmentForm({ onClose, onSaved }) {
                 key={x.txn_type}
                 type="button"
                 onClick={() => set("txn_type")(x.txn_type)}
-                className={cn("rounded-xl border px-3 py-2 text-start transition-all", form.txn_type === x.txn_type ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50")}
+                className={cn("rounded-xl border px-3 py-2 text-left transition-all", form.txn_type === x.txn_type ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/50")}
               >
                 <span className="block text-sm font-bold">{x.name}</span>
                 <span className="block text-[11px] text-muted-foreground">{t(`deposits:adjKind_${x.txn_type}`, { defaultValue: `${x.from} → ${x.to}` })}</span>

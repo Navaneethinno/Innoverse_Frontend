@@ -81,7 +81,7 @@ export function Cards() {
       label: t("card"),
       align: "left",
       render: (c) => (
-        <button type="button" onClick={() => setOpenId(c.id)} className="text-start">
+        <button type="button" onClick={() => setOpenId(c.id)} className="text-left">
           <CardNumber card={c} className="text-primary hover:underline" />
           <p className="text-[10px] text-muted-foreground">{c.name_on_card || c.card_serial_number || "—"}</p>
         </button>
@@ -296,7 +296,7 @@ function CardView({ id, options, onBack, onOpen }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToCards")}
+        <ArrowLeft size={15} /> {t("backToCards")}
       </button>
       {waiting && (
         <p className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
@@ -347,10 +347,10 @@ function CardView({ id, options, onBack, onOpen }) {
       </Section>
 
       <Section title={t("history")}>
-        <ol className="relative grid gap-3 border-s border-border ps-4">
+        <ol className="relative grid gap-3 border-l border-border pl-4">
           {(card.history ?? []).map((h, i) => (
             <li key={`${h.changed_time}-${i}`} className="relative">
-              <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
               <p className="text-xs font-bold text-foreground">
                 {cardWord(t, "reason", h.reason_code)}
                 {h.to_ops_status && h.to_ops_status !== h.from_ops_status && <span className="font-medium text-muted-foreground"> · {[h.from_ops_status && cardWord(t, "ops", h.from_ops_status), cardWord(t, "ops", h.to_ops_status)].filter(Boolean).join(" → ")}</span>}

@@ -129,7 +129,7 @@ function AlertsList({ onShowMessages }) {
                 {(row.triggers ?? []).map((tr) => (
                   <li key={tr.event ?? `${tr.menu_id}:${tr.action_id}`}>
                     {describeTrigger(options, tr)}
-                    {tr.notify_party && <span className="ms-1 text-[11px] font-semibold text-primary">· {t("notification:notifiesParty")}</span>}
+                    {tr.notify_party && <span className="ml-1 text-[11px] font-semibold text-primary">· {t("notification:notifiesParty")}</span>}
                   </li>
                 ))}
               </ul>

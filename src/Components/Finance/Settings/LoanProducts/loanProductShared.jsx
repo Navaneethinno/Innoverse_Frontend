@@ -90,7 +90,7 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
             <div key={term.id ?? i} className="rounded-xl border border-border bg-card p-3">
               <p className="mb-2 text-sm font-bold">
                 {term.term_code} · {term.term_value} {loanLabel(t, term.term_unit)}
-                <span className="ms-2 text-xs font-medium text-muted-foreground">
+                <span className="ml-2 text-xs font-medium text-muted-foreground">
                   {money(term.minimum_amount, currency)} – {upTo(t, term.maximum_amount, currency)}
                 </span>
               </p>

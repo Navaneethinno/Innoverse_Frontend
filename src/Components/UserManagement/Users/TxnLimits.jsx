@@ -76,7 +76,7 @@ export function TxnLimits() {
       label: t("user"),
       align: "left",
       render: (u) => (
-        <button type="button" onClick={() => setOpenId(u.user_id)} className="text-start">
+        <button type="button" onClick={() => setOpenId(u.user_id)} className="text-left">
           <p className="text-xs font-bold text-primary hover:underline">{u.username}</p>
           {u.full_name && <p className="text-[10px] text-muted-foreground">{u.full_name}</p>}
         </button>
@@ -217,10 +217,10 @@ function LimitDetail({ userId, onClose, onChanged }) {
             ))}
           </div>
           <Section title={t("history")}>
-            <ol className="relative grid gap-3 border-s border-border ps-4">
+            <ol className="relative grid gap-3 border-l border-border pl-4">
               {audit.map((entry) => (
                 <li key={entry.id} className="relative">
-                  <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
                   <p className="text-xs font-bold">
                     {t(`limitAudit_${entry.action}`, { defaultValue: entry.action })} · {entry.currency_code}
                   </p>

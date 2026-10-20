@@ -37,10 +37,10 @@ function Layout() {
       <DynamicSidebar />
       <div
         style={{
-          paddingInlineStart: isMobile ? 0 : sidebarW + 16,
-          transition: "padding-inline-start 0.28s cubic-bezier(0.22,1,0.36,1)",
+          paddingLeft: isMobile ? 0 : sidebarW + 16,
+          transition: "padding-left 0.28s cubic-bezier(0.22,1,0.36,1)",
         }}
-        className="flex flex-col flex-1 min-w-0 px-3 md:ps-0 md:pe-3"
+        className="flex flex-col flex-1 min-w-0 px-3 md:pl-0 md:pr-3"
       >
         <TopBar />
         <WorkspaceContainer>

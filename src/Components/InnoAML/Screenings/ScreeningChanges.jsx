@@ -67,7 +67,7 @@ export function ScreeningChanges({ bands }) {
       render: (row) => (
         <span className="inline-flex flex-wrap items-center gap-1.5">
           <BandBadge band={row.old_band} score={row.old_score} />
-          <ArrowRight size={13} className="text-muted-foreground rtl:-scale-x-100" />
+          <ArrowRight size={13} className="text-muted-foreground" />
           <BandBadge band={row.new_band} score={row.new_score} showAction />
         </span>
       ),

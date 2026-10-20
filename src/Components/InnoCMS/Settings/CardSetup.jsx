@@ -107,7 +107,7 @@ export function CardSetupPage({ kind }) {
       label: t(kind.nameLabel),
       align: "left",
       render: (r) => (
-        <button type="button" onClick={() => open(r)} className="text-start">
+        <button type="button" onClick={() => open(r)} className="text-left">
           <p className="text-xs font-bold text-primary hover:underline">{r.name || r.code}</p>
           {r.name && <p className="font-mono text-[10px] text-muted-foreground">{r.code}</p>}
         </button>
@@ -264,7 +264,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t(kind.backLabel)}
+        <ArrowLeft size={15} /> {t(kind.backLabel)}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -296,10 +296,10 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
       )}
 
       <Section title={t("history")}>
-        <ol className="relative grid gap-3 border-s border-border ps-4">
+        <ol className="relative grid gap-3 border-l border-border pl-4">
           {audit.map((entry, i) => (
             <li key={`${entry.at}-${i}`} className="relative">
-              <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
               <p className="text-xs font-bold text-foreground">{t(`audit_${entry.action}`, { defaultValue: entry.action })}</p>
               <p className="text-[11px] text-muted-foreground">
                 {entry.actor} · {accountDate(entry.at)}
@@ -451,7 +451,7 @@ function CardForm({ kind, record, scope, onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t(kind.backLabel)}
+        <ArrowLeft size={15} /> {t(kind.backLabel)}
       </button>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{record ? t("editX", { name: record.name || record.code }) : t(kind.newLabel)}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("formDraftHint") : t("formProposeHint")}</p>

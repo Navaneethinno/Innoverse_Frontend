@@ -84,7 +84,7 @@ function EmployerPicker({ value, onChange }) {
           {found.length ? (
             found.map((e) => (
               <li key={e.id}>
-                <button type="button" onClick={() => onChange(e)} className="block w-full px-3 py-2 text-start text-xs hover:bg-muted">
+                <button type="button" onClick={() => onChange(e)} className="block w-full px-3 py-2 text-left text-xs hover:bg-muted">
                   <b>{e.name || t("unnamed")}</b>
                   <span className="block text-[10px] text-muted-foreground">{describe(e)}</span>
                 </button>
@@ -148,7 +148,7 @@ export function BulkRegistration() {
       label: t("batch"),
       align: "left",
       render: (b) => (
-        <button type="button" onClick={() => setScreen({ id: b.id })} className="text-start">
+        <button type="button" onClick={() => setScreen({ id: b.id })} className="text-left">
           <p className="font-mono text-xs font-bold text-primary hover:underline">{b.batch_ref}</p>
           {b.narration && <p className="text-[10px] text-muted-foreground">{b.narration}</p>}
         </button>
@@ -285,7 +285,7 @@ function NewBatch({ onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToBatches")}
+        <ArrowLeft size={15} /> {t("backToBatches")}
       </button>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{t("newBatch")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{t("newBatchHint", { max })}</p>
@@ -344,7 +344,7 @@ function NewBatch({ onClose, onSaved }) {
                 columns={[
                   { key: "row_no", label: t("row"), render: (p) => <span className="text-xs tabular-nums">{p.row_no}</span> },
                   { key: "phone_number", label: t("phone"), render: (p) => <span className="font-mono text-xs">{p.phone_number || "—"}</span> },
-                  { key: "problems", label: t("problems"), sortable: false, render: (p) => <ul className="list-disc ps-4 text-xs text-red-700">{(p.problems ?? []).map((x) => <li key={x}>{x}</li>)}</ul> },
+                  { key: "problems", label: t("problems"), sortable: false, render: (p) => <ul className="list-disc pl-4 text-xs text-red-700">{(p.problems ?? []).map((x) => <li key={x}>{x}</li>)}</ul> },
                 ]}
               />
             )}
@@ -446,7 +446,7 @@ function BatchView({ id, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToBatches")}
+        <ArrowLeft size={15} /> {t("backToBatches")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

@@ -54,7 +54,7 @@ export function TopBar() {
     <motion.header
       animate={{ left: leftOffset }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed top-3 end-3 z-40 pointer-events-none"
+      className="fixed top-3 right-3 z-40 pointer-events-none"
     >
       <div
         className="flex items-center gap-3 h-12 px-3 rounded-2xl pointer-events-auto"
@@ -149,14 +149,14 @@ export function TopBar() {
             className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors"
           >
             <Bell size={15} strokeWidth={1.8} />
-            <span className="absolute top-1.5 end-1.5 w-1.5 h-1.5 rounded-full bg-brand-gradient" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-gradient" />
           </button>
           </UiTooltip>
 
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((o) => !o)}
-              className="flex items-center gap-1.5 ps-1 pe-2 py-1 rounded-xl hover:bg-muted transition-colors"
+              className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl hover:bg-muted transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-brand-gradient text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
                 {user?.username?.charAt(0).toUpperCase() ?? t("layout:admin").charAt(0)}
@@ -184,7 +184,7 @@ export function TopBar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 4, scale: 0.97 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute end-0 top-full mt-2 w-44 rounded-2xl overflow-hidden"
+                  className="absolute right-0 top-full mt-2 w-44 rounded-2xl overflow-hidden"
                   style={{
                     background: "var(--popover)",
                     backdropFilter: "blur(20px)",

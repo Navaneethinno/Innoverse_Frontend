@@ -79,13 +79,4 @@ void i18n
     },
   });
 
-// Arabic reads right to left: the page's direction and language follow the
-// selected language.
-const applyDirection = (lng) => {
-  document.documentElement.dir = i18n.dir(lng);
-  document.documentElement.lang = lng;
-};
-applyDirection(i18n.resolvedLanguage ?? i18n.language);
-i18n.on("languageChanged", applyDirection);
-
 export { i18n };

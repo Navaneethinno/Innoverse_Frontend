@@ -39,7 +39,7 @@ export function PageBreadcrumbs() {
       <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
         {menuCrumbs.map((name, index) => (
           <span key={`${name}-${index}`} className="flex min-w-0 items-center gap-1">
-            {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)] rtl:-scale-x-100" />}
+            {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />}
             <span className={index === menuCrumbs.length - 1 ? "truncate font-semibold text-foreground" : "truncate font-medium text-muted-foreground"}>
               {name}
             </span>
@@ -54,7 +54,7 @@ export function PageBreadcrumbs() {
       {crumbKeys.map((crumbKey, index) => (
         <span key={`${crumbKey}-${index}`} className="flex min-w-0 items-center gap-1">
           {index > 0 && (
-            <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)] rtl:-scale-x-100" />
+            <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />
           )}
           <UiTooltip label={t(crumbKey)}>
             <button

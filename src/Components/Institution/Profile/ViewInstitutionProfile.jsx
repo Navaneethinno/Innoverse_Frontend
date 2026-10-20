@@ -218,7 +218,7 @@ export function ViewInstitutionProfile() {
           onClick={() => navigate("/institutions")}
           className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-slate-700"
         >
-          <ArrowLeft size={13} className="rtl:-scale-x-100" /> {t("institutionsBreadcrumb")}
+          <ArrowLeft size={13} /> {t("institutionsBreadcrumb")}
         </button>
 
         {editMode && (

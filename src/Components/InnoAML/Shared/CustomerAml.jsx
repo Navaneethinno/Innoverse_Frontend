@@ -163,7 +163,7 @@ export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, refere
       {aml && <span className="text-[11px] text-muted-foreground">{t("partiesMatched", { matched: aml.matched_parties ?? 0, parties: aml.parties ?? 0 })}</span>}
       <AdverseMediaBadge media={media} customerKind={referenceId ? customerKind : undefined} referenceId={referenceId} />
       {canView && referenceId && (
-        <button type="button" onClick={() => setOpen(true)} className="ms-auto text-[11px] font-bold text-primary">
+        <button type="button" onClick={() => setOpen(true)} className="ml-auto text-[11px] font-bold text-primary">
           {t("viewScreenings")}
         </button>
       )}

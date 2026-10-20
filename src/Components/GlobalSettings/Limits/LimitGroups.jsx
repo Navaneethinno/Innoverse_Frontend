@@ -71,7 +71,7 @@ export function LimitGroups() {
       render: (r) => (
         <span className="font-semibold">
           {r.code}
-          {r.is_default && <span className="ms-2 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">{t("limits:default")}</span>}
+          {r.is_default && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">{t("limits:default")}</span>}
         </span>
       ),
     },

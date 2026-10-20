@@ -186,7 +186,7 @@ export function CustomerOnboardingResource() {
       label: t("customer:customer"),
       align: "left",
       render: (r) => (
-        <div className="text-start">
+        <div className="text-left">
           <div className="font-semibold">{r.customer_name || "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
           <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
@@ -200,13 +200,13 @@ export function CustomerOnboardingResource() {
       label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
-        <div className="text-start">
+        <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
           <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step ?? "-" })}</div>
           {r.kyc_level_name && (
             <div className="text-[11px] text-muted-foreground">
               {t("customer:kycValue", { level: r.kyc_level_name })}
-              {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ms-1 text-emerald-600" : "ms-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? t("customer:verified") : t("customer:pendingReview")}</span>}
+              {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? t("customer:verified") : t("customer:pendingReview")}</span>}
             </div>
           )}
         </div>

@@ -197,7 +197,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-start text-sm font-medium transition-colors",
+                    "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
                     isActive
                       ? "bg-primary-light text-primary"
                       : "text-muted-foreground hover:bg-primary-light hover:text-primary",
@@ -215,7 +215,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                   setIsOpen(false);
                   addAction.onClick();
                 }}
-                className="sticky -bottom-1.5 mt-1 flex w-full items-center gap-1.5 whitespace-nowrap rounded-lg border-t bg-[var(--popover)] px-3 py-2 text-start text-sm font-bold text-primary hover:bg-primary-light"
+                className="sticky -bottom-1.5 mt-1 flex w-full items-center gap-1.5 whitespace-nowrap rounded-lg border-t bg-[var(--popover)] px-3 py-2 text-left text-sm font-bold text-primary hover:bg-primary-light"
               >
                 <Plus size={14} className="shrink-0" />
                 {addAction.label}

@@ -174,7 +174,7 @@ export function UserActivity() {
         <button
           type="button"
           onClick={() => detail.show(row.activity_id)}
-          className="text-start text-xs font-semibold text-primary hover:underline"
+          className="text-left text-xs font-semibold text-primary hover:underline"
         >
           {recordText(row)}
         </button>
@@ -294,14 +294,14 @@ export function UserActivity() {
                 className="mb-3 flex flex-wrap items-center gap-2 rounded-2xl p-3"
                 style={glassCard}
               >
-                <span className="me-2 text-xs text-muted-foreground">
+                <span className="mr-2 text-xs text-muted-foreground">
                   {t(`period_${summary.range?.period ?? filters.period}`)}:{" "}
                   <b className="text-slate-700">{rangeLabel(summary.range)}</b>
                 </span>
                 <button
                   type="button"
                   onClick={() => set({ role: "" })}
-                  className={`rounded-xl border px-3 py-1.5 text-start ${!filters.role ? "border-primary" : ""}`}
+                  className={`rounded-xl border px-3 py-1.5 text-left ${!filters.role ? "border-primary" : ""}`}
                 >
                   <span className="block text-[10px] font-bold uppercase text-muted-foreground">
                     {t("total")}
@@ -313,7 +313,7 @@ export function UserActivity() {
                     key={r}
                     type="button"
                     onClick={() => set({ role: filters.role === r ? "" : r })}
-                    className={`rounded-xl border px-3 py-1.5 text-start ${filters.role === r ? "border-primary" : ""}`}
+                    className={`rounded-xl border px-3 py-1.5 text-left ${filters.role === r ? "border-primary" : ""}`}
                   >
                     <span className="block text-[10px] font-bold uppercase text-muted-foreground">
                       {t(`role_${r}`)}
@@ -322,7 +322,7 @@ export function UserActivity() {
                   </button>
                 ))}
                 {summary.by_entity?.length > 0 && (
-                  <span className="ms-auto flex flex-wrap gap-1">
+                  <span className="ml-auto flex flex-wrap gap-1">
                     {summary.by_entity.slice(0, 4).map((e) => (
                       <button
                         key={e.entity}

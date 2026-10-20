@@ -43,7 +43,7 @@ function RowsTable({ rows, name }) {
     <div className="overflow-x-auto rounded-lg border">
       <table className="w-full text-[11px]">
         <thead className="bg-muted/60">
-          <tr className="text-start text-muted-foreground">
+          <tr className="text-left text-muted-foreground">
             {columns.map((c) => (
               <th key={c} className="whitespace-nowrap px-2 py-1 font-semibold">
                 {fieldLabel(c)}

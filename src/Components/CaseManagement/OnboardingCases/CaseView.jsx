@@ -114,7 +114,7 @@ export function CaseView({ id, config, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToQueue")}
+        <ArrowLeft size={15} /> {t("backToQueue")}
       </button>
 
       <div className={cn("mb-4 rounded-2xl border bg-card p-4", kase.priority === "HIGH" ? "border-red-300" : "border-border")}>
@@ -128,7 +128,7 @@ export function CaseView({ id, config, onBack }) {
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
               {kase.subject?.name || t("noNameYet")}
-              <span className="ms-2 text-xs font-medium text-muted-foreground">{subjectKind(t, kase.subject)}{kase.subject?.customer_type ? ` · ${kase.subject.customer_type}` : ""}</span>
+              <span className="ml-2 text-xs font-medium text-muted-foreground">{subjectKind(t, kase.subject)}{kase.subject?.customer_type ? ` · ${kase.subject.customer_type}` : ""}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t("openedOn", { date: caseDate(kase.opened_at) })}
@@ -158,8 +158,8 @@ export function CaseView({ id, config, onBack }) {
             className={cn("shrink-0 border-b-2 px-3 py-2 text-sm font-bold", tab === key ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}
           >
             {t(`tab_${key}`)}
-            {key === "requests" && openRequests > 0 && <span className="ms-1.5 rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{openRequests}</span>}
-            {key === "aml" && kase.aml_open_matches > 0 && <span className="ms-1.5 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{kase.aml_open_matches}</span>}
+            {key === "requests" && openRequests > 0 && <span className="ml-1.5 rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{openRequests}</span>}
+            {key === "aml" && kase.aml_open_matches > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{kase.aml_open_matches}</span>}
           </button>
         ))}
       </div>
@@ -227,8 +227,8 @@ function ProposalBanner({ proposal, closed }) {
   return (
     <div
       className={cn(
-        "mt-3 flex gap-3 rounded-xl border border-s-4 p-3 text-sm",
-        neutral ? "border-border border-s-slate-400 bg-muted/50" : approve ? "border-emerald-300 border-s-emerald-500 bg-emerald-50 text-emerald-900" : "border-red-300 border-s-red-500 bg-red-50 text-red-900",
+        "mt-3 flex gap-3 rounded-xl border border-l-4 p-3 text-sm",
+        neutral ? "border-border border-l-slate-400 bg-muted/50" : approve ? "border-emerald-300 border-l-emerald-500 bg-emerald-50 text-emerald-900" : "border-red-300 border-l-red-500 bg-red-50 text-red-900",
       )}
     >
       <Icon size={18} className={cn("mt-0.5 shrink-0", neutral ? "text-muted-foreground" : approve ? "text-emerald-600" : "text-red-600")} />
@@ -272,7 +272,7 @@ function SnapshotRow({ title, snap }) {
       {snap.eligibility?.length > 0 && (
         <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-xs text-orange-800 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-200">
           <p className="mb-1 font-bold">{t("eligibilityMissed")}</p>
-          <ul className="list-disc ps-4">
+          <ul className="list-disc pl-4">
             {snap.eligibility.map((line) => (
               <li key={line}>{line}</li>
             ))}
@@ -335,20 +335,20 @@ function RiskTab({ assessment }) {
       </div>
       {points.length ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-start text-xs">
+          <table className="w-full text-left text-xs">
             <thead>
               <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                <th className="pb-2 pe-3">{t("criterion")}</th>
-                <th className="pb-2 pe-3">{t("answer")}</th>
-                <th className="pb-2 text-end">{t("points")}</th>
+                <th className="pb-2 pr-3">{t("criterion")}</th>
+                <th className="pb-2 pr-3">{t("answer")}</th>
+                <th className="pb-2 text-right">{t("points")}</th>
               </tr>
             </thead>
             <tbody>
               {points.map((p, i) => (
                 <tr key={p.criterion_id ?? p.id ?? i} className="border-t border-border">
-                  <td className="py-2 pe-3 font-semibold">{p.criterion_name ?? p.name ?? p.criterion ?? p.field_key ?? "—"}</td>
-                  <td className="py-2 pe-3 text-muted-foreground">{p.value_label ?? p.answer ?? p.value ?? "—"}</td>
-                  <td className="py-2 text-end font-bold tabular-nums">{p.points ?? p.score ?? 0}</td>
+                  <td className="py-2 pr-3 font-semibold">{p.criterion_name ?? p.name ?? p.criterion ?? p.field_key ?? "—"}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{p.value_label ?? p.answer ?? p.value ?? "—"}</td>
+                  <td className="py-2 text-right font-bold tabular-nums">{p.points ?? p.score ?? 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -384,7 +384,7 @@ function AmlTab({ result, media, openMatches, onChanged }) {
         ) : (
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700">{t("noOpenMatches")}</span>
         )}
-        <span className="ms-auto">
+        <span className="ml-auto">
           <AdverseMediaBadge media={media} />
         </span>
       </div>
@@ -429,13 +429,13 @@ function TimelineTab({ events, canNote, onNote, busy, fileOf }) {
         </div>
       )}
       {list.length ? (
-        <ol className="relative ms-2 border-s border-border ps-5">
+        <ol className="relative ml-2 border-l border-border pl-5">
           {list.map((e) => (
             <li key={e.id} className="relative mb-4">
-              <span className={cn("absolute -start-[27px] top-1 h-3 w-3 rounded-full border-2 border-card", e.visibility === "CUSTOMER" ? "bg-amber-500" : "bg-primary")} />
+              <span className={cn("absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-card", e.visibility === "CUSTOMER" ? "bg-amber-500" : "bg-primary")} />
               <p className="text-xs font-bold text-foreground">
                 {t(`event_${e.event}`, { defaultValue: e.event })}
-                {e.visibility === "CUSTOMER" && <span className="ms-2 rounded-full bg-amber-50 px-1.5 text-[10px] text-amber-700">{t("toCustomer")}</span>}
+                {e.visibility === "CUSTOMER" && <span className="ml-2 rounded-full bg-amber-50 px-1.5 text-[10px] text-amber-700">{t("toCustomer")}</span>}
               </p>
               <p className="text-[11px] text-muted-foreground">{caseDate(e.at)}{e.actor?.name || typeof e.actor === "string" ? ` · ${e.actor?.name ?? e.actor}` : ""}</p>
               {e.body && <p dir="auto" className="mt-1 whitespace-pre-wrap rounded-lg bg-muted/40 p-2 text-xs text-foreground">{e.body}</p>}
@@ -555,7 +555,7 @@ function ConversationTab({ caseId, api, events, canMessage, busy, onSend }) {
               const attached = Array.isArray(e.data?.files) ? e.data.files : [];
               return (
                 <li key={e.id} className={cn("flex", fromCustomer ? "justify-start" : "justify-end")}>
-                  <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm", fromCustomer ? "rounded-es-sm bg-muted" : "rounded-ee-sm bg-primary/10")}>
+                  <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm", fromCustomer ? "rounded-bl-sm bg-muted" : "rounded-br-sm bg-primary/10")}>
                     {e.body && <p dir="auto" className="whitespace-pre-wrap">{e.body}</p>}
                     {attached.length > 0 && (
                       <div className={cn("flex flex-wrap gap-1.5", e.body && "mt-2")}>

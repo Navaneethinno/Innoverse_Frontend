@@ -9,7 +9,7 @@ export function AmountInput({ value, decimals = 2, onChange, className, placehol
   const shown = focused || value === "" ? String(value).replace(".", decimalSeparator()) : formatNumber(value, { min: decimals, max: decimals });
   return (
     <input
-      className={cn("text-end tabular-nums", className)}
+      className={cn("text-right tabular-nums", className)}
       placeholder={placeholder}
       inputMode="decimal"
       value={shown}

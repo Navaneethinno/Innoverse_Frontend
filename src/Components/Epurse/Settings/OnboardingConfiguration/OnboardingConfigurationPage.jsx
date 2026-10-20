@@ -266,7 +266,7 @@ export function OnboardingConfigurationPage() {
       label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
-        <div className="text-start">
+        <div className="text-left">
           <div className="font-semibold">{r.name}</div>
           <div className="font-mono text-[11px] text-muted-foreground">{r.code}</div>
           {r.description && <div className="mt-0.5 max-w-[260px] truncate text-[11px] text-muted-foreground" title={r.description}>{r.description}</div>}
@@ -278,7 +278,7 @@ export function OnboardingConfigurationPage() {
       label: t("onboarding:subType"),
       align: "left",
       render: (r) => (
-        <div className="text-start">
+        <div className="text-left">
           <div>{r.ownership_sub_type_name ?? "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
           <InstitutionOnly><div className="text-[11px] text-muted-foreground">{r.inst_profile_name ?? "-"}</div></InstitutionOnly>

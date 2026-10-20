@@ -30,27 +30,27 @@ function RowResults({ result }) {
         <span className="text-success">{t("wlRowsOk", { count: result.ok ?? 0 })}</span>
         <span className="text-muted-foreground">{t("wlRowsSkipped", { count: result.skipped ?? 0 })}</span>
         <span className="text-amber-700">{t("wlRowsProblems", { count: result.problems ?? 0 })}</span>
-        <span className="ms-auto font-semibold text-muted-foreground">{t("wlRowsTotal", { count: result.rows ?? 0 })}</span>
+        <span className="ml-auto font-semibold text-muted-foreground">{t("wlRowsTotal", { count: result.rows ?? 0 })}</span>
       </p>
       <div className="max-h-72 overflow-auto">
         <table className="w-full text-xs">
           <thead className="sticky top-0 bg-card">
-            <tr className="text-start text-muted-foreground">
-              <th className="py-1 pe-2 font-semibold">{t("rowShort")}</th>
-              <th className="py-1 pe-2 font-semibold">{t("wlCol_customer")}</th>
-              <th className="py-1 pe-2 font-semibold">{t("wlMatch")}</th>
+            <tr className="text-left text-muted-foreground">
+              <th className="py-1 pr-2 font-semibold">{t("rowShort")}</th>
+              <th className="py-1 pr-2 font-semibold">{t("wlCol_customer")}</th>
+              <th className="py-1 pr-2 font-semibold">{t("wlMatch")}</th>
               <th className="py-1 font-semibold">{t("common:status")}</th>
             </tr>
           </thead>
           <tbody>
             {(result.results ?? []).map((r) => (
               <tr key={r.row} className="border-t align-top">
-                <td className="py-1.5 pe-2 tabular-nums">{r.row}</td>
-                <td className="py-1.5 pe-2">
+                <td className="py-1.5 pr-2 tabular-nums">{r.row}</td>
+                <td className="py-1.5 pr-2">
                   <span className="block break-all font-semibold">{r.customer}</span>
                   {r.reference_id && r.reference_id !== r.customer && <span className="block break-all text-[10px] text-muted-foreground">{r.reference_id}</span>}
                 </td>
-                <td className="py-1.5 pe-2">
+                <td className="py-1.5 pr-2">
                   <span dir="auto" className="block font-semibold">{r.match_name ?? r.matched_entity_name ?? (r.listed_name || r.entity_id || "-")}</span>
                   {(r.list || r.entity_id) && <span className="block break-all font-mono text-[10px] text-muted-foreground">{r.list ?? r.entity_id}</span>}
                 </td>

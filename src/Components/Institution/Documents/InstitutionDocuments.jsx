@@ -277,7 +277,7 @@ function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToDocuments")}
+        <ArrowLeft size={15} /> {t("backToDocuments")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -438,7 +438,7 @@ function AcceptancesTab({ id, options }) {
                 setVersionId(String(v.version_id) === versionId ? "" : String(v.version_id));
                 setPage(1);
               }}
-              className={cn("rounded-2xl border bg-card p-3 text-start transition-colors hover:border-primary", String(v.version_id) === versionId ? "border-primary ring-1 ring-primary" : "border-border")}
+              className={cn("rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary", String(v.version_id) === versionId ? "border-primary ring-1 ring-primary" : "border-border")}
             >
               <p className="text-[11px] font-semibold text-muted-foreground">{pairName(v)}</p>
               <p className="mt-1 flex items-center justify-between gap-2">
@@ -545,7 +545,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToDocuments")}
+        <ArrowLeft size={15} /> {t("backToDocuments")}
       </button>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{doc ? t("editX", { name: doc.name || doc.code }) : t("newDocument")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("draftHint") : t("proposeHint")}</p>

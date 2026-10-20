@@ -702,7 +702,7 @@ function LayoutPreview({ answer, v }) {
             <li key={key} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className={cn("h-2 w-2 shrink-0 rounded-full", DOT[key])} />
               <span className="truncate">{t(`seg_${key}`)}</span>
-              <span className="ms-auto tabular-nums font-semibold text-foreground">{width}</span>
+              <span className="ml-auto tabular-nums font-semibold text-foreground">{width}</span>
             </li>
           ))}
         </ul>

@@ -61,7 +61,7 @@ export function ChangePasswordPage() {
             onClick={() => navigate(-1)}
             className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
           >
-            <ArrowLeft size={16} className="rtl:-scale-x-100" /> {t("common:back")}
+            <ArrowLeft size={16} /> {t("common:back")}
           </button>
         )}
         <div className="mb-6 flex items-center gap-3">
@@ -84,13 +84,13 @@ export function ChangePasswordPage() {
                 type={visible.old ? "text" : "password"}
                 value={oldPassword}
                 onChange={(event) => setOldPassword(event.target.value)}
-                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pe-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("old")}
                 aria-label={visible.old ? t("hideOldPassword") : t("showOldPassword")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.old ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -103,13 +103,13 @@ export function ChangePasswordPage() {
                 type={visible.next ? "text" : "password"}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
-                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pe-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("next")}
                 aria-label={visible.next ? t("hideNewPassword") : t("showNewPassword")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.next ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -139,13 +139,13 @@ export function ChangePasswordPage() {
                 type={visible.confirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
-                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pe-10"
+                className="w-full rounded-xl border border-border bg-muted px-4 py-2.5 pr-10"
               />
               <button
                 type="button"
                 onClick={() => toggleVisibility("confirm")}
                 aria-label={visible.confirm ? t("hideConfirmedPassword") : t("showConfirmedPassword")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-600"
               >
                 {visible.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
