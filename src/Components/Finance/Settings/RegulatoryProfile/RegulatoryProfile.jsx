@@ -186,7 +186,7 @@ export function RegulatoryProfile() {
               fields={[
                 { key: "risk_class", label: t("riskClass"), type: "select", blank: t("choose"), options: options.risk_classes ?? [] },
                 { key: "minimum_days_past_due", label: t("fromDaysPastDue"), type: "int" },
-                { key: "provision_percent", label: t("provisionPct"), type: "rate" },
+                { key: "provision_percent", label: t("provisionPct"), type: "percent" },
               ]}
             />
             {classProblem && <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{classProblem}</p>}

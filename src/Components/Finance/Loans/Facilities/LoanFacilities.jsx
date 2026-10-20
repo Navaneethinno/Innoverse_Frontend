@@ -490,7 +490,7 @@ function FacilityView({ id, onBack }) {
           fields={[
             { key: "term_value", label: t("newTerm"), type: "int" },
             { key: "term_unit", label: t("termUnit"), type: "select", options: TERM_UNITS },
-            { key: "annual_rate", label: t("ratePct"), type: "rate", hint: t("currentRate", { rate: ratePct(f.annual_rate) }) },
+            { key: "annual_rate", label: t("ratePct"), type: "percent", hint: t("currentRate", { rate: ratePct(f.annual_rate) }) },
             { key: "moratorium_days", label: t("moratoriumDays"), type: "int" },
             { key: "reason", label: t("reason"), span: "sm:col-span-2" },
           ]}

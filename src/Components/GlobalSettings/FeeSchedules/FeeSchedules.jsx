@@ -561,10 +561,10 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             { key: "maximum_amount", label: t("upToZero"), type: "amount" },
             { key: "calculation_type", label: t("calculation"), ...codes(options.calculation_types) },
             { key: "fixed_amount", label: cur ? t("fixedAmount", { currency: cur }) : t("fixed"), type: "amount" },
-            { key: "percent_value", label: t("percent"), type: "rate" },
+            { key: "percent_value", label: t("percent"), type: "percent" },
             { key: "minimum_fee", label: t("minimumFee"), type: "amount" },
             { key: "maximum_fee", label: t("maximumFee"), type: "amount" },
-            { key: "tax_percent", label: t("taxPercent"), type: "rate" },
+            { key: "tax_percent", label: t("taxPercent"), type: "percent" },
             { key: "pay_from", label: t("paidBy"), ...codes(options.pay_from) },
           ].filter(Boolean)}
           renderExtra={(rule, patch) => (
@@ -578,7 +578,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
                 columns="lg:grid-cols-2"
                 fields={[
                   { key: "purpose", label: t("purpose"), type: "select", options: (options.share_purposes ?? []).map((v) => ({ value: v, label: t(`share_${v}`, { defaultValue: v }) })) },
-                  { key: "percent", label: t("percent"), type: "rate" },
+                  { key: "percent", label: t("percent"), type: "percent" },
                 ]}
               />
             </div>

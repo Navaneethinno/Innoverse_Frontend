@@ -4,6 +4,7 @@ import { ChevronDown, X } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { percentInput } from "@/Components/Finance/Deposits/depositShared";
 import { round2 } from "./riskShared";
 
 const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
@@ -84,7 +85,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
                 </button>
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   {t("weight")}
-                  <input type="number" min="0" max="100" step="any" value={c.weight} onChange={(e) => set(index, { weight: e.target.value })} className={scoreInput} />
+                  <input type="number" min="0" max="100" step="any" value={c.weight} onChange={(e) => set(index, { weight: percentInput(e.target.value) })} className={scoreInput} />
                   %
                 </label>
                 <UiTooltip label={t("removeCriterion")}>
@@ -113,7 +114,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
                             step="any"
                             placeholder="0"
                             value={c.scores[v.id] ?? ""}
-                            onChange={(e) => set(index, { scores: { ...c.scores, [v.id]: e.target.value } })}
+                            onChange={(e) => set(index, { scores: { ...c.scores, [v.id]: percentInput(e.target.value) } })}
                             className={scoreInput}
                           />
                         </label>

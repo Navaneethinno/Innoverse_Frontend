@@ -13,7 +13,7 @@ import { accountActionsApi, accountPartiesApi, accountStatementsApi } from "@/Se
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, Problems, inputClass, labelClass } from "../Deposits/depositShared";
+import { ActionButtons, NarrationDialog, Problems, inputClass, labelClass, percentInput } from "../Deposits/depositShared";
 import { MiniTable } from "../Loans/loanShared";
 import { accountDate, money } from "./accountShared";
 
@@ -286,7 +286,7 @@ function AddPartyDialog({ busy, onClose, onSave }) {
         {nominee && (
           <label className={labelClass}>
             {t("share")}
-            <input className={cn(inputClass, "mt-1.5 tabular-nums")} inputMode="decimal" value={form.share_percent} onChange={(e) => set("share_percent")(e.target.value.replace(/[^\d.]/g, ""))} placeholder="50" />
+            <input className={cn(inputClass, "mt-1.5 tabular-nums")} inputMode="decimal" value={form.share_percent} onChange={(e) => set("share_percent")(percentInput(e.target.value))} placeholder="50" />
           </label>
         )}
         <label className={cn(labelClass, "sm:col-span-2")}>

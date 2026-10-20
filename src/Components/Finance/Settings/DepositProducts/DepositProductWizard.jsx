@@ -13,14 +13,13 @@ import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
-import { Problems, Section, amountInput, inputClass, labelClass } from "../../Deposits/depositShared";
+import { Problems, Section, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
 import { PERIOD_DAYS, optionLabel } from "./productShared";
 
 const STEPS = ["policy", "tenors", "rates"];
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyBand = (from = "0") => ({ minimum_principal: from, maximum_principal: "0", annual_rate: "", effective_from: today(), effective_to: "" });
 const emptyTenor = () => ({ label: "", tenor_days: "", effective_from: today(), effective_to: "", rates: [emptyBand()] });
-const rateInput = (v) => amountInput(v, 6);
 
 // The configuration as the server takes it: amounts and rates as strings,
 // days as numbers, ids kept on tenors and bands that already exist.
@@ -249,7 +248,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 </label>
                 <label className={labelClass}>
                   {t(config.early_withdrawal_adjustment_type === "REDUCED_RATE" ? "reducedRateValue" : "forfeitValue")}
-                  <input className={cn(inputClass, "mt-1.5 tabular-nums")} inputMode="decimal" value={config.early_withdrawal_adjustment_value ?? ""} onChange={(e) => set({ early_withdrawal_adjustment_value: rateInput(e.target.value) })} />
+                  <input className={cn(inputClass, "mt-1.5 tabular-nums")} inputMode="decimal" value={config.early_withdrawal_adjustment_value ?? ""} onChange={(e) => set({ early_withdrawal_adjustment_value: percentInput(e.target.value) })} />
                 </label>
                 <Toggle showLabel label={t("recoverPaidInterest")} checked={config.recover_previously_paid_interest} onChange={(v) => set({ recover_previously_paid_interest: v })} className="self-start md:mt-5" />
               </div>
@@ -321,7 +320,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                     </label>
                     <label className={labelClass}>
                       {t("annualRatePct")}
-                      <input className={cn(inputClass, "mt-1 tabular-nums font-bold")} inputMode="decimal" value={b.annual_rate} onChange={(e) => setBand(i, k, { annual_rate: rateInput(e.target.value) })} />
+                      <input className={cn(inputClass, "mt-1 tabular-nums font-bold")} inputMode="decimal" value={b.annual_rate} onChange={(e) => setBand(i, k, { annual_rate: percentInput(e.target.value) })} />
                     </label>
                     <label className={labelClass}>
                       {t("effectiveFrom")}

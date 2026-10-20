@@ -173,7 +173,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
               <label key={c} className="text-xs font-semibold text-slate-700">
                 {t(`aml:category_${c}`, { defaultValue: c })}
                 <div className="relative">
-                  <input type="number" min={1} max={100} value={form.weights[c]} onChange={(e) => setForm((f) => ({ ...f, weights: { ...f.weights, [c]: e.target.value.replace(/\D/g, "").slice(0, 3) } }))} className={`${inputClass} pr-7`} />
+                  <input type="number" min={1} max={100} value={form.weights[c]} onChange={(e) => setForm((f) => ({ ...f, weights: { ...f.weights, [c]: String(Math.min(100, Number(e.target.value.replace(/\D/g, "").slice(0, 3)) || 0) || "") } }))} className={`${inputClass} pr-7`} />
                   <span className="pointer-events-none absolute right-3 top-1/2 mt-0.5 -translate-y-1/2 text-xs text-muted-foreground">%</span>
                 </div>
               </label>

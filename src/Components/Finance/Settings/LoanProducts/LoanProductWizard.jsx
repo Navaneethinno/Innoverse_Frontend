@@ -259,9 +259,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
                     { key: "minimum_amount", label: t("amountFrom"), type: "amount" },
                     { key: "maximum_amount", label: t("upToZero"), type: "amount" },
                     { key: "pricing_type", label: t("pricingType"), type: "select", options: [{ value: "FIXED", label: t("pricingFixed") }, { value: "VARIABLE", label: t("pricingVariable") }] },
-                    { key: "annual_rate", label: t("ratePct"), type: "rate", showIf: (b) => b.pricing_type !== "VARIABLE" },
+                    { key: "annual_rate", label: t("ratePct"), type: "percent", showIf: (b) => b.pricing_type !== "VARIABLE" },
                     { key: "reference_rate_code", label: t("referenceRate"), placeholder: "BASE", showIf: (b) => b.pricing_type === "VARIABLE" },
-                    { key: "spread", label: t("spreadPct"), type: "rate", showIf: (b) => b.pricing_type === "VARIABLE" },
+                    { key: "spread", label: t("spreadPct"), type: "percent", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "calculation_method", label: t("calculationMethod"), ...sel(options.calculation_methods) },
                     { key: "day_count_convention", label: t("dayCount"), ...sel(options.day_count_conventions) },
                     { key: "effective_from", label: t("effectiveFrom"), type: "date" },
@@ -304,9 +304,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             {field(t("installmentMethod"), <Field field={sel(options.installment_methods)} value={p.installment_method} onChange={(v) => setPolicy({ installment_method: v })} />, p.repayment_frequency === "BULLET" && t("bulletHint"))}
             {field(t("gracePeriodDays"), <Field field={{ type: "int" }} value={p.grace_period_days} onChange={(v) => setPolicy({ grace_period_days: v })} />, t("graceHint"))}
             {field(t("prepaymentChargeType"), <Field field={sel(options.prepayment_charge_types)} value={p.prepayment_charge_type} onChange={(v) => setPolicy({ prepayment_charge_type: v })} />)}
-            {p.prepayment_charge_type !== "NONE" && field(t(p.prepayment_charge_type === "PERCENT" ? "valuePct" : "valueAmount"), <Field field={{ type: "rate" }} value={p.prepayment_charge_value} onChange={(v) => setPolicy({ prepayment_charge_value: v })} />)}
+            {p.prepayment_charge_type !== "NONE" && field(t(p.prepayment_charge_type === "PERCENT" ? "valuePct" : "valueAmount"), <Field field={{ type: p.prepayment_charge_type === "PERCENT" ? "percent" : "rate" }} value={p.prepayment_charge_value} onChange={(v) => setPolicy({ prepayment_charge_value: v })} />)}
             {field(t("lateChargeType"), <Field field={sel(options.late_charge_types)} value={p.late_charge_type} onChange={(v) => setPolicy({ late_charge_type: v })} />)}
-            {p.late_charge_type !== "NONE" && field(t(p.late_charge_type === "PERCENT_OVERDUE" ? "valuePct" : "valueAmount"), <Field field={{ type: "rate" }} value={p.late_charge_value} onChange={(v) => setPolicy({ late_charge_value: v })} />)}
+            {p.late_charge_type !== "NONE" && field(t(p.late_charge_type === "PERCENT_OVERDUE" ? "valuePct" : "valueAmount"), <Field field={{ type: p.late_charge_type === "PERCENT_OVERDUE" ? "percent" : "rate" }} value={p.late_charge_value} onChange={(v) => setPolicy({ late_charge_value: v })} />)}
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <Toggle showLabel label={t("earlySettlement")} checked={p.early_settlement_allowed} onChange={(v) => setPolicy({ early_settlement_allowed: v })} />

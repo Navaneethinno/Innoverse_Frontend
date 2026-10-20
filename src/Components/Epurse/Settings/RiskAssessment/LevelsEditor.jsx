@@ -3,6 +3,7 @@ import { Plus, X } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { codeOf } from "../../../GlobalSettings/Notifications/notificationShared";
+import { percentInput } from "@/Components/Finance/Deposits/depositShared";
 import { LevelBar } from "./riskShared";
 
 // Levels must cover 0–100 with no gaps or overlaps, so only each level's
@@ -70,7 +71,7 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
             <label className="flex h-8 shrink-0 cursor-text items-center gap-1 rounded-full border bg-background pl-3 pr-1 text-sm tabular-nums focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15" aria-label={t("scoreRange")}>
               <span className="text-muted-foreground">{l.min_score}</span>
               <span className="text-muted-foreground">–</span>
-              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: e.target.value })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-right font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: percentInput(e.target.value) })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-right font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
             </label>
 
             {merchantOptions ? (

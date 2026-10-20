@@ -11,7 +11,7 @@ import { accountDate, money } from "@/Components/Finance/Accounts/accountShared"
 import { useAuth } from "@/Hooks/useAuth";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { cn } from "@/Utils/Lib/utils";
-import { amountInput, dayDate, inputClass, labelClass, ratePct } from "../Deposits/depositShared";
+import { amountInput, dayDate, inputClass, labelClass, percentInput, ratePct } from "../Deposits/depositShared";
 
 // Pieces shared by the Loans screens.
 
@@ -35,7 +35,7 @@ export function useInstitutionScope() {
 }
 
 // One input of a RowsEditor / form, by type:
-// amount | rate | int | text | date | select | bool | multi.
+// amount | rate | percent (at most 100) | int | text | date | select | bool | multi.
 export function Field({ field, value, onChange, disabled, decimals = 2 }) {
   const { t } = useTranslation("loans");
   const { type = "text", options = [], placeholder } = field;
@@ -68,6 +68,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2 }) {
   const clean = {
     amount: (v) => amountInput(v, decimals),
     rate: (v) => amountInput(v, 6),
+    percent: percentInput,
     int: (v) => String(v).replace(/\D/g, ""),
   }[type];
   return (

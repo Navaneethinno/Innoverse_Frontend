@@ -26,6 +26,12 @@ export const amountInput = (value, decimals = 2) => {
   return rest.length ? `${whole}.${rest.join("").slice(0, decimals)}` : whole;
 };
 
+// A percent being typed: like a rate (6 decimals), never above 100.
+export const percentInput = (value) => {
+  const clean = amountInput(value, 6);
+  return Number(clean) > 100 ? "100" : clean;
+};
+
 // Label / value tiles.
 export function Facts({ rows, className }) {
   return (

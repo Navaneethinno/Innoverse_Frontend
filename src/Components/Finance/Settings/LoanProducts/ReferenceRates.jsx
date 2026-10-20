@@ -71,7 +71,7 @@ export function ReferenceRates({ scope, onClose }) {
           </label>
           <label className={labelClass}>
             {t("ratePct")}
-            <Field field={{ type: "rate" }} value={form.annual_rate} onChange={(v) => setForm((f) => ({ ...f, annual_rate: v }))} />
+            <Field field={{ type: "percent" }} value={form.annual_rate} onChange={(v) => setForm((f) => ({ ...f, annual_rate: v }))} />
           </label>
           <label className={labelClass}>
             {t("effectiveFrom")}
