@@ -162,7 +162,11 @@ export function Modal({
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.16 }}
         className={cn(
-          "relative flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl",
+          // overflow-clip, not -hidden: a hidden box can still be scrolled by
+          // the browser (focusing a checkbox deep in a long list), which
+          // pushed the title off the top and left a blank band under the
+          // footer. A clipped box can't be scrolled at all.
+          "relative flex w-full flex-col overflow-clip rounded-2xl bg-white shadow-2xl",
           growWithContent ? "my-4" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
