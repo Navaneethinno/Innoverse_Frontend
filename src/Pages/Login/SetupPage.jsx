@@ -9,11 +9,11 @@ function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       <div
-        className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl"
+        className="absolute -top-32 -start-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl"
         style={{ background: "radial-gradient(circle, #7C8CFF, transparent 70%)" }}
       />
       <div
-        className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl"
+        className="absolute -bottom-32 -end-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl"
         style={{ background: "radial-gradient(circle, #7FE0C2, transparent 70%)" }}
       />
     </div>
@@ -69,7 +69,7 @@ export function SetupPage() {
               >
                 {s}
               </span>
-              {i < steps.length - 1 && <ChevronRight size={13} className="text-slate-200 ml-1" />}
+              {i < steps.length - 1 && <ChevronRight size={13} className="text-slate-200 ms-1 rtl:-scale-x-100" />}
             </div>
           ))}
         </div>

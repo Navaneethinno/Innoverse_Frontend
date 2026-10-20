@@ -188,7 +188,7 @@ function ReviewRow({ label, value }) {
   return (
     <div className="flex items-start justify-between py-2.5 border-b border-slate-50 last:border-0">
       <span className="text-sm text-muted-foreground shrink-0">{label}</span>
-      <span className="text-sm font-medium text-slate-700 text-right ml-4 min-w-0 break-all">
+      <span className="text-sm font-medium text-slate-700 text-end ms-4 min-w-0 break-all">
         {typeof value === "boolean" ? (value ? t("common:yes") : t("common:no")) : value || "—"}
       </span>
     </div>
@@ -251,7 +251,7 @@ function PreviewItem({ label, value }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2.5">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="max-w-[60%] truncate text-right text-xs font-semibold text-foreground">{value || "Not set"}</span>
+      <span className="max-w-[60%] truncate text-end text-xs font-semibold text-foreground">{value || "Not set"}</span>
     </div>
   );
 }
@@ -373,7 +373,7 @@ export function AddInstitutionProfile() {
           onClick={() => navigate("/institutions")}
           className="mb-3 flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft size={15} /> {t("common:back")}
+          <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("common:back")}
         </button>
 
         <div className="mb-8">

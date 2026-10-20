@@ -56,7 +56,7 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
           <li key={index} data-tour={index === 0 ? "risk-level-rows" : undefined} className="flex flex-wrap items-center gap-x-3 gap-y-2 p-2.5" style={{ boxShadow: `inset 3px 0 0 ${l.color_code || "transparent"}` }}>
             {/* Colour: the dot is the picker. */}
             <UiTooltip label={t("colour")}>
-              <label className="relative ml-1 h-7 w-7 shrink-0 cursor-pointer rounded-full border-2 border-background shadow ring-1 ring-border" style={{ background: l.color_code || "var(--muted)" }}>
+              <label className="relative ms-1 h-7 w-7 shrink-0 cursor-pointer rounded-full border-2 border-background shadow ring-1 ring-border" style={{ background: l.color_code || "var(--muted)" }}>
                 <input type="color" aria-label={t("colour")} value={l.color_code || "#9E9E9E"} onChange={(e) => set(index, { color_code: e.target.value.toUpperCase() })} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
               </label>
             </UiTooltip>
@@ -68,10 +68,10 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
 
             {/* Range: From follows the previous level; only To is typed. One
                 oval holds both, the To number editable in place. */}
-            <label className="flex h-8 shrink-0 cursor-text items-center gap-1 rounded-full border bg-background pl-3 pr-1 text-sm tabular-nums focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15" aria-label={t("scoreRange")}>
+            <label className="flex h-8 shrink-0 cursor-text items-center gap-1 rounded-full border bg-background ps-3 pe-1 text-sm tabular-nums focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15" aria-label={t("scoreRange")}>
               <span className="text-muted-foreground">{l.min_score}</span>
               <span className="text-muted-foreground">–</span>
-              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: percentInput(e.target.value) })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-right font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+              <input type="number" min="0" max="100" step="any" value={l.max_score} aria-label={t("maxScore")} onChange={(e) => set(index, { max_score: percentInput(e.target.value) })} className="h-6 w-12 rounded-full border-0 bg-muted/60 px-2 text-end font-semibold shadow-none outline-none focus:ring-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
             </label>
 
             {merchantOptions ? (
@@ -90,7 +90,7 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
             )}
 
             <UiTooltip label={t("removeLevel")}>
-              <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
+              <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ms-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
                 <X size={14} />
               </button>
             </UiTooltip>

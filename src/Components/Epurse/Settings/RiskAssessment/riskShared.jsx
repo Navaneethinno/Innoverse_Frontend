@@ -92,11 +92,11 @@ export function RiskPointsTable({ points, risk }) {
   return (
     <table className="mt-2 w-full text-xs">
       <thead>
-        <tr className="text-left text-muted-foreground">
+        <tr className="text-start text-muted-foreground">
           <th className="font-semibold">{t("criterion")}</th>
-          <th className="text-right font-semibold">{t("scoreCol")}</th>
-          <th className="text-right font-semibold">{t("weight")}</th>
-          <th className="text-right font-semibold">{t("points")}</th>
+          <th className="text-end font-semibold">{t("scoreCol")}</th>
+          <th className="text-end font-semibold">{t("weight")}</th>
+          <th className="text-end font-semibold">{t("points")}</th>
         </tr>
       </thead>
       <tbody className="tabular-nums">
@@ -106,9 +106,9 @@ export function RiskPointsTable({ points, risk }) {
               {risk.fieldName(p.field_code)}
               {p.value_id != null && <span className="text-muted-foreground"> · {p.value_id === 0 ? t("noAnswer") : risk.valueName(p.field_code, p.value_id)}</span>}
             </td>
-            <td className="text-right">{p.score}</td>
-            <td className="text-right">{p.weight}%</td>
-            <td className="text-right font-bold">{p.points}</td>
+            <td className="text-end">{p.score}</td>
+            <td className="text-end">{p.weight}%</td>
+            <td className="text-end font-bold">{p.points}</td>
           </tr>
         ))}
       </tbody>

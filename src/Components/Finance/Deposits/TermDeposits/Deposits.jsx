@@ -31,7 +31,7 @@ function depositColumns(t, can, onOpen, compact) {
       key: "reference_no",
       label: t("reference"),
       render: (d) => (
-        <button type="button" onClick={() => onOpen(d.id)} className="text-left">
+        <button type="button" onClick={() => onOpen(d.id)} className="text-start">
           <span className="font-mono text-xs font-bold text-primary hover:underline">{d.reference_no}</span>
           {d.deposit_number && <span className="block font-mono text-[10px] text-muted-foreground">{d.deposit_number}</span>}
         </button>

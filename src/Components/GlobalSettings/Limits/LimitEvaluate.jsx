@@ -164,7 +164,7 @@ export function LimitEvaluate({ group, onClose }) {
               <p className="text-xs text-muted-foreground">{t("matchedRules", { list: (result.matched_rules ?? []).join(", ") || "-" })}</p>
               <div className="overflow-hidden rounded-xl border">
                 <table className="w-full text-xs">
-                  <thead className="bg-muted/60 text-left text-muted-foreground">
+                  <thead className="bg-muted/60 text-start text-muted-foreground">
                     <tr>
                       <th className="px-3 py-2">{t("limitType")}</th>
                       <th className="px-3 py-2">{t("limit")}</th>
@@ -181,7 +181,7 @@ export function LimitEvaluate({ group, onClose }) {
                         </td>
                         <td className="px-3 py-2">
                           {l.source}
-                          {l.ceiling && <span className="ml-1.5 rounded bg-sky-50 px-1.5 text-[10px] font-bold text-sky-700">{t("ceiling")}</span>}
+                          {l.ceiling && <span className="ms-1.5 rounded bg-sky-50 px-1.5 text-[10px] font-bold text-sky-700">{t("ceiling")}</span>}
                         </td>
                       </tr>
                     ))}

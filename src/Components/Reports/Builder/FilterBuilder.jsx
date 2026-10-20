@@ -88,7 +88,7 @@ function OptionPicker({ source, field, multi, value, onChange, invalid }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex min-h-[38px] w-full items-center gap-1.5 rounded-xl border bg-card px-3 py-1.5 text-left text-sm",
+          "flex min-h-[38px] w-full items-center gap-1.5 rounded-xl border bg-card px-3 py-1.5 text-start text-sm",
           invalid ? "border-red-300" : "border-border",
           open && "border-primary",
         )}
@@ -112,7 +112,7 @@ function OptionPicker({ source, field, multi, value, onChange, invalid }) {
         <ChevronDown size={14} className="shrink-0 text-muted-foreground" />
       </button>
       {open && (
-        <div className="absolute left-0 right-0 z-30 mt-1 rounded-xl border border-border bg-card p-2 shadow-lg">
+        <div className="absolute start-0 end-0 z-30 mt-1 rounded-xl border border-border bg-card p-2 shadow-lg">
           <input
             autoFocus
             className={inputClass}
@@ -138,7 +138,7 @@ function OptionPicker({ source, field, multi, value, onChange, invalid }) {
                     type="button"
                     onClick={() => pick(o)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-muted",
+                      "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start text-sm hover:bg-muted",
                       on && "font-semibold text-primary",
                     )}
                   >
@@ -337,7 +337,7 @@ export function FilterGroup({ source, meta, group, onChange, onRemove, depth = 1
         )}
         {onRemove && (
           <ActionIconButton
-            className="ml-auto"
+            className="ms-auto"
             label={t("removeGroup")}
             intent="delete"
             icon={X}

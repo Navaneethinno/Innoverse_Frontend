@@ -74,7 +74,7 @@ export function DepositProducts() {
       label: t("accountProduct"),
       align: "left",
       render: (p) => (
-        <button type="button" onClick={() => setScreen({ kind: "view", id: p.id })} className="text-left">
+        <button type="button" onClick={() => setScreen({ kind: "view", id: p.id })} className="text-start">
           <p className="text-xs font-bold text-primary hover:underline">{p.acct_product?.product_name}</p>
           <p className="text-[10px] text-muted-foreground">{p.acct_product?.product_code}</p>
         </button>

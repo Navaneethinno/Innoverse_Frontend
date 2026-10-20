@@ -30,13 +30,13 @@ function GradientMesh() {
           once its own one-shot animations finish, without competing for
           attention with the login form itself. */}
       <motion.div
-        className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl"
+        className="absolute -top-32 -start-32 w-[600px] h-[600px] rounded-full opacity-[0.12] blur-3xl"
         style={{ background: "radial-gradient(circle, #7C8CFF, transparent 70%)" }}
         animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.18, 0.12] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl"
+        className="absolute -bottom-32 -end-32 w-[500px] h-[500px] rounded-full opacity-[0.10] blur-3xl"
         style={{ background: "radial-gradient(circle, #7FE0C2, transparent 70%)" }}
         animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
@@ -110,7 +110,7 @@ export function LoginPage() {
     <div
       className="login-theme-transition relative flex min-h-screen overflow-hidden bg-background"
     >
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+      <div className="absolute top-4 end-4 z-20 flex items-center gap-2">
         <LanguageDropdown />
         <UiTooltip label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
         <button
@@ -219,7 +219,7 @@ export function LoginPage() {
                 <div className="relative">
                   <Building2
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                    className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                   />
                   <input
                     value={institutionCode}
@@ -232,7 +232,7 @@ export function LoginPage() {
                     data-1p-ignore="true"
                     autoCapitalize="characters"
                     spellCheck={false}
-                    className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-4 text-sm uppercase text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    className="w-full rounded-xl border border-border bg-background/70 py-3 ps-9 pe-4 text-sm uppercase text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
               </div>
@@ -241,7 +241,7 @@ export function LoginPage() {
                 <div className="relative">
                   <Mail
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                    className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                   />
                   <input
                     value={username}
@@ -252,7 +252,7 @@ export function LoginPage() {
                     autoComplete="off"
                     data-lpignore="true"
                     data-1p-ignore="true"
-                    className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-4 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    className="w-full rounded-xl border border-border bg-background/70 py-3 ps-9 pe-4 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
               </div>
@@ -261,7 +261,7 @@ export function LoginPage() {
                 <div className="relative">
                   <Lock
                     size={14}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                    className="absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
                   />
                   <input
                     type={showPassword ? "text" : "password"}
@@ -273,19 +273,19 @@ export function LoginPage() {
                     autoComplete="new-password"
                     data-lpignore="true"
                     data-1p-ignore="true"
-                    className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-10 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
+                    className="w-full rounded-xl border border-border bg-background/70 py-3 ps-9 pe-10 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((visible) => !visible)}
                     aria-label={showPassword ? t("hidePassword") : t("showPassword")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary"
+                    className="absolute end-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary"
                   >
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
               </div>
-              <div className="text-right -mt-1">
+              <div className="text-end -mt-1">
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}

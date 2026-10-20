@@ -83,20 +83,20 @@ function TenorTable({ tenors, other, currency }) {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full table-fixed text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+              <thead className="text-start text-[10px] uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="py-1 pr-3">{t("amountFrom")}</th>
-                  <th className="py-1 pr-3">{t("amountUpTo")}</th>
-                  <th className="py-1 pr-3">{t("annualRate")}</th>
+                  <th className="py-1 pe-3">{t("amountFrom")}</th>
+                  <th className="py-1 pe-3">{t("amountUpTo")}</th>
+                  <th className="py-1 pe-3">{t("annualRate")}</th>
                   <th className="py-1">{t("effective")}</th>
                 </tr>
               </thead>
               <tbody>
                 {(tenor.rates ?? []).map((b, j) => (
                   <tr key={b.id ?? `b${j}`} className={cn("border-t border-border", otherBands && !otherBands.has(bandKey(b)) && "bg-amber-50")}>
-                    <td className="py-1.5 pr-3 tabular-nums">{money(b.minimum_principal, currency)}</td>
-                    <td className="py-1.5 pr-3 tabular-nums">{Number(b.maximum_principal) === 0 ? t("noLimit") : money(b.maximum_principal, currency)}</td>
-                    <td className="py-1.5 pr-3 font-bold tabular-nums text-primary">{ratePct(b.annual_rate)}</td>
+                    <td className="py-1.5 pe-3 tabular-nums">{money(b.minimum_principal, currency)}</td>
+                    <td className="py-1.5 pe-3 tabular-nums">{Number(b.maximum_principal) === 0 ? t("noLimit") : money(b.maximum_principal, currency)}</td>
+                    <td className="py-1.5 pe-3 font-bold tabular-nums text-primary">{ratePct(b.annual_rate)}</td>
                     <td className="py-1.5 text-muted-foreground">{periodText(t, b)}</td>
                   </tr>
                 ))}

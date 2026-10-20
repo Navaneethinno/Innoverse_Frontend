@@ -62,7 +62,7 @@ export function TestScorePanel({ api, row, risk }) {
         <div className="mt-3 rounded-xl bg-muted/50 p-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-2xl font-black tabular-nums">{result.score}</span>
-            <div className="text-right">
+            <div className="text-end">
               <LevelChip level={result.level} />
               <p className="mt-0.5 text-[11px] text-muted-foreground">{risk.actionName(result.level?.risk_action_id)}</p>
             </div>

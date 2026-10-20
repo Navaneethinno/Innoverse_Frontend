@@ -182,7 +182,7 @@ export function CorporateCustomerOnboardingResource() {
       label: t("customer:company"),
       align: "left",
       render: (r) => (
-        <div className="text-left">
+        <div className="text-start">
           <div className="font-semibold">{r.customer_name || r.company_name || "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
           <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
@@ -195,7 +195,7 @@ export function CorporateCustomerOnboardingResource() {
       label: t("onboarding:customerType"),
       align: "left",
       render: (r) => (
-        <div className="text-left">
+        <div className="text-start">
           <div>{r.onboarding_definition_name ?? "-"}</div>
           <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step ?? "-" })}</div>
         </div>

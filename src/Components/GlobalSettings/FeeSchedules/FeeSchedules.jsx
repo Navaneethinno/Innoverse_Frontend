@@ -106,7 +106,7 @@ export function FeeSchedules() {
       label: t("schedule"),
       align: "left",
       render: (s) => (
-        <button type="button" onClick={() => setScreen({ kind: "view", id: s.id })} className="text-left">
+        <button type="button" onClick={() => setScreen({ kind: "view", id: s.id })} className="text-start">
           <p className="text-xs font-bold text-primary hover:underline">{s.schedule_name || s.schedule_code}</p>
           <p className="text-[10px] text-muted-foreground">{s.schedule_code}</p>
         </button>
@@ -297,7 +297,7 @@ function ScheduleView({ id, onBack, onEdit }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToSchedules")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToSchedules")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -504,7 +504,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToSchedules")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToSchedules")}
       </button>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{schedule ? t("editX", { name: schedule.schedule_name || schedule.schedule_code }) : t("newSchedule")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("draftHint") : t("proposeHint")}</p>

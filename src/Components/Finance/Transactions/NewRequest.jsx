@@ -300,7 +300,7 @@ function CardPicker({ value, locked, onChange }) {
       {rows && (
         <div className="grid gap-1.5">
           {rows.map((c) => (
-            <button key={c.id} type="button" onClick={() => onChange(c)} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left text-xs transition-all hover:-translate-y-px hover:border-primary">
+            <button key={c.id} type="button" onClick={() => onChange(c)} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-start text-xs transition-all hover:-translate-y-px hover:border-primary">
               <span className="font-mono font-bold">{c.pan_masked}</span>
               <span className="min-w-0 flex-1 truncate">{c.holder_name}</span>
               <span className="text-muted-foreground">{c.product_code} · {c.product_class}</span>

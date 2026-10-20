@@ -66,7 +66,7 @@ export function CardRequests() {
       label: t("request"),
       align: "left",
       render: (r) => (
-        <button type="button" onClick={() => setOpenId(r.id)} className="text-left">
+        <button type="button" onClick={() => setOpenId(r.id)} className="text-start">
           <p className="font-mono text-xs font-bold text-primary hover:underline">{r.request_ref}</p>
           <p className="text-[10px] text-muted-foreground">{cardWord(t, "rtype", r.request_type)}</p>
         </button>

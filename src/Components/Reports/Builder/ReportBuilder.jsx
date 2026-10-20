@@ -53,7 +53,7 @@ function ChipList({ keys, fields, onChange, addLabel }) {
         <span
           key={key}
           {...drag.rowProps(i)}
-          className={`flex items-center gap-0.5 rounded-full border border-border bg-card py-0.5 pl-0.5 pr-1 text-xs font-semibold ${drag.rowClass(i)}`}
+          className={`flex items-center gap-0.5 rounded-full border border-border bg-card py-0.5 ps-0.5 pe-1 text-xs font-semibold ${drag.rowClass(i)}`}
         >
           <DragGrip label={t("dragToMove")} {...drag.gripProps(i)} />
           {label(key)}
@@ -249,7 +249,7 @@ export function ReportBuilder() {
               />
             </div>
             {template && (
-              <span className="flex items-center gap-1 rounded-full bg-[var(--primary-light)] py-1 pl-3 pr-1 text-xs font-bold text-primary">
+              <span className="flex items-center gap-1 rounded-full bg-[var(--primary-light)] py-1 ps-3 pe-1 text-xs font-bold text-primary">
                 {template.name}
                 {!template.is_owner && (
                   <span className="font-semibold opacity-70">· {template.owner_name}</span>
@@ -267,7 +267,7 @@ export function ReportBuilder() {
             )}
             {state && (
               <SegmentedSwitch
-                className="sm:ml-auto"
+                className="sm:ms-auto"
                 value={state.mode}
                 onChange={(mode) =>
                   set({

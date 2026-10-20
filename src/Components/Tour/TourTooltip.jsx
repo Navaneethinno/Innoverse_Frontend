@@ -29,7 +29,7 @@ export function TourTooltip({ index, size, step, isLastStep, backProps, primaryP
             {t("skip")}
           </button>
         )}
-        <div className="ml-auto flex gap-2">
+        <div className="ms-auto flex gap-2">
           {index > 0 && !step.hideBackButton && (
             <button {...backProps} className="rounded-xl border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted">
               {t("back")}

@@ -76,7 +76,7 @@ function SectionCard({ placed, index, count, section, fields, typeName, readOnly
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-800">
             {section?.heading ?? placed.section_key}
-            {!section && <span className="ml-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
+            {!section && <span className="ms-2 text-xs font-normal text-red-600">{t("formBuilder:notInLibrary")}</span>}
           </p>
           <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted-foreground">
             <span className="truncate">{section?.name}</span> · <code>{placed.section_key}</code>
@@ -197,7 +197,7 @@ function Problems({ problems, t }) {
         {problems.length ? t("formBuilder:problemsToFix", { count: problems.length }) : t("formBuilder:noProblems")}
       </p>
       {problems.length > 0 && (
-        <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
+        <ul className="mt-2 list-disc ps-5 text-sm text-red-700">
           {problems.map((p, i) => (
             <li key={i}>{typeof p === "string" ? p : (p.message ?? JSON.stringify(p))}</li>
           ))}
@@ -638,7 +638,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                       <div key={s.key} className="rounded-xl border bg-white/70 p-3">
                         <p className="text-sm font-bold text-slate-800">
                           {s.heading}
-                          {s.required === false && <span className="ml-2 text-[11px] font-normal text-muted-foreground">({t("formBuilder:optional")})</span>}
+                          {s.required === false && <span className="ms-2 text-[11px] font-normal text-muted-foreground">({t("formBuilder:optional")})</span>}
                         </p>
                         {s.subheading && <p className="text-[11px] text-muted-foreground">{s.subheading}</p>}
                         <ul className="mt-2 flex flex-col gap-1 text-xs text-slate-600">

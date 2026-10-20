@@ -84,7 +84,7 @@ export function LoanProducts() {
       label: t("product"),
       align: "left",
       render: (p) => (
-        <button type="button" onClick={() => setScreen({ kind: "view", id: p.id })} className="text-left">
+        <button type="button" onClick={() => setScreen({ kind: "view", id: p.id })} className="text-start">
           <p className="text-xs font-bold text-primary hover:underline">{p.product_name || p.product_code}</p>
           <p className="text-[10px] text-muted-foreground">{p.product_code}</p>
         </button>
@@ -235,7 +235,7 @@ function LoanProductView({ id, onBack, onEdit }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToProducts")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToProducts")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -282,10 +282,10 @@ function LoanProductView({ id, onBack, onEdit }) {
       )}
 
       <Section title={t("history")}>
-        <ol className="relative grid gap-3 border-l border-border pl-4">
+        <ol className="relative grid gap-3 border-s border-border ps-4">
           {audit.map((entry, i) => (
             <li key={`${entry.at}-${i}`} className="relative">
-              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+              <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
               <p className="text-xs font-bold text-foreground">
                 {t(`deposits:audit_${entry.action}`, { defaultValue: entry.action })} <span className="font-medium text-muted-foreground">· {entry.process_status_name ?? entry.status_name}</span>
               </p>

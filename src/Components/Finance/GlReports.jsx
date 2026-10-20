@@ -119,7 +119,7 @@ function Statement({ currencies }) {
           <>
             {data && (
               <div className="flex flex-wrap gap-3 border-b border-border p-3">
-                <div className="mr-auto self-center text-xs">
+                <div className="me-auto self-center text-xs">
                   <p className="font-bold">
                     {data.name} <span className="font-mono font-normal text-muted-foreground">{[data.gl_code, data.account_number].filter(Boolean).join(" · ")}</span>
                   </p>
@@ -237,23 +237,23 @@ function TrialBalance({ currencies }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <thead className="border-b border-border text-start text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-2.5">{t("gl")}</th>
                 <th className="px-3 py-2.5">{t("glCode")}</th>
                 <th className="px-3 py-2.5">{t("glType")}</th>
-                <th className="px-3 py-2.5 text-right">{t("debit")}</th>
-                <th className="px-3 py-2.5 text-right">{t("credit")}</th>
+                <th className="px-3 py-2.5 text-end">{t("debit")}</th>
+                <th className="px-3 py-2.5 text-end">{t("credit")}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map(({ n, depth }) => (
                 <tr key={n.id} className={cn("border-b border-border/60", !n.is_account && "bg-muted/30")}>
                   <td className="px-4 py-1.5">
-                    <span className="flex items-center gap-1.5" style={{ paddingLeft: depth * 18 }}>
+                    <span className="flex items-center gap-1.5" style={{ paddingInlineStart: depth * 18 }}>
                       {n.children?.length ? (
                         <button type="button" onClick={() => toggle(n.id)} className="rounded p-0.5 text-muted-foreground hover:bg-muted" aria-label={t(open.has(n.id) ? "collapse" : "expand")}>
-                          {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} className="rtl:-scale-x-100" />}
                         </button>
                       ) : (
                         <span className="w-[18px]" />
@@ -267,8 +267,8 @@ function TrialBalance({ currencies }) {
                   <td className="px-3 py-1.5">
                     <GlType value={n.gl_type} />
                   </td>
-                  <td className={cn("px-3 py-1.5 text-right text-xs tabular-nums", !n.is_account && "font-bold")}>{amt(n.debit)}</td>
-                  <td className={cn("px-3 py-1.5 text-right text-xs tabular-nums", !n.is_account && "font-bold")}>{amt(n.credit)}</td>
+                  <td className={cn("px-3 py-1.5 text-end text-xs tabular-nums", !n.is_account && "font-bold")}>{amt(n.debit)}</td>
+                  <td className={cn("px-3 py-1.5 text-end text-xs tabular-nums", !n.is_account && "font-bold")}>{amt(n.credit)}</td>
                 </tr>
               ))}
               {(data.other_accounts ?? []).map((o) => (
@@ -276,8 +276,8 @@ function TrialBalance({ currencies }) {
                   <td className="px-4 py-1.5 text-xs font-semibold" colSpan={3}>
                     {t(`otherAccounts_${o.acct_class}`, { defaultValue: o.acct_class })} <span className="font-normal text-muted-foreground">· {t("notGls")}</span>
                   </td>
-                  <td className="px-3 py-1.5 text-right text-xs tabular-nums">{amt(o.debit)}</td>
-                  <td className="px-3 py-1.5 text-right text-xs tabular-nums">{amt(o.credit)}</td>
+                  <td className="px-3 py-1.5 text-end text-xs tabular-nums">{amt(o.debit)}</td>
+                  <td className="px-3 py-1.5 text-end text-xs tabular-nums">{amt(o.credit)}</td>
                 </tr>
               ))}
             </tbody>
@@ -286,8 +286,8 @@ function TrialBalance({ currencies }) {
                 <td className="px-4 py-2.5 text-xs font-black" colSpan={3}>
                   {t("totals")} <span className="font-normal text-muted-foreground">· {data.as_of}</span>
                 </td>
-                <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums">{glAmount(data.total_debit, cur)}</td>
-                <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums">{glAmount(data.total_credit, cur)}</td>
+                <td className="px-3 py-2.5 text-end text-sm font-black tabular-nums">{glAmount(data.total_debit, cur)}</td>
+                <td className="px-3 py-2.5 text-end text-sm font-black tabular-nums">{glAmount(data.total_credit, cur)}</td>
               </tr>
               <tr>
                 <td colSpan={5} className="px-4 pb-3">
@@ -295,7 +295,7 @@ function TrialBalance({ currencies }) {
                     {diff === 0 ? t("balanced") : t("differenceX", { value: glAmount(diff, cur) })}
                   </span>
                   {(data.by_type ?? []).length > 0 && (
-                    <span className="ml-3 inline-flex flex-wrap gap-2 align-middle">
+                    <span className="ms-3 inline-flex flex-wrap gap-2 align-middle">
                       {data.by_type.map((x) => (
                         <span key={x.gl_type} className="text-[11px] text-muted-foreground">
                           <GlType value={x.gl_type} /> {glAmount(x.net, cur)}

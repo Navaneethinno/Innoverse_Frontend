@@ -447,7 +447,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
           {pending ? "Saving..." : editing ? "Save changes" : "Add channel"}
         </button>
       </div>
-      {error && <p className="text-right text-xs font-semibold text-red-600">{error}</p>}
+      {error && <p className="text-end text-xs font-semibold text-red-600">{error}</p>}
     </form>
   );
 }

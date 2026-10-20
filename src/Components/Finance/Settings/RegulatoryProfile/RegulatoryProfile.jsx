@@ -218,10 +218,10 @@ export function RegulatoryProfile() {
             </Section>
           )}
           <Section title={t("history")}>
-            <ol className="relative grid gap-3 border-l border-border pl-4">
+            <ol className="relative grid gap-3 border-s border-border ps-4">
               {(data.history ?? []).map((h, i) => (
                 <li key={`${h.at}-${i}`} className="relative">
-                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+                  <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
                   <p className="text-xs font-bold text-foreground">
                     {loanLabel(t, h.action)} <span className="font-medium text-muted-foreground">· {h.profile?.policy_version}</span>
                   </p>

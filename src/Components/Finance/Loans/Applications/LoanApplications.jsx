@@ -283,7 +283,7 @@ function ApplicationView({ id, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToApplications")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToApplications")}
       </button>
 
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
@@ -299,13 +299,13 @@ function ApplicationView({ id, onBack }) {
               )}
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
-              {app.owner?.name} <span className="ml-1 text-xs font-medium text-muted-foreground">{loanLabel(t, app.owner?.kind)}</span>
+              {app.owner?.name} <span className="ms-1 text-xs font-medium text-muted-foreground">{loanLabel(t, app.owner?.kind)}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {app.product_name} · {app.requested_term_value} {loanLabel(t, app.requested_term_unit)} · {loanLabel(t, app.purpose_code)} · {loanLabel(t, app.application_channel)} · {app.inst_profile_name}
             </p>
           </div>
-          <div className="min-w-0 text-right">
+          <div className="min-w-0 text-end">
             <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{money(app.requested_amount, cur)}</p>
             <p className="text-sm font-bold text-primary">{t("rateAYear", { rate: ratePct(app.annual_rate) })}</p>
           </div>

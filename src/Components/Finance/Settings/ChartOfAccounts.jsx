@@ -197,13 +197,13 @@ function GlTree({ version, onView, onAdd }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <thead className="border-b border-border text-start text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-2.5">{t("gl")}</th>
                 <th className="px-3 py-2.5">{t("glCode")}</th>
                 <th className="px-3 py-2.5">{t("accountNumber")}</th>
                 <th className="px-3 py-2.5">{t("glType")}</th>
-                <th className="px-3 py-2.5 text-right">{t("balance")}</th>
+                <th className="px-3 py-2.5 text-end">{t("balance")}</th>
                 <th className="px-3 py-2.5">{t("status")}</th>
                 <th className="px-3 py-2.5" />
               </tr>
@@ -212,15 +212,15 @@ function GlTree({ version, onView, onAdd }) {
               {rows.map(({ n, depth }) => (
                 <tr key={n.id} className="border-b border-border/60 hover:bg-muted/40">
                   <td className="px-4 py-2">
-                    <span className="flex items-center gap-1.5" style={{ paddingLeft: depth * 18 }}>
+                    <span className="flex items-center gap-1.5" style={{ paddingInlineStart: depth * 18 }}>
                       {n.children?.length ? (
                         <button type="button" aria-label={t(open.has(n.id) ? "collapse" : "expand")} onClick={() => toggle(n.id)} className="rounded p-0.5 text-muted-foreground hover:bg-muted">
-                          {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} className="rtl:-scale-x-100" />}
                         </button>
                       ) : (
                         <span className="w-[18px]" />
                       )}
-                      <button type="button" onClick={() => onView(n.id)} className={cn("text-left hover:text-primary hover:underline", n.is_account ? "text-xs" : "text-xs font-bold")}>
+                      <button type="button" onClick={() => onView(n.id)} className={cn("text-start hover:text-primary hover:underline", n.is_account ? "text-xs" : "text-xs font-bold")}>
                         {n.name}
                       </button>
                       {n.has_pl ? <ControlGlBadge /> : !n.is_account && <span className="text-[10px] text-muted-foreground">({n.children?.length ?? 0})</span>}
@@ -231,7 +231,7 @@ function GlTree({ version, onView, onAdd }) {
                   <td className="px-3 py-2">
                     <GlType value={n.gl_type} />
                   </td>
-                  <td className="px-3 py-2 text-right">
+                  <td className="px-3 py-2 text-end">
                     <Balances balances={n.balances} />
                   </td>
                   <td className="px-3 py-2">
@@ -291,7 +291,7 @@ function GlFlatList({ search = "", pending = false, version, onView, bare = fals
       label: t("gl"),
       align: "left",
       render: (g) => (
-        <button type="button" onClick={() => onView(g.id)} className="text-left">
+        <button type="button" onClick={() => onView(g.id)} className="text-start">
           <p className="text-xs font-bold text-primary hover:underline">{g.name}</p>
           <p className="text-[10px] text-muted-foreground">{g.parent_name || t("topLevel")}</p>
         </button>

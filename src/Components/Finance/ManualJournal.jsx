@@ -145,7 +145,7 @@ function JournalList({ version, onView }) {
             label: t("journal"),
             align: "left",
             render: (j) => (
-              <button type="button" onClick={() => onView(j.id)} className="text-left">
+              <button type="button" onClick={() => onView(j.id)} className="text-start">
                 <p className="text-xs font-bold text-primary hover:underline">
                   #{j.id} {j.reference && <span className="font-mono">· {j.reference}</span>}
                 </p>
@@ -252,7 +252,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
       icon={<BookOpenCheck size={15} />}
       footer={
         <>
-          <span className={cn("mr-auto text-xs font-bold tabular-nums", balanced ? "text-emerald-700" : "text-amber-700")}>
+          <span className={cn("me-auto text-xs font-bold tabular-nums", balanced ? "text-emerald-700" : "text-amber-700")}>
             {t("drCrTotals", { dr: fromUnits(dr), cr: fromUnits(cr) })} {!balanced && dr + cr > 0 && `· ${t("differenceX", { value: fromUnits(Math.abs(dr - cr)) })}`}
           </span>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -340,7 +340,7 @@ function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onCh
           {l.account && (
             <>
               {t("availableX", { value: money(l.account.avail_bal, l.account.currency_code) })} · {t("ledgerX", { value: money(l.account.ledger_bal, l.account.currency_code) })}
-              {l.account.restriction && <b className="ml-1 text-red-700">{t(`restriction_${l.account.restriction}`)}</b>}
+              {l.account.restriction && <b className="ms-1 text-red-700">{t(`restriction_${l.account.restriction}`)}</b>}
             </>
           )}
         </p>
@@ -404,11 +404,11 @@ function AccountPicker({ value, currencyId, onChange }) {
           {found.length ? (
             found.map((a) => (
               <li key={a.acct_num}>
-                <button type="button" onClick={() => onChange(a)} className="block w-full px-3 py-2 text-left text-xs hover:bg-muted">
+                <button type="button" onClick={() => onChange(a)} className="block w-full px-3 py-2 text-start text-xs hover:bg-muted">
                   <b className="font-mono">{a.acct_num}</b> · {a.owner_name}
                   <span className="block text-[10px] text-muted-foreground">
                     {[t(OWNER_KINDS[a.owner_kind] ?? "", { defaultValue: a.owner_kind }), a.acct_product_name, money(a.avail_bal, a.currency_code)].filter(Boolean).join(" · ")}
-                    {a.restriction && <b className="ml-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
+                    {a.restriction && <b className="ms-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
                   </span>
                 </button>
               </li>
@@ -469,12 +469,12 @@ function JournalDetail({ id, onClose, onChanged, onOpen }) {
                 </p>
               )}
               {j.reverses_journal_id > 0 && (
-                <button type="button" className="w-fit text-left font-bold text-primary hover:underline" onClick={() => onOpen(j.reverses_journal_id)}>
+                <button type="button" className="w-fit text-start font-bold text-primary hover:underline" onClick={() => onOpen(j.reverses_journal_id)}>
                   {t("reversesX", { id: j.reverses_journal_id })}
                 </button>
               )}
               {j.reversed_by_journal_id > 0 && (
-                <button type="button" className="w-fit text-left font-bold text-primary hover:underline" onClick={() => onOpen(j.reversed_by_journal_id)}>
+                <button type="button" className="w-fit text-start font-bold text-primary hover:underline" onClick={() => onOpen(j.reversed_by_journal_id)}>
                   {t("reversedByX", { id: j.reversed_by_journal_id })}
                 </button>
               )}

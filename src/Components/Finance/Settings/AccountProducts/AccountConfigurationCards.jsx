@@ -40,7 +40,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
                 onEditProduct?.();
               }
             }}
-            className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-border bg-white p-4 text-left shadow-sm transition-colors hover:border-primary hover:shadow-md"
+            className="group flex min-h-[9.5rem] flex-col rounded-2xl border border-border bg-white p-4 text-start shadow-sm transition-colors hover:border-primary hover:shadow-md"
           >
             <div className="flex items-start gap-3">
               {/* Fixed icon box on every card, regardless of which icon it
@@ -69,7 +69,7 @@ export function AccountConfigurationCards({ product, onNavigate, onEditProduct }
               )}
               {isEnabled ? (
                 <span className="flex items-center gap-1 text-xs font-bold text-primary">
-                  {tr("Configure")} <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                  {tr("Configure")} <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5 rtl:-scale-x-100" />
                 </span>
               ) : (
                 <span className="flex items-center gap-1 text-xs font-bold text-primary">

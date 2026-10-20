@@ -46,13 +46,13 @@ export function RecentOnboardingWidget() {
       icon={Activity}
       action={
         <button type="button" onClick={() => openMenu("onboardingwizard")} className="flex shrink-0 items-center gap-1 text-xs font-bold text-primary hover:underline">
-          {t("viewAll")} <ArrowRight size={12} />
+          {t("viewAll")} <ArrowRight size={12} className="rtl:-scale-x-100" />
         </button>
       }
     >
       <WidgetBody loading={loading} failed={failed} empty={!items.length}>
         <div>
-          <table className="w-full min-w-[520px] text-left text-xs">
+          <table className="w-full min-w-[520px] text-start text-xs">
             <thead>
               <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 <th className="px-1 pb-2">{t("customer")}</th>
@@ -160,7 +160,7 @@ export function QuickActionsWidget() {
             style={{ color: "var(--primary)", borderColor: "var(--primary-light)" }}
           >
             {t(a.key)}
-            <ArrowRight size={13} />
+            <ArrowRight size={13} className="rtl:-scale-x-100" />
           </button>
         ))}
       </div>

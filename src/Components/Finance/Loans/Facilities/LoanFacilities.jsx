@@ -77,7 +77,7 @@ export function LoanFacilities() {
       key: "facility_number",
       label: t("loan"),
       render: (f) => (
-        <button type="button" onClick={() => setOpenId(f.id)} className="text-left">
+        <button type="button" onClick={() => setOpenId(f.id)} className="text-start">
           <span className="block font-mono text-xs font-bold text-primary hover:underline">{f.facility_number}</span>
           <span className="block font-mono text-[10px] text-muted-foreground">{f.application_number}</span>
         </button>
@@ -233,7 +233,7 @@ function FacilityView({ id, onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToLoans")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToLoans")}
       </button>
 
       <div className={cn("mb-4 rounded-2xl border bg-card p-4", f.status === "DELINQUENT" ? "border-red-300" : "border-border")}>
@@ -245,13 +245,13 @@ function FacilityView({ id, onBack }) {
               {f.restructure_count > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">{t("restructuredN", { count: f.restructure_count })}</span>}
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
-              {f.owner?.name} <span className="ml-1 text-xs font-medium text-muted-foreground">{loanLabel(t, f.owner?.kind ?? f.entity_type)}</span>
+              {f.owner?.name} <span className="ms-1 text-xs font-medium text-muted-foreground">{loanLabel(t, f.owner?.kind ?? f.entity_type)}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {f.product_name} · {f.term_value} {loanLabel(t, f.term_unit)} · {ratePct(f.annual_rate)} · {f.application_number} · {f.inst_profile_name}
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-right">
+          <div className="grid grid-cols-3 gap-3 text-end">
             <Stat label={t("outstanding")} value={m(f.principal_outstanding)} />
             <Stat label={t("dpd")} value={f.days_past_due ?? 0} tone={f.days_past_due > 0 ? "text-red-700" : undefined} />
             <Stat label={t("riskClass")} value={loanLabel(t, f.risk_class)} tone={RISK_TONE[f.risk_class]} />
@@ -564,7 +564,7 @@ function DueCard({ due, currency }) {
           <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("dueNow")}</p>
           <p className={cn("amount-fit text-xl font-black sm:text-2xl tabular-nums", owing ? "text-red-700" : "text-foreground")}>{m(due.total_due)}</p>
         </div>
-        <div className="flex flex-wrap gap-6 sm:text-right">
+        <div className="flex flex-wrap gap-6 sm:text-end">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("nextDue")}</p>
             <p className="text-sm font-bold">

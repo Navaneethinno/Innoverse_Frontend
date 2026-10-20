@@ -277,7 +277,7 @@ export function InstitutionProfile() {
       {institutionsQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {institutionsQuery.error.message}
-          <button onClick={() => void institutionsQuery.refetch()} className="ml-auto text-xs font-bold underline">
+          <button onClick={() => void institutionsQuery.refetch()} className="ms-auto text-xs font-bold underline">
             {t("institutions:retry")}
           </button>
         </div>

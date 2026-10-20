@@ -92,7 +92,7 @@ function RuleCard({ rule, index, onChange, onRemove, lists, disabled, t }) {
   const typeOf = (code) => lists.limitTypes.find((l) => l.code === code);
   return (
     <div className="rounded-2xl border bg-white/70">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 px-4 py-3 text-left">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full items-center gap-3 px-4 py-3 text-start">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-slate-800">{rule.name || t("ruleN", { n: index + 1 })}</p>
           <p className="truncate text-[11px] text-muted-foreground">
@@ -474,7 +474,7 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
             <div className={`rounded-xl border p-3 ${problems.length ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
               <p className={`text-sm font-bold ${problems.length ? "text-red-700" : "text-emerald-700"}`}>{problems.length ? t("problemsToFix", { count: problems.length }) : t("noProblems")}</p>
               {problems.length > 0 && (
-                <ul className="mt-1 list-disc pl-5 text-xs text-red-700">
+                <ul className="mt-1 list-disc ps-5 text-xs text-red-700">
                   {problems.map((p, i) => (
                     <li key={i}>{typeof p === "string" ? p : (p.message ?? JSON.stringify(p))}</li>
                   ))}

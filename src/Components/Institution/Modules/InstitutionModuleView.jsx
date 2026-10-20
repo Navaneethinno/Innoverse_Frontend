@@ -52,7 +52,7 @@ export function InstitutionModuleView() {
         onClick={() => navigate("/institutionmodule")}
         className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft size={15} /> Institution Module
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> Institution Module
       </button>
       <div>
         <h1 className="text-xl font-black tracking-tight text-foreground">

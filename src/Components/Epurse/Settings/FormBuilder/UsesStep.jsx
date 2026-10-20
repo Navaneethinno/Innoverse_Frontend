@@ -106,7 +106,7 @@ const problemsFor = (problems, roles, phrase) =>
 function Card({ title, summary, open, onToggle, problems, children }) {
   return (
     <div className={cn("rounded-2xl border bg-white/70", problems?.length && "border-red-200")}>
-      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 px-4 py-3 text-left">
+      <button type="button" onClick={onToggle} className="flex w-full items-center gap-3 px-4 py-3 text-start">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-slate-800">{title}</p>
           {!open && summary && <p className="mt-0.5 truncate text-xs text-muted-foreground">{summary}</p>}
@@ -116,7 +116,7 @@ function Card({ title, summary, open, onToggle, problems, children }) {
       </button>
       {open && <div className="flex flex-col gap-4 border-t px-4 py-4">{children}</div>}
       {problems?.length > 0 && (
-        <ul className="list-disc border-t border-red-100 bg-red-50 px-4 py-2 pl-8 text-xs text-red-700">
+        <ul className="list-disc border-t border-red-100 bg-red-50 px-4 py-2 ps-8 text-xs text-red-700">
           {problems.map((p, i) => (
             <li key={i}>{p}</li>
           ))}
@@ -227,7 +227,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   const emails = ofType(["EMAIL"]);
   const comparable = ofType(COMPARABLE);
   const addFieldFirst = (type) => (
-    <button type="button" onClick={() => openMenu("formfields")} className="text-left text-xs font-semibold text-[var(--primary)] hover:underline">
+    <button type="button" onClick={() => openMenu("formfields")} className="text-start text-xs font-semibold text-[var(--primary)] hover:underline">
       {t("addTypeFieldFirst", { type })}
     </button>
   );

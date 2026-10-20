@@ -9,10 +9,10 @@ import { glass } from "./WidgetCard";
 function StatCard({ label, value, sub, gradient, icon: Icon, loading, warnings = [] }) {
   return (
     <div className="relative flex h-full flex-col justify-between gap-2 overflow-hidden rounded-2xl border p-5" style={glass}>
-      <div className="flex items-center justify-between pr-10">
+      <div className="flex items-center justify-between pe-10">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
       </div>
-      <span className={cn("absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-xl text-white shadow-md", gradient)}>
+      <span className={cn("absolute end-5 top-5 flex h-8 w-8 items-center justify-center rounded-xl text-white shadow-md", gradient)}>
         <Icon size={15} strokeWidth={2} />
       </span>
       <div>
@@ -64,7 +64,7 @@ export function OnboardingCasesWidget() {
   const { data, loading } = useWidgetData("onboardingCases");
   const warnings = data ? [["casesOverdue", data.overdue], ["casesHighPriority", data.high_priority]].filter(([, n]) => n > 0) : [];
   return (
-    <button type="button" onClick={() => openMenu("onboardingcases")} className="h-full w-full text-left">
+    <button type="button" onClick={() => openMenu("onboardingcases")} className="h-full w-full text-start">
       <StatCard
         label={t("onboardingCases")}
         sub={data ? t("casesMine", { count: data.mine ?? 0 }) : t("openCases")}

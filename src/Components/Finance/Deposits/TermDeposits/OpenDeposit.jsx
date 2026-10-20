@@ -266,7 +266,7 @@ export function OwnerFinder({ onPick }) {
               key={`${a.owner.kind}-${a.owner.id}`}
               type="button"
               onClick={() => onPick(ownerEntity(a.owner), a)}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-left transition-all hover:-translate-y-px hover:border-primary hover:shadow-sm"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2 text-start transition-all hover:-translate-y-px hover:border-primary hover:shadow-sm"
             >
               <span>
                 <span className="block text-sm font-bold text-foreground">{a.owner.name}</span>
@@ -274,7 +274,7 @@ export function OwnerFinder({ onPick }) {
                   {t(a.owner.party === "MERCHANT" ? "accounts:merchant" : "accounts:customer")} · {t(a.owner.ownership === "CORPORATE" ? "accounts:corporate" : "accounts:individual")} · {a.inst_profile_name}
                 </span>
               </span>
-              <span className="amount-fit text-right font-mono text-xs">
+              <span className="amount-fit text-end font-mono text-xs">
                 {a.acct_num}
                 <span className="block font-sans text-[11px] font-semibold">{money(a.avail_bal, a.currency_code)}</span>
               </span>

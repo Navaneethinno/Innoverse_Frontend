@@ -158,7 +158,7 @@ export function AMLScoreBreakdown() {
         >
           {atIst(row.screened_at)}
           {!row.is_latest && (
-            <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold">
+            <span className="ms-1 rounded-full bg-muted px-1.5 text-[10px] font-bold">
               {t("earlier")}
             </span>
           )}
@@ -173,7 +173,7 @@ export function AMLScoreBreakdown() {
         <button
           type="button"
           onClick={() => run.show(row)}
-          className={`text-left text-xs font-semibold hover:underline ${row.is_latest ? "text-primary" : "text-muted-foreground"}`}
+          className={`text-start text-xs font-semibold hover:underline ${row.is_latest ? "text-primary" : "text-muted-foreground"}`}
         >
           {row.customer_name || row.reference_id}
           {row.inst_profile_name && (

@@ -535,7 +535,7 @@ function IdentityCard({ checks }) {
                 <span className="text-muted-foreground">
                   {[c.channel, c.actor].filter(Boolean).join(" · ")}
                 </span>
-                <span className="ml-auto text-muted-foreground">{when(c.created_time)}</span>
+                <span className="ms-auto text-muted-foreground">{when(c.created_time)}</span>
               </div>
               <ul className="mt-2 grid gap-1.5">
                 {rowsOf(c.steps).map((s, j) => (
@@ -544,7 +544,7 @@ function IdentityCard({ checks }) {
                       <Pass ok={s.ok} />
                       <span className="font-semibold">{t(`step_${s.step}`, { defaultValue: humanKey(String(s.step ?? "").toLowerCase()) })}</span>
                       {s.ms != null && (
-                        <span className="ml-auto text-[10px] text-muted-foreground">{s.ms} ms</span>
+                        <span className="ms-auto text-[10px] text-muted-foreground">{s.ms} ms</span>
                       )}
                     </div>
                     <Details value={s.response} />
@@ -604,7 +604,7 @@ function KycCard({ kyc, processes }) {
                   {p.process_result_status && (
                     <StatusBadge status={p.process_result_status} variant="subtle" />
                   )}
-                  <span className="ml-auto text-muted-foreground">{when(p.completed_at)}</span>
+                  <span className="ms-auto text-muted-foreground">{when(p.completed_at)}</span>
                 </div>
                 <Details value={p.result} />
               </li>
@@ -687,13 +687,13 @@ function RiskHistoryRow({ item }) {
   const [open, setOpen] = useState(false);
   return (
     <li className="rounded-xl border border-border">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-left text-xs">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-start text-xs">
         <ChevronRight size={13} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-90")} />
         <span className="font-black tabular-nums">{item.risk_score}</span>
         <ColorBadge color={item.color_code ?? rowsOf(item.breakdown?.levels).find((l) => l.code === item.level_code)?.color_code}>{item.level_name ?? item.level_code}</ColorBadge>
         {item.source && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{item.source}</span>}
         {item.risk_action_name && <span className="text-muted-foreground">{item.risk_action_name}</span>}
-        <span className="ml-auto text-muted-foreground">
+        <span className="ms-auto text-muted-foreground">
           {when(item.assessed_at)}
           {item.assessed_by ? ` · ${item.assessed_by}` : ""}
         </span>
@@ -738,7 +738,7 @@ function RiskCard({ risk, history }) {
         {!past.length ? (
           <None />
         ) : (
-          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pr-1">
+          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pe-1">
             {past.map((h, i) => (
               <RiskHistoryRow key={i} item={h} />
             ))}
@@ -802,14 +802,14 @@ function AmlHistoryRow({ screening: s }) {
   const band = s.effective_band;
   return (
     <li className="rounded-xl border border-border">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-left text-xs">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-2 p-2.5 text-start text-xs">
         <ChevronRight size={13} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-90")} />
         <span className="font-black tabular-nums">{s.effective_score ?? s.score ?? "—"}</span>
         {band && <ColorBadge color={band.color_code}>{band.name}</ColorBadge>}
         {s.party_role && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{s.party_role}</span>}
         {s.trigger && <span className="rounded bg-muted px-1.5 text-[10px] font-bold">{s.trigger}</span>}
         {s.status && s.status !== "DONE" && <StatusBadge status={s.status} variant="subtle" />}
-        <span className="ml-auto text-muted-foreground">
+        <span className="ms-auto text-muted-foreground">
           {when(s.screened_at)}
           {s.screened_by ? ` · ${s.screened_by}` : ""}
         </span>
@@ -861,7 +861,7 @@ function AmlCard({ screenings }) {
         {!list.length ? (
           <None />
         ) : (
-          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pr-1">
+          <ul className="thin-scrollbar grid max-h-[32rem] gap-2 overflow-y-auto pe-1">
             {list.map((sc, i) => (
               <AmlHistoryRow key={i} screening={sc} />
             ))}
@@ -915,7 +915,7 @@ function CasesCard({ cases }) {
                 <summary className="cursor-pointer font-bold text-[var(--primary)]">
                   {t("history")} ({c.events.length})
                 </summary>
-                <ol className="mt-2 grid gap-1.5 border-l border-border pl-3">
+                <ol className="mt-2 grid gap-1.5 border-s border-border ps-3">
                   {c.events.map((e, j) => (
                     <li key={j}>
                       <span className="text-muted-foreground">{when(e.at)}</span> · <b>{e.event}</b>
@@ -1251,11 +1251,11 @@ function TimelineCard({ timeline }) {
   return (
     <Card id="kyc-timeline" icon={History} title={t("timeline")} count={list.length}>
       {!list.length && <None />}
-      <ol className="thin-scrollbar relative max-h-[32rem] overflow-y-auto pr-1">
+      <ol className="thin-scrollbar relative max-h-[32rem] overflow-y-auto pe-1">
         {list.map((e, i) => (
           <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
             {i < list.length - 1 && (
-              <span className="absolute left-[13px] top-7 bottom-0 w-px bg-border" />
+              <span className="absolute start-[13px] top-7 bottom-0 w-px bg-border" />
             )}
             <span className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-card text-[var(--primary)]">
               {createElement(KIND_ICON[e.kind] ?? History, { size: 13 })}
@@ -1263,7 +1263,7 @@ function TimelineCard({ timeline }) {
             <div className="min-w-0 pt-0.5">
               <p className="text-xs font-bold text-slate-800">
                 {e.event}{" "}
-                <span className="ml-1 rounded bg-muted px-1.5 text-[9px] font-black text-muted-foreground">
+                <span className="ms-1 rounded bg-muted px-1.5 text-[9px] font-black text-muted-foreground">
                   {e.kind}
                 </span>
               </p>
@@ -1360,7 +1360,7 @@ export function KycReportView({ api, body, onBack, title }) {
           onClick={onBack}
           className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
         >
-          <ArrowLeft size={14} /> {t("back")}
+          <ArrowLeft size={14} className="rtl:-scale-x-100" /> {t("back")}
         </button>
         {data && <KycPdfButton data={data} download={download} title={title} />}
       </div>

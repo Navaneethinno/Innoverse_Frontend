@@ -138,7 +138,7 @@ export function UploadDialog({ options, onClose, onSubmitted }) {
           <input
             type="file"
             accept=".xlsx,.csv"
-            className={cn(inputClass, "mt-1.5 file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--primary-light)] file:px-3 file:py-1 file:text-xs file:font-bold file:text-primary")}
+            className={cn(inputClass, "mt-1.5 file:me-3 file:rounded-lg file:border-0 file:bg-[var(--primary-light)] file:px-3 file:py-1 file:text-xs file:font-bold file:text-primary")}
             onChange={(e) => {
               setFile(e.target.files?.[0] ?? null);
               setResult(null);
@@ -231,7 +231,7 @@ export function GlUploads({ version, onChanged }) {
               label: t("file"),
               align: "left",
               render: (u) => (
-                <button type="button" onClick={() => setOpen(u.id)} className="text-left">
+                <button type="button" onClick={() => setOpen(u.id)} className="text-start">
                   <p className="text-xs font-bold text-primary hover:underline">{u.file_name}</p>
                   <p className="text-[10px] text-muted-foreground">{u.narration}</p>
                 </button>

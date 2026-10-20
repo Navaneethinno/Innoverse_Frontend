@@ -118,7 +118,7 @@ export function Problems({ message }) {
     <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
       <p>{headline}</p>
       {lines.length > 0 && (
-        <ul className="mt-1 list-disc space-y-0.5 pl-4 font-medium">
+        <ul className="mt-1 list-disc space-y-0.5 ps-4 font-medium">
           {lines.map((l) => (
             <li key={l}>{l.replace(PROBLEM_BULLET, "")}</li>
           ))}
@@ -132,10 +132,10 @@ export function Problems({ message }) {
 export function AuditTimeline({ audit, empty }) {
   const { t } = useTranslation("deposits");
   return (
-    <ol className="relative grid gap-3 border-l border-border pl-4">
+    <ol className="relative grid gap-3 border-s border-border ps-4">
       {audit.map((e, i) => (
         <li key={`${e.at}-${i}`} className="relative">
-          <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+          <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
           <p className="text-xs font-bold">
             {t(`deposits:audit_${e.action}`, { defaultValue: e.action })} <span className="font-medium text-muted-foreground">· {e.process_status_name ?? e.status_name}</span>
           </p>

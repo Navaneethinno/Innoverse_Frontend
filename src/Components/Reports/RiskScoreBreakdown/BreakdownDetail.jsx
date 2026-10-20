@@ -49,7 +49,7 @@ function CriterionValue({ c }) {
         {c.values.map((v) => (
           <li key={v.value_id} className={v.counted ? "font-bold" : "text-muted-foreground"}>
             {v.value_name} <span className="tabular-nums">({v.score})</span>
-            {v.counted && <span className="ml-1 rounded bg-primary-light px-1 text-[10px] text-primary">{t("counted")}</span>}
+            {v.counted && <span className="ms-1 rounded bg-primary-light px-1 text-[10px] text-primary">{t("counted")}</span>}
           </li>
         ))}
       </ul>
@@ -123,24 +123,24 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
           <Section title={t("criteria")}>
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-1 pr-2 font-semibold">{t("criterion")}</th>
-                  <th className="py-1 pr-2 text-right font-semibold">{t("weight")}</th>
-                  <th className="py-1 pr-2 font-semibold">{t("customerValue")}</th>
-                  <th className="py-1 pr-2 text-right font-semibold">{t("valueScore")}</th>
-                  <th className="py-1 text-right font-semibold">{t("points")}</th>
+                <tr className="border-b text-start text-muted-foreground">
+                  <th className="py-1 pe-2 font-semibold">{t("criterion")}</th>
+                  <th className="py-1 pe-2 text-end font-semibold">{t("weight")}</th>
+                  <th className="py-1 pe-2 font-semibold">{t("customerValue")}</th>
+                  <th className="py-1 pe-2 text-end font-semibold">{t("valueScore")}</th>
+                  <th className="py-1 text-end font-semibold">{t("points")}</th>
                 </tr>
               </thead>
               <tbody className="tabular-nums">
                 {criteria.map((c) => (
                   <tr key={c.field_code} className="border-b align-top">
-                    <td className="py-1.5 pr-2 font-semibold text-slate-700">{c.field_name}</td>
-                    <td className="py-1.5 pr-2 text-right">{c.weight}%</td>
-                    <td className="py-1.5 pr-2">
+                    <td className="py-1.5 pe-2 font-semibold text-slate-700">{c.field_name}</td>
+                    <td className="py-1.5 pe-2 text-end">{c.weight}%</td>
+                    <td className="py-1.5 pe-2">
                       <CriterionValue c={c} />
                     </td>
-                    <td className="py-1.5 pr-2 text-right">{c.answered && c.scored ? c.score : "—"}</td>
-                    <td className="py-1.5 text-right">
+                    <td className="py-1.5 pe-2 text-end">{c.answered && c.scored ? c.score : "—"}</td>
+                    <td className="py-1.5 text-end">
                       <b>{c.points}</b> <span className="text-muted-foreground">/ {c.max_points}</span>
                     </td>
                   </tr>
@@ -149,7 +149,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
                   <td className="py-1.5" colSpan={4}>
                     {t("total")}
                   </td>
-                  <td className="py-1.5 text-right">
+                  <td className="py-1.5 text-end">
                     {item.risk_score} {b.max_score != null && <span className="font-semibold text-muted-foreground">/ {b.max_score}</span>}
                   </td>
                 </tr>
@@ -162,26 +162,26 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
               {item.changes?.length ? (
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="py-1 pr-2 font-semibold">{t("criterion")}</th>
-                      <th className="py-1 pr-2 font-semibold">{t("customerValue")}</th>
-                      <th className="py-1 text-right font-semibold">{t("points")}</th>
+                    <tr className="border-b text-start text-muted-foreground">
+                      <th className="py-1 pe-2 font-semibold">{t("criterion")}</th>
+                      <th className="py-1 pe-2 font-semibold">{t("customerValue")}</th>
+                      <th className="py-1 text-end font-semibold">{t("points")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {item.changes.map((c) => (
                       <tr key={c.field_code} className="border-b align-top last:border-0">
-                        <td className="py-1.5 pr-2 font-semibold text-slate-700">{c.field_name}</td>
-                        <td className="py-1.5 pr-2">
+                        <td className="py-1.5 pe-2 font-semibold text-slate-700">{c.field_name}</td>
+                        <td className="py-1.5 pe-2">
                           <span className="inline-flex flex-wrap items-center gap-1">
-                            {c.before_value_name || <i className="text-muted-foreground">{t("none")}</i>} <ArrowRight size={11} className="text-muted-foreground" />
+                            {c.before_value_name || <i className="text-muted-foreground">{t("none")}</i>} <ArrowRight size={11} className="text-muted-foreground rtl:-scale-x-100" />
                             {c.after_value_name || <i className="text-muted-foreground">{t("none")}</i>}
                           </span>
                           {c.before_weight !== c.after_weight && (
                             <span className="block text-[10px] text-muted-foreground">{t("weightChange", { before: c.before_weight, after: c.after_weight })}</span>
                           )}
                         </td>
-                        <td className="py-1.5 text-right tabular-nums">
+                        <td className="py-1.5 text-end tabular-nums">
                           {c.before_points} → <b>{c.after_points}</b>
                         </td>
                       </tr>
@@ -196,15 +196,15 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
 
           {item.history?.length > 1 && (
             <Section title={t("assessmentHistory")}>
-              <ol className="relative space-y-2 border-l pl-4">
+              <ol className="relative space-y-2 border-s ps-4">
                 {item.history.map((h) => (
                   <li key={h.assessment_id} className="relative text-xs">
-                    <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card ${h.assessment_id === item.assessment_id ? "bg-primary" : "bg-muted-foreground"}`} />
+                    <span className={`absolute -start-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card ${h.assessment_id === item.assessment_id ? "bg-primary" : "bg-muted-foreground"}`} />
                     <button
                       type="button"
                       disabled={h.assessment_id === item.assessment_id}
                       onClick={() => setId(h.assessment_id)}
-                      className="flex flex-wrap items-center gap-2 text-left enabled:hover:text-primary"
+                      className="flex flex-wrap items-center gap-2 text-start enabled:hover:text-primary"
                     >
                       <span className="text-muted-foreground">{atIst(h.assessed_at)}</span>
                       <b className="tabular-nums">{h.risk_score}</b>

@@ -60,7 +60,7 @@ export function PeriodChips({ value, onChange, allTime = false }) {
         </button>
       ))}
       {value.period === "CUSTOM" && (
-        <span className="ml-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="ms-1 flex items-center gap-1.5 text-xs text-muted-foreground">
           {t("from")} <DateInput value={value.from} onChange={(e) => onChange({ from: e.target.value })} className={dateInput} />
           {t("to")} <DateInput value={value.to} min={value.from || undefined} onChange={(e) => onChange({ to: e.target.value })} className={dateInput} />
         </span>
@@ -165,7 +165,7 @@ export function ReportDetailPage({ title, onBack, children }) {
           onClick={onBack}
           className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
         >
-          <ArrowLeft size={14} /> {t("back")}
+          <ArrowLeft size={14} className="rtl:-scale-x-100" /> {t("back")}
         </button>
         <h1 className="min-w-0 truncate text-xl font-black text-slate-800">{title}</h1>
       </div>

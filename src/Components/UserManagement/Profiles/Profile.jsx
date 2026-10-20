@@ -325,7 +325,7 @@ export function Profile() {
         bare />{profilesQuery.error && (
         <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
           <AlertCircle size={14} /> {profilesQuery.error.message}
-          <button onClick={() => void profilesQuery.refetch()} className="ml-auto text-xs font-bold underline">
+          <button onClick={() => void profilesQuery.refetch()} className="ms-auto text-xs font-bold underline">
             {t("common:retry")}
           </button>
         </div>

@@ -74,17 +74,17 @@ export function ActivityDetail({ activityId, onClose }) {
             ) : item.changes?.length ? (
               <table className="w-full table-fixed text-xs">
                 <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="w-1/4 py-1 pr-2 font-semibold">{t("field")}</th>
-                    <th className="py-1 pr-2 font-semibold">{t("before")}</th>
+                  <tr className="border-b text-start text-muted-foreground">
+                    <th className="w-1/4 py-1 pe-2 font-semibold">{t("field")}</th>
+                    <th className="py-1 pe-2 font-semibold">{t("before")}</th>
                     <th className="py-1 font-semibold">{t("after")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {item.changes.map((c) => (
                     <tr key={c.field} className="border-b align-top last:border-0">
-                      <td className="py-1.5 pr-2 font-semibold text-slate-600">{fieldLabel(c.field)}</td>
-                      <td className="py-1.5 pr-2 text-muted-foreground">
+                      <td className="py-1.5 pe-2 font-semibold text-slate-600">{fieldLabel(c.field)}</td>
+                      <td className="py-1.5 pe-2 text-muted-foreground">
                         <Value field={c.field} value={c.before} name={name} />
                       </td>
                       <td className="py-1.5 font-medium text-primary">
@@ -107,10 +107,10 @@ export function ActivityDetail({ activityId, onClose }) {
 
           {item.history?.length > 0 && (
             <Section title={t("history")}>
-              <ol className="relative space-y-3 border-l pl-4">
+              <ol className="relative space-y-3 border-s ps-4">
                 {item.history.map((h, i) => (
                   <li key={i} className="relative text-xs">
-                    <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary" />
+                    <span className="absolute -start-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-card bg-primary" />
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-slate-700">{h.action_name}</span>
                       <RoleBadge role={h.role} name={h.role_name} />

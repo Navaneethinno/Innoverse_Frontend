@@ -125,10 +125,10 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-xs">
-        <thead className="bg-muted/50 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+        <thead className="bg-muted/50 text-start text-[10px] uppercase tracking-wider text-muted-foreground">
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className={cn("whitespace-nowrap px-3 py-2", c.align === "right" && "text-right")}>
+              <th key={c.key} className={cn("whitespace-nowrap px-3 py-2", c.align === "right" && "text-end")}>
                 {c.label}
               </th>
             ))}
@@ -138,7 +138,7 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
           {rows.map((r, i) => (
             <tr key={rowKey(r, i)} className={cn("border-t border-border", rowClass?.(r))}>
               {columns.map((c) => (
-                <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", c.align === "right" && "text-right tabular-nums")}>
+                <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", c.align === "right" && "text-end tabular-nums")}>
                   {c.render ? c.render(r) : (r[c.key] ?? "—")}
                 </td>
               ))}
@@ -189,10 +189,10 @@ export function Timeline({ events, currency }) {
     return String(v);
   };
   return (
-    <ol className="relative grid gap-4 border-l border-border pl-5">
+    <ol className="relative grid gap-4 border-s border-border ps-5">
       {events.map((e, i) => (
         <li key={`${e.at}-${i}`} className="relative">
-          <span className="absolute -left-[26px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-card" />
+          <span className="absolute -start-[26px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-card" />
           <p className="text-sm font-bold text-foreground">
             {t(`event_${e.event}`, { defaultValue: humanize(e.event) })} <span className="text-xs font-medium text-muted-foreground">· {e.actor} · {accountDate(e.at)}</span>
           </p>

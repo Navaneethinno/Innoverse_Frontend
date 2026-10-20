@@ -77,7 +77,7 @@ function KycLevelPanel({ kyc, onJump }) {
           const hasDetail = Boolean(level.description) || level.missing?.length > 0;
           return (
             <div key={id} className={`rounded-lg border p-2.5 text-xs ${level.achieved ? "border-emerald-200 bg-emerald-50" : "border-border bg-card"}`}>
-              <button type="button" onClick={() => hasDetail && toggle(id)} disabled={!hasDetail} className="flex w-full items-center justify-between gap-2 text-left disabled:cursor-default">
+              <button type="button" onClick={() => hasDetail && toggle(id)} disabled={!hasDetail} className="flex w-full items-center justify-between gap-2 text-start disabled:cursor-default">
                 <span className="flex items-center gap-1.5 font-bold text-slate-700">
                   {level.achieved ? <ShieldCheck size={13} className="text-emerald-600" /> : <ShieldAlert size={13} className="text-muted-foreground" />}
                   {t("customer:levelNamed", { n: level.level_no, name: level.kyc_level_name })}
@@ -97,7 +97,7 @@ function KycLevelPanel({ kyc, onJump }) {
                           <button
                             type="button"
                             onClick={() => m.field && onJump(m.field)}
-                            className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-left text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
+                            className="flex w-full items-start gap-1.5 rounded-lg px-1.5 py-1 text-start text-[11px] font-medium text-amber-700 hover:bg-amber-100/60 hover:text-amber-900"
                           >
                             <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
                             {m.message}
@@ -466,7 +466,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         <div ref={sectionTitleRef} className="mb-3 scroll-mt-4">
           <h2 className="text-sm font-bold text-slate-700">
             {section.heading}
-            {section.required === false && <span className="ml-2 text-[11px] font-normal text-muted-foreground">({t("formBuilder:optional")})</span>}
+            {section.required === false && <span className="ms-2 text-[11px] font-normal text-muted-foreground">({t("formBuilder:optional")})</span>}
           </h2>
           {section.subheading && <p className="mt-0.5 text-xs text-muted-foreground">{section.subheading}</p>}
         </div>
@@ -486,7 +486,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
           )}
         </div>
         {problems.length > 0 && (
-          <ul className="mt-4 list-disc rounded-lg bg-red-50 p-3 pl-7 text-xs text-red-700">
+          <ul className="mt-4 list-disc rounded-lg bg-red-50 p-3 ps-7 text-xs text-red-700">
             {problems.map((p, i) => (
               <li key={i}>{typeof p === "string" ? p : (p.message ?? JSON.stringify(p))}</li>
             ))}
@@ -538,7 +538,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     return (
       <>
         <Button variant="ghost" disabled={activeIndex === 0} onClick={guard(() => setActiveKey(sections[activeIndex - 1]?.key))}>
-          <ArrowLeft size={14} /> {t("customer:previous")}
+          <ArrowLeft size={14} className="rtl:-scale-x-100" /> {t("customer:previous")}
         </Button>
         <div className="flex-1" />
         <Button variant="ghost" onClick={guard(onClose)}>{t("common:close")}</Button>
@@ -548,7 +548,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
           </Button>
         )}
         <button type="button" disabled={activeIndex >= sections.length - 1} onClick={guard(() => setActiveKey(sections[activeIndex + 1]?.key))} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40">
-          {t("common:next")} <ArrowRight size={14} />
+          {t("common:next")} <ArrowRight size={14} className="rtl:-scale-x-100" />
         </button>
       </>
     );

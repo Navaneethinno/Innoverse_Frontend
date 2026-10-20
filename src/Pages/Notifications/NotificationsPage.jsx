@@ -20,7 +20,7 @@ export function NotificationsPage() {
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
         >
-          <ArrowLeft size={16} /> Back
+          <ArrowLeft size={16} className="rtl:-scale-x-100" /> Back
         </button>
         <div className="mb-6 flex items-center gap-3">
           <div

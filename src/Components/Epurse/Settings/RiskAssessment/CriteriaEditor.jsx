@@ -7,7 +7,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { percentInput } from "@/Components/Finance/Deposits/depositShared";
 import { round2 } from "./riskShared";
 
-const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
+const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-end text-sm tabular-nums";
 
 // Criteria: each an onboarding field from `options` with a weight (the
 // weights total 100) and a 0–100 score per option; an unscored option
@@ -78,7 +78,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
           return (
             <div key={c.field_code} className="rounded-xl border">
               <div className="flex items-center gap-2 p-2">
-                <button type="button" onClick={() => setOpen(expanded ? null : c.field_code)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                <button type="button" onClick={() => setOpen(expanded ? null : c.field_code)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-2 text-start">
                   <ChevronDown size={15} className={`shrink-0 text-muted-foreground transition-transform ${expanded ? "" : "-rotate-90"}`} />
                   <span className="truncate text-sm font-semibold">{risk.fieldName(c.field_code)}</span>
                   <span className="shrink-0 text-[11px] text-muted-foreground">{t("scoredCount", { count: scored, total: values?.length ?? "…" })}</span>

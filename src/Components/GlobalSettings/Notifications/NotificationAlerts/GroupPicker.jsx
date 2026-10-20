@@ -25,7 +25,7 @@ export function GroupPicker({ groups, value, onChange }) {
       {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {value.map((id) => (
-            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-primary-light py-0.5 pl-2.5 pr-1 text-xs font-semibold text-primary">
+            <span key={id} className="inline-flex items-center gap-1 rounded-full bg-primary-light py-0.5 ps-2.5 pe-1 text-xs font-semibold text-primary">
               {byId.get(String(id))?.name ?? `#${id}`}
               <button type="button" onClick={() => toggle(id)} aria-label={t("removeGroup")} className="rounded-full p-0.5 hover:bg-primary/10">
                 <X size={12} />

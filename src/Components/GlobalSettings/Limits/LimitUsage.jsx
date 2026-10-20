@@ -70,7 +70,7 @@ function LimitUsagePanel({ entity, compact = false }) {
                   <div key={`${l.rule_code}-${l.limit_type}-${i}`} className="min-w-0 rounded-lg bg-muted/40 px-3 py-2">
                     <div className="flex flex-wrap items-center justify-between gap-1">
                       <p className="text-xs font-bold">
-                        <span className={cn("mr-1.5 rounded px-1 text-[10px] font-black", l.direction === "DEBIT" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700")}>{t(`usageDir_${l.direction}`, { defaultValue: l.direction })}</span>
+                        <span className={cn("me-1.5 rounded px-1 text-[10px] font-black", l.direction === "DEBIT" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700")}>{t(`usageDir_${l.direction}`, { defaultValue: l.direction })}</span>
                         {l.rule_name ?? l.rule_code}
                       </p>
                       {l.default_group && <span className="text-[10px] font-semibold text-muted-foreground">{t("usageDefaultCeiling")}</span>}

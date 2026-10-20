@@ -106,7 +106,7 @@ export function LoginMethodsGrid({ value, onChange }) {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left">{t("portalChannel")}</th>
+              <th className="px-3 py-2 text-start">{t("portalChannel")}</th>
               {LOGIN_METHODS.map((m) => (
                 <th key={m} className="w-28 px-3 py-2 text-center">{t(`loginMethod_${m}`)}</th>
               ))}
@@ -168,7 +168,7 @@ export function PortalIdentifiersGrid({ value, onChange }) {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left">{t("portalChannel")}</th>
+              <th className="px-3 py-2 text-start">{t("portalChannel")}</th>
               {IDENTIFIER_USES.map((use) => (
                 <th key={use} className="px-3 py-2 text-center">{t(`identifierUse_${use}`)}</th>
               ))}
