@@ -13,6 +13,7 @@ import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { TourButton } from "@/Components/Tour/TourButton";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
+import { isDemoUser } from "@/Utils/Lib/demoInstitution";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -30,6 +31,8 @@ export function TopBar() {
   const { mode, toggleMode } = useColorMode();
   const logout = useAuth((s) => s.logout);
   const user = useAuth((s) => s.user);
+  // The DEMO institution has no My profile / Change password.
+  const demo = isDemoUser(user);
   const isMobile = useIsMobile();
   // The institution's logo and name show once: in the sidebar while it is
   // pinned open (desktop), otherwise here.
@@ -195,6 +198,8 @@ export function TopBar() {
                       {user?.inst_profile_name ?? t("layout:platform")}
                     </p>
                   </div>
+                  {!demo && (
+                  <>
                   <button
                     onClick={() => {
                       setMenuOpen(false);
@@ -213,6 +218,8 @@ export function TopBar() {
                   >
                     <KeyRound size={13} /> {t("layout:changePassword")}
                   </button>
+                  </>
+                  )}
                   <button
                     onClick={() => {
                       void logout().then(() => navigate("/login"));

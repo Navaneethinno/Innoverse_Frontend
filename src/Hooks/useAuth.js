@@ -15,12 +15,15 @@ export function useAuth(selector) {
   const login = async ({ institutionCode, username, password }) => {
     try {
       const response = await loginRequest(institutionCode, username, password);
-      persistAuthSession(response.user, response.access_token, response.refresh_token);
+      // The institution code signed in with, kept on the user (the reply
+      // names the institution, not its code).
+      const user = response.user && { ...response.user, institution_code: String(institutionCode ?? "").trim().toUpperCase() };
+      persistAuthSession(user, response.access_token, response.refresh_token);
       dispatch(
         setSession({
           token: response.access_token,
           refreshToken: response.refresh_token,
-          user: response.user,
+          user,
         }),
       );
       // The authenticated user's permission/navigation dataset, persisted
