@@ -3,7 +3,7 @@ import { useListSearch } from "@/Hooks/useListSearch";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -325,6 +325,28 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
     is_draft: false,
   });
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  // Channels the chosen institution already has don't show again (the one
+  // being edited stays).
+  const [taken, setTaken] = useState([]);
+  useEffect(() => {
+    if (!form.inst_profile_id) return setTaken([]);
+    let cancelled = false;
+    institutionChannelApi
+      .list({ inst_profile_id: Number(form.inst_profile_id), page: 1, limit: 100 })
+      .then((r) => {
+        if (cancelled) return;
+        const rows = Array.isArray(r?.data) ? r.data : [];
+        setTaken(
+          rows
+            .filter((row) => String(row.inst_profile_id) === String(form.inst_profile_id) && row.id !== editing?.id)
+            .map((row) => String(row.channel_id)),
+        );
+      })
+      .catch(() => !cancelled && setTaken([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [form.inst_profile_id, editing?.id]);
   return (
     <form
       className="space-y-4"
@@ -380,7 +402,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
           onChange={(next) => set("channel_id")({ target: { value: next } })}
           options={[
             { value: "", label: tr("Select channel") },
-            ...channels.map((c) => ({
+            ...channels.filter((c) => !taken.includes(String(c.channel_id ?? c.id))).map((c) => ({
               value: c.channel_id ?? c.id,
               label: c.channel_name ?? c.name,
             })),
