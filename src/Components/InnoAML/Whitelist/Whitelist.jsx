@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlarmClock, Ban, CheckCircle2, History, RefreshCw, TimerOff } from "lucide-react";
+import { AlarmClock, Ban, CheckCircle2, FileUp, History, RefreshCw, TimerOff } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -21,6 +21,8 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
 import { ReviewHistory, ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { usePagedList } from "../Shared/usePagedList";
+import { BatchBar, BatchChip } from "../Shared/BatchBar";
+import { WhitelistImport } from "./WhitelistImport";
 
 const STATUS_TABS = [
   ["ACTIVE", "aml:wlStatus_ACTIVE", CheckCircle2],
@@ -87,11 +89,13 @@ export function Whitelist() {
   const [screening, setScreening] = useState(null); // { id, lookup }
   const [historyFor, setHistoryFor] = useState(null);
   const [renewing, setRenewing] = useState(null);
-  const [action, setAction] = useState(null); // { type: auth | deauth | revoke, row }
+  const [action, setAction] = useState(null); // { type: auth | deauth | revoke, row } or { type, batch_id }
+  const [batch, setBatch] = useState("");
+  const [importing, setImporting] = useState(false);
   const [working, setWorking] = useState(false);
 
   const entries = usePagedList(amlWhitelistApi.list, { status, ...(status === "EXPIRING" ? { within_days: withinDays } : {}) }, view === "entries");
-  const pending = usePagedList(amlWhitelistApi.pending, {}, view === "pending");
+  const pending = usePagedList(amlWhitelistApi.pending, { batch_id: batch }, view === "pending");
   const list = view === "entries" ? entries : pending;
   const reloadAll = () => {
     void entries.reload();
@@ -117,7 +121,10 @@ export function Whitelist() {
   const decide = (note) => {
     const { type, row } = action;
     if (type === "revoke") return run(amlWhitelistApi.revoke, { id: row.id, comment: note }, t("aml:whitelistChangeSubmitted"));
-    return run(amlWhitelistApi[type], { id: row.id, ...(note ? { narration: note } : {}) }, t(type === "auth" ? "aml:changeApproved" : "aml:changeRejected"));
+    // A whole import at once, or one row.
+    const target = action.batch_id ? { batch_id: action.batch_id } : { id: row.id };
+    if (action.batch_id) setBatch("");
+    return run(amlWhitelistApi[type], { ...target, ...(note ? { narration: note } : {}) }, t(type === "auth" ? "aml:changeApproved" : "aml:changeRejected"));
   };
 
   // A Name Lookup's subject key starts "L:"; customers' are screenings.
@@ -208,6 +215,7 @@ export function Whitelist() {
       render: (row) => (
         <span className="grid justify-items-center gap-0.5">
           <ReviewStateBadge state={row.decision} />
+          <BatchChip batchId={row.batch_id} onPick={setBatch} />
           {row.expires_on && <span className="whitespace-nowrap text-[10px] text-muted-foreground">{t("aml:expiresOn", { date: formatDay(row.expires_on) })}</span>}
         </span>
       ),
@@ -245,6 +253,7 @@ export function Whitelist() {
         value={view}
         onChange={setView}
       />
+      {view === "pending" && <BatchBar batchId={batch} canDecide={can("Authorize")} onDecide={(type) => setAction({ type, batch_id: batch })} onClear={() => setBatch("")} />}
       <ListPanel
         tabs={view === "entries" ? STATUS_TABS : []}
         value={status}
@@ -254,6 +263,13 @@ export function Whitelist() {
         rows={list.rows}
         {...list.searchBind}
         searchPlaceholder={t("aml:searchWhitelist")}
+        actions={
+          view === "entries" && can("Add") ? (
+            <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+              <FileUp size={14} /> {t("aml:wlImportTitle")}
+            </button>
+          ) : null
+        }
         filters={
           view === "entries" &&
           status === "EXPIRING" && (
@@ -276,8 +292,8 @@ export function Whitelist() {
 
       {action && (
         <NarrationDialog
-          title={t(titles[action.type])}
-          hint={`${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name}`}
+          title={action.batch_id ? t(action.type === "auth" ? "aml:approveBatch" : "aml:rejectBatch") : t(titles[action.type])}
+          hint={action.batch_id ? t("aml:batchDecisionHint") : `${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name}`}
           confirmLabel={action.type === "auth" ? t("common:authorize") : action.type === "revoke" ? t("aml:revoke") : t("aml:reject")}
           variant={action.type === "auth" ? "primary" : "danger"}
           required={action.type !== "auth"}
@@ -288,6 +304,19 @@ export function Whitelist() {
         >
           {action.type === "revoke" && <p className="mb-3 text-xs text-muted-foreground">{t("aml:revokeHint")}</p>}
         </NarrationDialog>
+      )}
+      {importing && (
+        <WhitelistImport
+          onClose={() => setImporting(false)}
+          onImported={(batchId, applied) => {
+            setImporting(false);
+            reloadAll();
+            if (batchId && !applied) {
+              setBatch(batchId);
+              setView("pending");
+            }
+          }}
+        />
       )}
       {renewing && <RenewDialog row={renewing} busy={working} onClose={() => setRenewing(null)} onSave={(body) => void run(amlWhitelistApi.renew, body, t("aml:whitelistChangeSubmitted"))} />}
       {historyFor && <ReviewHistory matchId={historyFor} load={amlWhitelistApi.history} onClose={() => setHistoryFor(null)} />}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, Clock3, FileUp, ListChecks, Plus, ShieldCheck, ShieldOff, Trash2, X, XCircle } from "lucide-react";
+import { Ban, Clock3, FileUp, ListChecks, Plus, Trash2, XCircle } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListPanel } from "@/Components/Common/ListPanel";
@@ -15,6 +15,7 @@ import { formatDay } from "@/Utils/Lib/dateFormat";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { NameText, when } from "../Shared/amlShared";
 import { usePagedList } from "../Shared/usePagedList";
+import { BatchBar, BatchChip } from "../Shared/BatchBar";
 import { BlacklistDetail } from "./BlacklistDetail";
 import { BlacklistForm } from "./BlacklistForm";
 import { BlacklistImport } from "./BlacklistImport";
@@ -87,12 +88,7 @@ export function Blacklist() {
       )}
     </span>
   );
-  const batchChip = (id) =>
-    id ? (
-      <button type="button" onClick={() => setBatch(id)} title={t("aml:showBatch")} className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] font-bold text-muted-foreground hover:text-primary">
-        {t("aml:batchShort", { id: id.slice(0, 8) })}
-      </button>
-    ) : null;
+  const batchChip = (id) => <BatchChip batchId={id} onPick={setBatch} />;
 
   const entryColumns = [
     { key: "name", label: t("aml:name"), align: "left", render: nameCell },
@@ -197,28 +193,7 @@ export function Blacklist() {
         onChange={setView}
       />
 
-      {batch && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-amber-300 bg-amber-50/60 p-2.5 text-sm">
-          <span className="font-semibold">
-            {t("aml:importBatch")} <span className="font-mono text-xs">{batch}</span>
-          </span>
-          <span className="ml-auto flex flex-wrap gap-2">
-            {can("Authorize") && (
-              <>
-                <button type="button" onClick={() => setAction({ type: "auth", batch_id: batch, label: batch })} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">
-                  <ShieldCheck size={13} /> {t("aml:approveBatch")}
-                </button>
-                <button type="button" onClick={() => setAction({ type: "deauth", batch_id: batch, label: batch })} className="flex items-center gap-1 rounded-lg border border-amber-400 px-3 py-1.5 text-xs font-bold text-amber-800">
-                  <ShieldOff size={13} /> {t("aml:rejectBatch")}
-                </button>
-              </>
-            )}
-            <button type="button" onClick={() => setBatch("")} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted">
-              <X size={13} /> {t("aml:clearBatch")}
-            </button>
-          </span>
-        </div>
-      )}
+      <BatchBar batchId={batch} canDecide={can("Authorize")} onDecide={(type) => setAction({ type, batch_id: batch, label: batch })} onClear={() => setBatch("")} />
 
       <ListPanel
         tabs={view === "entries" ? STATUS_TABS : []}

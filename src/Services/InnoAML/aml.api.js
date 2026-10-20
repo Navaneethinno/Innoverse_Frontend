@@ -133,4 +133,9 @@ export const amlWhitelistApi = {
   auth: call(WHITELIST, "auth"),
   deauth: call(WHITELIST, "deauth"),
   history: call(WHITELIST, "history"),
+  // Upload as the Blacklist's: upload -> validate (each row OK / SKIPPED /
+  // PROBLEM, nothing stored) -> import (one batch, decided by batch_id).
+  upload: (fields) => uploadFile(`${WHITELIST}/upload`, fields),
+  validate: call(WHITELIST, "validate"),
+  import: call(WHITELIST, "import"),
 };
