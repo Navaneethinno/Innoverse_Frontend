@@ -252,3 +252,40 @@ export function AmlProposeDialog({ allowCleared, allowClose, openMatches, busy, 
     </Modal>
   );
 }
+
+// Close a support case in one step (no checker): an internal reason and an
+// optional message the customer sees.
+export function CloseCaseDialog({ busy, onClose, onSave }) {
+  const { t } = useTranslation("cases");
+  const [reason, setReason] = useState("");
+  const [message, setMessage] = useState("");
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t("action_closeCase")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
+          <Button disabled={!reason.trim()} loading={busy} onClick={() => onSave({ reason: reason.trim(), ...(message.trim() ? { customer_message: message.trim() } : {}) })}>
+            {t("action_closeCase")}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-4">
+        <p className="text-sm text-muted-foreground">{t("closeCaseHint")}</p>
+        <label className={labelClass}>
+          {t("reason")} <span className="text-red-500">*</span>
+          <textarea value={reason} maxLength={4000} onChange={(e) => setReason(e.target.value)} className={areaClass} />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("reasonInternal")}</span>
+        </label>
+        <label className={labelClass}>
+          {t("customerMessage")}
+          <textarea dir="auto" value={message} maxLength={4000} onChange={(e) => setMessage(e.target.value)} className={areaClass} />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("closeMessageHint")}</span>
+        </label>
+      </div>
+    </Modal>
+  );
+}

@@ -10,6 +10,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
 import { amlCasesApi } from "@/Services/CaseManagement/amlCases.api";
+import { supportCasesApi } from "@/Services/CaseManagement/supportCases.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AmlPill, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, ageText, caseDate, subjectKind } from "./caseShared";
@@ -54,6 +55,16 @@ export const AML_QUEUE = {
   subtitleKey: "amlSubtitle",
   settings: false,
 };
+// Customer Cases: support cases the customer opened; a new one starts as
+// CUSTOMER_REPLIED (their message comes first).
+export const SUPPORT_QUEUE = {
+  ...AML_QUEUE,
+  kind: "support",
+  api: supportCasesApi,
+  outcomes: ["RESOLVED", "WITHDRAWN"],
+  titleKey: "supportTitle",
+  subtitleKey: "supportSubtitle",
+};
 
 const filterBody = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => v !== ""));
 
@@ -70,6 +81,8 @@ export function CaseQueue({ config }) {
   const { t } = useTranslation(["cases", "common"]);
   const { api, tabs: TABS, reasons: REASONS } = config;
   const aml = config.kind === "aml";
+  // AML and support cases are conversations with an active customer.
+  const conversational = config.kind !== "onboarding";
   const location = useLocation();
   const [tab, setTab] = useState("ACTIVE");
   const [filters, setFilters] = useState(EMPTY);
@@ -158,7 +171,7 @@ export function CaseQueue({ config }) {
       ),
     },
     { key: "reasons", label: t("reasons"), sortable: false, render: (c) => <ReasonChips reasons={c.reasons} /> },
-    ...(aml
+    ...(conversational
       ? [
           {
             key: "title",
@@ -167,7 +180,8 @@ export function CaseQueue({ config }) {
             sortable: false,
             render: (c) => (
               <div className="min-w-0 max-w-64">
-                <p className="line-clamp-2 text-xs">{c.title || "—"}</p>
+                {c.category && <span className="mb-0.5 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold">{t(`category_${c.category}`, { defaultValue: c.category })}</span>}
+                <p dir="auto" className="line-clamp-2 text-xs">{c.title || "—"}</p>
                 <p className="text-[10px] text-muted-foreground">
                   {c.last_customer_at ? t("customerLastAt", { date: caseDate(c.last_customer_at) }) : c.last_staff_at ? t("staffLastAt", { date: caseDate(c.last_staff_at) }) : ""}
                 </p>
