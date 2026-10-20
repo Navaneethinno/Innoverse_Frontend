@@ -131,11 +131,17 @@ export function UserForm({
   const { t } = useTranslation("users");
   const canChooseInstitution = useCanChooseInstitution();
   const [showPassword, setShowPassword] = useState(false);
+  // The browser must never fill the signed-in admin's own login into a new
+  // user. Browsers ignore autocomplete="off" on login-like fields, so the
+  // username and password stay read-only (which browsers don't fill) until
+  // the user puts the cursor in them.
+  const [typing, setTyping] = useState({});
+  const credential = (key) => key === "user_name" || key === "user_pwd";
   const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
   const policyRequirements = checkPasswordRequirements("", selectedPolicy);
 
   return (
-    <form onSubmit={onSubmit} id="user-form" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <form onSubmit={onSubmit} id="user-form" autoComplete="off" className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {fields
         .filter(([key]) => !(readOnly && key === "user_pwd"))
         // A bank / fintech user is always in its own institution: no picker.
@@ -170,7 +176,12 @@ export function UserForm({
             ) : (
               <input
                 required={!readOnly && !editing && ["user_name", "user_pwd"].includes(key)}
-                readOnly={readOnly}
+                readOnly={readOnly || (credential(key) && !typing[key])}
+                onFocus={() => credential(key) && !typing[key] && setTyping((t) => ({ ...t, [key]: true }))}
+                name={credential(key) ? `new-${key}` : key}
+                autoComplete={key === "user_pwd" ? "new-password" : credential(key) ? "off" : undefined}
+                data-lpignore="true"
+                data-1p-ignore="true"
                 type={
                   key === "user_pwd"
                     ? showPassword
