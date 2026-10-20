@@ -4,7 +4,7 @@ import { uploadFile } from "@/Services/api/fileTransfer";
 
 // InnoAML (AML handoffs 03–07, 2026-09). Every call is a POST with the usual
 // admin login, menu permissions and reply envelope.
-const { SETUP, INTERNAL_LIST, SCREENING, LOOKUP, REVIEW, MEDIA, MEDIA_REVIEW } = API_ENDPOINTS.AML;
+const { SETUP, INTERNAL_LIST, SCREENING, LOOKUP, REVIEW, MEDIA, MEDIA_REVIEW, BLACKLIST, WHITELIST } = API_ENDPOINTS.AML;
 const call = (base, verb) => (payload = {}) => request(`${base}/${verb}`, payload);
 
 // One setup per institution: score bands (same shape as risk levels) mapped
@@ -100,4 +100,36 @@ export const amlMediaReviewApi = {
   deauth: call(MEDIA_REVIEW, "deauth"),
   pending: call(MEDIA_REVIEW, "pending"),
   list: call(MEDIA_REVIEW, "list"),
+};
+
+// The institution's own blacklist (handoff 27): people and companies it won't
+// deal with, screened next to the watchlists. Every add / edit / remove waits
+// for a checker (`pending`, then `auth` / `deauth` by id, or a whole import
+// by batch_id). Bulk import is the Internal Watchlists upload -> validate
+// (code BLACKLIST) -> import.
+export const amlBlacklistApi = {
+  listPath: `${BLACKLIST}/list`,
+  list: call(BLACKLIST, "list"),
+  get: call(BLACKLIST, "get"),
+  add: call(BLACKLIST, "add"),
+  edit: call(BLACKLIST, "edit"),
+  remove: call(BLACKLIST, "remove"),
+  pending: call(BLACKLIST, "pending"),
+  auth: call(BLACKLIST, "auth"),
+  deauth: call(BLACKLIST, "deauth"),
+  upload: (fields) => uploadFile(`${BLACKLIST}/upload`, fields),
+  validate: call(BLACKLIST, "validate"),
+  import: call(BLACKLIST, "import"),
+};
+
+// The whitelist: approved false positives from Match Review, each with an
+// expiry and evidence; renew / revoke wait for a checker.
+export const amlWhitelistApi = {
+  list: call(WHITELIST, "list"),
+  pending: call(WHITELIST, "pending"),
+  renew: call(WHITELIST, "renew"),
+  revoke: call(WHITELIST, "revoke"),
+  auth: call(WHITELIST, "auth"),
+  deauth: call(WHITELIST, "deauth"),
+  history: call(WHITELIST, "history"),
 };

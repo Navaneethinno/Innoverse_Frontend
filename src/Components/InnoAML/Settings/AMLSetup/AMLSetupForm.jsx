@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Modal } from "@/Components/Common/Modal";
 import { useAuth } from "@/Hooks/useAuth";
 import { amlSetupApi } from "@/Services/InnoAML/aml.api";
@@ -46,6 +47,9 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
     description: editing?.description ?? "",
     min_match_score: String(editing?.min_match_score ?? 50),
     ongoing_rescreen: editing?.ongoing_rescreen ?? true,
+    // What a blacklist hit does, and how long a whitelist entry lasts.
+    blacklist_action: editing?.list_policy?.blacklist_action ?? "FLAG",
+    whitelist_months: String(editing?.list_policy?.whitelist_months ?? 12),
     // Every category shown; one left out of the saved weights counts in full.
     weights: Object.fromEntries(AML_CATEGORIES.map((c) => [c, String(editing?.category_weights?.[c] ?? 100)])),
     levels: editing?.levels?.length ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id), merchant_risk_action_id: idOrEmpty(l.merchant_risk_action_id) })) : DEFAULT_BANDS,
@@ -67,6 +71,11 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
       notifications.error(t("aml:categoryWeightRange"));
       return;
     }
+    const months = Number(form.whitelist_months);
+    if (!Number.isInteger(months) || months < 1 || months > 60) {
+      notifications.error(t("aml:whitelistMonthsRange"));
+      return;
+    }
     if (form.levels.some((l) => l.risk_action_id === "" || l.merchant_risk_action_id === "")) {
       notifications.error(t("aml:bandActionsRequired"));
       return;
@@ -77,6 +86,8 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
         description: form.description.trim(),
         min_match_score: minScore,
         ongoing_rescreen: form.ongoing_rescreen,
+        // Sent on every save: left out, the server falls back to FLAG / 12.
+        list_policy: { blacklist_action: form.blacklist_action, whitelist_months: months },
         // Only the weights that cut a score; the rest count in full.
         category_weights: Object.fromEntries(weights.filter(([, w]) => w !== 100)),
         levels: chainLevels(form.levels).map((l) => ({
@@ -124,10 +135,28 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
           <CheckboxPill checked={form.ongoing_rescreen} onChange={(checked) => setForm({ ...form, ongoing_rescreen: checked })} label={t("aml:ongoingRescreen")} />
           <p className="mt-1 text-[11px] text-muted-foreground">{t("aml:ongoingRescreenHint")}</p>
         </div>
+        <div>
+          <p className={labelClass}>{t("aml:blacklistAction")}</p>
+          <SegmentedSwitch
+            className="mt-1.5"
+            value={form.blacklist_action}
+            onChange={(v) => setForm((f) => ({ ...f, blacklist_action: v }))}
+            options={[
+              { value: "FLAG", label: t("aml:blacklistAction_FLAG") },
+              { value: "BLOCK", label: t("aml:blacklistAction_BLOCK") },
+            ]}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">{t("aml:blacklistActionHint")}</p>
+        </div>
+        <label className={labelClass}>
+          {t("aml:whitelistMonths")} <span className="text-red-500">*</span>
+          <input type="number" min={1} max={60} value={form.whitelist_months} onChange={(e) => setForm((f) => ({ ...f, whitelist_months: e.target.value.replace(/\D/g, "").slice(0, 2) }))} className={inputClass} />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("aml:whitelistMonthsHint")}</span>
+        </label>
         <div className="md:col-span-2">
           <p className={labelClass}>{t("aml:categoryWeights")}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{t("aml:categoryWeightsHint")}</p>
-          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {AML_CATEGORIES.map((c) => (
               <label key={c} className="text-xs font-semibold text-slate-700">
                 {t(`aml:category_${c}`, { defaultValue: c })}

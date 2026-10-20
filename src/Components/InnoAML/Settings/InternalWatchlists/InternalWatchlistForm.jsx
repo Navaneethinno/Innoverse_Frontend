@@ -14,45 +14,9 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { useInstitutionScope } from "../../Shared/amlShared";
 import { ValidationResult } from "./ValidationResult";
+import { ColumnSetup, LIST_FILE_ACCEPT, LIST_FILE_MAX_BYTES, columnsFromForm, columnsToForm, formatOf, splitList } from "./ColumnSetup";
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const ACCEPT = ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const ENTITY_TYPES = ["ANY", "PERSON", "ORGANIZATION"];
-const DATE_FORMATS = ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD", "DD-MM-YYYY", "DD.MM.YYYY"];
-// Column fields that may name several columns (edited as "A, B").
-const MULTI = ["name", "aliases", "countries", "remarks"];
-const SINGLE = ["birth_date", "id_number", "entity_type"];
-
-const formatOf = (upload) => (/csv/i.test(upload?.content_type ?? "") || /\.csv$/i.test(upload?.file_name ?? "") ? "CSV" : "XLSX");
-const splitList = (text) =>
-  String(text ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-// Stored `columns` -> editor strings, and back (empty parts left out).
-const columnsToForm = (c = {}) => ({
-  has_header: c.has_header ?? true,
-  sheet: c.sheet ?? "",
-  delimiter: c.delimiter ?? "",
-  birth_date_format: c.birth_date_format ?? "",
-  ...Object.fromEntries(MULTI.map((k) => [k, (c[k] ?? []).join(", ")])),
-  ...Object.fromEntries(SINGLE.map((k) => [k, c[k] ?? ""])),
-});
-const columnsFromForm = (f, format) => {
-  const out = { has_header: f.has_header };
-  if (format === "XLSX" && f.sheet.trim()) out.sheet = f.sheet.trim();
-  if (format === "CSV" && f.delimiter) out.delimiter = f.delimiter;
-  MULTI.forEach((k) => {
-    const list = splitList(f[k]);
-    if (list.length) out[k] = list;
-  });
-  SINGLE.forEach((k) => {
-    if (String(f[k]).trim()) out[k] = String(f[k]).trim();
-  });
-  if (f.birth_date_format) out.birth_date_format = f.birth_date_format;
-  return out;
-};
 
 // Add / edit an internal watchlist: upload the file, describe its columns,
 // validate (nothing is stored), then save. Edit with a new file replaces
@@ -140,13 +104,6 @@ export function InternalWatchlistForm({ editing, onClose, onSaved }) {
   };
 
   const invalidRows = result ? Math.max(0, (result.rows ?? 0) - (result.valid ?? 0)) : 0;
-  const colInput = (key, placeholder) => (
-    <label key={key} className={labelClass}>
-      {t(`aml:col_${key}`)}
-      {key === "name" && <span className="text-red-500"> *</span>}
-      <input value={columns[key]} onChange={(e) => setColumn(key)(e.target.value)} placeholder={placeholder} className={inputClass} />
-    </label>
-  );
   const addLabel = t("aml:addList");
 
   return (
@@ -185,39 +142,14 @@ export function InternalWatchlistForm({ editing, onClose, onSaved }) {
             onChange={(path) => set(path ? { file_path: path } : { file_path: "", file_name: "" })}
             upload={upload}
             disabled={!form.inst_profile_id}
-            accept={ACCEPT}
-            maxBytes={MAX_BYTES}
+            accept={LIST_FILE_ACCEPT}
+            maxBytes={LIST_FILE_MAX_BYTES}
             uploadLabel={form.inst_profile_id ? "Upload file" : "Select an institution first"}
             hint={form.file_name ? `${form.file_name} · ${form.file_format}` : t("aml:listFileHint")}
           />
         </div>
 
-        <fieldset className="grid gap-4 rounded-xl border p-3 md:col-span-2 md:grid-cols-3">
-          <legend className="px-1 text-sm font-semibold text-slate-700">{t("aml:columnSetup")}</legend>
-          <p className="text-[11px] text-muted-foreground md:col-span-3">{t("aml:columnSetupHint")}</p>
-          <div className="md:col-span-3">
-            <CheckboxPill checked={columns.has_header} onChange={setColumn("has_header")} label={t("aml:hasHeader")} />
-          </div>
-          {form.file_format === "XLSX"
-            ? colInput("sheet", t("aml:firstSheet"))
-            : colInput("delimiter", ",")}
-          {colInput("name", columns.has_header ? "First name, Last name" : "A, B")}
-          {colInput("aliases", columns.has_header ? "Also known as" : "C")}
-          {colInput("birth_date", columns.has_header ? "DOB" : "D")}
-          <label className={labelClass}>
-            {t("aml:col_birth_date_format")}
-            <FilterSelect
-              className="mt-1.5"
-              value={columns.birth_date_format}
-              onChange={setColumn("birth_date_format")}
-              options={[{ value: "", label: t("aml:anyCommonFormat") }, ...DATE_FORMATS.map((f) => ({ value: f, label: f }))]}
-            />
-          </label>
-          {colInput("countries", columns.has_header ? "Nationality" : "E")}
-          {colInput("id_number", columns.has_header ? "Passport" : "F")}
-          {colInput("entity_type", columns.has_header ? "Type" : "G")}
-          {colInput("remarks", columns.has_header ? "Notes" : "H")}
-        </fieldset>
+        <ColumnSetup columns={columns} format={form.file_format} onChange={setColumn} />
 
         <div className="space-y-3 md:col-span-2">
           <button

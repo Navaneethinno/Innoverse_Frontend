@@ -33,7 +33,7 @@ function CustomerAmlResult({ result, onOpenScreening }) {
       <ul className="divide-y rounded-xl border">
         {(result.screenings ?? []).map((s) => (
           <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-            <span className="text-sm font-semibold text-slate-700">{partyLabel(s)}</span>
+            <span dir="auto" className="text-sm font-semibold text-slate-700">{partyLabel(s)}</span>
             <span className="flex items-center gap-2">
               <EffectiveResult row={s} />
               <span className="text-[11px] text-muted-foreground">{t("matchCount", { count: s.match_count ?? 0 })}</span>

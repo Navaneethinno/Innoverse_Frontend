@@ -231,6 +231,12 @@ function SnapshotRow({ title, snap }) {
         </Tile>
         <Tile label={t("aml")}>
           <AmlPill aml={snap.aml} />
+          {snap.aml?.blacklisted && (
+            <p className="mt-1 text-[11px] font-bold text-destructive">
+              {t("onBlacklist")}
+              {snap.aml.blacklist_action && ` · ${t(`blacklistAction_${snap.aml.blacklist_action}`, { defaultValue: snap.aml.blacklist_action })}`}
+            </p>
+          )}
           {snap.aml?.action?.risk_action_code && <p className="mt-1 text-[11px] text-muted-foreground">{t("actionIs", { name: snap.aml.action.risk_action_name ?? snap.aml.action.risk_action_code, outcome: snap.aml.action.onboarding_outcome ?? "—" })}</p>}
         </Tile>
       </div>

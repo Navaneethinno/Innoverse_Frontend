@@ -99,7 +99,7 @@ export function NameLookup() {
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const columns = [
     { key: "screened_at", label: t("aml:screenedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.screened_at)}</span> },
-    { key: "name", label: t("aml:nameAndReason"), align: "left", render: (row) => <span className="font-semibold">{partyLabel(row)}</span> },
+    { key: "name", label: t("aml:nameAndReason"), align: "left", render: (row) => <span dir="auto" className="font-semibold">{partyLabel(row)}</span> },
     { key: "inst_profile_name", label: t("aml:institution"), render: (row) => row.inst_profile_name ?? "-" },
     { key: "effective_score", label: t("aml:result"), render: (row) => <EffectiveResult row={row} /> },
     { key: "match_count", label: t("aml:matches"), render: (row) => row.match_count ?? 0 },
@@ -124,7 +124,7 @@ export function NameLookup() {
           <InstitutionField value={form.inst_profile_id} onChange={set("inst_profile_id")} />
           <label className={`${labelClass} md:col-span-2`}>
             {t("aml:name")} <span className="text-red-500">*</span>
-            <input value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Osama bin Laden" />
+            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Osama bin Laden" />
           </label>
           <label className={labelClass}>
             {t("aml:entityType")}

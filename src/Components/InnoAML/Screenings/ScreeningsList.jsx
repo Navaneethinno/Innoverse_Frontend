@@ -64,7 +64,7 @@ export function ScreeningsList({ bands, initial = {} }) {
 
   const columns = [
     { key: "screened_at", label: t("aml:screenedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.screened_at)}</span> },
-    { key: "name", label: t("aml:party"), align: "left", render: (row) => <span className="font-semibold">{partyLabel(row)}</span> },
+    { key: "name", label: t("aml:party"), align: "left", render: (row) => <span dir="auto" className="font-semibold">{partyLabel(row)}</span> },
     { key: "customer_kind", label: t("aml:customerKind"), render: (row) => (row.customer_kind ? t(`aml:kind_${row.customer_kind}`) : "-") },
     { key: "inst_profile_name", label: t("aml:institution"), render: (row) => row.inst_profile_name ?? "-" },
     { key: "trigger", label: t("aml:trigger"), render: (row) => (row.trigger ? t(`aml:trigger_${row.trigger}`) : "-") },

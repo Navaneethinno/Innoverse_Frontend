@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ChevronDown, History, Send } from "lucide-react";
+import { AlertTriangle, Ban, ChevronDown, History, Send } from "lucide-react";
+import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { amlLookupApi, amlReviewApi, amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, ReviewStateBadge, WeightNote, matchScore, when } from "./amlShared";
+import { formatDay } from "@/Utils/Lib/dateFormat";
+import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, NameText, ReviewStateBadge, ViaTag, WeightNote, blacklistByIdentifier, matchScore, when } from "./amlShared";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
+const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 
 // "innoverse_aml_list_os_peps_v35" -> "OS_PEPS": the list, not its index.
 const listCode = (index) => String(index).replace(/^innoverse_aml_list_/, "").replace(/_v\d+$/, "").toUpperCase();
@@ -45,19 +48,19 @@ function Fact({ label, children }) {
   );
 }
 
-// Every step of a match's reviews for its party, oldest first.
-function ReviewHistory({ matchId, onClose }) {
+// Every step of a match's reviews for its party, oldest first. `load`:
+// another menu's history call (the Whitelist's), Match Review's otherwise.
+export function ReviewHistory({ matchId, onClose, load = amlReviewApi.history }) {
   const { t } = useTranslation("aml");
   const [steps, setSteps] = useState(null);
   useEffect(() => {
-    amlReviewApi
-      .history({ match_id: matchId })
+    load({ match_id: matchId })
       .then((r) => setSteps(rowsOf(r)))
       .catch((error) => {
         notifications.error(error.message);
         setSteps([]);
       });
-  }, [matchId]);
+  }, [matchId, load]);
   return (
     <Modal open onClose={onClose} size="md" title={t("reviewHistory")}>
       {!steps ? (
@@ -96,6 +99,16 @@ function ReviewSummary({ review }) {
         <p className="text-muted-foreground">
           <b className="text-slate-700">{t(`review_${review.decision}`)}</b>: {review.comment} — {review.proposed_by}
           {review.decided_by ? ` / ${review.decided_by}` : ""} {review.decided_at ? `· ${when(review.decided_at)}` : ""}
+          {review.expires_on && (
+            <span className={`ml-1 font-semibold ${review.state === "EXPIRED" ? "text-amber-700" : ""}`}>
+              · {t(review.state === "EXPIRED" ? "expiredOn" : "expiresOn", { date: formatDay(review.expires_on) })}
+            </span>
+          )}
+        </p>
+      )}
+      {review.evidence && (
+        <p className="text-muted-foreground">
+          <b className="text-slate-700">{t("evidence")}</b>: {review.evidence}
         </p>
       )}
       {review.pending && (
@@ -112,17 +125,25 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState(false);
   const waiting = Boolean(match.review?.pending) || match.review?.state === "PENDING";
+  // Found on the blacklist by a shared phone, email or document: only a true
+  // match can be recorded.
+  const locked = blacklistByIdentifier(match);
   return (
     <li className="overflow-hidden rounded-xl border bg-card p-3" style={{ boxShadow: `inset 4px 0 0 ${matchScore(match) >= 85 ? "#dc2626" : matchScore(match) >= 60 ? "#d97706" : "#059669"}` }}>
       <div className="flex flex-wrap items-start gap-3 pl-1">
         <ScoreRing score={matchScore(match)} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-slate-800">{match.matched_name}</p>
-          {match.entity?.name && match.entity.name !== match.matched_name && <p className="text-[11px] text-muted-foreground">{t("listedAs", { name: match.entity.name })}</p>}
+          <NameText name={match.matched_name} latin={match.matched_name_latin} className="text-sm font-bold text-slate-800" />
+          {match.entity?.name && match.entity.name !== match.matched_name && (
+            <p className="text-[11px] text-muted-foreground">
+              {t("listedAsLabel")} <span dir="auto">{match.entity.name}</span>
+            </p>
+          )}
           <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
             <span className="rounded-full bg-slate-800 px-2 py-0.5 font-mono font-bold text-white">{match.list}</span>
             {match.category && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`category_${match.category}`, { defaultValue: match.category })}</span>}
             {match.entity_type && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`entity_${match.entity_type}`, { defaultValue: match.entity_type })}</span>}
+            <ViaTag via={match.matched_via} />
             <span className="text-muted-foreground">{t("nameScore", { score: match.name_score })}</span>
           </p>
           <WeightNote match={match} />
@@ -157,7 +178,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
                 {[
                   ["FALSE_POSITIVE", "border-emerald-300 bg-emerald-50 text-emerald-800"],
                   ["TRUE_MATCH", "border-red-300 bg-red-50 text-red-800"],
-                ].map(([value, tone]) => (
+                ].filter(([value]) => !(locked && value === "FALSE_POSITIVE")).map(([value, tone]) => (
                   <button
                     key={value}
                     type="button"
@@ -167,6 +188,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
                     {t(`review_${value}`)}
                   </button>
                 ))}
+                {locked && <span className="text-[11px] font-semibold text-destructive">{t("identifierMatchNoFalsePositive")}</span>}
               </div>
             )}
             {draft?.decision && !waiting && (
@@ -178,6 +200,25 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
                 placeholder={t("commentRequired")}
                 className="rounded-lg border bg-card px-2.5 py-1.5 text-xs"
               />
+            )}
+            {draft?.decision === "FALSE_POSITIVE" && !waiting && (
+              <div className="grid gap-2 sm:grid-cols-[1fr_12rem]">
+                <input
+                  value={draft?.evidence ?? ""}
+                  maxLength={MAX_COMMENT}
+                  onChange={(e) => onDraft({ ...draft, evidence: e.target.value })}
+                  placeholder={t("evidenceOptional")}
+                  className="rounded-lg border bg-card px-2.5 py-1.5 text-xs"
+                />
+                <DateInput
+                  value={draft?.expires_on ?? ""}
+                  min={tomorrow()}
+                  onChange={(e) => onDraft({ ...draft, expires_on: e.target.value })}
+                  placeholder={t("expiryDefault")}
+                  title={t("expiryDefaultHint")}
+                  className="rounded-lg border bg-card px-2.5 py-1.5 text-xs"
+                />
+              </div>
             )}
           </div>
         )}
@@ -200,7 +241,13 @@ export function ScreeningDetail({ screening, onChange }) {
   const reviewing = canPropose && !failed && matches.length > 0;
   const decisions = Object.entries(drafts)
     .filter(([, d]) => d?.decision)
-    .map(([matchId, d]) => ({ match_id: Number(matchId), decision: d.decision, comment: (d.comment ?? "").trim() }));
+    .map(([matchId, d]) => ({
+      match_id: Number(matchId),
+      decision: d.decision,
+      comment: (d.comment ?? "").trim(),
+      // A false positive's evidence and expiry (empty = the setup's months).
+      ...(d.decision === "FALSE_POSITIVE" ? { evidence: (d.evidence ?? "").trim(), expires_on: d.expires_on ?? "" } : {}),
+    }));
 
   const propose = async () => {
     if (decisions.some((d) => !d.comment)) {
@@ -228,7 +275,7 @@ export function ScreeningDetail({ screening, onChange }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border p-4" style={{ borderColor: `${colour}66`, background: `linear-gradient(120deg, ${colour}1f, transparent 70%)` }}>
         <div className="min-w-0">
-          <p className="text-lg font-black text-slate-800">{screening.name ?? subject.name}</p>
+          <NameText name={screening.name ?? subject.name} latin={screening.subject_name_latin} className="text-lg font-black text-slate-800" />
           <p className="text-[11px] text-muted-foreground">
             {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), screening.screened_by, when(screening.screened_at)].filter(Boolean).join(" · ")}
           </p>
@@ -250,6 +297,16 @@ export function ScreeningDetail({ screening, onChange }) {
           </div>
         )}
       </div>
+
+      {screening.blacklisted && (
+        <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-[color-mix(in_srgb,var(--destructive)_10%,transparent)] p-3 text-sm font-bold text-destructive">
+          <Ban size={16} className="shrink-0" />
+          <span>
+            {t("onBlacklist")}
+            <span className="block text-[11px] font-semibold">{t("onBlacklistHint")}</span>
+          </span>
+        </div>
+      )}
 
       {failed && (
         <div className="flex items-start gap-2 rounded-xl border border-destructive/30 p-3 text-sm text-destructive">

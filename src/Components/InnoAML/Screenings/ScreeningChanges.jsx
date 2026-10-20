@@ -57,7 +57,7 @@ export function ScreeningChanges({ bands }) {
 
   const columns = [
     { key: "detected_at", label: t("aml:detectedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.detected_at)}</span> },
-    { key: "customer_name", label: t("aml:customer"), align: "left", render: (row) => <span className="font-semibold">{row.customer_name ?? row.reference_id}</span> },
+    { key: "customer_name", label: t("aml:customer"), align: "left", render: (row) => <span dir="auto" className="font-semibold">{row.customer_name ?? row.reference_id}</span> },
     { key: "customer_kind", label: t("aml:customerKind"), render: (row) => (row.customer_kind ? t(`aml:kind_${row.customer_kind}`) : "-") },
     { key: "inst_profile_name", label: t("aml:institution"), render: (row) => row.inst_profile_name ?? "-" },
     {

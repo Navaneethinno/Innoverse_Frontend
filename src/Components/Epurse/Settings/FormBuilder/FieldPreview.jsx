@@ -293,6 +293,16 @@ function phoneIssue(field, value, t) {
   return null;
 }
 
+// With the "u" flag, so \p{L} (a letter of any alphabet, e.g. an Arabic
+// name) works; a pattern only valid without it still runs as before.
+const unicodePattern = (pattern) => {
+  try {
+    return new RegExp(pattern, "u");
+  } catch {
+    return new RegExp(pattern);
+  }
+};
+
 // The field's own `pattern` option, checked as the user types (the server
 // checks it again on submit): its `pattern_message`, or a general one.
 function usePatternIssue(field, value, editable) {
@@ -302,7 +312,7 @@ function usePatternIssue(field, value, editable) {
   if (field.field_type === "PHONE") return phoneIssue(field, value, t);
   if (!pattern) return null;
   try {
-    return new RegExp(pattern).test(String(value)) ? null : field.options.pattern_message || t("valueWrongFormat");
+    return unicodePattern(pattern).test(String(value)) ? null : field.options.pattern_message || t("valueWrongFormat");
   } catch {
     return null;
   }

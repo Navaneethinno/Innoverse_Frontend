@@ -27,7 +27,7 @@ const TABS = [
   { key: "PENDING_DECISION", icon: Gavel, body: { status: "PENDING_DECISION" } },
   { key: "CLOSED", icon: CheckCircle2, body: { status: "CLOSED" } },
 ];
-const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_RISK_ACTION", "NO_AML_SCREENING", "NO_AML_SETUP", "NO_AML_ACTION", "AML_ERROR", "MANUAL_POLICY", "PRODUCT_NOT_ELIGIBLE"];
+const REASONS = ["RISK_REVIEW", "RISK_REJECT", "AML_REVIEW", "AML_REJECT", "NO_RISK_SETUP", "NO_RISK_LEVEL", "NO_RISK_ACTION", "NO_AML_SCREENING", "NO_AML_SETUP", "NO_AML_ACTION", "AML_ERROR", "BLACKLISTED", "MANUAL_POLICY", "PRODUCT_NOT_ELIGIBLE"];
 const EMPTY = { priority: "", reason: "", party: "", ownership: "", assigned: "", outcome: "" };
 
 const filterBody = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => v !== ""));

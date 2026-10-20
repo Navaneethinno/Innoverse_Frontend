@@ -861,5 +861,7 @@ export const API_ENDPOINTS = {
     REVIEW: "/config/aml/review",
     MEDIA: "/config/aml/media",
     MEDIA_REVIEW: "/config/aml/media_review",
+    BLACKLIST: "/config/aml/blacklist",
+    WHITELIST: "/config/aml/whitelist",
   },
 };

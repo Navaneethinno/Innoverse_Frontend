@@ -12,12 +12,13 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlReviewApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AlsoOnChips, ReviewStateBadge, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
+import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
+import { formatDay } from "@/Utils/Lib/dateFormat";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { MediaReviews } from "../AdverseMedia/AdverseMedia";
 
 const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
-const DECISIONS = ["FALSE_POSITIVE", "TRUE_MATCH"];
+const DECISIONS = ["FALSE_POSITIVE", "TRUE_MATCH", "REVOKE"];
 
 // InnoAML > AML Screening > Match Review (menu 104). Makers propose
 // decisions on the screening detail; here a checker approves or rejects
@@ -95,7 +96,7 @@ export function MatchReview() {
       align: "left",
       render: (row) => (
         <span>
-          <span className="font-semibold">{row.party_name}</span>
+          <NameText name={row.party_name} latin={row.party_name_latin} className="font-semibold" />
           {row.party_role && <span className="block text-[11px] text-muted-foreground">{row.party_role}</span>}
         </span>
       ),
@@ -106,8 +107,10 @@ export function MatchReview() {
       align: "left",
       render: (row) => (
         <span>
-          {row.listed_name ?? row.matched_name}
-          <span className="block text-[11px] text-muted-foreground">{row.list}</span>
+          <NameText name={row.listed_name ?? row.matched_name} latin={row.matched_name_latin} />
+          <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
+            {row.list} <ViaTag via={row.matched_via} />
+          </span>
           <AlsoOnChips alsoOn={row.also_on} />
         </span>
       ),
@@ -119,8 +122,31 @@ export function MatchReview() {
         </span>
       ),
     },
-    { key: "decision", label: t("aml:proposedDecision"), render: (row) => <ReviewStateBadge state={row.decision} /> },
-    { key: "comment", label: t("aml:comment"), align: "left", render: (row) => <span className="line-clamp-2 max-w-64 text-xs">{row.comment}</span> },
+    {
+      key: "decision",
+      label: t("aml:proposedDecision"),
+      render: (row) => (
+        <span className="grid justify-items-center gap-0.5">
+          <ReviewStateBadge state={row.decision} />
+          {row.expires_on && <span className="whitespace-nowrap text-[10px] text-muted-foreground">{t("aml:expiresOn", { date: formatDay(row.expires_on) })}</span>}
+        </span>
+      ),
+    },
+    {
+      key: "comment",
+      label: t("aml:comment"),
+      align: "left",
+      render: (row) => (
+        <span className="grid max-w-64 gap-0.5 text-xs">
+          <span className="line-clamp-2">{row.comment}</span>
+          {row.evidence && (
+            <span className="line-clamp-2 text-[11px] text-muted-foreground">
+              {t("aml:evidence")}: {row.evidence}
+            </span>
+          )}
+        </span>
+      ),
+    },
     { key: "proposed_by", label: t("aml:maker"), render: (row) => row.proposed_by ?? "-" },
     {
       key: "state",

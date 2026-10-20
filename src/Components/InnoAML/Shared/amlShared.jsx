@@ -78,9 +78,47 @@ const ADJUSTMENT_KEYS = {
   COUNTRY_MATCH: "adjCountryMatch",
   COUNTRY_DIFFER: "adjCountryDiffer",
   GENDER_DIFFER: "adjGenderDiffer",
+  IDENTIFIER_MATCH: "adjIdentifierMatch",
 };
 // AML Setup's category weights (handoff 18): percent kept of a match's score.
-export const AML_CATEGORIES = ["SANCTIONS", "PEP", "CRIME", "DEBARMENT", "REGULATORY", "INTERNAL"];
+export const AML_CATEGORIES = ["SANCTIONS", "PEP", "CRIME", "DEBARMENT", "REGULATORY", "INTERNAL", "BLACKLIST"];
+
+// A name in any script (Arabic reads right to left inside the page), with
+// the server's Latin spelling under it when there is one: a reading aid
+// made by rule, not an official spelling.
+export function NameText({ name, latin, className = "" }) {
+  const { t } = useTranslation("aml");
+  return (
+    <span className={`inline-grid ${className}`}>
+      <span dir="auto">{name ?? "-"}</span>
+      {latin && latin !== name && (
+        <span className="text-[11px] font-normal text-muted-foreground" title={t("latinSpellingHint")}>
+          {t("latinSpelling")}: {latin}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// A match whose name was found in another script ("matched_via").
+export function ViaTag({ via }) {
+  const { t } = useTranslation("aml");
+  if (via !== "transliteration") return null;
+  return <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">{t("matchedAcrossScripts")}</span>;
+}
+
+// A blacklist match found by a shared phone, email or document: it can't be
+// cleared as a false positive (blacklist beats whitelist).
+export const blacklistByIdentifier = (m) => m?.list === "BLACKLIST" && (m.adjustments ?? []).some((a) => a.reason === "IDENTIFIER_MATCH");
+
+// "SA" -> "Saudi Arabia" in the page language; the code as is otherwise.
+export function countryNameOf(code, language = "en") {
+  try {
+    return /^[A-Z]{2}$/i.test(code ?? "") ? new Intl.DisplayNames([language], { type: "region" }).of(code.toUpperCase()) ?? code : code;
+  } catch {
+    return code;
+  }
+}
 
 // What the bands use: the weighted score, or the plain one before weights.
 export const matchScore = (m) => m?.weighted_score ?? m?.score;
@@ -131,6 +169,8 @@ const REVIEW_TONES = {
   FALSE_POSITIVE: GOOD,
   TRUE_MATCH: BAD,
   LAPSED: "bg-amber-50 text-amber-700",
+  EXPIRED: "bg-amber-50 text-amber-700",
+  REVOKE: "bg-amber-50 text-amber-700",
 };
 export function ReviewStateBadge({ state }) {
   const { t } = useTranslation("aml");
@@ -155,12 +195,12 @@ export function EntityRecord({ entity }) {
   ].filter(([, v]) => v);
   return (
     <div className="rounded-lg bg-muted/50 p-2.5 text-xs">
-      <p className="font-semibold text-slate-700">{entity.name}</p>
+      <p dir="auto" className="font-semibold text-slate-700">{entity.name}</p>
       <dl className="mt-1 grid gap-x-3 gap-y-0.5 sm:grid-cols-[auto_1fr]">
         {rows.map(([label, value]) => (
           <div key={label} className="contents">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd className="break-words">{value}</dd>
+            <dd dir="auto" className="break-words">{value}</dd>
           </div>
         ))}
       </dl>
