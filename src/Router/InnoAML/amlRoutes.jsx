@@ -17,7 +17,7 @@ const pages = {
   namelookup: NameLookup, // AML Screening > Name Lookup (103)
   matchreview: MatchReview, // AML Screening > Match Review (104)
   blacklist: Blacklist, // Settings > Blacklist (182)
-  whitelist: Whitelist, // Whitelist (183), after Match Review
+  whitelist: Whitelist, // Settings > Whitelist (183), after Blacklist
 };
 
 export const amlRoutes = Object.entries(pages).flatMap(([path, page]) => [

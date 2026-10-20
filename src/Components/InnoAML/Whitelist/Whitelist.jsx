@@ -75,7 +75,7 @@ function RenewDialog({ row, busy, onClose, onSave }) {
   );
 }
 
-// InnoAML > Whitelist (menu 183): the approved false positives (one party
+// InnoAML > Settings > Whitelist (menu 183): the approved false positives (one party
 // cleared against one listed record). Each expires, keeps its evidence and
 // can be renewed or revoked, both waiting for a checker.
 export function Whitelist() {

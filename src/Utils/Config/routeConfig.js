@@ -162,7 +162,7 @@ const SEGMENT_LABELS = {
   namelookup: { titleKey: "crumbNameLookup", breadcrumb: ["crumbAmlScreening", "crumbNameLookup"] },
   matchreview: { titleKey: "crumbMatchReview", breadcrumb: ["crumbAmlScreening", "crumbMatchReview"] },
   blacklist: { titleKey: "crumbBlacklist", breadcrumb: ["crumbAmlConfiguration", "crumbBlacklist"] },
-  whitelist: { titleKey: "crumbWhitelist", breadcrumb: ["crumbAmlScreening", "crumbWhitelist"] },
+  whitelist: { titleKey: "crumbWhitelist", breadcrumb: ["crumbAmlConfiguration", "crumbWhitelist"] },
   kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   kycschemeconfig: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },
   individualtypeconfig: { titleKey: "crumbIndvTypeConfig", breadcrumb: ["crumbCustomerOnboardingConfig", "crumbIndvTypeConfig"] },
