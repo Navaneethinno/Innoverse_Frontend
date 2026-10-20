@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Eye, MessageSquarePlus, MessageSquare, RefreshCw, RotateCcw, ShieldCheck, Unlock, UserPlus, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, MessageSquarePlus, MessageSquare, MinusCircle, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -14,12 +14,15 @@ import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { AmlPill, isApproval, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
-import { AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
+import { AmlPill, isApproval, outcomeWord, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
+import { AmlProposeDialog, AssignDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "account"];
+// An AML case is about an active customer: the conversation with them
+// instead of onboarding requests.
+const AML_TABS = ["overview", "conversation", "risk", "aml", "timeline", "account"];
 
 // The staff onboarding calls for the case's subject (customer or merchant,
 // individual or corporate).
@@ -32,8 +35,10 @@ const subjectApi = (subject) =>
 // and the buttons `actions` allows, gated by the menu's permissions) and
 // the Overview / Customer / Risk / AML / Timeline / Account tabs. Every
 // action replies with the whole case, which replaces what is shown.
-export function CaseView({ id, onBack }) {
+export function CaseView({ id, config, onBack }) {
   const { t } = useTranslation(["cases", "common"]);
+  const api = config?.api ?? onboardingCasesApi;
+  const aml = config?.kind === "aml";
   const can = usePagePermission();
   const [kase, setKase] = useState(null);
   const [tab, setTab] = useState("overview");
@@ -42,23 +47,23 @@ export function CaseView({ id, onBack }) {
 
   const reload = useCallback(async () => {
     try {
-      setKase(rowsOf(await onboardingCasesApi.get({ id }))[0] ?? null);
+      setKase(rowsOf(await api.get({ id }))[0] ?? null);
     } catch (error) {
       notifications.error(error.message);
     }
-  }, [id]);
+  }, [api, id]);
   useEffect(() => {
     void reload();
   }, [reload]);
   // The open record: reload when the push names it, or names nothing.
-  useLiveChannel("/config/case/onboarding/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
+  useLiveChannel(api.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   // Runs an action with the case's updated_time; a 409 (someone else acted)
   // reloads the case.
   const act = async (verb, body = {}) => {
     setBusy(true);
     try {
-      const response = await onboardingCasesApi[verb]({ id, expected_updated_time: kase?.updated_time, ...body });
+      const response = await api[verb]({ id, expected_updated_time: kase?.updated_time, ...body });
       setKase(rowsOf(response)[0] ?? kase);
       if (response?.message) notifications.success(response.message);
       setDialog(null);
@@ -87,6 +92,9 @@ export function CaseView({ id, onBack }) {
   const buttons = [
     allowed.assign && edit && { key: "assign", icon: UserPlus, variant: "secondary", run: () => setDialog("assign") },
     allowed.note && edit && { key: "note", icon: MessageSquare, variant: "secondary", run: () => setDialog("note") },
+    allowed.message && edit && { key: "message", icon: Send, variant: "secondary", run: () => setDialog("message") },
+    allowed.propose_close && edit && { key: "proposeClose", icon: ShieldAlert, variant: "danger", run: () => setDialog("amlPropose") },
+    allowed.propose_cleared && edit && { key: "proposeCleared", icon: CheckCircle2, variant: "primary", run: () => setDialog("amlPropose") },
     allowed.request && edit && { key: "request", icon: MessageSquarePlus, variant: "secondary", run: () => setDialog("request") },
     allowed.rescreen && edit && { key: "rescreen", icon: RefreshCw, variant: "secondary", run: () => void act("rescreen", { what: [] }) },
     allowed.propose_reject && edit && { key: "proposeReject", icon: XCircle, variant: "danger", run: () => setDialog("reject") },
@@ -130,11 +138,12 @@ export function CaseView({ id, onBack }) {
             ))}
           </div>
         </div>
+        {aml && kase.title && <p className="mt-2 text-xs text-muted-foreground">{t("caseTitle")}: <span className="font-semibold text-foreground">{kase.title}</span></p>}
         {kase.proposal && <ProposalBanner proposal={kase.proposal} closed={kase.status === "CLOSED"} />}
       </div>
 
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
-        {TABS.map((key) => (
+        {(aml ? AML_TABS : TABS).map((key) => (
           <button
             key={key}
             type="button"
@@ -148,7 +157,8 @@ export function CaseView({ id, onBack }) {
         ))}
       </div>
 
-      {tab === "overview" && <OverviewTab kase={kase} />}
+      {tab === "overview" && (aml ? <AmlOverviewTab kase={kase} /> : <OverviewTab kase={kase} />)}
+      {tab === "conversation" && <ConversationTab events={kase.timeline} canMessage={allowed.message && edit} busy={busy} onSend={(body) => act("message", { body })} />}
       {tab === "customer" && <StaffOnboardingWizard kind={kase.subject?.ownership === "CORPORATE" ? "corporate" : "individual"} api={subjectApi(kase.subject)} referenceId={kase.subject?.reference_id} forceReadOnly onClose={() => setTab("overview")} />}
       {tab === "requests" && (
         <RequestsTab
@@ -181,7 +191,11 @@ export function CaseView({ id, onBack }) {
       {(dialog === "approve" || dialog === "reject") && (
         <ProposeDialog outcome={dialog === "approve" ? "APPROVE" : "REJECT"} openMatches={kase.aml_open_matches} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("propose", body)} />
       )}
-      {dialog === "decide" && <DecideDialog proposal={kase.proposal} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("decide", body)} canConfirm={allowed.confirm} canReturn={allowed.return} />}
+      {dialog === "decide" && <DecideDialog proposal={kase.proposal} noteToReturn={aml} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("decide", body)} canConfirm={allowed.confirm} canReturn={allowed.return} />}
+      {dialog === "message" && <NoteDialog title={t("action_message")} hint={t("messageHint")} label={t("messageToCustomer")} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("message", { body })} />}
+      {dialog === "amlPropose" && (
+        <AmlProposeDialog allowCleared={allowed.propose_cleared} allowClose={allowed.propose_close} openMatches={kase.aml_open_matches} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("propose", body)} />
+      )}
       {(dialog === "reopen" || dialog === "release") && (
         <NoteDialog title={t(`action_${dialog}`)} hint={t(`${dialog}Hint`)} busy={busy} onClose={() => setDialog(null)} onSave={(note) => act(dialog, { note })} />
       )}
@@ -193,22 +207,26 @@ function Empty({ text }) {
   return <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">{text}</p>;
 }
 
+const goodOutcome = (outcome) => isApproval(outcome) || outcome === "CLEARED";
+
 function ProposalBanner({ proposal, closed }) {
   const { t } = useTranslation("cases");
-  const approve = isApproval(proposal.outcome);
-  const Icon = approve ? CheckCircle2 : XCircle;
+  const approve = goodOutcome(proposal.outcome);
+  const neutral = proposal.outcome === "NO_ACTION";
+  const Icon = neutral ? MinusCircle : approve ? CheckCircle2 : XCircle;
   return (
     <div
       className={cn(
         "mt-3 flex gap-3 rounded-xl border border-l-4 p-3 text-sm",
-        approve ? "border-emerald-300 border-l-emerald-500 bg-emerald-50 text-emerald-900" : "border-red-300 border-l-red-500 bg-red-50 text-red-900",
+        neutral ? "border-border border-l-slate-400 bg-muted/50" : approve ? "border-emerald-300 border-l-emerald-500 bg-emerald-50 text-emerald-900" : "border-red-300 border-l-red-500 bg-red-50 text-red-900",
       )}
     >
-      <Icon size={18} className={cn("mt-0.5 shrink-0", approve ? "text-emerald-600" : "text-red-600")} />
+      <Icon size={18} className={cn("mt-0.5 shrink-0", neutral ? "text-muted-foreground" : approve ? "text-emerald-600" : "text-red-600")} />
       <div className="min-w-0">
         <p className="font-bold">
-          {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: t(approve ? "approve" : "reject"), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}
+          {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}
         </p>
+        {proposal.restriction && <p className="mt-1 text-xs"><span className="font-semibold">{t("restriction")}:</span> {t(`restriction_${proposal.restriction}`, { defaultValue: proposal.restriction })}</p>}
         {proposal.reason && <p className="mt-1 text-xs"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}
         {proposal.customer_message && <p className="mt-0.5 text-xs"><span className="font-semibold">{t("customerMessage")}:</span> {proposal.customer_message}</p>}
       </div>
@@ -417,6 +435,75 @@ function TimelineTab({ events, canNote, onNote, busy }) {
         </ol>
       ) : (
         <Empty text={t("noEvents")} />
+      )}
+    </div>
+  );
+}
+
+// An AML case's overview: who, why the case opened, and when each side
+// last wrote.
+function AmlOverviewTab({ kase }) {
+  const { t } = useTranslation("cases");
+  return (
+    <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3">
+      <Tile label={t("contact")}>
+        <p>{kase.subject?.email || "—"}</p>
+        <p className="text-xs text-muted-foreground">{kase.subject?.phone_number || "—"}</p>
+      </Tile>
+      <Tile label={t("customerReference")}>
+        <p className="break-all font-mono text-xs">{kase.subject?.reference_id ?? "—"}</p>
+        <p className="text-xs text-muted-foreground">{kase.subject?.status_name ?? ""}</p>
+      </Tile>
+      <Tile label={t("screeningRun")}>
+        <p className="break-all font-mono text-xs">{kase.screening_run_id ?? "—"}</p>
+      </Tile>
+      <Tile label={t("lastStaff")}>{kase.last_staff_at ? caseDate(kase.last_staff_at) : "—"}</Tile>
+      <Tile label={t("lastCustomer")}>{kase.last_customer_at ? caseDate(kase.last_customer_at) : "—"}</Tile>
+      <Tile label={t("closed")}>{kase.closed_at ? `${caseDate(kase.closed_at)} · ${kase.closed_by?.name ?? kase.closed_by ?? ""}` : "—"}</Tile>
+    </div>
+  );
+}
+
+// What the customer sees (events marked CUSTOMER), as a conversation, and
+// a box to write to them. Internal events stay on the Timeline.
+function ConversationTab({ events, canMessage, busy, onSend }) {
+  const { t } = useTranslation("cases");
+  const [body, setBody] = useState("");
+  const messages = [...(events ?? [])].filter((e) => e.visibility === "CUSTOMER").sort((a, b) => String(a.at).localeCompare(String(b.at)));
+  return (
+    <div className="grid gap-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        {messages.length ? (
+          <ol className="space-y-3">
+            {messages.map((e) => {
+              const fromCustomer = /^CUSTOMER_(REPLIED|REPLY)/.test(e.event) || e.event === "CUSTOMER_RESPONDED";
+              return (
+                <li key={e.id} className={cn("flex", fromCustomer ? "justify-start" : "justify-end")}>
+                  <div className={cn("max-w-[80%] rounded-2xl px-3 py-2 text-sm", fromCustomer ? "rounded-bl-sm bg-muted" : "rounded-br-sm bg-primary/10")}>
+                    <p dir="auto" className="whitespace-pre-wrap">{e.body}</p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      {t(`event_${e.event}`, { defaultValue: e.event })} · {caseDate(e.at)}
+                      {e.actor ? ` · ${e.actor?.name ?? e.actor}` : ""}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("noConversation")}</p>
+        )}
+      </div>
+      {canMessage && (
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <textarea value={body} maxLength={4000} onChange={(e) => setBody(e.target.value)} placeholder={t("messagePlaceholder")} className="min-h-20 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary" />
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className="text-[11px] text-muted-foreground">{t("messageHint")}</span>
+            <Button size="sm" icon={Send} disabled={!body.trim()} loading={busy} onClick={async () => (await onSend(body.trim())) && setBody("")}>
+              {t("send")}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

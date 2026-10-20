@@ -863,5 +863,6 @@ export const API_ENDPOINTS = {
     MEDIA_REVIEW: "/config/aml/media_review",
     BLACKLIST: "/config/aml/blacklist",
     WHITELIST: "/config/aml/whitelist",
+    FLAG: "/config/aml/flag",
   },
 };

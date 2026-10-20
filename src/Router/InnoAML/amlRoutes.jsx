@@ -8,6 +8,8 @@ const Screenings = lazy(() => import("@/Components/InnoAML/Screenings").then((m)
 const NameLookup = lazy(() => import("@/Components/InnoAML/NameLookup").then((m) => ({ default: m.NameLookup })));
 const Blacklist = lazy(() => import("@/Components/InnoAML/Blacklist").then((m) => ({ default: m.Blacklist })));
 const Whitelist = lazy(() => import("@/Components/InnoAML/Whitelist").then((m) => ({ default: m.Whitelist })));
+const Flags = lazy(() => import("@/Components/InnoAML/Flags").then((m) => ({ default: m.Flags })));
+const AmlCases = lazy(() => import("@/Components/CaseManagement/AmlCases").then((m) => ({ default: m.AmlCases })));
 const MatchReview = lazy(() => import("@/Components/InnoAML/MatchReview").then((m) => ({ default: m.MatchReview })));
 
 const pages = {
@@ -16,6 +18,8 @@ const pages = {
   screenings: Screenings, // AML Screening > Screenings (102), with the Changes tab
   namelookup: NameLookup, // AML Screening > Name Lookup (103)
   matchreview: MatchReview, // AML Screening > Match Review (104)
+  flags: Flags, // Flags (184), after Match Review
+  amlcases: AmlCases, // AML Cases (185), after Flags
   blacklist: Blacklist, // Settings > Blacklist (182)
   whitelist: Whitelist, // Settings > Whitelist (183), after Blacklist
 };

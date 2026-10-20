@@ -12,17 +12,18 @@ export const useMenuContext = () => useContext(MenuContext);
 
 // Open another menu's page by its page slug (e.g. "kycschemes"), staying in the
 // current module when it has that menu: an MMS screen's "Add company type"
-// opens MMS's Company Type, not EPURSE's.
+// opens MMS's Company Type, not EPURSE's. `state` goes along to the page
+// (e.g. { caseId } to open one case).
 export function useOpenMenu() {
   const context = useMenuContext();
   const menus = useSelector((state) => state.menu.menuArray);
   const navigate = useNavigate();
-  return (slug) => {
+  return (slug, state = {}) => {
     const active = (menus ?? []).filter((m) => m?.status === 1);
     const inModule = active.filter((m) => !context?.module || m.module_name === context.module);
     const target = inModule.find((m) => menuPage(m).slugs.includes(slug)) ?? inModule.find((m) => menuPage(m).slugs.includes(`corp${slug}`));
     // A merged menu opens on the view that page is.
     const view = target && menuPage(target).views?.slice(1).find((v) => v.slug === slug || v.slug === `corp${slug}`);
-    navigate(target ? `${menuPathForItem(target, active)}${view ? `?view=${view.key}` : ""}` : `/${slug}`, { state: { menuClick: Date.now() } });
+    navigate(target ? `${menuPathForItem(target, active)}${view ? `?view=${view.key}` : ""}` : `/${slug}`, { state: { menuClick: Date.now(), ...state } });
   };
 }

@@ -8,6 +8,7 @@ const BASE = "/config/case/onboarding";
 const call = (verb) => (body) => request(`${BASE}/${verb}`, body);
 
 export const onboardingCasesApi = {
+  listPath: `${BASE}/list`,
   list: call("list"),
   get: call("get"),
   assign: call("assign"),

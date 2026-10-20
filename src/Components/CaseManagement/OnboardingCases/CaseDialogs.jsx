@@ -7,7 +7,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { useAuth } from "@/Hooks/useAuth";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { caseDate, isApproval } from "./caseShared";
+import { caseDate, isApproval, outcomeWord } from "./caseShared";
 
 const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
 const labelClass = "text-sm font-semibold text-slate-700";
@@ -55,7 +55,7 @@ export function AssignDialog({ kase, busy, onClose, onSave }) {
 }
 
 // A note on the case; reopen and release take one too.
-export function NoteDialog({ title, hint, busy, onClose, onSave }) {
+export function NoteDialog({ title, hint, label, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
   const [body, setBody] = useState("");
   return (
@@ -72,7 +72,7 @@ export function NoteDialog({ title, hint, busy, onClose, onSave }) {
     >
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
       <label className={labelClass}>
-        {t("note")}
+        {label ?? t("note")}
         <textarea value={body} maxLength={4000} onChange={(e) => setBody(e.target.value)} className={areaClass} />
       </label>
     </Modal>
@@ -127,10 +127,12 @@ export function ProposeDialog({ outcome, openMatches, busy, onClose, onSave }) {
 }
 
 // The checker's view of a proposal: Confirm or Return, with a note.
-export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, onSave }) {
+// `noteToReturn`: returning needs a note (AML cases).
+export function DecideDialog({ proposal, canConfirm, canReturn, noteToReturn = false, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
   const [note, setNote] = useState("");
-  const approve = isApproval(proposal?.outcome);
+  const approve = isApproval(proposal?.outcome) || proposal?.outcome === "CLEARED" || proposal?.outcome === "NO_ACTION";
+  const amlOutcome = /^(CLEARED|CONFIRMED|NO_ACTION)$/.test(proposal?.outcome ?? "");
   return (
     <Modal
       open
@@ -139,10 +141,10 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          {canReturn && <Button variant="secondary" loading={busy} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
+          {canReturn && <Button variant="secondary" loading={busy} disabled={noteToReturn && !note.trim()} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
           {canConfirm && (
             <Button variant={approve ? "primary" : "danger"} loading={busy} onClick={() => onSave({ confirm: true, note: note.trim() })}>
-              {t(approve ? "confirmApprove" : "confirmReject")}
+              {amlOutcome ? t("confirmOutcome", { outcome: outcomeWord(t, proposal.outcome) }) : t(approve ? "confirmApprove" : "confirmReject")}
             </Button>
           )}
         </>
@@ -150,7 +152,8 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
     >
       {proposal && (
         <div className="mb-4 rounded-xl border border-border p-3 text-sm">
-          <p className="font-bold">{t("proposalWaiting", { outcome: t(approve ? "approve" : "reject"), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}</p>
+          <p className="font-bold">{t("proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}</p>
+          {proposal.restriction && <p className="mt-1 text-xs"><span className="font-semibold">{t("restriction")}:</span> {t(`restriction_${proposal.restriction}`, { defaultValue: proposal.restriction })}</p>}
           {proposal.reason && <p className="mt-1 text-xs"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}
           {proposal.customer_message && <p className="mt-0.5 text-xs"><span className="font-semibold">{t("customerMessage")}:</span> {proposal.customer_message}</p>}
         </div>
@@ -159,6 +162,93 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
         {t("note")}
         <textarea value={note} maxLength={4000} onChange={(e) => setNote(e.target.value)} className={areaClass} />
       </label>
+    </Modal>
+  );
+}
+
+export const RESTRICTIONS = ["NONE", "BLOCK_OUTGOING", "SUSPEND"];
+
+// Close an AML case, for a second user to confirm (a System user's applies
+// at once): CLEARED (only once every match is decided in Match Review),
+// CONFIRMED (the customer is restricted; empty = the AML setup's most, a
+// lighter one may be chosen) or NO_ACTION. The customer message is optional
+// and must stay neutral.
+export function AmlProposeDialog({ allowCleared, allowClose, openMatches, busy, onClose, onSave }) {
+  const { t } = useTranslation("cases");
+  const outcomes = [...(allowCleared ? ["CLEARED"] : []), ...(allowClose ? ["CONFIRMED", "NO_ACTION"] : [])];
+  const [outcome, setOutcome] = useState(outcomes[0] ?? "");
+  const [reason, setReason] = useState("");
+  const [message, setMessage] = useState("");
+  const [restriction, setRestriction] = useState("");
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t("action_proposeClose")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
+          <Button
+            variant={outcome === "CONFIRMED" ? "danger" : "primary"}
+            disabled={!outcome || !reason.trim()}
+            loading={busy}
+            onClick={() =>
+              onSave({
+                outcome,
+                reason: reason.trim(),
+                ...(message.trim() ? { customer_message: message.trim() } : {}),
+                ...(outcome === "CONFIRMED" && restriction ? { restriction } : {}),
+              })
+            }
+          >
+            {t("propose")}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-4">
+        <div className="grid gap-2 sm:grid-cols-3">
+          {["CLEARED", "CONFIRMED", "NO_ACTION"].map((o) => (
+            <button
+              key={o}
+              type="button"
+              disabled={!outcomes.includes(o)}
+              onClick={() => setOutcome(o)}
+              className={`rounded-xl border p-2.5 text-left text-xs disabled:opacity-40 ${outcome === o ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border"}`}
+            >
+              <span className="block font-bold">{t(`outcome_${o}`)}</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">{t(`outcomeHint_${o}`)}</span>
+            </button>
+          ))}
+        </div>
+        {outcome === "CLEARED" && openMatches > 0 && (
+          <p className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-xs font-semibold text-red-700">
+            <AlertTriangle size={14} /> {t("openMatchesBlock", { count: openMatches })}
+          </p>
+        )}
+        {outcome === "CONFIRMED" && (
+          <label className={labelClass}>
+            {t("restriction")}
+            <FilterSelect
+              className="mt-1.5"
+              value={restriction}
+              onChange={setRestriction}
+              options={[{ value: "", label: t("restrictionSetupDefault") }, ...RESTRICTIONS.map((r) => ({ value: r, label: t(`restriction_${r}`) }))]}
+            />
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("restrictionHint")}</span>
+          </label>
+        )}
+        <label className={labelClass}>
+          {t("reason")} <span className="text-red-500">*</span>
+          <textarea value={reason} maxLength={4000} onChange={(e) => setReason(e.target.value)} className={areaClass} />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("reasonInternal")}</span>
+        </label>
+        <label className={labelClass}>
+          {t("customerMessage")}
+          <textarea value={message} maxLength={4000} onChange={(e) => setMessage(e.target.value)} className={areaClass} placeholder={t("customerMessagePlaceholder")} />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("amlCustomerMessageHint")}</span>
+        </label>
+      </div>
     </Modal>
   );
 }

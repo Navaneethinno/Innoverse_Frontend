@@ -31,10 +31,17 @@ export function CaseStatus({ status, outcome }) {
 // REJECT / REJECTED): anything starting with APPROV is an approval.
 export const isApproval = (outcome) => /^APPROV/i.test(String(outcome ?? ""));
 
+// How a proposal's outcome reads: approve / reject on an onboarding case,
+// cleared / confirmed / no action on an AML case.
+export const outcomeWord = (t, outcome) => (/^(CLEARED|CONFIRMED|NO_ACTION)$/.test(outcome ?? "") ? t(`proposeOutcome_${outcome}`) : t(isApproval(outcome) ? "approve" : "reject"));
+
 const OUTCOME_TONE = {
   APPROVED: "bg-emerald-50 text-emerald-700",
   REJECTED: "bg-red-50 text-red-700",
   WITHDRAWN: "bg-muted text-muted-foreground",
+  CLEARED: "bg-emerald-50 text-emerald-700",
+  CONFIRMED: "bg-red-50 text-red-700",
+  NO_ACTION: "bg-muted text-muted-foreground",
 };
 
 const REASON_TONE = {

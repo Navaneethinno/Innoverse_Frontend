@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { useAuth } from "@/Hooks/useAuth";
 import { amlSetupApi } from "@/Services/InnoAML/aml.api";
@@ -50,6 +51,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
     // What a blacklist hit does, and how long a whitelist entry lasts.
     blacklist_action: editing?.list_policy?.blacklist_action ?? "FLAG",
     whitelist_months: String(editing?.list_policy?.whitelist_months ?? 12),
+    confirmed_restriction: editing?.list_policy?.confirmed_restriction ?? "BLOCK_OUTGOING",
     // Every category shown; one left out of the saved weights counts in full.
     weights: Object.fromEntries(AML_CATEGORIES.map((c) => [c, String(editing?.category_weights?.[c] ?? 100)])),
     levels: editing?.levels?.length ? editing.levels.map((l) => ({ ...l, color_code: l.color_code ?? "", risk_action_id: idOrEmpty(l.risk_action_id), merchant_risk_action_id: idOrEmpty(l.merchant_risk_action_id) })) : DEFAULT_BANDS,
@@ -87,7 +89,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
         min_match_score: minScore,
         ongoing_rescreen: form.ongoing_rescreen,
         // Sent on every save: left out, the server falls back to FLAG / 12.
-        list_policy: { blacklist_action: form.blacklist_action, whitelist_months: months },
+        list_policy: { blacklist_action: form.blacklist_action, whitelist_months: months, confirmed_restriction: form.confirmed_restriction },
         // Only the weights that cut a score; the rest count in full.
         category_weights: Object.fromEntries(weights.filter(([, w]) => w !== 100)),
         levels: chainLevels(form.levels).map((l) => ({
@@ -152,6 +154,16 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
           {t("aml:whitelistMonths")} <span className="text-red-500">*</span>
           <input type="number" min={1} max={60} value={form.whitelist_months} onChange={(e) => setForm((f) => ({ ...f, whitelist_months: e.target.value.replace(/\D/g, "").slice(0, 2) }))} className={inputClass} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("aml:whitelistMonthsHint")}</span>
+        </label>
+        <label className={labelClass}>
+          {t("aml:confirmedRestriction")}
+          <FilterSelect
+            className="mt-1.5"
+            value={form.confirmed_restriction}
+            onChange={(v) => setForm((f) => ({ ...f, confirmed_restriction: v }))}
+            options={["NONE", "BLOCK_OUTGOING", "SUSPEND"].map((r) => ({ value: r, label: t(`aml:restriction_${r}`) }))}
+          />
+          <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t(`aml:restrictionHint_${form.confirmed_restriction}`)}</span>
         </label>
         <div className="md:col-span-2">
           <p className={labelClass}>{t("aml:categoryWeights")}</p>

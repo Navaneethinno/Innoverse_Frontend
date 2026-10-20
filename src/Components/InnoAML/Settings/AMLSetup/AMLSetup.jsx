@@ -63,6 +63,7 @@ export function AMLSetup() {
             <ViewItem label={t("aml:ongoingRescreen")}>{row.ongoing_rescreen ? t("common:yes") : t("common:no")}</ViewItem>
             <ViewItem label={t("aml:blacklistAction")}>{t(`aml:blacklistAction_${row.list_policy?.blacklist_action ?? "FLAG"}`)}</ViewItem>
             <ViewItem label={t("aml:whitelistMonths")}>{row.list_policy?.whitelist_months ?? 12}</ViewItem>
+            <ViewItem label={t("aml:confirmedRestriction")}>{t(`aml:restriction_${row.list_policy?.confirmed_restriction ?? "BLOCK_OUTGOING"}`)}</ViewItem>
             <ViewItem label={t("aml:categoryWeights")}>
               {Object.keys(row.category_weights ?? {}).length
                 ? Object.entries(row.category_weights).map(([c, w]) => `${t(`aml:category_${c}`, { defaultValue: c })} ${w}%`).join(" · ")

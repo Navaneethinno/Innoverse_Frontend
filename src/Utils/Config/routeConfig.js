@@ -161,6 +161,8 @@ const SEGMENT_LABELS = {
   screenings: { titleKey: "crumbScreenings", breadcrumb: ["crumbAmlScreening", "crumbScreenings"] },
   namelookup: { titleKey: "crumbNameLookup", breadcrumb: ["crumbAmlScreening", "crumbNameLookup"] },
   matchreview: { titleKey: "crumbMatchReview", breadcrumb: ["crumbAmlScreening", "crumbMatchReview"] },
+  flags: { titleKey: "crumbFlags", breadcrumb: ["crumbAmlScreening", "crumbFlags"] },
+  amlcases: { titleKey: "crumbAmlCases", breadcrumb: ["crumbAmlScreening", "crumbAmlCases"] },
   blacklist: { titleKey: "crumbBlacklist", breadcrumb: ["crumbAmlConfiguration", "crumbBlacklist"] },
   whitelist: { titleKey: "crumbWhitelist", breadcrumb: ["crumbAmlConfiguration", "crumbWhitelist"] },
   kycscheme: { titleKey: "crumbKycSchemes", breadcrumb: ["crumbKYC", "crumbKycSchemes"] },

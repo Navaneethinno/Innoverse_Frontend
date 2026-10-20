@@ -4,7 +4,7 @@ import { uploadFile } from "@/Services/api/fileTransfer";
 
 // InnoAML (AML handoffs 03–07, 2026-09). Every call is a POST with the usual
 // admin login, menu permissions and reply envelope.
-const { SETUP, INTERNAL_LIST, SCREENING, LOOKUP, REVIEW, MEDIA, MEDIA_REVIEW, BLACKLIST, WHITELIST } = API_ENDPOINTS.AML;
+const { SETUP, INTERNAL_LIST, SCREENING, LOOKUP, REVIEW, MEDIA, MEDIA_REVIEW, BLACKLIST, WHITELIST, FLAG } = API_ENDPOINTS.AML;
 const call = (base, verb) => (payload = {}) => request(`${base}/${verb}`, payload);
 
 // One setup per institution: score bands (same shape as risk levels) mapped
@@ -138,4 +138,14 @@ export const amlWhitelistApi = {
   upload: (fields) => uploadFile(`${WHITELIST}/upload`, fields),
   validate: call(WHITELIST, "validate"),
   import: call(WHITELIST, "import"),
+};
+
+// Flags: ongoing rescreening found a customer's AML result got worse. Each
+// stays OPEN until a case is raised from it (AML Cases) or it is dismissed
+// with a comment; either settles every open flag of that customer. The
+// list replies { flags, total, open } (open = open flags, any filter).
+export const amlFlagApi = {
+  listPath: `${FLAG}/list`,
+  list: call(FLAG, "list"),
+  dismiss: call(FLAG, "dismiss"),
 };

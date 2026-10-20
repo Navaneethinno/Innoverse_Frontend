@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Ban, ChevronDown, History, Send } from "lucide-react";
+import { AlertTriangle, Ban, BriefcaseBusiness, ChevronDown, History, Send } from "lucide-react";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
+import { RaiseCaseDialog } from "@/Components/CaseManagement/AmlCases/RaiseCaseDialog";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { amlLookupApi, amlReviewApi, amlScreeningApi } from "@/Services/InnoAML/aml.api";
@@ -234,6 +235,8 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
 export function ScreeningDetail({ screening, onChange }) {
   const { t } = useTranslation("aml");
   const canPropose = useMenuPermission("Match Review")("Add");
+  const canRaise = useMenuPermission("AML Cases")("Add");
+  const [raising, setRaising] = useState(false);
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState(false);
   const failed = screening.status === "ERROR";
@@ -279,6 +282,12 @@ export function ScreeningDetail({ screening, onChange }) {
           <p className="text-[11px] text-muted-foreground">
             {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), screening.screened_by, when(screening.screened_at)].filter(Boolean).join(" · ")}
           </p>
+          {/* A customer's screening (not a Name Lookup) can open an AML case. */}
+          {canRaise && screening.reference_id && screening.customer_kind && screening.customer_kind !== "NONE" && (
+            <button type="button" onClick={() => setRaising(true)} className="mt-2 inline-flex items-center gap-1.5 rounded-lg border bg-card px-2.5 py-1 text-xs font-bold text-primary hover:border-primary">
+              <BriefcaseBusiness size={13} /> {t("raiseCase")}
+            </button>
+          )}
         </div>
         {failed ? (
           <EffectiveResult row={screening} />
@@ -347,6 +356,8 @@ export function ScreeningDetail({ screening, onChange }) {
           ))}
         </ul>
       )}
+
+      {raising && <RaiseCaseDialog target={{ screening_id: screening.id }} subtitle={screening.name} onClose={() => setRaising(false)} onRaised={() => setRaising(false)} />}
 
       {reviewing && (
         <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-2 backdrop-blur">
