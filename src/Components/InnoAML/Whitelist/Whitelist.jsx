@@ -13,6 +13,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
 import { inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { amlWhitelistApi } from "@/Services/InnoAML/aml.api";
 import { formatDay } from "@/Utils/Lib/dateFormat";
@@ -96,6 +97,8 @@ export function Whitelist() {
     void entries.reload();
     void pending.reload();
   };
+  // Another user's change (and, for the whitelist, Match Review decisions).
+  useLiveChannel(amlWhitelistApi.listPath, reloadAll);
 
   const run = async (call, body, fallback) => {
     setWorking(true);
@@ -128,7 +131,7 @@ export function Whitelist() {
   );
   const listedCell = (row) => (
     <span className="grid gap-0.5">
-      <NameText name={row.listed_name ?? row.matched_name} latin={row.matched_name_latin} />
+      <NameText name={row.listed_name ?? row.matched_name} latin={row.listed_name ? row.listed_name_latin : row.matched_name_latin} />
       <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
         <span className="font-mono font-bold">{row.list}</span>
         <ViaTag via={row.matched_via} />

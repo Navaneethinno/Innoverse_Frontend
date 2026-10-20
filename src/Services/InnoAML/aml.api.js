@@ -125,6 +125,7 @@ export const amlBlacklistApi = {
 // The whitelist: approved false positives from Match Review, each with an
 // expiry and evidence; renew / revoke wait for a checker.
 export const amlWhitelistApi = {
+  listPath: `${WHITELIST}/list`,
   list: call(WHITELIST, "list"),
   pending: call(WHITELIST, "pending"),
   renew: call(WHITELIST, "renew"),

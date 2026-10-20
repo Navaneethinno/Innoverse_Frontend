@@ -114,7 +114,7 @@ export function BlacklistImport({ onClose, onImported }) {
             <Button variant="ghost" onClick={() => onImported(null)}>
               {t("common:close")}
             </Button>
-            {result.batch_id && !result.applied && <Button onClick={() => onImported(result.batch_id)}>{t("aml:reviewBatch")}</Button>}
+            {result.batch_id && <Button onClick={() => onImported(result.batch_id, result.applied)}>{t(result.applied ? "aml:showBatchEntries" : "aml:reviewBatch")}</Button>}
           </>
         }
       >
@@ -134,7 +134,8 @@ export function BlacklistImport({ onClose, onImported }) {
               <ul className="max-h-32 overflow-y-auto">
                 {result.skipped.map((s, i) => (
                   <li key={i} dir="auto">
-                    {typeof s === "object" ? [s.row && t("aml:rowN", { row: s.row }), s.name, s.reason ?? s.problem].filter(Boolean).join(" · ") : String(s)}
+                    {s.name ?? s.blacklist_name}
+                    {s.entity_type && <span className="text-muted-foreground"> · {t(`aml:entity_${s.entity_type}`, { defaultValue: s.entity_type })}</span>}
                   </li>
                 ))}
               </ul>
@@ -143,7 +144,9 @@ export function BlacklistImport({ onClose, onImported }) {
           {[...(result.errors ?? []), ...(result.problems ?? [])].length > 0 && (
             <div className="max-h-32 overflow-y-auto rounded-lg bg-amber-50 p-2 text-xs text-amber-800">
               {[...(result.errors ?? []), ...(result.problems ?? [])].map((e, i) => (
-                <p key={i}>{typeof e === "object" ? [e.row && t("aml:rowN", { row: e.row }), e.problem ?? e.message].filter(Boolean).join(": ") : String(e)}</p>
+                <p key={i} dir="auto">
+                  <b>{e.row ? t("aml:rowN", { row: e.row }) : e.name}</b>: {e.problem}
+                </p>
               ))}
             </div>
           )}

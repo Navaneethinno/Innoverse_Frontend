@@ -185,8 +185,8 @@ function SubjectCard({ subject, profile }) {
         {profile?.photo && <PhotoCredit profile={profile} />}
       </div>
       <div className="min-w-0">
-      <p className="truncate text-lg font-black text-foreground">{subject.name}</p>
-      {profile?.description && <p className="text-xs font-semibold text-slate-600">{profile.description}</p>}
+      <p dir="auto" className="truncate text-lg font-black text-foreground">{subject.name}</p>
+      {profile?.description && <p dir="auto" className="text-xs font-semibold text-slate-600">{profile.description}</p>}
       <p className="text-xs text-muted-foreground">
         {[t(`entity_${subject.entity_type ?? "PERSON"}`), subject.birth_date && t("mediaBorn", { date: subject.birth_date })].filter(Boolean).join(" · ")}
       </p>
@@ -283,7 +283,7 @@ function Highlighted({ text, highlights }) {
       at = h.end;
     });
   if (at < text.length) parts.push(<span key="end">{text.slice(at)}</span>);
-  return <p className="text-xs leading-relaxed text-slate-700">{parts}</p>;
+  return <p dir="auto" className="text-xs leading-relaxed text-slate-700">{parts}</p>;
 }
 
 function Badges({ a }) {
@@ -315,7 +315,7 @@ function LiveCard({ card }) {
     return (
       <li className="animate-pulse rounded-xl border border-dashed border-border bg-muted/40 p-2.5" style={{ animation: "amSlide 400ms ease-out" }}>
         <Source a={card} />
-        <p className="mt-1 line-clamp-2 text-xs font-semibold text-muted-foreground">{card.title}</p>
+        <p dir="auto" className="mt-1 line-clamp-2 text-xs font-semibold text-muted-foreground">{card.title}</p>
       </li>
     );
   }
@@ -328,7 +328,7 @@ function LiveCard({ card }) {
         <Source a={card} />
         {adverse && <b className="text-xs tabular-nums text-red-700">{card.score}</b>}
       </div>
-      <p className="mt-1 line-clamp-2 text-xs font-semibold">{card.title}</p>
+      <p dir="auto" className="mt-1 line-clamp-2 text-xs font-semibold">{card.title}</p>
       {adverse && (
         <div className="mt-1.5 grid gap-1.5">
           <Badges a={card} />
@@ -348,7 +348,7 @@ function StoryHeader({ story, image }) {
     <div className="flex flex-wrap items-start justify-between gap-2">
       <Thumb image={image} domain={story.best_source} className="h-14 w-20" />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold">{story.headline}</p>
+        <p dir="auto" className="text-sm font-bold">{story.headline}</p>
         <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span className="flex -space-x-1">
             {(story.sources ?? []).slice(0, 5).map((d) => (
@@ -733,7 +733,7 @@ function PersonCard({ r, subject, profile, picked, onPick, main = false }) {
           {initials}
         </span>
       )}
-      <span className={cn("line-clamp-2 font-bold leading-tight", main ? "text-sm" : "text-[11px]")}>{name}</span>
+      <span dir="auto" className={cn("line-clamp-2 font-bold leading-tight", main ? "text-sm" : "text-[11px]")}>{name}</span>
       {!main && <span className="line-clamp-1 text-[10px] text-muted-foreground">{[r.label, years(r)].filter(Boolean).join(" · ")}</span>}
     </button>
   );
@@ -793,7 +793,7 @@ function FamilyTree({ subject, profile, relations, picked, onPick }) {
                     {initialsOf(r.name)}
                   </span>
                 )}
-                {r.name}
+                <span dir="auto">{r.name}</span>
               </button>
             ))}
           </div>
@@ -815,12 +815,12 @@ function RelationDetail({ r, articlesByNo, search, onChange }) {
           <Avatar name={r.name} photo={r.photo} size={44} />
           {r.photo && <PhotoCredit profile={r} />}
         </div>
-        <p className="pt-1 text-sm font-bold">{r.name}</p>
+        <p dir="auto" className="pt-1 text-sm font-bold">{r.name}</p>
       </div>
       <p className="text-muted-foreground">
         {[r.label, years(r), t(`mediaSource_${r.source}`, { defaultValue: r.source })].filter(Boolean).join(" · ")}
       </p>
-      {r.description && <p>{r.description}</p>}
+      {r.description && <p dir="auto">{r.description}</p>}
       {r.watch && (
         <p className="rounded-lg px-2 py-1 font-semibold" style={{ background: `${flagColour(r.watch)}1a`, color: flagColour(r.watch) }}>
           {t("mediaRelationFlag", { label: r.label, name: r.name, category: t(`category_${r.watch.category}`, { defaultValue: r.watch.category }), list: r.watch.list, score: r.watch.score })}
@@ -832,7 +832,7 @@ function RelationDetail({ r, articlesByNo, search, onChange }) {
           {r.articles.map((no) => articlesByNo?.[no]).filter(Boolean).map((a) => (
             <li key={a.no}>
               <a href={a.url} target="_blank" rel="noreferrer" className="inline-flex items-start gap-1 hover:text-primary">
-                <ExternalLink size={11} className="mt-0.5 shrink-0" /> <span className="line-clamp-1">{a.title}</span>
+                <ExternalLink size={11} className="mt-0.5 shrink-0" /> <span dir="auto" className="line-clamp-1">{a.title}</span>
               </a>
             </li>
           ))}
@@ -1005,7 +1005,7 @@ function Relations({ subject, profile, relations, articlesByNo, compact = false,
                       <button type="button" onClick={() => setPicked(picked === r.id ? null : r.id)} className={cn("flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors", picked === r.id ? "border-primary bg-[var(--primary-light)]" : "border-border bg-card hover:border-primary/40")}>
                         <Avatar name={r.name} photo={r.photo} size={26} />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate font-semibold">{r.name}</span>
+                          <span dir="auto" className="block truncate font-semibold">{r.name}</span>
                           <span className="block truncate text-[10px] text-muted-foreground">{[r.label, years(r)].filter(Boolean).join(" · ")}</span>
                         </span>
                         {r.watch && (
@@ -1051,12 +1051,12 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
             </span>
           </div>
           <a href={a.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-start gap-1 text-sm font-semibold hover:text-primary">
-            {a.title} <ExternalLink size={12} className="mt-1 shrink-0" />
+            <span dir="auto">{a.title}</span> <ExternalLink size={12} className="mt-1 shrink-0" />
           </a>
           <div className="mt-1.5">
             <Badges a={a} />
           </div>
-          {a.evidence?.[0] ? <div className="mt-1.5"><Highlighted text={a.evidence[0].text} highlights={a.evidence[0].highlights} /></div> : a.excerpt && <p className="mt-1.5 text-xs text-muted-foreground">{a.excerpt}</p>}
+          {a.evidence?.[0] ? <div className="mt-1.5"><Highlighted text={a.evidence[0].text} highlights={a.evidence[0].highlights} /></div> : a.excerpt && <p dir="auto" className="mt-1.5 text-xs text-muted-foreground">{a.excerpt}</p>}
           <button type="button" onClick={() => setOpen(!open)} className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
             {t("mediaWhy")} <ChevronDown size={12} className={open ? "rotate-180" : ""} />
           </button>
@@ -1151,7 +1151,7 @@ function Timeline({ articles }) {
         <a href={shown.url} target="_blank" rel="noreferrer" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50/50 p-2.5 hover:border-red-300">
           <span className="min-w-0">
             <Source a={shown} />
-            <span className="mt-0.5 block text-xs font-semibold">{shown.title}</span>
+            <span dir="auto" className="mt-0.5 block text-xs font-semibold">{shown.title}</span>
             <span className="mt-1 block">
               <Badges a={shown} />
             </span>
@@ -1507,7 +1507,7 @@ export function AdverseMediaLookup() {
           <InstitutionField value={form.inst_profile_id} onChange={set("inst_profile_id")} />
           <label className={`${labelClass} md:col-span-2`}>
             {t("aml:name")} <span className="text-red-500">*</span>
-            <input value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Manuel Chang" />
+            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Manuel Chang" />
           </label>
           <label className={labelClass}>
             {t("aml:entityType")}
@@ -1523,12 +1523,12 @@ export function AdverseMediaLookup() {
           </label>
           <label className={labelClass}>
             {t("aml:mediaAliases")}
-            <input value={form.aliases} onChange={(e) => set("aliases")(e.target.value)} className={inputClass} placeholder={t("aml:mediaAliasesHint")} />
+            <input dir="auto" value={form.aliases} onChange={(e) => set("aliases")(e.target.value)} className={inputClass} placeholder={t("aml:mediaAliasesHint")} />
           </label>
           <div className={labelClass}>
             {t("aml:mediaLanguages")}
             <div className="mt-2 flex gap-3">
-              {["pt", "fr"].map((l) => (
+              {["pt", "fr", "ar"].map((l) => (
                 <label key={l} className="flex items-center gap-1.5 text-xs font-medium">
                   <input type="checkbox" checked={form.languages.includes(l)} onChange={() => set("languages")(form.languages.includes(l) ? form.languages.filter((x) => x !== l) : [...form.languages, l])} className="accent-[var(--primary)]" />
                   {t(`aml:mediaLang_${l}`)}
@@ -1722,7 +1722,7 @@ export function MediaReviews() {
 
   const columns = [
     { key: "proposed_at", label: t("aml:proposedAt"), render: (r) => <span className="whitespace-nowrap text-xs">{formatDateTime(r.proposed_at)}</span> },
-    { key: "name", label: t("aml:name"), align: "left", render: (r) => <span className="font-semibold">{r.name}</span> },
+    { key: "name", label: t("aml:name"), align: "left", render: (r) => <span dir="auto" className="font-semibold">{r.name}</span> },
     {
       key: "title",
       label: t("aml:mediaArticle"),
@@ -1730,7 +1730,7 @@ export function MediaReviews() {
       render: (r) =>
         r.relation_id ? (
           <span className="block max-w-sm">
-            <span className="text-xs font-semibold">{r.title}</span>
+            <span dir="auto" className="text-xs font-semibold">{r.title}</span>
             <span className="block text-[11px] text-muted-foreground">
               {t("aml:mediaRelationship")} · {t(`aml:mediaRel_${r.stage}`, { defaultValue: r.stage })}
               {r.category && ` · ${t(`aml:category_${r.category}`, { defaultValue: r.category })}`}
@@ -1738,7 +1738,7 @@ export function MediaReviews() {
           </span>
         ) : (
           <a href={r.url} target="_blank" rel="noreferrer" className="block max-w-sm hover:text-primary">
-            <span className="line-clamp-2 text-xs font-semibold">{r.title}</span>
+            <span dir="auto" className="line-clamp-2 text-xs font-semibold">{r.title}</span>
             <span className="text-[11px] text-muted-foreground">
               {r.domain} · <Badges a={r} />
             </span>

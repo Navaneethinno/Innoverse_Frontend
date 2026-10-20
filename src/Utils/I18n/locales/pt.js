@@ -2093,6 +2093,8 @@ export const aml = {
   revokeEntry: "Revogar entrada da lista branca",
   revokeHint: "Depois de aprovado, a correspondência volta a contar e aparece como aberta.",
   whitelistChangeSubmitted: "Alteração da lista branca submetida para aprovação",
+  mediaLang_ar: "Árabe",
+  showBatchEntries: "Mostrar as entradas importadas",
 };
 
 // Reports (handoff 08).

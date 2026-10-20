@@ -2079,6 +2079,8 @@ export const aml = {
   revokeEntry: "Revoke whitelist entry",
   revokeHint: "Once approved, the match counts again and shows as open.",
   whitelistChangeSubmitted: "Whitelist change submitted for approval",
+  mediaLang_ar: "Arabic",
+  showBatchEntries: "Show the imported entries",
 };
 
 // Reports (handoff 08).

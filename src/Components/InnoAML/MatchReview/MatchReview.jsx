@@ -107,7 +107,7 @@ export function MatchReview() {
       align: "left",
       render: (row) => (
         <span>
-          <NameText name={row.listed_name ?? row.matched_name} latin={row.matched_name_latin} />
+          <NameText name={row.listed_name ?? row.matched_name} latin={row.listed_name ? row.listed_name_latin : row.matched_name_latin} />
           <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
             {row.list} <ViaTag via={row.matched_via} />
           </span>

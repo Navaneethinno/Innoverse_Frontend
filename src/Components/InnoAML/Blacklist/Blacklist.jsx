@@ -8,6 +8,7 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { amlBlacklistApi } from "@/Services/InnoAML/aml.api";
 import { formatDay } from "@/Utils/Lib/dateFormat";
@@ -54,6 +55,8 @@ export function Blacklist() {
     void entries.reload();
     void pending.reload();
   };
+  // Another user's change (and, for the whitelist, Match Review decisions).
+  useLiveChannel(amlBlacklistApi.listPath, reloadAll);
 
   const decide = async (note) => {
     setWorking(true);
@@ -286,12 +289,12 @@ export function Blacklist() {
       {importing && (
         <BlacklistImport
           onClose={() => setImporting(false)}
-          onImported={(batchId) => {
+          onImported={(batchId, applied) => {
             setImporting(false);
             reloadAll();
             if (batchId) {
               setBatch(batchId);
-              setView("pending");
+              setView(applied ? "entries" : "pending");
             }
           }}
         />
