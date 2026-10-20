@@ -64,9 +64,9 @@ export function LoanConfigSummary({ config, other, currency, compact = false }) 
   const showMatrix = differs("approval_matrix");
   if (other && !groups.length && !showTerms && !showFees && !showMatrix) return <p className="text-sm text-muted-foreground">{t("noChangesFound")}</p>;
   return (
-    <div className="grid min-w-0 gap-4">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       {groups.map(([group, rows]) => (
-        <div key={group}>
+        <div key={group} className="min-w-0">
           <p className="mb-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t(group)}</p>
           <dl className={cn("grid grid-cols-2 gap-2", compact ? "sm:grid-cols-2" : "sm:grid-cols-3 lg:grid-cols-4")}>
             {rows.map(([key, value]) => {

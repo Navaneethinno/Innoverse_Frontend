@@ -44,7 +44,7 @@ export function ConfigSummary({ config, other, currency, compact = false }) {
   if (!config) return <p className="text-sm text-muted-foreground">{t("noConfigYet")}</p>;
   const otherRows = other ? Object.fromEntries(policyRows(t, other, currency)) : null;
   return (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <dl className={cn("grid grid-cols-2 gap-2", compact ? "sm:grid-cols-2" : "sm:grid-cols-3 lg:grid-cols-4")}>
         {policyRows(t, config, currency).map(([key, value]) => {
           const changed = otherRows && otherRows[key] !== value;

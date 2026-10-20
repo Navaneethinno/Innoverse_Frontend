@@ -108,12 +108,14 @@ export function DepositProductView({ id, onBack, onEdit }) {
       </div>
 
       {pending ? (
-        <div className="mb-4 grid gap-4 xl:grid-cols-2">
-          <Section title={t("inEffect")}>
-            <ConfigSummary config={product.config} currency={currency} compact />
-          </Section>
+        <div className={cn("mb-4 grid gap-4", product.config && "xl:grid-cols-2")}>
+          {product.config && (
+            <Section title={t("inEffect")}>
+              <ConfigSummary config={product.config} currency={currency} compact />
+            </Section>
+          )}
           <Section title={t("proposedBy", { action: t(`pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {pending.config ? <ConfigSummary config={pending.config} other={product.config} currency={currency} compact /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
+            {pending.config ? <ConfigSummary config={pending.config} other={product.config} currency={currency} compact={Boolean(product.config)} /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>
       ) : (
