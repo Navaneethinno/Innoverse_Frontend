@@ -57,25 +57,21 @@ const cardItem = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
 };
-// The last institution code used, so a returning user needn't retype it.
+// The institution code used to be remembered here; it no longer is, and
+// what earlier versions kept is cleared at sign-in.
 const INSTITUTION_CODE_KEY = "innoverse-admin:institution-code";
-const readInstitutionCode = () => {
-  try {
-    return window.localStorage.getItem(INSTITUTION_CODE_KEY) ?? "";
-  } catch {
-    return "";
-  }
-};
 
 export function LoginPage() {
   const { t } = useTranslation("login");
-  const [institutionCode, setInstitutionCode] = useState(
-    () => readInstitutionCode() || import.meta.env.VITE_DEFAULT_LOGIN_INSTITUTION_CODE || "",
-  );
-  const [username, setUsername] = useState(
-    import.meta.env.VITE_DEFAULT_LOGIN_USERNAME || "SuperAdmin1",
-  );
-  const [password, setPassword] = useState(import.meta.env.VITE_DEFAULT_LOGIN_PASSWORD || "");
+  const [institutionCode, setInstitutionCode] = useState("");
+  // Always empty: nothing (the build's settings, the last sign-in or the
+  // browser) fills in the institution code, username or password. The boxes
+  // stay read-only, which browsers
+  // don't fill, until the user puts the cursor in them.
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [typing, setTyping] = useState({});
+  const unlock = (key) => () => !typing[key] && setTyping((t) => ({ ...t, [key]: true }));
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -98,9 +94,9 @@ export function LoginPage() {
     setLoading(false);
     if (result.success) {
       try {
-        window.localStorage.setItem(INSTITUTION_CODE_KEY, code);
+        window.localStorage.removeItem(INSTITUTION_CODE_KEY);
       } catch {
-        /* Only a convenience. */
+        /* Storage may be unavailable. */
       }
       notifications.success(apiMessage(result, "Signed in successfully"));
       navigate("/dashboard");
@@ -228,7 +224,12 @@ export function LoginPage() {
                   <input
                     value={institutionCode}
                     onChange={(e) => setInstitutionCode(e.target.value)}
-                    autoComplete="organization"
+                    readOnly={!typing.institution}
+                    onFocus={unlock("institution")}
+                    name="signin-org"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     autoCapitalize="characters"
                     spellCheck={false}
                     className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-4 text-sm uppercase text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
@@ -245,7 +246,12 @@ export function LoginPage() {
                   <input
                     value={username}
                     onChange={(e) => setUsername(e.target.value.replace(/\s/g, ""))}
-                    autoComplete="username"
+                    readOnly={!typing.username}
+                    onFocus={unlock("username")}
+                    name="signin-user"
+                    autoComplete="off"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-4 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                   />
                 </div>
@@ -261,6 +267,12 @@ export function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    readOnly={!typing.password}
+                    onFocus={unlock("password")}
+                    name="signin-secret"
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     className="w-full rounded-xl border border-border bg-background/70 py-3 pl-9 pr-10 text-sm text-foreground caret-foreground outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
                   />
                   <button
