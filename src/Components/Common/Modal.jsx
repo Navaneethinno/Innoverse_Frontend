@@ -172,6 +172,15 @@ export function Modal({
         )}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={handleKeyDown}
+        // Belt and braces for browsers without overflow: clip: the box
+        // itself never scrolls; only its body does.
+        onScroll={(event) => {
+          const box = event.currentTarget;
+          if (event.target === box && (box.scrollTop || box.scrollLeft)) {
+            box.scrollTop = 0;
+            box.scrollLeft = 0;
+          }
+        }}
       >
         <div className="h-1 shrink-0 bg-brand-gradient" />
 
