@@ -15,7 +15,7 @@ import { API_BASE_URL } from "@/Utils/Constant";
 // the right channel without every caller needing to know which convention
 // its own endpoint follows.
 // Derived straight from API_BASE_URL — the socket must point directly at the
-// API host, it is not proxied through the Vercel-hosted frontend.
+// API host, it is not proxied through the frontend's own host.
 export function buildLiveUrl(listPath) {
   const wsBase = API_BASE_URL.replace(/^http/, "ws");
   const path = scopedPath(listPath);
