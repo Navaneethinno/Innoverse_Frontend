@@ -112,8 +112,8 @@ export function MenuItem({
         type="button"
         onClick={handleClick}
         className={cn(
-          "relative flex items-center justify-between gap-2 rounded-lg text-left outline-none transition-[color,background-color,transform] duration-200",
-          !isRoot && !isHighlighted && !isCollapsed && "hover:translate-x-0.5",
+          "relative flex items-center justify-between gap-2 rounded-lg text-start outline-none transition-[color,background-color,transform] duration-200",
+          !isRoot && !isHighlighted && !isCollapsed && "hover:translate-x-0.5 rtl:hover:-translate-x-0.5",
           isRoot ? "h-10 px-2.5 text-xs font-bold" : "h-8 px-2.5 text-[11px] font-medium",
           isCollapsed ? "justify-center px-0 w-9 mx-auto" : "w-full",
           highlightClasses,
@@ -125,7 +125,7 @@ export function MenuItem({
         <span className="relative flex min-w-0 items-center gap-1.5">
           {!isCollapsed && hasChildren && (
             <motion.span className="shrink-0" animate={{ rotate: isExpanded ? 90 : 0 }} transition={{ duration: 0.2, ease: EASE }}>
-              <ChevronRight size={13} />
+              <ChevronRight size={13} className="rtl:-scale-x-100" />
             </motion.span>
           )}
           {createElement(getMenuIcon(item?.menu_name), {
@@ -137,9 +137,9 @@ export function MenuItem({
         </span>
         {badge > 0 &&
           (isCollapsed ? (
-            <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-amber-500" aria-label={String(badge)} />
+            <span className="absolute end-0.5 top-0.5 h-2 w-2 rounded-full bg-amber-500" aria-label={String(badge)} />
           ) : (
-            <span className="relative ml-auto shrink-0 rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{badge > 99 ? "99+" : badge}</span>
+            <span className="relative ms-auto shrink-0 rounded-full bg-amber-500 px-1.5 text-[10px] font-bold leading-4 text-white">{badge > 99 ? "99+" : badge}</span>
           ))}
       </button>
       </UiTooltip>
@@ -151,7 +151,7 @@ export function MenuItem({
               every level adds its own line/indent recursively, so depth is
               legible at a glance instead of relying on a ~12px margin that
               disappears in a long flat list. */}
-          <div className="ml-[0.95rem] flex flex-col gap-1 border-l pl-2" style={{ borderColor: "var(--border)" }}>
+          <div className="ms-[0.95rem] flex flex-col gap-1 border-s ps-2" style={{ borderColor: "var(--border)" }}>
             {children.map((child) => (
               <motion.div key={child.menu_id} variants={childMotion}>
               <MenuItem

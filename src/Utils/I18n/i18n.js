@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./locales/en";
 import pt from "./locales/pt";
+import ar from "./locales/ar";
 
 // Resources are assembled from one file PER LANGUAGE (locales/en.js,
 // locales/pt.js, ...) rather than a single inline object holding every
@@ -14,6 +15,7 @@ import pt from "./locales/pt";
 const resources = {
   en,
   pt,
+  ar,
 };
 
 void i18n
@@ -76,5 +78,14 @@ void i18n
       caches: ["localStorage"],
     },
   });
+
+// Arabic reads right to left: the page's direction and language follow the
+// selected language.
+const applyDirection = (lng) => {
+  document.documentElement.dir = i18n.dir(lng);
+  document.documentElement.lang = lng;
+};
+applyDirection(i18n.resolvedLanguage ?? i18n.language);
+i18n.on("languageChanged", applyDirection);
 
 export { i18n };

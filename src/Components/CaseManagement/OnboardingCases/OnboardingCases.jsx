@@ -153,7 +153,7 @@ export function CaseQueue({ config }) {
       key: "case_number",
       label: t("caseNumber"),
       render: (c) => (
-        <button type="button" onClick={() => setOpenId(c.id)} className="flex flex-col items-start gap-1 text-left">
+        <button type="button" onClick={() => setOpenId(c.id)} className="flex flex-col items-start gap-1 text-start">
           <span className="font-mono text-xs font-bold text-primary hover:underline">{c.case_number}</span>
           <span className="flex flex-wrap gap-1">
             <PriorityFlag priority={c.priority} />

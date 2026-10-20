@@ -21,7 +21,7 @@ export function DigitChips({ value = [], onChange, lead = "", placeholder, disab
   return (
     <div className={cn("flex min-h-[40px] flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card px-2 py-1.5", disabled && "bg-muted/40", className)}>
       {value.map((v) => (
-        <span key={v} className="flex items-center gap-0.5 rounded-full bg-muted py-0.5 pl-2.5 pr-1 font-mono text-xs font-bold">
+        <span key={v} className="flex items-center gap-0.5 rounded-full bg-muted py-0.5 ps-2.5 pe-1 font-mono text-xs font-bold">
           {v}
           {!disabled && (
             <button type="button" aria-label={t("remove", { defaultValue: "Remove" })} onClick={() => onChange(value.filter((x) => x !== v))} className="rounded-full p-0.5 text-muted-foreground hover:text-red-600">

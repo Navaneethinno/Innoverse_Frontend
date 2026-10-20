@@ -199,10 +199,10 @@ export function PendingChangesDiff({ data, isLoading, error, renderValue }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <th className="px-3 py-1.5 text-left">{t("group")}</th>
-              <th className="px-3 py-1.5 text-left">{t("field")}</th>
-              {!isAdd && <th className="px-3 py-1.5 text-left">{isDelete ? t("currentValue") : t("current")}</th>}
-              {!isDelete && <th className="px-3 py-1.5 text-left">{isAdd ? t("value") : t("proposed")}</th>}
+              <th className="px-3 py-1.5 text-start">{t("group")}</th>
+              <th className="px-3 py-1.5 text-start">{t("field")}</th>
+              {!isAdd && <th className="px-3 py-1.5 text-start">{isDelete ? t("currentValue") : t("current")}</th>}
+              {!isDelete && <th className="px-3 py-1.5 text-start">{isAdd ? t("value") : t("proposed")}</th>}
             </tr>
           </thead>
           <tbody>
@@ -211,7 +211,7 @@ export function PendingChangesDiff({ data, isLoading, error, renderValue }) {
               return (
                 <tr key={`${change.group}::${change.field}`} className="border-b border-slate-50 last:border-0">
                   {span > 0 && (
-                    <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
+                    <td rowSpan={span} className="border-e border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
                       {change.group ? fieldLabel(change.group) : ""}
                     </td>
                   )}
@@ -322,10 +322,10 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
           <table className="w-full min-w-[360px] text-xs">
             <thead>
               <tr className="border-b border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("group")}</th>
-                <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("field")}</th>
-                {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("before")}</th>}
-                {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-left">{t("after")}</th>}
+                <th className="sticky top-0 bg-white px-3 py-1.5 text-start">{t("group")}</th>
+                <th className="sticky top-0 bg-white px-3 py-1.5 text-start">{t("field")}</th>
+                {!isAdd && <th className="sticky top-0 bg-white px-3 py-1.5 text-start">{t("before")}</th>}
+                {!isDelete && <th className="sticky top-0 bg-white px-3 py-1.5 text-start">{t("after")}</th>}
               </tr>
             </thead>
             <tbody>
@@ -335,7 +335,7 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
                 return (
                   <tr key={`${row.group}::${row.field}`} className="border-b border-slate-50 last:border-0">
                     {span > 0 && (
-                      <td rowSpan={span} className="border-r border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
+                      <td rowSpan={span} className="border-e border-slate-50 px-3 py-1.5 align-top text-muted-foreground">
                         {row.group ? fieldLabel(row.group) : ""}
                       </td>
                     )}

@@ -112,7 +112,7 @@ export function CaseSettings({ onBack }) {
   return (
     <div className="pb-8 pt-4">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
-        <ArrowLeft size={15} /> {t("backToQueue")}
+        <ArrowLeft size={15} className="rtl:-scale-x-100" /> {t("backToQueue")}
       </button>
       <PageTitle>{t("settingsTitle")}</PageTitle>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">{t("settingsSubtitle")}</p>
@@ -166,7 +166,7 @@ export function CaseSettings({ onBack }) {
                 {(data.events ?? []).map((e) => (
                   <button key={e} type="button" onClick={() => setEvent(e)} className={cn("shrink-0 border-b-2 px-3 py-2 text-xs font-bold", event === e ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}>
                     {t(`messageEvent_${e}`, { defaultValue: e })}
-                    {Object.keys(cleanTemplates(form.templates)[e] ?? {}).length > 0 && <span className="ml-1 text-primary">•</span>}
+                    {Object.keys(cleanTemplates(form.templates)[e] ?? {}).length > 0 && <span className="ms-1 text-primary">•</span>}
                   </button>
                 ))}
               </div>
@@ -187,7 +187,7 @@ export function CaseSettings({ onBack }) {
                   );
                 })}
               <p className="text-[11px] text-muted-foreground">
-                {t("placeholders")}: {(data.placeholders ?? []).map((p) => <code key={p} className="mr-1.5 rounded bg-muted px-1 py-0.5 font-mono text-[10px]">{p}</code>)}
+                {t("placeholders")}: {(data.placeholders ?? []).map((p) => <code key={p} className="me-1.5 rounded bg-muted px-1 py-0.5 font-mono text-[10px]">{p}</code>)}
               </p>
             </div>
 
@@ -207,7 +207,7 @@ export function CaseSettings({ onBack }) {
             {data.history?.length ? (
               <ol className="grid gap-3">
                 {data.history.map((h, i) => (
-                  <li key={i} className="border-l-2 border-[var(--primary-light)] pl-3">
+                  <li key={i} className="border-s-2 border-[var(--primary-light)] ps-3">
                     <p className="text-xs font-bold">{t(`historyAction_${h.action}`, { defaultValue: h.action })}</p>
                     <p className="text-[11px] text-muted-foreground">{h.actor ?? "—"} · {caseDate(h.at)}</p>
                     {h.narration && <p className="mt-0.5 text-xs">{h.narration}</p>}

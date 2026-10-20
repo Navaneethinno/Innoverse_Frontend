@@ -8,7 +8,7 @@ export function MenuLink({ slug, label }) {
   const openMenu = useOpenMenu();
   return (
     <button type="button" onClick={() => openMenu(slug)} className="inline-flex items-center gap-1 font-bold text-primary hover:underline">
-      {label} <ArrowRight size={12} />
+      {label} <ArrowRight size={12} className="rtl:-scale-x-100" />
     </button>
   );
 }

@@ -11,7 +11,7 @@ export function BatchBar({ batchId, canDecide, onDecide, onClear }) {
       <span className="font-semibold">
         {t("importBatch")} <span className="font-mono text-xs">{batchId}</span>
       </span>
-      <span className="ml-auto flex flex-wrap gap-2">
+      <span className="ms-auto flex flex-wrap gap-2">
         {canDecide && (
           <>
             <button type="button" onClick={() => onDecide("auth")} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white">

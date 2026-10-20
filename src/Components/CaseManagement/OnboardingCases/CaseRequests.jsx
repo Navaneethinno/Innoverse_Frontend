@@ -70,7 +70,7 @@ function Answer({ r, api, referenceId }) {
                   <p key={k} className="flex flex-wrap items-center gap-1.5">
                     <span className="font-mono text-[11px] text-muted-foreground">{k}</span>
                     <span className="text-red-700 line-through">{show(c.before?.[k])}</span>
-                    <ArrowRight size={11} />
+                    <ArrowRight size={11} className="rtl:-scale-x-100" />
                     <span className="font-semibold text-emerald-700">{show(c.after?.[k])}</span>
                   </p>
                 ))
@@ -109,13 +109,13 @@ export function RequestsTab({ requests, canEdit, api, referenceId, busy, onAccep
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{targetText(t, r)}</p>
               </div>
-              <p className="text-right text-[11px] text-muted-foreground">
+              <p className="text-end text-[11px] text-muted-foreground">
                 {t("requestedBy", { name: r.requested_by ?? "—", date: caseDate(r.requested_at) })}
                 <br />
                 <span className={overdue ? "font-bold text-red-700" : ""}>{t("dueOn", { date: caseDate(r.due_at) })}</span>
               </p>
             </div>
-            <p className="mt-2 rounded-lg border-l-2 border-primary bg-[var(--primary-light)]/40 px-2 py-1.5 text-xs">{r.message}</p>
+            <p className="mt-2 rounded-lg border-s-2 border-primary bg-[var(--primary-light)]/40 px-2 py-1.5 text-xs">{r.message}</p>
             {r.response && (
               <div className="mt-3">
                 <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("customerAnswer", { date: caseDate(r.responded_at) })}</p>

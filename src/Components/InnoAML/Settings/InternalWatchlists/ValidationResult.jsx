@@ -31,23 +31,23 @@ export function ValidationResult({ result }) {
           <p className="mb-1 text-[11px] font-bold uppercase text-muted-foreground">{t("preview")}</p>
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="py-1 pr-3 font-semibold">{t("name")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("aliases")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("entityType")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("birthDates")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("countries")}</th>
+              <tr className="text-start text-muted-foreground">
+                <th className="py-1 pe-3 font-semibold">{t("name")}</th>
+                <th className="py-1 pe-3 font-semibold">{t("aliases")}</th>
+                <th className="py-1 pe-3 font-semibold">{t("entityType")}</th>
+                <th className="py-1 pe-3 font-semibold">{t("birthDates")}</th>
+                <th className="py-1 pe-3 font-semibold">{t("countries")}</th>
                 <th className="py-1 font-semibold">{t("identifiers")}</th>
               </tr>
             </thead>
             <tbody>
               {result.preview.map((p) => (
                 <tr key={p.id} className="border-t align-top">
-                  <td className="py-1 pr-3 font-semibold">{p.name}</td>
-                  <td className="py-1 pr-3">{p.aliases?.join(", ")}</td>
-                  <td className="py-1 pr-3">{p.entity_type}</td>
-                  <td className="py-1 pr-3">{p.birth_dates?.join(", ")}</td>
-                  <td className="py-1 pr-3">{p.countries?.join(", ")}</td>
+                  <td className="py-1 pe-3 font-semibold">{p.name}</td>
+                  <td className="py-1 pe-3">{p.aliases?.join(", ")}</td>
+                  <td className="py-1 pe-3">{p.entity_type}</td>
+                  <td className="py-1 pe-3">{p.birth_dates?.join(", ")}</td>
+                  <td className="py-1 pe-3">{p.countries?.join(", ")}</td>
                   <td className="py-1">{p.identifiers?.map((i) => `${i.type ?? ""} ${i.number ?? ""}`.trim()).join(", ")}</td>
                 </tr>
               ))}

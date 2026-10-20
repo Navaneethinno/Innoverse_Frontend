@@ -67,23 +67,23 @@ function formatTimestamp(value) {
 // Keyed off the real auth_status values seen across Institution/Profile/User
 // audit responses (see StatusBadge.jsx's STATUS_CONFIG for the full set).
 const STATUS_ACCENT = {
-  ACTIVE: "border-l-success",
-  AUTHORIZED: "border-l-success",
-  APPROVED: "border-l-success",
-  VERIFIED: "border-l-success",
-  "AUTH WAIT": "border-l-warning",
-  NEW_AUTH: "border-l-warning",
-  EDIT_AUTH: "border-l-warning",
-  DEL_AUTH: "border-l-warning",
-  DEL_WAIT_AUTH: "border-l-warning",
-  MOD_AUTH: "border-l-warning",
-  ADD_AUTH: "border-l-warning",
-  PENDING: "border-l-warning",
-  REJECTED: "border-l-destructive",
-  DEAUTHORIZED: "border-l-destructive",
-  DEAUTH: "border-l-destructive",
-  DEACTIVATED: "border-l-destructive",
-  DELETED: "border-l-destructive",
+  ACTIVE: "border-s-success",
+  AUTHORIZED: "border-s-success",
+  APPROVED: "border-s-success",
+  VERIFIED: "border-s-success",
+  "AUTH WAIT": "border-s-warning",
+  NEW_AUTH: "border-s-warning",
+  EDIT_AUTH: "border-s-warning",
+  DEL_AUTH: "border-s-warning",
+  DEL_WAIT_AUTH: "border-s-warning",
+  MOD_AUTH: "border-s-warning",
+  ADD_AUTH: "border-s-warning",
+  PENDING: "border-s-warning",
+  REJECTED: "border-s-destructive",
+  DEAUTHORIZED: "border-s-destructive",
+  DEAUTH: "border-s-destructive",
+  DEACTIVATED: "border-s-destructive",
+  DELETED: "border-s-destructive",
 };
 
 // Meta fields every entry already surfaces via its own dedicated row
@@ -144,8 +144,8 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-l-4 bg-card p-4",
-        STATUS_ACCENT[status] ?? "border-l-border",
+        "rounded-xl border border-s-4 bg-card p-4",
+        STATUS_ACCENT[status] ?? "border-s-border",
       )}
     >
       <div className="mb-3 flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
@@ -156,7 +156,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
         )}
         <StatusBadge status={status} />
         {!isEmptyPlaceholder(entry.audit_key) && (
-          <span className="ml-auto flex max-w-full basis-full items-center gap-1 sm:basis-auto">
+          <span className="ms-auto flex max-w-full basis-full items-center gap-1 sm:basis-auto">
             <UiTooltip label={entry.audit_key}>
               <p className="min-w-0 truncate font-mono text-[10px] text-[var(--muted-foreground-soft)]">
                 #{entry.audit_key}

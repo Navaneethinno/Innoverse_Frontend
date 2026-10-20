@@ -52,7 +52,7 @@ export function CountryMultiSelect({ countries, value, onChange, placeholder, cl
         className="flex min-h-[42px] w-full flex-wrap items-center gap-1.5 rounded-xl border bg-white px-2.5 py-1.5 text-sm focus-within:ring-2 focus-within:ring-primary/30"
       >
         {value.map((name) => (
-          <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-primary-light py-0.5 pl-2 pr-1 text-xs font-semibold text-primary">
+          <span key={name} className="inline-flex items-center gap-1.5 rounded-full bg-primary-light py-0.5 ps-2 pe-1 text-xs font-semibold text-primary">
             <Flag country={byName.get(name)} />
             {name}
             <button type="button" onClick={() => remove(name)} className="rounded-full p-0.5 hover:bg-primary/10" aria-label={name}>
@@ -89,7 +89,7 @@ export function CountryMultiSelect({ countries, value, onChange, placeholder, cl
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => add(c.name)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-muted"
               >
                 <Flag country={c} />
                 {c.name}

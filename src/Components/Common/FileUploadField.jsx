@@ -181,7 +181,7 @@ export function FileUploadField({
             <button
               type="button"
               onClick={() => onChange("")}
-              className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
+              className="ms-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-red-500"
               aria-label={tr("Remove file")}
             >
               <X size={15} />
@@ -193,7 +193,7 @@ export function FileUploadField({
           type="button"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
-          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-left text-xs font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex w-full items-center gap-2 rounded-xl border border-dashed border-slate-300 p-3 text-start text-xs font-semibold text-muted-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Upload size={15} className="shrink-0" />
           {tr(uploadLabel)}

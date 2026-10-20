@@ -24,6 +24,7 @@ function languageLabel(language) {
 const FALLBACK_LANGUAGES = [
   { code: "en", name: "English" },
   { code: "pt", name: "Portuguese" },
+  { code: "ar", name: "العربية" },
 ];
 
 // Selects the language the backend translates each response's `message`
@@ -77,7 +78,7 @@ export function LanguageDropdown({ className }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.97 }}
             transition={{ duration: 0.12 }}
-            className="absolute right-0 top-full z-50 mt-1.5 max-h-64 w-44 overflow-y-auto rounded-xl border py-1 shadow-lg"
+            className="absolute end-0 top-full z-50 mt-1.5 max-h-64 w-44 overflow-y-auto rounded-xl border py-1 shadow-lg"
             style={{ background: "var(--popover)", borderColor: "var(--glass-border)" }}
           >
             {options.map((language) => {
@@ -98,7 +99,7 @@ export function LanguageDropdown({ className }) {
                     setOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs font-medium hover:bg-muted",
+                    "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-xs font-medium hover:bg-muted",
                     !active && "text-slate-600",
                   )}
                   style={active ? { color: "var(--primary)" } : undefined}
