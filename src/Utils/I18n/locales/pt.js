@@ -126,6 +126,7 @@ export const common = {
   view_alerts: "Alertas",
   view_customer: "Cliente",
   view_merchant: "Comerciante",
+  institution: "Instituição",
 };
 
 export const auth = {
@@ -710,6 +711,7 @@ export const layout = {
   openMenu: "Abrir menu",
   backToDashboard: "Voltar ao painel principal",
   adminPortal: "Portal administrativo",
+  allInstitutions: "Todas as instituições",
 };
 
 export const routes = {
@@ -1475,6 +1477,8 @@ export const notification = {
   saveChanges: "Salvar alterações",
   saved: "Salvo",
   addNotificationGroup: "Adicionar grupo de notificação",
+  push: "Push",
+  tabSending: "A enviar",
 };
 
 export const risk = {

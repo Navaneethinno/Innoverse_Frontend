@@ -260,10 +260,16 @@ export function DataTable({
   // A bank / fintech user only ever sees its own institution: no
   // institution column (institution scope handoff).
   const canChoose = useCanChooseInstitution();
-  const columns = useMemo(
-    () => (canChoose ? allColumns : allColumns.filter((c) => !INSTITUTION_COLUMNS.has(c.key))),
-    [allColumns, canChoose],
-  );
+  // A System or service-provider user sees several institutions' rows: a
+  // table without its own institution column gets one, second, whenever
+  // the rows say which institution they belong to.
+  const showsInstitution = canChoose && !allColumns.some((c) => INSTITUTION_COLUMNS.has(c.key)) && (rows ?? []).some((r) => r?.inst_profile_name);
+  const columns = useMemo(() => {
+    if (!canChoose) return allColumns.filter((c) => !INSTITUTION_COLUMNS.has(c.key));
+    if (!showsInstitution) return allColumns;
+    const column = { key: "inst_profile_name", label: t("institution"), render: (r) => <span className="text-xs">{r.inst_profile_name ?? "-"}</span> };
+    return [...allColumns.slice(0, 1), column, ...allColumns.slice(1)];
+  }, [allColumns, canChoose, showsInstitution, t]);
   // Keep the newest record visible first on every table. Users can still
   // click any sortable header to override this default for the current view.
   const stateKey = (name) => (persistKey ? `${persistKey}:${name}` : null);

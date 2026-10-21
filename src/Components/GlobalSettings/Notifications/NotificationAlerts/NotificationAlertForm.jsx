@@ -12,6 +12,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { EVENT_COMMON_PLACEHOLDERS, triggerKey, useAlertOptions } from "./useAlertOptions";
 import { GroupPicker } from "./GroupPicker";
+import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
 import { TriggerGrid } from "./TriggerGrid";
 
 const SMS_MAX = 640;
@@ -100,8 +101,8 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
     const q = menuSearch.trim().toLowerCase();
     const groups = new Map();
     for (const menu of options.menus) {
-      if (q && !`${menu.parent_menu_name} ${menu.menu_name}`.toLowerCase().includes(q)) continue;
-      const parent = menu.parent_menu_name || "";
+      if (q && !`${parentMenuLabel(menu)} ${menuLabel(menu)} ${menu.parent_menu_name} ${menu.menu_name}`.toLowerCase().includes(q)) continue;
+      const parent = parentMenuLabel(menu) || "";
       if (!groups.has(parent)) groups.set(parent, []);
       groups.get(parent).push(menu);
     }

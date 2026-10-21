@@ -58,6 +58,16 @@ export function LanguageDropdown({ className }) {
   const options = languages.length > 0 ? languages : FALLBACK_LANGUAGES;
   const current = options.find((language) => languageCode(language) === selected) ?? options[0];
 
+  // After sign-in the list is the institution's own languages: a language
+  // it doesn't offer gives way to its first one.
+  useEffect(() => {
+    if (!languages.length || languages.some((language) => languageCode(language) === selected)) return;
+    const first = languageCode(languages[0]);
+    setApiLanguage(first);
+    void i18n.changeLanguage(first);
+    setSelected(first);
+  }, [languages, selected]);
+
   return (
     <div className={cn("relative", className)} ref={ref}>
       <button

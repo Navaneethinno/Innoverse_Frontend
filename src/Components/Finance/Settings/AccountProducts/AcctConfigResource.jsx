@@ -44,6 +44,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
 import { Button } from "@/Components/Common/Button";
+import { institutionCurrencyApi } from "@/Services/Institution/institutionCurrency.api";
 // "Account" (acct_product) plus its 16 sub-configs — every sub-config below
 // is scoped to a parent via acct_product_id (see fields), matching the
 // backend's config/acct reference (2026-09). Every field here maps 1:1 to
@@ -500,6 +501,23 @@ export function AcctConfigResource({ entity }) {
     [action, setAction] = useState(null),
     [saving, setSaving] = useState(false),
     [actionPending, setActionPending] = useState(false);
+  // An account product's currency is one of its institution's active
+  // currencies (the server refuses any other): the form's options follow
+  // the institution picked on it.
+  const [instCurrencies, setInstCurrencies] = useState([]);
+  const productInstitution = entity === "acct_product" ? form.inst_profile_id : null;
+  useEffect(() => {
+    if (entity !== "acct_product") return;
+    if (canChooseInstitution() && !productInstitution) {
+      setInstCurrencies([]);
+      return;
+    }
+    institutionCurrencyApi
+      .getActive({ view: "dropdown", ...(productInstitution ? { inst_profile_id: Number(productInstitution) } : {}) })
+      .then((response) => setInstCurrencies(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity, productInstitution]);
+  const currencyOptions = instCurrencies.map((c) => ({ value: c.currency_code, label: c.currency_name ?? String(c.currency_code) }));
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBranding.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -783,7 +801,7 @@ export function AcctConfigResource({ entity }) {
                           onChange={(value) => setForm({ ...form, [key]: value })}
                           disabled={isReadOnly}
                           disabledReason="Can't be changed after creation."
-                          options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...optionsFor(lookupKey)]}
+                          options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...(lookupKey === "currencies" ? currencyOptions : optionsFor(lookupKey))]}
                         />
                       ) : type === "textarea" ? (
                         <textarea

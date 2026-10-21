@@ -11,7 +11,9 @@ import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { useActiveUsersForKycQuery, useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery } from "@/Hooks/UserManagement/kycHooks";
+import { useGenderOptionsQuery, useHasKycAction, useKycMutation, useKycQuery, useUsersWithoutKycQuery } from "@/Hooks/UserManagement/kycHooks";
+import { useInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
@@ -46,6 +48,8 @@ const FORM_FIELDS = [
   ["alternate_email", "Alternate email"],
 ];
 
+const REQUIRED = new Set(["user_id", "user_fname", "user_lname"]);
+
 const idOf = (row) => row?.user_id ?? row?.id;
 const displayName = (row) =>
   row?.user_name || `${row?.first_name ?? row?.user_fname ?? ""} ${row?.last_name ?? row?.user_lname ?? ""}`.trim();
@@ -63,7 +67,12 @@ function normalizeForm(row) {
   };
 }
 
-function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users, usersLoading, usersError, genders, gendersLoading, gendersError }) {
+function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users, usersLoading, usersError, genders, gendersLoading, gendersError, institution, setInstitution }) {
+  const canChoose = useCanChooseInstitution();
+  const { data: institutions = [] } = useInstitutionsQuery({ limit: 100 });
+  // The user being edited already has a KYC record, so the picker (users
+  // without one) doesn't list them: keep their own name as the option.
+  const userOptions = editing && !users.some((u) => String(u?.user_id ?? u?.id) === String(form.user_id)) ? [{ user_id: form.user_id, username: displayName(editing) }, ...users] : users;
   const isValid = Number.isInteger(Number(form.user_id)) && Number(form.user_id) > 0 && form.user_fname.trim() && form.user_lname.trim();
   return (
     <Modal
@@ -86,18 +95,37 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
       }
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {canChoose && !editing && (
+          <label className="text-sm font-medium text-slate-700 md:col-span-2">
+            <span className="mb-1.5 block">
+              Institution<span className="text-destructive"> *</span>
+            </span>
+            <FilterSelect
+              className="w-full"
+              value={institution}
+              onChange={(next) => {
+                setInstitution(next);
+                setForm({ ...form, user_id: "" });
+              }}
+              options={[{ value: "", label: "Select institution" }, ...institutions.map((i) => ({ value: String(i.id ?? i.inst_profile_id), label: i.name ?? i.inst_profile_name ?? i.code }))]}
+            />
+          </label>
+        )}
         {FORM_FIELDS.map(([key, label]) => (
           <label key={key} className={key === "address" ? "text-sm font-medium text-slate-700 md:col-span-2" : "text-sm font-medium text-slate-700"}>
-            <span className="mb-1.5 block">{label}</span>
+            <span className="mb-1.5 block">
+              {label}
+              {REQUIRED.has(key) && <span className="text-destructive"> *</span>}
+            </span>
             {key === "user_id" ? (
               <FilterSelect
                 className="w-full"
-                disabled={Boolean(editing) || usersLoading}
+                disabled={Boolean(editing) || usersLoading || (canChoose && !editing && !institution)}
                 value={form.user_id ?? ""}
                 onChange={(next) => setForm({ ...form, user_id: next })}
                 options={[
-                  { value: "", label: usersLoading ? "Loading users..." : "Select user" },
-                  ...users.map((user) => {
+                  { value: "", label: canChoose && !editing && !institution ? "Select the institution first" : usersLoading ? "Loading users..." : "Select user" },
+                  ...userOptions.map((user) => {
                     const id = user?.user_id ?? user?.id;
                     const label = user?.user_name ?? user?.username ?? user?.name ?? `User #${id}`;
                     return { value: id, label };
@@ -113,8 +141,8 @@ function KycForm({ open, form, setForm, editing, onSave, onClose, pending, users
                 options={[
                   { value: "", label: gendersLoading ? "Loading genders..." : "Select gender" },
                   ...genders.map((gender) => {
-                    const value = gender?.gender_code ?? gender?.code ?? gender?.id ?? gender?.gender_id;
-                    const label = gender?.gender_name ?? gender?.name ?? gender?.description ?? value;
+                    const value = gender?.code;
+                    const label = gender?.name ?? value;
                     return { value, label };
                   }),
                 ]}
@@ -238,7 +266,8 @@ export function KYC() {
 
   const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
   const query = useKycQuery({ page, limit, filter: tab, sort_by: sortBy, search: searchTerm });
-  const activeUsersQuery = useActiveUsersForKycQuery();
+  const [institution, setInstitution] = useState("");
+  const activeUsersQuery = useUsersWithoutKycQuery(institution);
   const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
   const edit = useKycMutation("kycEdit");
@@ -253,7 +282,7 @@ export function KYC() {
       return;
     }
     try {
-      const payload = { ...form, user_id: userId, is_draft: draft };
+      const payload = { ...form, user_id: userId, is_draft: draft, gender: form.gender ? String(form.gender).toUpperCase() : form.gender };
       if (editing) await edit.mutateAsync(payload);
       else await add.mutateAsync(payload);
       setEditing(null);
@@ -348,8 +377,11 @@ export function KYC() {
         gendersLoading={gendersQuery.isLoading}
         gendersError={gendersQuery.error}
         onSave={save}
+        institution={institution}
+        setInstitution={setInstitution}
         onClose={() => {
           setEditing(null);
+          setInstitution("");
           setForm(EMPTY);
           setShowForm(false);
         }}

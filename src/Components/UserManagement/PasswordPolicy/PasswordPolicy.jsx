@@ -181,7 +181,27 @@ function toPayload(form) {
   );
 }
 
-function PolicyField({ field, form, setForm }) {
+// The server's limits on a policy, checked before saving so each wrong
+// field is marked: { field: message }.
+function policyProblems(form) {
+  const n = (field) => Number(form[field] || 0);
+  const problems = {};
+  if (n("min_length") < 8 || n("min_length") > 128) problems.min_length = "Between 8 and 128";
+  if (n("max_length") < n("min_length") || n("max_length") > 128) problems.max_length = "From the minimum length up to 128";
+  let required = 0;
+  for (const [flag, field] of [["require_uppercase", "min_uppercase"], ["require_lowercase", "min_lowercase"], ["require_numbers", "min_numbers"], ["require_special", "min_special"]]) {
+    if (form[flag] && n(field) < 1) problems[field] = "At least 1 when required";
+    if (form[flag]) required += n(field);
+  }
+  if (required > n("max_length") && !problems.max_length) problems.max_length = `The required characters (${required}) don't fit`;
+  if (n("max_retry_count") < 1) problems.max_retry_count = "At least 1";
+  if (!form.permanent_lock_flag && n("lockout_duration_mins") < 1) problems.lockout_duration_mins = "At least 1";
+  if (n("password_similarity_pct") > 100) problems.password_similarity_pct = "Between 0 and 100";
+  if (n("password_expiry_days") > 0 && n("min_password_age_days") >= n("password_expiry_days")) problems.min_password_age_days = "Below the password expiry days";
+  return problems;
+}
+
+function PolicyField({ field, form, setForm, problem }) {
   const label = FIELD_LABELS[field] ?? field.replaceAll("_", " ");
   const isBoolean = BOOLEAN_FIELDS.includes(field);
   const isNumber = NUMBER_FIELDS.includes(field);
@@ -208,20 +228,25 @@ function PolicyField({ field, form, setForm }) {
 
   return (
     <label className="block text-sm font-medium text-slate-700">
-      <span className="mb-1.5 block">{label}</span>
+      <span className="mb-1.5 block">
+        {label}
+        {field === "policy_name" && <span className="text-destructive"> *</span>}
+      </span>
       <input
         required={field === "policy_name"}
+        aria-invalid={problem ? true : undefined}
         type={isNumber ? "number" : "text"}
         min={isNumber ? 0 : undefined}
         value={form[field] ?? ""}
         onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-        className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+        className={cn("h-10 w-full rounded-lg border bg-white px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10", problem ? "border-destructive" : "border-border")}
       />
+      {problem && <span className="mt-1 block text-[11px] font-semibold text-destructive">{problem}</span>}
     </label>
   );
 }
 
-function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) {
+function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending, problems = {} }) {
   return (
     <Modal
       open={open}
@@ -253,7 +278,7 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending }) 
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {section.fields.map((field) => (
-                <PolicyField key={field} field={field} form={form} setForm={setForm} />
+                <PolicyField key={field} field={field} form={form} setForm={setForm} problem={problems[field]} />
               ))}
             </div>
           </section>
@@ -380,6 +405,7 @@ export function PasswordPolicy() {
   const [tab, setTab] = useState("all");
   const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(empty);
+  const [problems, setProblems] = useState({});
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewRow, setViewRow] = useState(null);
@@ -395,6 +421,12 @@ export function PasswordPolicy() {
   const save = async (draft) => {
     if (!form.policy_name.trim()) {
       notifications.error("Policy name is required");
+      return;
+    }
+    const found = policyProblems(form);
+    setProblems(found);
+    if (Object.keys(found).length) {
+      notifications.error("Fix the marked fields");
       return;
     }
     try {
@@ -482,11 +514,13 @@ export function PasswordPolicy() {
         form={form}
         setForm={setForm}
         editing={editing}
+        problems={problems}
         pending={methods.passwordPolicyAdd.isPending || methods.passwordPolicyEdit.isPending}
         onSave={save}
         onClose={() => {
           setShowForm(false);
           setEditing(null);
+          setProblems({});
           setForm(empty());
         }}
       />

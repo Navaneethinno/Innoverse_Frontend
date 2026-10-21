@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { masterApi } from "@/Services/Master/master.api";
-import { setMasterModules } from "@/Redux/MenuSlice";
+import { setMasterModules, setMenuArray } from "@/Redux/MenuSlice";
+import store from "@/Redux/Store";
+import { onApiLanguageChange } from "@/Utils/Lib/apiLanguage";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 
@@ -39,6 +41,29 @@ export function useMasterModules() {
   // notify*Change()-style window event to piggyback on the way institutions/
   // users/profiles do; the live channel itself is the only signal.
   useLiveChannel(API_ENDPOINTS.MASTER.MODULE_LIST, fetchModules, { enabled: Boolean(token) });
+
+  // Menu and module labels come in the language of the request: a new
+  // language fetches them again (the menus keep their names and grants).
+  useEffect(() => {
+    if (!token) return undefined;
+    return onApiLanguageChange(async () => {
+      void fetchModules();
+      try {
+        const labels = new Map((await masterApi.menuList()).map((m) => [Number(m.id ?? m.menu_id), m]));
+        const menus = store.getState().menu.menuArray ?? [];
+        dispatch(
+          setMenuArray(
+            menus.map((m) => {
+              const l = labels.get(Number(m.menu_id));
+              return l ? { ...m, menu_label: l.menu_label, module_label: l.module_label, parent_menu_label: l.parent_menu_label } : m;
+            }),
+          ),
+        );
+      } catch {
+        // The labels stay in the previous language until the next sign-in.
+      }
+    });
+  }, [token, fetchModules, dispatch]);
 
   return { masterModules, loading, error };
 }

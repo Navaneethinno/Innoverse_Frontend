@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { menuLabel } from "@/Pages/Sidebar/menuLabels";
 import { notifications } from "@/Utils/Lib/notifications";
 
 const EMPTY = { menus: [], placeholders: [], groups: [], events: [] };
@@ -37,5 +38,5 @@ export function describeTrigger(options, trigger) {
   if (trigger.event) return options.events.find((e) => e.event === trigger.event)?.name ?? trigger.event;
   const menu = options.menus.find((m) => m.menu_id === trigger.menu_id);
   const action = menu?.actions?.find((a) => a.action_id === trigger.action_id);
-  return `${menu?.menu_name ?? `#${trigger.menu_id}`} · ${action?.action_name ?? `#${trigger.action_id}`}`;
+  return `${menuLabel(menu) ?? `#${trigger.menu_id}`} · ${action?.action_name ?? `#${trigger.action_id}`}`;
 }

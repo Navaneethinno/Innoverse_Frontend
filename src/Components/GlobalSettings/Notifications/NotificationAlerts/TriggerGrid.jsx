@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { useTranslation } from "react-i18next";
+import { menuLabel } from "@/Pages/Sidebar/menuLabels";
 import { triggerKey } from "./useAlertOptions";
 
 // Tri-state checkbox in the theme's colours: ticked, empty, or partly (dash).
@@ -113,7 +114,7 @@ export function TriggerGrid({ groups, selected, onChange }) {
                 <tr key={menu.menu_id} className={cn("group transition-colors", rowState !== "none" ? "bg-primary-light" : "hover:bg-muted")}>
                   <td className="border-b px-4 py-2">
                     <span className="flex items-center gap-2">
-                      <span className="truncate font-medium text-slate-700">{menu.menu_name}</span>
+                      <span className="truncate font-medium text-slate-700">{menuLabel(menu)}</span>
                       {picked > 0 && (
                         <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-bold text-primary-foreground">
                           {picked}/{rowKeys.length}
@@ -122,7 +123,7 @@ export function TriggerGrid({ groups, selected, onChange }) {
                     </span>
                   </td>
                   <td className="border-b border-l px-2 py-2 text-center">
-                    <Tick size="sm" state={rowState} onChange={() => toggle(rowKeys)} label={t("selectAllMenu", { menu: menu.menu_name })} />
+                    <Tick size="sm" state={rowState} onChange={() => toggle(rowKeys)} label={t("selectAllMenu", { menu: menuLabel(menu) })} />
                   </td>
                   {columns.map((col) => {
                     const has = (menu.actions ?? []).some((a) => a.action_id === col.id);
@@ -130,7 +131,7 @@ export function TriggerGrid({ groups, selected, onChange }) {
                     return (
                       <td key={col.id} className="border-b px-1 py-2 text-center">
                         {has ? (
-                          <Tick size="sm" state={selected.has(key) ? "all" : "none"} onChange={() => toggle([key])} label={`${menu.menu_name} · ${col.name}`} />
+                          <Tick size="sm" state={selected.has(key) ? "all" : "none"} onChange={() => toggle([key])} label={`${menuLabel(menu)} · ${col.name}`} />
                         ) : (
                           <span className="text-xs text-slate-300">—</span>
                         )}

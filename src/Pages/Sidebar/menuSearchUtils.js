@@ -100,8 +100,8 @@ export const filterSidebarMenus = (menuItems, searchValue) => {
 
   const filterItem = (item) => {
     const children = sortByPriority(childrenByParent.get(getMenuId(item)) || []);
-    const menuName = normalizeMenuSearch(item?.menu_name);
-    const isMatch = menuName.includes(query);
+    // The label as shown, and the English name.
+    const isMatch = [item?.menu_label, item?.menu_name].some((name) => normalizeMenuSearch(name).includes(query));
 
     if (isMatch) {
       const branchItems = [item];

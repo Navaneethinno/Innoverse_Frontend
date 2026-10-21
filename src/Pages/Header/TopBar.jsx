@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
+import { InstitutionFilter } from "@/Components/Common/InstitutionFilter";
 import { useSidebar } from "../../Components/Layout/SidebarContext";
 import { SIDEBAR_WIDTHS } from "@/Pages/Sidebar/DynamicSidebar";
 import { useAuth } from "@/Hooks/useAuth";
@@ -108,6 +109,8 @@ export function TopBar() {
         </button>
 
         <div className="flex-1 min-w-0" />
+
+        <InstitutionFilter className="hidden md:block shrink-0" />
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">

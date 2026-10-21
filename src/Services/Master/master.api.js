@@ -107,6 +107,7 @@ function normalizeModule(raw) {
   return {
     module_id: raw?.module_id ?? raw?.id,
     module_name: raw?.module_name ?? raw?.name,
+    module_label: raw?.module_label ?? raw?.label,
     status: raw?.status,
   };
 }

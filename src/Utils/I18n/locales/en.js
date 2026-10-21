@@ -128,6 +128,7 @@ export const common = {
   view_alerts: "Alerts",
   view_customer: "Customer",
   view_merchant: "Merchant",
+  institution: "Institution",
 };
 
 export const auth = {
@@ -726,6 +727,7 @@ export const layout = {
   openMenu: "Open menu",
   backToDashboard: "Back to the main dashboard",
   adminPortal: "Admin portal",
+  allInstitutions: "All institutions",
 };
 
 // Every routeConfig.js breadcrumb/title segment, keyed the same way
@@ -1461,6 +1463,8 @@ export const notification = {
   saveChanges: "Save changes",
   saved: "Saved",
   addNotificationGroup: "Add notification group",
+  push: "Push",
+  tabSending: "Sending",
 };
 
 export const risk = {

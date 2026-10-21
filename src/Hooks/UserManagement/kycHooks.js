@@ -1,7 +1,8 @@
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
-import { genderApi } from "@/Services/Epurse/district.api";
+import { masterApi } from "@/Services/Master/master.api";
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -54,24 +55,24 @@ function activeUserRows(payload) {
 
 // KYC belongs to an existing login account. The backend provides the compact
 // picker data through /user/get_active with { view: "dropdown" }.
-export function useActiveUsersForKycQuery() {
-  const query = useQuery(useCallback(() => usersApi.getActive({ view: "dropdown" }), []));
+// The users the Add form may pick: active users of the chosen institution
+// (a System or service-provider user picks it first) with no KYC record.
+export function useUsersWithoutKycQuery(institution) {
+  const needsInstitution = canChooseInstitution();
+  const query = useQuery(
+    useCallback(
+      () => (needsInstitution && !institution ? Promise.resolve(null) : usersApi.list({ page: 1, limit: 100, status: 1, without_kyc: true, ...(institution ? { inst_profile_id: Number(institution) } : {}) })),
+      [needsInstitution, institution],
+    ),
+  );
   return { ...query, users: activeUserRows(query.data) || [] };
 }
 
-// Was pointed at masterApi.genderList() -> /master/gender, a Master
-// (Reference Data) endpoint that 404s in production; the real, working
-// gender list lives under Master Config's own lifecycle API instead
-// (/master_config/gender/get_active, same endpoint the Gender master-data
-// page already uses), so this now goes through genderApi like every other
-// "active options for a dropdown" fetch in the app.
-function activeGenderRows(payload) {
-  return Array.isArray(payload?.data) ? payload.data : payload?.data?.data ?? [];
-}
-
+// A staff user's gender: one fixed list (/master/gender, MALE / FEMALE /
+// OTHER), not the institution's customer gender masters. The code is sent.
 export function useGenderOptionsQuery() {
-  const query = useQuery(useCallback(() => genderApi.getActive(), []));
-  return { ...query, genders: activeGenderRows(query.data) };
+  const query = useQuery(useCallback(() => masterApi.genderList(), []));
+  return { ...query, genders: Array.isArray(query.data) ? query.data : [] };
 }
 
 export function useKycMutation(method, success = "KYC action completed") {

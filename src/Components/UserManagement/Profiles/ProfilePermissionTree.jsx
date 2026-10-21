@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { masterApi } from "@/Services/Master/master.api";
+import { menuLabel, moduleLabel } from "@/Pages/Sidebar/menuLabels";
 import { useTranslation } from "react-i18next";
 
 // Actions always in the same order (unknown ones last, by name), so the
@@ -65,7 +66,7 @@ function useMenuTreeSource() {
         actionsByMenu.set(menuId, current);
       });
       const moduleNames = new Map(
-        rawModules.map((module) => [numericId(module?.module_id ?? module?.id), module?.module_name ?? module?.name]),
+        rawModules.map((module) => [numericId(module?.module_id ?? module?.id), moduleLabel(module) ?? module?.name]),
       );
       const menusByModule = new Map();
       rawMenus.forEach((menu) => {
@@ -76,7 +77,7 @@ function useMenuTreeSource() {
         if (!menusByModule.has(moduleId)) menusByModule.set(moduleId, []);
         menusByModule.get(moduleId).push({
           menu_id: menuId,
-          menu_name: menu?.menu_name ?? menu?.name ?? `Menu #${menuId}`,
+          menu_name: menuLabel(menu) ?? menu?.name ?? `Menu #${menuId}`,
           actions: [...actions].sort(byActionOrder),
         });
       });
@@ -154,6 +155,16 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
   useEffect(() => {
     if (!isLoading && selectedKey !== grantsKey) onChange(grants);
   }, [isLoading, selectedKey, grantsKey, grants, onChange]);
+
+  // Editing a profile: its modules (those holding a granted menu) open
+  // already selected, once the tree has loaded.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || isLoading || readOnly || grants.length === 0) return;
+    opened.current = true;
+    const granted = new Set(grants.map((g) => g.menu_id));
+    setOpenModuleIds(new Set(modules.filter((m) => m.menus.some((menu) => granted.has(menu.menu_id))).map((m) => m.moduleId)));
+  }, [isLoading, readOnly, grants, modules]);
 
   const grantFor = (menuId) => grants.find((grant) => grant.menu_id === menuId);
   const isMenuGranted = (menuId) => (grantFor(menuId)?.actions?.length ?? 0) > 0;

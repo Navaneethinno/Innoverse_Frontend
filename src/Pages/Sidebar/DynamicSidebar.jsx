@@ -16,6 +16,7 @@ import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
 import { MenuBadgeContext, useMenuBadges } from "./menuBadges";
+import { moduleLabel } from "./menuLabels";
 import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "./menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
@@ -327,7 +328,7 @@ export function DynamicSidebar() {
                   )}
                 >
                   <SelectedIcon size={15} strokeWidth={1.8} className="shrink-0 text-primary" />
-                  {isExpanded && <span className="truncate">{selectedModule.module_name}</span>}
+                  {isExpanded && <span className="truncate">{moduleLabel(selectedModule)}</span>}
                 </div>
               </div>
             );

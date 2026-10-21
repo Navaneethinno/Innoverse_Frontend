@@ -17,6 +17,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { TourProvider } from "@/Components/Tour/TourProvider";
 import { BackToTop } from "./BackToTop";
+import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
   // (pinned-open OR currently hovered) rather than the pinned preference
@@ -24,6 +25,7 @@ function Layout() {
   // SidebarContext.jsx), so the content now shifts over exactly as the
   // rail widens/narrows.
   const { collapsed, hovering } = useSidebar();
+  const institution = useInstitutionFilter();
   const isMobile = useIsMobile();
   const isExpanded = !collapsed || hovering;
   const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;
@@ -45,7 +47,8 @@ function Layout() {
         <TopBar />
         <WorkspaceContainer>
           <PageBreadcrumbs />
-          <PageAccessGate />
+          {/* A new Institution filter reloads the page's lists. */}
+          <PageAccessGate key={institution} />
         </WorkspaceContainer>
       </div>
     </div>

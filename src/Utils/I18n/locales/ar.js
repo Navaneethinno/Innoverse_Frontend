@@ -2402,6 +2402,7 @@ export const common = {
   view_alerts: "التنبيهات",
   view_customer: "عميل",
   view_merchant: "تاجر",
+  institution: "المؤسسة",
 };
 
 export const auth = {
@@ -2442,6 +2443,7 @@ export const layout = {
   openMenu: "فتح القائمة",
   backToDashboard: "العودة إلى لوحة التحكم الرئيسية",
   adminPortal: "بوابة المسؤول",
+  allInstitutions: "كل المؤسسات",
 };
 
 export const institutions = {
@@ -3702,6 +3704,8 @@ export const notification = {
   saveChanges: "حفظ التغييرات",
   saved: "تم الحفظ",
   addNotificationGroup: "إضافة مجموعة إشعارات",
+  push: "إشعار التطبيق",
+  tabSending: "قيد الإرسال",
 };
 
 export const risk = {

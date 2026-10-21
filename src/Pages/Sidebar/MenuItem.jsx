@@ -7,6 +7,7 @@ import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { getMenuIcon } from "./moduleIcons";
 import { useMenuBadge } from "./menuBadges";
+import { menuLabel } from "./menuLabels";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,
@@ -107,7 +108,7 @@ export function MenuItem({
 
   return (
     <div className="flex flex-col gap-1">
-      <UiTooltip label={item?.menu_name}>
+      <UiTooltip label={menuLabel(item)}>
       <button
         type="button"
         onClick={handleClick}
@@ -133,7 +134,7 @@ export function MenuItem({
             strokeWidth: 1.8,
             className: "shrink-0",
           })}
-          {!isCollapsed && <span className="truncate">{item?.menu_name}</span>}
+          {!isCollapsed && <span className="truncate">{menuLabel(item)}</span>}
         </span>
         {badge > 0 &&
           (isCollapsed ? (

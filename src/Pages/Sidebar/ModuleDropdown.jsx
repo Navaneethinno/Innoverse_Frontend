@@ -4,6 +4,7 @@ import { ChevronRight, LayoutGrid } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { getModuleIcon } from "./moduleIcons";
+import { moduleLabel } from "./menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders
@@ -78,7 +79,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
             const Icon = getModuleIcon(moduleItem.module_name);
             const isActive = selectedModule?.module_id === moduleItem.module_id;
             return (
-              <UiTooltip key={moduleItem.module_id} label={moduleItem.module_name}>
+              <UiTooltip key={moduleItem.module_id} label={moduleLabel(moduleItem)}>
               <button
                 type="button"
                 onClick={() => {
@@ -101,7 +102,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
                     isActive ? "text-primary" : "text-[var(--muted-foreground-soft)]",
                   )}
                 />
-                {!isCollapsed && <span className="truncate">{moduleItem.module_name}</span>}
+                {!isCollapsed && <span className="truncate">{moduleLabel(moduleItem)}</span>}
               </button>
               </UiTooltip>
             );

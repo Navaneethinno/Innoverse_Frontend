@@ -1,7 +1,7 @@
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CheckCircle2, Clock3, ListChecks, Mail, MessageSquare, XCircle } from "lucide-react";
+import { AlertTriangle, BellRing, CheckCircle2, Clock3, ListChecks, Loader2, Mail, MessageSquare, XCircle } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -19,11 +19,19 @@ import { formatDateTime } from "@/Utils/Lib/dateFormat";
 const TABS = [
   ["all", "notification:tabAll", ListChecks],
   ["PENDING", "notification:tabPending", Clock3],
+  ["SENDING", "notification:tabSending", Loader2],
   ["SENT", "notification:tabSent", CheckCircle2],
   ["FAILED", "notification:tabFailed", XCircle],
 ];
 const when = (value) => (value ? formatDateTime(value) : "-");
-const ChannelIcon = ({ channel }) => (channel === "SMS" ? <MessageSquare size={13} /> : <Mail size={13} />);
+// EMAIL, SMS or PUSH (to the customer's or merchant's app; its recipient
+// names the party, e.g. CUST_INDV:44).
+const CHANNEL_ICON = { SMS: MessageSquare, PUSH: BellRing };
+const ChannelIcon = ({ channel }) => {
+  const Icon = CHANNEL_ICON[channel] ?? Mail;
+  return <Icon size={13} />;
+};
+const CHANNEL_LABEL = { EMAIL: "notification:email", SMS: "notification:sms", PUSH: "notification:push" };
 
 // Read-only list of the messages alerts produced — one row per recipient and
 // channel. Until the gateway exists every row stays PENDING.
@@ -105,7 +113,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
       label: t("notification:channel"),
       render: (row) => (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-light px-2 py-0.5 text-[11px] font-bold text-primary">
-          <ChannelIcon channel={row.channel} /> {row.channel === "SMS" ? t("notification:sms") : t("notification:email")}
+          <ChannelIcon channel={row.channel} /> {t(CHANNEL_LABEL[row.channel] ?? "notification:email")}
         </span>
       ),
     },
@@ -159,6 +167,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
                   { value: "", label: t("notification:allChannels") },
                   { value: "EMAIL", label: t("notification:email") },
                   { value: "SMS", label: t("notification:sms") },
+                  { value: "PUSH", label: t("notification:push") },
                 ]}
               />
               <FilterSelect

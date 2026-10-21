@@ -207,6 +207,8 @@ export const API_ENDPOINTS = {
     STATUS_LIST: "/master/status",
     MODULE_LIST: "/master/module",
     MENU_LIST: "/master/menu",
+    // One fixed list for every institution: [{ code, name }].
+    GENDER_LIST: "/master/gender",
     MENU_ACTION_LIST: "/master/menu_action",
     CHANNEL_LIST: "/master/channel",
     ACCT_PROD_TYPE_LIST: "/master/acct_prod_type",

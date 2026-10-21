@@ -6,8 +6,8 @@ import { API_BASE_URL } from "@/Utils/Constant";
 // request seals afresh. Only the public half is here; only the server can
 // open an envelope.
 
-// The fields the server refuses in plain text once sealing is "required".
-const SEALED = new Set(["password", "old_password", "new_password", "confirm_password", "current_password", "password_hash", "pin", "current_pin", "new_pin", "confirm_pin", "txn_pin", "card_pin", "current_card_pin", "otp"]);
+// The fields the API gateway refuses in plain text (sealing is required).
+const SEALED = new Set(["password", "old_password", "new_password", "confirm_password", "current_password", "password_hash", "pin", "current_pin", "new_pin", "confirm_pin", "txn_pin", "signin_pin", "card_pin", "current_card_pin", "otp", "current", "new", "confirm"]);
 
 let credKey = null;
 // Server clock minus this device's clock, so a wrong device clock does not
@@ -26,13 +26,8 @@ async function loadKey() {
   credKey = { id: k.key_id, key: await crypto.subtle.importKey("spki", der, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["encrypt"]) };
 }
 
-// Dev server only: opened by its network address (http, so no WebCrypto),
-// credentials go unsealed, over the API's own https, for testing on other
-// devices. A production build always seals: this branch is not in it.
-const devUnsealed = () => import.meta.env.DEV && !globalThis.crypto?.subtle;
 
 export async function seal(value) {
-  if (devUnsealed()) return value;
   if (!credKey) await loadKey();
   const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
   const plain = new TextEncoder().encode(JSON.stringify({ v: value, ts: Date.now() + clockOffset, n: nonce }));

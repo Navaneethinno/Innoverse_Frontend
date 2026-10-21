@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { findMenuByPath, menuChain } from "@/Pages/Sidebar/menuRouteMap";
 import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
+import { menuLabel, moduleLabel } from "@/Pages/Sidebar/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Each crumb links to a real registered route via getPathForCrumb
@@ -31,7 +32,7 @@ export function PageBreadcrumbs() {
   const menuCrumbs = useMemo(() => {
     const active = (menus ?? []).filter((m) => m?.status === 1);
     const menu = findMenuByPath(active, pathname);
-    return menu ? [menu.module_name, ...menuChain(menu, active).map((m) => m.menu_name)].filter(Boolean) : null;
+    return menu ? [moduleLabel(menu), ...menuChain(menu, active).map(menuLabel)].filter(Boolean) : null;
   }, [menus, pathname]);
 
   if (menuCrumbs) {
