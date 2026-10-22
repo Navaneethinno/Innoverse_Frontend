@@ -16,7 +16,7 @@ import { loanApplicationsApi, loanFacilitiesApi, recordOf } from "@/Services/Loa
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, ratePct } from "../../Deposits/depositShared";
-import { MiniTable, Tabs, Timeline, loanLabel } from "../loanShared";
+import { Tabs, Timeline, loanLabel } from "../loanShared";
 import { ApplicationForm, Disclosure } from "./ApplicationForm";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -302,7 +302,7 @@ function ApplicationView({ id, onBack }) {
               {app.owner?.name} <span className="ml-1 text-xs font-medium text-muted-foreground">{loanLabel(t, app.owner?.kind)}</span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {app.product_name} · {app.requested_term_value} {loanLabel(t, app.requested_term_unit)} · {loanLabel(t, app.purpose_code)} · {loanLabel(t, app.application_channel)} · {app.inst_profile_name}
+              {app.product_name} · {app.inst_profile_name}
             </p>
           </div>
           <div className="min-w-0 text-right">
@@ -310,7 +310,21 @@ function ApplicationView({ id, onBack }) {
             <p className="text-sm font-bold text-primary">{t("rateAYear", { rate: ratePct(app.annual_rate) })}</p>
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            ["term", `${app.requested_term_value} ${loanLabel(t, app.requested_term_unit)}`],
+            ["purpose", loanLabel(t, app.purpose_code)],
+            ["channel", loanLabel(t, app.application_channel)],
+            ["submittedAt", accountDate(app.submitted_time)],
+            ["round", app.approval_round ?? 1],
+          ].map(([key, value]) => (
+            <div key={key} className="rounded-xl bg-muted/50 px-3 py-2">
+              <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key === "round" ? "approvalRoundLabel" : key)}</dt>
+              <dd className="mt-0.5 truncate text-sm font-semibold text-foreground">{value || "—"}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
           {open ? <Readiness readiness={r} /> : <span />}
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
@@ -331,27 +345,10 @@ function ApplicationView({ id, onBack }) {
       />
 
       {tab === "offer" && (app.disclosure ? <Disclosure disclosure={app.disclosure} eligibility={app.eligibility} /> : <p className="text-sm text-muted-foreground">{t("nothingYet")}</p>)}
-      {tab === "credit_checks" && (
-        <MiniTable
-          rows={app.credit_checks}
-          columns={[
-            { key: "check_type", label: t("checkType"), render: (c) => loanLabel(t, c.check_type) },
-            { key: "provider_code", label: t("provider") },
-            { key: "outcome", label: t("outcome"), render: (c) => <span className={cn("font-bold", c.outcome === "CLEAR" ? "text-emerald-700" : c.outcome === "ADVERSE" || c.outcome === "ERROR" ? "text-red-700" : "text-amber-700")}>{loanLabel(t, c.outcome)}</span> },
-            { key: "score", label: t("score"), align: "right" },
-            { key: "response_reference", label: t("reference"), render: (c) => c.response_reference ?? c.request_reference ?? "—" },
-            { key: "recorded_by", label: t("recordedBy"), render: (c) => `${c.recorded_by} · ${accountDate(c.completed_time ?? c.requested_time)}` },
-            { key: "notes", label: t("notes"), render: (c) => c.notes || "—" },
-          ]}
-        />
-      )}
+      {tab === "credit_checks" && <CreditChecks rows={app.credit_checks} />}
       {tab === "collateral" && (
         <div className="grid gap-2">
-          {app.eligibility?.collateral_required && (
-            <p className="text-xs text-muted-foreground">
-              {t("collateralProgress", { have: money(r.collateral_accepted_value, cur), need: money(app.eligibility.minimum_collateral, cur) })}
-            </p>
-          )}
+          {app.eligibility?.collateral_required && <Coverage have={r.collateral_accepted_value} need={app.eligibility.minimum_collateral} currency={cur} />}
           <CollateralTable rows={app.collateral} currency={cur} onRemove={a.collateral && can("Edit") ? (c) => setDialog({ remove: c }) : null} />
         </div>
       )}
@@ -379,6 +376,63 @@ function ApplicationView({ id, onBack }) {
       {dialog?.remove && (
         <NarrationDialog title={t("removeCollateral")} hint={t("removeCollateralHint", { name: dialog.remove.description })} confirmLabel={t("remove")} variant="danger" busy={busy} onClose={() => setDialog(null)} onSave={() => act("collateral_remove", { collateral_id: dialog.remove.id })} />
       )}
+    </div>
+  );
+}
+
+const OUTCOME_TONE = {
+  CLEAR: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
+  ADVERSE: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+  ERROR: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+};
+
+// Each credit check as a card: what was checked, by whom, the outcome.
+function CreditChecks({ rows }) {
+  const { t } = useTranslation("loans");
+  if (!rows?.length) return <p className="rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">{t("nothingYet")}</p>;
+  return (
+    <div className="grid gap-2 md:grid-cols-2">
+      {rows.map((c, i) => (
+        <div key={c.id ?? i} className="rounded-2xl border border-border bg-card p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground">{loanLabel(t, c.check_type)}</p>
+              <p className="text-[11px] text-muted-foreground">{[c.provider_code, c.response_reference ?? c.request_reference].filter(Boolean).join(" · ") || "—"}</p>
+            </div>
+            <span className={cn("shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-black", OUTCOME_TONE[c.outcome] ?? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200")}>{loanLabel(t, c.outcome)}</span>
+          </div>
+          <div className="mt-3 flex items-end justify-between gap-2">
+            <p className="text-[11px] text-muted-foreground">
+              {c.recorded_by} · {accountDate(c.completed_time ?? c.requested_time)}
+            </p>
+            {c.score != null && c.score !== "" && (
+              <p className="text-right">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("score")}</span>
+                <span className="text-lg font-black tabular-nums text-foreground">{c.score}</span>
+              </p>
+            )}
+          </div>
+          {c.notes && <p className="mt-2 rounded-lg bg-muted/60 px-2 py-1 text-xs text-foreground">{c.notes}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Accepted collateral against what the product needs, as a bar.
+function Coverage({ have, need, currency }) {
+  const { t } = useTranslation("loans");
+  const share = Number(need) > 0 ? Math.min(100, (Number(have || 0) / Number(need)) * 100) : 100;
+  const done = share >= 100;
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
+        <span className="font-bold text-foreground">{t("collateralCoverage")}</span>
+        <span className="tabular-nums text-muted-foreground">{t("collateralProgress", { have: money(have ?? 0, currency), need: money(need, currency) })}</span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+        <div className={cn("h-full rounded-full transition-all", done ? "bg-emerald-500" : "bg-amber-500")} style={{ width: `${share}%` }} />
+      </div>
     </div>
   );
 }

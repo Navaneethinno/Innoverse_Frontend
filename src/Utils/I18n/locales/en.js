@@ -4224,6 +4224,9 @@ export const loans = {
   approvalsWaiting_one: "{{count}} more needed",
   approvalsWaiting_other: "{{count}} more needed",
   noApprovalsYet: "No approvals yet.",
+  approvalRoundLabel: "Approval round",
+  collateralCoverage: "Collateral coverage",
+  purpose: "Purpose",
 };
 
 export const mms = {
