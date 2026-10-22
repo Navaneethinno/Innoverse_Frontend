@@ -119,13 +119,16 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
 
 // A simple read-only table: columns [{ key, label, render?, align?, wrap? }]
 // (`wrap` lets a long cell, a note, break onto lines instead of widening the table).
+// A long list (a schedule) scrolls inside the table, its headings staying in view.
+const LONG_TABLE = 12;
+
 export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, rowClass }) {
   const { t } = useTranslation("loans");
   if (!rows?.length) return <p className="py-4 text-center text-sm text-muted-foreground">{empty ?? t("nothingYet")}</p>;
   return (
-    <div className="overflow-x-auto rounded-xl border border-border">
+    <div className={cn("overflow-auto rounded-xl border border-border", rows.length > LONG_TABLE && "max-h-[28rem]")}>
       <table className="w-full text-xs">
-        <thead className="bg-muted/50 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+        <thead className="sticky top-0 z-[1] bg-card text-left text-[10px] uppercase tracking-wider text-muted-foreground shadow-[0_1px_0_var(--border)]">
           <tr>
             {columns.map((c) => (
               <th key={c.key} className={cn("whitespace-nowrap px-3 py-2", c.align === "right" && "text-right")}>
@@ -136,7 +139,7 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={rowKey(r, i)} className={cn("border-t border-border", rowClass?.(r))}>
+            <tr key={rowKey(r, i)} className={cn("border-t border-border transition-colors even:bg-muted/30 hover:bg-primary-light/40", rowClass?.(r))}>
               {columns.map((c) => (
                 <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", c.align === "right" && "text-right tabular-nums")}>
                   {c.render ? c.render(r) : (r[c.key] ?? "—")}
