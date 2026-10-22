@@ -117,7 +117,10 @@ async function loadAssets(brand, cached) {
 // branding the fixed palette in theme.css applies.
 export function BrandThemeProvider({ children }) {
   const { mode } = useColorMode();
-  const [brand, setBrand] = useState(() => asBrand(readJson(STORAGE_KEY)));
+  // The session lives in sessionStorage and the brand in localStorage: a
+  // closed tab or expired session leaves the brand behind, so it applies
+  // only while signed in.
+  const [brand, setBrand] = useState(() => (getAccessToken() ? asBrand(readJson(STORAGE_KEY)) : null));
   const [assets, setAssets] = useState(() => readJson(ASSETS_KEY));
 
   useEffect(() => {
