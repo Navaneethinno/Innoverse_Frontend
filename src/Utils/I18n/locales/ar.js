@@ -2403,6 +2403,7 @@ export const common = {
   view_customer: "عميل",
   view_merchant: "تاجر",
   institution: "المؤسسة",
+  fixIn: "إصلاح في {{step}}",
 };
 
 export const auth = {

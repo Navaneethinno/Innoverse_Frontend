@@ -11,12 +11,12 @@ import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { moveItem, useDragReorder } from "@/Components/Common/dragReorder";
-import { Problems, Section, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
+import { Problems, Section, firstProblemStep, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
 import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
 // The step for a refusal's problem_keys[].section.
-const SECTION_STEPS = { product: "product", policy: "repayment", eligibility_rules: "eligibility", collateral_policy: "collateral", approval_matrix: "approvals", terms: "terms", fees: "fees" };
+const SECTION_STEPS = { term: "terms", fee: "fees", approval: "approvals", product: "product", policy: "repayment", eligibility_rules: "eligibility", collateral_policy: "collateral", approval_matrix: "approvals", terms: "terms", fees: "fees" };
 const today = () => new Date().toISOString().slice(0, 10);
 const blankBand = (from = "0") => ({ minimum_amount: from, maximum_amount: "0", pricing_type: "FIXED", annual_rate: "", calculation_method: "REDUCING_BALANCE", day_count_convention: "ACT_365", effective_from: today() });
 const blankTerm = () => ({ term_code: "", term_value: "", term_unit: "MONTHS", minimum_amount: "", maximum_amount: "", effective_from: today(), pricing: [blankBand()] });
@@ -91,6 +91,11 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   const [head, setHead] = useState({ product_code: "", currency_code: "" });
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
+  const [problemKeys, setProblemKeys] = useState([]);
+  const fail = (e) => {
+    setError(e.message);
+    setProblemKeys(e.problemKeys ?? []);
+  };
   // What was last saved (or loaded), to warn before leaving with changes.
   const [saved, setSaved] = useState(null);
   const [leaving, setLeaving] = useState(false);
@@ -151,7 +156,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       setSaved(JSON.stringify({ config, head }));
       return newId;
     } catch (e) {
-      setError(e.message);
+      fail(e);
       return null;
     } finally {
       setBusy(false);
@@ -169,9 +174,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       notifications.success(response?.message ?? t("submitted"));
       onSaved(savedId);
     } catch (e) {
-      setError(e.message);
+      fail(e);
       // Go to the step the first problem belongs to.
-      const target = (e.problemKeys ?? []).map((p) => SECTION_STEPS[p.section]).find(Boolean);
+      const target = firstProblemStep(e.message, e.problemKeys, SECTION_STEPS);
       if (target) setStep(STEPS.indexOf(target));
     } finally {
       setBusy(false);
@@ -366,7 +371,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 
       {error ? (
         <div className="mt-4">
-          <Problems message={error} />
+          <Problems message={error} keys={problemKeys} sections={SECTION_STEPS} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
         </div>
       ) : (
         stepProblem && <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{stepProblem}</p>

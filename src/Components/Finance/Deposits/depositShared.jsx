@@ -111,7 +111,22 @@ export function NarrationDialog({ title, hint, confirmLabel, variant = "primary"
 
 // A refused change, shown in its form: the headline, then the problems
 // (the request helper puts them in the message, one "• " line each).
-export function Problems({ message }) {
+// The step a problem belongs to: its problem_keys entry's section, else the
+// first word before its colon ("product: ...", "Term 12M: ..."), looked up
+// in `sections` (section or word -> step id).
+const problemSections = (text, key) => [key?.section, String(text).split(":")[0].trim().split(/\s+/)[0].toLowerCase()];
+export const problemStep = (text, key, sections) => problemSections(text, key).map((s) => sections?.[s]).find(Boolean) ?? null;
+export const firstProblemStep = (message, keys, sections) =>
+  String(message ?? "")
+    .split(/\r?\n/)
+    .slice(1)
+    .map((line, i) => problemStep(line.replace(PROBLEM_BULLET, ""), keys?.[i], sections))
+    .find(Boolean) ?? null;
+
+// A refusal's headline and problems. With `sections` and `onGo`, each
+// problem whose step is known links to it ("Fix in <step>").
+export function Problems({ message, keys, sections, onGo, stepLabel }) {
+  const { t } = useTranslation("common");
   if (!message) return null;
   const [headline, ...lines] = String(message).split(/\r?\n/);
   return (
@@ -119,9 +134,20 @@ export function Problems({ message }) {
       <p>{headline}</p>
       {lines.length > 0 && (
         <ul className="mt-1 list-disc space-y-0.5 pl-4 font-medium">
-          {lines.map((l) => (
-            <li key={l}>{l.replace(PROBLEM_BULLET, "")}</li>
-          ))}
+          {lines.map((l, i) => {
+            const text = l.replace(PROBLEM_BULLET, "");
+            const target = onGo && problemStep(text, keys?.[i], sections);
+            return (
+              <li key={l}>
+                {text}
+                {target && (
+                  <button type="button" onClick={() => onGo(target)} className="ml-2 font-bold underline underline-offset-2 hover:text-red-900">
+                    {t("fixIn", { step: stepLabel(target) })}
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -127,6 +127,7 @@ export const common = {
   view_customer: "Cliente",
   view_merchant: "Comerciante",
   institution: "Instituição",
+  fixIn: "Corrigir em {{step}}",
 };
 
 export const auth = {

@@ -13,10 +13,12 @@ import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
-import { Problems, Section, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
+import { Problems, Section, firstProblemStep, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
 import { PERIOD_DAYS, optionLabel } from "./productShared";
 
 const STEPS = ["policy", "tenors", "rates"];
+// The step for a refusal's problem (its section, or the word it starts with).
+const SECTION_STEPS = { policy: "policy", product: "policy", tenors: "tenors", tenor: "tenors", rates: "rates", rate: "rates", band: "rates" };
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyBand = (from = "0") => ({ minimum_principal: from, maximum_principal: "0", annual_rate: "", effective_from: today(), effective_to: "" });
 const emptyTenor = () => ({ label: "", tenor_days: "", effective_from: today(), effective_to: "", rates: [emptyBand()] });
@@ -63,6 +65,11 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   const [productId, setProductId] = useState("");
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
+  const [problemKeys, setProblemKeys] = useState([]);
+  const fail = (e) => {
+    setError(e.message);
+    setProblemKeys(e.problemKeys ?? []);
+  };
   const [busy, setBusy] = useState(false);
   const drafting = !product || [9, 5].includes(Number(product.status));
   // The parent passes an inline onClose; a ref keeps it out of the load's deps.
@@ -116,7 +123,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
       setId(newId);
       return newId;
     } catch (e) {
-      setError(e.message);
+      fail(e);
       return null;
     } finally {
       setBusy(false);
@@ -140,7 +147,10 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
       notifications.success(response?.message ?? t("submitted"));
       onSaved(savedId);
     } catch (e) {
-      setError(e.message);
+      fail(e);
+      // Go to the step the first problem belongs to.
+      const target = firstProblemStep(e.message, e.problemKeys, SECTION_STEPS);
+      if (target) setStep(STEPS.indexOf(target));
     } finally {
       setBusy(false);
     }
@@ -341,7 +351,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
 
       {error ? (
         <div className="mt-4">
-          <Problems message={error} />
+          <Problems message={error} keys={problemKeys} sections={SECTION_STEPS} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
         </div>
       ) : (
         stepProblem && <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{stepProblem}</p>
