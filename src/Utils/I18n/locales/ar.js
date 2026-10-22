@@ -3626,6 +3626,7 @@ export const statusLabels = {
   Delete: "حذف",
   Activate: "تفعيل",
   Deactivate: "تعطيل",
+  Superseded: "مستبدل",
 };
 
 export const notification = {

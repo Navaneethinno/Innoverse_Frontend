@@ -166,6 +166,8 @@ const STATUS_CONFIG = {
     dot: "bg-amber-500",
     pill: "bg-amber-50 text-amber-700 border-amber-200",
   },
+  // AML reviews: replaced by a newer review of the same match.
+  SUPERSEDED: { label: "Superseded", dot: "bg-slate-400", pill: "bg-muted text-muted-foreground border-border" },
   PENDING: {
     label: "Pending",
     dot: "bg-amber-500",

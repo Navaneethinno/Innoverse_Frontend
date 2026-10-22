@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
@@ -181,9 +182,9 @@ export function MatchReview() {
       key: "state",
       label: t("common:status"),
       render: (row) => (
-        <span className="text-xs">
-          {t(`aml:reviewState_${row.state}`, { defaultValue: row.state })}
-          {row.decided_by && <span className="block text-[11px] text-muted-foreground">{row.decided_by}</span>}
+        <span className="inline-grid justify-items-center gap-0.5">
+          <StatusBadge status={row.state} />
+          {row.decided_by && <span className="text-[11px] text-muted-foreground">{row.decided_by}</span>}
         </span>
       ),
     },

@@ -1355,6 +1355,7 @@ export const statusLabels = {
   Delete: "Exclusão",
   Activate: "Ativação",
   Deactivate: "Desativação",
+  Superseded: "Substituído",
 };
 
 export const myProfile = {
