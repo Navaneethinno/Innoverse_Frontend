@@ -38,6 +38,8 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
   const [query, setQuery] = useState("");
+  // The option the arrow keys are on (an index into visibleOptions).
+  const [highlight, setHighlight] = useState(-1);
   const containerRef = useRef(null);
   const panelRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -55,6 +57,19 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   useEffect(() => {
     if (!isOpen) setQuery("");
   }, [isOpen]);
+
+  // Opening starts on the chosen option; a new search on the first match.
+  useEffect(() => {
+    if (isOpen) setHighlight(Math.max(0, options.findIndex((option) => option.value === value)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+  useEffect(() => {
+    if (query) setHighlight(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (isOpen) panelRef.current?.querySelector(`[data-option="${highlight}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [isOpen, highlight, placement]);
 
   // Autofocus the search box the instant the panel (and its measured
   // placement) is ready, so typing can start immediately without an extra
@@ -111,10 +126,27 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       if (!insideTrigger && !insidePanel) setIsOpen(false);
     }
     function handleKey(e) {
-      if (e.key !== "Escape") return;
-      // Handled here, so an enclosing Modal doesn’t also close on the same Esc.
-      e.preventDefault();
-      setIsOpen(false);
+      const last = visibleOptions.length - 1;
+      const step = { ArrowDown: 1, ArrowUp: -1 }[e.key];
+      if (step) {
+        e.preventDefault();
+        setHighlight((at) => (at < 0 ? 0 : Math.min(last, Math.max(0, at + step))));
+      } else if (e.key === "Home" || e.key === "End") {
+        if (e.target === searchInputRef.current) return;
+        e.preventDefault();
+        setHighlight(e.key === "Home" ? 0 : last);
+      } else if (e.key === "Enter") {
+        const option = visibleOptions[highlight];
+        if (!option) return;
+        e.preventDefault();
+        onChange(option.value);
+        setIsOpen(false);
+        containerRef.current?.querySelector("button")?.focus();
+      } else if (e.key === "Escape" || e.key === "Tab") {
+        // Handled here, so an enclosing Modal doesn’t also close on the same Esc.
+        if (e.key === "Escape") e.preventDefault();
+        setIsOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKey);
@@ -122,7 +154,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleKey);
     };
-  }, [isOpen]);
+  }, [isOpen, disabled, visibleOptions, highlight, onChange]);
 
   return (
     <div className={cn("relative", className)} ref={containerRef}>
@@ -131,6 +163,14 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         disabled={disabled}
         title={disabled ? disabledReason : typeof selected?.label === "string" ? selected.label : undefined}
         onClick={() => !disabled && setIsOpen((open) => !open)}
+        onKeyDown={(e) => {
+          // Closed: the arrow keys open the list, like a native select.
+          if (isOpen || disabled || (e.key !== "ArrowDown" && e.key !== "ArrowUp")) return;
+          e.preventDefault();
+          setIsOpen(true);
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         className={cn(
           "flex w-full items-center justify-between gap-2 border border-border bg-card font-medium text-foreground shadow-sm transition-colors hover:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           size === "sm" ? "h-8 rounded-lg px-2.5 text-xs" : "rounded-xl px-4 py-2.5 text-sm",
@@ -186,21 +226,23 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
             {visibleOptions.length === 0 && (
               <p className="px-3 py-2 text-sm text-muted-foreground">{t("noMatches")}</p>
             )}
-            {visibleOptions.map((option) => {
+            {visibleOptions.map((option, index) => {
               const isActive = option.value === value;
               return (
                 <button
                   key={option.value}
                   type="button"
+                  data-option={index}
+                  tabIndex={-1}
+                  onMouseEnter={() => setHighlight(index)}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);
                   }}
                   className={cn(
                     "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-primary-light text-primary"
-                      : "text-muted-foreground hover:bg-primary-light hover:text-primary",
+                    isActive ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-primary-light hover:text-primary",
+                    index === highlight && "bg-primary-light text-primary ring-1 ring-primary/40",
                   )}
                 >
                   <span className="min-w-0 [overflow-wrap:anywhere]">{option.label}</span>
