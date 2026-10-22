@@ -124,7 +124,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
       align: "left",
       render: (row) => <span className="line-clamp-1 max-w-72 text-xs">{row.subject ?? row.body}</span>,
     },
-    { key: "action", label: t("notification:actionOnMenu"), render: (row) => [row.action_name, row.menu_name].filter(Boolean).join(" · ") || "-" },
+    { key: "action", label: t("notification:actionOnMenu"), render: (row) => [row.action_name, row.menu_label || row.menu_name].filter(Boolean).join(" · ") || "-" },
     { key: "actor_userid_name", label: t("notification:user"), render: (row) => row.actor_userid_name ?? "-" },
     {
       key: "delivery_status",
@@ -229,7 +229,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
               </ViewItem>
               <ViewItem label={t("notification:alert")}>{view.noti_alert_name ?? view.alert_code}</ViewItem>
               <ViewItem label={t("notification:actionOnMenu")}>
-                {view.action_name} · {view.menu_name}
+                {view.action_name} · {view.menu_label || view.menu_name}
                 {view.record_id != null && <span className="font-normal text-muted-foreground"> #{view.record_id}</span>}
               </ViewItem>
               <ViewItem label={t("notification:user")}>{view.actor_userid_name}</ViewItem>

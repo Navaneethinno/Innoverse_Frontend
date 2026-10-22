@@ -56,13 +56,14 @@ function activeUserRows(payload) {
 // KYC belongs to an existing login account. The backend provides the compact
 // picker data through /user/get_active with { view: "dropdown" }.
 // The users the Add form may pick: active users of the chosen institution
-// (a System or service-provider user picks it first) with no KYC record.
-export function useUsersWithoutKycQuery(institution) {
+// (a System or service-provider user picks it first) with no KYC record,
+// matching `search` (the server searches; the first 100 matches show).
+export function useUsersWithoutKycQuery(institution, search) {
   const needsInstitution = canChooseInstitution();
   const query = useQuery(
     useCallback(
-      () => (needsInstitution && !institution ? Promise.resolve(null) : usersApi.list({ page: 1, limit: 100, status: 1, without_kyc: true, ...(institution ? { inst_profile_id: Number(institution) } : {}) })),
-      [needsInstitution, institution],
+      () => (needsInstitution && !institution ? Promise.resolve(null) : usersApi.list({ page: 1, limit: 100, status: 1, without_kyc: true, ...search, ...(institution ? { inst_profile_id: Number(institution) } : {}) })),
+      [needsInstitution, institution, search],
     ),
   );
   return { ...query, users: activeUserRows(query.data) || [] };

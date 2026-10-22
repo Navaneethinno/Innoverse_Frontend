@@ -517,7 +517,7 @@ export function AcctConfigResource({ entity }) {
       .then((response) => setInstCurrencies(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [entity, productInstitution]);
-  const currencyOptions = instCurrencies.map((c) => ({ value: c.currency_code, label: c.currency_name ?? String(c.currency_code) }));
+  const currencyOptions = instCurrencies.map((c) => ({ value: c.currency_code, label: c.name ?? String(c.currency_code) }));
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBranding.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
