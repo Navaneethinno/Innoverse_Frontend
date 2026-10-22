@@ -71,13 +71,22 @@ export function DepositProducts() {
   const columns = [
     {
       key: "product",
-      label: t("accountProduct"),
+      label: t("depositProduct"),
       align: "left",
       render: (p) => (
         <button type="button" onClick={() => setScreen({ kind: "view", id: p.id })} className="text-left">
-          <p className="text-xs font-bold text-primary hover:underline">{p.acct_product?.product_name}</p>
-          <p className="text-[10px] text-muted-foreground">{p.acct_product?.product_code}</p>
+          <p className="text-xs font-bold text-primary hover:underline">{p.product_name ?? p.acct_product?.product_name}</p>
+          <p className="font-mono text-[10px] text-muted-foreground">{p.product_code ?? p.acct_product?.product_code}</p>
         </button>
+      ),
+    },
+    {
+      key: "acct_product",
+      label: t("accountProduct"),
+      render: (p) => (
+        <span className="text-xs">
+          {p.acct_product?.product_name} <span className="font-mono text-[10px] text-muted-foreground">{p.acct_product?.product_code}</span>
+        </span>
       ),
     },
     { key: "currency", label: t("currency"), render: (p) => <span className="text-xs font-semibold">{p.acct_product?.currency_code}</span> },

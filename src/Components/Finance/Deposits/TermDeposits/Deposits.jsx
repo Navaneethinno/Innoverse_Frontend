@@ -48,7 +48,7 @@ function depositColumns(t, can, onOpen, compact) {
         </div>
       ),
     },
-    { key: "product_name", label: t("depositProduct"), render: (d) => <span className="text-xs">{d.product_name} · {d.tenor_label}</span> },
+    { key: "product_name", label: t("depositProduct"), render: (d) => <span className="text-xs">{d.deposit_product_name ?? d.product_name} · {d.tenor_label}</span> },
     { key: "principal", label: t("principal"), render: (d) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(d.principal, d.currency_code)}</span> },
     { key: "annual_rate", label: t("rate"), render: (d) => <span className="text-xs font-semibold tabular-nums text-primary">{ratePct(d.annual_rate)}</span> },
     { key: "maturity_date", label: t("maturityDate"), render: (d) => <span className="whitespace-nowrap text-xs">{dayDate(d.maturity_date)}</span> },

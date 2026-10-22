@@ -84,11 +84,11 @@ export function DepositProductView({ id, onBack, onEdit }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-black text-foreground">{product.acct_product?.product_name}</h1>
+              <h1 className="text-xl font-black text-foreground">{product.product_name ?? product.acct_product?.product_name}</h1>
               <ProductStatus product={product} />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {product.acct_product?.product_code} · {[currency, product.acct_product?.currency_name].filter(Boolean).join(" · ")} · {product.inst_profile_name}
+              {product.product_code ?? product.acct_product?.product_code} · {t("accountProduct")}: {product.acct_product?.product_name} ({product.acct_product?.product_code}) · {[currency, product.acct_product?.currency_name].filter(Boolean).join(" · ")} · {product.inst_profile_name}
             </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               {t("lastChange", { name: product.updated_by ?? product.created_by ?? "—", date: accountDate(product.updated_time ?? product.created_time) })}

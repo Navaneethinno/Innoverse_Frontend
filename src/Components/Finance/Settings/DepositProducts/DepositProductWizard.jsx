@@ -63,6 +63,8 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   const [step, setStep] = useState(0);
   const [id, setId] = useState(product?.id ?? null);
   const [productId, setProductId] = useState("");
+  // The deposit product's own code and name (fixed once authorised).
+  const [head, setHead] = useState({ product_code: product?.product_code ?? "", product_name: product?.product_name ?? "" });
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -99,6 +101,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   const problemAt = (at) => {
     if (!config) return "";
     if (at === 0 && !product && !productId) return t("pickProduct");
+    if (at === 0 && drafting && (!/^[A-Za-z0-9_]{1,64}$/.test(head.product_code.trim()) || !head.product_name.trim())) return t("productNeedsCodeName");
     if (at === 1) {
       if (!config.tenors?.length) return t("addOneTenor");
       if (config.tenors.some((x) => !String(x.label).trim() || !(Number(x.tenor_days) > 0))) return t("tenorNeedsLabelDays");
@@ -115,7 +118,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
     setBusy(true);
     setError("");
     try {
-      const body = { ...toBody(config), is_draft: true };
+      const body = { ...toBody(config), product_code: head.product_code.trim().toUpperCase(), product_name: head.product_name.trim(), is_draft: true };
       const response = id ? await depositProductsApi.edit({ id, ...body }) : await depositProductsApi.add({ acct_product_id: Number(productId), ...body });
       const saved = rowsOf(response)[0];
       const newId = saved?.id ?? id;
@@ -175,7 +178,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
         <ArrowLeft size={15} /> {t("backToProducts")}
       </button>
-      <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{product ? t("editProductX", { name: product.acct_product?.product_name }) : t("newDepositProduct")}</h1>
+      <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{product ? t("editProductX", { name: product.product_name ?? product.acct_product?.product_name }) : t("newDepositProduct")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("wizardDraftHint") : t("wizardProposeHint")}</p>
 
       <HorizontalStepper className="mb-4" steps={STEPS.map((s) => ({ id: s, label: t(`step_${s}`) }))} activeIndex={step} onStepClick={(i) => i < step && setStep(i)} />
@@ -184,9 +187,28 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
         <div className="grid gap-4">
           <Section title={t("principalTitle")}>
             <div className="grid gap-3 md:grid-cols-3">
+              <label className={labelClass}>
+                {t("productCode")}
+                <span className="text-destructive"> *</span>
+                <input
+                  className={cn(inputClass, "mt-1.5 font-mono uppercase")}
+                  value={head.product_code}
+                  maxLength={64}
+                  readOnly={!drafting}
+                  placeholder="DP_CLASSIC"
+                  onChange={(e) => setHead((h) => ({ ...h, product_code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))}
+                />
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{drafting ? t("productCodeHint") : t("codeNameFixed")}</span>
+              </label>
+              <label className={labelClass}>
+                {t("productName")}
+                <span className="text-destructive"> *</span>
+                <input className={cn(inputClass, "mt-1.5")} value={head.product_name} maxLength={150} readOnly={!drafting} onChange={(e) => setHead((h) => ({ ...h, product_name: e.target.value }))} />
+              </label>
               {!product && (
                 <label className={labelClass}>
                   {t("accountProduct")}
+                  <span className="text-destructive"> *</span>
                   <FilterSelect
                     className="mt-1.5"
                     value={productId}

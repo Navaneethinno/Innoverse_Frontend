@@ -123,7 +123,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
               </span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {deposit.product_name} · {deposit.tenor_label} · {deposit.inst_profile_name}
+              {deposit.deposit_product_name ?? deposit.product_name} · {deposit.tenor_label} · {deposit.inst_profile_name}
             </p>
           </div>
           <div className="min-w-0 text-right">

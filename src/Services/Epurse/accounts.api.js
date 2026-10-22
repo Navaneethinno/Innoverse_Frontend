@@ -19,6 +19,22 @@ export const accountsApi = {
   phoneTransfers: (body) => request("/config/account/phone_transfer/list", body),
 };
 
+// Opening a further account (maker-checker; Self opens at once).
+//   options: { entity_type, entity_id } -> { owner, products (each with
+//            `held`), accounts } · add: { entity_type, entity_id,
+//            acct_product_id, reason } · auth / deauth: { id, narration? }
+//   cancel / get: { id } · list: { entity_type?, entity_id?, status?, page, limit }
+export const accountOpeningApi = {
+  listPath: "/config/account/open/list",
+  options: (body) => request("/config/account/open/options", body),
+  add: (body) => request("/config/account/open/add", body),
+  auth: (body) => request("/config/account/open/auth", body),
+  deauth: (body) => request("/config/account/open/deauth", body),
+  cancel: (body) => request("/config/account/open/cancel", body),
+  get: (body) => request("/config/account/open/get", body),
+  list: (body) => request("/config/account/open/list", body),
+};
+
 // Account actions (maker-checker): FREEZE, UNFREEZE, BLOCK, UNBLOCK, CLOSE,
 // REACTIVATE, ACTIVATE, ADD_PARTY, REMOVE_PARTY. One open request per
 // account; Self skips the checker (unless the product says closing needs

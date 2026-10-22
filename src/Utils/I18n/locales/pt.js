@@ -3198,6 +3198,19 @@ export const accounts = {
   digitalProductHint: "O produto de conta principal dele é a conta aberta na aprovação.",
   fee: "Tarifa",
   total: "Total",
+  openAccount: "Abrir conta",
+  openAnotherAccount: "Abrir outra conta",
+  openingRequests: "Pedidos de abertura",
+  accountsHeld: "Contas atuais",
+  mainAccount: "Principal",
+  chooseAccountProduct: "Escolha um produto de conta",
+  heldN_one: "{{count}} detida",
+  heldN_other: "{{count}} detidas",
+  noAccountProductsAvailable: "Nenhum produto de conta disponível. O produto digital do cliente não permite outro produto de conta.",
+  openReasonPlaceholder: "Por exemplo: conta salário",
+  openRequested: "Pedido enviado para aprovação.",
+  accountOpenedNumber: "Conta {{number}} aberta.",
+  approveOpenTitle: "Abrir esta conta para {{name}}?",
 };
 
 export const deposits = {
@@ -3570,6 +3583,11 @@ export const deposits = {
   failuresN_one: "{{count}} registro falhou: tentado de novo na próxima execução",
   failuresN_other: "{{count}} registros falharam: tentados de novo na próxima execução",
   addAccountProduct: "Adicionar produto de conta",
+  productCode: "Código do produto",
+  productName: "Nome do produto",
+  productCodeHint: "Apenas letras, dígitos e _. Fixo após autorização.",
+  codeNameFixed: "O código e o nome não podem mudar após a autorização.",
+  productNeedsCodeName: "Dê ao produto de depósito um código (letras, dígitos e _) e um nome.",
 };
 
 export const loans = {

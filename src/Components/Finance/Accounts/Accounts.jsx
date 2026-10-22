@@ -2,7 +2,7 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, ScrollText } from "lucide-react";
+import { Landmark, PlusCircle, ScrollText } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -20,6 +20,9 @@ import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } 
 import { Tabs } from "../Loans/loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { PhoneTransfers } from "./PhoneTransfers";
+import { OpenAccount, OpeningRequests } from "./AccountOpening";
+import { usePagePermission } from "@/Hooks/usePermission";
+import { ownerEntity } from "../Deposits/TermDeposits/OpenDeposit";
 
 const EMPTY_FILTERS = { party: "", ownership: "", acct_class: "", status: "" };
 
@@ -31,24 +34,37 @@ const filterBody = (f) => ({
   ...(f.status !== "" ? { status: Number(f.status) } : {}),
 });
 
-// EPURSE > Accounts (menu 178): every customer's and merchant's account,
-// opened automatically on approval; freeze / block / close / reactivate /
+// EPURSE > Accounts (menu 178): every customer's and merchant's account.
+// The first opens automatically on approval, further ones by request
+// (Open account, approved under Opening requests); freeze / block / close / reactivate /
 // activate and parties go through maker-checker requests (AccountActions). A bank / fintech user sees its
 // own institution's; a service provider sees every institution's. A second
 // tab lists the money waiting for phone numbers (same menu).
 export function Accounts() {
   const { t } = useTranslation("accounts");
+  const can = usePagePermission();
   const [view, setView] = useState("accounts");
+  const [opening, setOpening] = useState(false);
   return (
     <div className="pb-8 pt-4">
-      <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Landmark size={22} className="text-primary" /> {t("title")}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
+            <Landmark size={22} className="text-primary" /> {t("title")}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+        </div>
+        {can("Edit") && (
+          <Button icon={PlusCircle} onClick={() => setOpening(true)}>
+            {t("openAccount")}
+          </Button>
+        )}
       </div>
-      <Tabs tabs={[{ key: "accounts" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t(k === "accounts" ? "title" : "ptTitle")} />
-      {view === "accounts" ? <AccountsList /> : <PhoneTransfers />}
+      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", phone: "ptTitle" }[k])} />
+      {view === "accounts" && <AccountsList />}
+      {view === "opening" && <OpeningRequests />}
+      {view === "phone" && <PhoneTransfers />}
+      {opening && <OpenAccount onClose={() => setOpening(false)} onDone={(made) => made?.status === "PENDING" && setView("opening")} />}
     </div>
   );
 }
@@ -230,6 +246,8 @@ function AccountsList() {
 // Tabs: the account itself, its action requests, its parties, its statements.
 function AccountDetail({ account, onClose, onStatement }) {
   const { t } = useTranslation("accounts");
+  const can = usePagePermission();
+  const [openingFor, setOpeningFor] = useState(null);
   const [full, setFull] = useState(null);
   const [tab, setTab] = useState("overview");
   const [version, setVersion] = useState(0);
@@ -305,12 +323,20 @@ function AccountDetail({ account, onClose, onStatement }) {
                     {a.owner.reference_id ? ` · ${a.owner.reference_id}` : ""}
                   </p>
                 </div>
-                {a.owner.status_name && <StatusBadge status={a.owner.status_name} variant="subtle" />}
+                <div className="flex items-center gap-2">
+                  {a.owner.status_name && <StatusBadge status={a.owner.status_name} variant="subtle" />}
+                  {can("Edit") && a.acct_class !== "DEPOSIT" && ownerEntity(a.owner) && (
+                    <Button variant="outline" size="sm" icon={PlusCircle} onClick={() => setOpeningFor(ownerEntity(a.owner))}>
+                      {t("openAnotherAccount")}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
         </>
       )}
+      {openingFor && <OpenAccount entity={openingFor} onClose={() => setOpeningFor(null)} />}
     </Modal>
   );
 }

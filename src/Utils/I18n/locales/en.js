@@ -3184,6 +3184,19 @@ export const accounts = {
   digitalProductHint: "Its primary account product is the account opened on approval.",
   fee: "Fee",
   total: "Total",
+  openAccount: "Open account",
+  openAnotherAccount: "Open another account",
+  openingRequests: "Opening requests",
+  accountsHeld: "Accounts held now",
+  mainAccount: "Main",
+  chooseAccountProduct: "Choose an account product",
+  heldN_one: "{{count}} held",
+  heldN_other: "{{count}} held",
+  noAccountProductsAvailable: "No account products available. The customer's digital product allows no other account product.",
+  openReasonPlaceholder: "For example: salary account",
+  openRequested: "Request sent for approval.",
+  accountOpenedNumber: "Account {{number}} opened.",
+  approveOpenTitle: "Open this account for {{name}}?",
 };
 
 export const deposits = {
@@ -3556,6 +3569,11 @@ export const deposits = {
   failuresN_one: "{{count}} record failed: retried next run",
   failuresN_other: "{{count}} records failed: retried next run",
   addAccountProduct: "Add account product",
+  productCode: "Product code",
+  productName: "Product name",
+  productCodeHint: "Letters, digits and _ only. Fixed once authorised.",
+  codeNameFixed: "The code and name can't change once authorised.",
+  productNeedsCodeName: "Give the deposit product a code (letters, digits and _) and a name.",
 };
 
 export const loans = {

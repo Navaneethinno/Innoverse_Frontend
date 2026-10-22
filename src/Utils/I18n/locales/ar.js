@@ -478,6 +478,23 @@ export const accounts = {
   digitalProductHint: "منتج الحساب الأساسي فيه هو الحساب الذي يُفتح عند الاعتماد.",
   fee: "الرسوم",
   total: "الإجمالي",
+  openAccount: "فتح حساب",
+  openAnotherAccount: "فتح حساب آخر",
+  openingRequests: "طلبات الفتح",
+  accountsHeld: "الحسابات الحالية",
+  mainAccount: "الرئيسي",
+  chooseAccountProduct: "اختر منتج حساب",
+  heldN_zero: "{{count}} محتفظ به",
+  heldN_one: "{{count}} محتفظ به",
+  heldN_two: "{{count}} محتفظ بهما",
+  heldN_few: "{{count}} محتفظ بها",
+  heldN_many: "{{count}} محتفظ بها",
+  heldN_other: "{{count}} محتفظ بها",
+  noAccountProductsAvailable: "لا توجد منتجات حساب متاحة. المنتج الرقمي للعميل لا يسمح بمنتج حساب آخر.",
+  openReasonPlaceholder: "مثال: حساب الراتب",
+  openRequested: "تم إرسال الطلب للموافقة.",
+  accountOpenedNumber: "تم فتح الحساب {{number}}.",
+  approveOpenTitle: "فتح هذا الحساب لـ {{name}}؟",
 };
 
 export const txn = {

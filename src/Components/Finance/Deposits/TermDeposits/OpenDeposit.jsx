@@ -16,17 +16,20 @@ import { Facts, Problems, amountInput, dayDate, inputClass, labelClass, ratePct 
 import { earlyText, optionLabel } from "../../Settings/DepositProducts/productShared";
 
 // The owner of a wallet, as the deposit calls name it.
-const ownerEntity = (owner) => (owner?.kind && owner?.id ? { entity_type: owner.kind, entity_id: owner.id } : null);
+export const ownerEntity = (owner) => (owner?.kind && owner?.id ? { entity_type: owner.kind, entity_id: owner.id } : null);
 
 // Open a deposit for a customer or merchant: find the owner (by name or
 // wallet number, unless given), then options (wallets, products), a live
 // quote as the form changes, and open. The rate is indicative: the checker's
 // approval fixes it on the day.
+// One picker entry per deposit product (an account product may have several).
+const productKey = (p) => String(p.deposit_product_id ?? p.acct_product_id);
+
 export function OpenDeposit({ entity: given, onClose, onOpened }) {
   const { t } = useTranslation(["deposits", "accounts"]);
   const [entity, setEntity] = useState(given ?? null);
   const [options, setOptions] = useState(null);
-  const [form, setForm] = useState({ acct_product_id: "", tenor_id: "", principal: "", funding_acct_id: "", payout_acct_id: "", narration: "" });
+  const [form, setForm] = useState({ product_key: "", tenor_id: "", principal: "", funding_acct_id: "", payout_acct_id: "", narration: "" });
   const [quote, setQuote] = useState(null);
   const [quoteError, setQuoteError] = useState("");
   const [quoting, setQuoting] = useState(false);
@@ -45,7 +48,7 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
         setOptions(o);
         const product = o.products?.[0];
         const wallet = o.wallets?.find((w) => !product || w.currency_code === product.currency_code);
-        setForm((f) => ({ ...f, acct_product_id: product ? String(product.acct_product_id) : "", tenor_id: product?.config?.tenors?.[0]?.id ? String(product.config.tenors[0].id) : "", funding_acct_id: wallet ? String(wallet.id) : "", payout_acct_id: "" }));
+        setForm((f) => ({ ...f, product_key: product ? productKey(product) : "", tenor_id: product?.config?.tenors?.[0]?.id ? String(product.config.tenors[0].id) : "", funding_acct_id: wallet ? String(wallet.id) : "", payout_acct_id: "" }));
       })
       .catch((e) => !cancelled && setError(e.message));
     return () => {
@@ -53,11 +56,11 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
     };
   }, [entity]);
 
-  const product = options?.products?.find((p) => String(p.acct_product_id) === form.acct_product_id);
+  const product = options?.products?.find((p) => productKey(p) === form.product_key);
   const wallets = (options?.wallets ?? []).filter((w) => !product || w.currency_code === product.currency_code);
   const funding = wallets.find((w) => String(w.id) === form.funding_acct_id);
-  const body = entity && form.acct_product_id && form.tenor_id && Number(form.principal) > 0 && form.funding_acct_id
-    ? { ...entity, acct_product_id: Number(form.acct_product_id), tenor_id: Number(form.tenor_id), principal: form.principal, funding_acct_id: Number(form.funding_acct_id), ...(form.payout_acct_id ? { payout_acct_id: Number(form.payout_acct_id) } : {}) }
+  const body = entity && product && form.tenor_id && Number(form.principal) > 0 && form.funding_acct_id
+    ? { ...entity, acct_product_id: Number(product.acct_product_id), tenor_id: Number(form.tenor_id), principal: form.principal, funding_acct_id: Number(form.funding_acct_id), ...(form.payout_acct_id ? { payout_acct_id: Number(form.payout_acct_id) } : {}) }
     : null;
   const bodyKey = JSON.stringify(body);
 
@@ -149,12 +152,12 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
                 {t("depositProduct")}
                 <FilterSelect
                   className="mt-1.5"
-                  value={form.acct_product_id}
+                  value={form.product_key}
                   onChange={(v) => {
-                    const p = options.products.find((x) => String(x.acct_product_id) === v);
-                    setForm((f) => ({ ...f, acct_product_id: v, tenor_id: p?.config?.tenors?.[0]?.id ? String(p.config.tenors[0].id) : "", funding_acct_id: "", payout_acct_id: "" }));
+                    const p = options.products.find((x) => productKey(x) === v);
+                    setForm((f) => ({ ...f, product_key: v, tenor_id: p?.config?.tenors?.[0]?.id ? String(p.config.tenors[0].id) : "", funding_acct_id: "", payout_acct_id: "" }));
                   }}
-                  options={options.products.map((p) => ({ value: String(p.acct_product_id), label: `${p.product_name} (${p.currency_code})` }))}
+                  options={options.products.map((p) => ({ value: productKey(p), label: `${p.deposit_product_name ?? p.product_name} · ${p.deposit_product_code ?? p.product_code} (${p.currency_code})` }))}
                 />
               </label>
               <label className={labelClass}>
