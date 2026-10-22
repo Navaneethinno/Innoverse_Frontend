@@ -13,6 +13,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
@@ -318,16 +319,17 @@ function FacilityView({ id, onBack }) {
       )}
       {tab === "transactions" && (
         <MiniTable
+          currency={cur}
           rows={loan.transactions}
           rowClass={(x) => (x.status === "REVERSED" ? "opacity-50 line-through" : undefined)}
           columns={[
             { key: "transaction_type", label: t("type"), render: (x) => <b>{loanLabel(t, x.transaction_type)}</b> },
             { key: "value_date", label: t("valueDate"), render: (x) => dayDate(x.value_date) },
-            { key: "amount", label: t("amount"), align: "right", render: (x) => <b>{m(x.amount)}</b> },
-            { key: "principal_component", label: t("principal"), align: "right", render: (x) => m(x.principal_component) },
-            { key: "interest_component", label: t("interest"), align: "right", render: (x) => m(x.interest_component) },
-            { key: "fee_component", label: t("fees"), align: "right", render: (x) => m(x.fee_component) },
-            { key: "penalty_component", label: t("penalty"), align: "right", render: (x) => m(x.penalty_component) },
+            { key: "amount", label: t("amount"), amount: true, strong: true },
+            { key: "principal_component", label: t("principal"), amount: true, hideIfZero: true },
+            { key: "interest_component", label: t("interest"), amount: true, hideIfZero: true },
+            { key: "fee_component", label: t("fees"), amount: true, hideIfZero: true },
+            { key: "penalty_component", label: t("penalty"), amount: true, hideIfZero: true },
             { key: "source", label: t("source"), render: (x) => loanLabel(t, x.source) },
             { key: "rrn", label: "RRN" },
             { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
@@ -368,12 +370,13 @@ function FacilityView({ id, onBack }) {
       )}
       {tab === "write_offs" && (
         <MiniTable
+          currency={cur}
           rows={loan.write_offs}
           columns={[
             { key: "status", label: t("status"), render: (w) => <StatusBadge status={w.status} variant="subtle" /> },
             { key: "reason", label: t("reason") },
-            { key: "principal", label: t("principal"), align: "right", render: (w) => (w.principal != null ? m(w.principal) : "—") },
-            { key: "interest", label: t("interest"), align: "right", render: (w) => (w.interest != null ? m(w.interest) : "—") },
+            { key: "principal", label: t("principal"), amount: true },
+            { key: "interest", label: t("interest"), amount: true },
             { key: "proposed_by", label: t("proposedBy"), render: (w) => `${w.proposed_by} · ${accountDate(w.proposed_at)}` },
             { key: "decided_by", label: t("decidedBy"), render: (w) => (w.decided_by ? `${w.decided_by} · ${accountDate(w.decided_at)}` : "—") },
             { key: "decision_note", label: t("note"), render: (w) => w.decision_note || "—" },
@@ -382,15 +385,16 @@ function FacilityView({ id, onBack }) {
       )}
       {tab === "provisions" && (
         <MiniTable
+          currency={cur}
           rows={loan.provisions}
           rowKey={(p, i) => `${p.provision_date}-${i}`}
           columns={[
             { key: "provision_date", label: t("date"), render: (p) => dayDate(p.provision_date) },
             { key: "risk_class", label: t("riskClass"), render: (p) => <span className={cn("font-bold", RISK_TONE[p.risk_class])}>{loanLabel(t, p.risk_class)}</span> },
             { key: "provision_percent", label: t("provisionPct"), align: "right", render: (p) => ratePct(p.provision_percent) },
-            { key: "exposure", label: t("exposure"), align: "right", render: (p) => m(p.exposure) },
-            { key: "required", label: t("required"), align: "right", render: (p) => m(p.required) },
-            { key: "change", label: t("change"), align: "right", render: (p) => <span className={Number(p.change) < 0 ? "text-emerald-700" : "text-red-700"}>{m(p.change)}</span> },
+            { key: "exposure", label: t("exposure"), amount: true },
+            { key: "required", label: t("required"), amount: true, strong: true },
+            { key: "change", label: t("change"), align: "right", render: (p) => <span className={Number(p.change) < 0 ? "text-emerald-700" : "text-red-700"}>{formatNumber(p.change, { min: 2, max: 6 })}</span> },
           ]}
         />
       )}
@@ -411,12 +415,13 @@ function FacilityView({ id, onBack }) {
           </Section>
           <Section title={t("mandates")}>
             <MiniTable
+              currency={cur}
               rows={loan.recovery_mandates}
               columns={[
                 { key: "mandate_type", label: t("type"), render: (x) => <b>{loanLabel(t, x.mandate_type)}</b> },
                 { key: "mandate_reference", label: t("reference") },
                 { key: "provider", label: t("provider"), render: (x) => x.provider || "—" },
-                { key: "maximum_amount", label: t("maximumAmount"), align: "right", render: (x) => (x.maximum_amount != null ? m(x.maximum_amount) : "—") },
+                { key: "maximum_amount", label: t("maximumAmount"), amount: true },
                 { key: "period", label: t("period"), render: (x) => `${dayDate(x.start_date)} – ${x.end_date ? dayDate(x.end_date) : "…"}` },
                 { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
                 { key: "cancel", label: "", render: (x) => (x.status === "ACTIVE" && a.collections && can("Edit") ? <ActionIconButton label={t("cancelMandate")} intent="delete" icon={Ban} onClick={() => setDialog({ mandate: x })} /> : x.cancel_reason || null) },

@@ -8,6 +8,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Toggle } from "@/Components/Common/Toggle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { useAuth } from "@/Hooks/useAuth";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { cn } from "@/Utils/Lib/utils";
@@ -120,19 +121,36 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
 // A simple read-only table: columns [{ key, label, render?, align?, wrap? }]
 // (`wrap` lets a long cell, a note, break onto lines instead of widening the table).
 // A long list (a schedule) scrolls inside the table, its headings staying in view.
+// Money columns: `amount: true` (the value from `value(row)` or row[key])
+// shows the number alone, the table's `currency` once in the heading;
+// `strong` makes it bold. `hideIfZero` drops a column that is 0 on every row.
 const LONG_TABLE = 12;
 
-export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, rowClass }) {
+const valueOf = (c, r) => (c.value ? c.value(r) : r[c.key]);
+const isZero = (v) => v == null || v === "" || Number(v) === 0;
+
+export function MiniTable({ columns: given, rows, empty, rowKey = (r, i) => r.id ?? i, rowClass, currency }) {
   const { t } = useTranslation("loans");
   if (!rows?.length) return <p className="py-4 text-center text-sm text-muted-foreground">{empty ?? t("nothingYet")}</p>;
+  const columns = given.filter((c) => !c.hideIfZero || rows.some((r) => !isZero(valueOf(c, r))));
+  const cell = (c, r) => {
+    if (c.render) return c.render(r);
+    if (c.amount) {
+      const v = valueOf(c, r);
+      const text = v == null || v === "" ? "—" : formatNumber(v, { min: 2, max: 6 });
+      return c.strong ? <b>{text}</b> : <span className={isZero(v) ? "text-muted-foreground" : undefined}>{text}</span>;
+    }
+    return r[c.key] ?? "—";
+  };
   return (
     <div className={cn("overflow-auto rounded-xl border border-border", rows.length > LONG_TABLE && "max-h-[28rem]")}>
       <table className="w-full text-xs">
         <thead className="sticky top-0 z-[1] bg-card text-left text-[10px] uppercase tracking-wider text-muted-foreground shadow-[0_1px_0_var(--border)]">
           <tr>
             {columns.map((c) => (
-              <th key={c.key} className={cn("whitespace-nowrap px-3 py-2", c.align === "right" && "text-right")}>
+              <th key={c.key} className={cn("whitespace-nowrap px-3 py-2", (c.align === "right" || c.amount) && "text-right")}>
                 {c.label}
+                {c.amount && currency && <span className="ml-1 font-semibold normal-case text-muted-foreground/70">({currency})</span>}
               </th>
             ))}
           </tr>
@@ -141,8 +159,8 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
           {rows.map((r, i) => (
             <tr key={rowKey(r, i)} className={cn("border-t border-border transition-colors even:bg-muted/30 hover:bg-primary-light/40", rowClass?.(r))}>
               {columns.map((c) => (
-                <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", c.align === "right" && "text-right tabular-nums")}>
-                  {c.render ? c.render(r) : (r[c.key] ?? "—")}
+                <td key={c.key} className={cn("px-3 py-2", c.wrap ? "min-w-[10rem] align-top" : "whitespace-nowrap", (c.align === "right" || c.amount) && "text-right tabular-nums")}>
+                  {cell(c, r)}
                 </td>
               ))}
             </tr>
@@ -157,23 +175,23 @@ export function MiniTable({ columns, rows, empty, rowKey = (r, i) => r.id ?? i, 
 // what is paid and each instalment's status).
 export function ScheduleTable({ installments, currency }) {
   const { t } = useTranslation("loans");
-  const m = (v) => money(v, currency);
   const live = installments?.some((r) => r.status);
   return (
     <MiniTable
+      currency={currency}
       rows={installments}
       rowKey={(r) => r.installment_number}
       rowClass={(r) => (r.status === "OVERDUE" ? "bg-red-50" : r.status === "CANCELLED" ? "opacity-50" : undefined)}
       columns={[
         { key: "installment_number", label: "#" },
         { key: "due_date", label: t("dueDate"), render: (r) => dayDate(r.due_date) },
-        { key: "principal_due", label: t("principal"), align: "right", render: (r) => m(r.principal_due) },
-        { key: "interest_due", label: t("interest"), align: "right", render: (r) => m(r.interest_due) },
-        { key: "fees_due", label: t("fees"), align: "right", render: (r) => m(r.fees_due) },
-        live && { key: "penalty_due", label: t("penalty"), align: "right", render: (r) => m(r.penalty_due) },
-        { key: "total_due", label: t("total"), align: "right", render: (r) => <b>{m(r.total_due)}</b> },
-        live && { key: "paid", label: t("paid"), align: "right", render: (r) => m(Number(r.principal_paid ?? 0) + Number(r.interest_paid ?? 0) + Number(r.fees_paid ?? 0) + Number(r.penalty_paid ?? 0)) },
-        installments?.some((r) => r.closing_principal != null) && { key: "closing_principal", label: t("balanceAfter"), align: "right", render: (r) => m(r.closing_principal) },
+        { key: "principal_due", label: t("principal"), amount: true },
+        { key: "interest_due", label: t("interest"), amount: true },
+        { key: "fees_due", label: t("fees"), amount: true, hideIfZero: true },
+        live && { key: "penalty_due", label: t("penalty"), amount: true, hideIfZero: true },
+        { key: "total_due", label: t("total"), amount: true, strong: true },
+        live && { key: "paid", label: t("paid"), amount: true, value: (r) => Number(r.principal_paid ?? 0) + Number(r.interest_paid ?? 0) + Number(r.fees_paid ?? 0) + Number(r.penalty_paid ?? 0) },
+        installments?.some((r) => r.closing_principal != null) && { key: "closing_principal", label: t("balanceAfter"), amount: true },
         live && { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
       ].filter(Boolean)}
     />

@@ -5,7 +5,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, inputClass, labelClass } from "../Deposits/depositShared";
 import { Field, MiniTable, loanLabel } from "./loanShared";
@@ -17,11 +17,12 @@ export function CollateralTable({ rows, currency, onRemove }) {
   return (
     <MiniTable
       rows={rows}
+      currency={currency}
       columns={[
         { key: "collateral_type", label: t("type"), render: (c) => <b>{loanLabel(t, c.collateral_type)}</b> },
         { key: "description", label: t("description") },
-        { key: "declared_value", label: t("declaredValue"), align: "right", render: (c) => money(c.declared_value, currency) },
-        { key: "accepted_value", label: t("acceptedValue"), align: "right", render: (c) => money(c.accepted_value, currency) },
+        { key: "declared_value", label: t("declaredValue"), amount: true },
+        { key: "accepted_value", label: t("acceptedValue"), amount: true, strong: true },
         { key: "registry_reference", label: t("registryLien"), render: (c) => [c.registry_reference, c.lien_reference].filter(Boolean).join(" · ") || "—" },
         { key: "status", label: t("status"), render: (c) => <StatusBadge status={c.status} variant="subtle" /> },
         onRemove && { key: "remove", label: "", render: (c) => <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => onRemove(c)} /> },
@@ -35,11 +36,12 @@ export function FeesTable({ rows, currency }) {
   return (
     <MiniTable
       rows={rows}
+      currency={currency}
       rowKey={(f, i) => `${f.fee_code}-${f.rrn ?? i}`}
       columns={[
         { key: "fee_name", label: t("fee"), render: (f) => <b>{f.fee_name ?? f.fee_code}</b> },
         { key: "collection_point", label: t("charged"), render: (f) => loanLabel(t, f.collection_point) },
-        { key: "amount", label: t("amount"), align: "right", render: (f) => money(f.amount, currency) },
+        { key: "amount", label: t("amount"), amount: true, strong: true },
         { key: "rrn", label: "RRN", render: (f) => f.rrn ?? "—" },
         { key: "charged_time", label: t("when"), render: (f) => accountDate(f.charged_time) },
         { key: "refund", label: t("refund"), render: (f) => (f.refund_rrn ? <span className="font-semibold text-emerald-700">{t("refundedRrn", { rrn: f.refund_rrn })}</span> : f.refundable ? t("refundable") : "—") },
