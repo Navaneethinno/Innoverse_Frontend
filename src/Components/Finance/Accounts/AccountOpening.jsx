@@ -79,6 +79,8 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
   };
 
   const products = options?.products ?? [];
+  // The customer's account limit (handoff 52): when reached, nothing can be opened.
+  const blocked = options?.limit?.can_open === false;
   return (
     <Modal
       open
@@ -87,7 +89,8 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
       title={t("openAccount")}
       footer={
         entity &&
-        options && (
+        options &&
+        !blocked && (
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={onClose}>
               {t("common:cancel")}
@@ -138,7 +141,9 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
             />
           </div>
 
-          {products.length === 0 ? (
+          {blocked ? (
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{options.limit.message ?? t("accountLimitReached")}</p>
+          ) : products.length === 0 ? (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{t("noAccountProductsAvailable")}</p>
           ) : (
             <>
