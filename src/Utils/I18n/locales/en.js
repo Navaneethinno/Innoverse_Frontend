@@ -4185,6 +4185,7 @@ export const loans = {
   leaveUnsavedTitle: "Leave without saving?",
   leaveWithoutSaving: "Leave without saving",
   leaveUnsavedHint: "Your changes since the last save will be lost. Use Save draft to keep them.",
+  endBeforeStart: "The end date must be on or after the start date.",
 };
 
 export const mms = {

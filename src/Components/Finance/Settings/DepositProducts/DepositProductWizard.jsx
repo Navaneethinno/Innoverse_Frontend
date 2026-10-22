@@ -1,5 +1,5 @@
 import { DateInput } from "@/Components/Common/DateInput";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Plus, Save, Send, Trash2 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -13,12 +13,12 @@ import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
-import { Problems, Section, firstProblemStep, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
+import { Problems, Section, firstProblemStep, problemStepOf, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
 import { PERIOD_DAYS, optionLabel } from "./productShared";
 
 const STEPS = ["policy", "tenors", "rates"];
-// The step for a refusal's problem (its section, or the word it starts with).
-const SECTION_STEPS = { policy: "policy", product: "policy", tenors: "tenors", tenor: "tenors", rates: "rates", rate: "rates", band: "rates" };
+// The step a refused problem starts with ("tenor 90D: ...").
+const WORD_STEPS = { policy: "policy", product: "policy", tenors: "tenors", tenor: "tenors", rates: "rates", rate: "rates", band: "rates" };
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyBand = (from = "0") => ({ minimum_principal: from, maximum_principal: "0", annual_rate: "", effective_from: today(), effective_to: "" });
 const emptyTenor = () => ({ label: "", tenor_days: "", effective_from: today(), effective_to: "", rates: [emptyBand()] });
@@ -65,11 +65,6 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   const [productId, setProductId] = useState("");
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
-  const [problemKeys, setProblemKeys] = useState([]);
-  const fail = (e) => {
-    setError(e.message);
-    setProblemKeys(e.problemKeys ?? []);
-  };
   const [busy, setBusy] = useState(false);
   const drafting = !product || [9, 5].includes(Number(product.status));
   // The parent passes an inline onClose; a ref keeps it out of the load's deps.
@@ -100,16 +95,20 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   const setBand = (i, k, patch) => setTenor(i, { rates: config.tenors[i].rates.map((b, j) => (j === k ? { ...b, ...patch } : b)) });
 
   const minDays = PERIOD_DAYS[config?.interest_payout_frequency] ?? 1;
-  const stepProblem = useMemo(() => {
+  // What a step still needs (checked here, before the server sees it).
+  const problemAt = (at) => {
     if (!config) return "";
-    if (step === 0 && !product && !productId) return t("pickProduct");
-    if (step === 1) {
+    if (at === 0 && !product && !productId) return t("pickProduct");
+    if (at === 1) {
       if (!config.tenors?.length) return t("addOneTenor");
       if (config.tenors.some((x) => !String(x.label).trim() || !(Number(x.tenor_days) > 0))) return t("tenorNeedsLabelDays");
     }
-    if (step === 2 && config.tenors.some((x) => !x.rates?.length || x.rates.some((b) => b.annual_rate === ""))) return t("bandNeedsRate");
+    if (at === 2 && config.tenors.some((x) => !x.rates?.length || x.rates.some((b) => b.annual_rate === ""))) return t("bandNeedsRate");
     return "";
-  }, [config, step, product, productId, t]);
+  };
+  const stepProblem = problemAt(step);
+  // A refused problem's step: a tenor it names, else its first word.
+  const stepOf = (text) => problemStepOf(text, { codes: { tenors: (config?.tenors ?? []).map((x) => x.label) }, words: WORD_STEPS });
 
   // Draft save (new: add; then edit). Returns the id, or null on a refusal.
   const saveDraft = async () => {
@@ -123,7 +122,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
       setId(newId);
       return newId;
     } catch (e) {
-      fail(e);
+      setError(e.message);
       return null;
     } finally {
       setBusy(false);
@@ -136,6 +135,13 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
   };
 
   const finish = async () => {
+    // A step that still needs something opens first; nothing is sent.
+    const unfinished = STEPS.findIndex((_, at) => problemAt(at));
+    if (unfinished >= 0) {
+      setError("");
+      setStep(unfinished);
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -147,9 +153,9 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
       notifications.success(response?.message ?? t("submitted"));
       onSaved(savedId);
     } catch (e) {
-      fail(e);
+      setError(e.message);
       // Go to the step the first problem belongs to.
-      const target = firstProblemStep(e.message, e.problemKeys, SECTION_STEPS);
+      const target = firstProblemStep(e.message, stepOf);
       if (target) setStep(STEPS.indexOf(target));
     } finally {
       setBusy(false);
@@ -351,7 +357,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
 
       {error ? (
         <div className="mt-4">
-          <Problems message={error} keys={problemKeys} sections={SECTION_STEPS} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
+          <Problems message={error} stepOf={stepOf} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
         </div>
       ) : (
         stepProblem && <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{stepProblem}</p>

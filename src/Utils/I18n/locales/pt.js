@@ -4199,6 +4199,7 @@ export const loans = {
   leaveUnsavedTitle: "Sair sem guardar?",
   leaveWithoutSaving: "Sair sem guardar",
   leaveUnsavedHint: "As alterações desde a última gravação serão perdidas. Use Guardar rascunho para as manter.",
+  endBeforeStart: "A data final deve ser igual ou posterior à data inicial.",
 };
 
 export const mms = {

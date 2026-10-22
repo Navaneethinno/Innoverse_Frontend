@@ -111,21 +111,25 @@ export function NarrationDialog({ title, hint, confirmLabel, variant = "primary"
 
 // A refused change, shown in its form: the headline, then the problems
 // (the request helper puts them in the message, one "• " line each).
-// The step a problem belongs to: its problem_keys entry's section, else the
-// first word before its colon ("product: ...", "Term 12M: ..."), looked up
-// in `sections` (section or word -> step id).
-const problemSections = (text, key) => [key?.section, String(text).split(":")[0].trim().split(/\s+/)[0].toLowerCase()];
-export const problemStep = (text, key, sections) => problemSections(text, key).map((s) => sections?.[s]).find(Boolean) ?? null;
-export const firstProblemStep = (message, keys, sections) =>
+// The step a problem belongs to, worked out here (the server names fields,
+// not pages): a row code it mentions ("Term 12M: ..." -> the step whose
+// `codes` hold 12M), else its first word ("product: ...") in `words`.
+const isCodeIn = (text, code) => {
+  const at = code ? text.indexOf(code) : -1;
+  return at >= 0 && !/\w/.test(text[at - 1] ?? "") && !/\w/.test(text[at + code.length] ?? "");
+};
+export const problemStepOf = (text, { codes = {}, words = {} }) =>
+  Object.keys(codes).find((step) => codes[step].some((code) => isCodeIn(text, String(code ?? "")))) ?? words[String(text).split(":")[0].trim().split(/\s+/)[0].toLowerCase()] ?? null;
+const problemLines = (message) =>
   String(message ?? "")
     .split(/\r?\n/)
     .slice(1)
-    .map((line, i) => problemStep(line.replace(PROBLEM_BULLET, ""), keys?.[i], sections))
-    .find(Boolean) ?? null;
+    .map((l) => l.replace(PROBLEM_BULLET, ""));
+export const firstProblemStep = (message, stepOf) => problemLines(message).map(stepOf).find(Boolean) ?? null;
 
-// A refusal's headline and problems. With `sections` and `onGo`, each
-// problem whose step is known links to it ("Fix in <step>").
-export function Problems({ message, keys, sections, onGo, stepLabel }) {
+// A refusal's headline and problems. With `stepOf` (problem text -> step)
+// and `onGo`, each problem whose step is known links to it ("Fix in <step>").
+export function Problems({ message, stepOf, onGo, stepLabel }) {
   const { t } = useTranslation("common");
   if (!message) return null;
   const [headline, ...lines] = String(message).split(/\r?\n/);
@@ -134,9 +138,9 @@ export function Problems({ message, keys, sections, onGo, stepLabel }) {
       <p>{headline}</p>
       {lines.length > 0 && (
         <ul className="mt-1 list-disc space-y-0.5 pl-4 font-medium">
-          {lines.map((l, i) => {
+          {lines.map((l) => {
             const text = l.replace(PROBLEM_BULLET, "");
-            const target = onGo && problemStep(text, keys?.[i], sections);
+            const target = onGo && stepOf(text);
             return (
               <li key={l}>
                 {text}
