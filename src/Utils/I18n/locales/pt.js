@@ -4049,8 +4049,6 @@ export const loans = {
   outcome: "Resultado",
   score: "Pontuação",
   collateralProgress: "Garantia aceita {{have}} de {{need}} exigidos.",
-  approvalsProgress: "{{have}} de {{need}} aprovações (rodada {{round}}).",
-  approver: "Aprovador",
   decisions: "Decisões",
   decision: "Decisão",
   ready_DISCLOSURE_NOT_ACCEPTED: "Oferta aceita",
@@ -4232,6 +4230,12 @@ export const loans = {
   leaveWithoutSaving: "Sair sem guardar",
   leaveUnsavedHint: "As alterações desde a última gravação serão perdidas. Use Guardar rascunho para as manter.",
   endBeforeStart: "A data final deve ser igual ou posterior à data inicial.",
+  approvalsCount: "{{have}} de {{need}} aprovações",
+  approvalRound: "Ronda {{round}}",
+  approvalsComplete: "Totalmente aprovado",
+  approvalsWaiting_one: "Falta {{count}}",
+  approvalsWaiting_other: "Faltam {{count}}",
+  noApprovalsYet: "Ainda sem aprovações.",
 };
 
 export const mms = {

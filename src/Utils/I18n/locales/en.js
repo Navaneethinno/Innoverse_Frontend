@@ -4035,8 +4035,6 @@ export const loans = {
   outcome: "Outcome",
   score: "Score",
   collateralProgress: "Accepted collateral {{have}} of {{need}} needed.",
-  approvalsProgress: "{{have}} of {{need}} approvals (round {{round}}).",
-  approver: "Approver",
   decisions: "Decisions",
   decision: "Decision",
   ready_DISCLOSURE_NOT_ACCEPTED: "Offer accepted",
@@ -4218,6 +4216,12 @@ export const loans = {
   leaveWithoutSaving: "Leave without saving",
   leaveUnsavedHint: "Your changes since the last save will be lost. Use Save draft to keep them.",
   endBeforeStart: "The end date must be on or after the start date.",
+  approvalsCount: "{{have}} of {{need}} approvals",
+  approvalRound: "Round {{round}}",
+  approvalsComplete: "Fully approved",
+  approvalsWaiting_one: "{{count}} more needed",
+  approvalsWaiting_other: "{{count}} more needed",
+  noApprovalsYet: "No approvals yet.",
 };
 
 export const mms = {

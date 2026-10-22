@@ -355,23 +355,7 @@ function ApplicationView({ id, onBack }) {
           <CollateralTable rows={app.collateral} currency={cur} onRemove={a.collateral && can("Edit") ? (c) => setDialog({ remove: c }) : null} />
         </div>
       )}
-      {tab === "approvals" && (
-        <div className="grid gap-3">
-          <p className="text-xs text-muted-foreground">{t("approvalsProgress", { have: r.approvals ?? 0, need: r.required_approvals ?? app.required_approvals ?? 1, round: app.approval_round ?? 1 })}</p>
-          <MiniTable rows={app.approvals} rowKey={(x, i) => `${x.approver_userid}-${i}`} columns={[{ key: "approver", label: t("approver") }, { key: "approved_time", label: t("when"), render: (x) => accountDate(x.approved_time) }, { key: "narration", label: t("narration"), render: (x) => x.narration || "—" }]} />
-          <p className="mt-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("decisions")}</p>
-          <MiniTable
-            rows={app.decisions}
-            rowKey={(x) => x.decision_sequence}
-            columns={[
-              { key: "decision", label: t("decision"), render: (x) => <b>{loanLabel(t, x.decision)}</b> },
-              { key: "approved_amount", label: t("amount"), render: (x) => (x.approved_amount != null ? money(x.approved_amount, cur) : "—") },
-              { key: "decision_reasons", label: t("reasons"), render: (x) => x.decision_reasons?.join(", ") || "—" },
-              { key: "decided_by", label: t("decidedBy"), render: (x) => `${x.decided_by} · ${accountDate(x.decided_time)}` },
-            ]}
-          />
-        </div>
-      )}
+      {tab === "approvals" && <ApprovalsPanel app={app} readiness={r} currency={cur} />}
       {tab === "fees" && <FeesTable rows={app.fees_charged} currency={cur} />}
       {tab === "history" && <Timeline events={app.events} currency={cur} />}
 
@@ -394,6 +378,100 @@ function ApplicationView({ id, onBack }) {
       {dialog === "collateral" && lists && <CollateralDialog lists={lists} types={app.eligibility?.accepted_collateral_types} busy={busy} currency={cur} onClose={() => setDialog(null)} onSave={(body) => act("collateral_add", body)} />}
       {dialog?.remove && (
         <NarrationDialog title={t("removeCollateral")} hint={t("removeCollateralHint", { name: dialog.remove.description })} confirmLabel={t("remove")} variant="danger" busy={busy} onClose={() => setDialog(null)} onSave={() => act("collateral_remove", { collateral_id: dialog.remove.id })} />
+      )}
+    </div>
+  );
+}
+
+const DECISION_TONE = {
+  APPROVE: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300",
+  DECLINE: "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300",
+};
+const initials = (name) => String(name ?? "?").replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "?";
+
+// Approvals: progress towards the approvals needed (this round), who
+// approved, and the decisions taken.
+function ApprovalsPanel({ app, readiness: r, currency }) {
+  const { t } = useTranslation("loans");
+  const have = Number(r.approvals ?? app.approvals?.length ?? 0);
+  const need = Math.max(1, Number(r.required_approvals ?? app.required_approvals ?? 1));
+  const done = have >= need;
+  const approvals = app.approvals ?? [];
+  const decisions = [...(app.decisions ?? [])].sort((a, b) => Number(b.decision_sequence) - Number(a.decision_sequence));
+  return (
+    <div className="grid gap-4">
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", done ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-amber-50 text-amber-600 dark:bg-amber-500/10")}>
+              {done ? <CheckCircle2 size={20} /> : <ShieldCheck size={20} />}
+            </span>
+            <div>
+              <p className="text-sm font-black text-foreground">{t("approvalsCount", { have, need })}</p>
+              <p className="text-[11px] text-muted-foreground">{t("approvalRound", { round: app.approval_round ?? 1 })}</p>
+            </div>
+          </div>
+          <span className={cn("rounded-full px-2.5 py-0.5 text-[11px] font-bold", done ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200")}>
+            {done ? t("approvalsComplete") : t("approvalsWaiting", { count: need - have })}
+          </span>
+        </div>
+        <div className="mt-3 flex gap-1" aria-hidden="true">
+          {Array.from({ length: need }, (_, i) => (
+            <span key={i} className={cn("h-1.5 flex-1 rounded-full", i < have ? "bg-emerald-500" : "bg-muted")} />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("approvers")}</p>
+        {approvals.length ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {approvals.map((x, i) => (
+              <div key={`${x.approver_userid}-${i}`} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-light text-xs font-black text-primary">{initials(x.approver)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+                    {x.approver} <CheckCircle2 size={14} className="text-emerald-600" />
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">{accountDate(x.approved_time)}</p>
+                  {x.narration && <p className="mt-1 rounded-lg bg-muted/60 px-2 py-1 text-xs text-foreground">{x.narration}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">{t("noApprovalsYet")}</p>
+        )}
+      </div>
+
+      {decisions.length > 0 && (
+        <div>
+          <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("decisions")}</p>
+          <div className="grid gap-2">
+            {decisions.map((x) => (
+              <div key={x.decision_sequence} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className={cn("rounded-full border px-2.5 py-0.5 text-xs font-black", DECISION_TONE[x.decision] ?? "border-border bg-muted text-foreground")}>{loanLabel(t, x.decision)}</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-muted-foreground">
+                      {x.decided_by} · {accountDate(x.decided_time)}
+                    </p>
+                    {x.decision_reasons?.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {x.decision_reasons.map((reason) => (
+                          <span key={reason} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground">
+                            {reason}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {x.approved_amount != null && <span className="text-base font-black tabular-nums text-foreground">{money(x.approved_amount, currency)}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
