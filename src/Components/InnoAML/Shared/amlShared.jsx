@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/Hooks/useAuth";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
@@ -49,7 +49,7 @@ export function BandBadge({ band, score, showAction = false }) {
 }
 
 // A screening's effective result as the main value, the raw one secondary
-// when a false positive cleared it: "Clear · 0 (raw 100)".
+// when reviews cleared matches: "Clear · 0  [✓ Reviewed · was 100]".
 export function EffectiveResult({ row }) {
   const { t } = useTranslation("aml");
   if (row?.status === "ERROR") {
@@ -64,7 +64,9 @@ export function EffectiveResult({ row }) {
     <span className="inline-flex flex-wrap items-center gap-1">
       <BandBadge band={row?.effective_band ?? row?.band} score={effective} />
       {row?.effective_score != null && row.score !== row.effective_score && (
-        <span className="text-[10px] tabular-nums text-muted-foreground">{t("rawScore", { score: row.score })}</span>
+        <span title={t("reviewedHint", { score: row.score })} className="inline-flex cursor-help items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-bold tabular-nums text-sky-700 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300">
+          <ShieldCheck size={11} /> {t("rawScore", { score: row.score })}
+        </span>
       )}
     </span>
   );
