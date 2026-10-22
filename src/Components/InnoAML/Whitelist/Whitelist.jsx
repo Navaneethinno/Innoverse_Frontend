@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlarmClock, Ban, CheckCircle2, FileUp, History, RefreshCw, TimerOff } from "lucide-react";
+import { AlarmClock, Ban, CheckCircle2, FileUp, History, Plus, RefreshCw, TimerOff } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -12,13 +12,14 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
-import { inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
+import { InstitutionField, inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { amlWhitelistApi } from "@/Services/InnoAML/aml.api";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
+import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, useInstitutionScope, when } from "../Shared/amlShared";
 import { ReviewHistory, ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { usePagedList } from "../Shared/usePagedList";
 import { BatchBar, BatchChip } from "../Shared/BatchBar";
@@ -77,6 +78,78 @@ function RenewDialog({ row, busy, onClose, onSave }) {
   );
 }
 
+// One entry by hand, the same fields as an upload row: the server finds the
+// match in the customer's latest screening and proposes it as a false
+// positive (Self applies it at once).
+function AddEntryDialog({ busy, onClose, onSave }) {
+  const { t } = useTranslation(["aml", "common"]);
+  const canChoose = useCanChooseInstitution();
+  const scope = useInstitutionScope();
+  const [form, setForm] = useState({ inst_profile_id: "", customer: "", record: "", evidence: "", expires_on: "", comment: "" });
+  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const record = form.record.trim();
+  const valid = form.customer.trim() && record && form.comment.trim() && (!canChoose || form.inst_profile_id);
+  const save = () =>
+    onSave({
+      ...scope(form.inst_profile_id),
+      customer: form.customer.trim(),
+      // An entity id is "LIST:id" (e.g. OS_DEBARMENT:br-ceis-...); anything else is the listed name.
+      ...(/^[A-Z0-9_]+:\S+$/.test(record) ? { entity_id: record } : { listed_name: record }),
+      ...(form.evidence.trim() ? { evidence: form.evidence.trim() } : {}),
+      ...(form.expires_on ? { expires_on: form.expires_on } : {}),
+      comment: form.comment.trim(),
+    });
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="md"
+      title={t("aml:wlAddTitle")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("common:cancel")}
+          </Button>
+          <Button type="submit" form="wl-add-form" loading={busy} disabled={!valid}>
+            {t("aml:submitForApproval")}
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="wl-add-form"
+        className="space-y-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (valid) save();
+        }}
+      >
+        <InstitutionField value={form.inst_profile_id} onChange={(v) => setForm((f) => ({ ...f, inst_profile_id: v }))} />
+        <label className={labelClass}>
+          {t("aml:wlCustomer")} <span className="text-red-500">*</span>
+          <input className={inputClass} value={form.customer} maxLength={200} onChange={set("customer")} placeholder={t("aml:wlCustomerHint")} />
+        </label>
+        <label className={labelClass}>
+          {t("aml:wlRecord")} <span className="text-red-500">*</span>
+          <input className={inputClass} value={form.record} maxLength={300} onChange={set("record")} placeholder={t("aml:wlRecordHint")} />
+        </label>
+        <label className={labelClass}>
+          {t("aml:evidence")}
+          <textarea value={form.evidence} maxLength={2000} onChange={set("evidence")} className={`${inputClass} min-h-16`} />
+        </label>
+        <label className={labelClass}>
+          {t("aml:validUntil")}
+          <DateInput className={inputClass} value={form.expires_on} min={tomorrow()} onChange={set("expires_on")} placeholder={t("aml:expiryDefault")} />
+        </label>
+        <label className={labelClass}>
+          {t("aml:commentRequiredLabel")} <span className="text-red-500">*</span>
+          <textarea value={form.comment} maxLength={2000} onChange={set("comment")} className={`${inputClass} min-h-16`} />
+        </label>
+      </form>
+    </Modal>
+  );
+}
+
 // InnoAML > Settings > Whitelist (menu 183): the approved false positives (one party
 // cleared against one listed record). Each expires, keeps its evidence and
 // can be renewed or revoked, both waiting for a checker.
@@ -92,6 +165,7 @@ export function Whitelist() {
   const [action, setAction] = useState(null); // { type: auth | deauth | revoke, row } or { type, batch_id }
   const [batch, setBatch] = useState("");
   const [importing, setImporting] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [working, setWorking] = useState(false);
 
   const entries = usePagedList(amlWhitelistApi.list, { status, ...(status === "EXPIRING" ? { within_days: withinDays } : {}) }, view === "entries");
@@ -111,6 +185,7 @@ export function Whitelist() {
       notifications.success(apiMessage(response, fallback));
       setAction(null);
       setRenewing(null);
+      setAdding(false);
       reloadAll();
     } catch (error) {
       notifications.error(error.message);
@@ -265,9 +340,14 @@ export function Whitelist() {
         searchPlaceholder={t("aml:searchWhitelist")}
         actions={
           view === "entries" && can("Add") ? (
-            <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
-              <FileUp size={14} /> {t("aml:wlImportTitle")}
-            </button>
+            <span className="flex gap-2">
+              <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-primary px-3 py-1.5 text-xs font-bold text-primary">
+                <Plus size={14} /> {t("aml:wlAddTitle")}
+              </button>
+              <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+                <FileUp size={14} /> {t("aml:wlImportTitle")}
+              </button>
+            </span>
           ) : null
         }
         filters={
@@ -318,6 +398,7 @@ export function Whitelist() {
           }}
         />
       )}
+      {adding && <AddEntryDialog busy={working} onClose={() => setAdding(false)} onSave={(body) => void run(amlWhitelistApi.add, body, t("aml:whitelistChangeSubmitted"))} />}
       {renewing && <RenewDialog row={renewing} busy={working} onClose={() => setRenewing(null)} onSave={(body) => void run(amlWhitelistApi.renew, body, t("aml:whitelistChangeSubmitted"))} />}
       {historyFor && <ReviewHistory matchId={historyFor} load={amlWhitelistApi.history} onClose={() => setHistoryFor(null)} />}
       {screening && <ScreeningDetailModal id={screening.id} lookup={screening.lookup} onClose={() => setScreening(null)} onChanged={reloadAll} />}

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Eye, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
-import { usePagePermission } from "@/Hooks/usePermission";
+import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { CustomerAccounts } from "@/Components/Finance/Accounts/accountShared";
 import { StaffOnboardingWizard } from "@/Components/Epurse/Customers/StaffOnboardingWizard";
-import { ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
+import { ClearAllDialog, ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
 import { AdverseMediaBadge } from "@/Components/InnoAML/AdverseMedia/AdverseMedia";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
 import { corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
@@ -182,7 +182,7 @@ export function CaseView({ id, config, onBack }) {
         />
       )}
       {tab === "risk" && <RiskTab assessment={kase.risk_assessment} />}
-      {tab === "aml" && <AmlTab result={kase.aml_result} media={kase.adverse_media} openMatches={kase.aml_open_matches} onChanged={reload} />}
+      {tab === "aml" && <AmlTab result={kase.aml_result} media={kase.adverse_media} openMatches={kase.aml_open_matches} canClearAll={!allowed.propose_approve && kase.aml_open_matches > 0} onChanged={reload} />}
       {tab === "timeline" && <TimelineTab events={kase.timeline} canNote={allowed.note && edit} onNote={(body) => act("note", { body })} busy={busy} fileOf={api.file ? (f) => <CaseFile key={f.path} file={f} caseId={kase.id} api={api} light /> : null} />}
       {tab === "account" && (kase.accounts?.length ? <CustomerAccounts accounts={kase.accounts} /> : <Empty text={t("noAccountYet")} />)}
 
@@ -361,9 +361,11 @@ function RiskTab({ assessment }) {
   );
 }
 
-function AmlTab({ result, media, openMatches, onChanged }) {
-  const { t } = useTranslation("cases");
+function AmlTab({ result, media, openMatches, canClearAll, onChanged }) {
+  const { t } = useTranslation(["cases", "aml"]);
   const [screeningId, setScreeningId] = useState(null);
+  const [clearing, setClearing] = useState(null);
+  const mayClear = useMenuPermission("Match Review")("Edit") && canClearAll;
   if (!result || !Object.keys(result).length) {
     return media ? (
       <div className="grid gap-3">
@@ -396,6 +398,11 @@ function AmlTab({ result, media, openMatches, onChanged }) {
               <span className="flex items-center gap-2 text-xs">
                 <AmlPill aml={{ score: s.score ?? s.effective_score, band_name: s.band?.name ?? s.band_name, band_code: s.band?.code ?? s.band_code }} />
                 <span className="text-muted-foreground">{t("matchCount", { count: s.match_count ?? 0 })}</span>
+                {mayClear && (s.match_count ?? 0) > 0 && (
+                  <button type="button" onClick={() => setClearing(s)} className="flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] font-bold text-primary hover:border-primary">
+                    <ListChecks size={13} /> {t("aml:clearAll")}
+                  </button>
+                )}
                 <button type="button" onClick={() => setScreeningId(s.id)} title={t("reviewMatches")} className="rounded-lg p-1.5 text-primary hover:bg-muted">
                   <Eye size={14} />
                 </button>
@@ -407,6 +414,7 @@ function AmlTab({ result, media, openMatches, onChanged }) {
         <p className="text-xs text-muted-foreground">{t("noScreenings")}</p>
       )}
       {screeningId && <ScreeningDetailModal id={screeningId} onClose={() => setScreeningId(null)} onChanged={onChanged} />}
+      {clearing && <ClearAllDialog screeningId={clearing.id} name={clearing.name} onClose={() => setClearing(null)} onDone={() => onChanged?.()} />}
     </div>
   );
 }

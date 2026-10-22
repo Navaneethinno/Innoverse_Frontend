@@ -2135,6 +2135,19 @@ export const aml = {
   dismiss: "Dismiss",
   dismissHint: "Dismisses every open flag of {{name}}.",
   flagDismissed: "Flag dismissed",
+  clearAll: "Clear all as false positive",
+  clearAllTitle: "Clear all open matches as false positive?",
+  clearAllHint: "Every open match of {{name}} is cleared with this one comment. Matches already waiting, already cleared or matched on an identifier are left out.",
+  clearAllHintNoName: "Every open match is cleared with this one comment. Matches already waiting, already cleared or matched on an identifier are left out.",
+  commentRequiredPlaceholder: "Comment (required)",
+  batchCleared_one: "{{count}} match cleared as false positive",
+  batchCleared_other: "{{count}} matches cleared as false positive",
+  wlAddTitle: "Add entry",
+  wlCustomer: "Customer",
+  wlCustomerHint: "Reference id, phone, email or account number",
+  wlRecord: "Listed record",
+  wlRecordHint: "Its entity id (e.g. OS_PEPS:...) or its name as listed",
+  validUntil: "Valid until",
 };
 
 // Reports (handoff 08).

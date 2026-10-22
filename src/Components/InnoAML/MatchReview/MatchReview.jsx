@@ -1,7 +1,7 @@
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -19,6 +19,28 @@ import { MediaReviews } from "../AdverseMedia/AdverseMedia";
 
 const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
 const DECISIONS = ["FALSE_POSITIVE", "TRUE_MATCH", "REVOKE"];
+
+// Waiting rows from one "clear all" share a batch_id: shown as one entry
+// (the first row, with `batch` = every row of it on this page), decided
+// with one action.
+function groupBatches(rows) {
+  const out = [];
+  const seen = new Map();
+  for (const row of rows) {
+    if (!row.batch_id) {
+      out.push(row);
+      continue;
+    }
+    const group = seen.get(row.batch_id);
+    if (group) group.batch.push(row);
+    else {
+      const entry = { ...row, batch: [row] };
+      seen.set(row.batch_id, entry);
+      out.push(entry);
+    }
+  }
+  return out;
+}
 
 // InnoAML > AML Screening > Match Review (menu 104). Makers propose
 // decisions on the screening detail; here a checker approves or rejects
@@ -63,11 +85,14 @@ export function MatchReview() {
   }, [load, view]);
   useLiveChannel(amlReviewApi.listPath, () => void load({ silent: true }));
 
+  const shown = useMemo(() => (view === "pending" ? groupBatches(rows) : rows), [rows, view]);
+
   const decide = async () => {
     if (action.type === "deauth" && !narration.trim()) return;
     setWorking(true);
     try {
-      const response = await amlReviewApi[action.type]({ id: action.row.id, ...(narration.trim() ? { narration: narration.trim() } : {}) });
+      const target = action.row.batch ? { batch_id: action.row.batch_id } : { id: action.row.id };
+      const response = await amlReviewApi[action.type]({ ...target, ...(narration.trim() ? { narration: narration.trim() } : {}) });
       notifications.success(apiMessage(response, action.type === "auth" ? t("aml:reviewApproved") : t("aml:reviewRejected")));
       setAction(null);
       setNarration("");
@@ -98,6 +123,7 @@ export function MatchReview() {
         <span>
           <NameText name={row.party_name} latin={row.party_name_latin} className="font-semibold" />
           {row.party_role && <span className="block text-[11px] text-muted-foreground">{row.party_role}</span>}
+          {row.batch && <span className="mt-0.5 block w-fit rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-bold text-primary">{t("aml:batchCleared", { count: row.batch_size ?? row.batch.length })}</span>}
         </span>
       ),
     },
@@ -105,7 +131,10 @@ export function MatchReview() {
       key: "listed_name",
       label: t("aml:listedName"),
       align: "left",
-      render: (row) => (
+      render: (row) =>
+        row.batch ? (
+          <span className="line-clamp-3 max-w-72 text-xs">{row.batch.map((r) => r.listed_name ?? r.matched_name).filter(Boolean).join(" · ")}</span>
+        ) : (
         <span>
           <NameText name={row.listed_name ?? row.matched_name} latin={row.listed_name ? row.listed_name_latin : row.matched_name_latin} />
           <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
@@ -113,9 +142,9 @@ export function MatchReview() {
           </span>
           <AlsoOnChips alsoOn={row.also_on} />
         </span>
-      ),
+        ),
     },
-    { key: "score", label: t("aml:score"), render: (row) => (
+    { key: "score", label: t("aml:score"), render: (row) => row.batch ? <span className="text-xs text-muted-foreground">—</span> : (
         <span className="grid">
           <span className={`font-black tabular-nums ${scoreTone(matchScore(row))}`}>{matchScore(row)}</span>
           <WeightNote match={row} />
@@ -222,8 +251,8 @@ export function MatchReview() {
       >
         <DataTable
           columns={columns}
-          rows={rows}
-          rowKey={(row) => row.id}
+          rows={shown}
+          rowKey={(row) => (row.batch ? `batch-${row.batch_id}` : row.id)}
           isLoading={loading}
           title={t("aml:reviewTitle")}
           emptyTitle={view === "pending" ? t("aml:nothingWaiting") : t("aml:noReviews")}
@@ -237,7 +266,7 @@ export function MatchReview() {
       <ConfirmDialog
         open={Boolean(action)}
         title={action?.type === "auth" ? t("aml:approveReview") : t("aml:rejectReview")}
-        description={action ? `${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name} · ${t(`aml:review_${action.row.decision}`)}` : ""}
+        description={action ? (action.row.batch ? `${action.row.party_name} · ${t("aml:batchCleared", { count: action.row.batch_size ?? action.row.batch.length })}` : `${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name} · ${t(`aml:review_${action.row.decision}`)}`) : ""}
         confirmLabel={action?.type === "auth" ? t("common:authorize") : t("aml:reject")}
         destructive={action?.type === "deauth"}
         confirmDisabled={action?.type === "deauth" && !narration.trim()}

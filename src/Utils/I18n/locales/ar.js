@@ -4392,6 +4392,23 @@ export const aml = {
   dismiss: "تجاهل",
   dismissHint: "يتجاهل كل التنبيهات المفتوحة لـ {{name}}.",
   flagDismissed: "تم تجاهل التنبيه",
+  clearAll: "مسح الكل كإيجابية كاذبة",
+  clearAllTitle: "مسح جميع التطابقات المفتوحة كإيجابية كاذبة؟",
+  clearAllHint: "تُمسح جميع التطابقات المفتوحة لـ {{name}} بهذا التعليق الواحد. تُستثنى التطابقات المنتظرة أو الممسوحة مسبقًا أو المطابقة بمعرّف.",
+  clearAllHintNoName: "تُمسح جميع التطابقات المفتوحة بهذا التعليق الواحد. تُستثنى التطابقات المنتظرة أو الممسوحة مسبقًا أو المطابقة بمعرّف.",
+  commentRequiredPlaceholder: "تعليق (مطلوب)",
+  batchCleared_zero: "{{count}} تطابق ممسوح كإيجابية كاذبة",
+  batchCleared_one: "تطابق واحد ممسوح كإيجابية كاذبة",
+  batchCleared_two: "تطابقان ممسوحان كإيجابية كاذبة",
+  batchCleared_few: "{{count}} تطابقات ممسوحة كإيجابية كاذبة",
+  batchCleared_many: "{{count}} تطابقًا ممسوحًا كإيجابية كاذبة",
+  batchCleared_other: "{{count}} تطابق ممسوح كإيجابية كاذبة",
+  wlAddTitle: "إضافة إدخال",
+  wlCustomer: "العميل",
+  wlCustomerHint: "المعرّف المرجعي أو الهاتف أو البريد الإلكتروني أو رقم الحساب",
+  wlRecord: "السجل المدرج",
+  wlRecordHint: "معرّف الكيان (مثل OS_PEPS:...) أو الاسم كما هو مدرج",
+  validUntil: "صالح حتى",
 };
 
 export const reports = {

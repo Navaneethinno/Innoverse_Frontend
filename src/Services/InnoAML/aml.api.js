@@ -127,6 +127,8 @@ export const amlBlacklistApi = {
 export const amlWhitelistApi = {
   listPath: `${WHITELIST}/list`,
   list: call(WHITELIST, "list"),
+  // One entry by hand: { customer, entity_id | listed_name, evidence?, expires_on?, comment, inst_profile_id? }
+  add: call(WHITELIST, "add"),
   pending: call(WHITELIST, "pending"),
   renew: call(WHITELIST, "renew"),
   revoke: call(WHITELIST, "revoke"),

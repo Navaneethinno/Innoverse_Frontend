@@ -2149,6 +2149,19 @@ export const aml = {
   dismiss: "Dispensar",
   dismissHint: "Dispensa todos os alertas abertos de {{name}}.",
   flagDismissed: "Alerta dispensado",
+  clearAll: "Limpar todos como falso positivo",
+  clearAllTitle: "Limpar todas as correspondências abertas como falso positivo?",
+  clearAllHint: "Todas as correspondências abertas de {{name}} são limpas com este comentário. As que já aguardam, já limpas ou por identificador ficam de fora.",
+  clearAllHintNoName: "Todas as correspondências abertas são limpas com este comentário. As que já aguardam, já limpas ou por identificador ficam de fora.",
+  commentRequiredPlaceholder: "Comentário (obrigatório)",
+  batchCleared_one: "{{count}} correspondência limpa como falso positivo",
+  batchCleared_other: "{{count}} correspondências limpas como falso positivo",
+  wlAddTitle: "Adicionar entrada",
+  wlCustomer: "Cliente",
+  wlCustomerHint: "ID de referência, telefone, e-mail ou número de conta",
+  wlRecord: "Registo listado",
+  wlRecordHint: "O ID da entidade (ex.: OS_PEPS:...) ou o nome listado",
+  validUntil: "Válido até",
 };
 
 // Reports (handoff 08).

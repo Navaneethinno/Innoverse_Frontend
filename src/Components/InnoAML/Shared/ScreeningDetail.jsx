@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, Ban, BriefcaseBusiness, ChevronDown, History, Send } from "lucide-react";
+import { AlertTriangle, Ban, BriefcaseBusiness, ChevronDown, History, ListChecks, Send } from "lucide-react";
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
 import { RaiseCaseDialog } from "@/Components/CaseManagement/AmlCases/RaiseCaseDialog";
@@ -231,6 +232,39 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
 
 // A screening or lookup (screening/get, lookup/get shape): what was
 // screened, the lists searched and every match best first. With Add on
+// Clears every open match of a screening as a false positive with one
+// comment (`all_false_positive`); a checker approves the batch at once
+// (Self applies it). Matches already waiting, already cleared or matched on
+// an identifier are left out by the server.
+export function ClearAllDialog({ screeningId, name, onClose, onDone }) {
+  const { t } = useTranslation("aml");
+  const [form, setForm] = useState({ comment: "", evidence: "", expires_on: "" });
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    try {
+      const body = { screening_id: screeningId, all_false_positive: true, comment: form.comment.trim(), ...(form.evidence.trim() ? { evidence: form.evidence.trim() } : {}), ...(form.expires_on ? { expires_on: form.expires_on } : {}) };
+      const response = await amlReviewApi.propose(body);
+      notifications.success(apiMessage(response, t("reviewSubmitted")));
+      onDone?.(first(response));
+      onClose();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <ConfirmDialog open title={t("clearAllTitle")} description={name ? t("clearAllHint", { name }) : t("clearAllHintNoName")} confirmLabel={t("clearAll")} confirmDisabled={!form.comment.trim()} pending={saving} onClose={onClose} onConfirm={() => void save()}>
+      <div className="mt-3 grid gap-2">
+        <textarea value={form.comment} maxLength={MAX_COMMENT} onChange={(e) => setForm({ ...form, comment: e.target.value })} placeholder={t("commentRequiredPlaceholder")} className="min-h-20 w-full rounded-xl border p-3 text-sm" />
+        <input value={form.evidence} maxLength={MAX_COMMENT} onChange={(e) => setForm({ ...form, evidence: e.target.value })} placeholder={t("evidenceOptional")} className="w-full rounded-xl border p-2.5 text-sm" />
+        <DateInput value={form.expires_on} min={tomorrow()} onChange={(e) => setForm({ ...form, expires_on: e.target.value })} placeholder={t("expiryDefault")} />
+      </div>
+    </ConfirmDialog>
+  );
+}
+
 // Match Review, matches can be proposed as false positive / true match.
 export function ScreeningDetail({ screening, onChange }) {
   const { t } = useTranslation("aml");
@@ -239,6 +273,8 @@ export function ScreeningDetail({ screening, onChange }) {
   const [raising, setRaising] = useState(false);
   const [drafts, setDrafts] = useState({});
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const canClearAll = useMenuPermission("Match Review")("Edit");
   const failed = screening.status === "ERROR";
   const matches = screening.matches ?? [];
   const reviewing = canPropose && !failed && matches.length > 0;
@@ -359,8 +395,15 @@ export function ScreeningDetail({ screening, onChange }) {
 
       {raising && <RaiseCaseDialog target={{ screening_id: screening.id }} subtitle={screening.name} onClose={() => setRaising(false)} onRaised={() => setRaising(false)} />}
 
+      {clearing && <ClearAllDialog screeningId={screening.id} name={screening.name ?? subject.name} onClose={() => setClearing(false)} onDone={(next) => onChange?.(next ?? screening)} />}
+
       {reviewing && (
         <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-2 backdrop-blur">
+          {canClearAll && (
+            <button type="button" disabled={saving} onClick={() => setClearing(true)} className="mr-auto flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold text-primary hover:border-primary disabled:opacity-50">
+              <ListChecks size={14} /> {t("clearAll")}
+            </button>
+          )}
           <span className="text-[11px] text-muted-foreground">{t("decisionsSelected", { count: decisions.length })}</span>
           <button
             type="button"
