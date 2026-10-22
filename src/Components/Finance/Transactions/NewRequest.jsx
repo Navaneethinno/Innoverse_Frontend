@@ -292,7 +292,7 @@ function CardPicker({ value, locked, onChange }) {
   return (
     <div className="mt-1.5 grid gap-2">
       <div className="flex gap-2">
-        <input className={inputClass} value={query} placeholder={t("findCardPlaceholder")} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), query.trim() && void find())} />
+        <input type="search" className={inputClass} value={query} placeholder={t("findCardPlaceholder")} onChange={(e) => (setQuery(e.target.value), setRows(null))} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), query.trim() && void find())} />
         <Button type="button" icon={Search} loading={busy} disabled={!query.trim()} onClick={find}>
           {t("find")}
         </Button>

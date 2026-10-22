@@ -253,8 +253,19 @@ export function OwnerFinder({ onPick }) {
   return (
     <div>
       <p className="mb-3 text-sm text-muted-foreground">{t("findOwnerHint")}</p>
-      <form onSubmit={find} className="flex gap-2">
-        <input className={inputClass} autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("findOwnerPlaceholder")} />
+      <form role="search" onSubmit={find} className="flex gap-2">
+        <input
+          type="search"
+          className={inputClass}
+          autoFocus
+          value={query}
+          onChange={(e) => {
+            // A changed search drops the last one's results.
+            setQuery(e.target.value);
+            setRows(null);
+          }}
+          placeholder={t("findOwnerPlaceholder")}
+        />
         <Button type="submit" icon={Search} loading={busy} disabled={!query.trim()}>
           {t("find")}
         </Button>

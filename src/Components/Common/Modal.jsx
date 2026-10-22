@@ -130,12 +130,15 @@ export function Modal({
   }, [open]);
 
   function handleKeyDown(event) {
-    if (event.key !== "Enter" || pendingSubmit) return;
+    // A field that handled Enter itself (a dropdown, a Find box) is left alone.
+    if (event.key !== "Enter" || pendingSubmit || event.defaultPrevented) return;
     const target = event.target;
     const tag = target.tagName;
     if (tag === "TEXTAREA" || tag === "BUTTON") return;
     const formEl = target.form ?? (target.closest ? target.closest("form") : null);
     if (!formEl) return;
+    // A search changes nothing: Enter runs it at once, with no confirm.
+    if (target.type === "search" || formEl.getAttribute("role") === "search") return;
     const submitButtons = Array.from(formEl.elements).filter(
       (el) => el.tagName === "BUTTON" && el.type === "submit" && !el.disabled,
     );

@@ -6,7 +6,7 @@ import { useSessionState } from "@/Hooks/useSessionState";
 // any case), then applies the tab, sort and page.
 //
 // - Typing searches 350 ms after the last key, from 2 characters; clearing
-//   the box reloads the whole list.
+//   the box, or deleting below 2 characters, reloads the whole list.
 // - Enter or the search button searches at once.
 // - A new search goes back to page 1 (`onReset`); the text stays when the
 //   page, tab or sort change.
@@ -38,9 +38,9 @@ export function useListSearch(onReset, persistKey = null) {
   }, []);
 
   useEffect(() => {
-    const next = clean(input);
-    if (next && next.length < MIN) return undefined;
-    const id = window.setTimeout(() => apply(next), next ? DELAY : 0);
+    const typed = clean(input);
+    const next = typed.length < MIN ? "" : typed;
+    const id = window.setTimeout(() => apply(next), typed ? DELAY : 0);
     return () => window.clearTimeout(id);
   }, [input, apply]);
 
