@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
-import { AlarmClock, Ban, CheckCircle2, FileUp, History, Plus, RefreshCw, TimerOff } from "lucide-react";
+import { Ban, FileUp, History, Plus, RefreshCw } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { DateInput } from "@/Components/Common/DateInput";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -24,13 +25,6 @@ import { ReviewHistory, ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { usePagedList } from "../Shared/usePagedList";
 import { BatchBar, BatchChip } from "../Shared/BatchBar";
 import { WhitelistImport } from "./WhitelistImport";
-
-const STATUS_TABS = [
-  ["ACTIVE", "aml:wlStatus_ACTIVE", CheckCircle2],
-  ["EXPIRING", "aml:wlStatus_EXPIRING", AlarmClock],
-  ["EXPIRED", "aml:wlStatus_EXPIRED", TimerOff],
-];
-const WITHIN_DAYS = [7, 30, 60, 90];
 const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 const daysLeft = (date) => Math.ceil((new Date(`${date}T00:00:00`) - new Date(new Date().toDateString())) / 864e5);
 
@@ -157,8 +151,6 @@ export function Whitelist() {
   const { t } = useTranslation(["aml", "common"]);
   const can = usePagePermission();
   const [view, setView] = useState("entries");
-  const [status, setStatus] = useState("ACTIVE");
-  const [withinDays, setWithinDays] = useState(30);
   const [screening, setScreening] = useState(null); // { id, lookup }
   const [historyFor, setHistoryFor] = useState(null);
   const [renewing, setRenewing] = useState(null);
@@ -168,11 +160,10 @@ export function Whitelist() {
   const [adding, setAdding] = useState(false);
   const [working, setWorking] = useState(false);
 
-  const entries = usePagedList(amlWhitelistApi.list, { status, ...(status === "EXPIRING" ? { within_days: withinDays } : {}) }, view === "entries");
+  const entries = useServerList({ api: amlWhitelistApi.listPath, call: amlWhitelistApi.list });
   const pending = usePagedList(amlWhitelistApi.pending, { batch_id: batch }, view === "pending");
-  const list = view === "entries" ? entries : pending;
   const reloadAll = () => {
-    void entries.reload();
+    entries.reload();
     void pending.reload();
   };
   // Another user's change (and, for the whitelist, Match Review decisions).
@@ -329,17 +320,9 @@ export function Whitelist() {
         onChange={setView}
       />
       {view === "pending" && <BatchBar batchId={batch} canDecide={can("Authorize")} onDecide={(type) => setAction({ type, batch_id: batch })} onClear={() => setBatch("")} />}
-      <ListPanel
-        tabs={view === "entries" ? STATUS_TABS : []}
-        value={status}
-        onChange={setStatus}
-        serverFiltered
-        total={list.total}
-        rows={list.rows}
-        {...list.searchBind}
-        searchPlaceholder={t("aml:searchWhitelist")}
-        actions={
-          view === "entries" && can("Add") ? (
+      {view === "entries" ? (
+        <ListTable list={entries} actions={
+          can("Add") && (
             <span className="flex gap-2">
               <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-primary px-3 py-1.5 text-xs font-bold text-primary">
                 <Plus size={14} /> {t("aml:wlAddTitle")}
@@ -348,27 +331,14 @@ export function Whitelist() {
                 <FileUp size={14} /> {t("aml:wlImportTitle")}
               </button>
             </span>
-          ) : null
-        }
-        filters={
-          view === "entries" &&
-          status === "EXPIRING" && (
-            <FilterSelect size="sm" className="w-44" value={String(withinDays)} onChange={(v) => setWithinDays(Number(v))} options={WITHIN_DAYS.map((d) => ({ value: String(d), label: t("aml:withinDays", { count: d }) }))} />
           )
         }
-      >
-        <DataTable
-          columns={view === "entries" ? entryColumns : pendingColumns}
-          rows={list.rows}
-          rowKey={(row) => row.id}
-          isLoading={list.loading}
-          title={t("aml:whitelistTitle")}
-          emptyTitle={view === "entries" ? t("aml:noWhitelistEntries") : t("aml:nothingWaiting")}
-          serverPagination={list.serverPagination}
-          serverSorted
-          bare
-        />
-      </ListPanel>
+        columns={entryColumns} rowKey={(row) => row.id} title={t("aml:whitelistTitle")} emptyTitle={t("aml:noWhitelistEntries")} />
+      ) : (
+        <ListPanel tabs={[]} {...pending.searchBind} searchPlaceholder={t("aml:searchWhitelist")}>
+          <DataTable columns={pendingColumns} rows={pending.rows} rowKey={(row) => row.id} isLoading={pending.loading} title={t("aml:whitelistTitle")} emptyTitle={t("aml:nothingWaiting")} serverPagination={pending.serverPagination} serverSorted bare />
+        </ListPanel>
+      )}
 
       {action && (
         <NarrationDialog

@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
-import { Ban, Clock3, FileUp, ListChecks, Plus, Trash2, XCircle } from "lucide-react";
+import { FileUp, Plus } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -19,17 +20,9 @@ import { BatchBar, BatchChip } from "../Shared/BatchBar";
 import { BlacklistDetail } from "./BlacklistDetail";
 import { BlacklistForm } from "./BlacklistForm";
 import { BlacklistImport } from "./BlacklistImport";
-import { CountryList, ENTITY_TYPES, EntryStatus, REASONS } from "./blacklistShared";
+import { CountryList, EntryStatus } from "./blacklistShared";
 
 // "" = the server's default: ACTIVE and PENDING.
-const STATUS_TABS = [
-  ["", "aml:blTabCurrent", ListChecks],
-  ["ACTIVE", "aml:blStatus_ACTIVE", Ban],
-  ["PENDING", "aml:blStatus_PENDING", Clock3],
-  ["EXPIRED", "aml:blStatus_EXPIRED", Clock3],
-  ["REMOVED", "aml:blStatus_REMOVED", Trash2],
-  ["REJECTED", "aml:blStatus_REJECTED", XCircle],
-];
 
 // InnoAML > Settings > Blacklist (menu 182): the institution's own list of
 // people and companies it won't deal with, screened with every name next to
@@ -39,7 +32,6 @@ export function Blacklist() {
   const { t } = useTranslation(["aml", "common"]);
   const can = usePagePermission();
   const [view, setView] = useState("entries");
-  const [filters, setFilters] = useState({ status: "", reason: "", entity_type: "" });
   const [batch, setBatch] = useState("");
   const [form, setForm] = useState(null); // { editing }
   const [importing, setImporting] = useState(false);
@@ -47,13 +39,10 @@ export function Blacklist() {
   const [action, setAction] = useState(null); // { type: auth | deauth | remove, id?, batch_id?, label }
   const [working, setWorking] = useState(false);
 
-  const entries = usePagedList(amlBlacklistApi.list, { ...filters, batch_id: batch }, view === "entries");
+  const entries = useServerList({ api: amlBlacklistApi.listPath, call: amlBlacklistApi.list, extra: batch ? { batch_id: batch } : null });
   const pending = usePagedList(amlBlacklistApi.pending, { batch_id: batch }, view === "pending");
-  const list = view === "entries" ? entries : pending;
-
-  const setFilter = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
   const reloadAll = () => {
-    void entries.reload();
+    entries.reload();
     void pending.reload();
   };
   // Another user's change (and, for the whitelist, Match Review decisions).
@@ -195,17 +184,9 @@ export function Blacklist() {
 
       <BatchBar batchId={batch} canDecide={can("Authorize")} onDecide={(type) => setAction({ type, batch_id: batch, label: batch })} onClear={() => setBatch("")} />
 
-      <ListPanel
-        tabs={view === "entries" ? STATUS_TABS : []}
-        value={filters.status}
-        onChange={setFilter("status")}
-        serverFiltered
-        total={list.total}
-        rows={list.rows}
-        {...list.searchBind}
-        searchPlaceholder={t("aml:searchBlacklist")}
-        actions={
-          view === "entries" && can("Add") ? (
+      {view === "entries" ? (
+        <ListTable list={entries} actions={
+          can("Add") && (
             <span className="flex gap-2">
               <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-primary">
                 <FileUp size={14} /> {t("aml:importBlacklist")}
@@ -214,29 +195,14 @@ export function Blacklist() {
                 <Plus size={14} /> {t("aml:addBlacklistEntry")}
               </button>
             </span>
-          ) : null
-        }
-        filters={
-          view === "entries" && (
-            <>
-              <FilterSelect size="sm" className="w-44" value={filters.reason} onChange={setFilter("reason")} options={[{ value: "", label: t("aml:allReasons") }, ...REASONS.map((r) => ({ value: r, label: t(`aml:blReason_${r}`) }))]} />
-              <FilterSelect size="sm" className="w-40" value={filters.entity_type} onChange={setFilter("entity_type")} options={[{ value: "", label: t("aml:allTypes") }, ...ENTITY_TYPES.map((v) => ({ value: v, label: t(`aml:entity_${v}`) }))]} />
-            </>
           )
         }
-      >
-        <DataTable
-          columns={view === "entries" ? entryColumns : pendingColumns}
-          rows={list.rows}
-          rowKey={(row) => row.id}
-          isLoading={list.loading}
-          title={t("aml:blacklistTitle")}
-          emptyTitle={view === "entries" ? t("aml:noBlacklistEntries") : t("aml:nothingWaiting")}
-          serverPagination={list.serverPagination}
-          serverSorted
-          bare
-        />
-      </ListPanel>
+        columns={entryColumns} rowKey={(row) => row.id} title={t("aml:blacklistTitle")} emptyTitle={t("aml:noBlacklistEntries")} />
+      ) : (
+        <ListPanel tabs={[]} {...pending.searchBind} searchPlaceholder={t("aml:searchBlacklist")}>
+          <DataTable columns={pendingColumns} rows={pending.rows} rowKey={(row) => row.id} isLoading={pending.loading} title={t("aml:blacklistTitle")} emptyTitle={t("aml:nothingWaiting")} serverPagination={pending.serverPagination} serverSorted bare />
+        </ListPanel>
+      )}
 
       {action && (
         <NarrationDialog
