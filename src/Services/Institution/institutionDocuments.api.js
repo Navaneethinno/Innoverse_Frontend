@@ -6,4 +6,4 @@ import { request } from "@/Services/Epurse/onboarding.api";
 const BASE = "/config/institution/document";
 const VERBS = ["options", "list", "pending", "get", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "audit", "versions", "version_get", "acceptances"];
 
-export const institutionDocumentsApi = Object.fromEntries(VERBS.map((verb) => [verb, (body = {}) => request(`${BASE}/${verb}`, body)]));
+export const institutionDocumentsApi = { ...Object.fromEntries(VERBS.map((verb) => [verb, (body = {}) => request(`${BASE}/${verb}`, body)])), listPath: `${BASE}/list` };

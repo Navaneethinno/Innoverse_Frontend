@@ -1,3 +1,5 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
@@ -5,10 +7,8 @@ import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Modal } from "@/Components/Common/Modal";
@@ -24,7 +24,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 
 // The status tabs, as the list call filters them (Pending is its own call).
-const TAB_STATUS = { active: 1, draft: 9, inactive: 13 };const CODE = /^[A-Z0-9_]{1,64}$/;
+const CODE = /^[A-Z0-9_]{1,64}$/;
 const blankText = () => ({ channel: "ALL", language: "", title: "", content: "", content_format: "MARKDOWN" });
 const pairOf = (x) => `${x.channel}|${x.language ?? ""}`;
 
@@ -59,34 +59,13 @@ export function InstitutionDocuments() {
   const { t } = useTranslation(["documents", "common"]);
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
-  const [tab, setTab] = useState("all");
-  const [audience, setAudience] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(TAB_STATUS[tab] ? { status: TAB_STATUS[tab] } : {}), ...(audience ? { audience } : {}) });
-      const row = rowsOf(await (tab === "pending" ? api.pending(body) : api.list(body)))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, term, audience, page, limit, scope]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: api.listPath, call: api.list });
+  const load = list.reload;
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen?.kind === "edit") return <DocumentEditor doc={screen.doc} scope={scope} onClose={() => (screen.doc ? setScreen({ kind: "view", id: screen.doc.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
   if (screen?.kind === "view") return <DocumentView id={screen.id} initialTab={screen.tab} onBack={back} onEdit={(doc) => setScreen({ kind: "edit", doc })} />;
@@ -135,51 +114,21 @@ export function InstitutionDocuments() {
         <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
-        <StatusFilterTabs
-          bare
-          serverFiltered
-          rows={data.items}
-          total={data.total}
-          value={tab}
-          onChange={(next) => {
-            setTab(next);
-            setPage(1);
-          }}
-          {...searchBind}
-          searchPlaceholder={t("searchDocuments")}
-          filters={<FilterSelect value={audience} onChange={(v) => { setAudience(v); setPage(1); }} options={[{ value: "", label: t("anyAudience") }, ...["ALL", "CUSTOMER", "MERCHANT"].map((a) => ({ value: a, label: t(`audience_${a}`) }))]} />}
-          actions={
-            can("Add") && (
-              <button type="button" disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
-                <Plus size={14} /> {t("newDocument")}
-              </button>
-            )
-          }
-        />
-        <DataTable
-          bare
-          serverSorted
-          columns={columns}
-          rows={data.items}
-          rowKey={(d) => d.id}
-          isLoading={loading}
-          title={t("title")}
-          emptyTitle={t("noDocuments")}
-          emptyDescription={t("noDocumentsHint")}
-          serverPagination={{
-            page,
-            totalPages: Math.max(1, Math.ceil(data.total / limit)),
-            totalRecords: data.total,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (n) => {
-              setLimit(Math.min(n, 100));
-              setPage(1);
-            },
-          }}
-        />
-      </div>
+      <ListTable
+        list={list}
+        actions={
+          can("Add") && (
+            <button type="button" disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
+              <Plus size={14} /> {t("newDocument")}
+            </button>
+          )
+        }
+        columns={columns}
+        rowKey={(d) => d.id}
+        title={t("title")}
+        emptyTitle={t("noDocuments")}
+        emptyDescription={t("noDocumentsHint")}
+      />
     </div>
   );
 }

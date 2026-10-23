@@ -1,15 +1,15 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
+import { mapInstitutionListResponse } from "@/Hooks/Institution/institutionHooks";
+import { institutionsApi } from "@/Services/Institution/institutions.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
-import { useSessionState } from "@/Hooks/useSessionState";
-import { useInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
 import { institutionId } from "./profileShared";
 import { useInstitutionActions } from "./useInstitutionActions";
@@ -44,19 +44,12 @@ export function InstitutionProfile() {
   const actions = useInstitutionActions();
   // Kept for the tab session: View/Edit open the institution on its own
   // route, and coming back should land on the same page, tab and search.
-  const [activeTab, setActiveTab] = useSessionState("institutions:tab", "all");
-  const [sortBy, setSortBy] = useSessionState("institutions:sort", "desc");
   const [auditInstitution, setAuditInstitution] = useState(null);
-
-  const [page, setPage] = useSessionState("institutions:page", 1);
-  const [limit, setLimit] = useSessionState("institutions:limit", 10);
 
   // The request carries only what the screen shows (page, page size, tab,
   // order, search).
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1), "institutions:search");
-  const institutionsQuery = useInstitutionsQuery(
-    { page, limit, filter: activeTab, sort_by: sortBy, search: searchTerm },
-  );
+  const list = useServerList({ api: API_ENDPOINTS.INSTITUTION.INSTITUTION_PROFILE.LIST, call: institutionsApi.list, select: (r) => mapInstitutionListResponse(r).institutions, reloadOn: "institutions:data-changed" });
+  const institutionsQuery = asQuery(list);
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
   // Active by the record's own status (1), like the badges and the
@@ -146,33 +139,7 @@ export function InstitutionProfile() {
         </p>
       </div>
 
-      <div
-        className="mb-4 overflow-hidden rounded-2xl"
-        style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid var(--glass-border)",
-          boxShadow: "var(--glass-shadow)",
-        }}
-      >
-      <StatusFilterTabs
-        bare
-        serverFiltered
-        sortBy={sortBy}
-        onSortChange={(next) => {
-          setSortBy(next);
-          setPage(1);
-        }}
-        rows={institutions}
-        total={institutionsQuery.pagination?.totalRecords}
-        value={activeTab}
-        onChange={(next) => {
-          setActiveTab(next);
-          setPage(1);
-        }}
-        {...searchBind}
-        searchPlaceholder={t("institutions:searchInstitutionsPlaceholder")}
-        actions={
+      <ListTable list={list} actions={
           actions.can.canAdd && (
             <button
               type="button"
@@ -182,43 +149,7 @@ export function InstitutionProfile() {
               <Plus size={14} /> {t("institutions:newInstitution")}
             </button>
           )
-        }
-      />
-
-      {institutionsQuery.error && (
-        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
-          <AlertCircle size={14} /> {institutionsQuery.error.message}
-          <button onClick={() => void institutionsQuery.refetch()} className="ml-auto text-xs font-bold underline">
-            {t("institutions:retry")}
-          </button>
-        </div>
-      )}
-
-      <DataTable
-        bare
-        persistKey="institutions"
-        columns={columns}
-        rows={institutions}
-        rowKey={(inst) => institutionId(inst)}
-        isLoading={institutionsQuery.isLoading}
-        title={t("institutions:listTitle")}
-        emptyTitle={t("institutions:emptyTitle")}
-        emptyDescription={t("institutions:emptyDescription")}
-        serverPagination={
-              {
-                page: institutionsQuery.pagination?.currentPage ?? page,
-                totalPages: institutionsQuery.pagination?.totalPages ?? 1,
-                totalRecords: institutionsQuery.pagination?.totalRecords ?? institutions.length,
-                onPageChange: setPage,
-                limit,
-                onLimitChange: (nextLimit) => {
-                  setLimit(nextLimit);
-                  setPage(1);
-                },
-              }
-        }
-      />
-      </div>
+        } columns={columns} rowKey={(inst) => institutionId(inst)} title={t("institutions:listTitle")} emptyTitle={t("institutions:emptyTitle")} emptyDescription={t("institutions:emptyDescription")} />
 
       {actions.dialogs}
 

@@ -1,20 +1,19 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { TypedInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { scopeInstitutionFields } from "@/Utils/Lib/institutionScope";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/Utils/Lib/cn";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
@@ -487,20 +486,13 @@ export function AcctConfigResource({ entity }) {
     const productLabel = labelFor("acctProducts", row.acct_product_id);
     return productLabel && productLabel !== "-" ? productLabel : String(idOf(row));
   };
-  const [rows, setRows] = useState([]),
-    [pagination, setPagination] = useState({}),
-    [page, setPage] = useState(1),
-    [limit, setLimit] = useState(10),
-    [loading, setLoading] = useState(true),
-    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
-    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
-    [form, setForm] = useState({}),
-    [editing, setEditing] = useState(null),
-    [view, setView] = useState(null),
-    [audit, setAudit] = useState(null),
-    [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false),
-    [actionPending, setActionPending] = useState(false);
+  const [form, setForm] = useState({});
+  const [editing, setEditing] = useState(null);
+  const [view, setView] = useState(null);
+  const [audit, setAudit] = useState(null);
+  const [action, setAction] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [actionPending, setActionPending] = useState(false);
   // An account product's currency is one of its institution's active
   // currencies (the server refuses any other): the form's options follow
   // the institution picked on it.
@@ -527,21 +519,8 @@ export function AcctConfigResource({ entity }) {
     action ? idOf(action.row) : null,
     Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
   );
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await latestList(service.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
-      setRows(rowsOf(response));
-      setPagination(response?.pagination ?? response?.data?.pagination ?? {});
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [service, searchBody, latestList, page, limit, tab, sortBy]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST, call: service.list });
+  const load = list.reload;
   // Refetch on every live push rather than reconciling in place — the
   // in-place merge previously used (insertNew: false) silently dropped
   // brand-new records from another user/tab entirely (confirmed live: the
@@ -549,7 +528,7 @@ export function AcctConfigResource({ entity }) {
   // refresh). A refetch is always correct regardless of page/sort/search.
   useLiveChannel(
     API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()].LIST,
-    () => void load(),
+    () => load(),
   );
   const save = async (draft) => {
     // Same fix as DigitalProduct.jsx/KycConfigResource.jsx, widened
@@ -594,7 +573,7 @@ export function AcctConfigResource({ entity }) {
       notifications.success(apiMessage(response, `${tr(config.title)} saved`));
       setEditing(null);
       setForm({});
-      void load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -627,7 +606,7 @@ export function AcctConfigResource({ entity }) {
                     : await service.delete(payload);
       notifications.success(apiMessage(response, `${tr(config.title)} action completed`));
       setAction(null);
-      void load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -693,12 +672,7 @@ export function AcctConfigResource({ entity }) {
         <PageTitle>{tr(config.title)}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{tr(config.subtitle)}</p>
       </div>
-      <div
-        className="mb-4 overflow-hidden rounded-2xl"
-        style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
-      >
-        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-          actions={
+      <ListTable list={list} actions={
             can("Add") && (
               <button
                 className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
@@ -710,34 +684,7 @@ export function AcctConfigResource({ entity }) {
                 <Plus size={14} /> {tr("Add")} {tr(config.title)}
               </button>
             )
-          }
-          rows={rows}
-          value={tab}
-          onChange={(next) => { setTab(next); setPage(1); }}
-          {...searchBind}
-          searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
-          bare
-        />
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={idOf}
-          isLoading={loading}
-          title={tr(config.title)}
-          serverPagination={{
-            page,
-            limit,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </div>
+          } columns={columns} rowKey={idOf} title={tr(config.title)} />
       {(editing || Object.keys(form).length > 0) && (
         <Modal
           open

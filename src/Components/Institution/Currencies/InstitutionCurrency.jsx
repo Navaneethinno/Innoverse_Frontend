@@ -1,12 +1,13 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
+
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -14,12 +15,10 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { institutionCurrencyApi, institutionPhoneCountryApi } from "@/Services/Institution/institutionCurrency.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { countryName } from "@/Components/Common/countryOption";
 import {
-  useAssignmentListQuery,
   useAssignmentMutation,
   useDialCountries,
   useMasterCurrencies,
@@ -182,14 +181,10 @@ function AssignmentActions({ kind, row, onRefresh, onEdit }) {
 function AssignmentPage({ kind }) {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
-  const query = useAssignmentListQuery(kind.api, kind.livePath, { page, limit, filter: statusFilter, sort_by: sortBy, search: searchTerm });
+  const list = useServerList({ api: kind.livePath, call: kind.api.list });
+  const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
   const options = kind.useOptions();
   const add = useAssignmentMutation(kind.api, "add");
@@ -285,13 +280,7 @@ function AssignmentPage({ kind }) {
           <AlertCircle size={14} /> {query.error.message}
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }}
-        rows={query.data}
-        total={query.pagination?.totalRecords}
-        value={statusFilter}
-        {...searchBind}
-        onChange={(next) => { setStatusFilter(next); setPage(1); }}
-        actions={canAdd && (
+      <ListTable list={list} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -302,27 +291,7 @@ function AssignmentPage({ kind }) {
           >
             <Plus size={14} /> {tr("Add")} {tr(kind.noun)}
           </button>
-        )}
-      bare /><DataTable serverSorted
-        columns={columns}
-        rows={query.data}
-        serverPagination={{
-          page,
-          totalPages: query.pagination?.totalPages ?? 1,
-          totalRecords: query.pagination?.totalRecords ?? query.data.length,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (next) => {
-            setLimit(next);
-            setPage(1);
-          },
-        }}
-        rowKey={(r) => r.id}
-        isLoading={query.isLoading}
-        title={tr(kind.title)}
-        emptyTitle={tr(kind.emptyTitle)}
-        emptyDescription={tr(kind.emptyDescription)}
-      bare /></div><Modal
+        )} columns={columns} rowKey={(r) => r.id} title={tr(kind.title)} emptyTitle={tr(kind.emptyTitle)} emptyDescription={tr(kind.emptyDescription)} /><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? tr(`Edit institution ${kind.noun}`) : tr(`Add institution ${kind.noun}`)}

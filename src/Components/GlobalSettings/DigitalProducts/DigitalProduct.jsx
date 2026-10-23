@@ -1,6 +1,7 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
@@ -9,9 +10,7 @@ import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Spinner } from "@/Components/Common/Spinner";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -191,24 +190,17 @@ export function DigitalProduct({ entity }) {
       firstType === "boolean" ? (row[firstKey] ? tr("Yes") : tr("No")) : resolveLookupLabel(firstKey, row[firstKey], lookups);
     return resolved && resolved !== "-" ? resolved : String(idOf(row));
   };
-  const [rows, setRows] = useState([]),
-    [pagination, setPagination] = useState({}),
-    [page, setPage] = useState(1),
-    [limit, setLimit] = useState(10),
-    [loading, setLoading] = useState(true),
-    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
-    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
-    [form, setForm] = useState({}),
-    [editing, setEditing] = useState(null),
-    [open, setOpen] = useState(false),
-    [view, setView] = useState(null),
-    [audit, setAudit] = useState(null),
-    [action, setAction] = useState(null),
-    [saving, setSaving] = useState(false),
-    [wizardOpen, setWizardOpen] = useState(false),
-    [editWizardProduct, setEditWizardProduct] = useState(null),
-    [viewWizardProduct, setViewWizardProduct] = useState(null),
-    [actionPending, setActionPending] = useState(false);
+  const [form, setForm] = useState({});
+  const [editing, setEditing] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState(null);
+  const [audit, setAudit] = useState(null);
+  const [action, setAction] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [editWizardProduct, setEditWizardProduct] = useState(null);
+  const [viewWizardProduct, setViewWizardProduct] = useState(null);
+  const [actionPending, setActionPending] = useState(false);
   // Shows the maker's proposed changes inside the Authorize/Reject confirm
   // dialog, same pattern as InstitutionBranding.jsx — fetched only
   // while that dialog is actually open, via the entity's own /pending
@@ -218,27 +210,14 @@ export function DigitalProduct({ entity }) {
     action ? idOf(action.row) : null,
     Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
   );
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await latestList(api.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
-      setRows(rowsOf(r));
-      setPagination(r?.pagination ?? r?.data?.pagination ?? {});
-    } catch (e) {
-      notifications.error(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [api, searchBody, latestList, page, limit, tab, sortBy]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: `/config/digital_product/${entity}/list`, call: api.list });
+  const load = list.reload;
   // Refetch on every live push — see AcctConfigResource.jsx's identical
   // comment for why the in-place reconcile this replaced silently dropped
   // brand-new records pushed by another user/tab.
   useLiveChannel(
     `/config/digital_product/${entity}/list`,
-    () => void load(),
+    () => load(),
   );
   const save = async (is_draft) => {
     // "_id" fields rendered as a plain <input required> get real HTML5
@@ -280,7 +259,7 @@ export function DigitalProduct({ entity }) {
       setOpen(false);
       setEditing(null);
       setForm({});
-      void load();
+      load();
     } catch (e) {
       notifications.error(e.message);
     } finally {
@@ -312,7 +291,7 @@ export function DigitalProduct({ entity }) {
                     : await api.deleteAuth(payload);
       notifications.success(apiMessage(r, `${tr(config.title)} action completed`));
       setAction(null);
-      void load();
+      load();
     } catch (e) {
       notifications.error(e.message);
     } finally {
@@ -446,38 +425,13 @@ export function DigitalProduct({ entity }) {
           </p>
         </div>
       </div>
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-        rows={rows}
-        value={tab}
-        onChange={(next) => { setTab(next); setPage(1); }}
-        {...searchBind}
-        searchPlaceholder={`${tr("Search")} ${tr(config.title).toLowerCase()}...`}
-        actions={addAction}
-      bare /><DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={idOf}
-          isLoading={loading}
-          title={tr(config.title)}
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-        bare
-      /></div>
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={idOf} title={tr(config.title)} />
       {entity === "product" && wizardOpen && (
         <AddDigitalProductWizard
           onClose={() => setWizardOpen(false)}
           onSuccess={() => {
             setWizardOpen(false);
-            void load();
+            load();
           }}
         />
       )}
@@ -485,7 +439,7 @@ export function DigitalProduct({ entity }) {
         <EditDigitalProductWizard
           product={editWizardProduct}
           onClose={() => setEditWizardProduct(null)}
-          onSaved={() => void load()}
+          onSaved={() => load()}
         />
       )}
       {entity === "product" && viewWizardProduct && (
