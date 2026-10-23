@@ -129,6 +129,20 @@ export const common = {
   institution: "Instituição",
   fixIn: "Corrigir em {{step}}",
   uatBanner: "UAT: ambiente de testes",
+  moreTabs: "Mais",
+  moreFilters: "Mais filtros",
+  moreFiltersCount: "Mais filtros ({{count}})",
+  clearAll: "Limpar tudo",
+  done: "Concluído",
+  anyOf: "Qualquer {{what}}",
+  export: "Exportar",
+  from: "De",
+  to: "Até",
+  min: "Mín.",
+  max: "Máx.",
+  date: "Data",
+  amount: "Valor",
+  remove: "Remover",
 };
 
 export const auth = {

@@ -432,6 +432,7 @@ export function DataTable({
             total={totalRecords}
             onPageChange={goToPage}
             onPageSizeChange={!isServer || serverPagination.onLimitChange ? handlePageSizeChange : undefined}
+            sizes={serverPagination?.pageSizes}
           />
         )}
       </div>

@@ -1,25 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
 import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
-import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, RefreshCw, Repeat, ShieldAlert, Truck } from "lucide-react";
+import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, Repeat, ShieldAlert, Truck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useServerList } from "@/Hooks/useServerList";
 import { cardRequestsApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { NewRequest } from "@/Components/Finance/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../Finance/Deposits/depositShared";
-import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord } from "./cardOpsShared";
 
-const FORM_FACTORS = ["VIRTUAL", "PHYSICAL"];
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
 // CARDS > Cards (menu 198): every card, issue a virtual card, and one card's
@@ -28,39 +29,20 @@ const allows = (product, key, value) => String(product?.[key] ?? "").split(",").
 export function Cards() {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
-  const list = usePagedFilters({ search: "", card_product_id: "", ops_status: "", issuance_status: "", form_factor: "" });
-  const { applied, page, limit } = list;
   const [options, setOptions] = useState({});
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [issuing, setIssuing] = useState(false);
+  const list = useServerList({ api: cardsApi.listPath, call: cardsApi.list });
+  const load = list.reload;
 
+  // The products a virtual card can be issued on.
   useEffect(() => {
     cardsApi
       .options({})
       .then((r) => setOptions(rowsOf(r)[0] ?? {}))
       .catch((e) => notifications.error(e.message));
   }, []);
-
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const row = rowsOf(await cardsApi.list({ page, page_size: limit, ...filterBody(applied, ["card_product_id"]) }))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(cardsApi.listPath, () => void load({ silent: true }));
+  useLiveChannel(cardsApi.listPath, () => load());
 
   if (openId) {
     return (
@@ -70,7 +52,7 @@ export function Cards() {
         onOpen={setOpenId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
@@ -115,30 +97,22 @@ export function Cards() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("cardsSubtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
+      </div>
+
+      <ListTable
+        list={list}
+        actions={
+          can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setIssuing(true)}>
               {t("issueVirtual")}
             </Button>
-          )}
-        </div>
-      </div>
-
-      <PagedTable
-        {...list}
-        searchPlaceholder={t("searchCards")}
-        filterFields={
-          <>
-            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-            <FilterSelect value={list.filters.ops_status} onChange={list.set("ops_status")} options={[{ value: "", label: t("anyOpsStatus") }, ...(options.ops_statuses ?? []).map((s) => ({ value: s.code, label: cardWord(t, "ops", s.code) }))]} />
-            <FilterSelect value={list.filters.issuance_status} onChange={list.set("issuance_status")} options={[{ value: "", label: t("anyIssuanceStatus") }, ...(options.issuance_statuses ?? []).map((s) => ({ value: s, label: cardWord(t, "iss", s) }))]} />
-            <FilterSelect value={list.filters.form_factor} onChange={list.set("form_factor")} options={[{ value: "", label: t("anyFormFactor") }, ...FORM_FACTORS.map((f) => ({ value: f, label: cardWord(t, "opt", f) }))]} />
-          </>
+          )
         }
-        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("cardsTitle")} emptyTitle={t("noCards")} emptyDescription={t("noCardsHint")} />
+        columns={columns}
+        title={t("cardsTitle")}
+        emptyTitle={t("noCards")}
+        emptyDescription={t("noCardsHint")}
+      />
 
       {issuing && (
         <IssueCardDialog
@@ -147,7 +121,7 @@ export function Cards() {
           onIssued={(card) => {
             setIssuing(false);
             if (card?.id) setOpenId(card.id);
-            else void load();
+            else load();
           }}
         />
       )}

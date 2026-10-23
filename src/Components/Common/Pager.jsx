@@ -25,8 +25,9 @@ function getPageNumbers(current, total) {
 }
 
 // The footer every paged list shares: "Showing x–y of n", the page pills,
-// and the page-size picker (left out when `onPageSizeChange` is not given).
-export function Pager({ page, pageSize, total, onPageChange, onPageSizeChange, className }) {
+// and the page-size picker (left out when `onPageSizeChange` is not given;
+// `sizes`: the list's own choices, e.g. 10, 25, 50, 100).
+export function Pager({ page, pageSize, total, onPageChange, onPageSizeChange, sizes = PAGE_SIZES, className }) {
   const { t } = useTranslation("common");
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   return (
@@ -74,7 +75,7 @@ export function Pager({ page, pageSize, total, onPageChange, onPageSizeChange, c
       {onPageSizeChange && (
         <div data-tour="page-size" className="flex items-center gap-1.5 whitespace-nowrap">
           <span>{t("showEntries")}</span>
-          <FilterSelect className="w-20" size="sm" value={pageSize} onChange={(next) => onPageSizeChange(Number(next))} options={PAGE_SIZES.map((size) => ({ value: size, label: String(size) }))} />
+          <FilterSelect className="w-20" size="sm" value={pageSize} onChange={(next) => onPageSizeChange(Number(next))} options={sizes.map((size) => ({ value: size, label: String(size) }))} />
         </div>
       )}
     </div>

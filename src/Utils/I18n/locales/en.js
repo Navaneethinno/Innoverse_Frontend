@@ -131,6 +131,20 @@ export const common = {
   institution: "Institution",
   fixIn: "Fix in {{step}}",
   uatBanner: "UAT: test environment",
+  moreTabs: "More",
+  moreFilters: "More filters",
+  moreFiltersCount: "More filters ({{count}})",
+  clearAll: "Clear all",
+  done: "Done",
+  anyOf: "Any {{what}}",
+  export: "Export",
+  from: "From",
+  to: "To",
+  min: "Min",
+  max: "Max",
+  date: "Date",
+  amount: "Amount",
+  remove: "Remove",
 };
 
 export const auth = {
