@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, RefreshCw, X, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, X, XCircle } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -8,10 +8,11 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useServerList } from "@/Hooks/useServerList";
+import { ListTable } from "@/Components/Common/ListView";
 import { cardOrdersApi, cardRequestsApi, cardsApi } from "@/Services/Cards/cards.api";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -20,9 +21,8 @@ import { cardsIntoEnvelope } from "@/Utils/Lib/flourish";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from "../Finance/Deposits/depositShared";
 import { MiniTable } from "../Finance/Loans/loanShared";
-import { CardNumber, CardPill, Labelled, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardNumber, CardPill, Labelled, cardWord } from "./cardOpsShared";
 
-const STATUSES = ["PENDING", "GENERATED", "PREFILED", "RECEIVED", "CANCELLED"];
 
 // The emboss file holds full card numbers and CVVs: it goes straight from
 // the reply to a file on the user's machine and is never kept, shown or
@@ -41,12 +41,10 @@ export function CardOrders({ receiving = false }) {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
   // Receive Cards: the orders whose PRE file went to the bureau.
-  const list = usePagedFilters({ search: "", order_status: receiving ? "PREFILED" : "", issuance_group_id: "", pending: false });
+  const list = useServerList({ api: cardOrdersApi.listPath, call: cardOrdersApi.list, extra: receiving ? { tab: "PREFILED" } : null });
+  const load = list.reload;
   const titleKey = receiving ? "receiveTitle" : "ordersTitle";
-  const { applied, page, limit } = list;
   const [options, setOptions] = useState({});
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
 
@@ -57,24 +55,7 @@ export function CardOrders({ receiving = false }) {
       .catch((e) => notifications.error(e.message));
   }, []);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const row = rowsOf(await cardOrdersApi.list({ page, page_size: limit, ...filterBody(applied, ["issuance_group_id"]) }))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(cardOrdersApi.listPath, () => void load({ silent: true }));
+  useLiveChannel(cardOrdersApi.listPath, () => load());
 
   if (openId) {
     return (
@@ -82,7 +63,7 @@ export function CardOrders({ receiving = false }) {
         id={openId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
@@ -119,9 +100,6 @@ export function CardOrders({ receiving = false }) {
           <p className="mt-1 text-sm text-muted-foreground">{t(receiving ? "receiveSubtitle" : "ordersSubtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
           {!receiving && can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
               {t("newOrder")}
@@ -130,17 +108,7 @@ export function CardOrders({ receiving = false }) {
         </div>
       </div>
 
-      <PagedTable
-        {...list}
-        searchPlaceholder={t("searchOrders")}
-        filterFields={
-          <>
-            <FilterSelect value={list.filters.order_status} onChange={list.set("order_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "ord", s) }))]} />
-            <FilterSelect value={list.filters.issuance_group_id} onChange={list.set("issuance_group_id")} options={[{ value: "", label: t("anyGroup") }, ...(options.issuance_groups ?? []).map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))]} />
-            <Toggle showLabel label={t("waitingForChecker")} checked={list.filters.pending} onChange={list.set("pending")} />
-          </>
-        }
-        columns={columns} rows={data.items} total={data.total} loading={loading} title={t(titleKey)} emptyTitle={t(receiving ? "noOrdersToReceive" : "noOrders")} emptyDescription={t(receiving ? "noOrdersToReceiveHint" : "noOrdersHint")} />
+      <ListTable list={list} columns={columns} title={t(titleKey)} emptyTitle={t(receiving ? "noOrdersToReceive" : "noOrders")} emptyDescription={t(receiving ? "noOrdersToReceiveHint" : "noOrdersHint")} />
 
       {adding && (
         <NewOrder
@@ -149,7 +117,7 @@ export function CardOrders({ receiving = false }) {
           onDone={(order) => {
             setAdding(false);
             if (order?.id) setOpenId(order.id);
-            else void load();
+            else load();
           }}
         />
       )}

@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CreditCard, Package, RefreshCw, UserCheck } from "lucide-react";
+import { CreditCard, Package, UserCheck } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
-import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { cardStockApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
+import { useServerList } from "@/Hooks/useServerList";
+import { ListTable } from "@/Components/Common/ListView";
+import { cardStockApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cardsHandedTo } from "@/Utils/Lib/flourish";
 import { Problems } from "../Finance/Deposits/depositShared";
-import { CardFace, CardNumber, CardPill, HolderPicker, Labelled, PagedTable, WithCard, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, HolderPicker, Labelled, WithCard } from "./cardOpsShared";
 
-const STATUSES = ["AVAILABLE", "ASSIGNED", "ISSUED"];
 const VAULT = "VAULT";
 
 // CARDS > Card Stock (menu 201): instant cards back from the bureau. Hand
@@ -27,12 +27,9 @@ export function CardStock() {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
   const me = useAuth((s) => s.user);
-  const list = usePagedFilters({ inventory_status: "", card_product_id: "", assignee_id: "", mine: false });
-  const { applied, page, limit } = list;
+  const list = useServerList({ api: cardStockApi.listPath, call: cardStockApi.list });
+  const load = list.reload;
   const [users, setUsers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [picked, setPicked] = useState([]);
   const [assigning, setAssigning] = useState(false);
   const [issuing, setIssuing] = useState(null);
@@ -42,31 +39,9 @@ export function CardStock() {
       .options({})
       .then((r) => setUsers(rowsOf(r)[0]?.users ?? []))
       .catch((e) => notifications.error(e.message));
-    cardsApi
-      .options({})
-      .then((r) => setProducts(rowsOf(r)[0]?.card_products ?? []))
-      .catch(() => setProducts([]));
   }, []);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const row = rowsOf(await cardStockApi.list({ page, page_size: limit, ...filterBody(applied, ["card_product_id", "assignee_id"]) }))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-        setPicked([]);
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(cardStockApi.listPath, () => void load({ silent: true }));
+  useLiveChannel(cardStockApi.listPath, () => load());
 
   // Cards still in stock can be handed on; a card held by someone else is
   // theirs to issue.
@@ -105,9 +80,6 @@ export function CardStock() {
           <p className="mt-1 text-sm text-muted-foreground">{t("stockSubtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
           {can("Edit") && (
             <Button size="sm" icon={UserCheck} disabled={!picked.length} onClick={() => setAssigning(true)}>
               {t("handOverN", { count: picked.length })}
@@ -116,17 +88,7 @@ export function CardStock() {
         </div>
       </div>
 
-      <PagedTable
-        {...list}
-        filterFields={
-          <>
-            <FilterSelect value={list.filters.inventory_status} onChange={list.set("inventory_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`inv_${s}`) }))]} />
-            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-            <FilterSelect value={list.filters.assignee_id} onChange={list.set("assignee_id")} options={[{ value: "", label: t("anyHolder") }, ...users.map((u) => ({ value: String(u.id), label: u.user_name }))]} />
-            <Toggle showLabel label={t("heldByMe")} checked={list.filters.mine} onChange={list.set("mine")} />
-          </>
-        }
-        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("stockTitle")} emptyTitle={t("noStock")} emptyDescription={t("noStockHint")} />
+      <ListTable list={list} columns={columns} title={t("stockTitle")} emptyTitle={t("noStock")} emptyDescription={t("noStockHint")} />
 
       {assigning && (
         <AssignDialog
@@ -135,7 +97,7 @@ export function CardStock() {
           onClose={() => setAssigning(false)}
           onDone={() => {
             setAssigning(false);
-            void load();
+            load();
           }}
         />
       )}
@@ -145,7 +107,7 @@ export function CardStock() {
           onClose={() => setIssuing(null)}
           onDone={() => {
             setIssuing(null);
-            void load();
+            load();
           }}
         />
       )}

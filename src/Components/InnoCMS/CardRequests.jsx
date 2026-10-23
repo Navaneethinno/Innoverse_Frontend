@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Inbox, Plus, RefreshCw, Truck, XCircle } from "lucide-react";
+import { CheckCircle2, Inbox, Plus, Truck, XCircle } from "lucide-react";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -10,14 +10,14 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useServerList } from "@/Hooks/useServerList";
+import { ListTable } from "@/Components/Common/ListView";
 import { cardOrdersApi, cardRequestsApi, cardStockApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../Finance/Deposits/depositShared";
-import { CardPill, DeliveryFields, HolderPicker, Labelled, PagedTable, ProductCardPreview, WithCard, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
+import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord } from "./cardOpsShared";
 
-const STATUSES = ["SUBMITTED", "IN_PRODUCTION", "FULFILLED", "REJECTED", "CANCELLED"];
-const TYPES = ["NEW", "VIRTUAL_TO_PHYSICAL", "REISSUE", "REPLACE_DAMAGED", "RENEW"];
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
 // CARDS > Card Requests (menu 199): requests for physical cards. Ask for a
@@ -26,11 +26,9 @@ const allows = (product, key, value) => String(product?.[key] ?? "").split(",").
 export function CardRequests() {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
-  const list = usePagedFilters({ search: "", request_status: "", request_type: "", card_product_id: "" });
-  const { applied, page, limit } = list;
+  const list = useServerList({ api: cardRequestsApi.listPath, call: cardRequestsApi.list });
+  const load = list.reload;
   const [options, setOptions] = useState({});
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
 
@@ -41,24 +39,7 @@ export function CardRequests() {
       .catch((e) => notifications.error(e.message));
   }, []);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const row = rowsOf(await cardRequestsApi.list({ page, page_size: limit, ...filterBody(applied, ["card_product_id"]) }))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(cardRequestsApi.listPath, () => void load({ silent: true }));
+  useLiveChannel(cardRequestsApi.listPath, () => load());
 
   const columns = [
     {
@@ -91,9 +72,6 @@ export function CardRequests() {
           <p className="mt-1 text-sm text-muted-foreground">{t("requestsSubtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
           {can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
               {t("newRequest")}
@@ -102,26 +80,16 @@ export function CardRequests() {
         </div>
       </div>
 
-      <PagedTable
-        {...list}
-        searchPlaceholder={t("searchRequests")}
-        filterFields={
-          <>
-            <FilterSelect value={list.filters.request_status} onChange={list.set("request_status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: cardWord(t, "req", s) }))]} />
-            <FilterSelect value={list.filters.request_type} onChange={list.set("request_type")} options={[{ value: "", label: t("anyType") }, ...TYPES.map((s) => ({ value: s, label: cardWord(t, "rtype", s) }))]} />
-            <FilterSelect value={list.filters.card_product_id} onChange={list.set("card_product_id")} options={[{ value: "", label: t("anyProduct") }, ...(options.card_products ?? []).map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name}` }))]} />
-          </>
-        }
-        columns={columns} rows={data.items} total={data.total} loading={loading} title={t("requestsTitle")} emptyTitle={t("noRequests")} emptyDescription={t("noRequestsHint")} />
+      <ListTable list={list} columns={columns} title={t("requestsTitle")} emptyTitle={t("noRequests")} emptyDescription={t("noRequestsHint")} />
 
-      {openId && <RequestDialog id={openId} onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
+      {openId && <RequestDialog id={openId} onClose={() => setOpenId(null)} onChanged={() => load()} />}
       {adding && (
         <NewCardRequest
           options={options}
           onClose={() => setAdding(false)}
           onDone={(request) => {
             setAdding(false);
-            void load();
+            load();
             if (request?.id) setOpenId(request.id);
           }}
         />

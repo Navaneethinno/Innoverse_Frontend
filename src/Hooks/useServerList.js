@@ -152,9 +152,9 @@ export function useServerList({ api, call, prefix = "", extra = null }) {
     summary: state.summary,
     loading: state.loading || !options,
     reload,
-    // For ListToolbar.
+    // For ListToolbar. A tab fixed by the page (`extra.tab`) leaves no tabs to pick.
     toolbar: {
-      options,
+      options: extra?.tab && options ? { ...options, tabs: null } : options,
       filterDefs,
       search: typed,
       onSearch,

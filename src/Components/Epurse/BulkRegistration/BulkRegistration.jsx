@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, FileDown, FileUp, ListChecks, Plus, RefreshCw, Send, Users, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, FileDown, FileUp, ListChecks, Plus, Send, Users, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -10,16 +10,17 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useServerList } from "@/Hooks/useServerList";
+import { ListTable } from "@/Components/Common/ListView";
 import { bulkRegistrationApi as api } from "@/Services/Epurse/bulkRegistration.api";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../Finance/Deposits/depositShared";
-import { Labelled, PagedTable, filterBody, usePagedFilters } from "../../InnoCMS/cardOpsShared";
+import { Labelled } from "../../InnoCMS/cardOpsShared";
 import { base64Blob, readPeopleFile } from "./readPeopleFile";
 
-const BATCH_STATUSES = ["PENDING", "PROCESSING", "DONE", "REJECTED"];
 const ROW_TONES = { APPROVED: "bg-emerald-50 text-emerald-800", IN_REVIEW: "bg-amber-50 text-amber-800", REJECTED: "bg-red-50 text-red-700", FAILED: "bg-red-50 text-red-700", PENDING: "bg-muted text-muted-foreground" };
 const BATCH_TONES = { DONE: "bg-emerald-50 text-emerald-800", PROCESSING: "bg-sky-50 text-sky-800", REJECTED: "bg-red-50 text-red-700", PENDING: "bg-amber-50 text-amber-800" };
 
@@ -105,34 +106,15 @@ function EmployerPicker({ value, onChange }) {
 export function BulkRegistration() {
   const { t } = useTranslation(["bulkReg", "common"]);
   const can = usePagePermission();
-  const list = usePagedFilters({ search: "", batch_status: "" });
-  const { applied, page, limit } = list;
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
+  const list = useServerList({ api: api.listPath, call: api.list });
+  const load = list.reload;
   const [screen, setScreen] = useState(null);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const row = rowsOf(await api.list({ page, page_size: limit, ...filterBody(applied) }))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(api.listPath, () => void load({ silent: true }));
+  useLiveChannel(api.listPath, () => load());
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen === "new") return <NewBatch onClose={back} onSaved={(id) => setScreen({ id })} />;
   if (screen?.id) return <BatchView id={screen.id} onBack={back} />;
@@ -175,9 +157,6 @@ export function BulkRegistration() {
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
           {can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setScreen("new")}>
               {t("newBatch")}
@@ -185,14 +164,7 @@ export function BulkRegistration() {
           )}
         </div>
       </div>
-      <PagedTable
-        {...list}
-        searchPlaceholder={t("searchBatches")}
-        filterFields={<FilterSelect value={list.filters.batch_status} onChange={list.set("batch_status")} options={[{ value: "", label: t("anyStatus") }, ...BATCH_STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />}
-        columns={columns}
-        rows={data.items}
-        total={data.total}
-        loading={loading}
+      <ListTable list={list} columns={columns}
         title={t("title")}
         emptyTitle={t("noBatches")}
         emptyDescription={t("noBatchesHint")}
