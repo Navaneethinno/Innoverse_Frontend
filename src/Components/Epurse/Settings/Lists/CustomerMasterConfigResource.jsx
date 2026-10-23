@@ -1,6 +1,6 @@
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useState } from "react";
+import { useServerList } from "@/Hooks/useServerList";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useTranslation } from "react-i18next";
@@ -12,10 +12,9 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Spinner } from "@/Components/Common/Spinner";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
+import { ListTable } from "@/Components/Common/ListView";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { useOwnershipTypes } from "@/Hooks/Master/masterHooks";
@@ -86,7 +85,6 @@ const CONFIGS = {
 };
 
 const idOf = (row) => row?.id;
-const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
 
 
@@ -98,14 +96,7 @@ export function CustomerMasterConfigResource({ entity }) {
   const can = usePagePermission(config.menuName ?? config.title);
   const { ownershipTypes = [] } = useOwnershipTypes(Boolean(config.hasOwnership));
 
-  const [rows, setRows] = useState([]),
-    [pagination, setPagination] = useState({}),
-    [page, setPage] = useState(1),
-    [limit, setLimit] = useState(10),
-    [loading, setLoading] = useState(true),
-    { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1)),
-    [tab, setTab] = useState("all"), [sortBy, setSortBy] = useState("desc"),
-    [form, setForm] = useState({ code: "", name: "", description: "", ownership_id: "", category: "" }),
+  const [form, setForm] = useState({ code: "", name: "", description: "", ownership_id: "", category: "" }),
     [editing, setEditing] = useState(null),
     [open, setOpen] = useState(false),
     [view, setView] = useState(null),
@@ -120,22 +111,9 @@ export function CustomerMasterConfigResource({ entity }) {
     Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await latestList(config.api.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
-      setRows(rowsOf(response));
-      setPagination(response?.pagination ?? response?.data?.pagination ?? {});
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [config, searchBody, latestList, page, limit, tab, sortBy]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(config.endpoint.LIST, () => void load());
+  const list = useServerList({ api: config.endpoint.LIST, call: config.api.list });
+  const load = list.reload;
+  useLiveChannel(config.endpoint.LIST, () => load());
 
 
   const describeActionRow = (row) => row?.name ?? String(idOf(row));
@@ -186,7 +164,7 @@ export function CustomerMasterConfigResource({ entity }) {
       setOpen(false);
       setEditing(null);
       setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });
-      void load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -216,7 +194,7 @@ export function CustomerMasterConfigResource({ entity }) {
                     : await config.api.deleteAuth(payload);
       notifications.success(apiMessage(response, t("onboarding:actionCompleted", { title: displayTitle })));
       setAction(null);
-      void load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -310,38 +288,8 @@ export function CustomerMasterConfigResource({ entity }) {
         <PageTitle>{displayTitle}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("onboarding:manageMasterData", { title: displayTitle.toLowerCase() })}</p>
       </div>
-      <div
-        className="mb-4 overflow-hidden rounded-2xl"
-        style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
-      >
-        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-          rows={rows}
-          value={tab}
-          onChange={(next) => { setTab(next); setPage(1); }}
-          {...searchBind}
-          searchPlaceholder={t("onboarding:searchTitle", { title: displayTitle.toLowerCase() })}
-          actions={addAction}
-          bare
-        />
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={idOf}
-          isLoading={loading}
-          title={displayTitle}
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
+      <div className="mb-4">
+        <ListTable list={list} actions={addAction} columns={columns} rowKey={idOf} title={displayTitle} />
       </div>
       {open && (
         <Modal
