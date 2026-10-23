@@ -149,6 +149,19 @@ export function ExtProviders() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (s) => <RowActions buttons={{ view: true }} onView={() => setScreen({ kind: "view", id: s.id })} /> },
   ];
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("fees:refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} onClick={add}>
+          {t("setUp")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -158,16 +171,6 @@ export function ExtProviders() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("fees:refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} onClick={add}>
-              {t("setUp")}
-            </Button>
-          )}
-        </div>
       </div>
       {chooser && (
         <div className="mb-4 max-w-sm">
@@ -175,6 +178,7 @@ export function ExtProviders() {
         </div>
       )}
       <ListPanel
+        actions={listActions}
         tabs={PENDING_TABS}
         value={tab}
         onChange={(key) => {

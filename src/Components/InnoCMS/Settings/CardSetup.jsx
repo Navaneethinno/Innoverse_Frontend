@@ -122,6 +122,19 @@ export function CardSetupPage({ kind }) {
   ];
   const Icon = kind.icon;
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "form", record: null })}>
+          {t(kind.newLabel)}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -131,16 +144,6 @@ export function CardSetupPage({ kind }) {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t(kind.subtitle)}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "form", record: null })}>
-              {t(kind.newLabel)}
-            </Button>
-          )}
-        </div>
       </div>
       {chooser && (
         <div className="mb-4 max-w-sm">
@@ -149,6 +152,7 @@ export function CardSetupPage({ kind }) {
       )}
 
       <ListPanel
+        actions={listActions}
         tabs={PENDING_TABS}
         value={tab}
         onChange={(key) => {

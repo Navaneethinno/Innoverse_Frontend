@@ -28,6 +28,9 @@ const statusBucket = (row) => {
   return "inactive";
 };
 
+// "All" always leads the tabs, whatever order a page lists them in.
+const isAllTab = ([key]) => key === "" || String(key).toLowerCase() === "all";
+
 const TABS = [
   ["all", "statusAll", ListChecks],
   ["active", "statusActive", CheckCircle2],
@@ -71,7 +74,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
       {(tabs.length > 0 || actions) && (
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:flex-nowrap sm:gap-3">
       <div data-tour="status-tabs" className="thin-scrollbar order-2 -mx-1 flex w-full min-w-0 items-center gap-1.5 overflow-x-auto px-1 sm:order-1 sm:mx-0 sm:w-auto sm:px-0">
-        {tabs.map(([key, labelKey, Icon]) => {
+        {[...tabs].sort((a, b) => isAllTab(b) - isAllTab(a)).map(([key, labelKey, Icon]) => {
           const isActive = value === key;
           return (
             <button
@@ -115,7 +118,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
           className matching pixel-for-pixel (a 4px mismatch was visible
           before: the tabs' icon+count-badge content stack renders taller
           than a plain label at the same padding). */}
-      {actions && <div data-tour="add" className="order-1 ml-auto shrink-0 sm:order-2 [&>button]:h-8">{actions}</div>}
+      {actions && <div data-tour="add" className="order-1 ml-auto flex shrink-0 items-center gap-2 sm:order-2 [&>button]:h-8">{actions}</div>}
       </div>
       )}
 

@@ -50,6 +50,16 @@ export function ManualJournal() {
       .catch(() => setCurrencies([]));
   }, []);
 
+  const listActions = (
+    <>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} onClick={() => setForm({})}>
+          {t("newJournal")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -57,14 +67,9 @@ export function ManualJournal() {
           <PageTitle>{t("jrnTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("jrnSubtitle")}</p>
         </div>
-        {can("Add") && (
-          <Button size="sm" icon={Plus} onClick={() => setForm({})}>
-            {t("newJournal")}
-          </Button>
-        )}
       </div>
       <Tabs tabs={[{ key: "journals" }, { key: "settlement" }]} value={tab} onChange={setTab} labelOf={(k) => t(`jrnTab_${k}`)} />
-      {tab === "journals" && <JournalList version={version} onView={setViewing} />}
+      {tab === "journals" && <JournalList actions={listActions} version={version} onView={setViewing} />}
       {tab === "settlement" && <Settlement currencies={currencies} onSettle={can("Add") ? setForm : null} />}
       {form && (
         <JournalForm
@@ -84,7 +89,7 @@ export function ManualJournal() {
   );
 }
 
-function JournalList({ version, onView }) {
+function JournalList({ actions, version, onView }) {
   const { t } = useTranslation("accounting");
   const [status, setStatus] = useState("");
   const [range, setRange] = useState({ from: "", to: "" });
@@ -116,6 +121,7 @@ function JournalList({ version, onView }) {
   };
   return (
     <ListPanel
+      actions={actions}
       tabs={statusTabs(STATUSES, (s) => `accounting:jstatus_${s}`)}
       value={status}
       onChange={(s) => {

@@ -46,6 +46,16 @@ export function Transactions() {
 
   if (screen?.txn) return <TxnView query={screen.txn} onBack={() => setScreen(null)} onOpenRequest={(id) => setScreen({ request: id })} onStart={setAdding} />;
 
+  const listActions = (
+    <>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} onClick={() => setAdding({})}>
+          {t("newTransaction")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -55,14 +65,9 @@ export function Transactions() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        {can("Add") && (
-          <Button size="sm" icon={Plus} onClick={() => setAdding({})}>
-            {t("newTransaction")}
-          </Button>
-        )}
       </div>
       <Tabs tabs={[{ key: "journal" }, { key: "requests" }]} value={tab} onChange={setTab} />
-      {tab === "journal" ? <Journal key={reload} onOpen={(q) => setScreen({ txn: q })} /> : <Requests key={reload} openId={screen?.request} onOpenTxn={(q) => setScreen({ txn: q })} onClose={() => setScreen(null)} />}
+      {tab === "journal" ? <Journal actions={listActions} key={reload} onOpen={(q) => setScreen({ txn: q })} /> : <Requests key={reload} openId={screen?.request} onOpenTxn={(q) => setScreen({ txn: q })} onClose={() => setScreen(null)} />}
       {screen?.request && tab === "journal" && <RequestDialog id={screen.request} onClose={() => setScreen(null)} onOpenTxn={(q) => setScreen({ txn: q })} onChanged={() => setReload((n) => n + 1)} />}
       {adding && (
         <NewRequest
@@ -80,7 +85,7 @@ export function Transactions() {
 }
 
 // The journal: filters, newest first, Excel / CSV of the same filters.
-function Journal({ onOpen }) {
+function Journal({ actions, onOpen }) {
   const { t } = useTranslation(["txn", "common"]);
   const [filters, setFilters] = useState(EMPTY);
   const [applied, setApplied] = useState(EMPTY);
@@ -130,6 +135,7 @@ function Journal({ onOpen }) {
   return (
     <>
       <ListPanel
+        actions={actions}
         tabs={[]}
         search={filters.search}
         onSearch={set("search")}

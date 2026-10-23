@@ -106,6 +106,19 @@ export function Deposits() {
     setFilters((f) => ({ ...f, [key]: value }));
     setPage(1);
   };
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} onClick={() => setOpening(true)}>
+          {t("openDeposit")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -115,19 +128,10 @@ export function Deposits() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("depositsSubtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} onClick={() => setOpening(true)}>
-              {t("openDeposit")}
-            </Button>
-          )}
-        </div>
       </div>
 
       <ListPanel
+        actions={listActions}
         tabs={statusTabs(STATUSES, (key) => `deposits:dstatus_${key}`)}
         value={filters.status}
         onChange={set("status")}

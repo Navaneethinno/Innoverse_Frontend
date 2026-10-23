@@ -56,6 +56,24 @@ export function ChartOfAccounts() {
     }
   };
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={Download} onClick={() => template("XLSX")}>
+        {t("template")}
+      </Button>
+      {can("Add") && (
+        <>
+          <Button variant="secondary" size="sm" icon={Upload} onClick={() => setUploading(true)}>
+            {t("upload")}
+          </Button>
+          <Button size="sm" icon={Plus} onClick={() => setForm({ parent: null })}>
+            {t("addGl")}
+          </Button>
+        </>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -63,24 +81,9 @@ export function ChartOfAccounts() {
           <PageTitle>{t("coaTitle")}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">{t("coaSubtitle")}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" size="sm" icon={Download} onClick={() => template("XLSX")}>
-            {t("template")}
-          </Button>
-          {can("Add") && (
-            <>
-              <Button variant="secondary" size="sm" icon={Upload} onClick={() => setUploading(true)}>
-                {t("upload")}
-              </Button>
-              <Button size="sm" icon={Plus} onClick={() => setForm({ parent: null })}>
-                {t("addGl")}
-              </Button>
-            </>
-          )}
-        </div>
       </div>
       <Tabs tabs={[{ key: "tree" }, { key: "pending" }, { key: "uploads" }]} value={tab} onChange={setTab} labelOf={(k) => t(`coaTab_${k}`)} />
-      {tab === "tree" && <GlTree version={version} onView={setViewing} onAdd={can("Add") ? (parent) => setForm({ parent }) : null} />}
+      {tab === "tree" && <GlTree actions={listActions} version={version} onView={setViewing} onAdd={can("Add") ? (parent) => setForm({ parent }) : null} />}
       {tab === "pending" && <GlFlatList pending version={version} onView={setViewing} />}
       {tab === "uploads" && <GlUploads version={version} onChanged={refresh} />}
 
@@ -125,7 +128,7 @@ export function ChartOfAccounts() {
 
 // The tree, collapsed below the top level until opened; a search shows the
 // matching GLs as a flat list instead.
-function GlTree({ version, onView, onAdd }) {
+function GlTree({ actions, version, onView, onAdd }) {
   const { t } = useTranslation("accounting");
   const { term, bind } = useListSearch();
   const [tree, setTree] = useState(null);
@@ -174,6 +177,7 @@ function GlTree({ version, onView, onAdd }) {
 
   return (
     <ListPanel
+      actions={actions}
       tabs={[]}
       {...bind}
       searchPlaceholder={t("searchGl")}

@@ -97,6 +97,16 @@ export function Terminals() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
   ];
 
+  const listActions = (
+    <>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
+          {t("addTerminal")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -106,14 +116,10 @@ export function Terminals() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("terminalsSubtitle")}</p>
         </div>
-        {can("Add") && (
-          <Button icon={Plus} onClick={() => setEditing({})}>
-            {t("addTerminal")}
-          </Button>
-        )}
       </div>
 
       <ListPanel
+        actions={listActions}
         tabs={[]}
         {...searchBind}
         searchPlaceholder={t("searchTerminals")}

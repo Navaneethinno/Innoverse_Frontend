@@ -120,6 +120,19 @@ export function FeeSchedules() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (s) => <RowActions buttons={{ view: true }} onView={() => setScreen({ kind: "view", id: s.id })} /> },
   ];
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", schedule: null })}>
+          {t("newSchedule")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -129,16 +142,6 @@ export function FeeSchedules() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", schedule: null })}>
-              {t("newSchedule")}
-            </Button>
-          )}
-        </div>
       </div>
       {chooser && (
         <div className="mb-4 max-w-sm">
@@ -146,6 +149,7 @@ export function FeeSchedules() {
         </div>
       )}
       <ListPanel
+        actions={listActions}
         tabs={PENDING_TABS}
         value={tab}
         onChange={(key) => {

@@ -97,6 +97,19 @@ export function LoanApplications() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (a) => <RowActions buttons={{ view: true }} onView={() => setOpenId(a.id)} /> },
   ];
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
+          {t("newApplication")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -106,19 +119,10 @@ export function LoanApplications() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("applicationsSubtitle")}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
-              {t("newApplication")}
-            </Button>
-          )}
-        </div>
       </div>
 
       <ListPanel
+        actions={listActions}
         tabs={statusTabs(STATUSES, (s) => `loans:appStatus_${s}`)}
         value={status}
         onChange={(s) => {

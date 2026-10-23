@@ -99,6 +99,22 @@ export function LoanProducts() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (p) => <RowActions buttons={{ view: true }} onView={() => setScreen({ kind: "view", id: p.id })} /> },
   ];
 
+  const listActions = (
+    <>
+      <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
+        {t("referenceRates")}
+      </Button>
+      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
+        {t("refresh")}
+      </Button>
+      {can("Add") && (
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "wizard", product: null })}>
+          {t("newLoanProduct")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -107,19 +123,6 @@ export function LoanProducts() {
             <HandCoins size={22} className="text-primary" /> {t("productsTitle")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle")}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
-            {t("referenceRates")}
-          </Button>
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
-          {can("Add") && (
-            <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "wizard", product: null })}>
-              {t("newLoanProduct")}
-            </Button>
-          )}
         </div>
       </div>
       {ratesOpen && <ReferenceRates scope={scope} onClose={() => setRatesOpen(false)} />}
@@ -130,6 +133,7 @@ export function LoanProducts() {
       )}
 
       <ListPanel
+        actions={listActions}
         tabs={PENDING_TABS}
         value={tab}
         onChange={(key) => {
