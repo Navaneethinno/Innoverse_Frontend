@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Scale, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -11,7 +10,7 @@ import { recordOf, regulatoryProfileApi } from "@/Services/Loans/loans.api";
 import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct } from "../../Deposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct, AuditTimeline } from "../../Deposits/depositShared";
 import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "../../Loans/loanShared";
 
 const BOOLS = ["regulatory_reporting_enabled", "credit_bureau_check_required", "standing_instruction_recovery_enabled"];
@@ -212,25 +211,7 @@ export function RegulatoryProfile() {
             </Section>
           )}
           <Section title={t("history")}>
-            <PagedList items={(data.history ?? [])}>
-              {(page) => (
-                <ol className="relative grid gap-3 border-l border-border pl-4">
-                  {page.map((h, i) => (
-                    <li key={`${h.at}-${i}`} className="relative">
-                      <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                      <p className="text-xs font-bold text-foreground">
-                        {loanLabel(t, h.action)} <span className="font-medium text-muted-foreground">· {h.profile?.policy_version}</span>
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {h.actor} · {accountDate(h.at)}
-                      </p>
-                      {h.narration?.trim() && <p className="mt-0.5 text-xs italic">“{h.narration}”</p>}
-                    </li>
-                  ))}
-                  {!data.history?.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
-                </ol>
-              )}
-            </PagedList>
+            <AuditTimeline audit={(data.history ?? []).map((h) => ({ ...h, status_name: h.profile?.policy_version }))} />
           </Section>
         </div>
       )}

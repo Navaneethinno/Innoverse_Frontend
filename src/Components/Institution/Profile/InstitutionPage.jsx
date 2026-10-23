@@ -1,3 +1,5 @@
+import { AuditHistory } from "@/Components/Common/AuditModal";
+import { AUDIT_FIELDS, institutionAudit } from "./AuditInstitutionProfile";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -6,7 +8,7 @@ import { Button } from "@/Components/Common/Button";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { RowActions } from "@/Components/Common/RowActions";
-import { AuditTimeline, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { Tabs } from "@/Components/Finance/Loans/loanShared";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -37,7 +39,6 @@ export function InstitutionPage() {
   const [badSections, setBadSections] = useState(() => new Set());
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState(false);
-  const [audit, setAudit] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -58,16 +59,6 @@ export function InstitutionPage() {
   useEffect(() => {
     if (data && !tab) setTab(data.setup && !data.setup.ready ? "setup" : "profile");
   }, [data, tab]);
-  useEffect(() => {
-    if (tab !== "history" || audit) return;
-    institutionsApi
-      .audit({ id: Number(id), page: 1, limit: 100 })
-      .then((r) => setAudit(rowsOf(r).map((e) => ({ action: e.audit_action ?? e.process_status_name, process_status_name: e.process_status_name ?? e.status_name, actor: e.updated_by ?? e.created_by, at: e.updated_time ?? e.created_time, narration: e.narration }))))
-      .catch((e) => {
-        notifications.error(e.message);
-        setAudit([]);
-      });
-  }, [tab, audit, id]);
 
   // Opened with ?edit=1 (the list's Edit): the form starts filled.
   useEffect(() => {
@@ -252,7 +243,7 @@ export function InstitutionPage() {
           </div>
         ))}
 
-      {tab === "history" && (audit ? <AuditTimeline audit={audit} empty={t("institutions:noHistory")} /> : <PageSkeleton />)}
+      {tab === "history" && <AuditHistory fetchAudit={institutionAudit(Number(id))} fields={AUDIT_FIELDS} reloadKey={id} />}
 
       {actions.dialogs}
     </div>

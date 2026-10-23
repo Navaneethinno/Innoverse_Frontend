@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Plus, Send, XCircle } from "lucide-react";
 import { AmountInput } from "@/Components/Common/AmountInput";
@@ -11,7 +10,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
-import { ActionButtons, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { ActionButtons, NarrationDialog, Problems, Section, inputClass, labelClass, AuditTimeline } from "@/Components/Finance/Deposits/depositShared";
 import { useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -212,28 +211,14 @@ function LimitDetail({ userId, onClose, onChanged }) {
             ))}
           </div>
           <Section title={t("history")}>
-            <PagedList items={audit}>
-              {(page) => (
-                <ol className="relative grid gap-3 border-l border-border pl-4">
-                  {page.map((entry) => (
-                    <li key={entry.id} className="relative">
-                      <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                      <p className="text-xs font-bold">
-                        {t(`limitAudit_${entry.action}`, { defaultValue: entry.action })} · {entry.currency_code}
-                      </p>
-                      <p className="text-xs tabular-nums">
-                        <LimitsText limits={entry.limits} code={entry.currency_code} />
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {entry.actor_userid_name || entry.actor} · {formatDateTime(entry.created_time)}
-                      </p>
-                      {entry.narration?.trim() && <p className="mt-0.5 text-xs italic">“{entry.narration}”</p>}
-                    </li>
-                  ))}
-                  {!audit.length && <li className="text-sm text-muted-foreground">{t("noLimitHistory")}</li>}
-                </ol>
+            <AuditTimeline
+              audit={audit.map((e) => ({ ...e, action: t(`limitAudit_${e.action}`, { defaultValue: e.action }), actor: e.actor_userid_name || e.actor, at: e.created_time, status_name: e.currency_code }))}
+              renderExtra={(e) => (
+                <p className="mt-2 text-xs tabular-nums">
+                  <LimitsText limits={e.limits} code={e.currency_code} />
+                </p>
               )}
-            </PagedList>
+            />
           </Section>
         </div>
       )}

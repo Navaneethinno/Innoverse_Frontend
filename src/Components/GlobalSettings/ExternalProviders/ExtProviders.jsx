@@ -311,7 +311,7 @@ function SetupView({ id, onBack, onEdit }) {
       )}
 
       <Section title={t("fees:history")}>
-        <AuditTimeline audit={audit} empty={t("fees:nothingYet")} />
+        <AuditTimeline audit={audit} />
       </Section>
 
       {dialog && (

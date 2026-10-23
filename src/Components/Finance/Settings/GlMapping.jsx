@@ -164,7 +164,7 @@ export function GlMapping() {
       {tab === "unmapped" && <Unmapped />}
       {tab === "history" && (
         <Section title={t("history")}>
-          <AuditTimeline audit={audit} empty={t("nothingYet")} />
+          <AuditTimeline audit={audit} />
         </Section>
       )}
       {dialog}

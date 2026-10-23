@@ -196,7 +196,7 @@ export function InstitutionWizard() {
           })}
         </ol>
 
-        <div className="min-w-0 rounded-2xl border border-border bg-card p-5">
+        <div className="h-fit min-w-0 rounded-2xl border border-border bg-card p-5">
           {section ? (
             <>
               <h2 className="text-lg font-black text-foreground">{section.title}</h2>

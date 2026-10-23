@@ -253,21 +253,55 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
 // newest records), and page backwards (totalPages-1, totalPages-2, ...)
 // as the user scrolls for older history — newest is visible immediately,
 // no scrolling required, and scrolling reveals progressively older pages.
-export function AuditModal({
-  title,
+// An event-style audit entry ({action, actor, at, narration, status...})
+// read as a record-style one, so both draw the same way.
+const asRecord = (entry) =>
+  entry && entry.audit_action == null && entry.action != null
+    ? {
+        ...entry,
+        audit_action: entry.action,
+        created_by: entry.created_by ?? entry.actor,
+        created_time: entry.created_time ?? entry.at,
+        auth_status: entry.auth_status ?? entry.process_status_name ?? entry.status_name,
+      }
+    : entry;
+
+// A raw action code ("EDIT_AUTH", "SELF") as words.
+export const auditActionLabel = (t, code) =>
+  code == null || code === "" ? "" : t([`common:auditAction_${String(code).toUpperCase()}`, `deposits:audit_${code}`], { defaultValue: String(code).replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) });
+
+// The audit modal: the shared history inside a modal.
+export function AuditModal({ title, onClose, ...history }) {
+  const { t } = useTranslation();
+  return (
+    <Modal open onClose={onClose} size="xl" title={`${t("common:audit")} — ${title}`} icon={<History size={15} />}>
+      <AuditHistory {...history} reloadKey={title} />
+    </Modal>
+  );
+}
+
+// A record's history, the same everywhere: in the audit modal and on every
+// page's History tab. `fetchAudit(page, limit)` pages it from the server;
+// `entries` (already loaded) is used as given. Each entry: its action in
+// words, status, the fields, what changed (before -> after), who and when.
+export function AuditHistory({
   fields: allFields,
-  onClose,
-  getActionLabel = (entry) => entry.audit_action,
+  getActionLabel,
   getEntryKey = (entry, index) => entry.id ?? entry.audit_key ?? index,
   renderExtra,
   fetchAudit,
+  entries: given,
+  reloadKey,
   auditLimit = 10,
 }) {
   const { t } = useTranslation();
+  const actionLabel = getActionLabel ?? ((entry) => auditActionLabel(t, entry.audit_action));
   // A bank / fintech user only ever sees its own institution: no
   // institution line in the history.
   const canChoose = useCanChooseInstitution();
-  const fields = canChoose ? allFields : (allFields ?? []).filter(([key]) => !["inst_profile_name", "inst_profile_id"].includes(key));
+  // Entries given as events (no fields asked for) show no field grid.
+  const asked = allFields ?? (given ? [] : undefined);
+  const fields = canChoose ? asked : (asked ?? []).filter(([key]) => !["inst_profile_name", "inst_profile_id"].includes(key));
   const [entries, setEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -299,10 +333,14 @@ export function AuditModal({
     setNextPage(null);
     (async () => {
       try {
+        if (!fetchAudit) {
+          if (!cancelled) setEntries((given ?? []).map(asRecord));
+          return;
+        }
         const first = await fetchAudit(1, auditLimit);
         const totalPages = Math.max(1, first?.totalPages ?? 1);
         totalPagesRef.current = totalPages;
-        const firstEntries = first?.entries ?? [];
+        const firstEntries = (first?.entries ?? []).map(asRecord);
         if (totalPages <= 1) {
           if (!cancelled) {
             setEntries(firstEntries);
@@ -330,7 +368,7 @@ export function AuditModal({
         pageStepRef.current = -1;
         const last = await fetchAudit(totalPages, auditLimit);
         if (!cancelled) {
-          setEntries(last?.entries ?? []);
+          setEntries((last?.entries ?? []).map(asRecord));
           setNextPage(totalPages - 1);
           setHasMore(totalPages - 1 >= 1);
         }
@@ -346,7 +384,7 @@ export function AuditModal({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, retryToken]);
+  }, [reloadKey, retryToken, given]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || nextPage == null) return;
@@ -354,7 +392,7 @@ export function AuditModal({
     setLoadMoreError(null);
     try {
       const page = await fetchAudit(nextPage, auditLimit);
-      setEntries((current) => [...current, ...(page?.entries ?? [])]);
+      setEntries((current) => [...current, ...(page?.entries ?? []).map(asRecord)]);
       const step = pageStepRef.current;
       const following = nextPage + step;
       setHasMore(step > 0 ? following <= totalPagesRef.current : following >= 1);
@@ -366,11 +404,6 @@ export function AuditModal({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingMore, hasMore, nextPage, auditLimit]);
-
-  const handleBodyScroll = (event) => {
-    const el = event.target;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 150) void loadMore();
-  };
 
   // Each fetched page is sorted newest-first within itself — pages arrive
   // newest-page-first already (see the fetch strategy above), so entries
@@ -430,17 +463,7 @@ export function AuditModal({
   }, [sortedEntries, fields]);
 
   return (
-    <Modal
-      open
-      onClose={onClose}
-      size="xl"
-      title={`${t("common:audit")} — ${title}`}
-      subtitle={`${entries.length} ${entries.length === 1 ? t("common:record") : t("common:recordsWord")}${
-        hasMore ? " · " + t("common:scrollForMore") : ""
-      }`}
-      icon={<History size={15} />}
-      onBodyScroll={handleBodyScroll}
-    >
+    <>
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -467,7 +490,7 @@ export function AuditModal({
               key={getEntryKey(entry, index)}
               entry={entry}
               fields={fields}
-              getActionLabel={getActionLabel}
+              getActionLabel={actionLabel}
               renderExtra={renderExtra}
               t={t}
             />
@@ -480,13 +503,15 @@ export function AuditModal({
             ) : loadingMore ? (
               t("common:loadingMore")
             ) : hasMore ? (
-              t("common:scrollForMore")
+              <button type="button" onClick={() => void loadMore()} className="font-semibold text-[var(--primary)] hover:underline">
+                {t("common:loadOlder")}
+              </button>
             ) : (
               t("common:allHistoryLoaded")
             )}
           </div>
         </div>
       )}
-    </Modal>
+    </>
   );
 }

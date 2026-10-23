@@ -270,7 +270,7 @@ function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
       {tab === "acceptances" && <AcceptancesTab id={id} options={options} />}
       {tab === "history" && (
         <Section title={t("tab_history")}>
-          <AuditTimeline audit={audit} empty={t("nothingYet")} />
+          <AuditTimeline audit={audit} />
         </Section>
       )}
 

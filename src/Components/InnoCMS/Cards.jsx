@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, Repeat, ShieldAlert, Truck } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -18,7 +17,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { NewRequest } from "@/Components/Finance/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../Finance/Deposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../Finance/Deposits/depositShared";
 import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord } from "./cardOpsShared";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
@@ -322,27 +321,20 @@ function CardView({ id, options, onBack, onOpen }) {
       </Section>
 
       <Section title={t("history")}>
-        <PagedList items={(card.history ?? [])}>
-          {(page) => (
-            <ol className="relative grid gap-3 border-l border-border pl-4">
-              {page.map((h, i) => (
-                <li key={`${h.changed_time}-${i}`} className="relative">
-                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                  <p className="text-xs font-bold text-foreground">
-                    {cardWord(t, "reason", h.reason_code)}
-                    {h.to_ops_status && h.to_ops_status !== h.from_ops_status && <span className="font-medium text-muted-foreground"> · {[h.from_ops_status && cardWord(t, "ops", h.from_ops_status), cardWord(t, "ops", h.to_ops_status)].filter(Boolean).join(" → ")}</span>}
-                    {h.to_issuance_status && h.to_issuance_status !== h.from_issuance_status && <span className="font-medium text-muted-foreground"> · {[h.from_issuance_status && cardWord(t, "iss", h.from_issuance_status), cardWord(t, "iss", h.to_issuance_status)].filter(Boolean).join(" → ")}</span>}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {h.changed_by} · {cardWord(t, "actor", h.actor_type)} · {h.channel} · {accountDate(h.changed_time)}
-                  </p>
-                  {h.reason_text?.trim() && <p className="mt-0.5 text-xs italic">“{h.reason_text}”</p>}
-                </li>
-              ))}
-              {!card.history?.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
-            </ol>
-          )}
-        </PagedList>
+        <AuditTimeline
+          audit={(card.history ?? []).map((h) => ({
+            id: h.id,
+            action: cardWord(t, "reason", h.reason_code),
+            actor: [h.changed_by, cardWord(t, "actor", h.actor_type), h.channel].filter(Boolean).join(" · "),
+            at: h.changed_time,
+            narration: h.reason_text,
+            // Status moves as the "what changed" panel.
+            changes: [
+              h.to_ops_status && h.to_ops_status !== h.from_ops_status && { field: t("opsStatus"), current: h.from_ops_status ? cardWord(t, "ops", h.from_ops_status) : null, proposed: cardWord(t, "ops", h.to_ops_status) },
+              h.to_issuance_status && h.to_issuance_status !== h.from_issuance_status && { field: t("issuanceStatus"), current: h.from_issuance_status ? cardWord(t, "iss", h.from_issuance_status) : null, proposed: cardWord(t, "iss", h.to_issuance_status) },
+            ].filter(Boolean),
+          }))}
+        />
       </Section>
 
       <ConfirmDialog open={dialog === "activate"} title={t("activateTitle")} description={t("activateHint")} confirmLabel={t("activate")} pending={busy} onClose={() => setDialog(null)} onConfirm={() => act(() => cardsApi.activate({ id }))} />

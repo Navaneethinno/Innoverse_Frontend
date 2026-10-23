@@ -9,10 +9,10 @@ import { institutionsApi } from "@/Services/Institution/institutions.api";
 // Field labels/order confirmed against a real POST /institution/profile/audit
 // response — see institutionHooks.js's mapInstitutionListResponse comment
 // for the full envelope shape this was verified against.
-const AUDIT_FIELDS = [
+export const AUDIT_FIELDS = [
   ["code", "Code"],
   ["name", "Name"],
-  ["type", "Type"],
+  ["type_name", "Type"],
   ["timezone", "Timezone"],
   ["date_format", "Date Format"],
   ["number_format", "Number Format"],
@@ -23,18 +23,21 @@ const AUDIT_FIELDS = [
 // the audit history itself instead of a second request. /pending stays in
 // use for AuthInstitutionProfile/DeauthInstitutionProfile, which are
 // asking about a currently-open request, not history.
+// One institution's audit, a page at a time (the Audit window and the
+// institution page's History tab).
+export const institutionAudit = (id) => (page, limit) =>
+  institutionsApi.audit({ id, page, limit }).then((response) => {
+    const mapped = mapInstitutionListResponse(response);
+    return { entries: mapped.institutions, totalPages: mapped.pagination?.totalPages ?? 1 };
+  });
+
 export function AuditInstitutionProfile({ institution, institutionId, onClose }) {
   return (
     <AuditModal
       title={institution?.name ?? institution?.code ?? `#${institutionId}`}
       fields={AUDIT_FIELDS}
       onClose={onClose}
-      fetchAudit={(page, limit) =>
-        institutionsApi.audit({ id: institutionId, page, limit }).then((response) => {
-          const mapped = mapInstitutionListResponse(response);
-          return { entries: mapped.institutions, totalPages: mapped.pagination?.totalPages ?? 1 };
-        })
-      }
+      fetchAudit={institutionAudit(institutionId)}
     />
   );
 }
