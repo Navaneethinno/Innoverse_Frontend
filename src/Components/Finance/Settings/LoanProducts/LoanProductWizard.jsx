@@ -11,7 +11,7 @@ import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { moveItem, useDragReorder } from "@/Components/Common/dragReorder";
-import { Problems, Section, firstProblemStep, problemFields, problemStepOf, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
+import { Problems, Section, firstProblemStep, focusProblemField, problemFields, problemStepOf, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
 import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
@@ -165,6 +165,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       return newId;
     } catch (e) {
       fail(e);
+      focusProblemField(e.problemKeys?.find((k) => k?.field)?.field);
       return null;
     } finally {
       setBusy(false);
@@ -193,6 +194,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       // Go to the step the first problem belongs to.
       const target = firstProblemStep(e.message, stepOf, e.problemKeys);
       if (target) setStep(STEPS.indexOf(target));
+      focusProblemField(e.problemKeys?.find((k) => k?.field)?.field);
     } finally {
       setBusy(false);
     }

@@ -80,6 +80,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
     <TypedInput
       type={type === "date" ? "date" : "text"}
       inputMode={clean && type !== "code" ? (type === "int" ? "numeric" : "decimal") : undefined}
+      name={field.key}
       aria-invalid={invalid || undefined}
       className={cn(inputClass, "mt-1", clean && "tabular-nums", type === "code" && "font-mono", invalid && "border-red-400 ring-2 ring-red-200")}
       disabled={disabled}

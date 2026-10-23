@@ -789,6 +789,14 @@ textarea:disabled {
 }
 
 /* A table row a live update changed. */
+/* A refused field the user was taken to: a red pulse that settles. */
+.field-flash {
+  animation: field-flash 1.6s ease-out 2;
+}
+@keyframes field-flash {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(239 68 68 / 0); }
+  30% { box-shadow: 0 0 0 6px rgb(239 68 68 / 0.35); }
+}
 .row-flash > td {
   animation: row-flash 1.6s ease-out;
 }

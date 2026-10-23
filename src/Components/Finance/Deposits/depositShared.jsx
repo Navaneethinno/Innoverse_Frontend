@@ -130,6 +130,22 @@ const problemLines = (message) =>
 // step outright; the text is only read when a problem has none.
 export const firstProblemStep = (message, stepOf, keys = []) => problemLines(message).map((text, i) => stepOf(text, keys[i])).find(Boolean) ?? null;
 
+// Brings a refused field into view once its step has rendered: scrolled to
+// the middle of the screen, focused, and pulsed red. `field` is the
+// server's field name (an input's `name`); without one, the first outlined
+// (aria-invalid) input.
+export function focusProblemField(field) {
+  window.setTimeout(() => {
+    const el = (field && document.querySelector(`[name="${CSS.escape(field)}"][aria-invalid="true"]`)) || (field && document.querySelector(`[name="${CSS.escape(field)}"]`)) || document.querySelector('[aria-invalid="true"]');
+    if (!el) return;
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+    el.classList.remove("field-flash");
+    void el.offsetWidth;
+    el.classList.add("field-flash");
+  }, 80);
+}
+
 // The fields the server refused in one section (to outline them).
 export const problemFields = (keys, section) => (keys ?? []).filter((k) => k?.field && k.section === section).map((k) => k.field);
 
@@ -159,7 +175,14 @@ export function Problems({ message, stepOf, onGo, stepLabel, keys = [], fieldLab
                 {label && <span className="font-bold">{label}: </span>}
                 {text}
                 {target && (
-                  <button type="button" onClick={() => onGo(target)} className="ml-2 font-bold underline underline-offset-2 hover:text-red-900">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onGo(target);
+                      focusProblemField(key?.field);
+                    }}
+                    className="ml-2 font-bold underline underline-offset-2 hover:text-red-900"
+                  >
                     {t("fixIn", { step: stepLabel(target) })}
                   </button>
                 )}
