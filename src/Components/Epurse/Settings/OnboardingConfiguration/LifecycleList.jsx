@@ -1,6 +1,7 @@
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useState } from "react";
+import { useServerList } from "@/Hooks/useServerList";
+import { ListTable } from "@/Components/Common/ListView";
+import { useEffect, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { RowActions } from "@/Components/Common/RowActions";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -9,14 +10,11 @@ import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { describeConfirmAction } from "@/Components/MakerChecker/confirmActionText";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useAuth } from "@/Hooks/useAuth";
 
 
@@ -62,19 +60,10 @@ export function LifecycleList({
   const auditFields = auditFieldsProp ?? [["code", t("onboarding:code")], ["name", t("onboarding:name")]];
   const can = usePagePermission(menuName);
   const username = useAuth((state) => state.user?.username);
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [tab, setTab] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [view, setView] = useState(null);
   const [audit, setAudit] = useState(null);
   const [action, setAction] = useState(null);
   const [pending, setPending] = useState(false);
-  const filterKey = JSON.stringify(filter);
 
   const pendingInfo = usePendingChanges(
     api.pending,
@@ -82,22 +71,13 @@ export function LifecycleList({
     Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await latestList(api.list({ ...searchBody, page, limit, ...JSON.parse(filterKey), filter: tab, sort_by: sortBy }));
-      setRows(rowsOf(response));
-      setPagination(response?.pagination ?? {});
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [api, searchBody, latestList, page, limit, filterKey, tab, sortBy]);
+  // `filter`: what the screen pins the list to (a definition's versions).
+  const list = useServerList({ api: api.listPath, call: api.list, extra: Object.keys(filter).length ? filter : null });
+  const load = list.reload;
   useEffect(() => {
-    void load();
-  }, [load, reloadKey]);
-  useLiveChannel(api.listPath, () => void load());
+    if (reloadKey) load();
+  }, [reloadKey, load]);
+  useLiveChannel(api.listPath, () => load());
 
 
   const run = async () => {
@@ -108,7 +88,7 @@ export function LifecycleList({
       const response = await api[verb](payload);
       notifications.success(apiMessage(response, t("onboarding:actionCompleted", { title })));
       setAction(null);
-      await load();
+      load();
       onChanged?.(action.type, action.row);
     } catch (error) {
       notifications.error(error.message);
@@ -174,38 +154,14 @@ export function LifecycleList({
         </div>
         {toolbar}
       </div>
-      <div
-        className="mb-4 overflow-hidden rounded-2xl"
-        style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
-      >
-        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-          rows={rows}
-          value={tab}
-          onChange={(next) => { setTab(next); setPage(1); }}
-          {...searchBind}
-          searchPlaceholder={t("onboarding:searchTitle", { title: title.toLowerCase() })}
+      <div className="mb-4">
+        <ListTable
+          list={list}
           actions={addButton && can("Add") ? addButton : null}
-          bare
-        />
-        <DataTable
           columns={tableColumns}
-          rows={rows}
           rowKey={(row) => row.id}
-          isLoading={loading}
           title={title}
           emptyTitle={emptyTitle ?? t("onboarding:noTitleFound", { title: title.toLowerCase() })}
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
         />
       </div>
 
