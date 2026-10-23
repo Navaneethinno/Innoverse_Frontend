@@ -43,7 +43,10 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   const containerRef = useRef(null);
   const panelRef = useRef(null);
   const searchInputRef = useRef(null);
-  const selected = options.find((option) => option.value === value) ?? options[0];
+  // Matched as text: a saved 2 (number) is the option "2". A value no option
+  // holds is shown as itself, never swapped for the first option.
+  const same = (option) => String(option.value ?? "") === String(value ?? "");
+  const selected = options.find(same) ?? (value == null || value === "" ? options[0] : { value, label: String(value) });
   const showSearch = options.length > SEARCH_THRESHOLD;
   const visibleOptions = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -60,7 +63,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
 
   // Opening starts on the chosen option; a new search on the first match.
   useEffect(() => {
-    if (isOpen) setHighlight(Math.max(0, options.findIndex((option) => option.value === value)));
+    if (isOpen) setHighlight(Math.max(0, options.findIndex(same)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
   useEffect(() => {
@@ -227,7 +230,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
               <p className="px-3 py-2 text-sm text-muted-foreground">{t("noMatches")}</p>
             )}
             {visibleOptions.map((option, index) => {
-              const isActive = option.value === value;
+              const isActive = same(option);
               return (
                 <button
                   key={option.value}

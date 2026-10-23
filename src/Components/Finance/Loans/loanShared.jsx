@@ -52,13 +52,13 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
       <div className="mt-1 flex flex-wrap gap-1.5">
         {options.map((o) => {
           const v = typeof o === "object" ? o.value : o;
-          const on = list.includes(v);
+          const on = list.some((x) => String(x) === String(v));
           return (
             <button
               key={v}
               type="button"
               disabled={disabled}
-              onClick={() => onChange(on ? list.filter((x) => x !== v) : [...list, v])}
+              onClick={() => onChange(on ? list.filter((x) => String(x) !== String(v)) : [...list, v])}
               className={cn("rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors", on ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary hover:text-primary")}
             >
               {typeof o === "object" ? o.label : loanLabel(t, o)}
@@ -72,7 +72,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
     amount: (v) => amountInput(v, decimals),
     rate: (v) => amountInput(v, 6),
     percent: percentInput,
-    int: (v) => String(v).replace(/\D/g, ""),
+    int: (v) => String(v).replace(/\D/g, "").replace(/^0+(?=\d)/, ""),
     // A code: capital letters, digits and _ only, as the server requires.
     code: (v) => String(v).toUpperCase().replace(/[^A-Z0-9_]/g, ""),
   }[type];

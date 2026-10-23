@@ -39,7 +39,7 @@ export function SegmentedSwitch({ options, value, onChange, className = "" }) {
         />
       )}
       {options.map((option) => {
-        const active = option.value === value;
+        const active = String(option.value) === String(value);
         return (
           <button
             key={option.value}

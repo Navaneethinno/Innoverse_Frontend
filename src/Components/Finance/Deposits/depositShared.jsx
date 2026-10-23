@@ -23,7 +23,8 @@ export const ratePct = (value) => (value == null || value === "" ? "—" : `${fo
 // decimals (the currency's). Kept a string, as the server wants it.
 export const amountInput = (value, decimals = 2) => {
   const clean = String(value ?? "").replace(/[^\d.]/g, "");
-  const [whole, ...rest] = clean.split(".");
+  // A leading 0 goes once a digit is typed after it ("05" -> "5", "0.5" stays).
+  const [whole, ...rest] = clean.split(".").map((part, i) => (i === 0 ? part.replace(/^0+(?=\d)/, "") : part));
   return rest.length ? `${whole}.${rest.join("").slice(0, decimals)}` : whole;
 };
 
