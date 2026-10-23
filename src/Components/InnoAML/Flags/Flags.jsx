@@ -1,28 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Ban, BriefcaseBusiness, CheckCircle2, Flag, ListChecks, XCircle } from "lucide-react";
+import { ArrowRight, Ban, BriefcaseBusiness, CheckCircle2 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
 import { RaiseCaseDialog } from "@/Components/CaseManagement/AmlCases";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { amlFlagApi } from "@/Services/InnoAML/aml.api";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { BandBadge, CUSTOMER_KINDS, when } from "../Shared/amlShared";
+import { BandBadge, when } from "../Shared/amlShared";
 
-const STATES = [
-  ["OPEN", "aml:flagState_OPEN", Flag],
-  ["CASE_RAISED", "aml:flagState_CASE_RAISED", BriefcaseBusiness],
-  ["DISMISSED", "aml:flagState_DISMISSED", XCircle],
-  ["ALL", "aml:flagState_ALL", ListChecks],
-];
 const STATE_TONE = { OPEN: "bg-amber-50 text-amber-700", CASE_RAISED: "bg-sky-50 text-sky-700", DISMISSED: "bg-muted text-muted-foreground" };
 
 // A band as the flag carries it: its colour when set.
@@ -37,55 +28,21 @@ export function Flags() {
   const can = usePagePermission();
   const canRaise = useMenuPermission("AML Cases")("Add");
   const openMenu = useOpenMenu();
-  const [state, setState] = useState("OPEN");
-  const [filters, setFilters] = useState({ customer_kind: "", blacklisted: "" });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, latest, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ flags: [], total: 0, open: 0 });
-  const [loading, setLoading] = useState(true);
   const [raising, setRaising] = useState(null);
   const [dismissing, setDismissing] = useState(null);
   const [working, setWorking] = useState(false);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const body = {
-          page,
-          limit,
-          state,
-          ...(term ? { search: term } : {}),
-          ...(filters.customer_kind ? { customer_kind: filters.customer_kind } : {}),
-          ...(filters.blacklisted ? { blacklisted: true } : {}),
-        };
-        const row = rowsOf(await latest(amlFlagApi.list(body)))[0] ?? {};
-        setData({ flags: row.flags ?? [], total: row.total ?? 0, open: row.open ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, limit, state, term, filters, latest],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(amlFlagApi.listPath, () => void load({ silent: true }));
+  const list = useServerList({ api: amlFlagApi.listPath, call: amlFlagApi.list });
 
-  const setFilter = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
-  };
+  const load = list.reload;
+  useLiveChannel(amlFlagApi.listPath, () => load());
   const dismiss = async (comment) => {
     setWorking(true);
     try {
       const response = await amlFlagApi.dismiss({ id: dismissing.id, comment });
       notifications.success(apiMessage(response, t("aml:flagDismissed")));
       setDismissing(null);
-      void load({ silent: true });
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -174,54 +131,7 @@ export function Flags() {
         <PageTitle>{t("aml:flagsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("aml:flagsSubtitle")}</p>
       </div>
-      <ListPanel
-        tabs={STATES}
-        value={state}
-        onChange={(next) => {
-          setState(next);
-          setPage(1);
-        }}
-        counts={{ OPEN: data.open, [state]: data.total }}
-        {...searchBind}
-        searchPlaceholder={t("aml:searchFlags")}
-        filters={
-          <>
-            <FilterSelect size="sm" className="w-48" value={filters.customer_kind} onChange={setFilter("customer_kind")} options={[{ value: "", label: t("aml:allKinds") }, ...CUSTOMER_KINDS.map((k) => ({ value: k, label: t(`aml:kind_${k}`, { defaultValue: k }) }))]} />
-            <FilterSelect
-              size="sm"
-              className="w-44"
-              value={filters.blacklisted}
-              onChange={setFilter("blacklisted")}
-              options={[
-                { value: "", label: t("aml:blacklistAny") },
-                { value: "YES", label: t("aml:blacklistYes") },
-              ]}
-            />
-          </>
-        }
-      >
-        <DataTable
-          columns={columns}
-          rows={data.flags}
-          rowKey={(f) => f.id}
-          isLoading={loading}
-          title={t("aml:flagsTitle")}
-          emptyTitle={state === "OPEN" ? t("aml:noOpenFlags") : t("aml:noFlags")}
-          serverSorted
-          bare
-          serverPagination={{
-            page,
-            totalPages: Math.max(1, Math.ceil(data.total / limit)),
-            totalRecords: data.total,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (n) => {
-              setLimit(n);
-              setPage(1);
-            },
-          }}
-        />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(f) => f.id} title={t("aml:flagsTitle")} emptyTitle={list.toolbar.tab === "OPEN" ? t("aml:noOpenFlags") : t("aml:noFlags")} />
 
       {raising && (
         <RaiseCaseDialog

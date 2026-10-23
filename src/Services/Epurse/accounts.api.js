@@ -11,6 +11,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //   txn:  { txn_id or rrn } -> one transaction with all its lines
 // acct_class: CUSTOMER is a wallet, DEPOSIT a term deposit's own account.
 export const accountsApi = {
+  listPath: "/config/account/list",
   list: (body) => request("/config/account/list", body),
   get: (body) => request("/config/account/get", body),
   ledger: (body) => request("/config/account/ledger", body),

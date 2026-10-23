@@ -1,18 +1,15 @@
-import { statusTabs } from "@/Components/Common/listTabs";
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ClipboardCheck, Download, FileBarChart, Plus, RefreshCw } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, Download, FileBarChart, Plus } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { recordOf, regulatorySubmissionsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -21,7 +18,6 @@ import { FormDialog } from "../loanDialogs";
 import { MiniTable, loanLabel, useInstitutionScope } from "../loanShared";
 
 const REPORT_TYPES = ["LOAN_BOOK", "CREDIT_REGISTRY"];
-const STATUSES = ["GENERATED", "SUBMITTED", "REJECTED"];
 const RECORD_COLUMNS = ["facility_number", "borrower_type", "borrower_id", "product_code", "currency", "principal_disbursed", "principal_outstanding", "annual_rate", "disbursement_date", "maturity_date", "status", "days_past_due", "risk_class", "provision", "restructure_count", "written_off_amount", "recovered_amount"];
 
 // The records as a CSV file, downloaded in the browser.
@@ -46,30 +42,13 @@ export function RegulatorySubmissions() {
   const { t } = useTranslation(["loans", "common"]);
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
-  const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const row = rowsOf(await regulatorySubmissionsApi.list(scope({ page, page_size: limit, ...(status ? { status } : {}), ...(type ? { report_type: type } : {}) })))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [status, type, page, limit, scope]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: regulatorySubmissionsApi.listPath, call: regulatorySubmissionsApi.list });
+
+  const load = list.reload;
 
   if (openId) {
     return (
@@ -77,7 +56,7 @@ export function RegulatorySubmissions() {
         id={openId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
@@ -91,7 +70,7 @@ export function RegulatorySubmissions() {
       setGenerating(false);
       const report = recordOf(response);
       if (report?.id) setOpenId(report.id);
-      else void load();
+      else load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -113,9 +92,6 @@ export function RegulatorySubmissions() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setGenerating(true)}>
           {t("generateReport")}
@@ -139,50 +115,7 @@ export function RegulatorySubmissions() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <ListPanel
-        actions={listActions}
-        tabs={statusTabs(STATUSES, (s) => `loans:reportStatus_${s}`)}
-        value={status}
-        onChange={(s) => {
-          setStatus(s);
-          setPage(1);
-        }}
-        filters={
-          <>
-              <FilterSelect
-                value={type}
-                onChange={(v) => {
-                  setType(v);
-                  setPage(1);
-                }}
-                options={[{ value: "", label: t("anyReportType") }, ...REPORT_TYPES.map((v) => ({ value: v, label: loanLabel(t, v) }))]}
-              />
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("submissionsTitle")}
-        emptyTitle={t("noReports")}
-        emptyDescription={t("noReportsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("submissionsTitle")} emptyTitle={t("noReports")} emptyDescription={t("noReportsHint")} />
       {generating && (
         <FormDialog
           title={t("generateReport")}

@@ -1,11 +1,10 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Unlink, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { CopyButton } from "@/Components/Common/CopyButton";
-import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -19,7 +18,6 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../../Finance/Deposits/depositShared";
 import { MmsStatus, mmsDate, pageOf, partyKey, partyRef } from "../mmsShared";
 
-const STATUSES = ["PENDING", "ACTIVE", "REJECTED", "BLOCKED", "RETIRED"];
 // "POS terminal · PAX A920" (no make or model: just the type).
 const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
 // TID: 4 to 16 of A-Z and 0-9.
@@ -30,35 +28,14 @@ const tidOf = (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
 export function Terminals() {
   const { t } = useTranslation(["mms", "common"]);
   const can = usePagePermission();
-  const [filters, setFilters] = useState({ status: "", block_requested: false });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [result, setResult] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
   // TID, serial number or name.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = { ...searchBody, page, limit, ...(filters.status ? { status: filters.status } : {}), ...(filters.block_requested ? { block_requested: true } : {}) };
-      setResult(pageOf(await latestList(terminalsApi.list(body))));
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchBody, latestList, filters, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(terminalsApi.listPath, () => void load());
-  const setFilter = (patch) => {
-    setFilters((f) => ({ ...f, ...patch }));
-    setPage(1);
-  };
+  const list = useServerList({ api: terminalsApi.listPath, call: terminalsApi.list });
+
+  const load = list.reload;
+  useLiveChannel(terminalsApi.listPath, () => load());
 
   const columns = [
     {
@@ -118,43 +95,7 @@ export function Terminals() {
         </div>
       </div>
 
-      <ListPanel
-        actions={listActions}
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("searchTerminals")}
-        filters={
-          <>
-            <FilterSelect value={filters.status} onChange={(status) => setFilter({ status })} options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
-            <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-              <input type="checkbox" className="h-4 w-4 accent-[var(--primary)]" checked={filters.block_requested} onChange={(e) => setFilter({ block_requested: e.target.checked })} />
-              {t("blockRequestedOnly")}
-            </label>
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={result.items}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("terminalsTitle")}
-        emptyTitle={t("noTerminals")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(result.total / limit)),
-          totalRecords: result.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("terminalsTitle")} emptyTitle={t("noTerminals")} />
       {viewing && (
         <TerminalDetail
           terminal={viewing}

@@ -1,11 +1,9 @@
-import { statusTabs } from "@/Components/Common/listTabs";
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileSignature, HandCoins, MessageSquareWarning, Pencil, Plus, RefreshCw, ShieldCheck, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileSignature, HandCoins, MessageSquareWarning, Pencil, Plus, ShieldCheck, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -21,7 +19,6 @@ import { ApplicationForm, Disclosure } from "./ApplicationForm";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
-const STATUSES = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFORMATION_REQUIRED", "APPROVED", "DECLINED", "WITHDRAWN", "CONVERTED"];
 
 // LOANS > Loan Applications (menu 186): staff apply for a borrower, record
 // the offer's acceptance, credit checks and collateral, and approve. An
@@ -29,32 +26,13 @@ const STATUSES = ["SUBMITTED", "UNDER_REVIEW", "MORE_INFORMATION_REQUIRED", "APP
 export function LoanApplications() {
   const { t } = useTranslation(["loans", "common"]);
   const can = usePagePermission();
-  const [status, setStatus] = useState("");
-  const [awaitingMe, setAwaitingMe] = useState(false);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [adding, setAdding] = useState(false);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const body = { page, page_size: limit, ...(status ? { status } : {}), ...(awaitingMe ? { awaiting_me: true } : {}), ...(term ? { search: term } : {}) };
-      const row = rowsOf(await loanApplicationsApi.list(body))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [status, awaitingMe, term, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/loan/application/list", () => void load({ silent: true }));
+  const list = useServerList({ api: loanApplicationsApi.listPath, call: loanApplicationsApi.list });
+
+  const load = list.reload;
+  useLiveChannel("/config/loan/application/list", () => load());
 
   if (openId) {
     return (
@@ -62,7 +40,7 @@ export function LoanApplications() {
         id={openId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
@@ -99,9 +77,6 @@ export function LoanApplications() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
           {t("newApplication")}
@@ -121,58 +96,7 @@ export function LoanApplications() {
         </div>
       </div>
 
-      <ListPanel
-        actions={listActions}
-        tabs={statusTabs(STATUSES, (s) => `loans:appStatus_${s}`)}
-        value={status}
-        onChange={(s) => {
-          setStatus(s);
-          setPage(1);
-        }}
-        {...searchBind}
-        searchPlaceholder={t("searchApplications")}
-        filters={
-          <>
-            {can("Authorize") && (
-              <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700">
-                <input
-                  type="checkbox"
-                  className="accent-[var(--primary)]"
-                  checked={awaitingMe}
-                  onChange={(e) => {
-                    setAwaitingMe(e.target.checked);
-                    setPage(1);
-                  }}
-                />
-                {t("awaitingMyApproval")}
-              </label>
-            )}
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(a) => a.id}
-        isLoading={loading}
-        title={t("applicationsTitle")}
-        emptyTitle={t("noApplications")}
-        emptyDescription={t("noApplicationsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(a) => a.id} title={t("applicationsTitle")} emptyTitle={t("noApplications")} emptyDescription={t("noApplicationsHint")} />
 
       {adding && (
         <ApplicationForm
@@ -180,7 +104,7 @@ export function LoanApplications() {
           onSaved={(a) => {
             setAdding(false);
             if (a?.id) setOpenId(a.id);
-            else void load();
+            else load();
           }}
         />
       )}

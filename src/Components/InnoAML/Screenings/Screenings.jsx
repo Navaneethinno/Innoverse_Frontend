@@ -33,7 +33,7 @@ export function Screenings() {
         value={view}
         onChange={setView}
       />
-      {view === "changes" ? <ScreeningChanges bands={bands} /> : <ScreeningsList bands={bands} initial={referenceId ? { reference_id: referenceId } : {}} />}
+      {view === "changes" ? <ScreeningChanges bands={bands} /> : <ScreeningsList initial={referenceId ? { reference_id: referenceId } : {}} />}
     </div>
   );
 }

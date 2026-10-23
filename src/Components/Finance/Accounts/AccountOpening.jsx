@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, PlusCircle, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -173,7 +173,6 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
   );
 }
 
-const STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED"];
 
 // Accounts > Opening requests: every request the user can see, newest
 // first; a checker approves or rejects, the maker may cancel their own.
@@ -181,30 +180,13 @@ export function OpeningRequests() {
   const { t } = useTranslation(["accounts", "common"]);
   const can = usePagePermission();
   const own = useOwnIds();
-  const [status, setStatus] = useState("PENDING");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [result, setResult] = useState({ rows: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const response = await accountOpeningApi.list({ page, limit, ...(status ? { status } : {}) });
-      const rows = rowsOf(response) ?? [];
-      setResult({ rows, total: response?.pagination?.totalRecords ?? rows.length });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [status, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(accountOpeningApi.listPath, () => void load({ silent: true }));
+  const list = useServerList({ api: accountOpeningApi.listPath, call: accountOpeningApi.list });
+
+  const load = list.reload;
+  useLiveChannel(accountOpeningApi.listPath, () => load());
 
   const act = async (call) => {
     setBusy(true);
@@ -249,41 +231,7 @@ export function OpeningRequests() {
 
   return (
     <>
-      <ListPanel
-        tabs={[]}
-        filters={
-          <FilterSelect
-            value={status}
-            onChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
-            options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`reqStatus_${s}`, { defaultValue: s }) }))]}
-          />
-        }
-      >
-        <DataTable
-          bare
-          columns={columns}
-          rows={result.rows}
-          rowKey={(r) => r.id}
-          isLoading={loading}
-          title={t("openingRequests")}
-          emptyTitle={t("noRequests")}
-          serverSorted
-          serverPagination={{
-            page,
-            totalPages: Math.max(1, Math.ceil(result.total / limit)),
-            totalRecords: result.total,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (n) => {
-              setLimit(Math.min(n, 100));
-              setPage(1);
-            },
-          }}
-        />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("openingRequests")} emptyTitle={t("noRequests")} />
       {dialog?.kind === "auth" && <NarrationDialog title={t("approveOpenTitle", { name: dialog.row.owner_name })} confirmLabel={t("approve")} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(() => accountOpeningApi.auth({ id: dialog.row.id, narration }))} />}
       {dialog?.kind === "deauth" && <NarrationDialog title={t("rejectTitle")} confirmLabel={t("reject")} variant="danger" required busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(() => accountOpeningApi.deauth({ id: dialog.row.id, narration }))} />}
     </>

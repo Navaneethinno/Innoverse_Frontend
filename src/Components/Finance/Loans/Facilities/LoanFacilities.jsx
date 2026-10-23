@@ -1,12 +1,10 @@
-import { statusTabs } from "@/Components/Common/listTabs";
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, RefreshCw, Repeat, Send, Undo2, Wallet, XCircle } from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, Repeat, Send, Undo2, Wallet, XCircle } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -15,7 +13,6 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -24,7 +21,6 @@ import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanD
 import { Field, MiniTable, ScheduleTable, Tabs, Timeline, loanLabel } from "../loanShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
-const STATUSES = ["PENDING_DISBURSEMENT", "ACTIVE", "DELINQUENT", "SETTLED", "WRITTEN_OFF", "CANCELLED"];
 const SOURCES = ["WALLET", "CASH"];
 const TERM_UNITS = ["DAYS", "WEEKS", "MONTHS"];
 const ACTION_TYPES = ["CALL", "SMS", "EMAIL", "LETTER", "VISIT", "LEGAL_NOTICE", "AGENCY", "OTHER"];
@@ -37,29 +33,12 @@ const pick = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => Strin
 // search by loan or application number; each loan opens on its own page.
 export function LoanFacilities() {
   const { t } = useTranslation(["loans", "common"]);
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const row = rowsOf(await loanFacilitiesApi.list({ page, page_size: limit, ...(status ? { status } : {}), ...(term ? { search: term } : {}) }))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [status, term, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/loan/facility/list", () => void load({ silent: true }));
+  const list = useServerList({ api: loanFacilitiesApi.listPath, call: loanFacilitiesApi.list });
+
+  const load = list.reload;
+  useLiveChannel("/config/loan/facility/list", () => load());
 
   if (openId) {
     return (
@@ -67,7 +46,7 @@ export function LoanFacilities() {
         id={openId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
@@ -113,43 +92,8 @@ export function LoanFacilities() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("facilitiesSubtitle")}</p>
         </div>
-        <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-          {t("refresh")}
-        </Button>
       </div>
-      <ListPanel
-        tabs={statusTabs(STATUSES, (s) => `loans:loanStatus_${s}`)}
-        value={status}
-        onChange={(s) => {
-          setStatus(s);
-          setPage(1);
-        }}
-        {...searchBind}
-        searchPlaceholder={t("searchLoans")}
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(f) => f.id}
-        isLoading={loading}
-        title={t("facilitiesTitle")}
-        emptyTitle={t("noLoans")}
-        emptyDescription={t("noLoansHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(f) => f.id} title={t("facilitiesTitle")} emptyTitle={t("noLoans")} emptyDescription={t("noLoansHint")} />
     </div>
   );
 }

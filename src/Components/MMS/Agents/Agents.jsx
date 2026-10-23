@@ -1,5 +1,5 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Network, UserCog, XCircle } from "lucide-react";
@@ -20,13 +20,9 @@ import { MerchantStores } from "../Stores/Stores";
 import { MmsStatus, RoleBadge, pageOf, partyKey, partyRef } from "../mmsShared";
 
 // The list tabs: party type and tier filters, then the checker's queue.
-const TABS = {
-  all: {},
-  merchants: { party_type: "MERCHANT" },
-  agents: { tier: "AGENT" },
-  superAgents: { tier: "SUPER_AGENT" },
-  pending: null,
-};
+// The agents (tier and status from the list's own filters), and the role
+// requests waiting for a second user.
+const TABS = ["all", "pending"];
 
 // MMS › Agents (menu 207): merchants, agents and super agents. A role or
 // super agent change is a request a second user approves (Self: at once).
@@ -42,46 +38,25 @@ export function Agents() {
         <p className="mt-1 text-sm text-muted-foreground">{t("agentsSubtitle")}</p>
       </div>
       <Tabs
-        tabs={Object.keys(TABS).map((key) => ({ key }))}
+        tabs={TABS.map((key) => ({ key }))}
         value={tab}
         onChange={setTab}
         labelOf={(k) => t(`agentsTab_${k}`)}
       />
-      {tab === "pending" ? <RoleRequests /> : <AgentList key={tab} filter={TABS[tab]} />}
+      {tab === "pending" ? <RoleRequests /> : <AgentList />}
     </div>
   );
 }
 
-function AgentList({ filter }) {
+function AgentList() {
   const { t } = useTranslation(["mms", "common"]);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [result, setResult] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState(null);
   // Part of the name.
-  const {
-    body: searchBody,
-    latest: latestList,
-    bind: searchBind,
-  } = useListSearch(() => setPage(1));
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setResult(
-        pageOf(await latestList(agentsApi.list({ ...filter, ...searchBody, page, limit }))),
-      );
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter, searchBody, latestList, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(agentsApi.listPath, () => void load());
+  const list = useServerList({ api: agentsApi.listPath, call: agentsApi.list });
+
+  const load = list.reload;
+  useLiveChannel(agentsApi.listPath, () => load());
 
   const columns = [
     {
@@ -140,33 +115,7 @@ function AgentList({ filter }) {
 
   return (
     <>
-      <ListPanel
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("searchName")}
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={result.items}
-        rowKey={partyKey}
-        isLoading={loading}
-        title={t("agentsTitle")}
-        emptyTitle={t("noParties")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(result.total / limit)),
-          totalRecords: result.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={partyKey} title={t("agentsTitle")} emptyTitle={t("noParties")} />
       {viewing && <AgentDetail party={viewing} onClose={() => setViewing(null)} onChanged={load} />}
     </>
   );
@@ -272,10 +221,10 @@ function AgentDetail({ party, onClose, onChanged }) {
     }
   }, [party]);
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
   const refresh = () => {
-    void load();
+    load();
     onChanged();
   };
   const decision = useRequestDecision(refresh);
@@ -490,9 +439,9 @@ function RoleRequests() {
     }
   }, [page, limit]);
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
-  useLiveChannel(agentsApi.listPath, () => void load());
+  useLiveChannel(agentsApi.listPath, () => load());
   const decision = useRequestDecision(load);
 
   const columns = [

@@ -4,7 +4,8 @@ import { downloadAttachment } from "@/Services/api/fileTransfer";
 // Transactions, Fee Schedules and the transaction reports (Admin Portal:
 // Transactions, Fee Schedules, Limits, Reports and Alerts handoff). Every
 // call is a POST with a JSON body; amounts go as strings.
-const calls = (base, verbs) => Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)]));
+// `listPath`: the list call's path (list/options, live channel).
+const calls = (base, verbs) => ({ ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])), listPath: `${base}/list` });
 const exporter = (path, name) => (body) => downloadAttachment(path, body, `${name}.${body.format === "CSV" ? "csv" : "xlsx"}`);
 
 // EPURSE > Transactions (menu 189): the journal, a party's history, the

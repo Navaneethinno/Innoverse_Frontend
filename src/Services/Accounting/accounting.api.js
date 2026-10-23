@@ -3,7 +3,8 @@ import { downloadAttachment, postForm } from "@/Services/api/fileTransfer";
 
 // ACCOUNTING (module 12). Every call is a POST with a JSON body; changes are
 // maker-checker (a second user authorises; Self applies at once).
-const calls = (base, verbs) => Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)]));
+// `listPath`: the list call's path (list/options, live channel).
+const calls = (base, verbs) => ({ ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])), listPath: `${base}/list` });
 
 // Chart of Accounts (menu 213): one GL tree per institution. A parent only
 // groups; an account (is_account) receives postings and gets its number

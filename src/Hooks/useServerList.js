@@ -33,6 +33,7 @@ export function useServerList({ api, call, prefix = "", extra = null }) {
   // since filter choices are limited to it.
   const inst = canChooseInstitution() ? institution : "";
   useEffect(() => {
+    if (!api) return undefined;
     const key = `${api}|${inst}`;
     if (optionsCache.has(key)) {
       setOptions(optionsCache.get(key));

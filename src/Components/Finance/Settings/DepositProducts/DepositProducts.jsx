@@ -1,29 +1,16 @@
-import { PENDING_TABS } from "@/Components/Common/listTabs";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
-import { PiggyBank, Plus, RefreshCw } from "lucide-react";
+import { PiggyBank, Plus } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
-import { notifications } from "@/Utils/Lib/notifications";
 import { DepositProductView } from "./DepositProductView";
 import { DepositProductWizard } from "./DepositProductWizard";
 import { ProductStatus } from "./productShared";
-
-const STATUSES = [
-  [1, "Active"],
-  [9, "Draft"],
-  [2, "PendingAdd"],
-  [5, "RejectedAdd"],
-  [13, "Inactive"],
-];
 
 // TERM DEPOSITS > Deposit Products (menu 180): the term-deposit setup of
 // each TERM_DEPOSIT account product. All / Pending tabs, a view with the
@@ -31,34 +18,13 @@ const STATUSES = [
 export function DepositProducts() {
   const { t } = useTranslation(["deposits", "common"]);
   const can = usePagePermission();
-  const [tab, setTab] = useState("all");
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = { page, page_size: limit, ...(term ? { search: term } : {}), ...(status ? { status: Number(status) } : {}) };
-      const row = rowsOf(await (tab === "pending" ? depositProductsApi.pending(body) : depositProductsApi.list(body)))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, term, status, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: depositProductsApi.listPath, call: depositProductsApi.list });
+  const load = list.reload;
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
 
   if (screen?.kind === "wizard") {
@@ -99,9 +65,6 @@ export function DepositProducts() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} onClick={() => setScreen({ kind: "wizard", product: null })}>
           {t("newDepositProduct")}
@@ -121,48 +84,7 @@ export function DepositProducts() {
         </div>
       </div>
 
-      <ListPanel
-        actions={listActions}
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-        {...searchBind}
-        searchPlaceholder={t("searchProducts")}
-        filters={
-          <>
-            <FilterSelect value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`pstatus_${k}`) }))]} />
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(p) => p.id}
-        isLoading={loading}
-        title={t(`tab_${tab}`)}
-        emptyTitle={t("noProducts")}
-        emptyDescription={t("noProductsListHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsListHint")} />
     </div>
   );
 }

@@ -1,10 +1,9 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search } from "lucide-react";
-import { DataTable } from "@/Components/Common/DataTable";
 import { CountryMultiSelect } from "@/Components/Common/CountryMultiSelect";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -36,37 +35,16 @@ export function NameLookup() {
   const [form, setForm] = useState(() => empty(myInstitution));
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   // The screened name, reference, who screened, institution.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [openId, setOpenId] = useState(null);
   const { countries } = useCountries();
   // Lists screening, or the news (Adverse Media).
   const [view, setView] = useState("lists");
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const response = await latestList(amlLookupApi.list({ ...searchBody, page, limit }));
-        setRows(rowsOf(response));
-        setPagination(response?.pagination ?? {});
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchBody, latestList, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(amlLookupApi.listPath, () => void load({ silent: true }));
+  const list = useServerList({ api: amlLookupApi.listPath, call: amlLookupApi.list });
+
+  const load = list.reload;
+  useLiveChannel(amlLookupApi.listPath, () => load());
 
   const screen = async (event) => {
     event.preventDefault();
@@ -88,7 +66,7 @@ export function NameLookup() {
       const response = await amlLookupApi.screen(body);
       notifications.success(apiMessage(response, t("aml:lookupDone")));
       setResult(rowsOf(response)[0] ?? null);
-      void load({ silent: true });
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -165,20 +143,8 @@ export function NameLookup() {
         </div>
       )}
 
-      <ListPanel tabs={[]} {...searchBind} searchPlaceholder={t("aml:searchScreenings")}>
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={(row) => row.id}
-          isLoading={loading}
-          title={t("aml:pastLookups")}
-          emptyTitle={t("aml:noLookups")}
-          serverPagination={{ page, totalPages: pagination.totalPages ?? 1, totalRecords: pagination.totalRecords ?? rows.length, onPageChange: setPage, limit, onLimitChange: (n) => { setLimit(n); setPage(1); } }}
-          serverSorted
-          bare
-        />
-      </ListPanel>
-      {openId && <ScreeningDetailModal id={openId} lookup onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
+      <ListTable list={list} columns={columns} rowKey={(row) => row.id} title={t("aml:pastLookups")} emptyTitle={t("aml:noLookups")} />
+      {openId && <ScreeningDetailModal id={openId} lookup onClose={() => setOpenId(null)} onChanged={() => load()} />}
         </>
       )}
     </div>

@@ -3,7 +3,8 @@ import { request } from "@/Services/Epurse/onboarding.api";
 // Term Deposits (Admin Portal: Term Deposits handoff). Every call is a POST
 // with a JSON body; records carry `actions` saying which buttons apply to
 // this user now. Amounts and rates go as strings.
-const calls = (base, verbs) => Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)]));
+// `listPath`: the list call's path (list/options, live channel).
+const calls = (base, verbs) => ({ ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])), listPath: `${base}/list` });
 
 // TERM DEPOSITS > Deposit Products (menu 180): the policy, tenors and rate
 // bands of a TERM_DEPOSIT account product, one maker-checker record.

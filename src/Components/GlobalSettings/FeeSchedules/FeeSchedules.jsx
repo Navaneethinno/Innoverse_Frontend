@@ -1,12 +1,9 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, Power, Receipt, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, Power, Receipt, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { PENDING_TABS } from "@/Components/Common/listTabs";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
@@ -21,13 +18,6 @@ import { feeSchedulesApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 
-const STATUSES = [
-  [1, "Active"],
-  [9, "Draft"],
-  [2, "PendingAdd"],
-  [5, "RejectedAdd"],
-  [13, "Inactive"],
-];
 const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", tax_percent: "0", shares: [] });
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const idOrNull = (v) => (v === "" || v == null ? null : Number(v));
@@ -68,34 +58,15 @@ export function FeeSchedules() {
   const { t } = useTranslation(["fees", "deposits", "common"]);
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
-  const [tab, setTab] = useState("all");
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(status ? { status: Number(status) } : {}) });
-      const row = rowsOf(await (tab === "pending" ? feeSchedulesApi.pending(body) : feeSchedulesApi.list(body)))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, term, status, page, limit, scope]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: feeSchedulesApi.listPath, call: feeSchedulesApi.list });
+
+  const load = list.reload;
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen?.kind === "edit") return <ScheduleEditor schedule={screen.schedule} scope={scope} onClose={() => (screen.schedule ? setScreen({ kind: "view", id: screen.schedule.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} onOpen={(id) => setScreen({ kind: "view", id })} />;
   if (screen?.kind === "view") return <ScheduleView id={screen.id} onBack={back} onEdit={(schedule) => setScreen({ kind: "edit", schedule })} />;
@@ -122,9 +93,6 @@ export function FeeSchedules() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", schedule: null })}>
           {t("newSchedule")}
@@ -148,44 +116,7 @@ export function FeeSchedules() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <ListPanel
-        actions={listActions}
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-        {...searchBind}
-        searchPlaceholder={t("searchSchedules")}
-        filters={<FilterSelect value={status} onChange={(v) => { setStatus(v); setPage(1); }} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />}
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(s) => s.id}
-        isLoading={loading}
-        title={t(`deposits:tab_${tab}`)}
-        emptyTitle={t("noSchedules")}
-        emptyDescription={t("noSchedulesHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(s) => s.id} title={t("title")} emptyTitle={t("noSchedules")} emptyDescription={t("noSchedulesHint")} />
     </div>
   );
 }

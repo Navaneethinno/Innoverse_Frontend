@@ -1,9 +1,8 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Power, RotateCcw, Store, XCircle } from "lucide-react";
-import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -15,9 +14,8 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog } from "../../Finance/Deposits/depositShared";
 import { MiniTable, Tabs } from "../../Finance/Loans/loanShared";
-import { MmsStatus, mmsDate, pageOf, partyRef } from "../mmsShared";
+import { MmsStatus, mmsDate, partyRef } from "../mmsShared";
 
-const STATUSES = ["PENDING", "ACTIVE", "REJECTED", "INACTIVE"];
 
 // MMS › Stores (menu 208): merchants add stores in their portal; the bank
 // approves each new one before it trades, and can close or reopen it.
@@ -41,30 +39,13 @@ export function Stores() {
 // The stores list; `merchant` limits it to one merchant's (its page).
 function StoreList({ pendingOnly = false, merchant = null, permission }) {
   const { t } = useTranslation(["mms", "common"]);
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [result, setResult] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [viewing, setViewing] = useState(null);
   // Store code or name, merchant.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const filter = pendingOnly ? { status: "PENDING" } : status ? { status } : {};
-      setResult(pageOf(await latestList(storesApi.list({ ...filter, ...(merchant ? { merchant: partyRef(merchant) } : {}), ...searchBody, page, limit }))));
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [pendingOnly, status, merchant, searchBody, latestList, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(storesApi.listPath, () => void load());
+  const list = useServerList({ api: storesApi.listPath, call: storesApi.list });
+
+  const load = list.reload;
+  useLiveChannel(storesApi.listPath, () => load());
 
   const columns = [
     { key: "code", label: t("code"), render: (r) => <span className="font-mono text-xs font-bold">{r.code}</span> },
@@ -78,47 +59,7 @@ function StoreList({ pendingOnly = false, merchant = null, permission }) {
 
   return (
     <>
-      <ListPanel
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("searchStores")}
-        filters={
-          <>
-            {!pendingOnly && (
-              <FilterSelect
-                value={status}
-                onChange={(v) => {
-                  setStatus(v);
-                  setPage(1);
-                }}
-                options={[{ value: "", label: t("allStatuses") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]}
-              />
-            )}
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={result.items}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("storesTitle")}
-        emptyTitle={pendingOnly ? t("noPendingStores") : t("noStores")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(result.total / limit)),
-          totalRecords: result.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("storesTitle")} emptyTitle={pendingOnly ? t("noPendingStores") : t("noStores")} />
       {viewing && <StoreDetail store={viewing} permission={permission} onClose={() => setViewing(null)} onChanged={load} />}
     </>
   );
@@ -167,7 +108,7 @@ function StoreDetail({ store, permission, onClose, onChanged }) {
     }
   }, [store]);
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
 
   const s = full ?? store;
@@ -293,7 +234,7 @@ function StoreWalletsCard({ merchant, permission }) {
     }
   }, [merchant]);
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
 
   const set = async (store_wallets) => {

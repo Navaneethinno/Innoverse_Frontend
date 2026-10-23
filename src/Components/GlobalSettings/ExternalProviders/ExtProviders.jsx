@@ -1,10 +1,9 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Smartphone, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Send, Smartphone, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { PENDING_TABS } from "@/Components/Common/listTabs";
 import { DigitChips } from "@/Components/Common/DigitChips";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -88,29 +87,12 @@ export function ExtProviders() {
   const { t } = useTranslation(["providers", "fees", "deposits", "common"]);
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
-  const [tab, setTab] = useState("all");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [opening, setOpening] = useState(false);
   const [screen, setScreen] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = scope({ page, page_size: limit });
-      const row = rowsOf(await (tab === "pending" ? extProvidersApi.pending(body) : extProvidersApi.list(body)))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, page, limit, scope]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: extProvidersApi.listPath, call: extProvidersApi.list });
+
+  const load = list.reload;
 
   // One setup per institution: Add opens the existing one when there is one.
   const add = async () => {
@@ -127,7 +109,7 @@ export function ExtProviders() {
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen?.kind === "edit") return <SetupEditor setup={screen.setup} scope={scope} onClose={() => (screen.setup ? setScreen({ kind: "view", id: screen.setup.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
   if (screen?.kind === "view") return <SetupView id={screen.id} onBack={back} onEdit={(setup) => setScreen({ kind: "edit", setup })} />;
@@ -151,9 +133,6 @@ export function ExtProviders() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("fees:refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} onClick={add}>
           {t("setUp")}
@@ -177,41 +156,7 @@ export function ExtProviders() {
           <InstitutionField value={institution} onChange={setInstitution} />
         </div>
       )}
-      <ListPanel
-        actions={listActions}
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(s) => s.id}
-        isLoading={loading}
-        title={t(`deposits:tab_${tab}`)}
-        emptyTitle={t("noSetups")}
-        emptyDescription={t("noSetupsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(s) => s.id} title={t("title")} emptyTitle={t("noSetups")} emptyDescription={t("noSetupsHint")} />
     </div>
   );
 }

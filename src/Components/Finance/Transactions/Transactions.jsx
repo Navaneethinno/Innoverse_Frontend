@@ -1,13 +1,11 @@
-import { statusTabs } from "@/Components/Common/listTabs";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { DateInput } from "@/Components/Common/DateInput";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowLeftRight, Eye, Ban, CheckCircle2, History, Plus, Receipt, RefreshCw, RotateCcw, Search, Undo2, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowLeftRight, Eye, Ban, CheckCircle2, History, Plus, Receipt, RotateCcw, Undo2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -15,10 +13,10 @@ import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { DrCr } from "@/Components/Finance/Accounts/AccountStatement";
 import { money } from "@/Components/Finance/Accounts/accountShared";
-import { ExportButtons, atIst } from "@/Components/Reports/Shared/reportShared";
+import { atIst } from "@/Components/Reports/Shared/reportShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { feeSchedulesApi, transactionRequestsApi, transactionsApi } from "@/Services/Transactions/transactions.api";
+import { transactionRequestsApi, transactionsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../Deposits/depositShared";
@@ -26,12 +24,6 @@ import { MiniTable, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
 import { PlanCard, ReceiptDialog, TotalCell, typeLabel } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-
-const STATUSES = ["POSTED", "REVERSED", "FAILED"];
-const REQUEST_STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "FAILED"];
-const CHANNELS = ["ADMIN", "SCHEDULER", "APP", "WEB", "POS"];
-const INITIATORS = ["STAFF", "SYSTEM", "CUSTOMER", "MERCHANT"];
-const EMPTY = { search: "", status: "", txn_type: "", channel_type: "", initiator_type: "", from: "", to: "", min_amount: "", max_amount: "" };
 const clean = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => String(v ?? "").trim() !== "").map(([k, v]) => [k, String(v).trim()]));
 
 // EPURSE > Transactions (menu 189): the journal of every money movement
@@ -87,31 +79,11 @@ export function Transactions() {
 // The journal: filters, newest first, Excel / CSV of the same filters.
 function Journal({ actions, onOpen }) {
   const { t } = useTranslation(["txn", "common"]);
-  const [filters, setFilters] = useState(EMPTY);
-  const [applied, setApplied] = useState(EMPTY);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
-  const types = useTxnTypes();
+  const list = useServerList({ api: transactionsApi.listPath, call: transactionsApi.list });
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const row = rowsOf(await transactionsApi.list({ page, page_size: limit, ...clean(applied) }))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [applied, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/transaction/list", () => void load({ silent: true }));
+  const load = list.reload;
+  useLiveChannel("/config/transaction/list", () => load());
 
-  const set = (key) => (v) => setFilters((f) => ({ ...f, [key]: v }));
   const columns = [
     {
       key: "rrn",
@@ -134,101 +106,9 @@ function Journal({ actions, onOpen }) {
 
   return (
     <>
-      <ListPanel
-        actions={actions}
-        tabs={[]}
-        search={filters.search}
-        onSearch={set("search")}
-        onSearchSubmit={() => {
-          setApplied(filters);
-          setPage(1);
-        }}
-        searchPlaceholder={t("searchJournal")}
-        filters={
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setApplied(filters);
-              setPage(1);
-            }}
-            className="flex flex-wrap items-center gap-2"
-          >
-            <FilterSelect value={filters.txn_type} onChange={set("txn_type")} options={[{ value: "", label: t("anyType") }, ...types.map((x) => ({ value: x.code, label: x.name }))]} />
-            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`status_${s}`) }))]} />
-            <FilterSelect value={filters.channel_type} onChange={set("channel_type")} options={[{ value: "", label: t("anyChannel") }, ...CHANNELS.map((c) => ({ value: c, label: c }))]} />
-            <FilterSelect value={filters.initiator_type} onChange={set("initiator_type")} options={[{ value: "", label: t("anyInitiator") }, ...INITIATORS.map((c) => ({ value: c, label: t(`initiator_${c}`) }))]} />
-            <div className="flex gap-2">
-              <DateInput title={t("from")} className={cn(inputClass, "min-w-0 px-2")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-              <DateInput title={t("to")} className={cn(inputClass, "min-w-0 px-2")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
-            </div>
-            <div className="flex gap-2">
-              <input className={inputClass} inputMode="decimal" placeholder={t("minAmount")} value={filters.min_amount} onChange={(e) => set("min_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
-              <input className={inputClass} inputMode="decimal" placeholder={t("maxAmount")} value={filters.max_amount} onChange={(e) => set("max_amount")(e.target.value.replace(/[^\d.]/g, ""))} />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex gap-2">
-                <Button type="submit" size="sm" icon={Search}>
-                  {t("search")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setFilters(EMPTY);
-                    setApplied(EMPTY);
-                    setPage(1);
-                  }}
-                >
-                  {t("clear")}
-                </Button>
-                <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-                  {t("refresh")}
-                </Button>
-              </div>
-              <ExportButtons exportFile={(format) => transactionsApi.export({ ...clean(applied), format })} />
-            </div>
-          </form>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(x) => x.id}
-        isLoading={loading}
-        title={t("journal")}
-        emptyTitle={t("noTransactions")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 200));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={actions} onExport={(format, body) => transactionsApi.export({ ...body, format })} columns={columns} rowKey={(x) => x.id} title={t("journal")} emptyTitle={t("noTransactions")} />
     </>
   );
-}
-
-// The types for the journal's filter: every Active financial type (the
-// fee schedule options' list); without access to that, the request types.
-function useTxnTypes() {
-  const [types, setTypes] = useState([]);
-  useEffect(() => {
-    feeSchedulesApi
-      .options({})
-      .then((r) => (rowsOf(r)[0]?.txn_types ?? []).map((x) => ({ code: x.code, name: x.name })))
-      .catch(() => transactionsApi.options({}).then((r) => (rowsOf(r)[0]?.txn_types ?? []).map((x) => ({ code: x.txn_type, name: x.name }))))
-      .then(setTypes)
-      .catch(() => setTypes([]));
-  }, []);
-  return types;
 }
 
 // One transaction: header, amounts and origin, the legs, each party's
@@ -493,30 +373,11 @@ export function PartyHistory({ party, onClose, onOpen }) {
 // The requests: status tabs, newest first; a row opens its decision dialog.
 function Requests({ openId, onOpenTxn, onClose }) {
   const { t } = useTranslation(["txn", "common"]);
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  // Reference, client reference, reason, who asked or decided, either account.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(openId ?? null);
-
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const row = rowsOf(await latestList(transactionRequestsApi.list({ ...searchBody, page, page_size: limit, ...(status ? { status } : {}) })))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchBody, latestList, status, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/transaction/request/list", () => void load({ silent: true }));
+  // Its own URL keys (r_...): the journal's list shares the page.
+  const list = useServerList({ api: transactionRequestsApi.listPath, call: transactionRequestsApi.list, prefix: "r_" });
+  const load = list.reload;
+  useLiveChannel("/config/transaction/request/list", () => load());
 
   const columns = useMemo(
     () => [
@@ -559,45 +420,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
 
   return (
     <>
-      <ListPanel
-        tabs={statusTabs(REQUEST_STATUSES, (s) => `txn:reqStatus_${s}`)}
-        value={status}
-        onChange={(s) => {
-          setStatus(s);
-          setPage(1);
-        }}
-        {...searchBind}
-        searchPlaceholder={t("searchRequests")}
-        filters={
-          <>
-            <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-              {t("refresh")}
-            </Button>
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("tab_requests")}
-        emptyTitle={t("noRequests")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 200));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("tab_requests")} emptyTitle={t("noRequests")} />
       {open && (
         <RequestDialog
           id={open}
@@ -606,7 +429,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
             onClose();
           }}
           onOpenTxn={onOpenTxn}
-          onChanged={() => void load()}
+          onChanged={() => load()}
         />
       )}
     </>

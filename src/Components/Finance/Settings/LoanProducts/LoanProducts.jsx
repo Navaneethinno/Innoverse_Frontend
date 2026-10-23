@@ -1,13 +1,10 @@
-import { PENDING_TABS } from "@/Components/Common/listTabs";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PagedList } from "@/Components/Common/Pager";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { ListPanel } from "@/Components/Common/ListPanel";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RefreshCw, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
@@ -24,14 +21,6 @@ import { LoanConfigSummary } from "./loanProductShared";
 import { LoanProductWizard, RateCheck } from "./LoanProductWizard";
 import { ReferenceRates } from "./ReferenceRates";
 
-const STATUSES = [
-  [1, "Active"],
-  [9, "Draft"],
-  [2, "PendingAdd"],
-  [5, "RejectedAdd"],
-  [13, "Inactive"],
-];
-const CATEGORIES = ["PERSONAL", "SME", "ASSET_FINANCE", "MORTGAGE", "AGRICULTURE", "OTHER"];
 
 // LOANS > Loan Products (menu 184): each product with its terms, rate
 // bands, fees and policies, one maker-checker record. All / Pending tabs,
@@ -41,44 +30,20 @@ export function LoanProducts() {
   const can = usePagePermission();
   const { chooser, institution, setInstitution, scope } = useInstitutionScope();
   const [ratesOpen, setRatesOpen] = useState(false);
-  const [tab, setTab] = useState("all");
-  const [filters, setFilters] = useState({ status: "", product_category: "" });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [screen, setScreen] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const body = scope({ page, page_size: limit, ...Object.fromEntries(Object.entries({ ...filters, search: term }).filter(([, v]) => v)), ...(filters.status ? { status: Number(filters.status) } : {}) });
-      const row = rowsOf(await (tab === "pending" ? loanProductsApi.pending(body) : loanProductsApi.list(body)))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [tab, term, filters, page, limit, scope]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: loanProductsApi.listPath, call: loanProductsApi.list });
+
+  const load = list.reload;
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen?.kind === "wizard") {
     return <LoanProductWizard product={screen.product} scope={scope} onClose={() => (screen.product ? setScreen({ kind: "view", id: screen.product.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
   }
   if (screen?.kind === "view") return <LoanProductView id={screen.id} onBack={back} onEdit={(product) => setScreen({ kind: "wizard", product })} />;
-
-  const set = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
-  };
   const columns = [
     {
       key: "product_name",
@@ -103,9 +68,6 @@ export function LoanProducts() {
     <>
       <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
         {t("referenceRates")}
-      </Button>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
       </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "wizard", product: null })}>
@@ -132,49 +94,7 @@ export function LoanProducts() {
         </div>
       )}
 
-      <ListPanel
-        actions={listActions}
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-        {...searchBind}
-        searchPlaceholder={t("searchProducts")}
-        filters={
-          <>
-            <FilterSelect value={filters.product_category} onChange={set("product_category")} options={[{ value: "", label: t("anyCategory") }, ...CATEGORIES.map((c) => ({ value: c, label: loanLabel(t, c) }))]} />
-            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(p) => p.id}
-        isLoading={loading}
-        title={t(`deposits:tab_${tab}`)}
-        emptyTitle={t("noProducts")}
-        emptyDescription={t("noProductsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsHint")} />
     </div>
   );
 }

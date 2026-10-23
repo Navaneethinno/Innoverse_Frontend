@@ -1,10 +1,8 @@
-import { useListSearch } from "@/Hooks/useListSearch";
-import { statusTabs } from "@/Components/Common/listTabs";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { DateInput } from "@/Components/Common/DateInput";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Landmark, PiggyBank, Plus, RefreshCw } from "lucide-react";
+import { Landmark, PiggyBank, Plus } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
@@ -14,15 +12,10 @@ import { money } from "@/Components/Finance/Accounts/accountShared";
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositsApi } from "@/Services/TermDeposits/termDeposits.api";
-import { notifications } from "@/Utils/Lib/notifications";
-import { cn } from "@/Utils/Lib/utils";
-import { dayDate, inputClass, ratePct } from "../depositShared";
+import { dayDate, ratePct } from "../depositShared";
 import { DepositView } from "./DepositView";
 import { OpenDeposit } from "./OpenDeposit";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
-
-const STATUSES = ["PENDING_APPROVAL", "ACTIVE", "MATURED", "CLOSED", "PREMATURELY_CLOSED", "REJECTED", "CANCELLED"];
-const EMPTY = { status: "", maturity_from: "", maturity_to: "" };
 
 // The deposit table, shared by the Deposits screen and a customer's detail.
 function depositColumns(t, can, onOpen, compact) {
@@ -62,31 +55,13 @@ function depositColumns(t, can, onOpen, compact) {
 export function Deposits() {
   const { t } = useTranslation(["deposits", "accounts", "common"]);
   const can = useMenuPermission("Term Deposits");
-  const [filters, setFilters] = useState(EMPTY);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [opening, setOpening] = useState(false);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const body = Object.fromEntries(Object.entries({ ...filters, search: term }).filter(([, v]) => v));
-      const row = rowsOf(await depositsApi.list({ page, page_size: limit, ...body }))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, term, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/deposit/contract/list", () => void load({ silent: true }));
+  const list = useServerList({ api: depositsApi.listPath, call: depositsApi.list });
+
+  const load = list.reload;
+  useLiveChannel("/config/deposit/contract/list", () => load());
 
   const columns = depositColumns(t, can, setOpenId, false);
 
@@ -96,21 +71,13 @@ export function Deposits() {
         id={openId}
         onBack={() => {
           setOpenId(null);
-          void load();
+          load();
         }}
       />
     );
   }
-
-  const set = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
-  };
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} onClick={() => setOpening(true)}>
           {t("openDeposit")}
@@ -130,49 +97,7 @@ export function Deposits() {
         </div>
       </div>
 
-      <ListPanel
-        actions={listActions}
-        tabs={statusTabs(STATUSES, (key) => `deposits:dstatus_${key}`)}
-        value={filters.status}
-        onChange={set("status")}
-        {...searchBind}
-        searchPlaceholder={t("searchDeposits")}
-        filters={
-          <>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              {t("maturityFrom")}
-              <DateInput className={cn(inputClass, "w-auto")} value={filters.maturity_from} onChange={(e) => set("maturity_from")(e.target.value)} />
-            </label>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              {t("maturityTo")}
-              <DateInput className={cn(inputClass, "w-auto")} value={filters.maturity_to} onChange={(e) => set("maturity_to")(e.target.value)} />
-            </label>
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(d) => d.id}
-        isLoading={loading}
-        title={t("depositsTitle")}
-        emptyTitle={t("noDeposits")}
-        emptyDescription={t("noDepositsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(d) => d.id} title={t("depositsTitle")} emptyTitle={t("noDeposits")} emptyDescription={t("noDepositsHint")} />
 
       {opening && (
         <OpenDeposit
@@ -180,7 +105,7 @@ export function Deposits() {
           onOpened={(deposit) => {
             setOpening(false);
             if (deposit?.id) setOpenId(deposit.id);
-            else void load();
+            else load();
           }}
         />
       )}

@@ -1,66 +1,25 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { DateInput } from "@/Components/Common/DateInput";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
 import { UserSearch } from "lucide-react";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { notifications } from "@/Utils/Lib/notifications";
-import { CUSTOMER_KINDS, EffectiveResult, TRIGGERS, partyLabel, when } from "../Shared/amlShared";
+import { EffectiveResult, partyLabel, when } from "../Shared/amlShared";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { CustomerAmlModal } from "../Shared/CustomerAml";
 
-const filterInput = "rounded-lg border px-2.5 py-1.5 text-xs";
-
-// Every screening of the institution's customers, newest first. All filters
-// are server-side; band and minimum score filter on the effective values.
-export function ScreeningsList({ bands, initial = {} }) {
+// Every screening of the institution's customers. Tabs and filters come
+// from list/options; band and minimum score filter on the effective values.
+export function ScreeningsList({ initial = {} }) {
   const { t } = useTranslation(["aml", "common"]);
-  const [filters, setFilters] = useState({ customer_kind: "", trigger: "", status: "", band_code: "", min_score: "", from: "", to: "", reference_id: "", ...initial });
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [openId, setOpenId] = useState(null);
   const [customer, setCustomer] = useState(null);
-  // The screened name, reference, who screened, institution.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const filterKey = JSON.stringify(filters);
-
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const active = Object.fromEntries(Object.entries(JSON.parse(filterKey)).filter(([, v]) => v !== ""));
-        if (active.min_score != null) active.min_score = Number(active.min_score);
-        const response = await latestList(amlScreeningApi.list({ ...searchBody, page, limit, ...active }));
-        setRows(rowsOf(response));
-        setPagination(response?.pagination ?? {});
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchBody, latestList, page, limit, filterKey],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(amlScreeningApi.listPath, () => void load({ silent: true }));
-
-  const set = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
-  };
-  const opt = (values, prefix, allKey) => [{ value: "", label: t(`aml:${allKey}`) }, ...values.map((v) => ({ value: v, label: t(`aml:${prefix}${v}`) }))];
+  // Opened for one customer: only their screenings.
+  const list = useServerList({ api: amlScreeningApi.listPath, call: amlScreeningApi.list, extra: initial.reference_id ? { reference_id: initial.reference_id } : null });
+  useLiveChannel(amlScreeningApi.listPath, () => list.reload());
 
   const columns = [
     { key: "screened_at", label: t("aml:screenedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.screened_at)}</span> },
@@ -92,52 +51,8 @@ export function ScreeningsList({ bands, initial = {} }) {
 
   return (
     <>
-      <ListPanel
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("aml:searchScreenings")}
-        filters={
-          <>
-            <FilterSelect size="sm" className="w-44" value={filters.customer_kind} onChange={set("customer_kind")} options={opt(CUSTOMER_KINDS, "kind_", "allCustomers")} />
-            <FilterSelect size="sm" className="w-36" value={filters.trigger} onChange={set("trigger")} options={opt(TRIGGERS, "trigger_", "allTriggers")} />
-            <FilterSelect size="sm" className="w-32" value={filters.status} onChange={set("status")} options={opt(["DONE", "ERROR"], "status_", "allStatuses")} />
-            <FilterSelect
-              size="sm"
-              className="w-40"
-              value={filters.band_code}
-              onChange={set("band_code")}
-              options={[{ value: "", label: t("aml:allBands") }, ...bands.map((b) => ({ value: b.code, label: b.name ?? b.code }))]}
-            />
-            <input type="number" min={0} max={100} value={filters.min_score} onChange={(e) => set("min_score")(e.target.value)} placeholder={t("aml:minScore")} className={`${filterInput} w-24`} />
-            <label className="flex items-center gap-1 text-xs text-muted-foreground">
-              {t("aml:from")}
-              <DateInput value={filters.from} onChange={(e) => set("from")(e.target.value)} className={filterInput} />
-            </label>
-            <label className="flex items-center gap-1 text-xs text-muted-foreground">
-              {t("aml:to")}
-              <DateInput value={filters.to} onChange={(e) => set("to")(e.target.value)} className={filterInput} />
-            </label>
-            {filters.reference_id && (
-              <button type="button" onClick={() => set("reference_id")("")} className="rounded-full bg-primary-light px-2.5 py-1 text-[11px] font-bold text-primary">
-                {t("aml:oneCustomer")} ✕
-              </button>
-            )}
-          </>
-        }
-      >
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={(row) => row.id}
-          isLoading={loading}
-          title={t("aml:screeningsTitle")}
-          emptyTitle={t("aml:noScreenings")}
-          serverPagination={{ page, totalPages: pagination.totalPages ?? 1, totalRecords: pagination.totalRecords ?? rows.length, onPageChange: setPage, limit, onLimitChange: (n) => { setLimit(n); setPage(1); } }}
-          serverSorted
-          bare
-        />
-      </ListPanel>
-      {openId && <ScreeningDetailModal id={openId} onClose={() => setOpenId(null)} onChanged={() => void load({ silent: true })} />}
+      <ListTable list={list} columns={columns} rowKey={(row) => row.id} title={t("aml:screeningsTitle")} emptyTitle={t("aml:noScreenings")} />
+      {openId && <ScreeningDetailModal id={openId} onClose={() => setOpenId(null)} onChanged={() => list.reload()} />}
       {customer && <CustomerAmlModal customerKind={customer.customer_kind} referenceId={customer.reference_id} onClose={() => setCustomer(null)} />}
     </>
   );

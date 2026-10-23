@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowDownWideNarrow, ChevronDown, Download, SlidersHorizontal, X } from "lucide-react";
+import { ArrowDownWideNarrow, SlidersHorizontal, X } from "lucide-react";
+import { ExportButtons } from "@/Components/Reports/Shared/reportShared";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -12,18 +13,21 @@ import { cn } from "@/Utils/Lib/utils";
 
 const MAX_TABS = 5;
 const MAX_MAIN = 3;
+// An export takes the list's filters, not its paging.
+const exportBody = ({ page: _page, limit: _limit, ...rest } = {}) => rest;
 const control = "h-9 rounded-lg border border-border bg-card px-3 text-xs font-semibold";
 
 // A list page's one panel (handoff 62): `list` from useServerList draws the
 // tabs, search, up to 3 filters, More filters, sort, export and the active
 // filter chips; the table goes in `children`. `actions`: the page's own
-// button (e.g. + New). `onExport(format, body)` when the list has exports.
+// button (e.g. + New). `onExport(format, body)` downloads the list as the
+// chosen format (Excel / CSV; PDF is drawn from the CSV) when it has exports.
 // `summary`: the list's extra figures (list.summary), drawn above the table.
 export function ListView({ list, actions = null, onExport, summary = null, children }) {
   const tb = list.toolbar;
   return (
     <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
-      <ListToolbar tb={tb} actions={actions} onExport={onExport && ((format) => onExport(format, list.body))} />
+      <ListToolbar tb={tb} actions={actions} onExport={onExport && ((format) => onExport(format, exportBody(list.body)))} />
       {summary}
       {children}
     </div>
@@ -85,7 +89,7 @@ function ListToolbar({ tb, actions, onExport }) {
             <FilterSelect size="sm" className="w-36" value={tb.sort} onChange={tb.onSort} options={o.sort_options} />
           </span>
         )}
-        {onExport && o.exports?.length > 0 && <ExportMenu formats={o.exports} onExport={onExport} t={t} />}
+        {onExport && o.exports?.length > 0 && <ExportButtons exportFile={onExport} />}
       </div>
 
       {chips.length > 0 && (
@@ -166,34 +170,6 @@ function FilterControl({ f, value, onChange, t, wide = false }) {
 
 function AmountBox({ value, onChange, placeholder, className }) {
   return <input inputMode="decimal" className={cn(control, "font-normal tabular-nums", className)} placeholder={placeholder} value={value ?? ""} onChange={(e) => onChange(e.target.value.replace(/[^\d.]/g, ""))} />;
-}
-
-function ExportMenu({ formats, onExport, t }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button type="button" onClick={() => setOpen((v) => !v)} className={cn(control, "flex items-center gap-1.5 text-muted-foreground hover:border-primary hover:text-primary")}>
-        <Download size={14} /> {t("export")} <ChevronDown size={12} />
-      </button>
-      {open && (
-        <div className="absolute right-0 z-20 mt-1 min-w-[8rem] rounded-xl border border-border bg-card p-1 shadow-lg">
-          {formats.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                onExport(f);
-              }}
-              className="block w-full rounded-lg px-3 py-1.5 text-left text-xs font-semibold uppercase hover:bg-muted"
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ListView with the shared table: rows, loading and paging from `list`;

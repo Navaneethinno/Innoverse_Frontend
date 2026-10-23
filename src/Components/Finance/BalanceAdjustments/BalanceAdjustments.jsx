@@ -1,11 +1,9 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, RefreshCw, Scale, Send } from "lucide-react";
+import { Plus, Scale, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -24,7 +22,6 @@ import { cn } from "@/Utils/Lib/utils";
 import { Problems, amountInput, inputClass, labelClass } from "../Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
-const STATUSES = ["PENDING", "APPROVED", "REJECTED", "CANCELLED", "FAILED"];
 
 // A type's direction: money into the wallet (CR) or out of it (DR).
 const opOf = (option) => (option?.to === "CASH" ? "DR" : "CR");
@@ -35,32 +32,15 @@ const opOf = (option) => (option?.to === "CASH" ? "DR" : "CR");
 export function BalanceAdjustments() {
   const { t } = useTranslation(["deposits", "txn", "common"]);
   const can = usePagePermission();
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   // Reference, client reference, reason, who asked or decided, either account.
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [openId, setOpenId] = useState(null);
   const [txn, setTxn] = useState(null);
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const row = rowsOf(await latestList(balanceAdjustmentsApi.list({ ...searchBody, page, page_size: limit, ...(status ? { status } : {}) })))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchBody, latestList, status, page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel("/config/ledger/adjustment/list", () => void load({ silent: true }));
+  const list = useServerList({ api: balanceAdjustmentsApi.listPath, call: balanceAdjustmentsApi.list });
+
+  const load = list.reload;
+  useLiveChannel("/config/ledger/adjustment/list", () => load());
 
   const columns = [
     {
@@ -104,9 +84,6 @@ export function BalanceAdjustments() {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
           {t("newAdjustment")}
@@ -126,58 +103,18 @@ export function BalanceAdjustments() {
         </div>
       </div>
 
-      <ListPanel
-        actions={listActions}
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("searchRequests")}
-        filters={
-          <>
-            <FilterSelect
-              value={status}
-              onChange={(v) => {
-                setStatus(v);
-                setPage(1);
-              }}
-              options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map((s) => ({ value: s, label: t(`txn:reqStatus_${s}`) }))]}
-            />
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(a) => a.id}
-        isLoading={loading}
-        title={t("adjTitle")}
-        emptyTitle={t("noAdjustments")}
-        emptyDescription={t("noAdjustmentsHint")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(a) => a.id} title={t("adjTitle")} emptyTitle={t("noAdjustments")} emptyDescription={t("noAdjustmentsHint")} />
 
       {adding && (
         <AdjustmentForm
           onClose={() => setAdding(false)}
           onSaved={() => {
             setAdding(false);
-            void load();
+            load();
           }}
         />
       )}
-      {openId && <RequestDialog id={openId} api={balanceAdjustmentsApi} onClose={() => setOpenId(null)} onChanged={() => void load()} onOpenTxn={({ rrn }) => setTxn(rrn)} />}
+      {openId && <RequestDialog id={openId} api={balanceAdjustmentsApi} onClose={() => setOpenId(null)} onChanged={() => load()} onOpenTxn={({ rrn }) => setTxn(rrn)} />}
       {txn && <TxnDialog rrn={txn} onClose={() => setTxn(null)} />}
     </div>
   );
