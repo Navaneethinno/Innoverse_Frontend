@@ -62,7 +62,7 @@ export function InstitutionPage() {
     if (tab !== "history" || audit) return;
     institutionsApi
       .audit({ id: Number(id), page: 1, limit: 100 })
-      .then((r) => setAudit(rowsOf(r).map((e) => ({ action: e.process_status_name ?? e.status_name, process_status_name: e.auth_status, actor: e.updated_by ?? e.created_by, at: e.updated_time ?? e.created_time, narration: e.narration }))))
+      .then((r) => setAudit(rowsOf(r).map((e) => ({ action: e.audit_action ?? e.process_status_name, process_status_name: e.process_status_name ?? e.status_name, actor: e.updated_by ?? e.created_by, at: e.updated_time ?? e.created_time, narration: e.narration }))))
       .catch((e) => {
         notifications.error(e.message);
         setAudit([]);
