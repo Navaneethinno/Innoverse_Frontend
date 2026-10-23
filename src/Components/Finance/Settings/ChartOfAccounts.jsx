@@ -195,66 +195,51 @@ function GlTree({ version, onView, onAdd }) {
           <Spinner size={18} />
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2.5">{t("gl")}</th>
-                <th className="px-3 py-2.5">{t("glCode")}</th>
-                <th className="px-3 py-2.5">{t("accountNumber")}</th>
-                <th className="px-3 py-2.5">{t("glType")}</th>
-                <th className="px-3 py-2.5 text-right">{t("balance")}</th>
-                <th className="px-3 py-2.5">{t("status")}</th>
-                <th className="px-3 py-2.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ n, depth }) => (
-                <tr key={n.id} className="border-b border-border/60 hover:bg-muted/40">
-                  <td className="px-4 py-2">
-                    <span className="flex items-center gap-1.5" style={{ paddingLeft: depth * 18 }}>
-                      {n.children?.length ? (
-                        <button type="button" aria-label={t(open.has(n.id) ? "collapse" : "expand")} onClick={() => toggle(n.id)} className="rounded p-0.5 text-muted-foreground hover:bg-muted">
-                          {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                        </button>
-                      ) : (
-                        <span className="w-[18px]" />
-                      )}
-                      <button type="button" onClick={() => onView(n.id)} className={cn("text-left hover:text-primary hover:underline", n.is_account ? "text-xs" : "text-xs font-bold")}>
-                        {n.name}
-                      </button>
-                      {n.has_pl ? <ControlGlBadge /> : !n.is_account && <span className="text-[10px] text-muted-foreground">({n.children?.length ?? 0})</span>}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 font-mono text-xs">{n.gl_code || "—"}</td>
-                  <td className="px-3 py-2 font-mono text-xs">{n.account_number || "—"}</td>
-                  <td className="px-3 py-2">
-                    <GlType value={n.gl_type} />
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <Balances balances={n.balances} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <ProductStatus product={n} />
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="flex justify-end gap-1">
-                      {!n.is_account && !n.has_pl && onAdd && <ActionIconButton label={t("addUnder")} intent="edit" icon={Plus} onClick={() => onAdd(n)} />}
-                      <ActionIconButton label={t("view")} intent="view" icon={Eye} onClick={() => onView(n.id)} />
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {!rows.length && (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
-                    {t("noGls")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          bare
+          serverSorted
+          pageSize={50}
+          rows={rows}
+          rowKey={(r) => r.n.id}
+          emptyTitle={t("noGls")}
+          columns={[
+            {
+              key: "name",
+              label: t("gl"),
+              align: "left",
+              render: ({ n, depth }) => (
+                <span className="flex items-center gap-1.5" style={{ paddingLeft: depth * 18 }}>
+                  {n.children?.length ? (
+                    <button type="button" aria-label={t(open.has(n.id) ? "collapse" : "expand")} onClick={() => toggle(n.id)} className="rounded p-0.5 text-muted-foreground hover:bg-muted">
+                      {open.has(n.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                    </button>
+                  ) : (
+                    <span className="w-[18px]" />
+                  )}
+                  <button type="button" onClick={() => onView(n.id)} className={cn("text-left hover:text-primary hover:underline", n.is_account ? "text-xs" : "text-xs font-bold")}>
+                    {n.name}
+                  </button>
+                  {n.has_pl ? <ControlGlBadge /> : !n.is_account && <span className="text-[10px] text-muted-foreground">({n.children?.length ?? 0})</span>}
+                </span>
+              ),
+            },
+            { key: "gl_code", label: t("glCode"), render: ({ n }) => <span className="font-mono text-xs">{n.gl_code || "—"}</span> },
+            { key: "account_number", label: t("accountNumber"), render: ({ n }) => <span className="font-mono text-xs">{n.account_number || "—"}</span> },
+            { key: "gl_type", label: t("glType"), render: ({ n }) => <GlType value={n.gl_type} /> },
+            { key: "balance", label: t("balance"), render: ({ n }) => <Balances balances={n.balances} /> },
+            { key: "status", label: t("status"), render: ({ n }) => <ProductStatus product={n} /> },
+            {
+              key: "actions",
+              label: t("common:actions"),
+              render: ({ n }) => (
+                <span className="flex justify-center gap-1">
+                  {!n.is_account && !n.has_pl && onAdd && <ActionIconButton label={t("addUnder")} intent="edit" icon={Plus} onClick={() => onAdd(n)} />}
+                  <ActionIconButton label={t("view")} intent="view" icon={Eye} onClick={() => onView(n.id)} />
+                </span>
+              ),
+            },
+          ]}
+        />
       )}
     </ListPanel>
   );
