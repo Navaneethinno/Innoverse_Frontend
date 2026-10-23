@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -26,7 +27,7 @@ import { useResidencyTypes } from "@/Hooks/Master/masterHooks";
 import { AddDigitalProductWizard } from "./AddDigitalProductWizard";
 import { EditDigitalProductWizard } from "./EditDigitalProductWizard";
 import { ViewDigitalProductWizard } from "./ViewDigitalProductWizard";
-import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { CONFIGS, DigitalProductFieldInput, isRequiredField } from "./digitalProductFields";
 import { orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
@@ -116,6 +117,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
           ) : (
             <label key={key} className="text-sm font-semibold text-slate-700">
               {tr(label)}
+              {isRequiredField(key) && <RequiredMark />}
               <DigitalProductFieldInput
                 fieldKey={key}
                 type={type}

@@ -225,7 +225,9 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
 
         {/* Who gets it */}
         <div className={section}>
-          <p className={sectionTitle}>{t("notification:recipients")}</p>
+          <p className={sectionTitle}>
+            {t("notification:recipients")} <span className="text-red-500">*</span>
+          </p>
           {options.groups.length ? (
             <GroupPicker groups={options.groups} value={form.group_ids} onChange={(ids) => setForm((f) => ({ ...f, group_ids: ids }))} />
           ) : (
@@ -279,7 +281,7 @@ export function NotificationAlertForm({ editing, onClose, onSaved }) {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <p className={sectionTitle}>
-                {t("notification:triggers")} <span className="ml-1 text-xs font-semibold text-muted-foreground">{t("notification:triggerCount", { count: form.triggers.size })}</span>
+                {t("notification:triggers")} <span className="text-red-500">*</span> <span className="ml-1 text-xs font-semibold text-muted-foreground">{t("notification:triggerCount", { count: form.triggers.size })}</span>
               </p>
               <p className="text-[11px] text-muted-foreground">{t("notification:triggersHint")}</p>
             </div>

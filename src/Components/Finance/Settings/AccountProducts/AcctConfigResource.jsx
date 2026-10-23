@@ -1,3 +1,5 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
+import { requiredFor } from "@/Utils/Lib/requiredFields";
 import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -393,6 +395,9 @@ const optionOf = (item, idBased) => {
 
 export function AcctConfigResource({ entity }) {
   const config = CONFIGS[entity];
+  // What the API refuses to save without (the backend's required-fields
+  // reference), plus this screen's own guards (config.required).
+  const requiredKeys = new Set([...requiredFor(API_ENDPOINTS.CONFIG_ACCT[entity.toUpperCase()]?.ADD), ...(config.required ?? [])]);
   // CONFIGS' own titles/field labels are plain hardcoded English (not
   // t()-driven), so switching the app to Portuguese silently left this
   // page untranslated — tr() looks each one up in a flat EN->PT table
@@ -542,8 +547,8 @@ export function AcctConfigResource({ entity }) {
     // that as a flatly misleading "request body is not valid JSON" 400
     // instead of a real validation message.
     const missingField = config.fields.find(
-      ([key, , , lookupKey]) =>
-        (lookupKey || config.required?.includes(key)) && !config.optional?.includes(key) && (form[key] === "" || form[key] == null),
+      ([key, , type, lookupKey]) =>
+        (lookupKey || requiredKeys.has(key)) && type !== "boolean" && !config.optional?.includes(key) && (form[key] === "" || form[key] == null),
     );
     if (missingField) {
       const label = tr(missingField[1]).toLowerCase();
@@ -742,6 +747,7 @@ export function AcctConfigResource({ entity }) {
                   return (
                     <label key={key} className="text-sm font-semibold">
                       {tr(label)}
+                      {requiredKeys.has(key) && <RequiredMark />}
                       {lookupKey ? (
                         <FilterSelect
                           className="mt-1.5"

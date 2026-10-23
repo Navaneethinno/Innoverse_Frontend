@@ -346,7 +346,7 @@ export function Whitelist() {
           hint={action.batch_id ? t("aml:batchDecisionHint") : `${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name}`}
           confirmLabel={action.type === "auth" ? t("common:authorize") : action.type === "revoke" ? t("aml:revoke") : t("aml:reject")}
           variant={action.type === "auth" ? "primary" : "danger"}
-          required={action.type !== "auth"}
+          required
           label={action.type === "revoke" ? t("aml:commentRequiredLabel") : undefined}
           busy={working}
           onClose={() => setAction(null)}

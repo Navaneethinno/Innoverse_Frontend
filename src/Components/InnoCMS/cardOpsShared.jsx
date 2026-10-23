@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { UserRound, X } from "lucide-react";
@@ -162,10 +163,11 @@ export function HolderPicker({ value, onChange }) {
 }
 
 // A labelled field.
-export function Labelled({ label, hint, children, className }) {
+export function Labelled({ label, hint, required = false, children, className }) {
   return (
     <label className={cn(labelClass, "block", className)}>
       {label}
+      {required && <RequiredMark />}
       <div className="mt-1">{children}</div>
       {hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{hint}</span>}
     </label>

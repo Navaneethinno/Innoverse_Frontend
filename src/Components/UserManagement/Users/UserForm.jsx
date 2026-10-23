@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +39,9 @@ const fields = [
   ["gender", "Gender"],
   ["address", "Address"],
 ];
+
+// What the API refuses to save without (user add and the user's KYC).
+const REQUIRED_KEYS = new Set(["user_name", "user_pwd", "profile_id", "user_fname", "user_lname"]);
 
 const FIELD_LABEL_KEYS = {
   user_name: "fieldUsername",
@@ -85,7 +89,10 @@ function PasswordPolicyField({ policies, policy, selectedId, onSelect, requireme
 
   return (
     <div className="md:col-span-2">
-      <span className="mb-1.5 block text-sm font-medium text-slate-700">{t("passwordPolicy")}</span>
+      <span className="mb-1.5 block text-sm font-medium text-slate-700">
+        {t("passwordPolicy")}
+        <RequiredMark />
+      </span>
       <FilterSelect value={selectedId} onChange={onSelect} options={options} className="w-full" />
       {policy && (
         <div className="mt-1.5">
@@ -148,7 +155,10 @@ export function UserForm({
         .filter(([key]) => canChooseInstitution || key !== "inst_id")
         .map(([key]) => (
         <label key={key} className="text-sm text-slate-700">
-          <span className="mb-1.5 block font-medium">{t(FIELD_LABEL_KEYS[key], fields.find(([field]) => field === key)?.[1] ?? key)}</span>
+          <span className="mb-1.5 block font-medium">
+            {t(FIELD_LABEL_KEYS[key], fields.find(([field]) => field === key)?.[1] ?? key)}
+            {REQUIRED_KEYS.has(key) && <RequiredMark />}
+          </span>
           <div className="relative">
             {key === "inst_id" || key === "profile_id" ? (
               <FilterSelect

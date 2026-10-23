@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -400,6 +401,7 @@ function ModuleForm({
         <>
           <label className="block text-sm font-medium">
             Module
+            <RequiredMark />
             <FilterSelect
               className="mt-1.5"
               value={form.module_id}
@@ -416,6 +418,7 @@ function ModuleForm({
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm font-medium">
               Effective from
+              <RequiredMark />
               <DateInput
                 required
                 value={form.effective_from}
@@ -453,6 +456,7 @@ function ModuleForm({
               </div>
               <label className="block text-sm font-medium">
                 Module
+                <RequiredMark />
                 <FilterSelect
                   className="mt-1.5"
                   value={row.module_id}

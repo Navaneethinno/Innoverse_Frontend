@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useServerList } from "@/Hooks/useServerList";
 import { useState } from "react";
@@ -349,6 +350,7 @@ export function CustomerMasterConfigResource({ entity }) {
             )}
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:code")}
+              <RequiredMark />
               <input
                 required
                 disabled={Boolean(editing)}
@@ -360,6 +362,7 @@ export function CustomerMasterConfigResource({ entity }) {
             </label>
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:name")}
+              <RequiredMark />
               <input
                 required
                 value={form.name}

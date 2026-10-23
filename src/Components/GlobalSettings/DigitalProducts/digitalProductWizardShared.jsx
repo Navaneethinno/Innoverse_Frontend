@@ -1,6 +1,7 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/Utils/Lib/cn";
-import { CONFIGS, DigitalProductFieldInput } from "./digitalProductFields";
+import { CONFIGS, DigitalProductFieldInput, isRequiredField } from "./digitalProductFields";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { DIGITAL_PRODUCT_STEPS } from "./digitalProductSteps";
 import { splitFieldsIntoColumns, orderedFields } from "@/Utils/Lib/formFieldColumns";
@@ -286,6 +287,7 @@ export function DigitalProductStepFields({ entity, values, onFieldChange, lookup
             ) : (
               <label key={key} className="text-sm font-semibold text-slate-700">
                 {tr(label)}
+                {isRequiredField(key) && <RequiredMark />}
                 <DigitalProductFieldInput
                   fieldKey={key}
                   type={type}

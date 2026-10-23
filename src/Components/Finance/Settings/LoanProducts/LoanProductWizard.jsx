@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Calculator, Save, Send } from "lucide-react";
@@ -211,9 +212,11 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   const p = config.policy ?? {};
   const e = config.eligibility_rules ?? {};
   const col = config.collateral_policy ?? {};
-  const field = (label, node, hint) => (
+  // `required`: the save is refused without it (asterisk).
+  const field = (label, node, hint, required = false) => (
     <label className={labelClass}>
       {label}
+      {required && <RequiredMark />}
       {node}
       {hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{hint}</span>}
     </label>
@@ -235,10 +238,10 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       {STEPS[step] === "product" && (
         <Section title={t("step_product")}>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {field(t("productCode"), <Field field={{ placeholder: "PL_AED" }} disabled={Boolean(product)} value={product?.product_code ?? head.product_code} onChange={(v) => setHead((h) => ({ ...h, product_code: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))} />, !product && t("codeFixedHint"))}
-            {field(t("currency"), <Field field={{ type: "select", blank: t("chooseCurrency"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}` })) }} disabled={Boolean(product)} value={String(currencyId ?? "")} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />)}
+            {field(t("productCode"), <Field field={{ placeholder: "PL_AED" }} disabled={Boolean(product)} value={product?.product_code ?? head.product_code} onChange={(v) => setHead((h) => ({ ...h, product_code: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))} />, !product && t("codeFixedHint"), true)}
+            {field(t("currency"), <Field field={{ type: "select", blank: t("chooseCurrency"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}` })) }} disabled={Boolean(product)} value={String(currencyId ?? "")} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />, null, true)}
             {field(t("productCategory"), <Field field={sel(options.product_categories)} value={config.product_category} onChange={(v) => set({ product_category: v })} />)}
-            {field(t("productName"), <Field field={{}} value={config.product_name} onChange={(v) => set({ product_name: v })} />)}
+            {field(t("productName"), <Field field={{}} value={config.product_name} onChange={(v) => set({ product_name: v })} />, null, true)}
             {field(t("effectiveFrom"), <Field field={{ type: "date" }} value={config.effective_from} onChange={(v) => set({ effective_from: v })} />)}
             {field(t("effectiveTo"), <Field field={{ type: "date" }} value={config.effective_to} onChange={(v) => set({ effective_to: v })} />)}
             <label className={cn(labelClass, "md:col-span-2 lg:col-span-3")}>

@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useTranslation } from "react-i18next";
 import { ProfilePermissionTree } from "@/Components/UserManagement/Profiles/ProfilePermissionTree";
@@ -22,7 +23,10 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4" id="profile-form">
       <label className="block text-sm text-slate-700">
-        <span className="mb-1.5 block font-medium">{t("profileName")}</span>
+        <span className="mb-1.5 block font-medium">
+          {t("profileName")}
+          <RequiredMark />
+        </span>
         <input
           required
           value={form.profile_name}

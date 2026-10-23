@@ -276,7 +276,7 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
 
 // Each action, the menu action it needs, and the statuses that offer it.
 const ACTIONS = {
-  auth: { icon: CheckCircle2, variant: "primary", perm: "Authorise", when: ["PENDING"] },
+  auth: { icon: CheckCircle2, variant: "primary", perm: "Authorise", when: ["PENDING"], required: true },
   deauth: { icon: XCircle, variant: "danger", perm: "Authorise", when: ["PENDING"], required: true },
   edit: { icon: Pencil, perm: "Edit", when: ["PENDING", "REJECTED", "ACTIVE", "BLOCKED"] },
   assign: { icon: Link2, perm: "Edit", when: ["PENDING", "ACTIVE", "BLOCKED"] },

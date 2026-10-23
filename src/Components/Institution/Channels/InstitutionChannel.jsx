@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -365,6 +366,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
       </label>
       <label className="block text-sm font-medium">
         Channel
+        <RequiredMark />
         <FilterSelect
           className="mt-1.5"
           value={form.channel_id}

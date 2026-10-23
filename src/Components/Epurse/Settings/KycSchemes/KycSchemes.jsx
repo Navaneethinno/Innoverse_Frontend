@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, Layers, Plus } from "lucide-react";
@@ -444,10 +445,12 @@ export function KycSchemes() {
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:code")}
+              <RequiredMark />
               <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className={`${fieldClass} font-mono`} placeholder="STANDARD_KYC" />
             </label>
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:name")}
+              <RequiredMark />
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={fieldClass} />
             </label>
             <label className="text-sm font-semibold text-slate-700">
@@ -477,6 +480,7 @@ export function KycSchemes() {
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
               {t("onboarding:newCode")}
+              <RequiredMark />
               <input value={clone.code} onChange={(e) => setClone({ ...clone, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className={`${fieldClass} font-mono`} />
             </label>
             <label className="text-sm font-semibold text-slate-700">

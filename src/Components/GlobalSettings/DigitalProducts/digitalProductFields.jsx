@@ -114,6 +114,9 @@ scopeInstitutionFields(CONFIGS);
 // already fetches (institutions/accountProducts/kycGroups/channels/
 // transactions/residencyTypes); a caller only needs to pass the ones
 // relevant to the fields it renders.
+// A field the save can't go without: its code and name, and every lookup.
+export const isRequiredField = (key) => key.endsWith("_id") || ["code", "name"].includes(key);
+
 export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange, lookups = {}, disabled = false, disabledReason }) {
   const {
     institutions = [],
@@ -248,7 +251,7 @@ export function DigitalProductFieldInput({ fieldKey: key, type, value, onChange,
   // instead of going through this generic input.
   return (
     <input
-      required={key.endsWith("_id") || ["code", "name"].includes(key)}
+      required={isRequiredField(key)}
       type={type}
       min={type === "number" ? 0 : undefined}
       value={value ?? ""}

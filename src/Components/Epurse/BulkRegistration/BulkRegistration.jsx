@@ -265,7 +265,7 @@ function NewBatch({ onClose, onSaved }) {
       <div className="grid gap-4">
         <Section title={t("stepBatch")}>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-            <Labelled label={t("customerType")}>
+            <Labelled required label={t("customerType")}>
               <FilterSelect value={form.ownership_sub_type_id} onChange={(v) => set({ ownership_sub_type_id: v })} options={[{ value: "", label: t("choose") }, ...(options.customer_types ?? []).map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))]} />
             </Labelled>
             <Labelled label={t("employerOptional")}>

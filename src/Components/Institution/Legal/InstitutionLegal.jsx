@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -326,6 +327,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
       {FIELDS.map(([key, label]) => (
         <label key={key} className="text-sm font-medium">
           {label}
+          {key === "legal_name" && <RequiredMark />}
           <TypedInput
             required={key === "legal_name"}
             type={key.includes("date") ? "date" : key === "contact_email" ? "email" : key === "contact_phone" ? "tel" : "text"}

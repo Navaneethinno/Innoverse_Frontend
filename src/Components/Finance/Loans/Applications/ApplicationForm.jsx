@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Send, UserRound } from "lucide-react";
@@ -134,9 +135,11 @@ export function ApplicationForm({ application, onClose, onSaved }) {
     }
   };
 
-  const field = (label, node, hint) => (
+  // `required`: the API refuses the application without it (asterisk).
+  const field = (label, node, hint, required = false) => (
     <label className={labelClass}>
       {label}
+      {required && <RequiredMark />}
       {node}
       {hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{hint}</span>}
     </label>
@@ -198,8 +201,10 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                     setForm((f) => ({ ...f, loan_product_id: v, term_id: p?.config?.terms?.[0]?.id ? String(p.config.terms[0].id) : "", disbursement_acct_id: "", repayment_acct_id: "" }));
                   }}
                 />,
+                null,
+                true,
               )}
-              {field(t("term"), <Field field={{ type: "select", options: (product?.config?.terms ?? []).map((x) => ({ value: String(x.id), label: `${x.term_code} · ${x.term_value} ${loanLabel(t, x.term_unit)}` })) }} value={form.term_id} onChange={set("term_id")} />)}
+              {field(t("term"), <Field field={{ type: "select", options: (product?.config?.terms ?? []).map((x) => ({ value: String(x.id), label: `${x.term_code} · ${x.term_value} ${loanLabel(t, x.term_unit)}` })) }} value={form.term_id} onChange={set("term_id")} />, null, true)}
               {field(t("amountIn", { currency: cur }), <Field field={{ type: "amount" }} decimals={product?.amount_decimals ?? 2} value={form.amount} onChange={set("amount")} />, term && t("termLimits", { min: money(term.minimum_amount, cur), max: Number(term.maximum_amount) === 0 ? t("noLimit") : money(term.maximum_amount, cur) }))}
               {field(t("purposeCode"), <Field field={{ placeholder: "HOME_IMPROVEMENT" }} value={form.purpose_code} onChange={(v) => set("purpose_code")(v.toUpperCase().replace(/[^A-Z0-9_]/g, ""))} />)}
               {field(t("disbursementWallet"), <Field field={{ type: "select", blank: wallets.length ? t("chooseWallet") : t("noWalletInCurrency"), options: wallets.map((w) => ({ value: String(w.id), label: `${w.acct_num} · ${money(w.avail_bal, w.currency_code)}` })) }} value={form.disbursement_acct_id} onChange={set("disbursement_acct_id")} />)}

@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
 
@@ -389,6 +390,7 @@ function AssignmentForm({
       </label>
       <label className="block text-sm font-medium">
         {kind.itemLabel}
+        <RequiredMark />
         <FilterSelect
           className="mt-1.5"
           value={form[kind.valueKey]}

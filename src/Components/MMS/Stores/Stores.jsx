@@ -66,7 +66,7 @@ function StoreList({ pendingOnly = false, merchant = null, permission }) {
 }
 
 const DECISIONS = {
-  approve: { icon: CheckCircle2, variant: "primary", action: "Authorise" },
+  approve: { icon: CheckCircle2, variant: "primary", action: "Authorise", required: true },
   reject: { icon: XCircle, variant: "danger", action: "Authorise", required: true },
   deactivate: { icon: Power, variant: "danger", action: "Change Status" },
   reactivate: { icon: RotateCcw, variant: "secondary", action: "Change Status" },

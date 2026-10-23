@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -442,10 +443,12 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           <label className={labelClass}>
             {t("code")}
+            <RequiredMark />
             <Field field={{ placeholder: "AED_FEES" }} disabled={Boolean(schedule)} value={schedule?.schedule_code ?? head.schedule_code} onChange={(v) => setHead((h) => ({ ...h, schedule_code: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))} />
           </label>
           <label className={labelClass}>
             {t("currency")}
+            <RequiredMark />
             <Field field={{ type: "select", blank: t("choose"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}${c.fee_schedule_id ? ` (${t("hasSchedule")})` : ""}` })) }} disabled={Boolean(schedule)} value={String(schedule?.currency_code ?? head.currency_code)} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />
             {!schedule && currency?.fee_schedule_id && (
               <button type="button" onClick={() => onOpen(currency.fee_schedule_id)} className="mt-1 flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">

@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Copy, FlaskConical, Gauge, ListChecks, Plus, Users } from "lucide-react";
@@ -143,11 +144,13 @@ export function LimitGroups() {
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
               {t("limits:code")}
+              <RequiredMark />
               <input value={form.code} onChange={(e) => setForm({ ...form, code: codeOf(e.target.value) })} className={`${field} font-mono`} placeholder="WALLET_STD" />
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("limits:codeHint")}</span>
             </label>
             <label className="text-sm font-semibold text-slate-700">
               {t("limits:name")}
+              <RequiredMark />
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={field} />
             </label>
             <label className="text-sm font-semibold text-slate-700">
@@ -177,10 +180,12 @@ export function LimitGroups() {
           <div className="grid gap-4">
             <label className="text-sm font-semibold text-slate-700">
               {t("limits:newCode")}
+              <RequiredMark />
               <input value={clone.code} onChange={(e) => setClone({ ...clone, code: codeOf(e.target.value) })} className={`${field} font-mono`} />
             </label>
             <label className="text-sm font-semibold text-slate-700">
               {t("limits:newName")}
+              <RequiredMark />
               <input value={clone.name} onChange={(e) => setClone({ ...clone, name: e.target.value })} className={field} />
             </label>
           </div>

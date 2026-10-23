@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { listPage } from "@/Hooks/useServerList";
 import { uuid } from "@/Utils/Lib/uuid";
 import { useEffect, useState } from "react";
@@ -179,6 +180,7 @@ export function NewRequest({ preset, onClose, onDone }) {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={cn(labelClass, "sm:col-span-2")}>
               {t("type")}
+              <RequiredMark />
               <FilterSelect
                 className="mt-1.5"
                 value={type}

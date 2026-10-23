@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -189,6 +190,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
             <div className="grid gap-3 md:grid-cols-3">
               <label className={labelClass}>
                 {t("productCode")}
+                <RequiredMark />
                 <span className="text-destructive"> *</span>
                 <input
                   className={cn(inputClass, "mt-1.5 font-mono uppercase")}
@@ -202,12 +204,14 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
               </label>
               <label className={labelClass}>
                 {t("productName")}
+                <RequiredMark />
                 <span className="text-destructive"> *</span>
                 <input className={cn(inputClass, "mt-1.5")} value={head.product_name} maxLength={150} readOnly={!drafting} onChange={(e) => setHead((h) => ({ ...h, product_name: e.target.value }))} />
               </label>
               {!product && (
                 <label className={labelClass}>
                   {t("accountProduct")}
+                  <RequiredMark />
                   <span className="text-destructive"> *</span>
                   <FilterSelect
                     className="mt-1.5"

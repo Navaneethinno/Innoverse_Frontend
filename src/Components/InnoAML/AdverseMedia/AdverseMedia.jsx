@@ -918,7 +918,7 @@ function RelationReview({ r, search, onChange }) {
           title={t(dialog.verb === "auth" ? "mediaApproveTitle" : "mediaRejectTitle")}
           confirmLabel={t(dialog.verb === "auth" ? "approve" : "reject")}
           variant={dialog.verb === "auth" ? "primary" : "danger"}
-          required={dialog.verb === "deauth"}
+          required
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={async (narration) => (await run(() => amlMediaReviewApi[dialog.verb]({ id: dialog.id, ...(narration ? { narration } : {}) }))) && setDialog(null)}
@@ -1315,7 +1315,7 @@ function ResultView({ search, onChange }) {
           title={t(dialog.verb === "auth" ? "mediaApproveTitle" : "mediaRejectTitle")}
           confirmLabel={t(dialog.verb === "auth" ? "approve" : "reject")}
           variant={dialog.verb === "auth" ? "primary" : "danger"}
-          required={dialog.verb === "deauth"}
+          required
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={async (narration) => (await run(() => amlMediaReviewApi[dialog.verb]({ id: dialog.id, ...(narration ? { narration } : {}) }))) && setDialog(null)}
@@ -1758,7 +1758,7 @@ export function MediaReviews() {
           hint={dialog.row.title}
           confirmLabel={t(dialog.verb === "auth" ? "aml:approve" : "aml:reject")}
           variant={dialog.verb === "auth" ? "primary" : "danger"}
-          required={dialog.verb === "deauth"}
+          required
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={(narration) => void decide(narration)}

@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Plus, XCircle } from "lucide-react";
@@ -67,14 +68,17 @@ export function ReferenceRates({ scope, onClose }) {
         <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-card p-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
           <label className={labelClass}>
             {t("referenceRate")}
+            <RequiredMark />
             <input className={cn(inputClass, "mt-1 font-mono uppercase")} value={form.code} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))} />
           </label>
           <label className={labelClass}>
             {t("ratePct")}
+            <RequiredMark />
             <Field field={{ type: "percent" }} value={form.annual_rate} onChange={(v) => setForm((f) => ({ ...f, annual_rate: v }))} />
           </label>
           <label className={labelClass}>
             {t("effectiveFrom")}
+            <RequiredMark />
             <Field field={{ type: "date" }} value={form.effective_from} onChange={(v) => setForm((f) => ({ ...f, effective_from: v }))} />
           </label>
           <Button icon={Plus} loading={busy} disabled={!form.code || form.annual_rate === "" || !form.effective_from} onClick={add}>

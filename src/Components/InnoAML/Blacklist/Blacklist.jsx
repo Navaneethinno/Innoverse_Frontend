@@ -210,7 +210,7 @@ export function Blacklist() {
           hint={action.batch_id ? t("aml:batchDecisionHint") : action.label}
           confirmLabel={action.type === "auth" ? t("common:authorize") : action.type === "remove" ? t("aml:remove") : t("aml:reject")}
           variant={action.type === "auth" ? "primary" : "danger"}
-          required={action.type !== "auth"}
+          required
           label={action.type === "remove" ? t("aml:commentRequiredLabel") : undefined}
           busy={working}
           onClose={() => setAction(null)}

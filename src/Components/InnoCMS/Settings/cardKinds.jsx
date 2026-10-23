@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, CreditCard, Hash, Layers, ListOrdered, Plus, X } from "lucide-react";
@@ -23,10 +24,12 @@ const codes = (list) => (list ?? []).map((o) => (typeof o === "object" ? { value
 const CODE = /^[A-Z0-9_]+$/;
 const upperCode = (v) => v.toUpperCase().replace(/[^A-Z0-9_]/g, "");
 
-function F({ label, hint, warn, span, children }) {
+// `required`: the API refuses the save without it (asterisk).
+function F({ label, hint, warn, span, required = false, children }) {
   return (
     <label className={cn(labelClass, span)}>
       {label}
+      {required && <RequiredMark />}
       {children}
       {(warn || hint) && <span className={cn("mt-1 block text-[11px] font-normal", warn ? "font-semibold text-amber-700" : "text-muted-foreground")}>{warn || hint}</span>}
     </label>
@@ -62,10 +65,10 @@ function BinForm({ values: v, set, options, locked }) {
     <Section title={t("groupBin")}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className={cn(grid, "flex-1 lg:grid-cols-2")}>
-          <F label={t("binCode")} hint={!locked && t("fixedOnceAdded")}>
+          <F required label={t("binCode")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ placeholder: "498765" }} disabled={locked} value={v.bin_code} onChange={(x) => set({ bin_code: x.replace(/\D/g, "").slice(0, 12) })} />
           </F>
-          <F label={t("network")} hint={!locked && t("fixedOnceAdded")}>
+          <F required label={t("network")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ type: "select", blank: t("choose"), options: codes(options.networks) }} disabled={locked} value={v.network_code} onChange={(x) => set({ network_code: x })} />
           </F>
           <F label={t("panLength")} hint={t("panLengthHint")} warn={v.bin_code && after < 7 && t("panTooShort", { count: after })}>
@@ -150,7 +153,7 @@ function ProductForm({ values: v, set, options, locked }) {
     <>
       <Section title={t("groupProduct")}>
         <div className={grid}>
-          <F label={t("productCode")} hint={!locked && t("fixedOnceAdded")}>
+          <F required label={t("productCode")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ placeholder: "GOLD_PREPAID" }} disabled={locked} value={v.product_code} onChange={(x) => set({ product_code: upperCode(x) })} />
           </F>
           <F label={t("productClass")} hint={!locked && t("creditLater")}>
@@ -161,7 +164,7 @@ function ProductForm({ values: v, set, options, locked }) {
               onChange={(x) => set({ product_class: x, prepaid: x === "PREPAID" ? (v.prepaid ?? { ...options.prepaid_defaults }) : null })}
             />
           </F>
-          <F label={t("bin")}>
+          <F required label={t("bin")}>
             <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x, card_number_layout_id: "" })} />
           </F>
           <F label={t("numberLayout")} hint={t("numberLayoutHint")}>
@@ -172,7 +175,7 @@ function ProductForm({ values: v, set, options, locked }) {
               <Field field={{}} disabled value={String(v.bin_product_no)} onChange={() => {}} />
             </F>
           ) : null}
-          <F label={t("currency")}>
+          <F required label={t("currency")}>
             <Field field={{ type: "select", blank: t("choose"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` })) }} disabled={locked} value={id(v.currency_id)} onChange={(x) => set({ currency_id: x, linked_acct_product_id: "" })} />
           </F>
           {prepaid && (
@@ -180,10 +183,10 @@ function ProductForm({ values: v, set, options, locked }) {
               <Field field={{ type: "select", blank: purses.length ? t("choose") : t("noPurseProduct"), options: pickOptions(purses) }} value={id(v.linked_acct_product_id)} onChange={(x) => set({ linked_acct_product_id: x })} />
             </F>
           )}
-          <F label={t("productName")}>
+          <F required label={t("productName")}>
             <Field field={{}} value={v.product_name} onChange={(x) => set({ product_name: x.slice(0, 150) })} />
           </F>
-          <F label={t("digitalProduct")} hint={dp && t("dpAllowsN", { count: Number(dp.extra ?? 1) })}>
+          <F required label={t("digitalProduct")} hint={dp && t("dpAllowsN", { count: Number(dp.extra ?? 1) })}>
             <Field field={{ type: "select", blank: t("choose"), options: pickOptions(options.digital_products) }} value={id(v.digital_product_id)} onChange={(x) => set({ digital_product_id: x })} />
           </F>
           <F label={t("effectiveFrom")} hint={t("effectiveFromHint")}>
@@ -200,7 +203,7 @@ function ProductForm({ values: v, set, options, locked }) {
 
       <Section title={t("groupCards")}>
         <div className={grid}>
-          <F label={t("formFactors")}>
+          <F required label={t("formFactors")}>
             <Field field={{ type: "multi", options: codes(options.form_factors) }} value={v.allowed_form_factors} onChange={setFactors} />
           </F>
           <F label={t("defaultFormFactor")}>
@@ -209,7 +212,7 @@ function ProductForm({ values: v, set, options, locked }) {
           <F label={t("activationMode")} hint={t(`activationHint_${v.activation_mode}`, { defaultValue: "" })}>
             <Field field={{ type: "select", options: options.activation_modes }} value={v.activation_mode} onChange={(x) => set({ activation_mode: x })} />
           </F>
-          <F label={t("persoModes")} hint={!physical && t("personalisedNeedsPhysical")}>
+          <F required label={t("persoModes")} hint={!physical && t("personalisedNeedsPhysical")}>
             <Field field={{ type: "multi", options: codes(options.perso_modes).filter((o) => physical || o.value !== "PERSONALIZED") }} value={v.allowed_perso_modes} onChange={setPerso} />
           </F>
           <F label={t("defaultPersoMode")}>
@@ -502,13 +505,13 @@ function GroupForm({ values: v, set, options, locked }) {
     <>
       <Section title={t("groupGroup")}>
         <div className={grid}>
-          <F label={t("groupCode")} hint={!locked && t("fixedOnceAdded")}>
+          <F required label={t("groupCode")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ placeholder: "BRANCH_STOCK" }} disabled={locked} value={v.code} onChange={(x) => set({ code: upperCode(x) })} />
           </F>
-          <F label={t("product")} hint={!locked && t("physicalProductsOnly")}>
+          <F required label={t("product")} hint={!locked && t("physicalProductsOnly")}>
             <Field field={{ type: "select", blank: options.card_products?.length ? t("choose") : t("noPhysicalProducts"), options: pickOptions(options.card_products) }} disabled={locked} value={id(v.card_product_id)} onChange={(x) => set({ card_product_id: x })} />
           </F>
-          <F label={t("groupName")}>
+          <F required label={t("groupName")}>
             <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
           </F>
           <F label={t("holderType")} hint={t("holderTypeHint")}>
@@ -750,13 +753,13 @@ function LayoutForm({ values: v, set, options, locked, record }) {
       <div className="grid min-w-0 gap-4">
         <Section title={t("groupLayout")}>
           <div className="grid gap-3 md:grid-cols-2">
-            <F label={t("layoutCode")} hint={!locked && t("fixedOnceAdded")}>
+            <F required label={t("layoutCode")} hint={!locked && t("fixedOnceAdded")}>
               <Field field={{ placeholder: "PREPAID_16" }} disabled={locked} value={v.code} onChange={(x) => set({ code: upperCode(x) })} />
             </F>
-            <F label={t("layoutName")}>
+            <F required label={t("layoutName")}>
               <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
             </F>
-            <F label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
+            <F required label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
               <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, (b) => b.extra && t("binLengthMin", { value: b.extra })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
             </F>
             <F label={t("panLength")}>
