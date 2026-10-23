@@ -1,13 +1,12 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, FolderOpen, Play } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { reportBuilderApi } from "@/Services/Reports/reportBuilder.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -22,25 +21,8 @@ import { RunResults, optionLabelsOf, runExporter } from "./RunResults";
 // for first. Download as Excel / CSV / PDF.
 export function SavedReports() {
   const { t } = useTranslation("builder");
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ rows: [], total: 0, pages: 1 });
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    reportBuilderApi.template
-      .list({ page, page_size: limit, ...(term ? { search: term } : {}) })
-      .then((r) => !cancelled && setData({ rows: rowsOf(r), total: r?.pagination?.totalRecords ?? 0, pages: r?.pagination?.totalPages ?? 1 }))
-      .catch((e) => !cancelled && notifications.error(e.message))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [page, limit, term]);
+  const list = useServerList({ api: "/config/report/builder/template/list", call: reportBuilderApi.template.list });
 
   if (open) return <RunSaved report={open} onBack={() => setOpen(null)} />;
 
@@ -71,33 +53,7 @@ export function SavedReports() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle_saved")}</p>
       </div>
-      <ListPanel
-        tabs={[]}
-        {...bind}
-        searchPlaceholder={t("searchSaved")}
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.rows}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("title_saved")}
-        emptyTitle={t(term ? "noSavedMatch" : "noSavedShared")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: data.pages,
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 1000));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("title_saved")} emptyTitle={t(list.toolbar.search ? "noSavedMatch" : "noSavedShared")} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -5,7 +6,6 @@ import { ArrowLeft, Check, Clock, History, Send, X } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Switch } from "@/Components/UI/switch";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { caseSettingsApi } from "@/Services/CaseManagement/onboardingCases.api";
@@ -49,7 +49,9 @@ export function CaseSettings({ onBack }) {
   const me = useAuth((s) => s.user);
   const chooser = canChooseInstitution();
   // A service provider / System user picks the institution (its own first).
-  const [institution, setInstitution] = useState(chooser ? (me?.inst_profile_id ?? "") : null);
+  // The header picker's institution (their own when none is picked).
+  const picked = useInstitutionFilter();
+  const institution = chooser ? picked || String(me?.inst_profile_id ?? "") : null;
   const [data, setData] = useState(null);
   const [form, setForm] = useState(null);
   const [event, setEvent] = useState(null);
@@ -116,12 +118,6 @@ export function CaseSettings({ onBack }) {
       </button>
       <PageTitle>{t("settingsTitle")}</PageTitle>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">{t("settingsSubtitle")}</p>
-
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
       {chooser && !institution ? null : !form ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={14} /> {t("loading")}</p>
       ) : (

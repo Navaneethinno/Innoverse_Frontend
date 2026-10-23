@@ -334,7 +334,6 @@ export const productKind = {
   searchHint: "searchProducts",
   noneTitle: "noProducts",
   noneHint: "noProductsHint",
-  filter: { key: "bin_id", from: "bins", any: "anyBin" },
   fixed: ["product_code", "product_class", "bin_id", "currency_id"],
   columns: (t) => [
     { key: "class", label: t("productClass"), render: (r) => <span className="text-xs font-semibold">{loanLabel(t, r.summary?.product_class)}</span> },
@@ -560,7 +559,6 @@ export const groupKind = {
   searchHint: "searchGroups",
   noneTitle: "noGroups",
   noneHint: "noGroupsHint",
-  filter: { key: "card_product_id", from: "card_products", any: "anyProduct" },
   fixed: ["code", "card_product_id"],
   columns: (t) => [
     { key: "product", label: t("product"), render: (r) => <span className="text-xs font-semibold">{r.summary?.card_product_code}</span> },
@@ -830,7 +828,6 @@ export const layoutKind = {
   searchHint: "searchLayouts",
   noneTitle: "noLayouts",
   noneHint: "noLayoutsHint",
-  filter: { key: "bin_id", from: "bins", any: "anyBin" },
   fixed: ["code", "bin_id"],
   columns: (t) => [
     { key: "bin", label: t("bin"), render: (r) => <span className="font-mono text-xs">{r.summary?.bin_code}</span> },

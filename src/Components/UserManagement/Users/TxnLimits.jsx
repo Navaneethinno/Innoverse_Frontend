@@ -11,7 +11,6 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
 import { useListSearch } from "@/Hooks/useListSearch";
@@ -46,7 +45,7 @@ function LimitsText({ limits, code, set = true }) {
 // in force per currency and any change waiting for a checker.
 export function TxnLimits() {
   const { t } = useTranslation(["users", "common"]);
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { scope } = useInstitutionScope();
   const [pending, setPending] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -126,11 +125,6 @@ export function TxnLimits() {
 
   return (
     <>
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={(v) => (setInstitution(v), setPage(1))} />
-        </div>
-      )}
       <ListPanel
         tabs={[]}
         {...bind}

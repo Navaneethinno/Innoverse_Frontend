@@ -1,3 +1,5 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpenCheck, Plus, Scale, Send, X } from "lucide-react";
@@ -13,9 +15,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
 import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
-import { statusTabs } from "@/Components/Common/listTabs";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { glAccountsApi, glJournalsApi } from "@/Services/Accounting/accounting.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -26,7 +26,6 @@ import { ActionButtons, Problems, inputClass, labelClass } from "./Deposits/depo
 import { ProductStatus } from "./Settings/DepositProducts/productShared";
 import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingShared";
 
-const STATUSES = ["2", "1", "5", "8"];
 const today = () => new Date().toISOString().slice(0, 10);
 
 // Finance > Finance Transaction (the manual journal API): moving money
@@ -91,100 +90,42 @@ export function ManualJournal() {
 
 function JournalList({ actions, version, onView }) {
   const { t } = useTranslation("accounting");
-  const [status, setStatus] = useState("");
-  const [range, setRange] = useState({ from: "", to: "" });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
-
+  const list = useServerList({ api: glJournalsApi.listPath, call: glJournalsApi.list });
+  // A journal saved or decided on this page.
+  const { reload } = list;
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    glJournalsApi
-      .list({ page, page_size: limit, ...(status ? { status: Number(status) } : {}), ...(term ? { search: term } : {}), ...(range.from ? { from: range.from } : {}), ...(range.to ? { to: range.to } : {}) })
-      .then((r) => {
-        const row = rowsOf(r)[0];
-        if (!cancelled) setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      })
-      .catch((e) => !cancelled && notifications.error(e.message))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [status, term, range, page, limit, version]);
+    if (version) reload();
+  }, [version, reload]);
 
-  const setRangeKey = (key) => (e) => {
-    setRange((r) => ({ ...r, [key]: e.target.value }));
-    setPage(1);
-  };
   return (
-    <ListPanel
+    <ListTable
+      list={list}
       actions={actions}
-      tabs={statusTabs(STATUSES, (s) => `accounting:jstatus_${s}`)}
-      value={status}
-      onChange={(s) => {
-        setStatus(s);
-        setPage(1);
-      }}
-      {...bind}
-      searchPlaceholder={t("searchJournals")}
-      filters={
-        <>
-          <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-            {t("from")}
-            <DateInput className={cn(inputClass, "w-auto")} value={range.from} onChange={setRangeKey("from")} />
-          </label>
-          <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-            {t("to")}
-            <DateInput className={cn(inputClass, "w-auto")} value={range.to} min={range.from || undefined} onChange={setRangeKey("to")} />
-          </label>
-        </>
-      }
-    >
-      <DataTable
-        bare
-        columns={[
-          {
-            key: "reference",
-            label: t("journal"),
-            align: "left",
-            render: (j) => (
-              <button type="button" onClick={() => onView(j.id)} className="text-left">
-                <p className="text-xs font-bold text-primary hover:underline">
-                  #{j.id} {j.reference && <span className="font-mono">· {j.reference}</span>}
-                </p>
-                <p className="max-w-xs truncate text-[11px] text-muted-foreground">{j.narration}</p>
-              </button>
-            ),
-          },
-          { key: "kind", label: t("kind"), render: (j) => <span className="text-xs">{t(`jkind_${j.kind}`, { defaultValue: j.kind })}</span> },
-          { key: "total", label: t("amount"), render: (j) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(j.total, j.currency_code)}</span> },
-          { key: "status", label: t("status"), render: (j) => <ProductStatus product={{ ...j, status_name: t(`jstatus_${j.status}`, { defaultValue: j.status_name }) }} /> },
-          { key: "rrn", label: "RRN", render: (j) => <span className="font-mono text-xs">{j.rrn || "—"}</span> },
-          { key: "created_by", label: t("madeBy"), render: (j) => <span className="text-xs">{j.created_by} · {accountDate(j.created_time)}</span> },
-          { key: "actions", label: t("open"), sortable: false, render: (j) => <RowActions buttons={{ view: true }} onView={() => onView(j.id)} /> },
-        ]}
-        rows={data.items}
-        rowKey={(j) => j.id}
-        isLoading={loading}
-        title={t("jrnTab_journals")}
-        emptyTitle={t("noJournals")}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(n);
-            setPage(1);
-          },
-        }}
-      />
-    </ListPanel>
+      columns={[
+        {
+          key: "reference",
+          label: t("journal"),
+          align: "left",
+          render: (j) => (
+            <button type="button" onClick={() => onView(j.id)} className="text-left">
+              <p className="text-xs font-bold text-primary hover:underline">
+                #{j.id} {j.reference && <span className="font-mono">· {j.reference}</span>}
+              </p>
+              <p className="max-w-xs truncate text-[11px] text-muted-foreground">{j.narration}</p>
+            </button>
+          ),
+        },
+        { key: "kind", label: t("kind"), render: (j) => <span className="text-xs">{t(`jkind_${j.kind}`, { defaultValue: j.kind })}</span> },
+        { key: "total", label: t("amount"), render: (j) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(j.total, j.currency_code)}</span> },
+        { key: "status", label: t("status"), render: (j) => <ProductStatus product={{ ...j, status_name: t(`jstatus_${j.status}`, { defaultValue: j.status_name }) }} /> },
+        { key: "rrn", label: "RRN", render: (j) => <span className="font-mono text-xs">{j.rrn || "—"}</span> },
+        { key: "created_by", label: t("madeBy"), render: (j) => <span className="text-xs">{j.created_by} · {accountDate(j.created_time)}</span> },
+        { key: "actions", label: t("open"), sortable: false, render: (j) => <RowActions buttons={{ view: true }} onView={() => onView(j.id)} /> },
+      ]}
+      rowKey={(j) => j.id}
+      title={t("jrnTab_journals")}
+      emptyTitle={t("noJournals")}
+    />
   );
 }
 

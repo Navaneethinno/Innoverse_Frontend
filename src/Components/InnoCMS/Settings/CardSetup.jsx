@@ -1,17 +1,13 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { DataTable } from "@/Components/Common/DataTable";
-import { ListPanel } from "@/Components/Common/ListPanel";
-import { PENDING_TABS } from "@/Components/Common/listTabs";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -29,78 +25,28 @@ import { useInstitutionScope } from "../../Finance/Loans/loanShared";
 // draft, submits, or proposes a change. Each screen passes a `kind` (see
 // cardKinds.jsx) with its api, columns, facts and form.
 
-const STATUSES = [
-  [1, "Active"],
-  [9, "Draft"],
-  [2, "PendingAdd"],
-  [5, "RejectedAdd"],
-  [13, "Inactive"],
-];
 const DRAFTING = [9, 5]; // Draft, Deauthorized add: the form keeps saving drafts
 
 export function CardSetupPage({ kind }) {
   const { t } = useTranslation(["cards", "deposits", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
-  const [tab, setTab] = useState("all");
-  const [filters, setFilters] = useState({ status: "", ...(kind.filter ? { [kind.filter.key]: "" } : {}) });
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term, bind: searchBind } = useListSearch(() => setPage(1));
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
-  const [options, setOptions] = useState(null);
+  const { chooser, institution, scope } = useInstitutionScope();
   const [screen, setScreen] = useState(null);
 
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const body = scope({
-          page,
-          page_size: limit,
-          search: term,
-          ...(filters.status ? { status: Number(filters.status) } : {}),
-          ...(kind.filter && filters[kind.filter.key] ? { [kind.filter.key]: Number(filters[kind.filter.key]) } : {}),
-        });
-        const row = rowsOf(await (tab === "pending" ? kind.api.pending(body) : kind.api.list(body)))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [kind, tab, term, filters, page, limit, scope],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(kind.api.listPath, () => void load({ silent: true }));
+  const list = useServerList({ api: kind.api.listPath, call: kind.api.list });
 
-  // The parent filter (a BIN's products, a product's groups) lists what the
-  // form would offer.
-  useEffect(() => {
-    if (!kind.filter) return;
-    kind.api
-      .options(scope())
-      .then((r) => setOptions(rowsOf(r)[0] ?? {}))
-      .catch(() => setOptions({}));
-  }, [kind, scope]);
+  const load = list.reload;
+  useLiveChannel(kind.api.listPath, () => load());
 
   const back = () => {
     setScreen(null);
-    void load();
+    load();
   };
   if (screen?.kind === "form") {
     return <CardForm kind={kind} record={screen.record} scope={scope} onClose={() => (screen.record ? setScreen({ kind: "view", id: screen.record.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
   }
   if (screen?.kind === "view") return <CardRecordView kind={kind} id={screen.id} onBack={back} onEdit={(record) => setScreen({ kind: "form", record })} />;
 
-  const set = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
-  };
   const open = (r) => setScreen({ kind: "view", id: r.id });
   const columns = [
     {
@@ -124,9 +70,6 @@ export function CardSetupPage({ kind }) {
 
   const listActions = (
     <>
-      <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-        {t("refresh")}
-      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "form", record: null })}>
           {t(kind.newLabel)}
@@ -145,55 +88,8 @@ export function CardSetupPage({ kind }) {
           <p className="mt-1 text-sm text-muted-foreground">{t(kind.subtitle)}</p>
         </div>
       </div>
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
 
-      <ListPanel
-        actions={listActions}
-        tabs={PENDING_TABS}
-        value={tab}
-        onChange={(key) => {
-          setTab(key);
-          setPage(1);
-        }}
-        serverFiltered
-        rows={data.items}
-        total={data.total}
-        {...searchBind}
-        searchPlaceholder={t(kind.searchHint)}
-        filters={
-          <>
-            {kind.filter && <FilterSelect value={filters[kind.filter.key]} onChange={set(kind.filter.key)} options={[{ value: "", label: t(kind.filter.any) }, ...pickOptions(options?.[kind.filter.from])]} />}
-            <FilterSelect value={filters.status} onChange={set("status")} options={[{ value: "", label: t("anyStatus") }, ...STATUSES.map(([v, k]) => ({ value: String(v), label: t(`deposits:pstatus_${k}`) }))]} />
-          </>
-        }
-      >
-      <DataTable
-        bare
-        columns={columns}
-        rows={data.items}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t(`deposits:tab_${tab}`)}
-        emptyTitle={t(kind.noneTitle)}
-        emptyDescription={t(kind.noneHint)}
-        serverSorted
-        serverPagination={{
-          page,
-          totalPages: Math.max(1, Math.ceil(data.total / limit)),
-          totalRecords: data.total,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (n) => {
-            setLimit(Math.min(n, 100));
-            setPage(1);
-          },
-        }}
-      />
-      </ListPanel>
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t(kind.title)} emptyTitle={t(kind.noneTitle)} emptyDescription={t(kind.noneHint)} />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { recordOf, regulatorySubmissionsApi } from "@/Services/Loans/loans.api";
@@ -41,7 +40,7 @@ function downloadCsv(report) {
 export function RegulatorySubmissions() {
   const { t } = useTranslation(["loans", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const [openId, setOpenId] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -110,11 +109,6 @@ export function RegulatorySubmissions() {
           <p className="mt-1 text-sm text-muted-foreground">{t("submissionsSubtitle")}</p>
         </div>
       </div>
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("submissionsTitle")} emptyTitle={t("noReports")} emptyDescription={t("noReportsHint")} />
       {generating && (
         <FormDialog

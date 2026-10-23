@@ -12,7 +12,6 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Modal } from "@/Components/Common/Modal";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
@@ -59,7 +58,7 @@ const nameIn = (list, code) => (list ?? []).find((x) => x.code === (code ?? ""))
 export function InstitutionDocuments() {
   const { t } = useTranslation(["documents", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const [tab, setTab] = useState("all");
   const [audience, setAudience] = useState("");
   const [page, setPage] = useState(1);
@@ -136,11 +135,6 @@ export function InstitutionDocuments() {
         <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
-      {chooser && (
-        <div className="max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
       <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}>
         <StatusFilterTabs
           bare

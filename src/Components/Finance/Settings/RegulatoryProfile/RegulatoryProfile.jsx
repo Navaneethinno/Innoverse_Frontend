@@ -5,7 +5,6 @@ import { CheckCircle2, Pencil, Scale, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { recordOf, regulatoryProfileApi } from "@/Services/Loans/loans.api";
@@ -54,7 +53,7 @@ function classificationProblem(t, rows) {
 export function RegulatoryProfile() {
   const { t } = useTranslation(["loans", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const { currencies: masterCurrencies } = useMasterCurrencies();
   const currencies = masterCurrencies.map((c) => ({ value: String(c.id ?? c.currency_id), label: [c.alpha_code ?? c.currency_code, c.name ?? c.currency_name].filter(Boolean).join(" · ") }));
   const [data, setData] = useState(null);
@@ -121,12 +120,6 @@ export function RegulatoryProfile() {
           />
         )}
       </div>
-
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
 
       {chooser && !institution ? null : !data ? (
         <PageSkeleton />

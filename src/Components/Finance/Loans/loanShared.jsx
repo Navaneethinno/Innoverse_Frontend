@@ -1,6 +1,6 @@
 import { TypedInput } from "@/Components/Common/DateInput";
 import { PagedList } from "@/Components/Common/Pager";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -11,6 +11,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { useAuth } from "@/Hooks/useAuth";
+import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { cn } from "@/Utils/Lib/utils";
 import { amountInput, dayDate, inputClass, labelClass, percentInput, ratePct } from "../Deposits/depositShared";
@@ -26,14 +27,16 @@ const humanize = (code) => {
 // A code from the options lists as a label; an unknown code reads as words.
 export const loanLabel = (t, code) => (code == null || code === "" ? "—" : t(`loans:opt_${String(code).replace(/\W/g, "_")}`, { defaultValue: humanize(code) }));
 
-// The page's institution: a platform user (SuperAdmin, System) picks one,
-// their own first; an institution user always works in their own.
+// The page's institution: a platform user (SuperAdmin, System) picks one in
+// the header's institution picker (the only place it is chosen), their own
+// when none is picked; an institution user always works in their own.
 export function useInstitutionScope() {
   const me = useAuth((s) => s.user);
   const chooser = canChooseInstitution();
-  const [institution, setInstitution] = useState(chooser ? (me?.inst_profile_id ?? "") : null);
+  const picked = useInstitutionFilter();
+  const institution = chooser ? picked || String(me?.inst_profile_id ?? "") : null;
   const scope = useCallback((body = {}) => (chooser && institution ? { ...body, inst_profile_id: Number(institution) } : body), [chooser, institution]);
-  return { chooser, institution, setInstitution, scope };
+  return { chooser, institution, scope };
 }
 
 // One input of a RowsEditor / form, by type:

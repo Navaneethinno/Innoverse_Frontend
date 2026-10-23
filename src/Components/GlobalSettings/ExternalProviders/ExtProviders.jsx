@@ -7,7 +7,6 @@ import { Button } from "@/Components/Common/Button";
 import { DigitChips } from "@/Components/Common/DigitChips";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { RowActions } from "@/Components/Common/RowActions";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
@@ -86,7 +85,7 @@ function useProviderOptions(instProfileId) {
 export function ExtProviders() {
   const { t } = useTranslation(["providers", "fees", "deposits", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const [opening, setOpening] = useState(false);
   const [screen, setScreen] = useState(null);
 
@@ -151,11 +150,6 @@ export function ExtProviders() {
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(s) => s.id} title={t("title")} emptyTitle={t("noSetups")} emptyDescription={t("noSetupsHint")} />
     </div>
   );

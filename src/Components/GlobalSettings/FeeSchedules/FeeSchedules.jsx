@@ -6,7 +6,6 @@ import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, 
 import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass, ratePct } from "@/Components/Finance/Deposits/depositShared";
 import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
@@ -57,7 +56,7 @@ const toBody = (c) => ({
 export function FeeSchedules() {
   const { t } = useTranslation(["fees", "deposits", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const [screen, setScreen] = useState(null);
 
   const list = useServerList({ api: feeSchedulesApi.listPath, call: feeSchedulesApi.list });
@@ -111,11 +110,6 @@ export function FeeSchedules() {
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(s) => s.id} title={t("title")} emptyTitle={t("noSchedules")} emptyDescription={t("noSchedulesHint")} />
     </div>
   );

@@ -7,7 +7,6 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plu
 import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -28,7 +27,7 @@ import { ReferenceRates } from "./ReferenceRates";
 export function LoanProducts() {
   const { t } = useTranslation(["loans", "deposits", "common"]);
   const can = usePagePermission();
-  const { chooser, institution, setInstitution, scope } = useInstitutionScope();
+  const { chooser, institution, scope } = useInstitutionScope();
   const [ratesOpen, setRatesOpen] = useState(false);
   const [screen, setScreen] = useState(null);
 
@@ -88,11 +87,6 @@ export function LoanProducts() {
         </div>
       </div>
       {ratesOpen && <ReferenceRates scope={scope} onClose={() => setRatesOpen(false)} />}
-      {chooser && (
-        <div className="mb-4 max-w-sm">
-          <InstitutionField value={institution} onChange={setInstitution} />
-        </div>
-      )}
 
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsHint")} />
     </div>
