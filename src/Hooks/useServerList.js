@@ -15,12 +15,13 @@ import { notifications } from "@/Utils/Lib/notifications";
 // standard body: page, limit, search, tab, filters, date_from/date_to,
 // amount_min/amount_max, sort_by, list_version 2. `prefix` keeps two lists
 // on one page apart in the URL. `extra` is sent as is (a parent's id).
+// `select(reply)`: the rows, when a page shapes them itself (default: data).
 const SEARCH_DELAY = 400;
 const optionsCache = new Map();
 
 const isSet = (v) => v !== undefined && v !== null && v !== "" && v !== false;
 
-export function useServerList({ api, call, prefix = "", extra = null }) {
+export function useServerList({ api, call, prefix = "", extra = null, select = null }) {
   const [params, setParams] = useSearchParams();
   const institution = useInstitutionFilter();
   const [options, setOptions] = useState(null);
@@ -137,7 +138,7 @@ export function useServerList({ api, call, prefix = "", extra = null }) {
     Promise.resolve(call(body))
       .then((r) => {
         if (id !== seq.current) return;
-        setState({ rows: Array.isArray(r?.data) ? r.data : [], pagination: r?.pagination ?? null, summary: r?.summary ?? null, loading: false });
+        setState({ rows: select ? select(r) : Array.isArray(r?.data) ? r.data : [], pagination: r?.pagination ?? null, summary: r?.summary ?? null, loading: false });
       })
       .catch((e) => {
         if (id !== seq.current) return;
@@ -185,3 +186,14 @@ export function useServerList({ api, call, prefix = "", extra = null }) {
     },
   };
 }
+
+// A list as the { data, pagination, isLoading, refetch } a page written
+// for a query hook reads, so only where its rows come from changes.
+export const asQuery = (list) => ({
+  data: list.rows,
+  pagination: { totalRecords: list.pagination.totalRecords, totalPages: list.pagination.totalPages, currentPage: list.pagination.page },
+  isLoading: list.loading,
+  error: null,
+  refetch: list.reload,
+  applyRecords: list.reload,
+});

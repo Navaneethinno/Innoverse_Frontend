@@ -1,5 +1,7 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { DateInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -7,17 +9,14 @@ import { useAuth } from "@/Hooks/useAuth";
 import { useState } from "react";
 import { AlertCircle, Plus, X } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { DataTable } from "@/Components/Common/DataTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditModal } from "@/Components/Common/AuditModal";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import {
   useInstitutionModuleMutation,
-  useInstitutionModulesQuery,
 } from "@/Hooks/Institution/institutionModuleHooks";
 import { institutionModuleApi } from "@/Services/Institution/institutionModule.api";
 import {
@@ -151,14 +150,10 @@ function ModuleActions({ row, onRefresh, onEdit }) {
 export function InstitutionModule() {
   const tr = useConfigLabel();
   const canAdd = useHasInstitutionAction("Add");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
-  const query = useInstitutionModulesQuery({ page, limit, filter: statusFilter, sort_by: sortBy, search: searchTerm });
+  const list = useServerList({ api: API_ENDPOINTS.INSTITUTION.INSTITUTION_MODULE.LIST, call: institutionModuleApi.list });
+  const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
   const { masterModules } = useMasterModules();
   const addMutation = useInstitutionModuleMutation("add");
@@ -248,13 +243,7 @@ export function InstitutionModule() {
           </button>
         </div>
       )}
-      <div className="overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }}
-        rows={query.data}
-        total={query.pagination?.totalRecords}
-        value={statusFilter}
-        {...searchBind}
-        onChange={(next) => { setStatusFilter(next); setPage(1); }}
-        actions={canAdd && (
+      <ListTable list={list} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -265,27 +254,7 @@ export function InstitutionModule() {
           >
             <Plus size={14} /> {tr("Add")} {tr("module")}
           </button>
-        )}
-      bare /><DataTable serverSorted
-        columns={columns}
-        rows={query.data}
-        serverPagination={{
-          page,
-          totalPages: query.pagination?.totalPages ?? 1,
-          totalRecords: query.pagination?.totalRecords ?? query.data.length,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (next) => {
-            setLimit(next);
-            setPage(1);
-          },
-        }}
-        rowKey={(row) => row.id}
-        isLoading={query.isLoading}
-        title={tr("Institution Module")}
-        emptyTitle={tr("No institution modules found")}
-        emptyDescription={tr("Module assignments will appear here when available.")}
-      bare /></div><Modal
+        )} columns={columns} rowKey={(row) => row.id} title={tr("Institution Module")} emptyTitle={tr("No institution modules found")} emptyDescription={tr("Module assignments will appear here when available.")} /><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}
         title={editing ? tr("Edit institution module") : tr("Add institution module")}
