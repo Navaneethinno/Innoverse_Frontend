@@ -1,9 +1,7 @@
 import { findMenuByName, useMenuPermission } from "@/Hooks/usePermission";
-import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { API_ENDPOINTS } from "@/Utils/Constant";
 
 // Delegates to the one permission source (exact menu, fail-closed).
 export function useHasProfileAction(actionName) {
@@ -26,34 +24,6 @@ export function useProfileMenuItem() {
 const PROFILES_CHANGED_EVENT = "profiles:data-changed";
 function notifyProfileChange() {
   window.dispatchEvent(new Event(PROFILES_CHANGED_EVENT));
-}
-
-function useProfileAsyncQuery(queryFn) {
-  // Only the newest call's reply counts (a search typed quickly).
-  const seq = useRef(0);
-  const [data, setData] = useState();
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const refetch = useCallback(async () => {
-    const id = ++seq.current;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const next = await queryFn();
-      if (id === seq.current) setData(next);
-    } catch (nextError) {
-      if (id === seq.current) setError(nextError instanceof Error ? nextError : new Error("Request failed"));
-    } finally {
-      if (id === seq.current) setIsLoading(false);
-    }
-  }, [queryFn]);
-  useEffect(() => {
-    void refetch();
-    const onProfileChange = () => void refetch();
-    window.addEventListener(PROFILES_CHANGED_EVENT, onProfileChange);
-    return () => window.removeEventListener(PROFILES_CHANGED_EVENT, onProfileChange);
-  }, [refetch]);
-  return { data, error, isLoading, refetch, setData };
 }
 
 function useProfileMutation(mutationFn) {
@@ -105,20 +75,6 @@ export function mapProfileListResponse(payload) {
         limit: 10,
       },
   };
-}
-
-export function useProfilesQuery(params) {
-  const page = params?.page ?? 1;
-  const limit = params?.limit ?? 100;
-  const query = useProfileAsyncQuery(
-    useCallback(() => profilesApi.list({ page, limit, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }), [page, limit, params?.filter, params?.sort_by, params?.search]),
-  );
-  // Refetch on every live push — the in-place reconcile this replaced
-  // (insertNew: false) silently dropped brand-new records pushed by
-  // another user/tab entirely. See userHooks.js's identical fix.
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, () => void query.refetch());
-  const mapped = mapProfileListResponse(query.data);
-  return { ...query, data: mapped.profiles, pagination: mapped.pagination };
 }
 
 export function useProfileCreateMutation() {

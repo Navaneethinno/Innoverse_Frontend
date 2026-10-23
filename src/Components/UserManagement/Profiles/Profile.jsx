@@ -1,5 +1,9 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { mapProfileListResponse } from "@/Hooks/UserManagement/profileHooks";
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
+import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -7,14 +11,12 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ProfilePermissionTree } from "@/Components/UserManagement/Profiles/ProfilePermissionTree";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import {
   useHasProfileAction,
   useProfileAuthMutation,
@@ -25,7 +27,6 @@ import {
   useProfileDeleteMutation,
   useProfileMenuItem,
   useProfileUpdateMutation,
-  useProfilesQuery,
 } from "@/Hooks/UserManagement/profileHooks";
 import { useActiveInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -79,8 +80,6 @@ function renderProfileValue(profile, key) {
 
 export function Profile() {
   const { t } = useTranslation("profiles");
-  const [activeTab, setActiveTab] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [auditProfile, setAuditProfile] = useState(null);
@@ -97,13 +96,10 @@ export function Profile() {
   const canAuthorize = useHasProfileAction("Authorize");
   const canSubmit = useHasProfileAction("Submit");
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-
   // The request carries only what the screen shows (page, page size, tab,
   // order, search).
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
-  const profilesQuery = useProfilesQuery({ page, limit, filter: activeTab, sort_by: sortBy, search: searchTerm });
+  const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, call: profilesApi.list, select: (r) => mapProfileListResponse(r).profiles, reloadOn: "profiles:data-changed" });
+  const profilesQuery = asQuery(list);
   const { data: institutions = [] } = useActiveInstitutionsQuery();
   const checkerMenuItem = useProfileMenuItem();
 
@@ -302,8 +298,7 @@ export function Profile() {
         </p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={profilesQuery.pagination?.totalRecords}
-          actions={canAdd && (
+      <ListTable list={list} actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.97 }}
@@ -313,46 +308,7 @@ export function Profile() {
             >
               <Plus size={14} /> {t("newProfile")}
             </motion.button>
-          )}
-          rows={profiles}
-          value={activeTab}
-          onChange={(value) => {
-            setActiveTab(value);
-            setPage(1);
-          }}
-          {...searchBind}
-          searchPlaceholder={t("searchProfilesPlaceholder")}
-        bare />{profilesQuery.error && (
-        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
-          <AlertCircle size={14} /> {profilesQuery.error.message}
-          <button onClick={() => void profilesQuery.refetch()} className="ml-auto text-xs font-bold underline">
-            {t("common:retry")}
-          </button>
-        </div>
-      )}
-
-      <DataTable
-        columns={columns}
-        rows={profiles}
-        rowKey={(p) => profileId(p)}
-        isLoading={profilesQuery.isLoading}
-        title={t("profilesTitle")}
-        emptyTitle={t("noProfilesFound")}
-        emptyDescription={t("adjustSearchOrFilter")}
-        serverPagination={
-              {
-                page: profilesQuery.pagination?.currentPage ?? page,
-                totalPages: profilesQuery.pagination?.totalPages ?? 1,
-                totalRecords: profilesQuery.pagination?.totalRecords ?? profiles.length,
-                onPageChange: setPage,
-                limit,
-                onLimitChange: (next) => {
-                  setLimit(next);
-                  setPage(1);
-                },
-              }
-        }
-      bare /></div>
+          )} columns={columns} rowKey={(p) => profileId(p)} title={t("profilesTitle")} emptyTitle={t("noProfilesFound")} emptyDescription={t("adjustSearchOrFilter")} />
 
       <AnimatePresence>
         {showForm && !editing && (

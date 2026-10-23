@@ -2,8 +2,6 @@ import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { normalizePasswordPolicyList, pickDefaultPolicy } from "@/Utils/Lib/password-policy";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { API_ENDPOINTS } from "@/Utils/Constant";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 // Real permission source: the user's own menu_array (from login) — the
@@ -91,26 +89,6 @@ export function mapUserListResponse(payload) {
   };
 }
 
-export function useUsersQuery(params) {
-  const page = params?.page ?? 1;
-  const limit = params?.limit ?? 10;
-  const search = params?.search ?? "";
-  const status = params?.status ?? 0;
-  const query = useUserAsyncQuery(
-    useCallback(
-      () => usersApi.list({ page, limit, ...(search ? { search } : {}), status, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}) }),
-      [page, limit, search, status, params?.filter, params?.sort_by],
-    ),
-  );
-  // Refetch on every live push rather than reconciling in place — the
-  // in-place merge (insertNew: false) silently dropped brand-new records
-  // pushed by another user/tab entirely (confirmed live: the socket frame
-  // arrived, nothing changed on screen until a manual refresh). A refetch
-  // is always correct regardless of page/sort/search.
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, () => void query.refetch());
-  const mapped = mapUserListResponse(query.data);
-  return { ...query, data: mapped.users, pagination: mapped.pagination };
-}
 function lookupOptions(payload, keys) {
   if (Array.isArray(payload?.data)) return payload.data;
   for (const key of keys) {

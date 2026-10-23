@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { request } from "@/Services/Epurse/onboarding.api";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
@@ -16,12 +17,14 @@ import { notifications } from "@/Utils/Lib/notifications";
 // amount_min/amount_max, sort_by, list_version 2. `prefix` keeps two lists
 // on one page apart in the URL. `extra` is sent as is (a parent's id).
 // `select(reply)`: the rows, when a page shapes them itself (default: data).
+// The list reloads on its live channel (another user's change) and on the
+// window event `reloadOn` (this tab's own saves).
 const SEARCH_DELAY = 400;
 const optionsCache = new Map();
 
 const isSet = (v) => v !== undefined && v !== null && v !== "" && v !== false;
 
-export function useServerList({ api, call, prefix = "", extra = null, select = null }) {
+export function useServerList({ api, call, prefix = "", extra = null, select = null, reloadOn = null }) {
   const [params, setParams] = useSearchParams();
   const institution = useInstitutionFilter();
   const [options, setOptions] = useState(null);
@@ -149,6 +152,12 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   }, [bodyKey, version]);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
+  useLiveChannel(api, reload);
+  useEffect(() => {
+    if (!reloadOn) return undefined;
+    window.addEventListener(reloadOn, reload);
+    return () => window.removeEventListener(reloadOn, reload);
+  }, [reloadOn, reload]);
 
   const pg = state.pagination;
   return {

@@ -3,8 +3,6 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { masterApi } from "@/Services/Master/master.api";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
-import { API_ENDPOINTS } from "@/Utils/Constant";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 const KYC_CHANGED = "user-kyc:data-changed";
@@ -35,16 +33,6 @@ function useQuery(queryFn) {
     return () => window.removeEventListener(KYC_CHANGED, refetch);
   }, [refetch]);
   return { data, error, isLoading, refetch, setData };
-}
-
-export function useKycQuery(params = {}) {
-  const query = useQuery(useCallback(() => usersApi.kycList({ page: params.page ?? 1, limit: params.limit ?? 10, ...(params?.filter ? { filter: params.filter } : {}), ...(params?.sort_by ? { sort_by: params.sort_by } : {}), ...(params?.search ? { search: params.search } : {}) }), [params.page, params.limit, params.filter, params.sort_by, params.search]));
-  // Refetch on every live push — the in-place reconcile this replaced
-  // (insertNew: false) silently dropped brand-new records pushed by
-  // another user/tab entirely. See userHooks.js's identical fix.
-  useLiveChannel(API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, () => void query.refetch());
-  const rows = Array.isArray(query.data?.data) ? query.data.data : [];
-  return { ...query, data: rows, pagination: query.data?.pagination };
 }
 
 function activeUserRows(payload) {

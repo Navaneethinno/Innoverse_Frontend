@@ -1,3 +1,7 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
@@ -5,9 +9,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SearchBox } from "@/Components/Common/SearchBox";
@@ -16,12 +18,10 @@ import {
   useGenderOptionsQuery,
   useHasKycAction,
   useKycMutation,
-  useKycQuery,
   useUsersWithoutKycQuery,
 } from "@/Hooks/UserManagement/kycHooks";
 import { useInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditKyc } from "./AuditKyc";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
@@ -345,18 +345,13 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
 export function KYC() {
   const tr = useConfigLabel();
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [tab, setTab] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(EMPTY);
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
-
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
-  const query = useKycQuery({ page, limit, filter: tab, sort_by: sortBy, search: searchTerm });
+  const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, call: usersApi.kycList, reloadOn: "user-kyc:data-changed" });
+  const query = asQuery(list);
   const [institution, setInstitution] = useState("");
   const userSearch = useListSearch();
   const activeUsersQuery = useUsersWithoutKycQuery(institution, userSearch.body);
@@ -364,8 +359,6 @@ export function KYC() {
   const add = useKycMutation("kycAdd");
   const edit = useKycMutation("kycEdit");
   const canAdd = useHasKycAction("Add");
-  const rows = Array.isArray(query.data) ? query.data : [];
-
   const save = async (draft) => {
     const userId = Number(form.user_id);
     if (
@@ -462,32 +455,7 @@ export function KYC() {
         </p>
       </div>
 
-      <div
-        className="mb-4 overflow-hidden rounded-2xl"
-        style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid var(--glass-border)",
-          boxShadow: "var(--glass-shadow)",
-        }}
-      >
-        <StatusFilterTabs
-          serverFiltered
-          sortBy={sortBy}
-          onSortChange={(next) => {
-            setSortBy(next);
-            setPage(1);
-          }}
-          total={query.pagination?.totalRecords}
-          rows={rows}
-          value={tab}
-          onChange={(next) => {
-            setTab(next);
-            setPage(1);
-          }}
-          {...searchBind}
-          searchPlaceholder={tr("Search KYC records...")}
-          actions={
+      <ListTable list={list} actions={
             canAdd && (
               <button
                 type="button"
@@ -501,30 +469,7 @@ export function KYC() {
                 <Plus size={14} /> {tr("Add")} KYC
               </button>
             )
-          }
-          bare
-        />
-        <DataTable
-          columns={columns}
-          rows={rows}
-          isLoading={query.isLoading}
-          rowKey={(row) => idOf(row)}
-          title={tr("User KYC")}
-          emptyTitle={tr("No KYC records found")}
-          serverPagination={{
-            page,
-            totalPages: query.pagination?.totalPages ?? 1,
-            totalRecords: query.pagination?.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </div>
+          } columns={columns} rowKey={(row) => idOf(row)} title={tr("User KYC")} emptyTitle={tr("No KYC records found")} />
 
       <KycForm
         open={showForm}

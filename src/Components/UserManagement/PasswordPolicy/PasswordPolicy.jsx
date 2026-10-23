@@ -1,19 +1,19 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { ListTable } from "@/Components/Common/ListView";
+import { asQuery, useServerList } from "@/Hooks/useServerList";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useState } from "react";
 import { Clock, FileText, KeyRound, Plus, ShieldCheck } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { DataTable } from "@/Components/Common/DataTable";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Switch } from "@/Components/UI/switch";
 import { cn } from "@/Utils/Lib/cn";
-import { useHasPasswordPolicyAction, usePasswordPoliciesQuery, usePasswordPolicyActions } from "@/Hooks/UserManagement/passwordPolicyHooks";
-import { usersApi } from "@/Services/UserManagement/users.api";
+import { useHasPasswordPolicyAction, usePasswordPolicyActions } from "@/Hooks/UserManagement/passwordPolicyHooks";
 import { notifications } from "@/Utils/Lib/notifications";
 import { AuditPasswordPolicy } from "./AuditPasswordPolicy";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
@@ -400,20 +400,14 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
 
 export function PasswordPolicy() {
   const tr = useConfigLabel();
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [tab, setTab] = useState("all");
-  const [sortBy, setSortBy] = useState("desc");
   const [form, setForm] = useState(empty);
   const [problems, setProblems] = useState({});
   const [editing, setEditing] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [viewRow, setViewRow] = useState(null);
   const [auditRow, setAuditRow] = useState(null);
-
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setPage(1));
-  const query = usePasswordPoliciesQuery({ page, limit, filter: tab, sort_by: sortBy, search: searchTerm });
-  const rows = Array.isArray(query.data) ? query.data : [];
+  const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.PASSWORD_POLICY.LIST, call: usersApi.passwordPolicyList, reloadOn: "user-password-policy:data-changed" });
+  const query = asQuery(list);
   const canAdd = useHasPasswordPolicyAction("Add");
   const methods = usePasswordPolicyActions();
 
@@ -477,7 +471,7 @@ export function PasswordPolicy() {
         <p className="mt-1 text-sm text-muted-foreground">Manage password rules, lockout, and session security.</p>
       </div>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={query.pagination?.totalRecords} rows={rows} value={tab} onChange={(next) => { setTab(next); setPage(1); }} {...searchBind} searchPlaceholder="Search password policies..." actions={canAdd && (
+      <ListTable list={list} actions={canAdd && (
           <button
             type="button"
             onClick={() => {
@@ -489,25 +483,7 @@ export function PasswordPolicy() {
           >
             <Plus size={14} /> {tr("Add")} {tr("policy")}
           </button>
-        )} bare /><DataTable
-        columns={columns}
-        rows={rows}
-        isLoading={query.isLoading}
-        rowKey={(row) => idOf(row)}
-        title="Password Policy"
-        emptyTitle="No password policies found"
-        serverPagination={{
-          page,
-          totalPages: query.pagination?.totalPages ?? 1,
-          totalRecords: query.pagination?.totalRecords ?? rows.length,
-          onPageChange: setPage,
-          limit,
-          onLimitChange: (next) => {
-            setLimit(next);
-            setPage(1);
-          },
-        }}
-      bare /></div>
+        )} columns={columns} rowKey={(row) => idOf(row)} />
 
       <PolicyForm
         open={showForm}

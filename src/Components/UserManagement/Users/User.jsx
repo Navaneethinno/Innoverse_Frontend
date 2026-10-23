@@ -1,13 +1,17 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
+import { mapUserListResponse } from "@/Hooks/UserManagement/userHooks";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { usersApi } from "@/Services/UserManagement/users.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { TxnLimits } from "./TxnLimits";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { useAuth } from "@/Hooks/useAuth";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
-import { AlertCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import {
   useHasUserAction,
@@ -21,15 +25,11 @@ import {
   useUserLookupsQuery,
   useUserSubmitMutation,
   useUserUpdateMutation,
-  useUsersQuery,
 } from "@/Hooks/UserManagement/userHooks";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications } from "@/Utils/Lib/notifications";
-import { usersApi } from "@/Services/UserManagement/users.api";
-import { DataTable } from "@/Components/Common/DataTable";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { pickDefaultPolicy, validatePassword } from "@/Utils/Lib/password-policy";
 import { EMPTY_FORM, fieldValue, nameOf, userId } from "./UserForm";
 import { AddUser } from "./AddUser";
@@ -69,9 +69,6 @@ export function User() {
   const canChangeStatus = useHasUserAction("Change Status");
   const canSubmit = useHasUserAction("Submit");
 
-  const [params, setParams] = useState({ page: 1, limit: 10, status: 0, filter: "all", sort_by: "desc" });
-  const { term: searchTerm, bind: searchBind } = useListSearch(() => setParams((current) => ({ ...current, page: 1 })));
-  const [activeTab, setActiveTab] = useState("all");
   const canChooseInstitution = useCanChooseInstitution();
   const ownInstitution = useAuth((state) => state.user?.inst_profile_id);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -81,7 +78,7 @@ export function User() {
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
   const [audit, setAudit] = useState(null);
-  const usersQuery = useUsersQuery({ ...params, search: searchTerm });
+  const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.USER.LIST, call: usersApi.list, select: (r) => mapUserListResponse(r).users, reloadOn: "users:data-changed" });
   const lookupsQuery = useUserLookupsQuery();
   const defaultPolicy = pickDefaultPolicy(lookupsQuery.passwordPolicies);
   const selectedPolicy =
@@ -97,7 +94,6 @@ export function User() {
   const deactivateMutation = useUserDeactivateMutation();
   const reactivateMutation = useUserReactivateMutation();
 
-  const rawUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data]);
   // The server filters by tab (`filter`) and orders (`sort_by`) across all
   // records, so the loaded page is shown as-is.
   const pendingInfo = usePendingChanges(
@@ -364,8 +360,7 @@ export function User() {
       ) : (
         <>
 
-      <div className="mb-4 overflow-hidden rounded-2xl" style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}><StatusFilterTabs serverFiltered sortBy={params.sort_by} onSortChange={(sort_by) => setParams((current) => ({ ...current, page: 1, sort_by }))} total={usersQuery.pagination?.totalRecords}
-          actions={canAdd && (
+      <ListTable list={list} actions={canAdd && (
             <motion.button
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.97 }}
@@ -375,40 +370,7 @@ export function User() {
             >
               <Plus size={14} /> {tr("Add")} {tr("user")}
             </motion.button>
-          )}
-          rows={rawUsers}
-          value={activeTab}
-          onChange={(tab) => {
-            setActiveTab(tab);
-            setParams((current) => ({ ...current, page: 1, filter: tab }));
-          }}
-          {...searchBind}
-          searchPlaceholder={tr("Search users...")}
-        bare />{usersQuery.error && (
-        <div className="mx-3.5 mb-3 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          <AlertCircle size={16} />
-          {usersQuery.error.message}
-        </div>
-      )}
-
-      <DataTable
-        columns={columns}
-        rows={rawUsers}
-        rowKey={(u) => userId(u)}
-        isLoading={usersQuery.isLoading}
-        title={tr("Users")}
-        emptyTitle={tr("No users found")}
-        serverPagination={
-          {
-                page: usersQuery.pagination?.currentPage ?? params.page,
-                totalPages: usersQuery.pagination?.totalPages ?? 1,
-                totalRecords: usersQuery.pagination?.totalRecords ?? rawUsers.length,
-                onPageChange: (page) => setParams((p) => ({ ...p, page })),
-                limit: params.limit,
-                onLimitChange: (limit) => setParams((p) => ({ ...p, limit, page: 1 })),
-              }
-        }
-      bare /></div>
+          )} columns={columns} rowKey={(u) => userId(u)} title={tr("Users")} emptyTitle={tr("No users found")} />
 
       <AnimatePresence>
         {showForm && !editing && (
