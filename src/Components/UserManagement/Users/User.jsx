@@ -121,7 +121,9 @@ export function User() {
     if (!Number.isInteger(id)) return;
     try {
       const response = await usersApi.getKyc({ user_id: id });
-      const kyc = response?.data?.data ?? response?.data ?? {};
+      // data is a list ([kyc]); its first row is the user's KYC.
+      const data = response?.data?.data ?? response?.data;
+      const kyc = (Array.isArray(data) ? data[0] : data) ?? {};
       if (kyc && typeof kyc === "object") {
         setForm((current) => ({
           ...current,
@@ -131,6 +133,8 @@ export function User() {
         }));
       }
     } catch (error) {
+      // A user with no KYC yet (404) is normal: the form stays as it is.
+      if (error?.status === 404) return;
       notifications.error(
         error instanceof Error ? error.message : "Failed to load user KYC details",
       );

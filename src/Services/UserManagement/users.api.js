@@ -42,9 +42,10 @@ async function request(path, body) {
       throw new Error("Session expired. Please sign in again.");
     }
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw apiError(statusMessage, payload);
+    // `status` lets a screen tell "nothing there yet" (404) from a failure.
+    if (statusMessage) throw Object.assign(apiError(statusMessage, payload), { status: response.status });
     if (!response.ok)
-      throw apiError(getApiErrorMessage(payload, `Request failed with status ${response.status}`), payload);
+      throw Object.assign(apiError(getApiErrorMessage(payload, `Request failed with status ${response.status}`), payload), { status: response.status });
     return payload;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")

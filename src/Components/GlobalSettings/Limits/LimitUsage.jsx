@@ -54,7 +54,7 @@ function LimitUsagePanel({ entity, compact = false }) {
         </p>
       )}
       {(data.currencies ?? []).map((c) => (
-        <div key={c.currency_code} className="rounded-xl border border-border bg-card p-3">
+        <div key={c.acct_num ?? c.currency_code} className="rounded-xl border border-border bg-card p-3">
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-bold">
               {c.currency_code} <span className="font-mono text-xs font-medium text-muted-foreground">{c.acct_num}</span>
