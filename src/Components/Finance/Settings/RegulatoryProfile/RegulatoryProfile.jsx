@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Scale, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -218,21 +219,25 @@ export function RegulatoryProfile() {
             </Section>
           )}
           <Section title={t("history")}>
-            <ol className="relative grid gap-3 border-l border-border pl-4">
-              {(data.history ?? []).map((h, i) => (
-                <li key={`${h.at}-${i}`} className="relative">
-                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                  <p className="text-xs font-bold text-foreground">
-                    {loanLabel(t, h.action)} <span className="font-medium text-muted-foreground">· {h.profile?.policy_version}</span>
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {h.actor} · {accountDate(h.at)}
-                  </p>
-                  {h.narration?.trim() && <p className="mt-0.5 text-xs italic">“{h.narration}”</p>}
-                </li>
-              ))}
-              {!data.history?.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
-            </ol>
+            <PagedList items={(data.history ?? [])}>
+              {(page) => (
+                <ol className="relative grid gap-3 border-l border-border pl-4">
+                  {page.map((h, i) => (
+                    <li key={`${h.at}-${i}`} className="relative">
+                      <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+                      <p className="text-xs font-bold text-foreground">
+                        {loanLabel(t, h.action)} <span className="font-medium text-muted-foreground">· {h.profile?.policy_version}</span>
+                      </p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {h.actor} · {accountDate(h.at)}
+                      </p>
+                      {h.narration?.trim() && <p className="mt-0.5 text-xs italic">“{h.narration}”</p>}
+                    </li>
+                  ))}
+                  {!data.history?.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
+                </ol>
+              )}
+            </PagedList>
           </Section>
         </div>
       )}

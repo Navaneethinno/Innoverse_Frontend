@@ -1,11 +1,11 @@
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Maximize2 } from "lucide-react";
+import { ArrowUpDown, ChevronUp, ChevronDown, Maximize2 } from "lucide-react";
 import { Skeleton } from "@/Components/UI/skeleton";
 import { NoDataAnimation } from "@/Components/Common/NoDataAnimation";
 import { Modal } from "@/Components/Common/Modal";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { Pager } from "@/Components/Common/Pager";
 import { cn } from "@/Utils/Lib/cn";
 import { useSessionState } from "@/Hooks/useSessionState";
 
@@ -20,24 +20,6 @@ function SortIcon({ direction }) {
   ) : (
     <ChevronDown size={13} style={{ color: "var(--primary)" }} />
   );
-}
-
-// Numbered page pills with an ellipsis for far-away pages, instead of a
-// bare "Page X of Y" + manual go-to-page input — always shows the first
-// and last page, plus a window around the current one, so a table with
-// many pages doesn't turn into an unusable wall of buttons.
-function getPageNumbers(current, total) {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  const window = new Set([1, 2, total - 1, total, current - 1, current, current + 1]);
-  const pages = [...window].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
-  const withEllipsis = [];
-  let prev = null;
-  for (const p of pages) {
-    if (prev !== null && p - prev > 1) withEllipsis.push("…");
-    withEllipsis.push(p);
-    prev = p;
-  }
-  return withEllipsis;
 }
 
 function compareValues(a, b) {
@@ -444,69 +426,13 @@ export function DataTable({
         </div>
 
         {!isLoading && totalRecords > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground">
-            <span className="whitespace-nowrap">
-              {t("showingEntries", {
-                from: (currentPage - 1) * effectivePageSize + 1,
-                to: Math.min(currentPage * effectivePageSize, totalRecords),
-                total: totalRecords,
-              })}
-            </span>
-
-            <div data-tour="pagination" className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={currentPage <= 1}
-                onClick={() => goToPage(currentPage - 1)}
-                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
-              >
-                <ChevronLeft size={13} /> {t("prev")}
-              </button>
-              {getPageNumbers(currentPage, totalPages).map((p, i) =>
-                p === "…" ? (
-                  <span key={`ellipsis-${i}`} className="px-1.5 text-muted-foreground">
-                    …
-                  </span>
-                ) : (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => goToPage(p)}
-                    aria-current={p === currentPage ? "page" : undefined}
-                    className={cn(
-                      "min-w-[28px] rounded-lg px-2 py-1.5 font-semibold transition-colors",
-                      p === currentPage
-                        ? "bg-primary text-primary-foreground"
-                        : "text-slate-600 hover:bg-muted",
-                    )}
-                  >
-                    {p}
-                  </button>
-                ),
-              )}
-              <button
-                type="button"
-                disabled={currentPage >= totalPages}
-                onClick={() => goToPage(currentPage + 1)}
-                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 font-semibold text-slate-600 hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent"
-              >
-                {t("next")} <ChevronRight size={13} />
-              </button>
-            </div>
-
-            {(!isServer || serverPagination.onLimitChange) && (
-              <div data-tour="page-size" className="flex items-center gap-1.5 whitespace-nowrap">
-                <span>{t("showEntries")}</span>
-                <FilterSelect
-                  className="w-20"
-                  size="sm"
-                  value={effectivePageSize}
-                  onChange={(next) => handlePageSizeChange(next)}
-                  options={[10, 20, 25, 50, 100].map((size) => ({ value: size, label: String(size) }))}
-                />
-              </div>
-            )}
-          </div>
+          <Pager
+            page={currentPage}
+            pageSize={effectivePageSize}
+            total={totalRecords}
+            onPageChange={goToPage}
+            onPageSizeChange={!isServer || serverPagination.onLimitChange ? handlePageSizeChange : undefined}
+          />
         )}
       </div>
 

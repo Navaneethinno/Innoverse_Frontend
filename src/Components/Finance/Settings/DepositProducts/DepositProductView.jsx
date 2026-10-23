@@ -1,4 +1,5 @@
 import { DateInput } from "@/Components/Common/DateInput";
+import { PagedList } from "@/Components/Common/Pager";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Pencil, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
@@ -127,21 +128,25 @@ export function DepositProductView({ id, onBack, onEdit }) {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {product.config && <RateQuote product={product} />}
         <Section title={t("history")}>
-          <ol className="relative grid gap-3 border-l border-border pl-4">
-            {audit.map((entry, i) => (
-              <li key={`${entry.at}-${i}`} className="relative">
-                <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-                <p className="text-xs font-bold text-foreground">
-                  {t(`audit_${entry.action}`, { defaultValue: entry.action })} <span className="font-medium text-muted-foreground">· {entry.process_status_name ?? entry.status_name}</span>
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {entry.actor} · {accountDate(entry.at)}
-                </p>
-                {entry.narration?.trim() && <p className="mt-0.5 text-xs italic text-foreground">“{entry.narration}”</p>}
-              </li>
-            ))}
-            {!audit.length && <li className="text-sm text-muted-foreground">{t("noHistory")}</li>}
-          </ol>
+          <PagedList items={audit}>
+            {(page) => (
+              <ol className="relative grid gap-3 border-l border-border pl-4">
+                {page.map((entry, i) => (
+                  <li key={`${entry.at}-${i}`} className="relative">
+                    <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+                    <p className="text-xs font-bold text-foreground">
+                      {t(`audit_${entry.action}`, { defaultValue: entry.action })} <span className="font-medium text-muted-foreground">· {entry.process_status_name ?? entry.status_name}</span>
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {entry.actor} · {accountDate(entry.at)}
+                    </p>
+                    {entry.narration?.trim() && <p className="mt-0.5 text-xs italic text-foreground">“{entry.narration}”</p>}
+                  </li>
+                ))}
+                {!audit.length && <li className="text-sm text-muted-foreground">{t("noHistory")}</li>}
+              </ol>
+            )}
+          </PagedList>
         </Section>
       </div>
 

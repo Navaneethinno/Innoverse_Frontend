@@ -198,7 +198,6 @@ function GlTree({ version, onView, onAdd }) {
         <DataTable
           bare
           serverSorted
-          pageSize={50}
           rows={rows}
           rowKey={(r) => r.n.id}
           emptyTitle={t("noGls")}

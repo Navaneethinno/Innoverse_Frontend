@@ -1,4 +1,5 @@
 import { TypedInput } from "@/Components/Common/DateInput";
+import { PagedList } from "@/Components/Common/Pager";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
@@ -210,26 +211,30 @@ export function Timeline({ events, currency }) {
     return String(v);
   };
   return (
-    <ol className="relative grid gap-4 border-l border-border pl-5">
-      {events.map((e, i) => (
-        <li key={`${e.at}-${i}`} className="relative">
-          <span className="absolute -left-[26px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-card" />
-          <p className="text-sm font-bold text-foreground">
-            {t(`event_${e.event}`, { defaultValue: humanize(e.event) })} <span className="text-xs font-medium text-muted-foreground">· {e.actor} · {accountDate(e.at)}</span>
-          </p>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {Object.entries(e.detail ?? {})
-              .filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v != null && v !== "" && typeof v !== "object"))
-              .map(([k, v]) => (
-                <span key={k} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">
-                  {t(`detail_${k}`, { defaultValue: humanize(k) })}: <span className="tabular-nums">{show(k, v)}</span>
-                </span>
-              ))}
-          </div>
-          {e.narration?.trim() && <p className="mt-1 text-xs italic text-foreground">“{e.narration.trim()}”</p>}
-        </li>
-      ))}
-    </ol>
+    <PagedList items={events}>
+      {(page) => (
+        <ol className="relative grid gap-4 border-l border-border pl-5">
+          {page.map((e, i) => (
+            <li key={`${e.at}-${i}`} className="relative">
+              <span className="absolute -left-[26px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-card" />
+              <p className="text-sm font-bold text-foreground">
+                {t(`event_${e.event}`, { defaultValue: humanize(e.event) })} <span className="text-xs font-medium text-muted-foreground">· {e.actor} · {accountDate(e.at)}</span>
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {Object.entries(e.detail ?? {})
+                  .filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v != null && v !== "" && typeof v !== "object"))
+                  .map(([k, v]) => (
+                    <span key={k} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold">
+                      {t(`detail_${k}`, { defaultValue: humanize(k) })}: <span className="tabular-nums">{show(k, v)}</span>
+                    </span>
+                  ))}
+              </div>
+              {e.narration?.trim() && <p className="mt-1 text-xs italic text-foreground">“{e.narration.trim()}”</p>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </PagedList>
   );
 }
 

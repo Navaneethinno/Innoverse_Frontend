@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PagedList } from "@/Components/Common/Pager";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, CheckCircle2, Pencil, Plus, Power, RefreshCw, RotateCcw, Save, Send, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -296,19 +297,23 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
       )}
 
       <Section title={t("history")}>
-        <ol className="relative grid gap-3 border-l border-border pl-4">
-          {audit.map((entry, i) => (
-            <li key={`${entry.at}-${i}`} className="relative">
-              <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
-              <p className="text-xs font-bold text-foreground">{t(`audit_${entry.action}`, { defaultValue: entry.action })}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {entry.actor} · {accountDate(entry.at)}
-              </p>
-              {entry.narration?.trim() && <p className="mt-0.5 text-xs italic">“{entry.narration}”</p>}
-            </li>
-          ))}
-          {!audit.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
-        </ol>
+        <PagedList items={audit}>
+          {(page) => (
+            <ol className="relative grid gap-3 border-l border-border pl-4">
+              {page.map((entry, i) => (
+                <li key={`${entry.at}-${i}`} className="relative">
+                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-[var(--primary-light)]" />
+                  <p className="text-xs font-bold text-foreground">{t(`audit_${entry.action}`, { defaultValue: entry.action })}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {entry.actor} · {accountDate(entry.at)}
+                  </p>
+                  {entry.narration?.trim() && <p className="mt-0.5 text-xs italic">“{entry.narration}”</p>}
+                </li>
+              ))}
+              {!audit.length && <li className="text-sm text-muted-foreground">{t("nothingYet")}</li>}
+            </ol>
+          )}
+        </PagedList>
       </Section>
 
       {dialog && (
