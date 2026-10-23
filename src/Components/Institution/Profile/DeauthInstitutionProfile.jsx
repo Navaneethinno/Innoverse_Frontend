@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
-import { institutionId } from "./InstitutionProfileForm";
+import { institutionId } from "./profileShared";
 
 // Deauthorize-institution confirmation (requires narration — a rejection
 // must always record a reason, per the confirmed spec) — split out of the

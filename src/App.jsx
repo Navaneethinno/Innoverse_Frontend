@@ -6,6 +6,7 @@ import { I18nProvider } from "@/Hooks/Providers/I18nProvider";
 import { ColorModeProvider } from "@/Hooks/Providers/ColorModeProvider";
 import { BrandThemeProvider } from "@/Hooks/Providers/BrandThemeProvider";
 import { LoadingScreen } from "@/Pages/Loading/LoadingScreen";
+import { EnvironmentBanner } from "@/Components/Common/EnvironmentBanner";
 import { appRouter } from "@/Router/Router";
 import store from "@/Redux/Store";
 import theme from "./theme";
@@ -39,6 +40,7 @@ function App() {
               <div className="App">
                 <LoadingScreen>
                   <I18nProvider>
+                    <EnvironmentBanner />
                     <RouterProvider router={appRouter} />
                   </I18nProvider>
                 </LoadingScreen>

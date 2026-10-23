@@ -6,33 +6,13 @@ import { useTranslation } from "react-i18next";
 import { AlertCircle, Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { deriveStatusFlags } from "@/Components/MakerChecker/statusFlags";
-import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { DataTable } from "@/Components/Common/DataTable";
-import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { useSessionState } from "@/Hooks/useSessionState";
-import {
-  useHasInstitutionAction,
-  useInstitutionAuthMutation,
-  useInstitutionDeactivateMutation,
-  useInstitutionDeauthMutation,
-  useInstitutionDeleteAuthMutation,
-  useInstitutionDeleteMutation,
-  useInstitutionReactivateMutation,
-  useInstitutionSubmitMutation,
-  useInstitutionsQuery,
-} from "@/Hooks/Institution/institutionHooks";
-import { institutionsApi } from "@/Services/Institution/institutions.api";
+import { useInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { INSTITUTION_DRAFT_STATUS_CODE } from "@/Utils/Constant";
-import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { institutionId } from "./InstitutionProfileForm";
-import { AuthInstitutionProfile } from "./AuthInstitutionProfile";
-import { DeauthInstitutionProfile } from "./DeauthInstitutionProfile";
-import { DeleteInstitutionProfile } from "./DeleteInstitutionProfile";
-import { DeactivateInstitutionProfile } from "./DeactivateInstitutionProfile";
-import { ReactivateInstitutionProfile } from "./ReactivateInstitutionProfile";
-import { SubmitInstitutionProfile } from "./SubmitInstitutionProfile";
+import { institutionId } from "./profileShared";
+import { useInstitutionActions } from "./useInstitutionActions";
 import { AuditInstitutionProfile } from "./AuditInstitutionProfile";
 
 function statusOf(inst) {
@@ -49,17 +29,6 @@ function statusOf(inst) {
 function isInstitutionDraft(inst) {
   return Number(inst.status) === INSTITUTION_DRAFT_STATUS_CODE || statusOf(inst) === "DRAFT";
 }
-// Distinguishes a pending DELETE from a pending add/edit/deactivate/
-// reactivate — approving the former must call the dedicated /delete_auth
-// endpoint, not the generic /auth endpoint (see useInstitutionDeleteAuthMutation).
-// Delegates to the shared deriveStatusFlags rather than checking
-// process_status_name alone — some responses only populate auth_status with
-// the human-readable state ("Pending Delete"), which a process_status_name-
-// only check silently misses (confirmed live in UserManagement/Profile).
-function isPendingDelete(inst) {
-  return deriveStatusFlags(inst).pendingDelete;
-}
-
 // PendingInstitutionsPage.jsx (formerly a separate route) used a different,
 // request-based maker-checker data model (usePendingInstitutionsQuery /
 // request_id / after_data) rather than a simple status filter over this same
@@ -71,31 +40,12 @@ function isPendingDelete(inst) {
 export function InstitutionProfile() {
   const navigate = useNavigate();
   const { t } = useTranslation(["institutions", "common"]);
-  // Real permission source — the user's own menu_array (from login), the
-  // exact same data the sidebar itself uses to decide what to show. An
-  // action button only renders if its name is actually present in the
-  // "Institution Profile" menu's actions[] for this user, so a user with
-  // only Edit/Add/Authorise granted never sees Delete/Deactivate/
-  // Reactivate/Deauthorize buttons that would just fail server-side anyway.
-  // View is the one exception: it's not consistently granted via login's
-  // menu_array actions[] the way the others are, so it's always shown
-  // rather than gated — a user should always be able to look at a record.
-  // Per the confirmed action-UI mapping: Authorise is ONE grant controlling
-  // BOTH the Authorise and Deauthorise buttons as a pair (not two separate
-  // permissions), and Change Status is likewise ONE grant controlling BOTH
-  // Deactivate and Reactivate as a pair — which one of the pair actually
-  // shows depends on the record's own state, not on separate permissions.
-  const canEdit = useHasInstitutionAction("Edit");
-  const canAdd = useHasInstitutionAction("Add");
-  const canAuthorise = useHasInstitutionAction("Authorize");
-  const canChangeStatus = useHasInstitutionAction("Change Status");
-  const canDelete = useHasInstitutionAction("Delete");
+  // Who may do what, and the confirm dialogs, shared with the institution page.
+  const actions = useInstitutionActions();
   // Kept for the tab session: View/Edit open the institution on its own
   // route, and coming back should land on the same page, tab and search.
   const [activeTab, setActiveTab] = useSessionState("institutions:tab", "all");
   const [sortBy, setSortBy] = useSessionState("institutions:sort", "desc");
-  const [action, setAction] = useState(null);
-  const [narration, setNarration] = useState("");
   const [auditInstitution, setAuditInstitution] = useState(null);
 
   const [page, setPage] = useSessionState("institutions:page", 1);
@@ -107,61 +57,24 @@ export function InstitutionProfile() {
   const institutionsQuery = useInstitutionsQuery(
     { page, limit, filter: activeTab, sort_by: sortBy, search: searchTerm },
   );
-  const authMutation = useInstitutionAuthMutation();
-  const deauthMutation = useInstitutionDeauthMutation();
-  const deleteMutation = useInstitutionDeleteMutation();
-  const deleteAuthMutation = useInstitutionDeleteAuthMutation();
-  const deactivateMutation = useInstitutionDeactivateMutation();
-  const reactivateMutation = useInstitutionReactivateMutation();
-  const submitMutation = useInstitutionSubmitMutation();
-
   const institutions = useMemo(() => institutionsQuery.data ?? [], [institutionsQuery.data]);
 
   // Active by the record's own status (1), like the badges and the
   // dashboard: an Active institution with a draft edit still counts.
   const activeCount = useMemo(() => institutions.filter((inst) => Number(inst.status) === 1).length, [institutions]);
-  const own = useOwnIds();
 
-
-  const closeAction = () => {
-    setAction(null);
-    setNarration("");
-  };
-
-  const runAction = async () => {
-    if (!action) return;
-    try {
-      const id = institutionId(action.inst);
-      const trimmed = narration.trim();
-      let result;
-      if (action.type === "auth")
-        result = isPendingDelete(action.inst)
-          ? await deleteAuthMutation.mutateAsync({ id, narration: trimmed })
-          : await authMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "deauth") result = await deauthMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "delete") result = await deleteMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "deactivate") result = await deactivateMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "reactivate") result = await reactivateMutation.mutateAsync({ id, narration: trimmed });
-      if (action.type === "submit") result = await submitMutation.mutateAsync({ id, narration: trimmed });
-      notifications.success(apiMessage(result, "Institution action completed"));
-      setAction(null);
-      setNarration("");
-    } catch (error) {
-      notifications.error(error instanceof Error ? error.message : "Action failed");
-    }
-  };
-  const actionPending =
-    authMutation.isPending ||
-    deauthMutation.isPending ||
-    deleteMutation.isPending ||
-    deleteAuthMutation.isPending ||
-    deactivateMutation.isPending ||
-    reactivateMutation.isPending ||
-    submitMutation.isPending;
 
   const columns = [
     { key: "code", label: t("institutions:columnCode"), render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
-    { key: "name", label: t("institutions:columnName"), render: (r) => <span className="font-semibold text-slate-800">{r.name ?? "—"}</span> },
+    {
+      key: "name",
+      label: t("institutions:columnName"),
+      render: (r) => (
+        <button type="button" onClick={() => navigate(`/institutions/${institutionId(r)}`)} className="font-semibold text-slate-800 hover:text-primary hover:underline">
+          {r.name ?? "—"}
+        </button>
+      ),
+    },
     { key: "type", label: t("institutions:columnType"), sortValue: (r) => r.type_name ?? r.type ?? "", render: (r) => r.type_name ?? r.type ?? "—" },
     {
       key: "status_name",
@@ -196,31 +109,29 @@ export function InstitutionProfile() {
       sortable: false,
       render: (inst) => {
         const id = institutionId(inst);
-        // Single shared status-based visibility engine — see
-        // buttonVisibility.js for the full status_name/process_status_name
-        // matrix this is built from.
-        const buttons = getMakerCheckerButtons(inst, {
-          canEdit,
-          canAdd,
-          canAuthorize: canAuthorise,
-          canChangeStatus,
-          canDelete,
-        });
-        // The server refuses deactivating or deleting one's own institution.
-        if (String(id) === own.institutionId) Object.assign(buttons, { deactivate: false, delete: false });
+        const buttons = actions.buttonsFor(inst);
+        // A draft goes on in the create wizard.
+        const draft = isInstitutionDraft(inst);
         return (
-          <RowActions
-            buttons={buttons}
-            onView={() => navigate(`/institutions/${id}`)}
-            onEdit={() => navigate(`/institutions/${id}?edit=1`)}
-            onAudit={() => setAuditInstitution(inst)}
-            onSubmit={() => setAction({ type: "submit", inst })}
-            onAuthorize={() => setAction({ type: "auth", inst })}
-            onDeauthorize={() => setAction({ type: "deauth", inst })}
-            onDeactivate={() => setAction({ type: "deactivate", inst })}
-            onReactivate={() => setAction({ type: "reactivate", inst })}
-            onDelete={() => setAction({ type: "delete", inst })}
-          />
+          <span className="flex items-center justify-center gap-2">
+            {draft && buttons.edit && (
+              <button type="button" onClick={() => navigate(`/institutions/create?draft=${id}`)} className="whitespace-nowrap rounded-lg bg-[var(--primary-light)] px-2.5 py-1 text-[11px] font-bold text-primary hover:underline">
+                {t("institutions:continueSetup")}
+              </button>
+            )}
+            <RowActions
+              buttons={{ ...buttons, edit: buttons.edit && !draft }}
+              onView={() => navigate(`/institutions/${id}`)}
+              onEdit={() => navigate(`/institutions/${id}?edit=1`)}
+              onAudit={() => setAuditInstitution(inst)}
+              onSubmit={() => actions.open("submit", inst)}
+              onAuthorize={() => actions.open("auth", inst)}
+              onDeauthorize={() => actions.open("deauth", inst)}
+              onDeactivate={() => actions.open("deactivate", inst)}
+              onReactivate={() => actions.open("reactivate", inst)}
+              onDelete={() => actions.open("delete", inst)}
+            />
+          </span>
         );
       },
     },
@@ -262,7 +173,7 @@ export function InstitutionProfile() {
         {...searchBind}
         searchPlaceholder={t("institutions:searchInstitutionsPlaceholder")}
         actions={
-          canAdd && (
+          actions.can.canAdd && (
             <button
               type="button"
               onClick={() => navigate("/institutions/create")}
@@ -309,54 +220,7 @@ export function InstitutionProfile() {
       />
       </div>
 
-      <AuthInstitutionProfile
-        institution={action?.type === "auth" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <DeauthInstitutionProfile
-        institution={action?.type === "deauth" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <DeleteInstitutionProfile
-        institution={action?.type === "delete" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <DeactivateInstitutionProfile
-        institution={action?.type === "deactivate" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <ReactivateInstitutionProfile
-        institution={action?.type === "reactivate" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
-      <SubmitInstitutionProfile
-        institution={action?.type === "submit" ? action.inst : null}
-        narration={narration}
-        setNarration={setNarration}
-        pending={actionPending}
-        onClose={closeAction}
-        onConfirm={() => void runAction()}
-      />
+      {actions.dialogs}
 
       {auditInstitution && (
         <AuditInstitutionProfile

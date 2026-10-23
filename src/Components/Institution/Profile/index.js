@@ -1,3 +1,3 @@
 export { InstitutionProfile } from "./InstitutionProfile";
-export { AddInstitutionProfile } from "./AddInstitutionProfile";
-export { ViewInstitutionProfile } from "./ViewInstitutionProfile";
+export { InstitutionWizard } from "./InstitutionWizard";
+export { InstitutionPage } from "./InstitutionPage";

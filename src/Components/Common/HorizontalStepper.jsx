@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
-// Generalized out of AddInstitutionProfile.jsx's inline create-flow stepper
+// Generalized out of the institution create wizard's inline create-flow stepper
 // (same circle/connector/label visual language, same primary/border/muted
 // tokens) so any multi-step flow can reuse it instead of hand-rolling the
 // markup again. Unlike that stepper, steps here are independently clickable
@@ -17,7 +17,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 //
 // `isStepCompleted(step, index)` is optional and defaults to plain
 // `index < activeIndex` (every prior step is "done") — a purely linear
-// wizard like AddInstitutionProfile.jsx's flow never needs it. A caller
+// wizard like the institution create wizard's flow never needs it. A caller
 // where "done" means something more specific than "the user scrolled past
 // it" — DigitalProductWorkflow.jsx only marks a step completed once its own
 // real API call actually succeeded — passes this to override that default

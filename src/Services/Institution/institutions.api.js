@@ -21,7 +21,7 @@ import { authFetch } from "@/Services/api/authFetch";
 // raw payload (like users.api.js does) so callers read payload.data directly,
 // with the exact shape of that `data` object for each endpoint still unverified
 // against a live backend (see institutionHooks.js normalization comments).
-import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { apiError, getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
@@ -55,9 +55,14 @@ async function request(path, body) {
       throw new Error("Session expired. Please sign in again.");
     }
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw new Error(statusMessage);
-    if (!response.ok)
-      throw new Error(getApiErrorMessage(payload, `Request failed with status ${response.status}`));
+    // apiError carries the reply's field problems (fieldProblems) and the
+    // HTTP status (409: changed by someone else since it was opened).
+    if (statusMessage) throw Object.assign(apiError(statusMessage, payload), { status: response.status });
+    // A refusal of an action can come with HTTP 200 and status "Fail"; a list
+    // with nothing in it says "Fail" too and is not an error.
+    const refused = String(payload?.status).toLowerCase() === "fail" && !/\/(list|get_active|audit|pending)$/.test(path);
+    if (!response.ok || refused)
+      throw Object.assign(apiError(getApiErrorMessage(payload, `Request failed with status ${response.status}`), payload), { status: response.status });
     return payload;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError")
@@ -78,6 +83,15 @@ export const institutionsApi = {
   list: (payload = { page: 1, limit: 10 }) => request(INSTITUTION_PROFILE.LIST, payload),
   // POST /institution/profile/get_active, body {} — authorized/active records only.
   getActive: (payload = { view: "dropdown" }) => request(INSTITUTION_PROFILE.GET_ACTIVE, payload),
+  // Institution profile, rebuilt (handoff 61):
+  // options {} -> data[0].sections: every section, field, choice and rule.
+  options: () => request(INSTITUTION_PROFILE.OPTIONS, {}),
+  // get {id} -> data[0]: {profile, locked_fields, pending, setup}.
+  get: (payload) => request(INSTITUTION_PROFILE.GET, payload),
+  // validate: the add/edit body (+ optional section) -> data[0]: {valid, problems}.
+  validate: (payload) => request(INSTITUTION_PROFILE.VALIDATE, payload),
+  // setup {id} -> data[0]: the setup checklist.
+  setup: (payload) => request(INSTITUTION_PROFILE.SETUP, payload),
   // POST /institution/profile/add, body: full profile shape + {narration, is_draft}.
   // is_draft:true starts a Draft (no checker yet); omitted/false submits
   // immediately to Pending Add in this one call (confirmed 2026-09 spec).

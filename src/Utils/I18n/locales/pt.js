@@ -128,6 +128,7 @@ export const common = {
   view_merchant: "Comerciante",
   institution: "Instituição",
   fixIn: "Corrigir em {{step}}",
+  uatBanner: "UAT: ambiente de testes",
 };
 
 export const auth = {
@@ -327,6 +328,33 @@ export const institutions = {
   numberFormat_INDIAN: "12,34,567.89 (Indiano)",
   numberFormat_EUROPEAN: "1.234.567,89 (Europeu)",
   numberFormat_SPACE: "1 234 567,89 (Espaço)",
+  choose: "Escolher…",
+  lockedHint: "Fixo depois de a instituição ser aprovada",
+  nothingChosen: "Nada escolhido ainda.",
+  setupReady: "Pronta para servir clientes",
+  setupProgress: "{{done}} de {{total}} passos obrigatórios concluídos",
+  setupAll: "{{done}} de {{total}} no total",
+  optional: "Opcional",
+  setupCount: "{{count}} configurado(s)",
+  setupPending: "{{count}} a aguardar aprovação",
+  changedElsewhere: "Outra pessoa alterou esta instituição desde que a abriu. Foi recarregada: faça a alteração de novo.",
+  draftSaved: "Rascunho guardado",
+  reviewSubmit: "Rever e enviar",
+  backToList: "Voltar às instituições",
+  continueSetup: "Continuar configuração",
+  wizardSubtitle: "Cada passo é verificado antes de avançar. Guarde como rascunho a qualquer momento e continue depois.",
+  stepOf: "Passo {{step}} de {{total}}",
+  continue: "Continuar",
+  summary: "Resumo",
+  saved: "Guardado",
+  sentBanner: "Enviado para aprovação. Enquanto espera, pode preparar o resto da configuração.",
+  changeWaiting: "Alteração a aguardar aprovação",
+  tab_setup: "Configuração",
+  tab_profile: "Perfil",
+  tab_history: "Histórico",
+  reasonForChange: "Motivo desta alteração (opcional)",
+  saveChanges: "Guardar alterações",
+  noHistory: "Ainda sem histórico.",
 };
 
 export const profiles = {

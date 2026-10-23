@@ -130,6 +130,7 @@ export const common = {
   view_merchant: "Merchant",
   institution: "Institution",
   fixIn: "Fix in {{step}}",
+  uatBanner: "UAT: test environment",
 };
 
 export const auth = {
@@ -332,6 +333,33 @@ export const institutions = {
   numberFormat_INDIAN: "12,34,567.89 (Indian)",
   numberFormat_EUROPEAN: "1.234.567,89 (European)",
   numberFormat_SPACE: "1 234 567,89 (Space)",
+  choose: "Choose…",
+  lockedHint: "Fixed once the institution is approved",
+  nothingChosen: "Nothing chosen yet.",
+  setupReady: "Ready to serve customers",
+  setupProgress: "{{done}} of {{total}} required steps done",
+  setupAll: "{{done}} of {{total}} in all",
+  optional: "Optional",
+  setupCount: "{{count}} set up",
+  setupPending: "{{count}} waiting for approval",
+  changedElsewhere: "Someone else changed this institution since you opened it. It has been reloaded: please make your change again.",
+  draftSaved: "Draft saved",
+  reviewSubmit: "Review & submit",
+  backToList: "Back to institutions",
+  continueSetup: "Continue setup",
+  wizardSubtitle: "Each step is checked before you go on. Save as draft at any time and continue later.",
+  stepOf: "Step {{step}} of {{total}}",
+  continue: "Continue",
+  summary: "Summary",
+  saved: "Saved",
+  sentBanner: "Sent for approval. While you wait, you can prepare the rest of the setup.",
+  changeWaiting: "Change waiting for approval",
+  tab_setup: "Setup",
+  tab_profile: "Profile",
+  tab_history: "History",
+  reasonForChange: "Reason for this change (optional)",
+  saveChanges: "Save changes",
+  noHistory: "No history yet.",
 };
 
 export const profiles = {

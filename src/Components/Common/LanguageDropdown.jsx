@@ -7,7 +7,7 @@ import { i18n } from "@/Utils/I18n/i18n";
 import { cn } from "@/Utils/Lib/cn";
 
 // Same tolerant field-name fallback already used for /master/language
-// elsewhere (AddInstitutionProfile.jsx) — the confirmed response shape
+// elsewhere (the institution create wizard) — the confirmed response shape
 // isn't nailed down to one exact key set.
 function languageCode(language) {
   return typeof language === "string" ? language : language.code ?? language.id ?? language.language_code;

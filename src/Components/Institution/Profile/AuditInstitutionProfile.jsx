@@ -16,10 +16,6 @@ const AUDIT_FIELDS = [
   ["timezone", "Timezone"],
   ["date_format", "Date Format"],
   ["number_format", "Number Format"],
-  ["has_branch", "Has Branch"],
-  ["max_branches_allowed", "Max Branches"],
-  ["kyc_enabled", "KYC Enabled"],
-  ["total_kyc_levels", "Total KYC Levels"],
 ];
 
 // No /pending call here — each audit entry already carries its own

@@ -8,12 +8,12 @@ const InstitutionListPage = lazy(() =>
 );
 const InstitutionCreatePage = lazy(() =>
   import("@/Components/Institution/Profile").then((m) => ({
-    default: m.AddInstitutionProfile,
+    default: m.InstitutionWizard,
   })),
 );
 const InstitutionDetailPage = lazy(() =>
   import("@/Components/Institution/Profile").then((m) => ({
-    default: m.ViewInstitutionProfile,
+    default: m.InstitutionPage,
   })),
 );
 const InstitutionModule = lazy(() => import("@/Components/Institution/Modules").then((m) => ({ default: m.InstitutionModule })));

@@ -3,6 +3,8 @@ import "./index.css";
 import App from "./App";
 import "./Utils/I18n/i18n";
 import { watchApprovals } from "./Utils/Lib/flourish";
+import { watchEnvironment } from "./Utils/Lib/environment";
+watchEnvironment();
 watchApprovals();
 // A field holding just 0 (a default) is selected when it gets focus, so the
 // first key typed replaces it instead of landing after it ("05").

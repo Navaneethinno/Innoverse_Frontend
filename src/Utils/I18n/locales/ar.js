@@ -2423,6 +2423,7 @@ export const common = {
   view_merchant: "تاجر",
   institution: "المؤسسة",
   fixIn: "إصلاح في {{step}}",
+  uatBanner: "UAT: بيئة الاختبار",
 };
 
 export const auth = {

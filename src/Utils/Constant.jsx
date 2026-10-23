@@ -59,6 +59,10 @@ export const API_ENDPOINTS = {
   INSTITUTION: {
     INSTITUTION_PROFILE: {
       LIST: "/config/institution/profile/list",
+      GET: "/config/institution/profile/get",
+      OPTIONS: "/config/institution/profile/options",
+      VALIDATE: "/config/institution/profile/validate",
+      SETUP: "/config/institution/profile/setup",
       GET_ACTIVE: "/config/institution/profile/get_active",
       ADD: "/config/institution/profile/add",
       SUBMIT: "/config/institution/profile/submit",
