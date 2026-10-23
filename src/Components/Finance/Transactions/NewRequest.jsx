@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { uuid } from "@/Utils/Lib/uuid";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -267,7 +268,7 @@ function CardPicker({ value, locked, onChange }) {
   const find = async () => {
     setBusy(true);
     try {
-      setRows(rowsOf(await cardsApi.list({ search: query.trim(), ops_status: "ACTIVE", page: 1, page_size: 10 }))[0]?.items ?? []);
+      setRows(listPage(await cardsApi.list({ search: query.trim(), ops_status: "ACTIVE", page: 1, limit: 10 })).items);
     } catch (e) {
       notifications.error(e.message);
     } finally {

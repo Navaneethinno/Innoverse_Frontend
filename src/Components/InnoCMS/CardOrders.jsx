@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Ban, CheckCircle2, FileDown, PackageCheck, Plus, X, XCircle } from "lucide-react";
@@ -149,8 +150,8 @@ function NewOrder({ groups, onClose, onDone }) {
     if (!personalised) return undefined;
     let cancelled = false;
     cardRequestsApi
-      .list({ page: 1, page_size: 100, orderable: true, card_product_id: group.card_product_id })
-      .then((r) => !cancelled && setRequests((rowsOf(r)[0]?.items ?? []).filter((x) => x.actions?.order)))
+      .list({ page: 1, limit: 100, orderable: true, card_product_id: group.card_product_id })
+      .then((r) => !cancelled && setRequests((listPage(r).items).filter((x) => x.actions?.order)))
       .catch((e) => !cancelled && setError(e.message));
     return () => {
       cancelled = true;
@@ -391,7 +392,7 @@ function OrderView({ id, onBack }) {
     try {
       const o = rowsOf(await cardOrdersApi.get({ id }))[0] ?? null;
       setOrder(o);
-      setCards(o?.card_count ? (rowsOf(await cardsApi.list({ card_order_id: id, page: 1, page_size: 500 }))[0]?.items ?? []) : []);
+      setCards(o?.card_count ? (listPage(await cardsApi.list({ card_order_id: id, page: 1, limit: 500 })).items) : []);
     } catch (error) {
       notifications.error(error.message);
     }

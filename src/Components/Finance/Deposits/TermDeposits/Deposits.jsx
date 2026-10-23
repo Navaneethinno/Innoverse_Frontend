@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
@@ -10,7 +11,6 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { money } from "@/Components/Finance/Accounts/accountShared";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { depositsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { dayDate, ratePct } from "../depositShared";
 import { DepositView } from "./DepositView";
@@ -126,8 +126,8 @@ export function OwnerDeposits({ owner }) {
 
   const loadDeposits = useCallback(async () => {
     try {
-      const row = rowsOf(await depositsApi.list({ entity_type: owner.kind, entity_id: owner.id, page: 1, page_size: 100 }))[0];
-      setItems(row?.items ?? []);
+      const row = listPage(await depositsApi.list({ entity_type: owner.kind, entity_id: owner.id, page: 1, limit: 100 }));
+      setItems(row.items);
     } catch {
       setItems([]);
     }

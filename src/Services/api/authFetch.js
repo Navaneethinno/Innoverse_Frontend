@@ -1,3 +1,4 @@
+import { notifications } from "@/Utils/Lib/notifications";
 import store from "@/Redux/Store";
 import { setSession } from "@/Redux/AuthToken";
 import { refreshTokenRequest } from "@/Services/Auth/auth.service";
@@ -27,7 +28,10 @@ async function renew() {
     persistAuthSession(user, response.access_token, response.refresh_token);
     store.dispatch(setSession({ token: response.access_token, refreshToken: response.refresh_token, user }));
     return true;
-  } catch {
+  } catch (error) {
+    // Replaced by a sign-in elsewhere (one session per user): say so, not
+    // just "session expired".
+    if (error?.code === "auth.signed_in_elsewhere") notifications.error(error.message);
     return false;
   }
 }

@@ -1,25 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FileDown, FileStack, RefreshCw } from "lucide-react";
+import { FileDown, FileStack } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
-import { cardOrdersApi, preFilesApi } from "@/Services/Cards/cards.api";
+import { preFilesApi } from "@/Services/Cards/cards.api";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { NarrationDialog } from "../Finance/Deposits/depositShared";
-import { CardPill, PagedTable, cardWord, filterBody, usePagedFilters } from "./cardOpsShared";
-
-const VIEWS = [
-  { key: "waiting", status: "PAN_GENERATED" },
-  { key: "infile", status: "PREFILED" },
-  { key: "jobs" },
-];
-const HOLDER_TYPES = ["CUST_INDV", "CUST_CORP", "MERCH_INDV", "MERCH_CORP"];
+import { CardPill, cardWord } from "./cardOpsShared";
 
 // The PRE file holds full card numbers and CVVs: it goes from the reply
 // straight to a file on the user's machine; the server never keeps it.
@@ -34,53 +27,22 @@ function savePreFile(reply) {
 export function PreFiles() {
   const { t } = useTranslation(["cards", "common"]);
   const can = usePagePermission();
-  const [view, setView] = useState("waiting");
-  const list = usePagedFilters({ search: "", issuance_group_id: "", card_order_id: "", customer_type: "" });
-  const { applied, page, limit, setPage } = list;
-  const [groups, setGroups] = useState([]);
-  const [data, setData] = useState({ items: [], total: 0 });
-  const [loading, setLoading] = useState(false);
+  // The cards (tabs Waiting / In a file; filters issuance group and holder
+  // type, from list/options) or the files made.
+  const [view, setView] = useState("cards");
   const [ticked, setTicked] = useState(() => new Map());
   const [asking, setAsking] = useState(false);
   const [busy, setBusy] = useState(false);
   const jobs = view === "jobs";
-  const status = VIEWS.find((v) => v.key === view)?.status;
-  const groupId = applied.issuance_group_id;
-
-  useEffect(() => {
-    cardOrdersApi
-      .options({})
-      .then((r) => setGroups(rowsOf(r)[0]?.issuance_groups ?? []))
-      .catch((e) => notifications.error(e.message));
-  }, []);
-
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!groupId) {
-        setData({ items: [], total: 0 });
-        return;
-      }
-      if (!silent) setLoading(true);
-      try {
-        const base = { page, page_size: limit, issuance_group_id: Number(groupId) };
-        const body = jobs ? base : { ...base, ...filterBody(applied, ["issuance_group_id", "card_order_id"]), issuance_status: status };
-        const row = rowsOf(await (jobs ? preFilesApi.jobs(body) : preFilesApi.list(body)))[0];
-        setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applied, groupId, jobs, status, page, limit],
-  );
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(preFilesApi.listPath, () => void load({ silent: true }));
+  const cards = useServerList({ api: "/config/card/prefile/list", call: preFilesApi.list });
+  const made = useServerList({ api: "/config/card/prefile/jobs", call: preFilesApi.jobs, prefix: "j_" });
+  const list = jobs ? made : cards;
+  const data = { items: cards.rows, total: cards.pagination.totalRecords };
+  const groupId = cards.toolbar.filters.issuance_group_id ?? "";
+  const load = () => (cards.reload(), made.reload());
 
   // A new group or tab starts a new pick.
-  useEffect(() => setTicked(new Map()), [groupId, view]);
+  useEffect(() => setTicked(new Map()), [groupId, view, cards.toolbar.tab]);
 
   const tick = (card) =>
     setTicked((m) => {
@@ -105,7 +67,7 @@ export function PreFiles() {
       notifications.success(t("preFileMade", { count: Number(reply?.card_count ?? 0), ref: reply?.job_ref }));
       setAsking(false);
       setTicked(new Map());
-      await load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -139,7 +101,7 @@ export function PreFiles() {
     { key: "reason", label: t("reason"), render: (j) => <span className="text-xs">{j.reason || "—"}</span> },
   ];
 
-  const again = view === "infile";
+  const again = cards.toolbar.tab === "PREFILED";
   const canMake = can("Add") && groupId && !jobs && (ticked.size > 0 || (!again && data.total > 0));
 
   return (
@@ -152,9 +114,6 @@ export function PreFiles() {
           <p className="mt-1 text-sm text-muted-foreground">{t("preFilesSubtitle")}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm" icon={RefreshCw} onClick={() => void load()} disabled={loading}>
-            {t("refresh")}
-          </Button>
           {!jobs && can("Add") && (
             <Button size="sm" icon={FileDown} loading={busy && !asking} disabled={!canMake || busy} onClick={() => (again ? setAsking(true) : void generate())}>
               {ticked.size ? t("makePreFileN", { count: ticked.size }) : t("makePreFileAll")}
@@ -164,29 +123,17 @@ export function PreFiles() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <SegmentedSwitch options={VIEWS.map((v) => ({ value: v.key, label: t(`prefile_${v.key}`) }))} value={view} onChange={(next) => (setView(next), setPage(1))} />
+        <SegmentedSwitch options={["cards", "jobs"].map((key) => ({ value: key, label: t(key === "jobs" ? "prefile_jobs" : "prefile_cards") }))} value={view} onChange={setView} />
         {!jobs && ticked.size > 0 && <span className="text-xs font-semibold text-primary">{t("tickedN", { count: ticked.size })}</span>}
       </div>
 
-      <PagedTable
-        {...list}
-        searchBind={jobs ? undefined : list.searchBind}
-        searchPlaceholder={t("searchPreFileCards")}
-        filterFields={
-          <>
-            <FilterSelect value={list.filters.issuance_group_id} onChange={list.set("issuance_group_id")} options={[{ value: "", label: t("chooseGroup") }, ...groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))]} />
-            {!jobs && (
-              <FilterSelect value={list.filters.customer_type} onChange={list.set("customer_type")} options={[{ value: "", label: t("anyHolderType") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`holder_${h}`) }))]} />
-            )}
-          </>
-        }
+      <ListTable
+        key={view}
+        list={list}
         columns={jobs ? jobColumns : cardColumns}
-        rows={data.items}
-        total={data.total}
-        loading={loading}
         title={t("preFilesTitle")}
-        emptyTitle={groupId ? t(jobs ? "noPreFiles" : "noPreFileCards") : t("chooseGroupFirst")}
-        emptyDescription={groupId ? (jobs ? "" : t(again ? "noPreFileCardsAgainHint" : "noPreFileCardsHint")) : t("chooseGroupFirstHint")}
+        emptyTitle={t(jobs ? "noPreFiles" : "noPreFileCards")}
+        emptyDescription={jobs ? "" : t(again ? "noPreFileCardsAgainHint" : "noPreFileCardsHint")}
       />
 
       {asking && (

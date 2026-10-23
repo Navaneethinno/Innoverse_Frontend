@@ -3269,8 +3269,9 @@ export const accounts = {
   openRequested: "Pedido enviado para aprovação.",
   accountOpenedNumber: "Conta {{number}} aberta.",
   approveOpenTitle: "Abrir esta conta para {{name}}?",
-  accountLimitReached: "Este cliente já tem todas as contas que o seu produto digital permite.",
   account: "Conta",
+  openLimit_ONE_ACCOUNT_ONLY: "O plano permite apenas uma conta.",
+  openLimit_LIMIT_REACHED: "Já tem o máximo de contas que o plano permite ({{count}}).",
 };
 
 export const deposits = {
@@ -5357,8 +5358,6 @@ export const cards = {
   fileOrderN_other: "Registar encomenda ({{count}} cartões)",
   preFilesTitle: "Ficheiros PRE",
   preFilesSubtitle: "Um ficheiro de gravação para o bureau a partir de cartões escolhidos entre as encomendas de um grupo de emissão.",
-  prefile_waiting: "A aguardar",
-  prefile_infile: "Num ficheiro",
   prefile_jobs: "Ficheiros gerados",
   chooseGroup: "Escolha um grupo de emissão",
   chooseGroupFirst: "Escolha um grupo de emissão",
@@ -5417,6 +5416,7 @@ export const cards = {
   seg_form_factor: "Tipo de cartão",
   seg_serial: "Série",
   seg_check: "Dígito de controlo",
+  prefile_cards: "Cartões",
 };
 
 export const kycReport = {

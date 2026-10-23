@@ -3,7 +3,7 @@ import { authFetch } from "@/Services/api/authFetch";
 import { scopedPath } from "@/Utils/Lib/apiScope";
 import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { clearAuthSession, getAccessToken } from "@/Services/api/authStorage";
-import { getApiErrorMessage, getStatusErrorMessage } from "@/Services/api/apiErrors";
+import { getApiErrorMessage, getStatusErrorMessage, apiError } from "@/Services/api/apiErrors";
 import { DEVICE_INFO } from "@/Services/Auth/auth.service";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 import { downloadAttachment, downloadFile, uploadFile } from "@/Services/api/fileTransfer";
@@ -50,9 +50,10 @@ async function request(path, body = {}, extraHeaders = {}) {
     // etc internally — checking payload?.remark first, as this used to,
     // bypassed that priority and always surfaced the backend's internal
     // field-name remark instead of its own user-facing message.
-    if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
+    if (statusError) throw apiError(getApiErrorMessage(payload, statusError), payload);
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
-      throw new Error(getApiErrorMessage(payload, "Request failed"));
+      // apiError carries problem_keys (section, field) to open the refused field.
+      throw apiError(getApiErrorMessage(payload, "Request failed"), payload);
     }
     return payload;
   } finally {

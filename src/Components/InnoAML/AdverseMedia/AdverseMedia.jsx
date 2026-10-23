@@ -1,3 +1,5 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, ChevronDown, ExternalLink, Newspaper, Search, XCircle } from "lucide-react";
@@ -1681,30 +1683,13 @@ export function AdverseMediaBadge({ media, customerKind, referenceId }) {
 // see; each opens its search to read the article in full.
 export function MediaReviews() {
   const { t } = useTranslation(["aml", "common"]);
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
   const [openId, setOpenId] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const response = await amlMediaReviewApi.pending({ page, limit });
-      setRows(rowsOf(response));
-      setPagination(response?.pagination ?? {});
-    } catch (e) {
-      notifications.error(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(amlMediaReviewApi.listPath, () => void load());
+  // Tabs: All, Pending, Approved, Rejected, Superseded (list/options).
+  const list = useServerList({ api: amlMediaReviewApi.listPath, call: amlMediaReviewApi.list, prefix: "n_" });
+  const load = list.reload;
 
   const decide = async (narration) => {
     setBusy(true);
@@ -1766,16 +1751,7 @@ export function MediaReviews() {
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        isLoading={loading}
-        title={t("aml:tabNews")}
-        emptyTitle={t("aml:mediaNoPending")}
-        serverSorted
-        serverPagination={{ page, totalPages: pagination.totalPages ?? 1, totalRecords: pagination.totalRecords ?? rows.length, onPageChange: setPage, limit, onLimitChange: (n) => (setLimit(n), setPage(1)) }}
-      />
+      <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("aml:tabNews")} emptyTitle={t("aml:mediaNoPending")} />
       {dialog && (
         <NarrationDialog
           title={t(dialog.verb === "auth" ? "aml:mediaApproveTitle" : "aml:mediaRejectTitle")}

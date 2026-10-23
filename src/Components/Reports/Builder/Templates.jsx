@@ -39,7 +39,7 @@ export function MyReports({ open, onClose, onOpen, canCopy, canDelete }) {
     let cancelled = false;
     setLoading(true);
     reportBuilderApi.template
-      .list({ mine: true, page: 1, page_size: MY_PAGE, ...(term ? { search: term } : {}) })
+      .list({ mine: true, page: 1, limit: MY_PAGE, ...(term ? { search: term } : {}) })
       .then((r) => {
         if (cancelled) return;
         setRows(rowsOf(r));

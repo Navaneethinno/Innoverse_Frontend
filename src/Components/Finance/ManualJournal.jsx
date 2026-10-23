@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -321,7 +322,7 @@ function AccountPicker({ value, currencyId, onChange }) {
     const timer = setTimeout(() => {
       glJournalsApi
         .accounts({ search, ...(currencyId ? { currency_id: Number(currencyId) } : {}), limit: 20 })
-        .then((r) => current && setFound(rowsOf(r)[0]?.items ?? []))
+        .then((r) => current && setFound(listPage(r).items))
         .catch((e) => current && (setFound([]), notifications.error(e.message)));
     }, 300);
     return () => {

@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -415,8 +416,8 @@ export function AcctConfigResource({ entity }) {
   useEffect(() => {
     if (entity !== "acct_product") return;
     glAccountsApi
-      .list({ has_pl: true, status: 1, page_size: 500 })
-      .then((response) => setControlGls(rowsOf(response)[0]?.items ?? []))
+      .list({ has_pl: true, status: 1, limit: 500 })
+      .then((response) => setControlGls(listPage(response).items))
       .catch((error) => notifications.error(error.message));
   }, [entity]);
   const [acctProducts, setAcctProducts] = useState([]);

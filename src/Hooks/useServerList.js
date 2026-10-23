@@ -14,7 +14,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 //
 // `call(body)` makes the list request (the page's own api.list) and gets the
 // standard body: page, limit, search, tab, filters, date_from/date_to,
-// amount_min/amount_max, sort_by, list_version 2. `prefix` keeps two lists
+// amount_min/amount_max, sort_by. `prefix` keeps two lists
 // on one page apart in the URL. `extra` is sent as is (a parent's id).
 // `select(reply)`: the rows, when a page shapes them itself (default: data).
 // The list reloads on its live channel (another user's change) and on the
@@ -119,7 +119,8 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
       page,
       limit,
       ...(urlQ ? { search: urlQ } : {}),
-      ...(tab && tab !== "all" && options.tabs ? { tab } : {}),
+      // The tab's own value (a number where options give one).
+      ...(tab && tab !== "all" && options.tabs ? { tab: options.tabs.options?.find((x) => String(x.value) === String(tab))?.value ?? tab } : {}),
       ...(Object.keys(typedFilters).length ? { filters: typedFilters } : {}),
       ...(options.date_range && range.date_from ? { date_from: range.date_from } : {}),
       ...(options.date_range && range.date_to ? { date_to: range.date_to } : {}),
@@ -127,7 +128,6 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
       ...(options.amount_range && range.amount_max ? { amount_max: Number(range.amount_max) } : {}),
       ...(options.sort && sort ? { sort_by: sort } : {}),
       ...(extra ?? {}),
-      list_version: 2,
     };
   })();
 
@@ -206,3 +206,12 @@ export const asQuery = (list) => ({
   refetch: list.reload,
   applyRecords: list.reload,
 });
+
+// One page of a list reply as { items, total }: rows in `data` with the
+// standard `pagination` (every list now), or the older data[0].items/total
+// a call outside the lists (e.g. a `pending` view) may still send.
+export function listPage(reply) {
+  const data = Array.isArray(reply?.data) ? reply.data : [];
+  if (data.length === 1 && Array.isArray(data[0]?.items)) return { items: data[0].items, total: data[0].total ?? data[0].items.length };
+  return { items: data, total: reply?.pagination?.totalRecords ?? data.length };
+}

@@ -1,10 +1,11 @@
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
 import { mapInstitutionListResponse } from "@/Hooks/Institution/institutionHooks";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
@@ -42,6 +43,14 @@ export function InstitutionProfile() {
   const { t } = useTranslation(["institutions", "common"]);
   // Who may do what, and the confirm dialogs, shared with the institution page.
   const actions = useInstitutionActions();
+  // Only platform users create institutions (profile/options can_create).
+  const [canCreate, setCanCreate] = useState(false);
+  useEffect(() => {
+    institutionsApi
+      .options()
+      .then((r) => setCanCreate(Boolean(rowsOf(r)[0]?.can_create)))
+      .catch(() => setCanCreate(false));
+  }, []);
   // Kept for the tab session: View/Edit open the institution on its own
   // route, and coming back should land on the same page, tab and search.
   const [auditInstitution, setAuditInstitution] = useState(null);
@@ -140,7 +149,7 @@ export function InstitutionProfile() {
       </div>
 
       <ListTable list={list} actions={
-          actions.can.canAdd && (
+          actions.can.canAdd && canCreate && (
             <button
               type="button"
               onClick={() => navigate("/institutions/create")}

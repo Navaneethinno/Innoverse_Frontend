@@ -3255,8 +3255,9 @@ export const accounts = {
   openRequested: "Request sent for approval.",
   accountOpenedNumber: "Account {{number}} opened.",
   approveOpenTitle: "Open this account for {{name}}?",
-  accountLimitReached: "This customer already holds as many accounts as their digital product allows.",
   account: "Account",
+  openLimit_ONE_ACCOUNT_ONLY: "Their plan allows one account only.",
+  openLimit_LIMIT_REACHED: "They already hold the most accounts their plan allows ({{count}}).",
 };
 
 export const deposits = {
@@ -5343,8 +5344,6 @@ export const cards = {
   fileOrderN_other: "File order ({{count}} cards)",
   preFilesTitle: "PRE Files",
   preFilesSubtitle: "One emboss file for the card bureau from cards picked across an issuance group's orders.",
-  prefile_waiting: "Waiting",
-  prefile_infile: "In a file",
   prefile_jobs: "Files made",
   chooseGroup: "Choose an issuance group",
   chooseGroupFirst: "Choose an issuance group",
@@ -5403,6 +5402,7 @@ export const cards = {
   seg_form_factor: "Card type",
   seg_serial: "Serial",
   seg_check: "Check digit",
+  prefile_cards: "Cards",
 };
 
 export const kycReport = {

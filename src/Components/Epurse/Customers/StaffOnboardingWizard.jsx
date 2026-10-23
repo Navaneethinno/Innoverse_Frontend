@@ -276,6 +276,14 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     setActiveKey(target.key);
     setScrollTarget(fieldKey);
   });
+  // A refusal's first problem with a place (problem_keys): its section opens
+  // and its field comes into view.
+  const openProblem = (keys) => {
+    const key = (keys ?? []).find((k) => k?.section && sections.some((s) => s.key === k.section));
+    if (!key) return;
+    setActiveKey(key.section);
+    setScrollTarget(key.field ?? null);
+  };
   useEffect(() => {
     if (!scrollTarget) return undefined;
     const frame = window.requestAnimationFrame(() => {
@@ -315,6 +323,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     } catch (error) {
       notifications.error(error.message);
       if (Array.isArray(error.problems)) setProblems(error.problems);
+      openProblem(error.problemKeys);
       if (error.conflict) {
         const fresh = first(await api.get(wizard.onboarding.reference_id).catch(() => null));
         if (fresh) applyWizard(fresh);
@@ -344,6 +353,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     } catch (error) {
       notifications.error(error.message);
       if (Array.isArray(error.problems)) setProblems(error.problems);
+      openProblem(error.problemKeys);
     } finally {
       setSubmitting(false);
     }

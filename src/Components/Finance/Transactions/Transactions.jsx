@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -294,8 +295,8 @@ export function PartyHistory({ party, onClose, onOpen }) {
     transactionsApi
       .history({ entity_type: party.entity_type, entity_id: party.entity_id, page, limit, ...clean(range) })
       .then((r) => {
-        const row = rowsOf(r)[0];
-        if (!cancelled) setData({ items: row?.items ?? [], total: row?.total ?? 0 });
+        const row = listPage(r);
+        if (!cancelled) setData(row);
       })
       .catch((e) => notifications.error(e.message))
       .finally(() => !cancelled && setLoading(false));

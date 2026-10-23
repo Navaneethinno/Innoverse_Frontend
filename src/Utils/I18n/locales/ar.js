@@ -495,7 +495,6 @@ export const accounts = {
   openRequested: "تم إرسال الطلب للموافقة.",
   accountOpenedNumber: "تم فتح الحساب {{number}}.",
   approveOpenTitle: "فتح هذا الحساب لـ {{name}}؟",
-  accountLimitReached: "يمتلك هذا العميل بالفعل الحد الأقصى من الحسابات التي يسمح بها منتجه الرقمي.",
   account: "الحساب",
 };
 

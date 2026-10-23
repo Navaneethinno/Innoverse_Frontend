@@ -55,7 +55,7 @@ function ListToolbar({ tb, actions, onExport }) {
 
   const shownTabs = tabs.length > MAX_TABS ? tabs.slice(0, MAX_TABS - 1) : tabs;
   const moreTabs = tabs.length > MAX_TABS ? tabs.slice(MAX_TABS - 1) : [];
-  const inMore = moreTabs.find((x) => x.value === tb.tab);
+  const inMore = moreTabs.find((x) => String(x.value) === String(tb.tab));
 
   return (
     <div className="flex flex-col gap-2 border-b border-border p-3">
@@ -63,7 +63,7 @@ function ListToolbar({ tb, actions, onExport }) {
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
           <div data-tour="status-tabs" className="thin-scrollbar flex min-w-0 items-center gap-1.5 overflow-x-auto">
             {shownTabs.map((x) => (
-              <TabButton key={x.value} active={tb.tab === x.value} onClick={() => tb.onTab(x.value)}>
+              <TabButton key={x.value} active={String(tb.tab) === String(x.value)} onClick={() => tb.onTab(x.value)}>
                 {x.label}
               </TabButton>
             ))}
@@ -89,7 +89,7 @@ function ListToolbar({ tb, actions, onExport }) {
             <FilterSelect size="sm" className="w-36" value={tb.sort} onChange={tb.onSort} options={o.sort_options} />
           </span>
         )}
-        {onExport && o.exports?.length > 0 && <ExportButtons exportFile={onExport} />}
+        {onExport && o.exports?.length > 0 && <ExportButtons exportFile={onExport} formats={o.exports.map((f) => String(f).toUpperCase())} />}
       </div>
 
       {chips.length > 0 && (

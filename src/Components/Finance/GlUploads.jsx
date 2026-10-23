@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FileSpreadsheet, Send, ShieldCheck, Upload } from "lucide-react";
@@ -196,10 +197,10 @@ export function GlUploads({ version, onChanged }) {
     let cancelled = false;
     setLoading(true);
     glUploadsApi
-      .list({ page, page_size: limit, ...(status ? { status: Number(status) } : {}) })
+      .list({ page, limit: limit, ...(status ? { status: Number(status) } : {}) })
       .then((r) => {
-        const row = rowsOf(r)[0];
-        if (!cancelled) setData({ items: row?.items ?? [], total: row?.total ?? 0 });
+        const row = listPage(r);
+        if (!cancelled) setData(row);
       })
       .catch((e) => !cancelled && notifications.error(e.message))
       .finally(() => !cancelled && setLoading(false));

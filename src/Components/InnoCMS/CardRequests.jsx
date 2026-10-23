@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Inbox, Plus, Truck, XCircle } from "lucide-react";
@@ -195,8 +196,8 @@ function AcceptRequest({ request, busy, onClose, onSave }) {
     let current = true;
     const timer = setTimeout(() => {
       cardStockApi
-        .list({ card_product_id: request.card_product_id, inventory_status: "AVAILABLE", page: 1, page_size: 20, ...(search.trim() ? { search: search.trim() } : {}) })
-        .then((r) => current && setStock(rowsOf(r)[0]?.items ?? []))
+        .list({ card_product_id: request.card_product_id, inventory_status: "AVAILABLE", page: 1, limit: 20, ...(search.trim() ? { search: search.trim() } : {}) })
+        .then((r) => current && setStock(listPage(r).items))
         .catch((e) => current && (setStock([]), notifications.error(e.message)));
     }, 300);
     return () => {

@@ -1,25 +1,19 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListView } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DataTable } from "@/Components/Common/DataTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlReviewApi } from "@/Services/InnoAML/aml.api";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { MediaReviews } from "../AdverseMedia/AdverseMedia";
-
-const STATES = ["PENDING", "APPROVED", "REJECTED", "SUPERSEDED"];
-const DECISIONS = ["FALSE_POSITIVE", "TRUE_MATCH", "REVOKE"];
 
 // Waiting rows from one "clear all" share a batch_id: shown as one entry
 // (the first row, with `batch` = every row of it on this page), decided
@@ -49,44 +43,17 @@ function groupBatches(rows) {
 // review in any state.
 export function MatchReview() {
   const { t } = useTranslation(["aml", "common"]);
-  const [view, setView] = useState("pending");
-  const [filters, setFilters] = useState({ state: "", decision: "" });
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  // The screened name, reference, matched entity, proposer, decider or
-  // comment (both views).
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
+  // Reviews (tabs: All, Pending, Approved, Rejected, Superseded) or news.
+  const [view, setView] = useState("reviews");
   const [screeningId, setScreeningId] = useState(null);
   const [action, setAction] = useState(null); // { type: "auth" | "deauth", row }
   const [narration, setNarration] = useState("");
   const [working, setWorking] = useState(false);
-  const filterKey = JSON.stringify(filters);
-
-  const load = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!silent) setLoading(true);
-      try {
-        const active = view === "all" ? Object.fromEntries(Object.entries(JSON.parse(filterKey)).filter(([, v]) => v)) : {};
-        const response = await latestList((view === "pending" ? amlReviewApi.pending : amlReviewApi.list)({ ...searchBody, page, limit, ...active }));
-        setRows(rowsOf(response));
-        setPagination(response?.pagination ?? {});
-      } catch (error) {
-        notifications.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchBody, latestList, view, page, limit, filterKey],
-  );
-  useEffect(() => {
-    if (view !== "news") void load();
-  }, [load, view]);
-  useLiveChannel(amlReviewApi.listPath, () => void load({ silent: true }));
-
-  const shown = useMemo(() => (view === "pending" ? groupBatches(rows) : rows), [rows, view]);
+  const list = useServerList({ api: amlReviewApi.listPath, call: amlReviewApi.list });
+  const load = list.reload;
+  const waiting = list.toolbar.tab === "PENDING";
+  // A batch cleared at once waits as one row.
+  const shown = useMemo(() => (waiting ? groupBatches(list.rows) : list.rows), [list.rows, waiting]);
 
   const decide = async () => {
     if (action.type === "deauth" && !narration.trim()) return;
@@ -97,21 +64,12 @@ export function MatchReview() {
       notifications.success(apiMessage(response, action.type === "auth" ? t("aml:reviewApproved") : t("aml:reviewRejected")));
       setAction(null);
       setNarration("");
-      await load({ silent: true });
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setWorking(false);
     }
-  };
-
-  const switchView = (next) => {
-    setView(next);
-    setPage(1);
-  };
-  const setFilter = (key) => (value) => {
-    setFilters((f) => ({ ...f, [key]: value }));
-    setPage(1);
   };
 
   const columns = [
@@ -212,56 +170,29 @@ export function MatchReview() {
       <SegmentedSwitch
         className="mb-3"
         options={[
-          { value: "pending", label: t("aml:waitingForApproval") },
-          { value: "all", label: t("aml:allReviews") },
+          { value: "reviews", label: t("aml:allReviews") },
           // Adverse Media article reviews.
           { value: "news", label: t("aml:tabNews") },
         ]}
         value={view}
-        onChange={switchView}
+        onChange={setView}
       />
       {view === "news" ? (
         <MediaReviews />
       ) : (
-      <ListPanel
-        tabs={[]}
-        {...searchBind}
-        searchPlaceholder={t("aml:searchReviews")}
-        filters={
-          <>
-            {view === "all" && (
-              <>
-              <FilterSelect
-                size="sm"
-                className="w-40"
-                value={filters.state}
-                onChange={setFilter("state")}
-                options={[{ value: "", label: t("aml:allStates") }, ...STATES.map((s) => ({ value: s, label: t(`aml:reviewState_${s}`) }))]}
-              />
-              <FilterSelect
-                size="sm"
-                className="w-40"
-                value={filters.decision}
-                onChange={setFilter("decision")}
-                options={[{ value: "", label: t("aml:allDecisions") }, ...DECISIONS.map((d) => ({ value: d, label: t(`aml:review_${d}`) }))]}
-              />
-              </>
-            )}
-          </>
-        }
-      >
-        <DataTable
-          columns={columns}
-          rows={shown}
-          rowKey={(row) => (row.batch ? `batch-${row.batch_id}` : row.id)}
-          isLoading={loading}
-          title={t("aml:reviewTitle")}
-          emptyTitle={view === "pending" ? t("aml:nothingWaiting") : t("aml:noReviews")}
-          serverPagination={{ page, totalPages: pagination.totalPages ?? 1, totalRecords: pagination.totalRecords ?? rows.length, onPageChange: setPage, limit, onLimitChange: (n) => { setLimit(n); setPage(1); } }}
-          serverSorted
-          bare
-        />
-      </ListPanel>
+        <ListView list={list}>
+          <DataTable
+            bare
+            serverSorted
+            columns={columns}
+            rows={shown}
+            rowKey={(row) => (row.batch ? `batch-${row.batch_id}` : row.id)}
+            isLoading={list.loading}
+            serverPagination={list.pagination}
+            title={t("aml:reviewTitle")}
+            emptyTitle={waiting ? t("aml:nothingWaiting") : t("aml:noReviews")}
+          />
+        </ListView>
       )}
 
       <ConfirmDialog
@@ -287,7 +218,7 @@ export function MatchReview() {
         />
       </ConfirmDialog>
 
-      {screeningId && <ScreeningDetailModal id={screeningId} onClose={() => setScreeningId(null)} onChanged={() => void load({ silent: true })} />}
+      {screeningId && <ScreeningDetailModal id={screeningId} onClose={() => setScreeningId(null)} onChanged={() => load()} />}
     </div>
   );
 }

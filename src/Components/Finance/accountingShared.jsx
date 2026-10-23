@@ -1,10 +1,10 @@
+import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
 import { money } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { glAccountsApi } from "@/Services/Accounting/accounting.api";
-import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { NarrationDialog } from "./Deposits/depositShared";
@@ -62,9 +62,9 @@ export function useGlAccounts(enabled = true) {
     (async () => {
       const all = [];
       for (let page = 1; ; page += 1) {
-        const row = rowsOf(await glAccountsApi.list({ is_account: true, status: 1, page, page_size: 500 }))[0];
-        all.push(...(row?.items ?? []));
-        if (!row?.items?.length || all.length >= (row?.total ?? 0)) break;
+        const row = listPage(await glAccountsApi.list({ is_account: true, status: 1, page, limit: 500 }));
+        all.push(...row.items);
+        if (!row.items.length || all.length >= row.total) break;
       }
       if (!cancelled) setAccounts(all);
     })().catch((e) => {

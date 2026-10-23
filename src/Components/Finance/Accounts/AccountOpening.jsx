@@ -142,7 +142,7 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
           </div>
 
           {blocked ? (
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{options.limit.message ?? t("accountLimitReached")}</p>
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{t(`openLimit_${options.limit.reason || "LIMIT_REACHED"}`, { count: options.limit.max_accounts, held: options.limit.held })}</p>
           ) : products.length === 0 ? (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{t("noAccountProductsAvailable")}</p>
           ) : (

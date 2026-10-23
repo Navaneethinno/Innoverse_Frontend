@@ -16,6 +16,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { glAccountsApi, glUploadsApi } from "@/Services/Accounting/accounting.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { listPage } from "@/Hooks/useServerList";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -260,12 +261,9 @@ function GlFlatList({ search = "", pending = false, version, onView, bare = fals
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const body = { page, page_size: limit, ...(search ? { search } : {}) };
+    const body = { page, limit, ...(search ? { search } : {}) };
     (pending ? glAccountsApi.pending(body) : glAccountsApi.list(body))
-      .then((r) => {
-        const row = rowsOf(r)[0];
-        if (!cancelled) setData({ items: row?.items ?? [], total: row?.total ?? 0 });
-      })
+      .then((r) => !cancelled && setData(listPage(r)))
       .catch((e) => !cancelled && notifications.error(e.message))
       .finally(() => !cancelled && setLoading(false));
     return () => {

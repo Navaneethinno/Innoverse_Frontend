@@ -18,6 +18,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useHasUserAction } from "@/Hooks/UserManagement/userHooks";
 import { txnLimitApi } from "@/Services/UserManagement/txnLimit.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { listPage } from "@/Hooks/useServerList";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { notifications } from "@/Utils/Lib/notifications";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
@@ -57,8 +58,7 @@ export function TxnLimits() {
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     try {
-      const row = rowsOf(await txnLimitApi.list(scope({ page, page_size: limit, ...(term ? { search: term } : {}), ...(pending ? { pending: true } : {}) })))[0];
-      setData({ items: row?.items ?? [], total: row?.total ?? 0 });
+      setData(listPage(await txnLimitApi.list(scope({ page, limit, ...(term ? { search: term } : {}), ...(pending ? { pending: true } : {}) }))));
     } catch (error) {
       notifications.error(error.message);
     } finally {

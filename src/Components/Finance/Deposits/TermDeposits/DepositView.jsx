@@ -1,3 +1,4 @@
+import { listPage } from "@/Hooks/useServerList";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -362,8 +363,8 @@ function InterestTab({ deposit }) {
     depositsApi
       .accruals({ id: deposit.id, page, limit })
       .then((r) => {
-        const row = rowsOf(r)[0];
-        if (!cancelled) setData({ items: row?.items ?? [], total: row?.total ?? 0 });
+        const row = listPage(r);
+        if (!cancelled) setData(row);
       })
       .catch((error) => notifications.error(error.message))
       .finally(() => !cancelled && setLoading(false));

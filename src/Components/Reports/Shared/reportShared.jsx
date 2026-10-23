@@ -75,7 +75,8 @@ export function PeriodChips({ value, onChange, allTime = false }) {
 // and opens a preview page in a new tab (the institution's logo, the report
 // box, the table, a logo watermark) whose Download PDF saves the same
 // layout (reportPdf.js).
-export function ExportButtons({ exportFile, disabled = false, children }) {
+// `formats`: which buttons to show (a list offers only what its options list).
+export function ExportButtons({ exportFile, disabled = false, formats = ["XLSX", "CSV", "PDF"], children }) {
   const { t } = useTranslation("reports");
   const { paper } = useBrandTheme();
   const [busy, setBusy] = useState("");
@@ -118,7 +119,7 @@ export function ExportButtons({ exportFile, disabled = false, children }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {children}
-      {["XLSX", "CSV", "PDF"].map((format) => (
+      {formats.map((format) => (
         <button
           key={format}
           type="button"
