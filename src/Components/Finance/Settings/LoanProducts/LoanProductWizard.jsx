@@ -11,7 +11,7 @@ import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { moveItem, useDragReorder } from "@/Components/Common/dragReorder";
-import { Problems, Section, firstProblemStep, problemStepOf, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
+import { Problems, Section, firstProblemStep, problemFields, problemStepOf, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
 import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
@@ -91,6 +91,8 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   const [head, setHead] = useState({ product_code: "", currency_code: "" });
   const [config, setConfig] = useState(null);
   const [error, setError] = useState("");
+  // Where each refused problem is (problem_keys: section, field).
+  const [errorKeys, setErrorKeys] = useState([]);
   // What was last saved (or loaded), to warn before leaving with changes.
   const [saved, setSaved] = useState(null);
   const [leaving, setLeaving] = useState(false);
@@ -142,7 +144,14 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
   };
   const stepProblem = problemAt(STEPS[step]);
   // A refused problem's step: a term or fee code it names, else its first word.
-  const stepOf = (text) => problemStepOf(text, { codes: { terms: (config?.terms ?? []).map((x) => x.term_code), fees: (config?.fees ?? []).map((f) => f.fee_code) }, words: WORD_STEPS });
+  // The server's own section wins; failing that, a term or fee code it names, else its first word.
+  const stepOf = (text, key) => WORD_STEPS[key?.section] ?? problemStepOf(text, { codes: { terms: (config?.terms ?? []).map((x) => x.term_code), fees: (config?.fees ?? []).map((f) => f.fee_code) }, words: WORD_STEPS });
+  // The form's label for a refused field (fee_code -> "Fee code").
+  const fieldLabel = (field) => t(field.replace(/_(\w)/g, (_, c) => c.toUpperCase()), { defaultValue: field.replace(/_/g, " ") });
+  const fail = (e) => {
+    setError(e.message);
+    setErrorKeys(e.problemKeys ?? []);
+  };
 
   const saveDraft = async () => {
     setBusy(true);
@@ -155,7 +164,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       setSaved(JSON.stringify({ config, head }));
       return newId;
     } catch (e) {
-      setError(e.message);
+      fail(e);
       return null;
     } finally {
       setBusy(false);
@@ -180,9 +189,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       notifications.success(response?.message ?? t("submitted"));
       onSaved(savedId);
     } catch (e) {
-      setError(e.message);
+      fail(e);
       // Go to the step the first problem belongs to.
-      const target = firstProblemStep(e.message, stepOf);
+      const target = firstProblemStep(e.message, stepOf, e.problemKeys);
       if (target) setStep(STEPS.indexOf(target));
     } finally {
       setBusy(false);
@@ -243,13 +252,14 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
           <p className="mb-3 text-xs text-muted-foreground">{t("termsHint")}</p>
           <RowsEditor
             rows={config.terms ?? []}
+            invalid={error ? problemFields(errorKeys, "terms") : []}
             onChange={(terms) => set({ terms })}
             blank={blankTerm}
             addLabel={t("addTerm")}
             decimals={decimals}
             columns="lg:grid-cols-6"
             fields={[
-              { key: "term_code", label: t("termCode"), placeholder: "12M" },
+              { key: "term_code", label: t("termCode"), placeholder: "12M", type: "code" },
               { key: "term_value", label: t("termLength"), type: "int" },
               { key: "term_unit", label: t("termUnit"), ...sel(options.term_units) },
               { key: "minimum_amount", label: t("amountFrom"), type: "amount" },
@@ -271,7 +281,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
                     { key: "maximum_amount", label: t("upToZero"), type: "amount" },
                     { key: "pricing_type", label: t("pricingType"), type: "select", options: [{ value: "FIXED", label: t("pricingFixed") }, { value: "VARIABLE", label: t("pricingVariable") }] },
                     { key: "annual_rate", label: t("ratePct"), type: "percent", showIf: (b) => b.pricing_type !== "VARIABLE" },
-                    { key: "reference_rate_code", label: t("referenceRate"), placeholder: "BASE", showIf: (b) => b.pricing_type === "VARIABLE" },
+                    { key: "reference_rate_code", label: t("referenceRate"), placeholder: "BASE", type: "code", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "spread", label: t("spreadPct"), type: "percent", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "calculation_method", label: t("calculationMethod"), ...sel(options.calculation_methods) },
                     { key: "day_count_convention", label: t("dayCount"), ...sel(options.day_count_conventions) },
@@ -290,13 +300,14 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
           <p className="mb-3 text-xs text-muted-foreground">{t("feesHint")}</p>
           <RowsEditor
             rows={config.fees ?? []}
+            invalid={error ? problemFields(errorKeys, "fees") : []}
             onChange={(fees) => set({ fees })}
             blank={blankFee}
             addLabel={t("addFee")}
             decimals={decimals}
             columns="lg:grid-cols-7"
             fields={[
-              { key: "fee_code", label: t("feeCode"), placeholder: "PROCESSING" },
+              { key: "fee_code", label: t("feeCode"), placeholder: "PROCESSING", type: "code" },
               { key: "fee_name", label: t("feeName") },
               { key: "calculation_type", label: t("calculation"), ...sel(options.fee_calculation_types) },
               { key: "fee_value", label: t("valueAmountOrPct"), type: "rate" },
@@ -377,7 +388,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 
       {error ? (
         <div className="mt-4">
-          <Problems message={error} stepOf={stepOf} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
+          <Problems message={error} keys={errorKeys} fieldLabel={fieldLabel} stepOf={stepOf} onGo={(s) => setStep(STEPS.indexOf(s))} stepLabel={(s) => t(`step_${s}`)} />
         </div>
       ) : (
         stepProblem && <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{stepProblem}</p>

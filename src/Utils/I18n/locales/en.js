@@ -3213,6 +3213,7 @@ export const accounts = {
   accountOpenedNumber: "Account {{number}} opened.",
   approveOpenTitle: "Open this account for {{name}}?",
   accountLimitReached: "This customer already holds as many accounts as their digital product allows.",
+  account: "Account",
 };
 
 export const deposits = {

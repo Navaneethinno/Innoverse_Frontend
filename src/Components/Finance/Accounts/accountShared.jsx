@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Landmark } from "lucide-react";
 import { cn } from "@/Utils/Lib/utils";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { DataTable } from "@/Components/Common/DataTable";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
@@ -64,35 +65,41 @@ export function AccountBalances({ account }) {
 }
 
 // The accounts in a customer's or merchant's detail (get response):
-// empty until they are approved.
+// empty until they are approved. A table, 10 a page: a customer may hold many.
 export function CustomerAccounts({ accounts }) {
   const { t } = useTranslation("accounts");
   if (!Array.isArray(accounts) || !accounts.length) return null;
+  const amount = (key, label) => ({ key, label: t(label), render: (a) => <span className="whitespace-nowrap tabular-nums">{money(a[key], a.currency_code)}</span> });
+  const columns = [
+    {
+      key: "acct_num",
+      label: t("account"),
+      align: "left",
+      render: (a) => (
+        <div>
+          <p className="flex items-center gap-2 font-mono text-xs font-bold text-foreground">
+            {a.acct_num} <AccountClass value={a.acct_class} />
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {productLabel(a.acct_product_code, a.acct_product_name)}
+            {a.digital_product_name ? ` · ${t("underDigitalProduct", { name: a.digital_product_name })}` : ""}
+          </p>
+        </div>
+      ),
+    },
+    { ...amount("avail_bal", "availBal"), render: (a) => <b className="whitespace-nowrap tabular-nums">{money(a.avail_bal, a.currency_code)}</b> },
+    amount("ledger_bal", "ledgerBal"),
+    amount("commission", "commission"),
+    amount("expense", "expense"),
+    { key: "loyalty_point", label: t("loyaltyPoint"), render: (a) => <span className="tabular-nums">{a.loyalty_point ?? "—"}</span> },
+    { key: "status", label: t("common:status"), render: (a) => <StatusBadge status={a.status_name ?? String(a.status ?? "")} variant="subtle" /> },
+  ];
   return (
-    <div className="mb-4 rounded-2xl border border-border bg-card p-4">
-      <p className="mb-3 flex items-center gap-2 text-sm font-bold text-foreground">
+    <div className="mb-4 overflow-hidden rounded-2xl border border-border bg-card">
+      <p className="flex items-center gap-2 px-4 pt-4 text-sm font-bold text-foreground">
         <Landmark size={15} className="text-primary" /> {t("accountsTitle", { count: accounts.length })}
       </p>
-      <div className="grid gap-3">
-        {accounts.map((account) => (
-          <div key={account.id} className="rounded-xl bg-muted/40 p-3">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="flex items-center gap-2 font-mono text-sm font-bold text-foreground">
-                  {account.acct_num} <AccountClass value={account.acct_class} />
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {productLabel(account.acct_product_code, account.acct_product_name)}
-                  {account.acct_product_type ? ` · ${account.acct_product_type}` : ""}
-                  {account.digital_product_name ? ` · ${t("underDigitalProduct", { name: account.digital_product_name })}` : ""}
-                </p>
-              </div>
-              <StatusBadge status={account.status_name ?? String(account.status ?? "")} variant="subtle" />
-            </div>
-            <AccountBalances account={account} />
-          </div>
-        ))}
-      </div>
+      <DataTable bare rows={accounts} columns={columns} rowKey={(a) => a.id} title={t("accountsTitle", { count: accounts.length })} />
     </div>
   );
 }

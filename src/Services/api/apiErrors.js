@@ -66,5 +66,5 @@ export function getStatusErrorMessage(status, payload) {
 export function apiError(message, payload) {
   const body = payload && typeof payload === "object" ? payload : {};
   const first = Array.isArray(body.data) ? body.data[0] : body.data;
-  return Object.assign(new Error(message), { code: body.error_code, serverTime: body.server_time ?? first?.server_time });
+  return Object.assign(new Error(message), { code: body.error_code, serverTime: body.server_time ?? first?.server_time, problemKeys: getApiProblemKeys(body) });
 }

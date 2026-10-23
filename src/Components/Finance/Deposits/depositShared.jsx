@@ -126,11 +126,19 @@ const problemLines = (message) =>
     .split(/\r?\n/)
     .slice(1)
     .map((l) => l.replace(PROBLEM_BULLET, ""));
-export const firstProblemStep = (message, stepOf) => problemLines(message).map(stepOf).find(Boolean) ?? null;
+// `keys` (the refusal's problem_keys, same order): its `section` names the
+// step outright; the text is only read when a problem has none.
+export const firstProblemStep = (message, stepOf, keys = []) => problemLines(message).map((text, i) => stepOf(text, keys[i])).find(Boolean) ?? null;
 
-// A refusal's headline and problems. With `stepOf` (problem text -> step)
-// and `onGo`, each problem whose step is known links to it ("Fix in <step>").
-export function Problems({ message, stepOf, onGo, stepLabel }) {
+// The fields the server refused in one section (to outline them).
+export const problemFields = (keys, section) => (keys ?? []).filter((k) => k?.field && k.section === section).map((k) => k.field);
+
+// A refusal's headline and problems. With `stepOf` (problem text, key ->
+// step) and `onGo`, each problem whose step is known links to it ("Fix in
+// <step>"). `keys` (problem_keys) say which field each problem is about;
+// `fieldLabel(field)` puts the form's own label in place of the server's
+// field name ("fee_code May only..." -> "Fee code: May only...").
+export function Problems({ message, stepOf, onGo, stepLabel, keys = [], fieldLabel }) {
   const { t } = useTranslation("common");
   if (!message) return null;
   const [headline, ...lines] = String(message).split(/\r?\n/);
@@ -139,11 +147,16 @@ export function Problems({ message, stepOf, onGo, stepLabel }) {
       <p>{headline}</p>
       {lines.length > 0 && (
         <ul className="mt-1 list-disc space-y-0.5 pl-4 font-medium">
-          {lines.map((l) => {
-            const text = l.replace(PROBLEM_BULLET, "");
-            const target = onGo && stepOf(text);
+          {lines.map((l, i) => {
+            const raw = l.replace(PROBLEM_BULLET, "");
+            const key = keys[i];
+            const label = key?.field && fieldLabel?.(key.field);
+            const text = label && raw.includes(key.field) ? raw.replace(key.field, "").replace(/^[\s:·-]+/, "") : raw;
+            const target = onGo && stepOf(raw, key);
             return (
               <li key={l}>
+                {target && stepLabel && <span className="font-bold">{stepLabel(target)} · </span>}
+                {label && <span className="font-bold">{label}: </span>}
                 {text}
                 {target && (
                   <button type="button" onClick={() => onGo(target)} className="ml-2 font-bold underline underline-offset-2 hover:text-red-900">

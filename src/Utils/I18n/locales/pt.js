@@ -3227,6 +3227,7 @@ export const accounts = {
   accountOpenedNumber: "Conta {{number}} aberta.",
   approveOpenTitle: "Abrir esta conta para {{name}}?",
   accountLimitReached: "Este cliente já tem todas as contas que o seu produto digital permite.",
+  account: "Conta",
 };
 
 export const deposits = {

@@ -38,7 +38,8 @@ export function useInstitutionScope() {
 
 // One input of a RowsEditor / form, by type:
 // amount | rate | percent (at most 100) | int | text | date | select | bool | multi.
-export function Field({ field, value, onChange, disabled, decimals = 2 }) {
+// `invalid`: the server refused this field; it is outlined in red.
+export function Field({ field, value, onChange, disabled, decimals = 2, invalid = false }) {
   const { t } = useTranslation("loans");
   const { type = "text", options = [], placeholder } = field;
   if (type === "bool") return <Toggle checked={Boolean(value)} disabled={disabled} label={field.label} onChange={onChange} />;
@@ -72,12 +73,15 @@ export function Field({ field, value, onChange, disabled, decimals = 2 }) {
     rate: (v) => amountInput(v, 6),
     percent: percentInput,
     int: (v) => String(v).replace(/\D/g, ""),
+    // A code: capital letters, digits and _ only, as the server requires.
+    code: (v) => String(v).toUpperCase().replace(/[^A-Z0-9_]/g, ""),
   }[type];
   return (
     <TypedInput
       type={type === "date" ? "date" : "text"}
-      inputMode={clean ? (type === "int" ? "numeric" : "decimal") : undefined}
-      className={cn(inputClass, "mt-1", clean && "tabular-nums")}
+      inputMode={clean && type !== "code" ? (type === "int" ? "numeric" : "decimal") : undefined}
+      aria-invalid={invalid || undefined}
+      className={cn(inputClass, "mt-1", clean && "tabular-nums", type === "code" && "font-mono", invalid && "border-red-400 ring-2 ring-red-200")}
       disabled={disabled}
       placeholder={placeholder ?? (type === "amount" ? "0.00" : undefined)}
       value={value ?? ""}
@@ -88,7 +92,8 @@ export function Field({ field, value, onChange, disabled, decimals = 2 }) {
 
 // An editable list of rows: each row a grid of Fields and a remove button.
 // `fields`: [{ key, label, type, options, span }]. `blank()` makes a new row.
-export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, decimals, columns = "lg:grid-cols-4", renderExtra }) {
+// `invalid`: field keys the server refused, outlined on every row.
+export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, decimals, columns = "lg:grid-cols-4", renderExtra, invalid = [] }) {
   const { t } = useTranslation("loans");
   const set = (i, patch) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   return (
@@ -100,7 +105,7 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
               {fields.filter((f) => !f.showIf || f.showIf(row)).map((f) => (
                 <label key={f.key} className={cn(labelClass, f.type === "bool" && "flex items-center justify-between gap-2 self-end rounded-xl border border-border px-3 py-2", f.span)}>
                   {f.label}
-                  <Field field={f} value={row[f.key]} disabled={disabled} decimals={decimals} onChange={(v) => set(i, { [f.key]: v })} />
+                  <Field field={f} value={row[f.key]} disabled={disabled} decimals={decimals} invalid={invalid.includes(f.key)} onChange={(v) => set(i, { [f.key]: v })} />
                 </label>
               ))}
             </div>
