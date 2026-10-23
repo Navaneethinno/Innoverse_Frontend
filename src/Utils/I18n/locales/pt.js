@@ -143,6 +143,7 @@ export const common = {
   date: "Data",
   amount: "Valor",
   remove: "Remover",
+  pendingApproval: "Aguarda aprovação",
 };
 
 export const auth = {

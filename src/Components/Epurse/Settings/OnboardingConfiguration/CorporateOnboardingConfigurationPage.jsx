@@ -1,14 +1,13 @@
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { DateInput } from "@/Components/Common/DateInput";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useAuth } from "@/Hooks/useAuth";
 import { Plus } from "lucide-react";
-import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Spinner } from "@/Components/Common/Spinner";
@@ -160,35 +159,16 @@ export function CorporateOnboardingConfigurationPage() {
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   const can = usePagePermission("Onboarding Configuration");
   const isMerchant = useIsMerchantModule();
-  const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const { countries } = useCorpOnboardingMasters(open);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await latestList(corpOnboardingDefinitionApi.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
-      setRows(rowsOf(response));
-      setPagination(response?.pagination ?? {});
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchBody, latestList, page, limit, tab, sortBy]);
-  useEffect(() => {
-    void load();
-  }, [load]);
-  useLiveChannel(corpOnboardingDefinitionApi.listPath, () => void load());
+  const list = useServerList({ api: corpOnboardingDefinitionApi.listPath, call: corpOnboardingDefinitionApi.list });
+
+  const load = list.reload;
+  useLiveChannel(corpOnboardingDefinitionApi.listPath, () => load());
 
   // Party type comes from the module (the API prefix), handoff 17: the one
   // choice is the company type.
@@ -305,40 +285,7 @@ export function CorporateOnboardingConfigurationPage() {
           {t("onboarding:corporateOnboardingConfigurationSubtitle")}
         </p>
       </div>
-      <div
-        className="overflow-hidden rounded-2xl"
-        style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
-      >
-        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-          rows={rows}
-          value={tab}
-          onChange={(next) => { setTab(next); setPage(1); }}
-          {...searchBind}
-          searchPlaceholder={t("onboarding:searchCorporateCustomerTypes")}
-          actions={addAction}
-          bare
-        />
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={(r) => r.id}
-          isLoading={loading}
-          title={t("onboarding:corporateCustomerTypes")}
-          emptyTitle={t("onboarding:noCorporateCustomerTypesYet")}
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </div>
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.id} title={t("onboarding:corporateCustomerTypes")} emptyTitle={t("onboarding:noCorporateCustomerTypesYet")} />
 
       <Modal
         open={open}
@@ -398,7 +345,7 @@ export function CorporateOnboardingConfigurationPage() {
           definition={wizard.definition}
           forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
-          onSaved={() => void load()}
+          onSaved={() => load()}
         />
       )}
     </div>

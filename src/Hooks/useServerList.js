@@ -33,7 +33,11 @@ export function useServerList({ api, call, prefix = "", extra = null }) {
   // since filter choices are limited to it.
   const inst = canChooseInstitution() ? institution : "";
   useEffect(() => {
-    if (!api) return undefined;
+    if (!api) {
+      // A page wired without its list path: nothing can load.
+      console.error("useServerList: no list path given");
+      return undefined;
+    }
     const key = `${api}|${inst}`;
     if (optionsCache.has(key)) {
       setOptions(optionsCache.get(key));

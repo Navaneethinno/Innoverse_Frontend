@@ -68,6 +68,7 @@ export const onboardingRowsOf = (response) => (Array.isArray(response?.data) ? r
 // delete_auth, deactivate, reactivate that didn't exist before. There is
 // no backwards-compatibility alias for the old names — they 404 now.
 const buildApi = (routes) => ({
+  listPath: routes.LIST,
   options: (payload = {}) => request(routes.OPTIONS, payload),
   // The digital product the onboarding belongs to (its primary account
   // product is the account opened on approval). Needed when the

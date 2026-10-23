@@ -60,6 +60,7 @@ async function request(path, body = {}, extraHeaders = {}) {
 export const corpOnboardingRowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
 const buildApi = (routes) => ({
+  listPath: routes.LIST,
   options: (payload = {}) => request(routes.OPTIONS, payload),
   // The digital product the onboarding belongs to (its primary account
   // product is the account opened on approval). Needed when the

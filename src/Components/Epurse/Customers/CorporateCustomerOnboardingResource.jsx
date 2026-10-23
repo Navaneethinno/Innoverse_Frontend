@@ -1,22 +1,21 @@
+import { StatusCell } from "@/Components/MakerChecker/StatusCell";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 import { ViewReportButton, reportBody } from "@/Components/Reports/KycReport/KycReport";
 import { KycReportView } from "@/Components/Reports/KycReport/KycReportView";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { DataTable } from "@/Components/Common/DataTable";
-import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
-import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { AuditModal } from "@/Components/Common/AuditModal";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
-import { corpCustomerOnboardingApi, corpOnboardingRowsOf } from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { corpCustomerOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { PortalSourceBadge, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
@@ -144,36 +143,17 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
 export function CorporateCustomerOnboardingResource() {
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const can = usePartyMenuPermission("corporate");
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [tab, setTab] = useState("all"); const [sortBy, setSortBy] = useState("desc");
-  const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
-  const [loading, setLoading] = useState(true);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
   // The KYC Report of a row, opened over the list (kept mounted, hidden).
   const [reportRow, setReportRow] = useState(null);
   const audience = useMenuContext()?.module === "MMS" ? "merchant" : "customer";
 
-  const load = useCallback(async ({ silent = false } = {}) => {
-    if (!silent) setLoading(true);
-    try {
-      const response = await latestList(corpCustomerOnboardingApi.list({ ...searchBody, page, limit, filter: tab, sort_by: sortBy }));
-      setRows(corpOnboardingRowsOf(response));
-      setPagination(response?.pagination ?? {});
-    } catch (error) {
-      notifications.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchBody, latestList, page, limit, tab, sortBy]);
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const list = useServerList({ api: corpCustomerOnboardingApi.listPath, call: corpCustomerOnboardingApi.list });
+
+  const load = list.reload;
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
-  useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, () => void load({ silent: true }));
+  useLiveChannel(API_ENDPOINTS.CUSTOMER.CORPORATE.LIST, () => load());
 
 
   const columns = [
@@ -204,17 +184,7 @@ export function CorporateCustomerOnboardingResource() {
     {
       key: "status_name",
       label: t("common:status"),
-      render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
-    },
-    {
-      key: "process_status_name",
-      label: t("common:processStatus"),
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "-"),
-    },
-    {
-      key: "auth_status",
-      label: t("common:authorizationStatus"),
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
+      render: (r) => <StatusCell row={r} />,
     },
     { key: "aml", label: t("aml:amlResult"), sortable: false, render: (r) => <AmlCell row={r} /> },
     { key: "updated_time", label: t("customer:lastActivity"), render: (r) => (r.updated_time ? formatDateTime(r.updated_time) : "-") },
@@ -260,47 +230,14 @@ export function CorporateCustomerOnboardingResource() {
           {t("customer:registerACompanyMerchantOrAgentThrough")}
         </p>
       </div>
-      <div
-        className="overflow-hidden rounded-2xl"
-        style={{ background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" }}
-      >
-        <StatusFilterTabs serverFiltered sortBy={sortBy} onSortChange={(next) => { setSortBy(next); setPage(1); }} total={pagination.totalRecords}
-          rows={rows}
-          value={tab}
-          onChange={(next) => { setTab(next); setPage(1); }}
-          {...searchBind}
-          searchPlaceholder={t("customer:searchCorporateOnboarding")}
-          actions={addAction}
-          bare
-        />
-        <DataTable
-          columns={columns}
-          rows={rows}
-          rowKey={(r) => r.reference_id}
-          isLoading={loading}
-          title={t("customer:corporateCustomerOnboarding")}
-          emptyTitle={t("customer:noOnboardingInProgress")}
-          serverPagination={{
-            page,
-            totalPages: pagination.totalPages ?? 1,
-            totalRecords: pagination.totalRecords ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </div>
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.reference_id} title={t("customer:corporateCustomerOnboarding")} emptyTitle={t("customer:noOnboardingInProgress")} />
 
       {wizard && (
         <CorporateCustomerOnboardingWizard
           referenceId={wizard.referenceId}
           forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
-          onChanged={() => void load()}
+          onChanged={() => load()}
         />
       )}
     </div>

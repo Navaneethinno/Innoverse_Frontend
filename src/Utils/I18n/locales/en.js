@@ -145,6 +145,7 @@ export const common = {
   date: "Date",
   amount: "Amount",
   remove: "Remove",
+  pendingApproval: "Pending approval",
 };
 
 export const auth = {

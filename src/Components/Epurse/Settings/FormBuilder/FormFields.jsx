@@ -1,10 +1,10 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -205,36 +205,13 @@ export function FormFields() {
   const can = usePagePermission("Form Builder");
   const vocabulary = useFieldTypes();
   const library = useFieldLibrary();
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await formFieldApi.list({ page, limit, ...(search.trim() ? { search: search.trim() } : {}), ...(typeFilter ? { field_type: typeFilter } : {}) });
-      setRows(rowsOf(response));
-      const p = response?.pagination ?? {};
-      setPagination({ total: p.total ?? p.totalRecords ?? 0, pages: p.totalPages ?? Math.max(1, Math.ceil((p.total ?? p.totalRecords ?? 0) / limit)) });
-    } catch (error) {
-      notifications.error(error.message);
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit, search, typeFilter]);
+  const list = useServerList({ api: formFieldApi.listPath, call: formFieldApi.list });
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), search ? 300 : 0);
-    return () => window.clearTimeout(timer);
-  }, [load, search]);
+  const load = list.reload;
 
   if (!can("View")) return <NoAccess />;
 
@@ -245,7 +222,7 @@ export function FormFields() {
       const response = await formFieldApi.delete({ id: deleting.id });
       notifications.success(apiMessage(response, t("formBuilder:fieldDeleted")));
       setDeleting(null);
-      void load();
+      load();
       void library.reload();
     } catch (error) {
       notifications.error(error.message);
@@ -282,53 +259,13 @@ export function FormFields() {
         <PageTitle>{t("formBuilder:formFieldsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formFieldsSubtitle")}</p>
       </div>
-      <ListPanel
-        tabs={[]}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
-        searchPlaceholder={t("formBuilder:searchFields")}
-        filters={
-          <FilterSelect
-            size="sm"
-            value={typeFilter}
-            onChange={(next) => {
-              setTypeFilter(next);
-              setPage(1);
-            }}
-            options={[{ value: "", label: t("formBuilder:allTypes") }, ...(vocabulary?.types ?? []).map((x) => ({ value: x.type, label: x.name ?? x.type }))]}
-          />
-        }
-        actions={
+      <ListTable list={list} actions={
           can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
               {t("formBuilder:addField")}
             </Button>
           )
-        }
-      >
-        <DataTable
-          columns={columns}
-          rows={rows}
-          isLoading={loading}
-          serverSorted
-          title={t("formBuilder:formFieldsTitle")}
-          serverPagination={{
-            page,
-            totalPages: pagination.pages ?? 1,
-            totalRecords: pagination.total ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </ListPanel>
+        } columns={columns} title={t("formBuilder:formFieldsTitle")} />
       {editing && (
         <FieldFormModal
           record={editing.record}
@@ -338,7 +275,7 @@ export function FormFields() {
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            void load();
+            load();
             void library.reload();
           }}
         />

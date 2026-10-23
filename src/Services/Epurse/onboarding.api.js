@@ -131,7 +131,7 @@ export function createLifecycle(base) {
 // (apiScope).
 function createBuilderApi(base) {
   const call = (verb) => (payload = {}) => request(`${base}/${verb}`, payload);
-  return { add: call("add"), edit: call("edit"), get: call("get"), list: call("list"), delete: call("delete"), types: call("types") };
+  return { listPath: `${base}/list`, add: call("add"), edit: call("edit"), get: call("get"), list: call("list"), delete: call("delete"), types: call("types") };
 }
 export const formFieldApi = createBuilderApi("/customer/master_config/form_field");
 export const formSectionApi = createBuilderApi("/customer/master_config/form_section");

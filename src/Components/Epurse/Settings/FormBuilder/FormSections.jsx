@@ -1,11 +1,11 @@
-import { ListPanel } from "@/Components/Common/ListPanel";
+import { ListTable } from "@/Components/Common/ListView";
+import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
-import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -292,35 +292,13 @@ export function FormSections() {
   const can = usePagePermission("Form Builder");
   const vocabulary = useFieldTypes();
   const library = useFieldLibrary();
-  const [rows, setRows] = useState([]);
-  const [pagination, setPagination] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await formSectionApi.list({ page, limit, ...(search.trim() ? { search: search.trim() } : {}) });
-      setRows(rowsOf(response));
-      const p = response?.pagination ?? {};
-      setPagination({ total: p.total ?? p.totalRecords ?? 0, pages: p.totalPages ?? Math.max(1, Math.ceil((p.total ?? p.totalRecords ?? 0) / limit)) });
-    } catch (error) {
-      notifications.error(error.message);
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, limit, search]);
+  const list = useServerList({ api: formSectionApi.listPath, call: formSectionApi.list });
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), search ? 300 : 0);
-    return () => window.clearTimeout(timer);
-  }, [load, search]);
+  const load = list.reload;
 
   if (!can("View")) return <NoAccess />;
 
@@ -330,7 +308,7 @@ export function FormSections() {
       const response = await formSectionApi.delete({ id: deleting.id });
       notifications.success(apiMessage(response, t("formBuilder:sectionDeleted")));
       setDeleting(null);
-      void load();
+      load();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -366,42 +344,13 @@ export function FormSections() {
         <PageTitle>{t("formBuilder:formSectionsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formSectionsSubtitle")}</p>
       </div>
-      <ListPanel
-        tabs={[]}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value);
-          setPage(1);
-        }}
-        searchPlaceholder={t("formBuilder:searchSections")}
-        actions={
+      <ListTable list={list} actions={
           can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
               {t("formBuilder:addSection")}
             </Button>
           )
-        }
-      >
-        <DataTable
-          columns={columns}
-          rows={rows}
-          isLoading={loading}
-          serverSorted
-          title={t("formBuilder:formSectionsTitle")}
-          serverPagination={{
-            page,
-            totalPages: pagination.pages ?? 1,
-            totalRecords: pagination.total ?? rows.length,
-            onPageChange: setPage,
-            limit,
-            onLimitChange: (next) => {
-              setLimit(next);
-              setPage(1);
-            },
-          }}
-          bare
-        />
-      </ListPanel>
+        } columns={columns} title={t("formBuilder:formSectionsTitle")} />
       {editing && (
         <SectionFormModal
           record={editing.record}
@@ -411,7 +360,7 @@ export function FormSections() {
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
-            void load();
+            load();
           }}
         />
       )}
