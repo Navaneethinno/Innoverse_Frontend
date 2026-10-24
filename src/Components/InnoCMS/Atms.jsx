@@ -485,7 +485,7 @@ function Batches() {
     { key: "part", label: t("part"), render: (b) => <span className="text-xs">{t(`part_${b.part}`, { defaultValue: b.part })}</span> },
     { key: "status", label: t("status"), render: (b) => <BatchStatus value={b.status} /> },
     { key: "counts", label: t("counts"), render: (b) => <span className="text-xs">{countsText(t, b.counts)}</span> },
-    { key: "started", label: t("started"), render: (b) => <span className="whitespace-nowrap text-xs">{`${b.started_by ?? b.created_by ?? ""} · ${mmsDate(b.started_at ?? b.created_at)}`}</span> },
+    { key: "started", label: t("started"), render: (b) => <span className="whitespace-nowrap text-xs">{`${b.created_by ?? ""} · ${mmsDate(b.created_at)}`}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (b) => <RowActions buttons={{ view: true }} onView={() => setViewing(b)} /> },
   ];
   const actions = can("Change Status") && (
@@ -574,7 +574,8 @@ function StartBatch({ onClose, onStarted }) {
   );
 }
 
-// A batch, polled every 2 seconds while it runs.
+// A batch, polled every 2 seconds while it runs: each ATM's state, and the
+// counts per state (a state with no ATM is left out).
 function BatchDetail({ batch, onClose, onChanged }) {
   const { t } = useTranslation("atm");
   const [b, setB] = useState(batch);
@@ -604,6 +605,7 @@ function BatchDetail({ batch, onClose, onChanged }) {
       <div className="grid gap-3">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <BatchStatus value={b.status} /> {countsText(t, b.counts)}
+          <span className="text-xs text-muted-foreground">{[t(`part_${b.part}`, { defaultValue: b.part }), b.parallel && t("parallelN", { n: b.parallel }), `${b.created_by ?? ""} · ${mmsDate(b.created_at)}`, b.finished_at && t("finishedAt", { at: mmsDate(b.finished_at) })].filter(Boolean).join(" · ")}</span>
         </div>
         <MiniTable
           rows={b.items ?? []}

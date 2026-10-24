@@ -7036,6 +7036,20 @@ export const routing = {
 };
 
 export const atm = {
+  count_QUEUED: "em espera",
+  count_RUNNING: "a carregar",
+  count_DONE: "concluídos",
+  count_FAILED: "falhados",
+  count_SKIPPED: "ignorados",
+  count_INTERRUPTED: "interrompidos",
+  item_QUEUED: "Em espera",
+  item_RUNNING: "A carregar",
+  item_DONE: "Concluído",
+  item_FAILED: "Falhou",
+  item_SKIPPED: "Ignorado",
+  item_INTERRUPTED: "Interrompido",
+  parallelN: "{{n}} em simultâneo",
+  finishedAt: "terminado {{at}}",
   title: "ATMs",
   subtitle: "Os ATMs do banco: cada um escuta numa porta própria do switch. As suas chaves, comandos e eventos, o estado das portas e as cargas para todos os ATMs.",
   tab_atms: "ATMs",

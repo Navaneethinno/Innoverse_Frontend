@@ -7022,6 +7022,20 @@ export const routing = {
 };
 
 export const atm = {
+  count_QUEUED: "waiting",
+  count_RUNNING: "loading",
+  count_DONE: "done",
+  count_FAILED: "failed",
+  count_SKIPPED: "skipped",
+  count_INTERRUPTED: "interrupted",
+  item_QUEUED: "Waiting",
+  item_RUNNING: "Loading",
+  item_DONE: "Done",
+  item_FAILED: "Failed",
+  item_SKIPPED: "Skipped",
+  item_INTERRUPTED: "Interrupted",
+  parallelN: "{{n}} at once",
+  finishedAt: "finished {{at}}",
   title: "ATMs",
   subtitle: "The bank's ATMs: each listens on its own switch port. Their keys, commands and events, the ports as they are now, and downloads to every ATM.",
   tab_atms: "ATMs",

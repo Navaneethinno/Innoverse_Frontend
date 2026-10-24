@@ -5367,6 +5367,20 @@ export const routing = {
 };
 
 export const atm = {
+  count_QUEUED: "بالانتظار",
+  count_RUNNING: "قيد التحميل",
+  count_DONE: "مكتملة",
+  count_FAILED: "فاشلة",
+  count_SKIPPED: "متخطاة",
+  count_INTERRUPTED: "متوقفة",
+  item_QUEUED: "بالانتظار",
+  item_RUNNING: "قيد التحميل",
+  item_DONE: "مكتمل",
+  item_FAILED: "فشل",
+  item_SKIPPED: "متخطى",
+  item_INTERRUPTED: "متوقف",
+  parallelN: "{{n}} معًا",
+  finishedAt: "انتهى {{at}}",
   title: "أجهزة الصراف الآلي",
   subtitle: "أجهزة الصراف الآلي للبنك: يستمع كل جهاز على منفذ خاص في المحوّل. مفاتيحها وأوامرها وأحداثها، وحالة المنافذ، والتحميل لكل الأجهزة.",
   tab_atms: "الأجهزة",
