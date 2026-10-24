@@ -1,4 +1,7 @@
 import {
+  FileCode2,
+  FileStack,
+  GitCompareArrows,
   ArrowLeftRight,
   Receipt,
   AlertOctagon,
@@ -136,6 +139,13 @@ const MENU_ICON_RULES = [
   [/^agents$/i, Network],
   [/^stores$/i, Store],
   [/^terminals$/i, Monitor],
+  // InnoRecon, Transaction Routing and ATMs: the same icons as their pages.
+  [/recon sources/i, Database],
+  [/recon layouts/i, FileCode2],
+  [/recon files/i, FileStack],
+  [/recon sets/i, GitCompareArrows],
+  [/transaction routing/i, Route],
+  [/^atms?$/i, Landmark],
   [/loan products/i, HandCoins],
   [/card bins?/i, Hash],
   [/card products/i, CreditCard],
