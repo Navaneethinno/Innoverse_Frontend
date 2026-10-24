@@ -66,6 +66,7 @@ void i18n
       "bulkReg",
       "recon",
       "routing",
+      "atm",
     ],
     interpolation: { escapeValue: false },
     detection: {

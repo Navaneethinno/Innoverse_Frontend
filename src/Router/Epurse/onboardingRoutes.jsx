@@ -115,6 +115,8 @@ onboardingRoutes.push(
     receivecards: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.ReceiveCards }))),
     cardstock: lazy(() => import("@/Components/InnoCMS/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
     prefiles: lazy(() => import("@/Components/InnoCMS/PreFiles.jsx").then((m) => ({ default: m.PreFiles }))),
+    // InnoCMS › ATMs (menu 187).
+    atms: lazy(() => import("@/Components/InnoCMS/Atms.jsx").then((m) => ({ default: m.Atms }))),
   }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
     { path: `${path}/:id`, element: pageElement(Page) },
