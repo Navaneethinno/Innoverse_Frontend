@@ -53,8 +53,9 @@ function SetList() {
       label: t("lastRun"),
       render: (r) =>
         r.last_run ? (
-          <span className="inline-flex items-center gap-1 text-xs">
-            {r.last_run.business_date} <ReconStatus value={r.last_run.status} />
+          <span className="flex flex-col items-start gap-0.5 text-xs leading-tight">
+            <span className="whitespace-nowrap tabular-nums">{r.last_run.business_date}</span>
+            <ReconStatus value={r.last_run.status} />
           </span>
         ) : (
           <span className="text-xs">—</span>
