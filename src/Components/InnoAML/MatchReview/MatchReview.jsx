@@ -56,7 +56,7 @@ export function MatchReview() {
   const shown = useMemo(() => (waiting ? groupBatches(list.rows) : list.rows), [list.rows, waiting]);
 
   const decide = async () => {
-    if (!narration.trim()) return;
+    if (action.type === "deauth" && !narration.trim()) return;
     setWorking(true);
     try {
       const target = action.row.batch ? { batch_id: action.row.batch_id } : { id: action.row.id };
@@ -201,7 +201,7 @@ export function MatchReview() {
         description={action ? (action.row.batch ? `${action.row.party_name} · ${t("aml:batchCleared", { count: action.row.batch_size ?? action.row.batch.length })}` : `${action.row.party_name} ↔ ${action.row.listed_name ?? action.row.matched_name} · ${t(`aml:review_${action.row.decision}`)}`) : ""}
         confirmLabel={action?.type === "auth" ? t("common:authorize") : t("aml:reject")}
         destructive={action?.type === "deauth"}
-        confirmDisabled={!narration.trim()}
+        confirmDisabled={action?.type === "deauth" && !narration.trim()}
         pending={working}
         onClose={() => {
           setAction(null);
@@ -213,7 +213,7 @@ export function MatchReview() {
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
-          placeholder={t("aml:reasonRequired")}
+          placeholder={action?.type === "deauth" ? t("aml:reasonRequired") : t("aml:narrationOptional")}
           className="mt-3 min-h-20 w-full rounded-xl border p-3 text-sm"
         />
       </ConfirmDialog>
