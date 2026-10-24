@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Pencil, Power, Trash2, XCircle } from "lucide-react";
 import { AuditHistory, AuditModal } from "@/Components/Common/AuditModal";
+import { FileUploadField } from "@/Components/Common/FileUploadField";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Pager } from "@/Components/Common/Pager";
@@ -426,6 +427,31 @@ export function useChoices(call, body = {}) {
     };
   }, [call, key]);
   return rows;
+}
+
+// A file chosen in the browser through the shared FileUploadField (its look,
+// Replace and Remove), kept as the File itself to send as multipart.
+// `maxMb`: the largest file allowed.
+export function LocalFileField({ file, onChange, maxMb, hint, label }) {
+  const { t } = useTranslation("recon");
+  return (
+    <div className={labelClass}>
+      {label} <span className="text-red-500">*</span>
+      <FileUploadField
+        tr={(s) => t(`upload_${s}`, { defaultValue: s })}
+        value={file ? file.name : ""}
+        onChange={(path) => !path && onChange(null)}
+        upload={async (chosen) => {
+          onChange(chosen);
+          return { path: chosen.name };
+        }}
+        accept="*/*"
+        maxBytes={(maxMb || 20) * 1024 * 1024}
+        uploadLabel="Choose a file"
+        hint={file ? `${file.name} · ${(file.size / 1024).toFixed(1)} KB` : hint}
+      />
+    </div>
+  );
 }
 
 // A typed value, 400 ms after typing stops (a search box).

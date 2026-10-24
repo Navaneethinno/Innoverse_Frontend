@@ -4723,6 +4723,12 @@ export const tour = {
 };
 
 export const recon = {
+  "chooseSourceFirst": "اختر المصدر أولًا",
+  "upload_Choose a file": "اختيار ملف",
+  "upload_Replace": "استبدال",
+  "upload_Remove file": "إزالة الملف",
+  "upload_View": "عرض",
+  "upload_File must be under": "يجب أن يكون الملف أقل من",
   delete: "حذف",
   deleteTitle: "حذف {{name}}",
   deleteHint: "لا يُحذف إلا ما لم يُستخدم قط، ويُحذف فورًا. يُرفض ما هو قيد الاستخدام: أوقفه بدلًا من ذلك.",

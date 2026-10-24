@@ -17,7 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass } from "../Finance/Deposits/depositShared";
 import { Tabs } from "../Finance/Loans/loanShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord } from "./reconShared";
+import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField } from "./reconShared";
 
 // Recon Files (menu 189): files received from each source (uploaded, picked
 // up by SFTP or generated from the ledger), read with the source's layout.
@@ -95,7 +95,6 @@ function UploadDialog({ onClose, onDone }) {
   const [busy, setBusy] = useState(false);
   const [reply, setReply] = useState(null);
   const source = sources.find((s) => String(s.id) === sourceId);
-  const tooBig = source && file && file.size > source.max_file_mb * 1024 * 1024;
   const upload = async () => {
     setBusy(true);
     try {
@@ -144,7 +143,7 @@ function UploadDialog({ onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || tooBig || (source && !source.name_gives_date && !businessDate)} onClick={() => void upload()}>
+          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || (source && !source.name_gives_date && !businessDate)} onClick={() => void upload()}>
             {t("upload")}
           </Button>
         </>
@@ -154,13 +153,16 @@ function UploadDialog({ onClose, onDone }) {
         <Field label={t("source")} required>
           <FilterSelect value={sourceId} onChange={setSourceId} options={[{ value: "", label: t("chooseSource") }, ...sources.filter((s) => s.status === "ACTIVE" && !s.generated_from).map((s) => ({ value: String(s.id), label: `${s.name} (${s.code})` }))]} />
         </Field>
-        <Field label={t("file")} required hint={source ? [source.file_name_pattern && t("expectedName", { pattern: source.file_name_pattern }), t("maxSize", { mb: source.max_file_mb })].filter(Boolean).join(" · ") : null}>
-          <input type="file" className="text-xs" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        </Field>
+        <LocalFileField
+          label={t("file")}
+          file={file}
+          onChange={setFile}
+          maxMb={source?.max_file_mb}
+          hint={source ? [source.file_name_pattern && t("expectedName", { pattern: source.file_name_pattern }), t("maxSize", { mb: source.max_file_mb })].filter(Boolean).join(" · ") : t("chooseSourceFirst")}
+        />
         <Field label={source && !source.name_gives_date ? t("businessDate") : t("businessDateOptional")} required={Boolean(source && !source.name_gives_date)} hint={source?.name_gives_date ? t("dateFromNameHint") : t("dateNeededHint")}>
           <DateInput className={inputClass} value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />
         </Field>
-        {tooBig && <p className="text-xs font-semibold text-red-600">{t("fileTooBig", { mb: source.max_file_mb })}</p>}
       </div>
     </Modal>
   );

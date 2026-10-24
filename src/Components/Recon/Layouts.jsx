@@ -17,7 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { inputClass, Section } from "../Finance/Deposits/depositShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { EventsSection, FactGrid, Field, JsonView, MakerChecker, ReadResult, ReconRowActions, ReconStatus, RecordStatus, reconDate, useChoices, useRecord, DefinitionCompare, JsonEditor } from "./reconShared";
+import { EventsSection, FactGrid, Field, JsonView, MakerChecker, ReadResult, ReconRowActions, ReconStatus, RecordStatus, reconDate, useChoices, useRecord, DefinitionCompare, JsonEditor, LocalFileField } from "./reconShared";
 
 // Recon Layouts (menu 190): file formats as JSON. Users start from a
 // built-in layout and edit it; an edit waits beside the version in force
@@ -144,7 +144,8 @@ function LayoutAdd({ onClose, onSaved }) {
               <button
                 key={s.code}
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, seed_code: s.code }))}
+                aria-pressed={form.seed_code === s.code}
+                onClick={() => setForm((f) => ({ ...f, seed_code: f.seed_code === s.code ? "" : s.code }))}
                 className={cn("rounded-xl border p-3 text-left transition-colors", form.seed_code === s.code ? "border-primary bg-[var(--primary-light)]" : "border-border hover:bg-muted/50")}
               >
                 <p className="text-sm font-bold">
@@ -323,14 +324,14 @@ export function Preview({ with: using }) {
             <FilterSelect value={fileId} onChange={setFileId} options={[{ value: "", label: t("chooseFile") }, ...files.map((f) => ({ value: String(f.id), label: `${f.file_name} · ${f.source_code}` }))]} />
           </Field>
         ) : (
-          <Field label={t("file")} hint={t("previewMax")} className="min-w-64 flex-1">
-            <input type="file" className="text-xs" onChange={(e) => setLocal(e.target.files?.[0] ?? null)} />
-          </Field>
+          <div className="min-w-64 flex-1">
+            <LocalFileField label={t("file")} file={local} onChange={setLocal} maxMb={20} hint={t("previewMax")} />
+          </div>
         )}
         <Field label={t("businessDateOptional")}>
           <DateInput className={inputClass} value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />
         </Field>
-        <Button icon={Eye} loading={busy} disabled={from === "received" ? !fileId : !local || local.size > 20 * 1024 * 1024} onClick={() => void run()}>
+        <Button icon={Eye} loading={busy} disabled={from === "received" ? !fileId : !local} onClick={() => void run()}>
           {t("readIt")}
         </Button>
       </div>

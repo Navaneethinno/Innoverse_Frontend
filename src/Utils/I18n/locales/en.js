@@ -6378,6 +6378,12 @@ export const bulkReg = {
 };
 
 export const recon = {
+  "chooseSourceFirst": "Choose the source first",
+  "upload_Choose a file": "Choose a file",
+  "upload_Replace": "Replace",
+  "upload_Remove file": "Remove file",
+  "upload_View": "View",
+  "upload_File must be under": "The file must be under",
   delete: "Delete",
   deleteTitle: "Delete {{name}}",
   deleteHint: "Only something never used can be deleted; it goes at once. Anything in use is refused: deactivate it instead.",

@@ -6392,6 +6392,12 @@ export const bulkReg = {
 };
 
 export const recon = {
+  "chooseSourceFirst": "Escolha primeiro a fonte",
+  "upload_Choose a file": "Escolher um ficheiro",
+  "upload_Replace": "Substituir",
+  "upload_Remove file": "Remover ficheiro",
+  "upload_View": "Ver",
+  "upload_File must be under": "O ficheiro tem de ter menos de",
   delete: "Eliminar",
   deleteTitle: "Eliminar {{name}}",
   deleteHint: "Só pode ser eliminado algo nunca usado; é eliminado de imediato. O que estiver em uso é recusado: desative-o.",
