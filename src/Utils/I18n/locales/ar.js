@@ -5173,6 +5173,14 @@ export const recon = {
 };
 
 export const routing = {
+  transaction: "المعاملة",
+  actions: "الإجراءات",
+  notPosted: "لم تُقيَّد",
+  decisionTitle: "القرار رقم {{id}} · {{at}}",
+  idempotencyKey: "مفتاح عدم التكرار: {{key}}",
+  directionShort_SERVICE: "خدمة",
+  directionShort_ACQUIRE: "بطاقة على جهازنا",
+  directionShort_ISSUE: "بطاقتنا في مكان آخر",
   acquirerId: "معرّف المستحوذ لدى الشبكة",
   acquirerShort: "المستحوذ {{id}}",
   checking: "جارٍ التحقق…",

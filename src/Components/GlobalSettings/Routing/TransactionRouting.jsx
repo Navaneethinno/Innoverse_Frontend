@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Route } from "lucide-react";
+import { PageTitle } from "@/Components/Common/PageTitle";
 import { Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
 import { Decisions, HealthBoard, Simulator } from "./RoutingLive";
 import { SetupEditor, SetupList, SetupView } from "./RoutingSetup";
@@ -39,9 +39,7 @@ export function TransactionRouting() {
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Route size={22} className="text-primary" /> {t("title")}
-        </h1>
+        <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
       <Tabs tabs={PAGE_TABS.map((key) => ({ key }))} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />
@@ -49,7 +47,7 @@ export function TransactionRouting() {
       {tab !== "setups" && needsInstitution && <p className="py-8 text-center text-sm text-muted-foreground">{t("pickInstitution")}</p>}
       {!needsInstitution && tab === "health" && <HealthBoard key={institution} scope={scope} />}
       {!needsInstitution && tab === "simulator" && <Simulator key={institution} scope={scope} instProfileId={scope().inst_profile_id} />}
-      {!needsInstitution && tab === "decisions" && <Decisions key={institution} scope={scope} />}
+      {!needsInstitution && tab === "decisions" && <Decisions key={institution} scope={scope} instProfileId={scope().inst_profile_id} />}
     </div>
   );
 }

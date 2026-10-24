@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, ChevronDown, ChevronRight, Play, RefreshCw, Undo2, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, Play, RefreshCw, Undo2, XCircle } from "lucide-react";
+import { CopyButton } from "@/Components/Common/CopyButton";
+import { Modal } from "@/Components/Common/Modal";
+import { RowActions } from "@/Components/Common/RowActions";
 import { Button } from "@/Components/Common/Button";
 import { DateInput } from "@/Components/Common/DateInput";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -260,9 +263,12 @@ const Named = ({ code, name }) =>
 
 const OUTCOMES = ["", "ROUTED", "DEFAULT", "NO_ROUTE", "ISSUER_UNSUPPORTED"];
 
-// The log of routed transactions, newest first; a row opens its candidates.
-export function Decisions({ scope }) {
+// The log of routed transactions, newest first. A row shows what matters at a
+// glance; its View opens the whole decision (rule, group, candidates).
+export function Decisions({ scope, instProfileId }) {
   const { t } = useTranslation("routing");
+  const options = useRoutingOptions(instProfileId);
+  const txnName = (code) => options?.txn_types?.find((x) => x.code === code)?.name ?? code;
   const [typed, setTyped] = useState("");
   const [search, setSearch] = useState("");
   const [outcome, setOutcome] = useState("");
@@ -310,30 +316,55 @@ export function Decisions({ scope }) {
             rowKey={(d, i) => d.id ?? i}
             empty={t("noDecisions")}
             columns={[
+              { key: "at", label: t("time"), render: (d) => <span className="whitespace-nowrap">{accountDate(d.created_at)}</span> },
+              { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
               {
-                key: "open",
-                label: "",
+                key: "txn_type",
+                label: t("transaction"),
                 render: (d) => (
-                  <button type="button" aria-label={t("candidates")} onClick={() => setOpen(open === d ? null : d)} className="text-muted-foreground hover:text-primary">
-                    {open === d ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                  </button>
+                  <span className="leading-tight">
+                    <span className="block">{txnName(d.txn_type)}</span>
+                    <span className="text-[10px] text-muted-foreground">{[d.channel, t(`directionShort_${d.direction}`, { defaultValue: d.direction })].filter(Boolean).join(" · ")}</span>
+                  </span>
                 ),
               },
-              { key: "at", label: t("time"), render: (d) => <span className="whitespace-nowrap">{accountDate(d.created_at)}</span> },
-              { key: "direction", label: t("direction"), render: (d) => t(`direction_${d.direction}`, { defaultValue: d.direction }) },
-              { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
-              { key: "txn_type", label: t("txnType") },
-              { key: "channel", label: t("channel") },
               { key: "rule", label: t("rule"), render: (d) => <Named code={d.rule} name={d.rule_name} /> },
-              { key: "group", label: t("group"), render: (d) => <Named code={d.group} name={d.group_name} /> },
               { key: "chosen", label: t("chosen"), render: (d) => <Named code={d.chosen_interface} name={d.chosen_interface_name} /> },
-              { key: "on_us", label: t("onUs"), render: (d) => (d.on_us == null ? "—" : t(d.on_us ? "onUs_OURS" : "onUs_OTHERS")) },
-              { key: "issuer", label: t("issuer") },
-              { key: "pan_masked", label: t("card"), render: (d) => <span className="font-mono">{d.pan_masked || "—"}</span> },
-              { key: "reference", label: t("reference"), render: (d) => <span className="font-mono">{d.idempotency_key || "—"}</span> },
-            ]}
+              // Cards only: whose card, the issuer, the masked number.
+              (data.items ?? []).some((d) => d.pan_masked) && {
+                key: "card",
+                label: t("card"),
+                render: (d) =>
+                  d.pan_masked ? (
+                    <span className="leading-tight">
+                      <span className="block font-mono">{d.pan_masked}</span>
+                      <span className="text-[10px] text-muted-foreground">{[d.on_us != null && t(d.on_us ? "onUs_OURS" : "onUs_OTHERS"), d.issuer].filter(Boolean).join(" · ")}</span>
+                    </span>
+                  ) : (
+                    "—"
+                  ),
+              },
+              {
+                key: "reference",
+                label: t("reference"),
+                render: (d) =>
+                  d.txn_name ? (
+                    <span className="inline-flex items-center gap-1 font-mono">
+                      {d.txn_name} <CopyButton value={d.txn_name} />
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">{t("notPosted")}</span>
+                  ),
+              },
+              { key: "actions", label: t("actions"), render: (d) => <RowActions buttons={{ view: true }} onView={() => setOpen(d)} /> },
+            ].filter(Boolean)}
           />
-          {open && <DecisionView decision={open} />}
+          {open && (
+            <Modal open onClose={() => setOpen(null)} size="xl" title={t("decisionTitle", { id: open.id, at: accountDate(open.created_at) })}>
+              <DecisionView decision={open} />
+              {open.idempotency_key && <p className="mt-3 break-all font-mono text-[11px] text-muted-foreground">{t("idempotencyKey", { key: open.idempotency_key })}</p>}
+            </Modal>
+          )}
           {data.total > pageSize && <Pager page={page} pageSize={pageSize} total={data.total} onPageChange={setPage} onPageSizeChange={(n) => (setPageSize(n), setPage(1))} className="rounded-xl" />}
         </>
       )}

@@ -6842,6 +6842,14 @@ export const recon = {
 };
 
 export const routing = {
+  transaction: "Transação",
+  actions: "Ações",
+  notPosted: "Não lançada",
+  decisionTitle: "Decisão n.º {{id}} · {{at}}",
+  idempotencyKey: "Chave de idempotência: {{key}}",
+  directionShort_SERVICE: "Serviço",
+  directionShort_ACQUIRE: "Cartão no nosso terminal",
+  directionShort_ISSUE: "O nosso cartão noutro local",
   acquirerId: "ID de adquirente na rede",
   acquirerShort: "adquirente {{id}}",
   checking: "A verificar…",
