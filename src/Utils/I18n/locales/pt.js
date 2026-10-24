@@ -4405,6 +4405,10 @@ export const mms = {
   wallet: "Carteira",
   balance: "Saldo",
   noStoresAccess: "Não tem acesso a Lojas.",
+  mid: "MID",
+  mcc: "MCC",
+  setMcc: "Definir MCC",
+  mccNeeded: "Este comerciante ainda não tem MCC: defina um (4 dígitos, ISO 18245) antes de lhe atribuir terminais.",
   operatorId: "ID de operador",
   posProfile: "Perfil do terminal",
   posShift: "Turno",
@@ -6373,6 +6377,13 @@ export const bulkReg = {
 };
 
 export const recon = {
+  delete: "Eliminar",
+  deleteTitle: "Eliminar {{name}}",
+  deleteHint: "Só pode ser eliminado algo nunca usado; é eliminado de imediato. O que estiver em uso é recusado: desative-o.",
+  dateFromNameHint: "O nome do ficheiro dá a data; deixe vazio ou indique a mesma data.",
+  dateNeededHint: "Os nomes dos ficheiros desta fonte não dão a data.",
+  groupNow: "O grupo, como está agora",
+  recordsNow: "Os registos, como estão agora",
   sourcesTitle: "Fontes de reconciliação",
   sourcesSubtitle: "De onde vêm os ficheiros de reconciliação: o layout e o padrão de nome de cada fonte, a recolha por SFTP, os servidores SFTP e as casas decimais de cada moeda.",
   layoutsTitle: "Layouts de reconciliação",

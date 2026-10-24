@@ -54,7 +54,7 @@ export function ReconFiles() {
   ];
   const actions = (
     <>
-      {can("Edit") && (
+      {can("Add") && (
         <Button size="sm" variant="secondary" icon={Wand2} onClick={() => setDialog("generate")}>
           {t("generateSwitchFile")}
         </Button>
@@ -87,6 +87,7 @@ function UploadDialog({ onClose, onDone }) {
   const sources = useChoices(reconSourcesApi.list);
   const [sourceId, setSourceId] = useState("");
   const [file, setFile] = useState(null);
+  const [businessDate, setBusinessDate] = useState("");
   const [busy, setBusy] = useState(false);
   const [reply, setReply] = useState(null);
   const source = sources.find((s) => String(s.id) === sourceId);
@@ -94,7 +95,7 @@ function UploadDialog({ onClose, onDone }) {
   const upload = async () => {
     setBusy(true);
     try {
-      const response = await reconFilesApi.upload({ source_id: sourceId, file });
+      const response = await reconFilesApi.upload({ source_id: sourceId, file, business_date: businessDate });
       if (response?.message) notifications.success(response.message);
       setReply(rowsOf(response)[0] ?? {});
     } catch (error) {
@@ -139,7 +140,7 @@ function UploadDialog({ onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || tooBig} onClick={() => void upload()}>
+          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || tooBig || (source && !source.name_gives_date && !businessDate)} onClick={() => void upload()}>
             {t("upload")}
           </Button>
         </>
@@ -151,6 +152,9 @@ function UploadDialog({ onClose, onDone }) {
         </Field>
         <Field label={t("file")} required hint={source ? [source.file_name_pattern && t("expectedName", { pattern: source.file_name_pattern }), t("maxSize", { mb: source.max_file_mb })].filter(Boolean).join(" · ") : null}>
           <input type="file" className="text-xs" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        </Field>
+        <Field label={source && !source.name_gives_date ? t("businessDate") : t("businessDateOptional")} required={Boolean(source && !source.name_gives_date)} hint={source?.name_gives_date ? t("dateFromNameHint") : t("dateNeededHint")}>
+          <DateInput className={inputClass} value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />
         </Field>
         {tooBig && <p className="text-xs font-semibold text-red-600">{t("fileTooBig", { mb: source.max_file_mb })}</p>}
       </div>
@@ -236,7 +240,7 @@ function FileDetail({ file, onClose, onChanged }) {
     });
   const buttons = [
     can("Edit") && f.status !== "DISCARDED" && { key: "read", label: f.read_status === "NOT_READ" ? t("readFile") : t("readAgain"), icon: BookOpen, variant: "primary", run: () => void run(() => reconFilesApi.read({ id: f.id }), () => setTab("result")) },
-    can("Edit") && { key: "verify", label: t("verify"), icon: ShieldCheck, run: () => void run(() => reconFilesApi.verify({ id: f.id })) },
+    can("View") && { key: "verify", label: t("verify"), icon: ShieldCheck, run: () => void run(() => reconFilesApi.verify({ id: f.id })) },
     can("View") && { key: "download", label: t("download"), icon: Download, run: () => void download() },
     can("Change Status") && f.status !== "DISCARDED" && { key: "discard", label: t("discard"), icon: Trash2, variant: "danger", run: () => setDiscarding(true) },
   ];
@@ -282,9 +286,10 @@ function FileDetail({ file, onClose, onChanged }) {
           hint={t("discardHint")}
           confirmLabel={t("discard")}
           variant="danger"
+          required
           busy={busy}
           onClose={() => setDiscarding(false)}
-          onSave={(narration) => run(() => reconFilesApi.discard({ id: f.id, ...(narration ? { narration } : {}) }), () => setDiscarding(false))}
+          onSave={(narration) => run(() => reconFilesApi.discard({ id: f.id, narration }), () => setDiscarding(false))}
         />
       )}
     </Modal>

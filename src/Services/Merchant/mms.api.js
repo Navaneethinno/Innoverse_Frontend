@@ -43,6 +43,8 @@ export const storesApi = {
 // to merchants. `auth` and `reset_secret` return terminal_secret once.
 // merchants: { search, inst_profile_id (platform users), page, limit } -> the
 // Active merchant-type parties a terminal can be assigned to.
+// acceptor: { merchant } -> { mid, mcc }; set_mcc: { merchant, mcc } (4
+// digits, ISO 18245; a merchant needs one before it is given terminals).
 // pos_policy: { inst_profile_id } -> { idle_seconds, default_seconds, ... };
 // set_pos_policy: { inst_profile_id, idle_seconds } (60 to 86400).
 const terminal = "/merchant/admin/terminal";
@@ -52,6 +54,8 @@ export const terminalsApi = {
     ["types", "list", "get", "add", "edit", "auth", "deauth", "assign", "unassign", "deactivate", "reactivate", "retire", "merchants"].map((name) => [name, (body) => request(`${terminal}/${name}`, body ?? {})]),
   ),
   resetSecret: (body) => request(`${terminal}/reset_secret`, body),
+  acceptor: (body) => request(`${terminal}/acceptor`, body),
+  setMcc: (body) => request(`${terminal}/set_mcc`, body),
   posPolicy: (body) => request(`${terminal}/pos_policy`, body),
   setPosPolicy: (body) => request(`${terminal}/set_pos_policy`, body),
 };

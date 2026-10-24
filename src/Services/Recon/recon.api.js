@@ -3,14 +3,15 @@ import { downloadAttachment, postForm } from "@/Services/api/fileTransfer";
 
 // InnoRecon (module 11): sources (188), layouts (190), files (189) and sets
 // (191). Every change is maker-checker: auth / deauth (narration required)
-// by a different user; deactivate / reactivate need a narration. events:
+// by a different user; deactivate / reactivate need a narration; delete
+// removes a record never used, at once. events:
 // { id } -> [{ id, action, detail, actor, at }].
 const base = "/config/recon";
 const calls = (group, names) => ({
   listPath: `${base}/${group}/list`,
   ...Object.fromEntries(names.map((name) => [name, (body) => request(`${base}/${group}/${name}`, body ?? {})])),
 });
-const LIFECYCLE = ["list", "get", "add", "edit", "auth", "deauth", "deactivate", "reactivate", "events"];
+const LIFECYCLE = ["list", "get", "add", "edit", "auth", "deauth", "deactivate", "reactivate", "delete", "events"];
 
 // Sources: options -> { kinds, file_name_tokens, max_file_mb, generated_from,
 // switch_file_pattern }; check_pattern { file_name_pattern, file_name } ->

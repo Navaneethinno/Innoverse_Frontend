@@ -76,7 +76,7 @@ export function SetRuns({ set, onChanged }) {
   ];
   return (
     <div className="grid gap-4">
-      {can("Edit") && set.status === "ACTIVE" && (
+      {can("Add") && set.status === "ACTIVE" && (
         <Section title={t("runForDate")}>
           <div className="flex flex-wrap items-end gap-2">
             <Field label={t("businessDate")} required>
@@ -162,7 +162,7 @@ export function SetGroups({ set }) {
   const [typed, setTyped] = useState("");
   const search = useDebounced(typed);
   const [request, setRequest] = useState(null);
-  const list = usePage(reconResultsApi.groups, { set_id: set.id, ...(status ? { status } : {}), ...(from ? { from } : {}), ...(to ? { to } : {}), ...(search.trim() ? { search: search.trim() } : {}) });
+  const list = usePage(reconResultsApi.groups, { set_id: set.id, ...(status ? { filters: { status } } : {}), ...(from ? { date_from: from } : {}), ...(to ? { date_to: to } : {}), ...(search.trim() ? { search: search.trim() } : {}) });
   const sources = set.definition?.sources ?? [];
   const labelOf = (id) => sources.find((s) => s.source_id === id)?.label ?? `#${id}`;
   return (
@@ -186,7 +186,7 @@ export function SetGroups({ set }) {
             group={g}
             labelOf={labelOf}
             columns={g.source_ids?.length ? g.source_ids : [...new Set(g.records.map((r) => r.source_id))]}
-            onRequest={can("Edit") ? (kind) => setRequest({ kind, group: g }) : null}
+            onRequest={can("Add") ? (kind) => setRequest({ kind, group: g }) : null}
           />
         ))
       )}
@@ -197,7 +197,7 @@ export function SetGroups({ set }) {
 }
 
 // One group: a column per source, the difference highlighted when not zero.
-function GroupCard({ group: g, columns, labelOf, onRequest }) {
+export function GroupCard({ group: g, columns, labelOf, onRequest }) {
   const { t } = useTranslation("recon");
   const diff = Number(g.amount_diff ?? 0) !== 0;
   const buttons = onRequest
@@ -264,7 +264,7 @@ export function SetUnmatched({ set }) {
   const [picked, setPicked] = useState([]);
   const [dialog, setDialog] = useState(null);
   const [exporting, setExporting] = useState(false);
-  const body = { set_id: set.id, ...(asOf ? { as_of: asOf } : {}), ...(sourceId ? { source_id: Number(sourceId) } : {}), ...(state ? { state } : {}), ...(search.trim() ? { search: search.trim() } : {}) };
+  const body = { set_id: set.id, ...(asOf ? { as_of: asOf } : {}), ...(sourceId ? { filters: { source_id: Number(sourceId) } } : {}), ...(state ? { tab: state } : {}), ...(search.trim() ? { search: search.trim() } : {}) };
   const list = usePage(reconResultsApi.unmatched, body);
   const sources = set.definition?.sources ?? [];
   const toggle = (id) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
@@ -300,18 +300,20 @@ export function SetUnmatched({ set }) {
           {t("exportCsv")}
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground">{t("unmatchedHint", { days: list.extra.window_days ?? set.definition?.window_days ?? "—", date: list.extra.as_of ?? "—" })}</p>
-      {can("Edit") && (
+      <p className="text-[11px] text-muted-foreground">{t("unmatchedHint", { days: list.summary.window_days ?? set.definition?.window_days ?? "—", date: list.summary.as_of ?? "—" })}</p>
+      {(can("Add") || can("Edit")) && (
         <div className={cn("flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2", picked.length ? "border-primary bg-[var(--primary-light)]" : "border-border")}>
           <span className="text-xs font-bold">{t("pickedCount", { count: picked.length })}</span>
-          {bulk.map(([kind, Icon, ok]) => (
+          {can("Add") && bulk.map(([kind, Icon, ok]) => (
             <Button key={kind} size="sm" variant="secondary" icon={Icon} disabled={!ok} onClick={() => setDialog({ kind })}>
               {t(`kind_${kind}`)}
             </Button>
           ))}
-          <Button size="sm" variant="secondary" icon={UserPlus} disabled={!picked.length} onClick={() => setDialog({ kind: "assign" })}>
-            {t("assign")}
-          </Button>
+          {can("Edit") && (
+            <Button size="sm" variant="secondary" icon={UserPlus} disabled={!picked.length} onClick={() => setDialog({ kind: "assign" })}>
+              {t("assign")}
+            </Button>
+          )}
           {picked.length > 0 && (
             <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setPicked([])}>
               {t("clear")}
@@ -518,7 +520,7 @@ function AssignDialog({ set, recordIds, onClose, onDone }) {
   useEffect(() => {
     usersApi
       .getActive()
-      .then((r) => setUsers(rowsOf(r).map((u) => u.user_name ?? u.username).filter(Boolean)))
+      .then((r) => setUsers([...new Set(rowsOf(r).map((u) => u.user_name ?? u.username ?? u.name).filter(Boolean))]))
       .catch(() => setUsers([]));
   }, []);
   const save = async (to) => {

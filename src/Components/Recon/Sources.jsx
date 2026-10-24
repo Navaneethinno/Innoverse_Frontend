@@ -296,7 +296,11 @@ function SourceDetail({ source, onClose, onEdit, onChanged }) {
             record={s}
             onEdit={() => onEdit(s)}
             onChanged={changed}
-            extra={[s.sftp_profile_id && s.status === "ACTIVE" && can("Edit") && { key: "collect", label: busy ? t("collecting") : t("collectNow"), icon: CloudDownload, run: () => void collect() }]}
+            onDeleted={() => {
+              onClose();
+              onChanged();
+            }}
+            extra={[s.sftp_profile_id && s.status === "ACTIVE" && can("Add") && { key: "collect", label: busy ? t("collecting") : t("collectNow"), icon: CloudDownload, run: () => void collect() }]}
           />
         </div>
         {s.sftp_error && (
@@ -481,6 +485,10 @@ function SftpDetail({ profile, onClose, onEdit, onChanged }) {
             onEdit={() => onEdit(p)}
             onChanged={() => {
               reload();
+              onChanged();
+            }}
+            onDeleted={() => {
+              onClose();
               onChanged();
             }}
           />

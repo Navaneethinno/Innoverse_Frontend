@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, Pencil, Power, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, Pencil, Power, Trash2, XCircle } from "lucide-react";
 import { AuditHistory } from "@/Components/Common/AuditModal";
 import { Pager } from "@/Components/Common/Pager";
 import { Spinner } from "@/Components/Common/Spinner";
+import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { listPage } from "@/Hooks/useServerList";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -63,12 +64,12 @@ export function useRecord(get, id, fallback = null) {
   return [record, useCallback(() => setVersion((n) => n + 1), [])];
 }
 
-// A paged sub-list answered as data[0] = { items, total } (a file's records,
+// A paged sub-list in the list standard (a file's records,
 // a set's groups). `body` without page / limit; null waits.
 export function usePage(call, body) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
-  const [state, setState] = useState({ items: [], total: 0, extra: {}, loading: true });
+  const [state, setState] = useState({ items: [], total: 0, summary: {}, loading: true });
   const [version, setVersion] = useState(0);
   const key = JSON.stringify(body);
   // A new body starts again from page 1.
@@ -84,8 +85,8 @@ export function usePage(call, body) {
     call({ ...JSON.parse(key), page, limit })
       .then((r) => {
         if (cancelled) return;
-        const { items = [], total = 0, ...extra } = rowsOf(r)[0] ?? {};
-        setState({ items, total, extra, loading: false });
+        const items = rowsOf(r);
+        setState({ items, total: r?.pagination?.totalRecords ?? items.length, summary: r?.summary ?? {}, loading: false });
       })
       .catch((error) => {
         if (cancelled) return;
@@ -134,19 +135,25 @@ export function FactGrid({ rows }) {
 // Edit, approve / reject (a pending record or a pending change of an active
 // one), deactivate / reactivate, by the page's menu permissions. `id` is the
 // body's key (`currency_id` for currencies).
-export function MakerChecker({ api, record, onEdit, onChanged, extra = [], idKey = "id" }) {
+// `onDeleted`: Delete is offered (a record never used goes at once; the
+// server refuses one in use).
+export function MakerChecker({ api, record, onEdit, onChanged, onDeleted, extra = [], idKey = "id" }) {
   const { t } = useTranslation("recon");
   const can = usePagePermission();
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
   const pending = record.status === "PENDING" || record.has_pending;
+  // The maker can't approve their own change (recon.maker_checker).
+  const me = useAuth((state) => state.user?.username ?? state.user?.user_name);
+  const mine = Boolean(me) && (record.has_pending ? record.pending_by : (record.updated_by ?? record.created_by)) === me;
   const run = async (verb, narration) => {
     setBusy(true);
     try {
       const response = await api[verb]({ [idKey]: record[idKey], ...(narration ? { narration } : {}) });
       if (response?.message) notifications.success(response.message);
       setDialog(null);
-      onChanged();
+      if (verb === "delete") onDeleted?.();
+      else onChanged();
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -155,11 +162,12 @@ export function MakerChecker({ api, record, onEdit, onChanged, extra = [], idKey
   };
   const buttons = [
     onEdit && can("Edit") && record.status !== "INACTIVE" && { key: "edit", label: t("edit"), icon: Pencil, run: onEdit },
-    api.auth && pending && can("Authorise") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
-    api.deauth && pending && can("Authorise") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
+    api.auth && pending && !mine && can("Authorise") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
+    api.deauth && pending && !mine && can("Authorise") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
     api.deactivate && record.status === "ACTIVE" && !record.has_pending && can("Change Status") && { key: "deactivate", label: t("deactivate"), icon: Ban, variant: "danger", run: () => setDialog("deactivate") },
     api.reactivate && record.status === "INACTIVE" && can("Change Status") && { key: "reactivate", label: t("reactivate"), icon: Power, run: () => setDialog("reactivate") },
     ...extra,
+    onDeleted && api.delete && can("Delete") && { key: "delete", label: t("delete"), icon: Trash2, variant: "danger", run: () => setDialog("delete") },
   ];
   return (
     <>
@@ -170,7 +178,7 @@ export function MakerChecker({ api, record, onEdit, onChanged, extra = [], idKey
           hint={t(`${dialog}Hint`, { defaultValue: "" })}
           confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
           variant={dialog === "auth" || dialog === "reactivate" ? "primary" : "danger"}
-          required={dialog !== "auth"}
+          required={!["auth", "delete"].includes(dialog)}
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={(narration) => run(dialog, narration)}

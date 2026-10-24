@@ -14,10 +14,10 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { reconActionsApi, reconSetsApi } from "@/Services/Recon/recon.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass, Section } from "../Finance/Deposits/depositShared";
-import { Tabs } from "../Finance/Loans/loanShared";
+import { MiniTable, Tabs } from "../Finance/Loans/loanShared";
 import { SetBuilder } from "./SetBuilder";
-import { SetAging, SetGroups, SetRuns, SetUnmatched } from "./SetResults";
-import { DefinitionCompare, EventsSection, FactGrid, Field, JsonView, MakerChecker, PageHeading, ReconStatus, label, reconDate, useRecord } from "./reconShared";
+import { GroupCard, SetAging, SetGroups, SetRuns, SetUnmatched } from "./SetResults";
+import { DefinitionCompare, EventsSection, FactGrid, Field, JsonView, MakerChecker, PageHeading, ReconStatus, label, reconDate, recordColumns, useRecord } from "./reconShared";
 
 // Recon Sets (menu 191): what is reconciled with what (the rules), their
 // runs and results, and the approvals queue for changes to results.
@@ -187,7 +187,16 @@ function SetDetail({ set, onClose, onEdit, onChanged }) {
             <ReconStatus value={s.status} />
             {s.has_pending && <span className="text-xs text-amber-700">{t("changeBy", { by: s.pending_by })}</span>}
           </span>
-          <MakerChecker api={reconSetsApi} record={s} onEdit={() => onEdit(s)} onChanged={changed} />
+          <MakerChecker
+            api={reconSetsApi}
+            record={s}
+            onEdit={() => onEdit(s)}
+            onChanged={changed}
+            onDeleted={() => {
+              onClose();
+              onChanged();
+            }}
+          />
         </div>
         <Tabs tabs={SET_TABS.map((key) => ({ key }))} value={tab} onChange={setTab} labelOf={(k) => t(`setTab_${k}`)} />
         {tab === "overview" && (
@@ -269,7 +278,7 @@ function ActionDetail({ action, onClose, onChanged }) {
   const buttons = [
     pending && !mine && can("Authorise") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
     pending && !mine && can("Authorise") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
-    pending && mine && { key: "cancel", label: t("withdraw"), icon: Undo2, run: () => void run("cancel") },
+    pending && mine && can("Add") && { key: "cancel", label: t("withdraw"), icon: Undo2, run: () => void run("cancel") },
   ];
   return (
     <Modal open onClose={onClose} size="lg" title={`${t(`kind_${a.kind}`)} #${a.id}`}>
@@ -294,6 +303,24 @@ function ActionDetail({ action, onClose, onChanged }) {
             a.result_group_id && ["resultGroup", `#${a.result_group_id}`],
           ]}
         />
+        {a.group && (
+          <Section title={t("groupNow")}>
+            <GroupCard group={a.group} columns={a.group.source_ids?.length ? a.group.source_ids : [...new Set(a.group.records.map((r) => r.source_id))]} labelOf={(id) => a.group.records.find((r) => r.source_id === id)?.source_code ?? `#${id}`} />
+          </Section>
+        )}
+        {a.records?.length > 0 && (
+          <Section title={t("recordsNow")}>
+            <MiniTable
+              rows={a.records}
+              rowKey={(r) => r.record_id}
+              columns={[
+                { key: "source_code", label: t("source") },
+                ...recordColumns(t),
+                { key: "item_status", label: t("state"), render: (r) => <ReconStatus value={r.item_status} /> },
+              ]}
+            />
+          </Section>
+        )}
       </div>
       {dialog && (
         <NarrationDialog

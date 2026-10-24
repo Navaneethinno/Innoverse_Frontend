@@ -1584,6 +1584,10 @@ export const mms = {
   wallet: "المحفظة",
   balance: "الرصيد",
   noStoresAccess: "ليس لديك صلاحية الوصول إلى المتاجر.",
+  mid: "MID",
+  mcc: "MCC",
+  setMcc: "تعيين MCC",
+  mccNeeded: "لا يملك هذا التاجر MCC بعد: عيّن واحدًا (4 أرقام، ISO 18245) قبل منحه أجهزة.",
   operatorId: "معرّف المشغّل",
   posProfile: "ملف الجهاز",
   posShift: "الوردية",
@@ -4704,6 +4708,13 @@ export const tour = {
 };
 
 export const recon = {
+  delete: "حذف",
+  deleteTitle: "حذف {{name}}",
+  deleteHint: "لا يُحذف إلا ما لم يُستخدم قط، ويُحذف فورًا. يُرفض ما هو قيد الاستخدام: أوقفه بدلًا من ذلك.",
+  dateFromNameHint: "اسم الملف يحدد التاريخ؛ اتركه فارغًا أو أدخل التاريخ نفسه.",
+  dateNeededHint: "أسماء ملفات هذا المصدر لا تحدد التاريخ.",
+  groupNow: "المجموعة كما هي الآن",
+  recordsNow: "السجلات كما هي الآن",
   sourcesTitle: "مصادر التسوية",
   sourcesSubtitle: "مصدر ملفات التسوية: تخطيط ملف كل مصدر ونمط اسمه والاستلام عبر SFTP، وخوادم SFTP، والمنازل العشرية لكل عملة.",
   layoutsTitle: "تخطيطات التسوية",

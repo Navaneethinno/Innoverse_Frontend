@@ -4391,6 +4391,10 @@ export const mms = {
   wallet: "Wallet",
   balance: "Balance",
   noStoresAccess: "You don't have access to Stores.",
+  mid: "MID",
+  mcc: "MCC",
+  setMcc: "Set MCC",
+  mccNeeded: "This merchant has no MCC yet: set one (4 digits, ISO 18245) before giving it terminals.",
   operatorId: "Operator ID",
   posProfile: "Terminal profile",
   posShift: "Shift",
@@ -6359,6 +6363,13 @@ export const bulkReg = {
 };
 
 export const recon = {
+  delete: "Delete",
+  deleteTitle: "Delete {{name}}",
+  deleteHint: "Only something never used can be deleted; it goes at once. Anything in use is refused: deactivate it instead.",
+  dateFromNameHint: "The file name gives the date; leave empty, or give the same date.",
+  dateNeededHint: "This source's file names don't give the date.",
+  groupNow: "The group, as it is now",
+  recordsNow: "The records, as they are now",
   sourcesTitle: "Recon Sources",
   sourcesSubtitle: "Where reconciliation files come from: each source's file layout, name pattern and SFTP pick-up, the SFTP servers, and each currency's decimals.",
   layoutsTitle: "Recon Layouts",

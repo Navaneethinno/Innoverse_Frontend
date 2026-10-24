@@ -327,12 +327,15 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
         {t("merchant")} {optional && <span className="font-normal text-muted-foreground">({t("optional")})</span>}
       </p>
       {value ? (
-        <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
-          <span className="font-semibold">{value.name}</span>
-          <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => onChange(null)}>
-            {t("change")}
-          </button>
-        </div>
+        <>
+          <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
+            <span className="font-semibold">{value.name}</span>
+            <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => onChange(null)}>
+              {t("change")}
+            </button>
+          </div>
+          <MerchantAcceptor merchant={value} instProfileId={instProfileId} />
+        </>
       ) : (
         <>
           <input className={`${inputClass} mt-1.5`} value={term} maxLength={100} onChange={(e) => setTerm(e.target.value)} placeholder={t("searchMerchant")} />
@@ -351,6 +354,64 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+// A merchant's card acceptor details: its MID and MCC (4 digits, ISO 18245).
+// It needs an MCC before it is given terminals; Edit sets it.
+function MerchantAcceptor({ merchant, instProfileId }) {
+  const { t } = useTranslation("mms");
+  const can = usePagePermission();
+  const [acceptor, setAcceptor] = useState(null);
+  const [mcc, setMcc] = useState("");
+  const [busy, setBusy] = useState(false);
+  const scope = instProfileId ? { inst_profile_id: instProfileId } : {};
+  const key = partyKey(merchant);
+  useEffect(() => {
+    let cancelled = false;
+    terminalsApi
+      .acceptor({ merchant: partyRef(merchant), ...(instProfileId ? { inst_profile_id: instProfileId } : {}) })
+      .then((r) => {
+        if (cancelled) return;
+        const row = rowsOf(r)[0] ?? {};
+        setAcceptor(row);
+        setMcc(row.mcc ?? "");
+      })
+      .catch((error) => !cancelled && notifications.error(error.message));
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, instProfileId]);
+  const save = async () => {
+    setBusy(true);
+    try {
+      const response = await terminalsApi.setMcc({ merchant: partyRef(merchant), mcc, ...scope });
+      if (response?.message) notifications.success(response.message);
+      setAcceptor((a) => ({ ...a, mcc }));
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (!acceptor) return null;
+  return (
+    <div className="mt-2 flex flex-wrap items-end gap-2 rounded-xl border border-border px-3 py-2 text-xs">
+      <span className="pb-2">
+        {t("mid")}: <b className="font-mono">{acceptor.mid || "—"}</b>
+      </span>
+      <label className={labelClass}>
+        {t("mcc")}
+        <input className={`${inputClass} mt-1 w-24 font-mono`} inputMode="numeric" maxLength={4} disabled={!can("Edit")} value={mcc} onChange={(e) => setMcc(e.target.value.replace(/\D/g, ""))} placeholder="5499" />
+      </label>
+      {can("Edit") && mcc !== (acceptor.mcc ?? "") && (
+        <Button size="sm" variant="secondary" loading={busy} disabled={mcc.length !== 4} onClick={() => void save()}>
+          {t("setMcc")}
+        </Button>
+      )}
+      {!acceptor.mcc && <span className="basis-full text-[11px] font-semibold text-amber-700">{t("mccNeeded")}</span>}
     </div>
   );
 }
@@ -460,6 +521,7 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
             </div>
           ))}
         </dl>
+        {x.merchant && <MerchantAcceptor merchant={x.merchant} instProfileId={x.inst_profile_id} />}
       </div>
 
       {dialog === "assign" && <AssignDialog terminal={x} busy={busy} onClose={() => setDialog(null)} onSave={(merchant) => run(() => terminalsApi.assign({ id: x.id, merchant: partyRef(merchant) }))} />}

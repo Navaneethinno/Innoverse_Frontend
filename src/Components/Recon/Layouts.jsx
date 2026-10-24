@@ -186,7 +186,16 @@ function LayoutDetail({ layout, onClose, onChanged }) {
             <ReconStatus value={l.status} />
             {l.has_pending && <span className="text-xs text-amber-700">{t("changeBy", { by: l.pending_by })}</span>}
           </span>
-          <MakerChecker api={reconLayoutsApi} record={l} onEdit={() => setEditing(true)} onChanged={changed} extra={[{ key: "preview", label: t("preview"), icon: Eye, run: () => setPreviewing(true) }]} />
+          <MakerChecker
+            api={reconLayoutsApi}
+            record={l}
+            onEdit={() => setEditing(true)}
+            onChanged={changed}
+            onDeleted={() => {
+              onClose();
+              onChanged();
+            }}
+            extra={[{ key: "preview", label: t("preview"), icon: Eye, run: () => setPreviewing(true) }]} />
         </div>
         <FactGrid
           rows={[
