@@ -212,7 +212,7 @@ export function DecisionView({ decision: d }) {
     >
       <dl className="mb-3 grid gap-2 text-xs sm:grid-cols-3">
         <Fact label={t("rule")} value={d.rule ? (d.rule_name ? `${d.rule_name} (${d.rule})` : d.rule) : "—"} />
-        <Fact label={t("group")} value={d.group ?? "—"} />
+        <Fact label={t("group")} value={d.group ? (d.group_name ? `${d.group_name} (${d.group})` : d.group) : "—"} />
         <Fact label={t("setupVersion")} value={d.setup_version ?? "—"} />
         {d.card && (
           <>
@@ -246,6 +246,17 @@ const Fact = ({ label, value }) => (
     <dd className="mt-0.5 font-semibold">{value}</dd>
   </div>
 );
+
+// A code with today's name over it; the code alone once the name is gone.
+const Named = ({ code, name }) =>
+  code ? (
+    <span className="leading-tight">
+      {name && <span className="block">{name}</span>}
+      <span className={cn("font-mono", name && "text-[10px] text-muted-foreground")}>{code}</span>
+    </span>
+  ) : (
+    "—"
+  );
 
 const OUTCOMES = ["", "ROUTED", "DEFAULT", "NO_ROUTE", "ISSUER_UNSUPPORTED"];
 
@@ -313,9 +324,9 @@ export function Decisions({ scope }) {
               { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
               { key: "txn_type", label: t("txnType") },
               { key: "channel", label: t("channel") },
-              { key: "rule", label: t("rule") },
-              { key: "group", label: t("group") },
-              { key: "chosen", label: t("chosen"), render: (d) => d.chosen_interface || "—" },
+              { key: "rule", label: t("rule"), render: (d) => <Named code={d.rule} name={d.rule_name} /> },
+              { key: "group", label: t("group"), render: (d) => <Named code={d.group} name={d.group_name} /> },
+              { key: "chosen", label: t("chosen"), render: (d) => <Named code={d.chosen_interface} name={d.chosen_interface_name} /> },
               { key: "on_us", label: t("onUs"), render: (d) => (d.on_us == null ? "—" : t(d.on_us ? "onUs_OURS" : "onUs_OTHERS")) },
               { key: "issuer", label: t("issuer") },
               { key: "pan_masked", label: t("card"), render: (d) => <span className="font-mono">{d.pan_masked || "—"}</span> },
