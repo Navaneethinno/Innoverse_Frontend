@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, Landmark, Pencil, Play, Plus, Power, RefreshCw, Send, Square, Trash2, Unlock, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, Pencil, Play, Plus, Power, RefreshCw, Send, Square, Trash2, Unlock, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListTable } from "@/Components/Common/ListView";
@@ -20,7 +20,9 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Section, inputClass, labelClass } from "../Finance/Deposits/depositShared";
 import { MiniTable, Tabs } from "../Finance/Loans/loanShared";
 import { LoadMasterKey } from "../MMS/LoadMasterKey";
-import { MmsStatus, mmsDate } from "../MMS/mmsShared";
+import { mmsDate } from "../MMS/mmsShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 
 // InnoCMS › ATMs (menu 187): the bank's ATMs, each listening on its own
 // switch port; their keys, commands and events; the ports as they are now;
@@ -31,9 +33,7 @@ export function Atms() {
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
-        <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-          <Landmark size={22} className="text-primary" /> {t("title")}
-        </h1>
+        <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
       <Tabs tabs={[{ key: "atms" }, { key: "ports" }, { key: "batches" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />
@@ -59,15 +59,33 @@ function AtmList() {
   const can = usePagePermission();
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [deciding, setDeciding] = useState(null);
   const list = useServerList({ api: atmsApi.listPath, call: atmsApi.list });
   const columns = [
     { key: "atm_id", label: t("atmId"), render: (a) => <span className="font-mono text-xs font-bold">{a.atm_id}</span> },
     { key: "name", label: t("name"), render: (a) => <span className="text-xs font-semibold">{a.name}<span className="block text-[10px] font-normal text-muted-foreground">{a.location}</span></span> },
     { key: "address", label: t("address"), render: (a) => <span className="font-mono text-xs">{`${a.ip_address} → :${a.listen_port}`}</span> },
     { key: "profile", label: t("profile"), render: (a) => <span className="text-xs">{a.download_profile_code ?? "—"}</span> },
-    { key: "status", label: t("status"), render: (a) => <MmsStatus value={a.status} /> },
+    { key: "status", label: t("status"), render: (a) => <StatusBadge status={a.status} /> },
     { key: "live", label: t("live"), render: (a) => <Live atm={a} /> },
-    { key: "actions", label: t("common:actions"), sortable: false, render: (a) => <RowActions buttons={{ view: true }} onView={() => setViewing(a)} /> },
+    {
+      key: "actions",
+      label: t("common:actions"),
+      sortable: false,
+      render: (a) => (
+        <RowActions
+          buttons={atmButtons(a, can)}
+          onView={() => setViewing(a)}
+          onEdit={() => setEditing(a)}
+          onAudit={() => setViewing(a)}
+          onAuthorize={() => setDeciding({ verb: "auth", atm: a })}
+          onDeauthorize={() => setDeciding({ verb: "deauth", atm: a })}
+          onDeactivate={() => setDeciding({ verb: "block", atm: a })}
+          onReactivate={() => setDeciding({ verb: "unblock", atm: a })}
+          onDelete={() => setDeciding({ verb: "retire", atm: a })}
+        />
+      ),
+    },
   ];
   const actions = can("Add") && (
     <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
@@ -89,6 +107,7 @@ function AtmList() {
         />
       )}
       {editing && <AtmForm atm={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={list.reload} />}
+      {deciding && <AtmDecision atm={deciding.atm} verb={deciding.verb} onClose={() => setDeciding(null)} onDone={list.reload} />}
     </>
   );
 }
@@ -215,6 +234,46 @@ const DECISIONS = {
   retire: { icon: Trash2, variant: "danger", perm: "Delete", when: ["PENDING", "ACTIVE", "BLOCKED", "REJECTED"], required: true },
 };
 
+// The lifecycle actions an ATM offers, in the shape RowActions takes:
+// approve / reject (pending), block (deactivate) / unblock (reactivate),
+// retire (delete), edit, and its events (in the view).
+function atmButtons(a, can) {
+  const on = (verb) => DECISIONS[verb].when.includes(a.status) && can(DECISIONS[verb].perm);
+  return { view: true, audit: true, edit: a.status !== "RETIRED" && can("Edit"), authorize: on("auth"), deauthorize: on("deauth"), deactivate: on("block"), activate: on("unblock"), delete: on("retire") };
+}
+
+// Approve, reject, block, unblock or retire, with its narration.
+function AtmDecision({ atm, verb, onClose, onDone }) {
+  const { t } = useTranslation("atm");
+  const [busy, setBusy] = useState(false);
+  const d = DECISIONS[verb];
+  const save = async (narration) => {
+    setBusy(true);
+    try {
+      const response = await atmsApi[verb]({ id: atm.id, ...(narration ? { narration } : {}) });
+      if (response?.message) notifications.success(response.message);
+      onClose();
+      onDone();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <NarrationDialog
+      title={t(`do_${verb}Title`, { id: atm.atm_id })}
+      hint={t(`do_${verb}Hint`, { defaultValue: "" })}
+      confirmLabel={t(`do_${verb}`)}
+      variant={d.variant === "danger" ? "danger" : "primary"}
+      required={d.required}
+      busy={busy}
+      onClose={onClose}
+      onSave={(narration) => void save(narration)}
+    />
+  );
+}
+
 function AtmDetail({ atm, onClose, onEdit, onChanged }) {
   const { t } = useTranslation("atm");
   const can = usePagePermission();
@@ -250,9 +309,10 @@ function AtmDetail({ atm, onClose, onEdit, onChanged }) {
     }
   };
   const active = a.status === "ACTIVE";
+  const allowed = atmButtons(a, can);
   const buttons = [
-    can("Edit") && !["RETIRED"].includes(a.status) && { key: "edit", label: t("edit"), icon: Pencil, run: () => onEdit(a) },
-    ...Object.entries(DECISIONS).map(([key, d]) => d.when.includes(a.status) && can(d.perm) && { key, label: t(`do_${key}`), icon: d.icon, variant: d.variant, run: () => setDialog(key) }),
+    allowed.edit && { key: "edit", label: t("edit"), icon: Pencil, run: () => onEdit(a) },
+    ...Object.entries(DECISIONS).map(([key, d]) => ({ auth: allowed.authorize, deauth: allowed.deauthorize, block: allowed.deactivate, unblock: allowed.activate, retire: allowed.delete })[key] && { key, label: t(`do_${key}`), icon: d.icon, variant: d.variant, run: () => setDialog(key) }),
     active && can("Change Status") && a.connected && { key: "command", label: t("sendCommand"), icon: Send, run: () => setDialog("command") },
     active && can("Change Status") && !a.listener_enabled && { key: "port_start", label: t("portStart"), icon: Play, run: () => void run(() => atmsApi.port_start({ id: a.id })) },
     active && can("Change Status") && a.listener_enabled && { key: "port_stop", label: t("portStop"), icon: Square, variant: "danger", run: () => setDialog("port_stop") },
@@ -278,7 +338,7 @@ function AtmDetail({ atm, onClose, onEdit, onChanged }) {
     <Modal open onClose={onClose} size="xl" title={`${a.name} (${a.atm_id})`}>
       <div className="grid gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <MmsStatus value={a.status} />
+          <StatusBadge status={a.status} />
           <Live atm={a} />
           <Button size="sm" variant="ghost" icon={RefreshCw} onClick={reload}>
             {t("refresh")}
@@ -296,18 +356,7 @@ function AtmDetail({ atm, onClose, onEdit, onChanged }) {
         {can("Authorise") && !["RETIRED", "REJECTED"].includes(a.status) && <LoadMasterKey device={a} load={(component) => atmsApi.tmkComponent({ id: a.id, component })} onLoaded={() => setVersion((n) => n + 1)} />}
         <Events atmId={a.id} version={version} />
       </div>
-      {dialog && DECISIONS[dialog] && (
-        <NarrationDialog
-          title={t(`do_${dialog}Title`, { id: a.atm_id })}
-          hint={t(`do_${dialog}Hint`, { defaultValue: "" })}
-          confirmLabel={t(`do_${dialog}`)}
-          variant={DECISIONS[dialog].variant === "danger" ? "danger" : "primary"}
-          required={DECISIONS[dialog].required}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => run(() => atmsApi[dialog]({ id: a.id, ...(narration ? { narration } : {}) }))}
-        />
-      )}
+      {dialog && DECISIONS[dialog] && <AtmDecision atm={a} verb={dialog} onClose={() => setDialog(null)} onDone={reload} />}
       {dialog === "command" && <CommandDialog atm={a} busy={busy} onClose={() => setDialog(null)} onSend={(body) => run(() => atmsApi.command({ id: a.id, ...body }))} />}
       {dialog === "port_stop" && <PortStopDialog atm={a} busy={busy} onClose={() => setDialog(null)} onStop={(mode) => run(() => atmsApi.port_stop({ id: a.id, mode }))} />}
     </Modal>

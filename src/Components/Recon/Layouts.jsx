@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Eye, FileCode2, Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DateInput } from "@/Components/Common/DateInput";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
-import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -17,7 +16,8 @@ import { reconFilesApi, reconLayoutsApi } from "@/Services/Recon/recon.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { inputClass, Section } from "../Finance/Deposits/depositShared";
-import { EventsSection, FactGrid, Field, JsonView, MakerChecker, PageHeading, ReadResult, ReconStatus, reconDate, useChoices, useRecord, DefinitionCompare, JsonEditor } from "./reconShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { EventsSection, FactGrid, Field, JsonView, MakerChecker, ReadResult, ReconRowActions, ReconStatus, RecordStatus, reconDate, useChoices, useRecord, DefinitionCompare, JsonEditor } from "./reconShared";
 
 // Recon Layouts (menu 190): file formats as JSON. Users start from a
 // built-in layout and edit it; an edit waits beside the version in force
@@ -34,17 +34,8 @@ export function ReconLayouts() {
     { key: "reader", label: t("reader"), render: (r) => <span className="text-xs">{r.reader}</span> },
     { key: "seed_code", label: t("startedFrom"), render: (r) => <span className="font-mono text-[11px]">{r.seed_code ?? "—"}</span> },
     { key: "version", label: t("version"), render: (r) => <span className="text-xs tabular-nums">{r.version}</span> },
-    {
-      key: "status",
-      label: t("status"),
-      render: (r) => (
-        <span className="inline-flex flex-wrap justify-center gap-1">
-          <ReconStatus value={r.status} />
-          {r.has_pending && r.status !== "PENDING" && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{t("changePending")}</span>}
-        </span>
-      ),
-    },
-    { key: "actions", label: t("actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "status", label: t("status"), render: (r) => <RecordStatus record={r} /> },
+    { key: "actions", label: t("actions"), sortable: false, render: (r) => <ReconRowActions api={reconLayoutsApi} row={r} onView={() => setViewing(r)} onEdit={() => setViewing({ ...r, startEdit: true })} onChanged={list.reload} /> },
   ];
   const actions = can("Add") && (
     <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>
@@ -53,7 +44,10 @@ export function ReconLayouts() {
   );
   return (
     <div className="pb-8 pt-4">
-      <PageHeading icon={FileCode2} title={t("layoutsTitle")} subtitle={t("layoutsSubtitle")} />
+      <div className="mb-5">
+        <PageTitle>{t("layoutsTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("layoutsSubtitle")}</p>
+      </div>
       <ListTable list={list} actions={actions} columns={columns} rowKey={(r) => r.id} title={t("layoutsTitle")} emptyTitle={t("noLayouts")} />
       {viewing && <LayoutDetail layout={viewing} onClose={() => setViewing(null)} onChanged={list.reload} />}
       {adding && <LayoutAdd onClose={() => setAdding(false)} onSaved={list.reload} />}
@@ -172,7 +166,7 @@ function LayoutAdd({ onClose, onSaved }) {
 function LayoutDetail({ layout, onClose, onChanged }) {
   const { t } = useTranslation("recon");
   const [l, reload] = useRecord(reconLayoutsApi.get, layout.id, layout);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(Boolean(layout.startEdit));
   const [previewing, setPreviewing] = useState(false);
   const changed = () => {
     reload();
@@ -210,7 +204,7 @@ function LayoutDetail({ layout, onClose, onChanged }) {
         <Section title={t("definition")}>{l.has_pending && l.pending_definition ? <DefinitionCompare current={l.definition} pending={l.pending_definition} /> : <JsonView value={l.definition} />}</Section>
         <EventsSection api={reconLayoutsApi} id={l.id} />
       </div>
-      {editing && <LayoutEdit layout={l} onClose={() => setEditing(false)} onSaved={changed} />}
+      {editing && l.definition && <LayoutEdit layout={l} onClose={() => setEditing(false)} onSaved={changed} />}
       {previewing && (
         <Modal open onClose={() => setPreviewing(false)} size="full" title={t("previewOf", { name: l.name })}>
           <Preview with={{ layout_id: l.id }} />

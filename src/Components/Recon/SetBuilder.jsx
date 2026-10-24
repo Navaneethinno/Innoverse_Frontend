@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
@@ -136,8 +137,8 @@ export function SetBuilder({ definition, onChange, options }) {
                     <FilterSelect value={p.action ?? "AUTO"} onChange={(v) => setPass(i, { action: v })} options={(options?.actions ?? ["AUTO", "PROPOSE"]).map((a) => ({ value: a, label: t(`passAction_${a}`) }))} />
                   </Field>
                   <span className="ms-auto flex gap-1 pb-1">
-                    <IconButton icon={ArrowUp} disabled={i === 0} onClick={() => movePass(i, -1)} label={t("moveUp")} />
-                    <IconButton icon={ArrowDown} disabled={i === passes.length - 1} onClick={() => movePass(i, 1)} label={t("moveDown")} />
+                    <ActionIconButton intent="audit" icon={ArrowUp} disabled={i === 0} className="disabled:opacity-30" onClick={() => movePass(i, -1)} label={t("moveUp")} />
+                    <ActionIconButton intent="audit" icon={ArrowDown} disabled={i === passes.length - 1} className="disabled:opacity-30" onClick={() => movePass(i, 1)} label={t("moveDown")} />
                     <RemoveButton onClick={() => set({ passes: passes.filter((_, j) => j !== i) })} />
                   </span>
                 </div>
@@ -303,21 +304,9 @@ function AddButton({ onClick, disabled, children }) {
   );
 }
 
-function IconButton({ icon: Icon, label, onClick, disabled }) {
-  return (
-    <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-30">
-      <Icon size={14} />
-    </button>
-  );
-}
-
 function RemoveButton({ onClick }) {
   const { t } = useTranslation("recon");
-  return (
-    <button type="button" aria-label={t("remove")} title={t("remove")} onClick={onClick} className="rounded-lg p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600">
-      <Trash2 size={14} />
-    </button>
-  );
+  return <ActionIconButton intent="delete" icon={Trash2} label={t("remove")} onClick={onClick} />;
 }
 
 // A posting GL account, searched by code or name.

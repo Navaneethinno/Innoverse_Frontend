@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, GitCompareArrows, Plus, Undo2, XCircle } from "lucide-react";
+import { CheckCircle2, Plus, Undo2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
@@ -17,7 +17,9 @@ import { ActionButtons, NarrationDialog, inputClass, Section } from "../Finance/
 import { MiniTable, Tabs } from "../Finance/Loans/loanShared";
 import { SetBuilder } from "./SetBuilder";
 import { GroupCard, SetAging, SetGroups, SetRuns, SetUnmatched } from "./SetResults";
-import { DefinitionCompare, EventsSection, FactGrid, Field, JsonView, MakerChecker, PageHeading, ReconStatus, label, reconDate, recordColumns, useRecord } from "./reconShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { DefinitionCompare, EventsSection, FactGrid, Field, JsonView, MakerChecker, ReconRowActions, ReconStatus, RecordStatus, label, reconDate, recordColumns, useDecision, useMe, useRecord } from "./reconShared";
 
 // Recon Sets (menu 191): what is reconciled with what (the rules), their
 // runs and results, and the approvals queue for changes to results.
@@ -26,7 +28,10 @@ export function ReconSets() {
   const [tab, setTab] = useState("sets");
   return (
     <div className="pb-8 pt-4">
-      <PageHeading icon={GitCompareArrows} title={t("setsTitle")} subtitle={t("setsSubtitle")} />
+      <div className="mb-5">
+        <PageTitle>{t("setsTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("setsSubtitle")}</p>
+      </div>
       <Tabs tabs={[{ key: "sets" }, { key: "approvals" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />
       {tab === "sets" ? <SetList /> : <Approvals />}
     </div>
@@ -55,17 +60,8 @@ function SetList() {
           <span className="text-xs">—</span>
         ),
     },
-    {
-      key: "status",
-      label: t("status"),
-      render: (r) => (
-        <span className="inline-flex flex-wrap justify-center gap-1">
-          <ReconStatus value={r.status} />
-          {r.has_pending && r.status !== "PENDING" && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{t("changePending")}</span>}
-        </span>
-      ),
-    },
-    { key: "actions", label: t("actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "status", label: t("status"), render: (r) => <RecordStatus record={r} /> },
+    { key: "actions", label: t("actions"), sortable: false, render: (r) => <ReconRowActions api={reconSetsApi} row={r} onView={() => setViewing(r)} onEdit={() => setViewing({ ...r, startEdit: true })} onChanged={list.reload} /> },
   ];
   const actions = can("Add") && (
     <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
@@ -179,6 +175,11 @@ function SetDetail({ set, onClose, onEdit, onChanged }) {
     onChanged();
   }, [reload, onChanged]);
   const ready = Boolean(s.definition);
+  // Opened by a row's Edit: straight to the form once the definition is in.
+  useEffect(() => {
+    if (set.startEdit && s.definition) onEdit(s);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [set.startEdit, s.definition]);
   return (
     <Modal open onClose={onClose} size="full" title={`${s.name} (${s.code})`}>
       <div className="grid gap-4">
@@ -229,8 +230,12 @@ function SetDetail({ set, onClose, onEdit, onChanged }) {
 
 function Approvals() {
   const { t } = useTranslation("recon");
+  const can = usePagePermission();
+  const me = useMe();
   const [viewing, setViewing] = useState(null);
   const list = useServerList({ api: reconActionsApi.listPath, call: reconActionsApi.list, prefix: "act_" });
+  const decision = useDecision({ api: reconActionsApi, onDone: list.reload, hintOf: (verb) => (verb === "auth" ? t("approveActionHint") : null) });
+  const named = (r) => ({ ...r, name: `${t(`kind_${r.kind}`)} #${r.id}` });
   const columns = [
     { key: "id", label: "#", render: (r) => <span className="font-mono text-xs">{r.id}</span> },
     { key: "kind", label: t("kind"), render: (r) => <span className="text-xs font-semibold">{t(`kind_${r.kind}`)}</span> },
@@ -238,12 +243,21 @@ function Approvals() {
     { key: "what", label: t("touches"), render: (r) => <span className="text-xs">{touches(t, r)}</span> },
     { key: "reason", label: t("reason"), render: (r) => <span className="text-xs">{[r.reason && label(t, "reason", r.reason), r.note].filter(Boolean).join(" · ") || "—"}</span> },
     { key: "requested_by", label: t("requested"), render: (r) => <span className="whitespace-nowrap text-xs">{`${r.requested_by} · ${reconDate(r.requested_at)}`}</span> },
-    { key: "status", label: t("status"), render: (r) => <ReconStatus value={r.status} /> },
-    { key: "actions", label: t("actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} /> },
+    {
+      key: "actions",
+      label: t("actions"),
+      sortable: false,
+      render: (r) => {
+        const decide = r.status === "PENDING" && r.requested_by !== me && can("Authorise");
+        return <RowActions buttons={{ view: true, authorize: decide, deauthorize: decide }} onView={() => setViewing(r)} onAuthorize={() => decision.ask("auth", named(r))} onDeauthorize={() => decision.ask("deauth", named(r))} />;
+      },
+    },
   ];
   return (
     <>
       <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("tab_approvals")} emptyTitle={t("noActions")} />
+      {decision.node}
       {viewing && <ActionDetail action={viewing} onClose={() => setViewing(null)} onChanged={list.reload} />}
     </>
   );

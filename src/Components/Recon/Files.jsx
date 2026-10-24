@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Download, FileStack, FileUp, ShieldCheck, Trash2, Wand2 } from "lucide-react";
+import { BookOpen, Download, FileUp, ShieldCheck, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { DateInput } from "@/Components/Common/DateInput";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -16,7 +16,8 @@ import { reconFilesApi, reconSourcesApi } from "@/Services/Recon/recon.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass } from "../Finance/Deposits/depositShared";
 import { Tabs } from "../Finance/Loans/loanShared";
-import { FactGrid, Field, PageHeading, PagedTable, ReadResult, ReconStatus, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord } from "./reconShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord } from "./reconShared";
 
 // Recon Files (menu 189): files received from each source (uploaded, picked
 // up by SFTP or generated from the ledger), read with the source's layout.
@@ -73,7 +74,10 @@ export function ReconFiles() {
   };
   return (
     <div className="pb-8 pt-4">
-      <PageHeading icon={FileStack} title={t("filesTitle")} subtitle={t("filesSubtitle")} />
+      <div className="mb-5">
+        <PageTitle>{t("filesTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("filesSubtitle")}</p>
+      </div>
       <ListTable list={list} actions={actions} columns={columns} rowKey={(r) => r.id} title={t("filesTitle")} emptyTitle={t("noFiles")} />
       {viewing && <FileDetail file={viewing} onClose={() => setViewing(null)} onChanged={list.reload} />}
       {dialog === "upload" && <UploadDialog onClose={() => setDialog(null)} onDone={opened} />}

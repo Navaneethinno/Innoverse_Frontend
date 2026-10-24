@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Pencil, Power, Trash2, XCircle } from "lucide-react";
-import { AuditHistory } from "@/Components/Common/AuditModal";
+import { AuditHistory, AuditModal } from "@/Components/Common/AuditModal";
+import { RowActions } from "@/Components/Common/RowActions";
+import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Pager } from "@/Components/Common/Pager";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useAuth } from "@/Hooks/useAuth";
@@ -11,7 +13,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, Section, inputClass, labelClass } from "../Finance/Deposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../Finance/Deposits/depositShared";
 import { MiniTable } from "../Finance/Loans/loanShared";
 
 // Pieces every InnoRecon screen shares.
@@ -117,73 +119,141 @@ export function PagedTable({ list, columns, empty, rowKey, rowClass }) {
   );
 }
 
-// Label / value tiles for a record.
+// Label / value tiles for a record: the shared Facts, keys translated.
 export function FactGrid({ rows }) {
   const { t } = useTranslation("recon");
+  return <Facts className="lg:grid-cols-3" rows={rows.filter(Boolean).map(([key, value]) => [t(key), value === "" ? null : value])} />;
+}
+
+// A record's lifecycle status (the shared StatusBadge), and "change
+// pending" while an edit of an active one waits beside it.
+export function RecordStatus({ record }) {
+  const { t } = useTranslation("recon");
   return (
-    <dl className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {rows.filter(Boolean).map(([key, value]) => (
-        <div key={key} className="min-w-0 rounded-xl border border-border bg-card px-3 py-2">
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t(key)}</dt>
-          <dd className="mt-0.5 break-words text-sm font-semibold text-foreground">{value === "" || value == null ? "—" : value}</dd>
-        </div>
-      ))}
-    </dl>
+    <span className="inline-flex flex-wrap justify-center gap-1">
+      <StatusBadge status={record.status} />
+      {record.has_pending && record.status !== "PENDING" && <StatusBadge status={t("changePending")} variant="subtle" />}
+    </span>
   );
 }
 
-// Edit, approve / reject (a pending record or a pending change of an active
-// one), deactivate / reactivate, by the page's menu permissions. `id` is the
-// body's key (`currency_id` for currencies).
-// `onDeleted`: Delete is offered (a record never used goes at once; the
-// server refuses one in use).
-export function MakerChecker({ api, record, onEdit, onChanged, onDeleted, extra = [], idKey = "id" }) {
+// Which lifecycle actions a record offers, in the shape RowActions takes:
+// approve / reject a pending record or a pending change of an active one
+// (never the maker's own: recon.maker_checker), edit, deactivate /
+// reactivate, delete (the server refuses one in use), and its history.
+export function reconButtons(record, can, me) {
+  const pending = record.status === "PENDING" || Boolean(record.has_pending);
+  const maker = record.has_pending ? record.pending_by : (record.pending_by ?? record.updated_by ?? record.created_by);
+  const mine = Boolean(me) && maker === me;
+  return {
+    view: true,
+    audit: true,
+    edit: record.status !== "INACTIVE" && can("Edit"),
+    authorize: pending && !mine && can("Authorise"),
+    deauthorize: pending && !mine && can("Authorise"),
+    deactivate: record.status === "ACTIVE" && !record.has_pending && can("Change Status"),
+    activate: record.status === "INACTIVE" && can("Change Status"),
+    delete: can("Delete"),
+  };
+}
+
+export const useMe = () => useAuth((state) => state.user?.username ?? state.user?.user_name);
+
+// The narration dialog behind every lifecycle action (auth, deauth,
+// deactivate, reactivate, delete): `ask(verb, record)` opens it, `node`
+// renders it. A reason is needed for all but approve and delete. `hintOf`:
+// the dialog's text for a record (what is being decided).
+export function useDecision({ api, idKey = "id", onDone, hintOf }) {
   const { t } = useTranslation("recon");
-  const can = usePagePermission();
-  const [dialog, setDialog] = useState(null);
+  const [open, setOpen] = useState(null);
   const [busy, setBusy] = useState(false);
-  const pending = record.status === "PENDING" || record.has_pending;
-  // The maker can't approve their own change (recon.maker_checker).
-  const me = useAuth((state) => state.user?.username ?? state.user?.user_name);
-  const mine = Boolean(me) && (record.has_pending ? record.pending_by : (record.updated_by ?? record.created_by)) === me;
-  const run = async (verb, narration) => {
+  const run = async (narration) => {
+    const { verb, record } = open;
     setBusy(true);
     try {
       const response = await api[verb]({ [idKey]: record[idKey], ...(narration ? { narration } : {}) });
       if (response?.message) notifications.success(response.message);
-      setDialog(null);
-      if (verb === "delete") onDeleted?.();
-      else onChanged();
+      setOpen(null);
+      onDone(verb, record);
     } catch (error) {
       notifications.error(error.message);
     } finally {
       setBusy(false);
     }
   };
+  const verb = open?.verb;
+  const node = open && (
+    <NarrationDialog
+      title={t(`${verb}Title`, { name: open.record.name ?? open.record.code ?? open.record.alpha_code ?? "" })}
+      hint={hintOf?.(verb, open.record) ?? t(`${verb}Hint`, { defaultValue: "" })}
+      confirmLabel={t(verb === "auth" ? "approve" : verb === "deauth" ? "reject" : verb)}
+      variant={verb === "auth" || verb === "reactivate" ? "primary" : "danger"}
+      required={!["auth", "delete"].includes(verb)}
+      busy={busy}
+      onClose={() => setOpen(null)}
+      onSave={(narration) => void run(narration)}
+    />
+  );
+  return { ask: (v, record) => setOpen({ verb: v, record }), busy, node };
+}
+
+// A list row's actions, as on every maker-checker list: RowActions with the
+// record's buttons, the narration dialog, and its history (events).
+export function ReconRowActions({ api, row, onView, onEdit, onChanged }) {
+  const can = usePagePermission();
+  const me = useMe();
+  const [history, setHistory] = useState(false);
+  const decision = useDecision({ api, onDone: onChanged });
+  const buttons = reconButtons(row, can, me);
+  const pick = (verb) => (api[verb] ? () => decision.ask(verb, row) : undefined);
+  return (
+    <>
+      <RowActions
+        buttons={buttons}
+        onView={onView}
+        onEdit={onEdit}
+        onAudit={api.events ? () => setHistory(true) : undefined}
+        onAuthorize={pick("auth")}
+        onDeauthorize={pick("deauth")}
+        onDeactivate={pick("deactivate")}
+        onReactivate={pick("reactivate")}
+        onDelete={pick("delete")}
+      />
+      {decision.node}
+      {history && (
+        <AuditModal
+          title={row.name ?? row.code}
+          onClose={() => setHistory(false)}
+          fetchAudit={() => api.events({ id: row.id }).then((r) => ({ entries: rowsOf(r), totalPages: 1 }))}
+          renderExtra={(entry) => entry.detail && <p className="text-xs text-muted-foreground">{entry.detail}</p>}
+        />
+      )}
+    </>
+  );
+}
+
+// The same lifecycle actions as buttons in a record's view, plus the view's
+// own (`extra`). `onDeleted` closes the view after a delete.
+export function MakerChecker({ api, record, onEdit, onChanged, onDeleted, extra = [], idKey = "id" }) {
+  const { t } = useTranslation("recon");
+  const can = usePagePermission();
+  const me = useMe();
+  const decision = useDecision({ api, idKey, onDone: (verb) => (verb === "delete" ? onDeleted?.() : onChanged()) });
+  const b = reconButtons(record, can, me);
+  const ask = (verb) => () => decision.ask(verb, record);
   const buttons = [
-    onEdit && can("Edit") && record.status !== "INACTIVE" && { key: "edit", label: t("edit"), icon: Pencil, run: onEdit },
-    api.auth && pending && !mine && can("Authorise") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
-    api.deauth && pending && !mine && can("Authorise") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
-    api.deactivate && record.status === "ACTIVE" && !record.has_pending && can("Change Status") && { key: "deactivate", label: t("deactivate"), icon: Ban, variant: "danger", run: () => setDialog("deactivate") },
-    api.reactivate && record.status === "INACTIVE" && can("Change Status") && { key: "reactivate", label: t("reactivate"), icon: Power, run: () => setDialog("reactivate") },
+    onEdit && b.edit && { key: "edit", label: t("edit"), icon: Pencil, run: onEdit },
+    api.auth && b.authorize && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
+    api.deauth && b.deauthorize && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: ask("deauth") },
+    api.deactivate && b.deactivate && { key: "deactivate", label: t("deactivate"), icon: Ban, variant: "danger", run: ask("deactivate") },
+    api.reactivate && b.activate && { key: "reactivate", label: t("reactivate"), icon: Power, run: ask("reactivate") },
     ...extra,
-    onDeleted && api.delete && can("Delete") && { key: "delete", label: t("delete"), icon: Trash2, variant: "danger", run: () => setDialog("delete") },
+    onDeleted && api.delete && b.delete && { key: "delete", label: t("delete"), icon: Trash2, variant: "danger", run: ask("delete") },
   ];
   return (
     <>
-      <ActionButtons busy={busy} buttons={buttons} />
-      {dialog && (
-        <NarrationDialog
-          title={t(`${dialog}Title`, { name: record.name ?? record.code ?? record.alpha_code ?? "" })}
-          hint={t(`${dialog}Hint`, { defaultValue: "" })}
-          confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
-          variant={dialog === "auth" || dialog === "reactivate" ? "primary" : "danger"}
-          required={!["auth", "delete"].includes(dialog)}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => run(dialog, narration)}
-        />
-      )}
+      <ActionButtons busy={decision.busy} buttons={buttons} />
+      {decision.node}
     </>
   );
 }
@@ -330,16 +400,6 @@ export function RejectRows({ rows }) {
   );
 }
 
-export function PageHeading({ icon: Icon, title, subtitle }) {
-  return (
-    <div className="mb-5">
-      <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
-        <Icon size={22} className="text-primary" /> {title}
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-    </div>
-  );
-}
 
 // A field with its label (and an optional hint under it).
 export function Field({ label: text, required, hint, children, className }) {

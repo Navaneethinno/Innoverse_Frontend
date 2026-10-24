@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CloudDownload, Database, Plug, Plus } from "lucide-react";
+import { AlertTriangle, CloudDownload, Plug, Plus } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { ListTable } from "@/Components/Common/ListView";
@@ -16,7 +16,8 @@ import { reconCurrencyApi, reconLayoutsApi, reconSftpApi, reconSourcesApi } from
 import { notifications } from "@/Utils/Lib/notifications";
 import { inputClass, Section } from "../Finance/Deposits/depositShared";
 import { MiniTable, Tabs } from "../Finance/Loans/loanShared";
-import { EventsSection, FactGrid, Field, MakerChecker, PageHeading, ReconStatus, label, reconDate, useChoices, useRecord } from "./reconShared";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { EventsSection, FactGrid, Field, MakerChecker, ReconRowActions, ReconStatus, RecordStatus, label, reconDate, useChoices, useDecision, useMe, useRecord } from "./reconShared";
 
 // Recon Sources (menu 188): where reconciliation files come from (a source
 // and its file layout, name pattern, SFTP pick-up), the SFTP servers, and
@@ -26,7 +27,10 @@ export function ReconSources() {
   const [tab, setTab] = useState("sources");
   return (
     <div className="pb-8 pt-4">
-      <PageHeading icon={Database} title={t("sourcesTitle")} subtitle={t("sourcesSubtitle")} />
+      <div className="mb-5">
+        <PageTitle>{t("sourcesTitle")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t("sourcesSubtitle")}</p>
+      </div>
       <Tabs tabs={[{ key: "sources" }, { key: "sftp" }, { key: "currency" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />
       {tab === "sources" && <SourceList />}
       {tab === "sftp" && <SftpList />}
@@ -49,8 +53,8 @@ function SourceList() {
     { key: "kind", label: t("kind"), render: (r) => <span className="text-xs">{label(t, "kind", r.kind)}</span> },
     { key: "layout", label: t("layout"), render: (r) => <span className="text-xs">{r.layout_name ?? "—"}</span> },
     { key: "files", label: t("files"), render: (r) => <span className="text-xs tabular-nums">{r.files ?? 0}</span> },
-    { key: "status", label: t("status"), render: (r) => <ReconStatus value={r.status} /> },
-    { key: "actions", label: t("actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "status", label: t("status"), render: (r) => <RecordStatus record={r} /> },
+    { key: "actions", label: t("actions"), sortable: false, render: (r) => <ReconRowActions api={reconSourcesApi} row={r} onView={() => setViewing(r)} onEdit={() => setEditing(r)} onChanged={list.reload} /> },
   ];
   const actions = can("Add") && (
     <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
@@ -355,8 +359,8 @@ function SftpList() {
     { key: "host", label: t("host"), render: (r) => <span className="font-mono text-xs">{`${r.username}@${r.host}:${r.port}`}</span> },
     { key: "sources", label: t("sources"), render: (r) => <span className="text-xs tabular-nums">{r.sources ?? 0}</span> },
     { key: "last_ok_at", label: t("lastOk"), render: (r) => <span className="text-xs">{r.last_error ? <span className="text-red-600">{t("lastFailed")}</span> : reconDate(r.last_ok_at)}</span> },
-    { key: "status", label: t("status"), render: (r) => <ReconStatus value={r.status} /> },
-    { key: "actions", label: t("actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "status", label: t("status"), render: (r) => <RecordStatus record={r} /> },
+    { key: "actions", label: t("actions"), sortable: false, render: (r) => <ReconRowActions api={reconSftpApi} row={r} onView={() => setViewing(r)} onEdit={() => setEditing(r)} onChanged={list.reload} /> },
   ];
   const actions = can("Add") && (
     <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
@@ -550,9 +554,15 @@ function SftpDetail({ profile, onClose, onEdit, onChanged }) {
 function CurrencyList() {
   const { t } = useTranslation("recon");
   const can = usePagePermission();
+  const me = useMe();
   const [editing, setEditing] = useState(null);
-  const [deciding, setDeciding] = useState(null);
   const list = useServerList({ api: reconCurrencyApi.listPath, call: reconCurrencyApi.list, prefix: "cur_" });
+  const decision = useDecision({
+    api: reconCurrencyApi,
+    idKey: "currency_id",
+    onDone: list.reload,
+    hintOf: (verb, r) => t("decimalsChange", { from: r.effective_decimal_places, to: r.pending_decimal_places, by: r.pending_by }),
+  });
   const columns = [
     { key: "alpha_code", label: t("currency"), render: (r) => <span className="text-xs font-semibold">{`${r.alpha_code} · ${r.currency_name}`}</span> },
     { key: "iso_decimal_places", label: t("isoDecimals"), render: (r) => <span className="text-xs tabular-nums">{r.iso_decimal_places}</span> },
@@ -562,40 +572,26 @@ function CurrencyList() {
       key: "actions",
       label: t("actions"),
       sortable: false,
-      render: (r) => (
-        <div className="flex justify-center gap-1">
-          {can("Edit") && r.pending_decimal_places == null && (
-            <Button size="sm" variant="secondary" onClick={() => setEditing(r)}>
-              {t("change")}
-            </Button>
-          )}
-          {can("Authorise") && r.pending_decimal_places != null && (
-            <Button size="sm" variant="secondary" onClick={() => setDeciding(r)}>
-              {t("review")}
-            </Button>
-          )}
-        </div>
-      ),
+      render: (r) => {
+        const pending = r.pending_decimal_places != null;
+        const decide = pending && r.pending_by !== me && can("Authorise");
+        const record = { ...r, name: r.alpha_code };
+        return (
+          <RowActions
+            buttons={{ view: false, edit: !pending && can("Edit"), authorize: decide, deauthorize: decide }}
+            onEdit={() => setEditing(r)}
+            onAuthorize={() => decision.ask("auth", record)}
+            onDeauthorize={() => decision.ask("deauth", record)}
+          />
+        );
+      },
     },
   ];
   return (
     <>
       <ListTable list={list} columns={columns} rowKey={(r) => r.currency_id} title={t("tab_currency")} emptyTitle={t("noCurrencies")} />
       {editing && <DecimalsDialog currency={editing} onClose={() => setEditing(null)} onSaved={list.reload} />}
-      {deciding && (
-        <Modal open onClose={() => setDeciding(null)} size="sm" title={t("reviewDecimals", { code: deciding.alpha_code })}>
-          <p className="mb-3 text-sm">{t("decimalsChange", { from: deciding.effective_decimal_places, to: deciding.pending_decimal_places, by: deciding.pending_by })}</p>
-          <MakerChecker
-            api={reconCurrencyApi}
-            idKey="currency_id"
-            record={{ ...deciding, status: "PENDING", name: deciding.alpha_code }}
-            onChanged={() => {
-              setDeciding(null);
-              list.reload();
-            }}
-          />
-        </Modal>
-      )}
+      {decision.node}
     </>
   );
 }
