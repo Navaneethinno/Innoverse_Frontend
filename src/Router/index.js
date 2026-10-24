@@ -17,6 +17,7 @@ import { amlRoutes } from "./InnoAML/amlRoutes";
 import { reportRoutes } from "./Reports/reportRoutes";
 import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
 import { accountingRoutes } from "./Finance/accountingRoutes";
+import { reconRoutes } from "./Recon/reconRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -40,6 +41,9 @@ export const epurseRoutes = [
 // InnoAML: AML Configuration (Setup, Internal Watchlists) and AML Screening
 // (Screenings, Name Lookup, Match Review).
 export const innoAmlRoutes = [...amlRoutes];
+
+// InnoRecon: Recon Sources, Files, Layouts and Sets.
+export const innoReconRoutes = [...reconRoutes];
 
 // Reports: User Activity, Risk Score Breakdown, AML Score Breakdown.
 export const reportsRoutes = [...reportRoutes];

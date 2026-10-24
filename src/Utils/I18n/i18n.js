@@ -64,6 +64,7 @@ void i18n
       "kycReport",
       "mms",
       "bulkReg",
+      "recon",
     ],
     interpolation: { escapeValue: false },
     detection: {
