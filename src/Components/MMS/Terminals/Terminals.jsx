@@ -498,6 +498,9 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
     ["appVersion", x.app_version],
     ["added", `${x.created_by ?? ""} · ${mmsDate(x.created_at)}`],
     ["decisionNote", x.decision_note],
+    // The master key two custodians load, and the PIN key the terminal downloads.
+    ["tmkKey", x.keys?.tmk_kcv ? t("keyLoaded", { kcv: x.keys.tmk_kcv, by: x.keys.tmk_loaded_by ?? "—", at: mmsDate(x.keys.tmk_loaded_at) }) : t("keyNotLoaded")],
+    ["tpkKey", x.keys?.tpk_kcv ? t("keyIssued", { kcv: x.keys.tpk_kcv, at: mmsDate(x.keys.tpk_issued_at) }) : t("keyNotIssued")],
   ];
 
   return (

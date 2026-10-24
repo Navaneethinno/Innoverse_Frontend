@@ -4391,6 +4391,12 @@ export const mms = {
   wallet: "Wallet",
   balance: "Balance",
   noStoresAccess: "You don't have access to Stores.",
+  tmkKey: "Terminal master key (TMK)",
+  tpkKey: "PIN key (TPK)",
+  keyLoaded: "KCV {{kcv}} · loaded by {{by}}, {{at}}",
+  keyNotLoaded: "Not loaded: two custodians load it before card transactions",
+  keyIssued: "KCV {{kcv}} · downloaded {{at}}",
+  keyNotIssued: "Not downloaded by the terminal yet",
   mid: "MID",
   mcc: "MCC",
   setMcc: "Set MCC",
@@ -6813,6 +6819,8 @@ export const recon = {
 };
 
 export const routing = {
+  acquirerId: "Acquirer ID at the network",
+  acquirerShort: "acquirer {{id}}",
   checking: "Checking…",
   validOk: "No problems: it can be submitted.",
   title: "Transaction Routing",

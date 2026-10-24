@@ -1584,6 +1584,12 @@ export const mms = {
   wallet: "المحفظة",
   balance: "الرصيد",
   noStoresAccess: "ليس لديك صلاحية الوصول إلى المتاجر.",
+  tmkKey: "المفتاح الرئيسي للجهاز (TMK)",
+  tpkKey: "مفتاح PIN (TPK)",
+  keyLoaded: "KCV {{kcv}} · حمّله {{by}}، {{at}}",
+  keyNotLoaded: "غير محمّل: يحمّله أمينان قبل معاملات البطاقات",
+  keyIssued: "KCV {{kcv}} · نُزّل {{at}}",
+  keyNotIssued: "لم ينزّله الجهاز بعد",
   mid: "MID",
   mcc: "MCC",
   setMcc: "تعيين MCC",
@@ -5158,6 +5164,8 @@ export const recon = {
 };
 
 export const routing = {
+  acquirerId: "معرّف المستحوذ لدى الشبكة",
+  acquirerShort: "المستحوذ {{id}}",
   checking: "جارٍ التحقق…",
   validOk: "لا مشكلات: يمكن إرساله.",
   title: "توجيه المعاملات",

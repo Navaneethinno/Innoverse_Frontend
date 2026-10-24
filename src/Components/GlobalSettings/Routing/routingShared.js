@@ -31,6 +31,7 @@ export const toBody = (f) => ({
     kind: x.kind,
     provider: x.kind === "PROVIDER" ? x.provider ?? "" : "",
     network: x.kind === "CARD_NETWORK" ? x.network ?? "" : "",
+    ...(x.kind === "CARD_NETWORK" ? { acquirer_id: String(x.acquirer_id ?? "").trim() } : {}),
     txn_types: x.txn_types ?? [],
     failover_codes: x.failover_codes ?? [],
     failure_threshold: num(x.failure_threshold, 3),

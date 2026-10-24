@@ -99,7 +99,7 @@ function ConfigTables({ config, other, options }) {
     interfaces: [
       { key: "name", label: t("interface"), render: (x) => <span><b>{x.name}</b> <span className="font-mono text-muted-foreground">{x.code}</span></span> },
       { key: "kind", label: t("kind"), render: (x) => t(`kind_${x.kind}`, { defaultValue: x.kind }) },
-      { key: "target", label: t("connectsTo"), render: (x) => (x.kind === "PROVIDER" ? named(options?.providers, x.provider) : x.kind === "CARD_NETWORK" ? x.network : t("ourAuthorisation")) },
+      { key: "target", label: t("connectsTo"), render: (x) => (x.kind === "PROVIDER" ? named(options?.providers, x.provider) : x.kind === "CARD_NETWORK" ? [x.network, x.acquirer_id && t("acquirerShort", { id: x.acquirer_id })].filter(Boolean).join(" · ") : t("ourAuthorisation")) },
       { key: "txn_types", label: t("takes"), render: (x) => (x.txn_types?.length ? x.txn_types.map((v) => named(options?.txn_types, v)).join(", ") : t("anyType")) },
       { key: "down", label: t("downAfter"), render: (x) => t("downRule", { n: x.failure_threshold, s: x.cooldown_seconds }) },
       { key: "cost_note", label: t("costNote"), wrap: true, render: (x) => x.cost_note || "—" },
@@ -421,6 +421,7 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
               { key: "kind", label: t("kind"), type: "select", options: (options.kinds ?? []).map((k) => ({ value: k, label: t(`kind_${k}`, { defaultValue: k }) })) },
               { key: "provider", label: t("provider"), type: "select", blank: t("choose"), showIf: (x) => x.kind === "PROVIDER", options: (options.providers ?? []).map((p) => ({ value: p.code, label: `${p.name}${p.connection_only ? ` · ${t("connection")}` : ""}${p.active ? "" : ` · ${t("off")}`}` })) },
               { key: "network", label: t("network"), type: "select", blank: t("choose"), showIf: (x) => x.kind === "CARD_NETWORK", options: (options.networks ?? []).map((n) => ({ value: n, label: n })) },
+              { key: "acquirer_id", label: t("acquirerId"), showIf: (x) => x.kind === "CARD_NETWORK", placeholder: "123456" },
               { key: "failure_threshold", label: t("failureThreshold"), type: "int" },
               { key: "cooldown_seconds", label: t("cooldownSeconds"), type: "int" },
               { key: "active", label: t("active"), type: "bool" },

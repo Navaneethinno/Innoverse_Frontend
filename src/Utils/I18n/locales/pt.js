@@ -4405,6 +4405,12 @@ export const mms = {
   wallet: "Carteira",
   balance: "Saldo",
   noStoresAccess: "Não tem acesso a Lojas.",
+  tmkKey: "Chave mestra do terminal (TMK)",
+  tpkKey: "Chave de PIN (TPK)",
+  keyLoaded: "KCV {{kcv}} · carregada por {{by}}, {{at}}",
+  keyNotLoaded: "Não carregada: dois custódios carregam-na antes das transações com cartão",
+  keyIssued: "KCV {{kcv}} · descarregada {{at}}",
+  keyNotIssued: "Ainda não descarregada pelo terminal",
   mid: "MID",
   mcc: "MCC",
   setMcc: "Definir MCC",
@@ -6827,6 +6833,8 @@ export const recon = {
 };
 
 export const routing = {
+  acquirerId: "ID de adquirente na rede",
+  acquirerShort: "adquirente {{id}}",
   checking: "A verificar…",
   validOk: "Sem problemas: pode ser submetido.",
   title: "Encaminhamento de transações",
