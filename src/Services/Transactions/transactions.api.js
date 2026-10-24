@@ -35,4 +35,4 @@ export const extProvidersApi = calls("/config/global/ext_provider", ["options", 
 // interface's state and the operator's override (no checker); simulate:
 // where a transaction would go on the live routing; decisions: the log;
 // validate: the warnings an unsaved setup would be refused for (saves nothing).
-export const routingApi = calls("/config/global/routing", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "health", "health_set", "simulate", "decisions", "validate"]);
+export const routingApi = { ...calls("/config/global/routing", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "health", "health_set", "simulate", "decisions", "validate"]), decisionsPath: "/config/global/routing/decisions" };

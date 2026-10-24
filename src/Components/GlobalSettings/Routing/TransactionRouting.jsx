@@ -47,7 +47,7 @@ export function TransactionRouting() {
       {tab !== "setups" && needsInstitution && <p className="py-8 text-center text-sm text-muted-foreground">{t("pickInstitution")}</p>}
       {!needsInstitution && tab === "health" && <HealthBoard key={institution} scope={scope} />}
       {!needsInstitution && tab === "simulator" && <Simulator key={institution} scope={scope} instProfileId={scope().inst_profile_id} />}
-      {!needsInstitution && tab === "decisions" && <Decisions key={institution} scope={scope} instProfileId={scope().inst_profile_id} />}
+      {!needsInstitution && tab === "decisions" && <Decisions key={institution} instProfileId={scope().inst_profile_id} />}
     </div>
   );
 }

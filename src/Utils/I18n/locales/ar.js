@@ -5173,6 +5173,10 @@ export const recon = {
 };
 
 export const routing = {
+  amountAndPayer: "المبلغ · الدافع",
+  clientReference: "مرجع القناة",
+  payerWallet: "محفظة الدافع",
+  idempotencyKeyLabel: "مفتاح عدم التكرار",
   transaction: "المعاملة",
   actions: "الإجراءات",
   notPosted: "لم تُقيَّد",

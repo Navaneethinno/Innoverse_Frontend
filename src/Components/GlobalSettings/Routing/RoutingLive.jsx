@@ -2,13 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Play, RefreshCw, Undo2, XCircle } from "lucide-react";
 import { CopyButton } from "@/Components/Common/CopyButton";
+import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
+import { useServerList } from "@/Hooks/useServerList";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Button } from "@/Components/Common/Button";
-import { DateInput } from "@/Components/Common/DateInput";
-import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { Pager } from "@/Components/Common/Pager";
-import { SearchBox } from "@/Components/Common/SearchBox";
 import { Spinner } from "@/Components/Common/Spinner";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { ActionButtons, NarrationDialog, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
@@ -261,113 +259,92 @@ const Named = ({ code, name }) =>
     "—"
   );
 
-const OUTCOMES = ["", "ROUTED", "DEFAULT", "NO_ROUTE", "ISSUER_UNSUPPORTED"];
-
-// The log of routed transactions, newest first. A row shows what matters at a
-// glance; its View opens the whole decision (rule, group, candidates).
-export function Decisions({ scope, instProfileId }) {
+// The log of routed transactions, newest first, on the shared list (tabs by
+// outcome, direction / channel / type filters, dates, search by reference,
+// RRN, wallet, codes or card). A row shows what matters at a glance; its
+// View opens the whole decision (rule, group, candidates).
+export function Decisions({ instProfileId }) {
   const { t } = useTranslation("routing");
   const options = useRoutingOptions(instProfileId);
   const txnName = (code) => options?.txn_types?.find((x) => x.code === code)?.name ?? code;
-  const [typed, setTyped] = useState("");
-  const [search, setSearch] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [data, setData] = useState(null);
   const [open, setOpen] = useState(null);
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setSearch(typed.trim());
-      setPage(1);
-    }, 400);
-    return () => window.clearTimeout(timer);
-  }, [typed]);
-  useEffect(() => {
-    let cancelled = false;
-    routingApi
-      .decisions(scope({ page, page_size: pageSize, ...(search ? { search } : {}), ...(outcome ? { outcome } : {}), ...(from ? { date_from: from } : {}), ...(to ? { date_to: to } : {}) }))
-      .then((r) => !cancelled && setData(rowsOf(r)[0] ?? { items: [], total: 0 }))
-      .catch((error) => notifications.error(error.message));
-    return () => {
-      cancelled = true;
-    };
-  }, [scope, page, pageSize, search, outcome, from, to]);
-  const filter = (setter) => (v) => {
-    setter(v);
-    setPage(1);
-  };
+  const list = useServerList({ api: routingApi.decisionsPath, call: routingApi.decisions, prefix: "dec_" });
+  const hasCards = list.rows.some((d) => d.pan_masked);
+  const columns = [
+    { key: "created_at", label: t("time"), render: (d) => <span className="whitespace-nowrap text-xs">{accountDate(d.created_at)}</span> },
+    { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
+    {
+      key: "txn_type",
+      label: t("transaction"),
+      render: (d) => (
+        <span className="text-xs leading-tight">
+          <span className="block">{txnName(d.txn_type)}</span>
+          <span className="text-[10px] text-muted-foreground">{[d.channel, t(`directionShort_${d.direction}`, { defaultValue: d.direction })].filter(Boolean).join(" · ")}</span>
+        </span>
+      ),
+    },
+    // Who paid and how much: the wallet (a card's masked number when it has one).
+    {
+      key: "amount",
+      label: t("amountAndPayer"),
+      render: (d) => (
+        <span className="text-xs leading-tight">
+          <span className="block font-semibold tabular-nums">{d.amount != null ? d.amount : "—"}</span>
+          <span className="font-mono text-[10px] text-muted-foreground">{d.acct_num || (hasCards && d.pan_masked) || ""}</span>
+        </span>
+      ),
+    },
+    { key: "rule", label: t("rule"), render: (d) => <Named code={d.rule} name={d.rule_name} /> },
+    { key: "chosen", label: t("chosen"), render: (d) => <Named code={d.chosen_interface} name={d.chosen_interface_name} /> },
+    hasCards && {
+      key: "card",
+      label: t("card"),
+      render: (d) =>
+        d.pan_masked ? (
+          <span className="text-xs leading-tight">
+            <span className="block font-mono">{d.pan_masked}</span>
+            <span className="text-[10px] text-muted-foreground">{[d.on_us != null && t(d.on_us ? "onUs_OURS" : "onUs_OTHERS"), d.issuer].filter(Boolean).join(" · ")}</span>
+          </span>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      key: "rrn",
+      label: t("reference"),
+      render: (d) =>
+        d.rrn ? (
+          <span className="inline-flex items-center gap-1 font-mono text-xs">
+            {d.rrn} <CopyButton value={d.rrn} />
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{d.client_reference || t("notPosted")}</span>
+        ),
+    },
+    { key: "actions", label: t("actions"), sortable: false, render: (d) => <RowActions buttons={{ view: true }} onView={() => setOpen(d)} /> },
+  ].filter(Boolean);
   return (
-    <div className="grid gap-3">
-      <div className="flex flex-wrap items-end gap-2">
-        <SearchBox className="min-w-64 flex-1" search={typed} onSearch={setTyped} placeholder={t("decisionSearch")} />
-        <FilterSelect className="w-48" value={outcome} onChange={filter(setOutcome)} options={OUTCOMES.map((o) => ({ value: o, label: o ? t(`outcome_${o}`) : t("anyOutcome") }))} />
-        <DateInput className={cn(inputClass, "w-40")} value={from} onChange={(e) => filter(setFrom)(e.target.value)} placeholder={t("from")} />
-        <DateInput className={cn(inputClass, "w-40")} value={to} onChange={(e) => filter(setTo)(e.target.value)} placeholder={t("to")} />
-      </div>
-      {!data ? (
-        <Spinner size={16} />
-      ) : (
-        <>
-          <MiniTable
-            rows={data.items ?? []}
-            rowKey={(d, i) => d.id ?? i}
-            empty={t("noDecisions")}
-            columns={[
-              { key: "at", label: t("time"), render: (d) => <span className="whitespace-nowrap">{accountDate(d.created_at)}</span> },
-              { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
-              {
-                key: "txn_type",
-                label: t("transaction"),
-                render: (d) => (
-                  <span className="leading-tight">
-                    <span className="block">{txnName(d.txn_type)}</span>
-                    <span className="text-[10px] text-muted-foreground">{[d.channel, t(`directionShort_${d.direction}`, { defaultValue: d.direction })].filter(Boolean).join(" · ")}</span>
-                  </span>
-                ),
-              },
-              { key: "rule", label: t("rule"), render: (d) => <Named code={d.rule} name={d.rule_name} /> },
-              { key: "chosen", label: t("chosen"), render: (d) => <Named code={d.chosen_interface} name={d.chosen_interface_name} /> },
-              // Cards only: whose card, the issuer, the masked number.
-              (data.items ?? []).some((d) => d.pan_masked) && {
-                key: "card",
-                label: t("card"),
-                render: (d) =>
-                  d.pan_masked ? (
-                    <span className="leading-tight">
-                      <span className="block font-mono">{d.pan_masked}</span>
-                      <span className="text-[10px] text-muted-foreground">{[d.on_us != null && t(d.on_us ? "onUs_OURS" : "onUs_OTHERS"), d.issuer].filter(Boolean).join(" · ")}</span>
-                    </span>
-                  ) : (
-                    "—"
-                  ),
-              },
-              {
-                key: "reference",
-                label: t("reference"),
-                render: (d) =>
-                  d.txn_name ? (
-                    <span className="inline-flex items-center gap-1 font-mono">
-                      {d.txn_name} <CopyButton value={d.txn_name} />
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">{t("notPosted")}</span>
-                  ),
-              },
-              { key: "actions", label: t("actions"), render: (d) => <RowActions buttons={{ view: true }} onView={() => setOpen(d)} /> },
-            ].filter(Boolean)}
-          />
-          {open && (
-            <Modal open onClose={() => setOpen(null)} size="xl" title={t("decisionTitle", { id: open.id, at: accountDate(open.created_at) })}>
-              <DecisionView decision={open} />
-              {open.idempotency_key && <p className="mt-3 break-all font-mono text-[11px] text-muted-foreground">{t("idempotencyKey", { key: open.idempotency_key })}</p>}
-            </Modal>
-          )}
-          {data.total > pageSize && <Pager page={page} pageSize={pageSize} total={data.total} onPageChange={setPage} onPageSizeChange={(n) => (setPageSize(n), setPage(1))} className="rounded-xl" />}
-        </>
+    <>
+      <ListTable list={list} columns={columns} rowKey={(d) => d.id} title={t("tab_decisions")} emptyTitle={t("noDecisions")} />
+      {open && (
+        <Modal open onClose={() => setOpen(null)} size="xl" title={t("decisionTitle", { id: open.id, at: accountDate(open.created_at) })}>
+          <DecisionView decision={open} />
+          <dl className="mt-3 grid gap-1 text-[11px] text-muted-foreground">
+            {[
+              ["clientReference", open.client_reference],
+              ["payerWallet", open.acct_num],
+              ["idempotencyKeyLabel", open.idempotency_key],
+            ]
+              .filter(([, v]) => v)
+              .map(([k, v]) => (
+                <div key={k} className="flex flex-wrap gap-1">
+                  <dt className="font-semibold">{t(k)}:</dt>
+                  <dd className="break-all font-mono">{v}</dd>
+                </div>
+              ))}
+          </dl>
+        </Modal>
       )}
-    </div>
+    </>
   );
 }

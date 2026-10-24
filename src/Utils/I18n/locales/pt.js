@@ -6842,6 +6842,10 @@ export const recon = {
 };
 
 export const routing = {
+  amountAndPayer: "Valor · pagador",
+  clientReference: "Referência do canal",
+  payerWallet: "Carteira do pagador",
+  idempotencyKeyLabel: "Chave de idempotência",
   transaction: "Transação",
   actions: "Ações",
   notPosted: "Não lançada",
