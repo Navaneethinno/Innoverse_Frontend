@@ -56,6 +56,10 @@ export const terminalsApi = {
   resetSecret: (body) => request(`${terminal}/reset_secret`, body),
   acceptor: (body) => request(`${terminal}/acceptor`, body),
   setMcc: (body) => request(`${terminal}/set_mcc`, body),
+  // { id, component } (32 hex): one custodian's half of the master key; the
+  // second, by another user within 15 minutes, completes it. Answers only
+  // check values: { component_kcv, complete, terminal }.
+  tmkComponent: (body) => request(`${terminal}/tmk_component`, body),
   posPolicy: (body) => request(`${terminal}/pos_policy`, body),
   setPosPolicy: (body) => request(`${terminal}/set_pos_policy`, body),
 };

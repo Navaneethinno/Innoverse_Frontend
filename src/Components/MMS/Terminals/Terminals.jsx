@@ -358,6 +358,63 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
   );
 }
 
+// Load the terminal master key (TMK): two key custodians, each signed in as
+// themselves, enter one 32-hex component; the second (another user, within 15
+// minutes of the first) completes it. Only check values come back: the
+// custodian compares them with their key form. The component is never kept:
+// the field is cleared after every call.
+function LoadMasterKey({ terminal, onLoaded }) {
+  const { t } = useTranslation("mms");
+  const [component, setComponent] = useState("");
+  const [answer, setAnswer] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    try {
+      const row = rowsOf(await terminalsApi.tmkComponent({ id: terminal.id, component }))[0] ?? {};
+      setAnswer(row);
+      if (row.complete) onLoaded();
+    } catch (error) {
+      setAnswer(null);
+      notifications.error(error.message);
+    } finally {
+      setComponent("");
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="grid gap-2 rounded-xl border border-border p-3">
+      <p className="text-xs font-bold">{t("loadMasterKey")}</p>
+      <p className="text-[11px] text-muted-foreground">{t("loadMasterKeyHint")}</p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className={`${labelClass} min-w-72 flex-1`}>
+          {t("keyComponent")}
+          <input
+            type="password"
+            autoComplete="new-password"
+            spellCheck={false}
+            className={`${inputClass} mt-1 font-mono`}
+            maxLength={32}
+            value={component}
+            onChange={(e) => setComponent(e.target.value.toUpperCase().replace(/[^0-9A-F]/g, ""))}
+            placeholder="32 hex"
+          />
+        </label>
+        <Button size="sm" loading={busy} disabled={component.length !== 32} onClick={() => void submit()}>
+          {t("enterComponent")}
+        </Button>
+      </div>
+      {answer && (
+        <p className={`rounded-lg px-3 py-2 text-xs font-semibold ${answer.complete ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}>
+          {answer.complete
+            ? t("tmkComplete", { kcv: answer.component_kcv, tmk: answer.terminal?.keys?.tmk_kcv ?? answer.terminal?.tmk_kcv ?? "—" })
+            : t("tmkFirstDone", { kcv: answer.component_kcv })}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // A merchant's card acceptor details: its MID and MCC (4 digits, ISO 18245).
 // It needs an MCC before it is given terminals; Edit sets it.
 function MerchantAcceptor({ merchant, instProfileId }) {
@@ -525,6 +582,7 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
           ))}
         </dl>
         {x.merchant && <MerchantAcceptor merchant={x.merchant} instProfileId={x.inst_profile_id} />}
+        {can("Authorise") && !["RETIRED", "REJECTED"].includes(x.status) && <LoadMasterKey terminal={x} onLoaded={() => setVersion((n) => n + 1)} />}
       </div>
 
       {dialog === "assign" && <AssignDialog terminal={x} busy={busy} onClose={() => setDialog(null)} onSave={(merchant) => run(() => terminalsApi.assign({ id: x.id, merchant: partyRef(merchant) }))} />}
