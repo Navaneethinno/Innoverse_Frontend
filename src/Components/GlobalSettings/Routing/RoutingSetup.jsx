@@ -282,6 +282,29 @@ export function SetupView({ id, onBack, onEdit }) {
   );
 }
 
+// What submitting would be refused for, checked by the server without saving
+// (each time the Review tab opens).
+function ValidateResult({ id, body, scope }) {
+  const { t } = useTranslation("routing");
+  const [answer, setAnswer] = useState(null);
+  const key = JSON.stringify(body);
+  useEffect(() => {
+    let cancelled = false;
+    setAnswer(null);
+    const sent = JSON.parse(key);
+    routingApi
+      .validate(id ? { id, ...sent } : scope(sent))
+      .then((r) => !cancelled && setAnswer(rowsOf(r)[0] ?? {}))
+      .catch((error) => !cancelled && setAnswer({ valid: false, warnings: [error.message] }));
+    return () => {
+      cancelled = true;
+    };
+  }, [id, key, scope]);
+  if (!answer) return <p className="text-xs text-muted-foreground">{t("checking")}</p>;
+  if (answer.valid && !answer.warnings?.length) return <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{t("validOk")}</p>;
+  return <Warnings list={answer.warnings} />;
+}
+
 function Warnings({ list }) {
   if (!list?.length) return null;
   return (
@@ -525,7 +548,7 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
         <div className="grid gap-4">
           <Section title={t("review")}>
             <p className="mb-3 text-xs text-muted-foreground">{t("reviewHint")}</p>
-            <Warnings list={setup?.warnings} />
+            <ValidateResult id={id} body={toBody(form)} scope={scope} />
             <div className="mt-3">
               <ConfigTables config={toBody(form)} other={setup?.config} options={options} />
             </div>

@@ -6827,6 +6827,8 @@ export const recon = {
 };
 
 export const routing = {
+  checking: "A verificar…",
+  validOk: "Sem problemas: pode ser submetido.",
   title: "Encaminhamento de transações",
   subtitle: "Para onde vai cada transação: que ligação entrega um serviço e como são encaminhados os cartões de outros bancos nos nossos terminais. Sem configuração ou sem regra correspondente, tudo funciona como antes.",
   tab_setups: "Configurações",

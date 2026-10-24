@@ -201,7 +201,7 @@ const REASONS = ["MEMBER_INACTIVE", "INTERFACE_INACTIVE", "PROVIDER_INACTIVE", "
 // One decision: outcome, why, the card, and every candidate in rank order.
 export function DecisionView({ decision: d }) {
   const { t } = useTranslation("routing");
-  const chosen = d.chosen?.interface;
+  const chosen = d.chosen_interface ?? d.chosen?.interface;
   return (
     <Section
       title={
@@ -211,7 +211,7 @@ export function DecisionView({ decision: d }) {
       }
     >
       <dl className="mb-3 grid gap-2 text-xs sm:grid-cols-3">
-        <Fact label={t("rule")} value={d.rule ? `${d.rule_name ?? ""} (${d.rule})` : "—"} />
+        <Fact label={t("rule")} value={d.rule ? (d.rule_name ? `${d.rule_name} (${d.rule})` : d.rule) : "—"} />
         <Fact label={t("group")} value={d.group ?? "—"} />
         <Fact label={t("setupVersion")} value={d.setup_version ?? "—"} />
         {d.card && (
@@ -308,18 +308,18 @@ export function Decisions({ scope }) {
                   </button>
                 ),
               },
-              { key: "at", label: t("time"), render: (d) => <span className="whitespace-nowrap">{accountDate(d.at ?? d.created_at ?? d.decided_at)}</span> },
+              { key: "at", label: t("time"), render: (d) => <span className="whitespace-nowrap">{accountDate(d.created_at)}</span> },
               { key: "direction", label: t("direction"), render: (d) => t(`direction_${d.direction}`, { defaultValue: d.direction }) },
               { key: "outcome", label: t("outcome"), render: (d) => <Outcome value={d.outcome} /> },
               { key: "txn_type", label: t("txnType") },
               { key: "channel", label: t("channel") },
               { key: "rule", label: t("rule") },
               { key: "group", label: t("group") },
-              { key: "chosen", label: t("chosen"), render: (d) => d.chosen_interface ?? d.chosen?.interface ?? d.interface ?? "—" },
+              { key: "chosen", label: t("chosen"), render: (d) => d.chosen_interface || "—" },
               { key: "on_us", label: t("onUs"), render: (d) => (d.on_us == null ? "—" : t(d.on_us ? "onUs_OURS" : "onUs_OTHERS")) },
               { key: "issuer", label: t("issuer") },
-              { key: "pan_masked", label: t("card"), render: (d) => <span className="font-mono">{d.pan_masked ?? d.card?.pan_masked ?? "—"}</span> },
-              { key: "reference", label: t("reference"), render: (d) => <span className="font-mono">{d.reference ?? d.order_id ?? d.txn_id ?? d.idempotency_key ?? "—"}</span> },
+              { key: "pan_masked", label: t("card"), render: (d) => <span className="font-mono">{d.pan_masked || "—"}</span> },
+              { key: "reference", label: t("reference"), render: (d) => <span className="font-mono">{d.idempotency_key || "—"}</span> },
             ]}
           />
           {open && <DecisionView decision={open} />}

@@ -6813,6 +6813,8 @@ export const recon = {
 };
 
 export const routing = {
+  checking: "Checking…",
+  validOk: "No problems: it can be submitted.",
   title: "Transaction Routing",
   subtitle: "Where each transaction goes: which connection delivers a service, and how other banks' cards at our terminals are routed. With no setup or no matching rule, everything works as before.",
   tab_setups: "Setups",
