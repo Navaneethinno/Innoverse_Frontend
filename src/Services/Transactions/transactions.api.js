@@ -28,3 +28,10 @@ export const feeSchedulesApi = calls("/config/global/fee_schedule", ["options", 
 // maker-checker as a whole like a fee schedule. `providers` lists the live
 // ones with ids, for fee rules and limit conditions.
 export const extProvidersApi = calls("/config/global/ext_provider", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "providers"]);
+
+// GLOBAL SETTINGS > Transaction Routing (menu 192): one setup per institution
+// (interfaces, issuers and BIN ranges, ranked route groups, rules),
+// maker-checker like External Providers. health / health_set: each
+// interface's state and the operator's override (no checker); simulate:
+// where a transaction would go on the live routing; decisions: the log.
+export const routingApi = calls("/config/global/routing", ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "health", "health_set", "simulate", "decisions"]);

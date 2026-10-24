@@ -47,6 +47,8 @@ const toBody = (c) => ({
     priority: Number(p.priority) || i + 1,
     active: Boolean(p.active),
     name_lookup: Boolean(p.name_lookup),
+    // An aggregator: delivers other providers' services, used only by routing.
+    connection_only: Boolean(p.connection_only),
     ...(p.kind === "BANK" ? { account_format: formatOf(p) } : {}),
     ...(p.kind === "BILLER" ? { biller: billerBody(p.biller) } : {}),
   })),
@@ -197,6 +199,7 @@ function SetupTables({ config, other }) {
           { key: "allow_push", label: t("send"), render: (p) => yesNo(t, p.allow_push) },
           tab === "MOBILE_WALLET" && { key: "allow_pull", label: t("topUp"), render: (p) => yesNo(t, p.allow_pull) },
           canLookUp({ kind: tab }) && { key: "name_lookup", label: t("nameLookup"), render: (p) => yesNo(t, p.name_lookup) },
+          { key: "connection_only", label: t("connectionOnly"), render: (p) => yesNo(t, p.connection_only) },
           { key: "how", label: t("adapter"), render: (p) => p.adapter },
           { key: "active", label: t("active"), render: (p) => yesNo(t, p.active) },
         ].filter(Boolean)}
@@ -363,6 +366,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
     allow_pull: kind === "MOBILE_WALLET",
     prefixes: [],
     name_lookup: false,
+    connection_only: false,
     ...(kind === "BANK" ? { account_format: "NIB_MZ" } : {}),
     ...(kind === "BILLER" ? { biller: { category: "", services: [] } } : {}),
     priority: String((config?.providers?.length ?? 0) + 1),
@@ -431,6 +435,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
             { key: "allow_push", label: t("send"), type: "bool" },
             { key: "allow_pull", label: t("topUp"), type: "bool", showIf: canPull },
             { key: "name_lookup", label: t("nameLookup"), type: "bool", showIf: canLookUp },
+            { key: "connection_only", label: t("connectionOnly"), type: "bool" },
             { key: "active", label: t("active"), type: "bool" },
           ]}
           renderExtra={(provider, patch) => (
@@ -442,6 +447,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
                 </label>
               )}
               {provider.kind === "BILLER" && <BillerEditor biller={provider.biller} onChange={(biller) => patch({ biller })} />}
+              {provider.connection_only && <p className="mt-2 text-[11px] text-muted-foreground">{t("connectionOnlyHint")}</p>}
             </>
           )}
         />

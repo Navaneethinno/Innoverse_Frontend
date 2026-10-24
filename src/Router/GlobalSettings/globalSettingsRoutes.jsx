@@ -10,11 +10,15 @@ const FeeSchedules = lazy(() => import("@/Components/GlobalSettings/FeeSchedules
 // GLOBAL SETTINGS > External Providers (menu 210).
 const ExtProviders = lazy(() => import("@/Components/GlobalSettings/ExternalProviders/ExtProviders.jsx").then((m) => ({ default: m.ExtProviders })));
 
+// GLOBAL SETTINGS > Transaction Routing (menu 192).
+const TransactionRouting = lazy(() => import("@/Components/GlobalSettings/Routing/TransactionRouting.jsx").then((m) => ({ default: m.TransactionRouting })));
+
 export const globalSettingsRoutes = [
   { path: "feeschedules", element: pageElement(FeeSchedules) },
   { path: "feeschedules/:id", element: pageElement(FeeSchedules) },
   { path: "externalproviders", element: pageElement(ExtProviders) },
   { path: "externalproviders/:id", element: pageElement(ExtProviders) },
+  { path: "transactionrouting", element: pageElement(TransactionRouting) },
   { path: "limit", element: pageElement(LimitGroups) },
   { path: "limit/:id", element: pageElement(LimitGroups) },
 ];

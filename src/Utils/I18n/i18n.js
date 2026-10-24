@@ -65,6 +65,7 @@ void i18n
       "mms",
       "bulkReg",
       "recon",
+      "routing",
     ],
     interpolation: { escapeValue: false },
     detection: {
