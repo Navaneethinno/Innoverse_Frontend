@@ -23,7 +23,8 @@ export const agentsApi = {
 // approves them. list: { status, merchant, search, page, limit } · get: { id }
 // (adds users) · approve / reject (narration required) / deactivate /
 // reactivate: { id, narration }. wallets / set_wallets: a merchant's own
-// store wallet setting ("" = the institution's).
+// store wallet setting ("" = the institution's). pos_users: { merchant } ->
+// its terminal users, their profiles and shifts, and its idle setting.
 const store = "/merchant/admin/store";
 export const storesApi = {
   listPath: `${store}/list`,
@@ -35,12 +36,15 @@ export const storesApi = {
   reactivate: (body) => request(`${store}/reactivate`, body),
   wallets: (body) => request(`${store}/wallets`, body),
   setWallets: (body) => request(`${store}/set_wallets`, body),
+  posUsers: (body) => request(`${store}/pos_users`, body),
 };
 
 // MMS › Terminals (menu 209): POS terminals the bank registers and assigns
 // to merchants. `auth` and `reset_secret` return terminal_secret once.
 // merchants: { search, inst_profile_id (platform users), page, limit } -> the
 // Active merchant-type parties a terminal can be assigned to.
+// pos_policy: { inst_profile_id } -> { idle_seconds, default_seconds, ... };
+// set_pos_policy: { inst_profile_id, idle_seconds } (60 to 86400).
 const terminal = "/merchant/admin/terminal";
 export const terminalsApi = {
   listPath: `${terminal}/list`,
@@ -48,4 +52,6 @@ export const terminalsApi = {
     ["types", "list", "get", "add", "edit", "auth", "deauth", "assign", "unassign", "deactivate", "reactivate", "retire", "merchants"].map((name) => [name, (body) => request(`${terminal}/${name}`, body ?? {})]),
   ),
   resetSecret: (body) => request(`${terminal}/reset_secret`, body),
+  posPolicy: (body) => request(`${terminal}/pos_policy`, body),
+  setPosPolicy: (body) => request(`${terminal}/set_pos_policy`, body),
 };

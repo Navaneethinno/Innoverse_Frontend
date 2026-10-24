@@ -146,7 +146,7 @@ function StoreDetail({ store, permission, onClose, onChanged }) {
           <Spinner size={12} /> {t("loading")}
         </div>
       )}
-      <div className="grid gap-4">
+      <div className="grid gap-4 [&>*]:min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <MmsStatus value={s.status} />
           <ActionButtons busy={busy} buttons={buttons} />
@@ -171,11 +171,13 @@ function StoreDetail({ store, permission, onClose, onChanged }) {
               { key: "phone_number", label: t("phone") },
               { key: "status", label: t("status"), render: (u) => <MmsStatus value={u.status} /> },
               { key: "refund_limit", label: t("refundLimit"), render: (u) => u.refund_limit ?? "—" },
+              ...POS_USER_COLUMNS(t),
               { key: "last_sign_in_at", label: t("lastSignIn"), render: (u) => mmsDate(u.last_sign_in_at) },
             ]}
           />
         </div>
         {s.merchant && <StoreWalletsCard merchant={s.merchant} permission={can} />}
+        {s.merchant && <TerminalUsersCard merchant={s.merchant} />}
       </div>
       {dialog && (
         <NarrationDialog
@@ -213,6 +215,144 @@ function StoreMap({ latitude, longitude }) {
       >
         {t("openMap")} · {latitude.toFixed(5)}, {longitude.toFixed(5)}
       </a>
+    </div>
+  );
+}
+
+// A store user's terminal fields: operator ID, profile and shift (with
+// "Inactive" when switched off), and whether a manager manages cashiers.
+const POS_USER_COLUMNS = (t) => [
+  { key: "operator_id", label: t("operatorId"), render: (u) => (u.operator_id ? <span className="font-mono">{u.operator_id}</span> : "—") },
+  { key: "pos_profile", label: t("posProfile"), render: (u) => <PosRef item={u.pos_profile} /> },
+  { key: "pos_shift", label: t("posShift"), render: (u) => <PosRef item={u.pos_shift} /> },
+  { key: "can_manage_cashiers", label: t("managesCashiers"), render: (u) => (u.role === "STORE_MANAGER" ? t(u.can_manage_cashiers ? "common:yes" : "common:no") : "—") },
+];
+
+function PosInactive() {
+  const { t } = useTranslation("mms");
+  return <span className="whitespace-nowrap rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">{t("posInactive")}</span>;
+}
+
+function PosRef({ item }) {
+  if (!item) return "—";
+  return (
+    <span>
+      {item.name}
+      {item.status !== "ACTIVE" && (
+        <>
+          {" "}
+          <PosInactive />
+        </>
+      )}
+    </span>
+  );
+}
+
+// "Mon–Fri 20:00–04:00 (next day)": a window past midnight says so.
+const windowsText = (windows, locale, nextDay) => hoursText((windows ?? []).map((w) => (w.closes < w.opens ? { ...w, closes: `${w.closes} ${nextDay}` } : w)), locale);
+// "5,000.00 each · 2,000.00 a day · 50 a day" for one allowed transaction.
+const limitsOf = (t, row) =>
+  [
+    row.max_amount != null && t("posMaxEach", { amount: row.max_amount }),
+    row.daily_amount != null && t("posDailyAmount", { amount: row.daily_amount }),
+    row.daily_count != null && t("posDailyCount", { count: row.daily_count }),
+  ]
+    .filter(Boolean)
+    .join(" · ") || t("posNoLimit");
+
+// A merchant's terminal users (read only): its idle timeout, terminal
+// profiles (what a user may do on a terminal), shifts (when) and users.
+function TerminalUsersCard({ merchant }) {
+  const { t, i18n } = useTranslation(["mms", "common"]);
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    storesApi
+      .posUsers({ merchant: partyRef(merchant) })
+      .then((r) => setData(rowsOf(r)[0] ?? {}))
+      .catch((error) => {
+        setData({});
+        notifications.error(error.message);
+      });
+  }, [merchant]);
+
+  const minutes = (seconds) => (seconds == null ? null : Math.round(seconds / 60));
+  const settings = data?.settings;
+  const limit = (value, currency) => (value == null ? t("posNoLimit") : `${value} ${currency ?? ""}`.trim());
+  return (
+    <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 [&>*]:min-w-0">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("terminalUsers")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {!data
+            ? t("loading")
+            : settings
+              ? t(settings.idle_seconds == null ? "posIdleBank" : "posIdleOwn", { minutes: minutes(settings.effective_idle_seconds), bank: minutes(settings.institution_idle_seconds) })
+              : "—"}
+        </p>
+      </div>
+      {data && (
+        <>
+          <div>
+            <p className="mb-1 text-xs font-bold text-foreground">{t("posProfiles")}</p>
+            <MiniTable
+              rows={data.profiles}
+              empty={t("noPosProfiles")}
+              columns={[
+                { key: "name", label: t("name") },
+                { key: "status", label: t("status"), render: (p) => (p.status === "ACTIVE" ? <MmsStatus value="ACTIVE" /> : <PosInactive />) },
+                { key: "daily", label: t("posDailyTotals"), render: (p) => t("posTotals", { out: limit(p.daily_debit_limit, p.currency_code), in: limit(p.daily_credit_limit, p.currency_code) }) },
+                {
+                  key: "transactions",
+                  label: t("posTransactions"),
+                  render: (p) =>
+                    p.transactions?.length ? (
+                      <ul className="grid gap-0.5">
+                        {p.transactions.map((row) => (
+                          <li key={row.txn_type}>
+                            <span className="font-semibold">{t(`posTxn_${row.txn_type}`, { defaultValue: row.txn_type })}</span> · {limitsOf(t, row)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "—"
+                    ),
+                },
+                { key: "manager_assignable", label: t("posAssignable"), render: (p) => t(p.manager_assignable ? "common:yes" : "common:no") },
+                { key: "user_count", label: t("posUserCount"), align: "right" },
+              ]}
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-bold text-foreground">{t("posShifts")}</p>
+            <MiniTable
+              rows={data.shifts}
+              empty={t("noPosShifts")}
+              columns={[
+                { key: "name", label: t("name") },
+                { key: "status", label: t("status"), render: (sh) => (sh.status === "ACTIVE" ? <MmsStatus value="ACTIVE" /> : <PosInactive />) },
+                { key: "windows", label: t("posHours"), render: (sh) => windowsText(sh.windows, i18n.language, t("posNextDay")) ?? "—" },
+                { key: "open_now", label: t("posOpenNow"), render: (sh) => t(sh.open_now ? "common:yes" : "common:no") },
+                { key: "user_count", label: t("posUserCount"), align: "right" },
+              ]}
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-xs font-bold text-foreground">{t("storeUsers")}</p>
+            <MiniTable
+              rows={data.users}
+              empty={t("noStoreUsers")}
+              columns={[
+                { key: "name", label: t("name") },
+                { key: "role", label: t("role"), render: (u) => t(`storeRole_${u.role}`, { defaultValue: u.role }) },
+                { key: "stores", label: t("store"), render: (u) => (u.stores ?? []).map((st) => st.name).join(", ") || "—" },
+                { key: "status", label: t("status"), render: (u) => <MmsStatus value={u.status} /> },
+                ...POS_USER_COLUMNS(t),
+              ]}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -290,8 +430,9 @@ export function MerchantStores({ merchant }) {
   const { t } = useTranslation("mms");
   if (!can("View")) return <p className="py-4 text-center text-sm text-muted-foreground">{t("noStoresAccess")}</p>;
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 [&>*]:min-w-0">
       <StoreWalletsCard merchant={merchant} permission={can} />
+      <TerminalUsersCard merchant={merchant} />
       <StoreList merchant={merchant} permission={can} />
     </div>
   );

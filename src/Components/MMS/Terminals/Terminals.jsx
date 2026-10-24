@@ -2,7 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Unlink, XCircle } from "lucide-react";
+import { Ban, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Timer, Unlink, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -30,6 +30,7 @@ export function Terminals() {
   const can = usePagePermission();
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [policy, setPolicy] = useState(false);
   // TID, serial number or name.
 
   const list = useServerList({ api: terminalsApi.listPath, call: terminalsApi.list });
@@ -76,6 +77,9 @@ export function Terminals() {
 
   const listActions = (
     <>
+      <Button size="sm" variant="secondary" icon={Timer} onClick={() => setPolicy(true)}>
+        {t("posIdleTimeout")}
+      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} onClick={() => setEditing({})}>
           {t("addTerminal")}
@@ -108,7 +112,84 @@ export function Terminals() {
         />
       )}
       {editing && <TerminalForm terminal={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
+      {policy && <PosPolicyDialog canEdit={can("Edit")} onClose={() => setPolicy(false)} />}
     </div>
+  );
+}
+
+// The longest a terminal session may stay idle at an institution's merchants
+// (a merchant may set a shorter one). Platform users pick the institution.
+function PosPolicyDialog({ canEdit, onClose }) {
+  const { t } = useTranslation(["mms", "common"]);
+  const isPlatform = useCanChooseInstitution();
+  const [instId, setInstId] = useState("");
+  const [policy, setPolicy] = useState(null);
+  const [seconds, setSeconds] = useState("");
+  const [busy, setBusy] = useState(false);
+  const ready = !isPlatform || Boolean(instId);
+
+  useEffect(() => {
+    if (!ready) return;
+    setPolicy(null);
+    terminalsApi
+      .posPolicy(isPlatform ? { inst_profile_id: Number(instId) } : {})
+      .then((r) => {
+        const row = rowsOf(r)[0] ?? null;
+        setPolicy(row);
+        setSeconds(String(row?.idle_seconds ?? row?.default_seconds ?? ""));
+      })
+      .catch((error) => notifications.error(error.message));
+  }, [ready, isPlatform, instId]);
+
+  const value = Number(seconds);
+  const bad = !(Number.isInteger(value) && value >= 60 && value <= 86400);
+  const save = async () => {
+    setBusy(true);
+    try {
+      const r = await terminalsApi.setPosPolicy({ inst_profile_id: isPlatform ? Number(instId) : policy.inst_profile_id, idle_seconds: value });
+      if (r?.message) notifications.success(r.message);
+      onClose();
+    } catch (error) {
+      notifications.error(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t("posIdleTimeout")}
+      subtitle={t("posIdleHint")}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            {t("common:cancel")}
+          </Button>
+          {canEdit && (
+            <Button loading={busy} disabled={!policy || bad} onClick={() => void save()}>
+              {t("save")}
+            </Button>
+          )}
+        </>
+      }
+    >
+      <div className="grid gap-3">
+        <InstitutionField value={instId} onChange={setInstId} />
+        {ready && (
+          <label className={labelClass}>
+            {t("posIdleSeconds")} <span className="text-red-500">*</span>
+            <input className={`${inputClass} mt-1.5`} inputMode="numeric" disabled={!policy || !canEdit} value={seconds} onChange={(e) => setSeconds(e.target.value.replace(/\D/g, ""))} />
+            <span className={`mt-1 block text-[11px] font-normal ${seconds && bad ? "text-red-600" : "text-muted-foreground"}`}>
+              {seconds && !bad ? t("posIdleMinutes", { minutes: Math.round((value / 60) * 10) / 10 }) : t("posIdleRange")}
+              {policy && ` · ${t("posIdleDefault", { seconds: policy.default_seconds })}`}
+            </span>
+          </label>
+        )}
+        {policy?.updated_by && <p className="text-[11px] text-muted-foreground">{t("posIdleUpdated", { by: policy.updated_by, at: mmsDate(policy.updated_at) })}</p>}
+      </div>
+    </Modal>
   );
 }
 
