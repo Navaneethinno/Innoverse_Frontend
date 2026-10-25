@@ -47,3 +47,9 @@ export const coreBankingApi = calls("/config/accounting/core_banking", ["get", "
 // posts the year-end close), reopen the latest closed one (another user),
 // and a closed month's GL balances.
 export const accountingPeriodsApi = calls("/config/accounting/period", ["list", "close", "reopen", "balances"]);
+
+// Teller (menu 196): tills and vaults of a branch and currency, each with
+// its own GL account. Self is working a till: open / close with a count,
+// deposit, withdraw, loan repayment and transfers with the vault. Every
+// money call carries the slip `reference` (never posts twice).
+export const tellerApi = calls("/config/teller", ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer"]);

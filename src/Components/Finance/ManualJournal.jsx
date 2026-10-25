@@ -13,6 +13,7 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
+import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
 import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
@@ -310,63 +311,24 @@ function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onCh
 // the account number, the holder's name or reference.
 function AccountPicker({ value, currencyId, onChange }) {
   const { t } = useTranslation("accounting");
-  const [term, setTerm] = useState("");
-  const [found, setFound] = useState(null);
-  useEffect(() => {
-    const search = term.trim();
-    if (!search) {
-      setFound(null);
-      return undefined;
-    }
-    let current = true;
-    const timer = setTimeout(() => {
-      glJournalsApi
-        .accounts({ search, ...(currencyId ? { currency_id: Number(currencyId) } : {}), limit: 20 })
-        .then((r) => current && setFound(listPage(r).items))
-        .catch((e) => current && (setFound([]), notifications.error(e.message)));
-    }, 300);
-    return () => {
-      current = false;
-      clearTimeout(timer);
-    };
-  }, [term, currencyId]);
-
-  if (value) {
-    return (
-      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs">
-        <span className="min-w-0">
-          <b className="font-mono">{value.acct_num}</b> · {value.owner_name}
-          <span className="block truncate text-[10px] text-muted-foreground">{[t(OWNER_KINDS[value.owner_kind] ?? "", { defaultValue: value.owner_kind }), value.acct_product_name].filter(Boolean).join(" · ")}</span>
-        </span>
-        <button type="button" onClick={() => onChange(null)} className="shrink-0 text-[11px] font-bold text-primary hover:underline">
-          {t("change")}
-        </button>
-      </div>
-    );
-  }
   return (
-    <div className="relative">
-      <input className={inputClass} placeholder={t("searchAccounts")} value={term} onChange={(e) => setTerm(e.target.value)} />
-      {found && (
-        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
-          {found.length ? (
-            found.map((a) => (
-              <li key={a.acct_num}>
-                <button type="button" onClick={() => onChange(a)} className="block w-full px-3 py-2 text-left text-xs hover:bg-muted">
-                  <b className="font-mono">{a.acct_num}</b> · {a.owner_name}
-                  <span className="block text-[10px] text-muted-foreground">
-                    {[t(OWNER_KINDS[a.owner_kind] ?? "", { defaultValue: a.owner_kind }), a.acct_product_name, money(a.avail_bal, a.currency_code)].filter(Boolean).join(" · ")}
-                    {a.restriction && <b className="ml-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
-                  </span>
-                </button>
-              </li>
-            ))
-          ) : (
-            <li className="px-3 py-2 text-xs text-muted-foreground">{t("noAccountsFound")}</li>
-          )}
-        </ul>
+    <SearchPicker
+      value={value}
+      onChange={onChange}
+      rowKey={(a) => a.acct_num}
+      placeholder={t("searchAccounts")}
+      empty={t("noAccountsFound")}
+      search={(search) => glJournalsApi.accounts({ search, ...(currencyId ? { currency_id: Number(currencyId) } : {}), limit: 20 }).then((r) => listPage(r).items)}
+      renderItem={(a) => (
+        <>
+          <b className="font-mono">{a.acct_num}</b> · {a.owner_name}
+          <span className="block truncate text-[10px] text-muted-foreground">
+            {[t(OWNER_KINDS[a.owner_kind] ?? "", { defaultValue: a.owner_kind }), a.acct_product_name, a === value ? null : money(a.avail_bal, a.currency_code)].filter(Boolean).join(" · ")}
+            {a !== value && a.restriction && <b className="ml-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
+          </span>
+        </>
       )}
-    </div>
+    />
   );
 }
 
