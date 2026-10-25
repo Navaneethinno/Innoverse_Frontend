@@ -7228,6 +7228,22 @@ export const atm = {
 };
 
 export const corebank = {
+  "submissionsTab_regulator": "Regulator reports",
+  "submissionsTab_bureau": "Credit bureau file",
+  "bureauFiles": "Credit bureau files",
+  "noBureauFiles": "No bureau files yet",
+  "loansInFile": "Loans",
+  "generatedBy": "Generated",
+  "submittedAs": "Submitted",
+  "downloadCsv": "Download CSV",
+  "recordSubmitted": "Record as submitted",
+  "recordSubmittedTitle": "Record the {{period}} file as submitted",
+  "recordSubmittedHint": "Once sent to the bureau, record the reference it gave.",
+  "bureauReference": "Bureau's reference",
+  "generateBureauFile": "Generate bureau file",
+  "generateBureauFileHint": "The month's loan book in the bureau's CSV format.",
+  "periodMonth": "Month",
+  "periodFormat": "Enter the month as YYYY-MM.",
   "groupsTitle": "Borrower Groups",
   "groupsSubtitle": "Solidarity groups with a loan officer and a meeting rhythm. While any member is past due, the group is blocked and nobody in it can borrow.",
   "group": "Group",

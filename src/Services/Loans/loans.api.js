@@ -1,4 +1,5 @@
 import { request } from "@/Services/Epurse/onboarding.api";
+import { downloadAttachment } from "@/Services/api/fileTransfer";
 
 // Loans (Admin Portal: Loans handoff, module LOANS). Every call is a POST
 // with a JSON body; records carry `actions` saying which buttons apply to
@@ -86,3 +87,11 @@ export const regulatorySubmissionsApi = calls("/config/loan/regulatory_submissio
 // and joint liability; members, the collection sheet and one collection
 // (Loan Facilities Add) for all the group's loans at once.
 export const borrowerGroupsApi = calls("/config/loan/group", ["list", "get", "add", "edit", "deactivate", "member_add", "member_role", "member_remove", "collection_sheet", "collect"]);
+
+// Credit bureau file (Regulatory Submissions menu): a month's loan book as
+// the bureau's CSV. generate { period: YYYY-MM } · list · file { id } (the
+// CSV) · submit { id, submission_reference }.
+export const bureauSubmissionsApi = {
+  ...calls("/config/loan/bureau_submission", ["generate", "list", "submit"]),
+  file: (body, fallbackName) => downloadAttachment("/config/loan/bureau_submission/file", body, fallbackName),
+};

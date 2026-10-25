@@ -14,7 +14,8 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Facts, Section, dayDate, ratePct } from "../../Deposits/depositShared";
 import { FormDialog } from "../loanDialogs";
-import { MiniTable, loanLabel, useInstitutionScope } from "../loanShared";
+import { MiniTable, Tabs, loanLabel, useInstitutionScope } from "../loanShared";
+import { BureauFiles } from "./BureauFiles";
 
 const REPORT_TYPES = ["LOAN_BOOK", "CREDIT_REGISTRY"];
 const RECORD_COLUMNS = ["facility_number", "borrower_type", "borrower_id", "product_code", "currency", "principal_disbursed", "principal_outstanding", "annual_rate", "disbursement_date", "maturity_date", "status", "days_past_due", "risk_class", "provision", "restructure_count", "written_off_amount", "recovered_amount"];
@@ -44,6 +45,7 @@ export function RegulatorySubmissions() {
   const [openId, setOpenId] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState("regulator");
 
   const list = useServerList({ api: regulatorySubmissionsApi.listPath, call: regulatorySubmissionsApi.list });
 
@@ -109,7 +111,12 @@ export function RegulatorySubmissions() {
           <p className="mt-1 text-sm text-muted-foreground">{t("submissionsSubtitle")}</p>
         </div>
       </div>
-      <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("submissionsTitle")} emptyTitle={t("noReports")} emptyDescription={t("noReportsHint")} />
+      <Tabs tabs={[{ key: "regulator" }, { key: "bureau" }]} value={tab} onChange={setTab} labelOf={(k) => t(`corebank:submissionsTab_${k}`)} />
+      {tab === "bureau" ? (
+        <BureauFiles />
+      ) : (
+        <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("submissionsTitle")} emptyTitle={t("noReports")} emptyDescription={t("noReportsHint")} />
+      )}
       {generating && (
         <FormDialog
           title={t("generateReport")}

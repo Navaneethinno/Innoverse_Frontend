@@ -5582,6 +5582,22 @@ const withArabicPlurals = (ns) => {
 };
 
 export const corebank = {
+  "submissionsTab_regulator": "تقارير الجهة الرقابية",
+  "submissionsTab_bureau": "ملف مكتب الائتمان",
+  "bureauFiles": "ملفات مكتب الائتمان",
+  "noBureauFiles": "لا ملفات بعد",
+  "loansInFile": "القروض",
+  "generatedBy": "أُنشئ",
+  "submittedAs": "أُرسل",
+  "downloadCsv": "تنزيل CSV",
+  "recordSubmitted": "تسجيل كمُرسل",
+  "recordSubmittedTitle": "تسجيل ملف {{period}} كمُرسل",
+  "recordSubmittedHint": "بعد إرساله إلى المكتب، سجّل المرجع الذي أعطاه.",
+  "bureauReference": "مرجع المكتب",
+  "generateBureauFile": "إنشاء ملف المكتب",
+  "generateBureauFileHint": "محفظة القروض للشهر بصيغة CSV الخاصة بالمكتب.",
+  "periodMonth": "الشهر",
+  "periodFormat": "أدخل الشهر بصيغة YYYY-MM.",
   "groupsTitle": "مجموعات المقترضين",
   "groupsSubtitle": "مجموعات تضامنية مع موظف قروض ومواعيد اجتماعات. ما دام أي عضو متأخرًا، تُحظر المجموعة ولا يقترض أحد منها.",
   "group": "المجموعة",

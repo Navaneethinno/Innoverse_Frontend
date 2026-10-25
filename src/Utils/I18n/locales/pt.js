@@ -7242,6 +7242,22 @@ export const atm = {
 };
 
 export const corebank = {
+  "submissionsTab_regulator": "Relatórios ao regulador",
+  "submissionsTab_bureau": "Ficheiro da central de crédito",
+  "bureauFiles": "Ficheiros da central de crédito",
+  "noBureauFiles": "Ainda sem ficheiros",
+  "loansInFile": "Empréstimos",
+  "generatedBy": "Gerado",
+  "submittedAs": "Submetido",
+  "downloadCsv": "Descarregar CSV",
+  "recordSubmitted": "Registar como submetido",
+  "recordSubmittedTitle": "Registar o ficheiro de {{period}} como submetido",
+  "recordSubmittedHint": "Depois de enviado à central, registe a referência que ela deu.",
+  "bureauReference": "Referência da central",
+  "generateBureauFile": "Gerar ficheiro",
+  "generateBureauFileHint": "A carteira do mês no formato CSV da central.",
+  "periodMonth": "Mês",
+  "periodFormat": "Indique o mês como AAAA-MM.",
   "groupsTitle": "Grupos de mutuários",
   "groupsSubtitle": "Grupos solidários com um gestor de crédito e reuniões regulares. Enquanto um membro estiver em atraso, o grupo fica bloqueado e ninguém pode pedir crédito.",
   "group": "Grupo",
