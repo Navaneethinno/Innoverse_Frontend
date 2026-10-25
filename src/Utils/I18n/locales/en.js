@@ -176,6 +176,15 @@ export const auth = {
 // (which is a nav/route-label namespace, not this page's actual copy) so
 // adding "Welcome back" etc. doesn't collide with those existing keys.
 export const login = {
+  codeSent: "A sign-in code was sent",
+  codeLabel: "Enter the {{length}}-digit code sent to {{sentTo}}",
+  enterCode: "Enter the {{length}}-digit code",
+  codeExpiresIn: "The code expires in {{time}}",
+  codeExpired: "The code has expired: send a new one",
+  sendNewCode: "Send a new code",
+  backToSignIn: "Back to sign in",
+  verifyCode: "Verify code",
+  tryAgainIn: "Try again in {{seconds}} s",
   tagline: "Fintech Administration Platform",
   welcomeBack: "Welcome back",
   institutionCode: "Institution code",

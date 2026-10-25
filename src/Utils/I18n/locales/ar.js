@@ -2492,6 +2492,15 @@ export const auth = {
 };
 
 export const login = {
+  codeSent: "تم إرسال رمز تسجيل الدخول",
+  codeLabel: "أدخل الرمز المكوّن من {{length}} أرقام المرسل إلى {{sentTo}}",
+  enterCode: "أدخل الرمز المكوّن من {{length}} أرقام",
+  codeExpiresIn: "تنتهي صلاحية الرمز خلال {{time}}",
+  codeExpired: "انتهت صلاحية الرمز: أرسل رمزًا جديدًا",
+  sendNewCode: "إرسال رمز جديد",
+  backToSignIn: "العودة إلى تسجيل الدخول",
+  verifyCode: "تحقق من الرمز",
+  tryAgainIn: "حاول مرة أخرى خلال {{seconds}} ث",
   tagline: "منصة إدارة التقنية المالية",
   welcomeBack: "مرحباً بعودتك",
   institutionCode: "رمز المؤسسة",

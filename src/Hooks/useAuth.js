@@ -12,9 +12,12 @@ export function useAuth(selector) {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.token);
   const { setBrandTheme, clearBrandTheme } = useBrandTheme();
-  const login = async ({ institutionCode, username, password }) => {
+  // `code`: { mfa_token, mfa_code } on the second call of a sign-in that
+  // asked a code. A reply asking one returns { mfa } instead of a session.
+  const login = async ({ institutionCode, username, password, code }) => {
     try {
-      const response = await loginRequest(institutionCode, username, password);
+      const response = await loginRequest(institutionCode, username, password, code);
+      if (response.mfa) return { success: false, mfa: response.mfa, message: response.message };
       // The institution code signed in with, kept on the user (the reply
       // names the institution, not its code).
       const user = response.user && { ...response.user, institution_code: String(institutionCode ?? "").trim().toUpperCase() };
@@ -46,7 +49,7 @@ export function useAuth(selector) {
       // visible in the console instead of being indistinguishable from a
       // genuine wrong-password rejection.
       console.error("Login failed:", error);
-      return { success: false, message: error instanceof Error ? error.message : undefined };
+      return { success: false, message: error instanceof Error ? error.message : undefined, status: error?.status, retryAfter: error?.retryAfter };
     }
   };
   // A forced change (is_force_pwd, first sign-in) is done once this succeeds:

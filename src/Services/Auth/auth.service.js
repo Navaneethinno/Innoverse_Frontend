@@ -96,11 +96,12 @@ async function request(endpoint, init, send = fetch) {
       signal: controller.signal,
     });
     const payload = await getResponsePayload(response);
+    // A refusal carries its HTTP status and, on a 429, the seconds to wait
+    // (Retry-After): sign-in keeps its button off until then.
+    const refused = (message) => Object.assign(apiError(message, payload), { status: response.status, retryAfter: Number(response.headers.get("Retry-After")) || null });
     const statusMessage = getStatusErrorMessage(response.status, payload);
-    if (statusMessage) throw apiError(statusMessage, payload);
-    if (!response.ok) {
-      throw apiError(getApiErrorMessage(payload, "Request failed with status " + response.status), payload);
-    }
+    if (statusMessage) throw refused(statusMessage);
+    if (!response.ok) throw refused(getApiErrorMessage(payload, "Request failed with status " + response.status));
     return payload;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -115,7 +116,11 @@ async function request(endpoint, init, send = fetch) {
 // Usernames are unique only within an institution, so the login names it
 // by its code (case does not matter).
 // The password is sealed (credentialSeal.js), afresh on every try.
-export async function loginRequest(institutionCode, username, password) {
+// When the user's policy asks a sign-in code, the first reply has no session
+// but { mfa_required, mfa_token, sent_to, expires_in, code_length }: that is
+// returned as `{ mfa }`, and the same call is made again with
+// `code` = { mfa_token, mfa_code }.
+export async function loginRequest(institutionCode, username, password, code) {
   const payload = await withSealedRetry(async () =>
     request(API_ENDPOINTS.AUTH.LOGIN, {
       method: "POST",
@@ -125,9 +130,11 @@ export async function loginRequest(institutionCode, username, password) {
         Authorization: getBasicAuthorization(),
         ...apiLanguageHeader(),
       },
-      body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password: await seal(password) }),
+      body: JSON.stringify({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, ""), password: await seal(password), ...code }),
     }),
   );
+  const first = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
+  if (first?.mfa_required) return { mfa: first, message: payload?.message };
   return parseSessionResponse(payload);
 }
 

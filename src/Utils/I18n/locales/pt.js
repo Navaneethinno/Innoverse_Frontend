@@ -171,6 +171,15 @@ export const auth = {
 };
 
 export const login = {
+  codeSent: "Foi enviado um código de acesso",
+  codeLabel: "Introduza o código de {{length}} dígitos enviado para {{sentTo}}",
+  enterCode: "Introduza o código de {{length}} dígitos",
+  codeExpiresIn: "O código expira em {{time}}",
+  codeExpired: "O código expirou: envie um novo",
+  sendNewCode: "Enviar um novo código",
+  backToSignIn: "Voltar ao início de sessão",
+  verifyCode: "Verificar código",
+  tryAgainIn: "Tente novamente em {{seconds}} s",
   tagline: "Plataforma de Administração Fintech",
   welcomeBack: "Bem-vindo de volta",
   institutionCode: "Código da instituição",
