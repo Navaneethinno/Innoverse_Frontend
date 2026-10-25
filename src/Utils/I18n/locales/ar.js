@@ -5846,6 +5846,15 @@ export const corebank = {
 };
 
 export const loans = {
+  "groupOnly": "فقط عبر مجموعة مقترضين",
+  "topUpAllowed": "يسمح بقروض التعزيز",
+  "topUpMinimumRepaid": "التعزيز بعد سداد (%)",
+  "topUpMinimumRepaidHint": "نسبة أصل القرض الجاري المسددة قبل التعزيز.",
+  "topUpFrom": "نعم بعد سداد {{pct}}",
+  "guarantorsRequired": "الكفلاء المطلوبون",
+  "guarantorsRequiredHint": "عدد الكفلاء اللازمين قبل الموافقة (0-10).",
+  "compulsorySavingsPercent": "الادخار الإلزامي (% من الأصل)",
+  "compulsorySavingsHint": "يُحجز في محفظة ادخار المقترض من الصرف حتى تسوية القرض.",
   "nonAccrualTitle": "الفوائد المعلقة",
   "nonAccrualDays": "إيقاف الاعتراف بالفائدة من (أيام التأخر)",
   "nonAccrualDaysHint": "بعد ذلك تُعلّق فائدة القرض ولا يُعترف بها إلا عند الدفع أو عند انتظام القرض. 0 = أبدًا.",

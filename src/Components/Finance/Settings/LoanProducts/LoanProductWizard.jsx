@@ -49,9 +49,18 @@ function toBody(c) {
       ...(Object.keys(corporate).length ? { corporate } : {}),
       maximum_debt_to_income_ratio: optional(e.maximum_debt_to_income_ratio),
       credit_check_required: Boolean(e.credit_check_required),
+      group_only: Boolean(e.group_only),
+      top_up_allowed: Boolean(e.top_up_allowed),
+      top_up_minimum_repaid_percent: e.top_up_allowed ? str(e.top_up_minimum_repaid_percent) : undefined,
     }),
     approval_matrix: (c.approval_matrix ?? []).map((r) => ({ ...keepId(r), minimum_amount: str(r.minimum_amount), maximum_amount: str(r.maximum_amount), required_approvals: Number(r.required_approvals) || 1, ...(r.profile_ids?.length ? { profile_ids: r.profile_ids.map(Number) } : {}) })),
-    collateral_policy: { required: Boolean(c.collateral_policy?.required), minimum_coverage_ratio: str(c.collateral_policy?.minimum_coverage_ratio), accepted_types: c.collateral_policy?.accepted_types ?? [] },
+    collateral_policy: {
+      required: Boolean(c.collateral_policy?.required),
+      minimum_coverage_ratio: str(c.collateral_policy?.minimum_coverage_ratio),
+      accepted_types: c.collateral_policy?.accepted_types ?? [],
+      guarantors_required: Number(c.collateral_policy?.guarantors_required) || 0,
+      compulsory_savings_percent: str(c.collateral_policy?.compulsory_savings_percent),
+    },
     policy: {
       ...p,
       grace_period_days: Number(p.grace_period_days) || 0,
@@ -355,6 +364,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             {field(t("maximumDtiRatio"), <Field field={{ type: "rate", placeholder: "0.5" }} value={e.maximum_debt_to_income_ratio} onChange={(v) => setElig({ maximum_debt_to_income_ratio: v })} />, t("dtiHint"))}
             {field(t("minimumOperatingMonths"), <Field field={{ type: "int" }} value={e.corporate?.minimum_operating_months} onChange={(v) => setElig({ corporate: { ...e.corporate, minimum_operating_months: v } })} />)}
             <Toggle showLabel label={t("creditCheckRequired")} checked={e.credit_check_required} onChange={(v) => setElig({ credit_check_required: v })} className="self-end" />
+            <Toggle showLabel label={t("groupOnly")} checked={e.group_only} onChange={(v) => setElig({ group_only: v })} className="self-end" />
+            <Toggle showLabel label={t("topUpAllowed")} checked={e.top_up_allowed} onChange={(v) => setElig({ top_up_allowed: v })} className="self-end" />
+            {e.top_up_allowed && field(t("topUpMinimumRepaid"), <Field field={{ type: "percent" }} value={e.top_up_minimum_repaid_percent} onChange={(v) => setElig({ top_up_minimum_repaid_percent: v })} />, t("topUpMinimumRepaidHint"))}
           </div>
           {(e.individual?.minimum_age || e.individual?.maximum_age) && <p className="mt-3 text-xs text-amber-700">{t("ageRuleHint")}</p>}
         </Section>
@@ -387,6 +399,10 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             <p className={labelClass}>{t("acceptedTypes")}</p>
             <Field field={{ type: "multi", options: options.collateral_types ?? [] }} value={col.accepted_types} onChange={(v) => setColl({ accepted_types: v })} />
             <p className="mt-1 text-[11px] text-muted-foreground">{t("acceptedTypesHint")}</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {field(t("guarantorsRequired"), <Field field={{ type: "select", options: Array.from({ length: 11 }, (_, n) => ({ value: String(n), label: String(n) })) }} value={String(col.guarantors_required ?? 0)} onChange={(v) => setColl({ guarantors_required: v })} />, t("guarantorsRequiredHint"))}
+            {field(t("compulsorySavingsPercent"), <Field field={{ type: "percent" }} value={col.compulsory_savings_percent} onChange={(v) => setColl({ compulsory_savings_percent: v })} />, t("compulsorySavingsHint"))}
           </div>
         </Section>
       )}

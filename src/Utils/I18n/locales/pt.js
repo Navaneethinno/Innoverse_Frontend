@@ -3696,6 +3696,15 @@ export const deposits = {
 };
 
 export const loans = {
+  "groupOnly": "Apenas através de um grupo",
+  "topUpAllowed": "Permite empréstimos de reforço",
+  "topUpMinimumRepaid": "Reforço após reembolsado (%)",
+  "topUpMinimumRepaidHint": "Parte do capital do empréstimo em curso já reembolsada antes de um reforço.",
+  "topUpFrom": "Sim, após {{pct}} reembolsado",
+  "guarantorsRequired": "Fiadores exigidos",
+  "guarantorsRequiredHint": "Quantos fiadores um pedido precisa antes da aprovação (0-10).",
+  "compulsorySavingsPercent": "Poupança obrigatória (% do capital)",
+  "compulsorySavingsHint": "Retida sob ónus na poupança do mutuário desde o desembolso até a liquidação.",
   "nonAccrualTitle": "Juros em suspenso",
   "nonAccrualDays": "Deixar de reconhecer juros a partir de (dias de atraso)",
   "nonAccrualDaysHint": "Depois disto, os juros vão para suspenso e só são reconhecidos quando pagos ou quando o empréstimo regulariza. 0 = nunca.",

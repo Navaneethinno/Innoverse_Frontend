@@ -36,11 +36,15 @@ function policyGroups(t, c, cur) {
       ["maximumDti", e.maximum_debt_to_income_ratio ? ratePct(Number(e.maximum_debt_to_income_ratio) * 100) : t("any")],
       ["minimumOperatingMonths", e.corporate?.minimum_operating_months ?? t("any")],
       ["creditCheckRequired", yes(e.credit_check_required)],
+      ["groupOnly", yes(e.group_only)],
+      ["topUpAllowed", e.top_up_allowed ? t("topUpFrom", { pct: ratePct(e.top_up_minimum_repaid_percent ?? 0) }) : t("no")],
     ]],
     ["groupCollateral", [
       ["collateralRequired", yes(col.required)],
       ["coverageRatio", col.required ? ratePct(Number(col.minimum_coverage_ratio ?? 0) * 100) : "—"],
       ["acceptedTypes", (col.accepted_types ?? []).map((x) => loanLabel(t, x)).join(", ") || t("any")],
+      ["guarantorsRequired", Number(col.guarantors_required ?? 0)],
+      ["compulsorySavingsPercent", Number(col.compulsory_savings_percent) ? ratePct(col.compulsory_savings_percent) : t("none")],
     ]],
   ];
 }

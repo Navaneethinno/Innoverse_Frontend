@@ -3682,6 +3682,15 @@ export const deposits = {
 };
 
 export const loans = {
+  "groupOnly": "Only through a borrower group",
+  "topUpAllowed": "Top-up loans allowed",
+  "topUpMinimumRepaid": "Top-up once repaid (%)",
+  "topUpMinimumRepaidHint": "Share of the running loan's principal already repaid before a top-up.",
+  "topUpFrom": "Yes, once {{pct}} repaid",
+  "guarantorsRequired": "Guarantors required",
+  "guarantorsRequiredHint": "How many guarantors an application needs before approval (0-10).",
+  "compulsorySavingsPercent": "Compulsory savings (% of principal)",
+  "compulsorySavingsHint": "Held under lien in the borrower's savings wallet from disbursement until the loan is settled.",
   "nonAccrualTitle": "Interest in suspense",
   "nonAccrualDays": "Stop recognising interest from (days past due)",
   "nonAccrualDaysHint": "Past this, a loan's interest goes into suspense and is recognised only when paid or when the loan cures. 0 = never.",
