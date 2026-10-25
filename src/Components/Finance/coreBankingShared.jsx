@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { money } from "@/Components/Finance/Accounts/accountShared";
-import { coreBankingApi } from "@/Services/Accounting/accounting.api";
+import { coreBankingApi, tellerApi } from "@/Services/Accounting/accounting.api";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 
@@ -50,6 +50,32 @@ export const officerOptions = (setup) =>
     value: String(s.user_id),
     label: [s.user_name, s.branch_code].filter(Boolean).join(" · "),
   }));
+
+// The tills open now (a teller is working them), as select options; for
+// payments made at a till ({ source: "TILL", till_id }).
+export function useOpenTills(scope, enabled = true) {
+  const [tills, setTills] = useState([]);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    let current = true;
+    tellerApi
+      .list(scope({ kind: "TILL", status: "ACTIVE", limit: 100 }))
+      .then(
+        (r) =>
+          current &&
+          setTills(
+            (Array.isArray(r?.data) ? r.data : [])
+              .filter((x) => x.session)
+              .map((x) => ({ value: String(x.id), label: `${x.code} · ${x.name}` })),
+          ),
+      )
+      .catch(() => current && setTills([]));
+    return () => {
+      current = false;
+    };
+  }, [scope, enabled]);
+  return tills;
+}
 
 // A slip reference: 1-40 of A-Z a-z 0-9 . _ / -
 export const slipReference = (v) =>

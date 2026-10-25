@@ -18,7 +18,25 @@ import { MiniTable, Tabs, loanLabel, useInstitutionScope } from "../loanShared";
 import { BureauFiles } from "./BureauFiles";
 
 const REPORT_TYPES = ["LOAN_BOOK", "CREDIT_REGISTRY"];
-const RECORD_COLUMNS = ["facility_number", "borrower_type", "borrower_id", "product_code", "currency", "principal_disbursed", "principal_outstanding", "annual_rate", "disbursement_date", "maturity_date", "status", "days_past_due", "risk_class", "provision", "restructure_count", "written_off_amount", "recovered_amount"];
+const RECORD_COLUMNS = [
+  "facility_number",
+  "borrower_type",
+  "borrower_id",
+  "product_code",
+  "currency",
+  "principal_disbursed",
+  "principal_outstanding",
+  "annual_rate",
+  "disbursement_date",
+  "maturity_date",
+  "status",
+  "days_past_due",
+  "risk_class",
+  "provision",
+  "restructure_count",
+  "written_off_amount",
+  "recovered_amount",
+];
 
 // The records as a CSV file, downloaded in the browser.
 function downloadCsv(report) {
@@ -26,7 +44,10 @@ function downloadCsv(report) {
     const text = v == null ? "" : String(v);
     return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
   };
-  const lines = [RECORD_COLUMNS.join(","), ...(report.records ?? []).map((r) => RECORD_COLUMNS.map((c) => cell(r[c])).join(","))];
+  const lines = [
+    RECORD_COLUMNS.join(","),
+    ...(report.records ?? []).map((r) => RECORD_COLUMNS.map((c) => cell(r[c])).join(",")),
+  ];
   const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
@@ -47,7 +68,10 @@ export function RegulatorySubmissions() {
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState("regulator");
 
-  const list = useServerList({ api: regulatorySubmissionsApi.listPath, call: regulatorySubmissionsApi.list });
+  const list = useServerList({
+    api: regulatorySubmissionsApi.listPath,
+    call: regulatorySubmissionsApi.list,
+  });
 
   const load = list.reload;
 
@@ -80,21 +104,82 @@ export function RegulatorySubmissions() {
   };
 
   const columns = [
-    { key: "id", label: "#", render: (r) => <button type="button" onClick={() => setOpenId(r.id)} className="font-mono text-xs font-bold text-primary hover:underline">#{r.id}</button> },
-    { key: "report_type", label: t("reportType"), render: (r) => <b className="text-xs">{loanLabel(t, r.report_type)}</b> },
-    { key: "as_of_date", label: t("asOf"), render: (r) => <span className="text-xs">{dayDate(r.as_of_date)}</span> },
-    { key: "record_count", label: t("records"), render: (r) => <span className="text-xs tabular-nums">{r.record_count}</span> },
-    { key: "totals", label: t("outstanding"), sortable: false, render: (r) => <span className="text-xs">{Object.entries(r.totals ?? {}).map(([c, x]) => money(x.principal_outstanding, c)).join(" · ") || "—"}</span> },
-    { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
-    { key: "submission_reference", label: t("submissionReference"), render: (r) => <span className="text-xs">{r.submission_reference || "—"}</span> },
-    { key: "generated_at", label: t("generated"), render: (r) => <span className="whitespace-nowrap text-xs">{r.generated_by} · {accountDate(r.generated_at)}</span> },
-    { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpenId(r.id)} /> },
+    {
+      key: "id",
+      label: "#",
+      render: (r) => (
+        <button
+          type="button"
+          onClick={() => setOpenId(r.id)}
+          className="font-mono text-xs font-bold text-primary hover:underline"
+        >
+          #{r.id}
+        </button>
+      ),
+    },
+    {
+      key: "report_type",
+      label: t("reportType"),
+      render: (r) => <b className="text-xs">{loanLabel(t, r.report_type)}</b>,
+    },
+    {
+      key: "as_of_date",
+      label: t("asOf"),
+      render: (r) => <span className="text-xs">{dayDate(r.as_of_date)}</span>,
+    },
+    {
+      key: "record_count",
+      label: t("records"),
+      render: (r) => <span className="text-xs tabular-nums">{r.record_count}</span>,
+    },
+    {
+      key: "totals",
+      label: t("outstanding"),
+      sortable: false,
+      render: (r) => (
+        <span className="text-xs">
+          {Object.entries(r.totals ?? {})
+            .map(([c, x]) => money(x.principal_outstanding, c))
+            .join(" · ") || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: t("status"),
+      render: (r) => <StatusBadge status={r.status} variant="subtle" />,
+    },
+    {
+      key: "submission_reference",
+      label: t("submissionReference"),
+      render: (r) => <span className="text-xs">{r.submission_reference || "—"}</span>,
+    },
+    {
+      key: "generated_at",
+      label: t("generated"),
+      render: (r) => (
+        <span className="whitespace-nowrap text-xs">
+          {r.generated_by} · {accountDate(r.generated_at)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: t("common:actions"),
+      sortable: false,
+      render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpenId(r.id)} />,
+    },
   ];
 
   const listActions = (
     <>
       {can("Add") && (
-        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setGenerating(true)}>
+        <Button
+          size="sm"
+          icon={Plus}
+          disabled={chooser && !institution}
+          onClick={() => setGenerating(true)}
+        >
           {t("generateReport")}
         </Button>
       )}
@@ -111,11 +196,24 @@ export function RegulatorySubmissions() {
           <p className="mt-1 text-sm text-muted-foreground">{t("submissionsSubtitle")}</p>
         </div>
       </div>
-      <Tabs tabs={[{ key: "regulator" }, { key: "bureau" }]} value={tab} onChange={setTab} labelOf={(k) => t(`corebank:submissionsTab_${k}`)} />
+      <Tabs
+        tabs={[{ key: "regulator" }, { key: "bureau" }]}
+        value={tab}
+        onChange={setTab}
+        labelOf={(k) => t(`corebank:submissionsTab_${k}`)}
+      />
       {tab === "bureau" ? (
         <BureauFiles />
       ) : (
-        <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t("submissionsTitle")} emptyTitle={t("noReports")} emptyDescription={t("noReportsHint")} />
+        <ListTable
+          list={list}
+          actions={listActions}
+          columns={columns}
+          rowKey={(r) => r.id}
+          title={t("submissionsTitle")}
+          emptyTitle={t("noReports")}
+          emptyDescription={t("noReportsHint")}
+        />
       )}
       {generating && (
         <FormDialog
@@ -126,7 +224,16 @@ export function RegulatorySubmissions() {
           onSave={generate}
           initial={{ report_type: "LOAN_BOOK" }}
           required={["report_type"]}
-          fields={[{ key: "report_type", label: t("reportType"), type: "select", options: REPORT_TYPES, hint: t("reportTypeHint"), span: "sm:col-span-2" }]}
+          fields={[
+            {
+              key: "report_type",
+              label: t("reportType"),
+              type: "select",
+              options: REPORT_TYPES,
+              hint: t("reportTypeHint"),
+              span: "sm:col-span-2",
+            },
+          ]}
         />
       )}
     </div>
@@ -168,14 +275,16 @@ function SubmissionView({ id, onBack }) {
   };
 
   if (!report) {
-    return (
-      <PageSkeleton />
-    );
+    return <PageSkeleton />;
   }
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
+      >
         <ArrowLeft size={15} /> {t("backToReports")}
       </button>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
@@ -183,20 +292,34 @@ function SubmissionView({ id, onBack }) {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-black">
-                {loanLabel(t, report.report_type)} <span className="font-mono text-muted-foreground">#{report.id}</span>
+                {loanLabel(t, report.report_type)}{" "}
+                <span className="font-mono text-muted-foreground">#{report.id}</span>
               </h1>
               <StatusBadge status={report.status} />
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              {t("asOfX", { date: dayDate(report.as_of_date) })} · {t("policyVersionX", { version: report.policy_version ?? "—" })} · {t("recordsN", { count: report.record_count ?? 0 })}
+              {t("asOfX", { date: dayDate(report.as_of_date) })} ·{" "}
+              {t("policyVersionX", { version: report.policy_version ?? "—" })} ·{" "}
+              {t("recordsN", { count: report.record_count ?? 0 })}
             </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {t("generatedBy", { name: report.generated_by, date: accountDate(report.generated_at) })}
-              {report.submitted_by ? ` · ${t("recordedByX", { name: report.submitted_by, date: accountDate(report.submitted_at) })}` : ""}
+              {t("generatedBy", {
+                name: report.generated_by,
+                date: accountDate(report.generated_at),
+              })}
+              {report.submitted_by
+                ? ` · ${t("recordedByX", { name: report.submitted_by, date: accountDate(report.submitted_at) })}`
+                : ""}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" icon={Download} disabled={!report.records?.length} onClick={() => downloadCsv(report)}>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={Download}
+              disabled={!report.records?.length}
+              onClick={() => downloadCsv(report)}
+            >
               {t("exportCsv")}
             </Button>
             {report.status === "GENERATED" && can("Edit") && (
@@ -207,7 +330,14 @@ function SubmissionView({ id, onBack }) {
           </div>
         </div>
         {(report.submission_reference || report.response_notes) && (
-          <p className={cn("mt-3 rounded-xl px-3 py-2 text-xs font-semibold", report.status === "REJECTED" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700")}>
+          <p
+            className={cn(
+              "mt-3 rounded-xl px-3 py-2 text-xs font-semibold",
+              report.status === "REJECTED"
+                ? "bg-red-50 text-red-700"
+                : "bg-emerald-50 text-emerald-700",
+            )}
+          >
             {[report.submission_reference, report.response_notes].filter(Boolean).join(" · ")}
           </p>
         )}
@@ -233,19 +363,65 @@ function SubmissionView({ id, onBack }) {
         rows={report.records}
         rowKey={(r) => r.facility_number}
         columns={[
-          { key: "facility_number", label: t("loan"), render: (r) => <b className="font-mono">{r.facility_number}</b> },
-          { key: "borrower", label: t("borrower"), render: (r) => `${loanLabel(t, r.borrower_type)} #${r.borrower_id}` },
+          {
+            key: "facility_number",
+            label: t("loan"),
+            render: (r) => <b className="font-mono">{r.facility_number}</b>,
+          },
+          {
+            key: "borrower",
+            label: t("borrower"),
+            render: (r) => `${loanLabel(t, r.borrower_type)} #${r.borrower_id}`,
+          },
           { key: "product_code", label: t("product") },
-          { key: "principal_disbursed", label: t("principalDisbursed"), align: "right", render: (r) => money(r.principal_disbursed, r.currency) },
-          { key: "principal_outstanding", label: t("outstanding"), align: "right", render: (r) => money(r.principal_outstanding, r.currency) },
-          { key: "annual_rate", label: t("rate"), align: "right", render: (r) => ratePct(r.annual_rate) },
-          { key: "dates", label: t("period"), render: (r) => `${dayDate(r.disbursement_date)} – ${dayDate(r.maturity_date)}` },
-          { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
+          {
+            key: "principal_disbursed",
+            label: t("principalDisbursed"),
+            align: "right",
+            render: (r) => money(r.principal_disbursed, r.currency),
+          },
+          {
+            key: "principal_outstanding",
+            label: t("outstanding"),
+            align: "right",
+            render: (r) => money(r.principal_outstanding, r.currency),
+          },
+          {
+            key: "annual_rate",
+            label: t("rate"),
+            align: "right",
+            render: (r) => ratePct(r.annual_rate),
+          },
+          {
+            key: "dates",
+            label: t("period"),
+            render: (r) => `${dayDate(r.disbursement_date)} – ${dayDate(r.maturity_date)}`,
+          },
+          {
+            key: "status",
+            label: t("status"),
+            render: (r) => <StatusBadge status={r.status} variant="subtle" />,
+          },
           { key: "days_past_due", label: t("dpd"), align: "right" },
           { key: "risk_class", label: t("riskClass"), render: (r) => loanLabel(t, r.risk_class) },
-          { key: "provision", label: t("provision"), align: "right", render: (r) => money(r.provision, r.currency) },
-          { key: "written_off_amount", label: t("writtenOff"), align: "right", render: (r) => money(r.written_off_amount, r.currency) },
-          { key: "recovered_amount", label: t("recovered"), align: "right", render: (r) => money(r.recovered_amount, r.currency) },
+          {
+            key: "provision",
+            label: t("provision"),
+            align: "right",
+            render: (r) => money(r.provision, r.currency),
+          },
+          {
+            key: "written_off_amount",
+            label: t("writtenOff"),
+            align: "right",
+            render: (r) => money(r.written_off_amount, r.currency),
+          },
+          {
+            key: "recovered_amount",
+            label: t("recovered"),
+            align: "right",
+            render: (r) => money(r.recovered_amount, r.currency),
+          },
         ]}
       />
 
@@ -255,12 +431,32 @@ function SubmissionView({ id, onBack }) {
           hint={t("recordOutcomeHint")}
           busy={busy}
           onClose={() => setRecording(false)}
-          onSave={(f) => record({ status: f.status, ...(f.submission_reference?.trim() ? { submission_reference: f.submission_reference.trim() } : {}), ...(f.response_notes?.trim() ? { response_notes: f.response_notes.trim() } : {}) })}
+          onSave={(f) =>
+            record({
+              status: f.status,
+              ...(f.submission_reference?.trim()
+                ? { submission_reference: f.submission_reference.trim() }
+                : {}),
+              ...(f.response_notes?.trim() ? { response_notes: f.response_notes.trim() } : {}),
+            })
+          }
           initial={{ status: "SUBMITTED" }}
           required={["status"]}
-          problem={(f) => (f.status === "SUBMITTED" && !f.submission_reference?.trim() ? t("submittedNeedsReference") : "")}
+          problem={(f) =>
+            f.status === "SUBMITTED" && !f.submission_reference?.trim()
+              ? t("submittedNeedsReference")
+              : ""
+          }
           fields={[
-            { key: "status", label: t("outcome"), type: "select", options: ["SUBMITTED", "REJECTED"].map((v) => ({ value: v, label: t(`reportStatus_${v}`) })) },
+            {
+              key: "status",
+              label: t("outcome"),
+              type: "select",
+              options: ["SUBMITTED", "REJECTED"].map((v) => ({
+                value: v,
+                label: t(`reportStatus_${v}`),
+              })),
+            },
             { key: "submission_reference", label: t("submissionReference") },
             { key: "response_notes", label: t("responseNotes"), span: "sm:col-span-2" },
           ]}

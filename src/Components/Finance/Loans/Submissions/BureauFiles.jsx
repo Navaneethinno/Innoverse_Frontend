@@ -30,7 +30,11 @@ export function BureauFiles() {
   const { chooser, institution, scope } = useInstitutionScope();
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
-  const list = useServerList({ api: bureauSubmissionsApi.listPath, call: bureauSubmissionsApi.list, prefix: "bur_" });
+  const list = useServerList({
+    api: bureauSubmissionsApi.listPath,
+    call: bureauSubmissionsApi.list,
+    prefix: "bur_",
+  });
   const run = async (verb, body) => {
     setBusy(true);
     try {
@@ -46,23 +50,40 @@ export function BureauFiles() {
   };
   const download = async (row) => {
     try {
-      const { blob, fileName } = await bureauSubmissionsApi.file(scope({ id: row.id }), `bureau_${row.period}_${row.id}.csv`);
+      const { blob, fileName } = await bureauSubmissionsApi.file(
+        scope({ id: row.id }),
+        `bureau_${row.period}_${row.id}.csv`,
+      );
       saveBlob(blob, fileName);
     } catch (e) {
       notifications.error(e.message);
     }
   };
   const columns = [
-    { key: "period", label: t("period"), render: (r) => <b className="font-mono text-xs">{r.period}</b> },
-    { key: "rows", label: t("loansInFile"), render: (r) => <span className="text-xs tabular-nums">{r.rows}</span> },
-    { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
+    {
+      key: "period",
+      label: t("period"),
+      render: (r) => <b className="font-mono text-xs">{r.period}</b>,
+    },
+    {
+      key: "rows",
+      label: t("loansInFile"),
+      render: (r) => <span className="text-xs tabular-nums">{r.rows}</span>,
+    },
+    {
+      key: "status",
+      label: t("status"),
+      render: (r) => <StatusBadge status={r.status} variant="subtle" />,
+    },
     {
       key: "generated_at",
       label: t("generatedBy"),
       render: (r) => (
         <span className="text-xs leading-tight">
           {r.generated_by}
-          <span className="block text-[10px] text-muted-foreground">{accountDate(r.generated_at)}</span>
+          <span className="block text-[10px] text-muted-foreground">
+            {accountDate(r.generated_at)}
+          </span>
         </span>
       ),
     },
@@ -73,7 +94,9 @@ export function BureauFiles() {
         r.submitted_at ? (
           <span className="text-xs leading-tight">
             <b className="block font-mono">{r.submission_reference}</b>
-            <span className="text-[10px] text-muted-foreground">{[r.submitted_by, accountDate(r.submitted_at)].join(" · ")}</span>
+            <span className="text-[10px] text-muted-foreground">
+              {[r.submitted_by, accountDate(r.submitted_at)].join(" · ")}
+            </span>
           </span>
         ) : (
           "—"
@@ -85,8 +108,20 @@ export function BureauFiles() {
       sortable: false,
       render: (r) => (
         <span className="flex gap-1">
-          <ActionIconButton label={t("downloadCsv")} intent="statement" icon={Download} onClick={() => void download(r)} />
-          {!r.submitted_at && can("Edit") && <ActionIconButton label={t("recordSubmitted")} intent="submit" icon={Send} onClick={() => setDialog({ kind: "submit", row: r })} />}
+          <ActionIconButton
+            label={t("downloadCsv")}
+            intent="statement"
+            icon={Download}
+            onClick={() => void download(r)}
+          />
+          {!r.submitted_at && can("Edit") && (
+            <ActionIconButton
+              label={t("recordSubmitted")}
+              intent="submit"
+              icon={Send}
+              onClick={() => setDialog({ kind: "submit", row: r })}
+            />
+          )}
         </span>
       ),
     },
@@ -101,7 +136,12 @@ export function BureauFiles() {
         emptyTitle={t("noBureauFiles")}
         actions={
           can("Add") && (
-            <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setDialog({ kind: "generate" })}>
+            <Button
+              size="sm"
+              icon={Plus}
+              disabled={chooser && !institution}
+              onClick={() => setDialog({ kind: "generate" })}
+            >
               {t("generateBureauFile")}
             </Button>
           )
@@ -117,7 +157,14 @@ export function BureauFiles() {
           initial={{ period: lastMonth() }}
           required={["period"]}
           problem={(f) => (/^\d{4}-(0[1-9]|1[0-2])$/.test(f.period ?? "") ? "" : t("periodFormat"))}
-          fields={[{ key: "period", label: t("periodMonth"), placeholder: "YYYY-MM", span: "sm:col-span-2" }]}
+          fields={[
+            {
+              key: "period",
+              label: t("periodMonth"),
+              placeholder: "YYYY-MM",
+              span: "sm:col-span-2",
+            },
+          ]}
         />
       )}
       {dialog?.kind === "submit" && (
@@ -126,9 +173,16 @@ export function BureauFiles() {
           hint={t("recordSubmittedHint")}
           busy={busy}
           onClose={() => setDialog(null)}
-          onSave={(f) => run("submit", { id: dialog.row.id, submission_reference: f.submission_reference.trim() })}
+          onSave={(f) =>
+            run("submit", {
+              id: dialog.row.id,
+              submission_reference: f.submission_reference.trim(),
+            })
+          }
           required={["submission_reference"]}
-          fields={[{ key: "submission_reference", label: t("bureauReference"), span: "sm:col-span-2" }]}
+          fields={[
+            { key: "submission_reference", label: t("bureauReference"), span: "sm:col-span-2" },
+          ]}
         />
       )}
     </>

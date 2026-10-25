@@ -2,7 +2,23 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, Repeat, Send, Undo2, Wallet, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  CheckCircle2,
+  Coins,
+  FileX2,
+  Handshake,
+  HandCoins,
+  Landmark,
+  PhoneCall,
+  Repeat,
+  Send,
+  Undo2,
+  UserCog,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
@@ -16,24 +32,73 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct } from "../../Deposits/depositShared";
+import {
+  ActionButtons,
+  Facts,
+  NarrationDialog,
+  Problems,
+  Section,
+  dayDate,
+  labelClass,
+  ratePct,
+} from "../../Deposits/depositShared";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
-import { Field, MiniTable, ScheduleTable, Tabs, Timeline, loanLabel } from "../loanShared";
+import {
+  Field,
+  MiniTable,
+  ScheduleTable,
+  Tabs,
+  Timeline,
+  loanLabel,
+  useInstitutionScope,
+} from "../loanShared";
+import { officerOptions, useCoreBanking, useOpenTills } from "../../coreBankingShared";
+import { PortfolioQuality } from "./PortfolioQuality";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 const SOURCES = ["WALLET", "CASH"];
+// A repayment can also be taken at an open teller till.
+const REPAY_SOURCES = [...SOURCES, "TILL"];
 const TERM_UNITS = ["DAYS", "WEEKS", "MONTHS"];
 const ACTION_TYPES = ["CALL", "SMS", "EMAIL", "LETTER", "VISIT", "LEGAL_NOTICE", "AGENCY", "OTHER"];
-const OUTCOMES = ["CONTACTED", "NO_CONTACT", "PROMISE_TO_PAY", "REFUSED", "DISPUTED", "PAID", "OTHER"];
-const MANDATE_TYPES = ["STANDING_INSTRUCTION", "DIRECT_DEBIT", "GLOBAL_STANDING_INSTRUCTION", "SALARY_DEDUCTION", "OTHER"];
-const RISK_TONE = { CURRENT: "text-emerald-700", WATCH: "text-amber-700", SUBSTANDARD: "text-orange-700", DOUBTFUL: "text-red-700", LOSS: "text-red-700" };
-const pick = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => String(v ?? "").trim() !== "").map(([k, v]) => [k, typeof v === "string" ? v.trim() : v]));
+const OUTCOMES = [
+  "CONTACTED",
+  "NO_CONTACT",
+  "PROMISE_TO_PAY",
+  "REFUSED",
+  "DISPUTED",
+  "PAID",
+  "OTHER",
+];
+const MANDATE_TYPES = [
+  "STANDING_INSTRUCTION",
+  "DIRECT_DEBIT",
+  "GLOBAL_STANDING_INSTRUCTION",
+  "SALARY_DEDUCTION",
+  "OTHER",
+];
+const RISK_TONE = {
+  CURRENT: "text-emerald-700",
+  WATCH: "text-amber-700",
+  SUBSTANDARD: "text-orange-700",
+  DOUBTFUL: "text-red-700",
+  LOSS: "text-red-700",
+};
+const pick = (f) =>
+  Object.fromEntries(
+    Object.entries(f)
+      .filter(([, v]) => String(v ?? "").trim() !== "")
+      .map(([k, v]) => [k, typeof v === "string" ? v.trim() : v]),
+  );
 
 // LOANS > Loan Facilities (menu 187): the loans. Filters by status and
 // search by loan or application number; each loan opens on its own page.
 export function LoanFacilities() {
   const { t } = useTranslation(["loans", "common"]);
+  const can = usePagePermission();
   const [openId, setOpenId] = useState(null);
+  const [page, setPage] = useState("loans");
+  const [reassigning, setReassigning] = useState(false);
 
   const list = useServerList({ api: loanFacilitiesApi.listPath, call: loanFacilitiesApi.list });
 
@@ -58,8 +123,12 @@ export function LoanFacilities() {
       label: t("loan"),
       render: (f) => (
         <button type="button" onClick={() => setOpenId(f.id)} className="text-left">
-          <span className="block font-mono text-xs font-bold text-primary hover:underline">{f.facility_number}</span>
-          <span className="block font-mono text-[10px] text-muted-foreground">{f.application_number}</span>
+          <span className="block font-mono text-xs font-bold text-primary hover:underline">
+            {f.facility_number}
+          </span>
+          <span className="block font-mono text-[10px] text-muted-foreground">
+            {f.application_number}
+          </span>
         </button>
       ),
     },
@@ -70,17 +139,86 @@ export function LoanFacilities() {
       render: (f) => (
         <div>
           <p className="text-xs font-semibold">{f.owner?.name}</p>
-          <p className="text-[10px] text-muted-foreground">{loanLabel(t, f.owner?.kind ?? f.entity_type)}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {loanLabel(t, f.owner?.kind ?? f.entity_type)}
+          </p>
         </div>
       ),
     },
-    { key: "product_name", label: t("product"), render: (f) => <span className="text-xs">{f.product_name}</span> },
-    { key: "principal_disbursed", label: t("principal"), render: (f) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(Number(f.principal_disbursed) > 0 ? f.principal_disbursed : f.principal_approved, f.currency_alpha_code)}</span> },
-    { key: "principal_outstanding", label: t("outstanding"), render: (f) => <span className="whitespace-nowrap text-xs tabular-nums">{money(f.principal_outstanding, f.currency_alpha_code)}</span> },
-    { key: "days_past_due", label: t("dpd"), render: (f) => <span className={cn("text-xs font-bold tabular-nums", f.days_past_due > 0 && "text-red-700")}>{f.days_past_due ?? 0}</span> },
-    { key: "risk_class", label: t("riskClass"), render: (f) => <span className={cn("text-xs font-bold", RISK_TONE[f.risk_class])}>{loanLabel(t, f.risk_class)}</span> },
-    { key: "status", label: t("status"), render: (f) => <StatusBadge status={f.status} variant="subtle" /> },
-    { key: "actions", label: t("common:actions"), sortable: false, render: (f) => <RowActions buttons={{ view: true }} onView={() => setOpenId(f.id)} /> },
+    {
+      key: "product_name",
+      label: t("product"),
+      render: (f) => <span className="text-xs">{f.product_name}</span>,
+    },
+    {
+      key: "officer_name",
+      label: t("loanOfficer"),
+      render: (f) => (
+        <span className="text-xs leading-tight">
+          <span className="block">{f.officer_name ?? "—"}</span>
+          <span className="text-[10px] text-muted-foreground">
+            {[f.branch_name, f.group_code].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: "principal_disbursed",
+      label: t("principal"),
+      render: (f) => (
+        <span className="whitespace-nowrap text-xs font-bold tabular-nums">
+          {money(
+            Number(f.principal_disbursed) > 0 ? f.principal_disbursed : f.principal_approved,
+            f.currency_alpha_code,
+          )}
+        </span>
+      ),
+    },
+    {
+      key: "principal_outstanding",
+      label: t("outstanding"),
+      render: (f) => (
+        <span className="whitespace-nowrap text-xs tabular-nums">
+          {money(f.principal_outstanding, f.currency_alpha_code)}
+        </span>
+      ),
+    },
+    {
+      key: "days_past_due",
+      label: t("dpd"),
+      render: (f) => (
+        <span
+          className={cn("text-xs font-bold tabular-nums", f.days_past_due > 0 && "text-red-700")}
+        >
+          {f.days_past_due ?? 0}
+        </span>
+      ),
+    },
+    {
+      key: "risk_class",
+      label: t("riskClass"),
+      render: (f) => (
+        <span className={cn("text-xs font-bold", RISK_TONE[f.risk_class])}>
+          {loanLabel(t, f.risk_class)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      label: t("status"),
+      render: (f) => (
+        <span className="flex flex-wrap gap-1">
+          <StatusBadge status={f.status} variant="subtle" />
+          {f.non_accrual && <NonAccrualBadge />}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: t("common:actions"),
+      sortable: false,
+      render: (f) => <RowActions buttons={{ view: true }} onView={() => setOpenId(f.id)} />,
+    },
   ];
 
   return (
@@ -93,7 +231,45 @@ export function LoanFacilities() {
           <p className="mt-1 text-sm text-muted-foreground">{t("facilitiesSubtitle")}</p>
         </div>
       </div>
-      <ListTable list={list} columns={columns} rowKey={(f) => f.id} title={t("facilitiesTitle")} emptyTitle={t("noLoans")} emptyDescription={t("noLoansHint")} />
+      <Tabs
+        tabs={[{ key: "loans" }, { key: "portfolio" }]}
+        value={page}
+        onChange={setPage}
+        labelOf={(k) => t(`facilitiesTab_${k}`)}
+      />
+      {page === "portfolio" ? (
+        <PortfolioQuality />
+      ) : (
+        <ListTable
+          list={list}
+          columns={columns}
+          rowKey={(f) => f.id}
+          title={t("facilitiesTitle")}
+          emptyTitle={t("noLoans")}
+          emptyDescription={t("noLoansHint")}
+          actions={
+            can("Edit") && (
+              <Button
+                size="sm"
+                variant="outline"
+                icon={UserCog}
+                onClick={() => setReassigning(true)}
+              >
+                {t("reassignPortfolio")}
+              </Button>
+            )
+          }
+        />
+      )}
+      {reassigning && (
+        <ReassignDialog
+          onClose={() => setReassigning(false)}
+          onDone={() => {
+            setReassigning(false);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -111,6 +287,8 @@ function FacilityView({ id, onBack }) {
   const [tab, setTab] = useState("schedule");
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  const { scope } = useInstitutionScope();
+  const tills = useOpenTills(scope, dialog === "repay");
 
   const reload = useCallback(async () => {
     try {
@@ -123,7 +301,11 @@ function FacilityView({ id, onBack }) {
     void reload();
   }, [reload]);
   // The open record: reload when the push names it, or names nothing.
-  useLiveChannel("/config/loan/facility/list", (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
+  useLiveChannel(
+    "/config/loan/facility/list",
+    (_action, records) =>
+      (!records.length || records.some((r) => String(r.id) === String(id))) && void reload(),
+  );
 
   const act = async (verb, body = {}) => {
     setBusy(true);
@@ -144,9 +326,7 @@ function FacilityView({ id, onBack }) {
   };
 
   if (!loan) {
-    return (
-      <PageSkeleton />
-    );
+    return <PageSkeleton />;
   }
 
   const f = loan.facility ?? {};
@@ -157,56 +337,193 @@ function FacilityView({ id, onBack }) {
   const pendingRestructure = loan.restructures?.find((r) => r.status === "PENDING");
   const pendingWriteOff = loan.write_offs?.find((w) => w.status === "PENDING");
   const buttons = [
-    a.cancel && can("Delete") && { key: "cancel", label: t("cancelLoan"), icon: Ban, run: ask("cancel") },
-    a.disburse && can("Authorize") && { key: "disburse", label: t("disburse"), icon: Send, variant: "primary", run: ask("disburse") },
-    a.repay && can("Add") && { key: "repay", label: t("repay"), icon: Wallet, variant: "primary", run: ask("repay") },
-    a.settle && can("Add") && { key: "settle", label: t("settle"), icon: Handshake, variant: "outline", run: ask("settle") },
-    a.restructure && can("Add") && { key: "restructure", label: t("restructure"), icon: Repeat, run: ask("restructure") },
-    a.restructure_decide && can("Authorize") && { key: "restructure_deauth", label: t("rejectRestructure"), icon: XCircle, variant: "danger", run: ask("restructure_deauth") },
-    a.restructure_decide && can("Authorize") && { key: "restructure_auth", label: t("approveRestructure"), icon: CheckCircle2, variant: "primary", run: ask("restructure_auth") },
-    a.write_off && can("Add") && { key: "write_off", label: t("writeOff"), icon: FileX2, variant: "danger", run: ask("write_off") },
-    a.write_off_decide && can("Authorize") && { key: "write_off_deauth", label: t("rejectWriteOff"), icon: XCircle, variant: "danger", run: ask("write_off_deauth") },
-    a.write_off_decide && can("Authorize") && { key: "write_off_auth", label: t("approveWriteOff"), icon: CheckCircle2, variant: "primary", run: ask("write_off_auth") },
-    a.recover && can("Add") && { key: "recover", label: t("recover"), icon: Coins, variant: "primary", run: ask("recover") },
-    a.collections && can("Edit") && { key: "collection", label: t("addCollectionAction"), icon: PhoneCall, run: ask("collection") },
-    a.collections && can("Edit") && { key: "mandate", label: t("addMandate"), icon: HandCoins, run: ask("mandate") },
+    a.cancel &&
+      can("Delete") && { key: "cancel", label: t("cancelLoan"), icon: Ban, run: ask("cancel") },
+    a.disburse &&
+      can("Authorize") && {
+        key: "disburse",
+        label: t("disburse"),
+        icon: Send,
+        variant: "primary",
+        run: ask("disburse"),
+      },
+    a.repay &&
+      can("Add") && {
+        key: "repay",
+        label: t("repay"),
+        icon: Wallet,
+        variant: "primary",
+        run: ask("repay"),
+      },
+    a.settle &&
+      can("Add") && {
+        key: "settle",
+        label: t("settle"),
+        icon: Handshake,
+        variant: "outline",
+        run: ask("settle"),
+      },
+    a.restructure &&
+      can("Add") && {
+        key: "restructure",
+        label: t("restructure"),
+        icon: Repeat,
+        run: ask("restructure"),
+      },
+    a.restructure_decide &&
+      can("Authorize") && {
+        key: "restructure_deauth",
+        label: t("rejectRestructure"),
+        icon: XCircle,
+        variant: "danger",
+        run: ask("restructure_deauth"),
+      },
+    a.restructure_decide &&
+      can("Authorize") && {
+        key: "restructure_auth",
+        label: t("approveRestructure"),
+        icon: CheckCircle2,
+        variant: "primary",
+        run: ask("restructure_auth"),
+      },
+    a.write_off &&
+      can("Add") && {
+        key: "write_off",
+        label: t("writeOff"),
+        icon: FileX2,
+        variant: "danger",
+        run: ask("write_off"),
+      },
+    a.write_off_decide &&
+      can("Authorize") && {
+        key: "write_off_deauth",
+        label: t("rejectWriteOff"),
+        icon: XCircle,
+        variant: "danger",
+        run: ask("write_off_deauth"),
+      },
+    a.write_off_decide &&
+      can("Authorize") && {
+        key: "write_off_auth",
+        label: t("approveWriteOff"),
+        icon: CheckCircle2,
+        variant: "primary",
+        run: ask("write_off_auth"),
+      },
+    a.recover &&
+      can("Add") && {
+        key: "recover",
+        label: t("recover"),
+        icon: Coins,
+        variant: "primary",
+        run: ask("recover"),
+      },
+    a.collections &&
+      can("Edit") && {
+        key: "collection",
+        label: t("addCollectionAction"),
+        icon: PhoneCall,
+        run: ask("collection"),
+      },
+    a.collections &&
+      can("Edit") && {
+        key: "mandate",
+        label: t("addMandate"),
+        icon: HandCoins,
+        run: ask("mandate"),
+      },
+    f.officer_user_id != null &&
+      can("Edit") &&
+      !["CANCELLED", "SETTLED", "CLOSED", "WRITTEN_OFF"].includes(f.status) && {
+        key: "reassign",
+        label: t("reassignOfficer"),
+        icon: UserCog,
+        run: ask("reassign"),
+      },
   ];
   // Only the latest posted repayment or recovery can be reversed.
-  const reversible = [...(loan.transactions ?? [])].reverse().find((x) => ["REPAYMENT", "RECOVERY"].includes(x.transaction_type));
+  const reversible = [...(loan.transactions ?? [])]
+    .reverse()
+    .find((x) => ["REPAYMENT", "RECOVERY"].includes(x.transaction_type));
   const canReverse = reversible?.status === "POSTED" && can("Authorize");
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
+      >
         <ArrowLeft size={15} /> {t("backToLoans")}
       </button>
 
-      <div className={cn("mb-4 rounded-2xl border bg-card p-4", f.status === "DELINQUENT" ? "border-red-300" : "border-border")}>
+      <div
+        className={cn(
+          "mb-4 rounded-2xl border bg-card p-4",
+          f.status === "DELINQUENT" ? "border-red-300" : "border-border",
+        )}
+      >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black text-foreground">{f.facility_number}</h1>
               <StatusBadge status={f.status} />
-              {f.restructure_count > 0 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">{t("restructuredN", { count: f.restructure_count })}</span>}
+              {f.non_accrual && <NonAccrualBadge />}
+              {f.ecl_stage != null && (
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                  {t("eclStageN", { n: f.ecl_stage })}
+                </span>
+              )}
+              {f.restructure_count > 0 && (
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                  {t("restructuredN", { count: f.restructure_count })}
+                </span>
+              )}
             </div>
             <p className="mt-1 text-sm font-semibold text-foreground">
-              {f.owner?.name} <span className="ml-1 text-xs font-medium text-muted-foreground">{loanLabel(t, f.owner?.kind ?? f.entity_type)}</span>
+              {f.owner?.name}{" "}
+              <span className="ml-1 text-xs font-medium text-muted-foreground">
+                {loanLabel(t, f.owner?.kind ?? f.entity_type)}
+              </span>
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {f.product_name} · {f.term_value} {loanLabel(t, f.term_unit)} · {ratePct(f.annual_rate)} · {f.application_number} · {f.inst_profile_name}
+              {f.product_name} · {f.term_value} {loanLabel(t, f.term_unit)} ·{" "}
+              {ratePct(f.annual_rate)} · {f.application_number} · {f.inst_profile_name}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-3 text-right">
             <Stat label={t("outstanding")} value={m(f.principal_outstanding)} />
-            <Stat label={t("dpd")} value={f.days_past_due ?? 0} tone={f.days_past_due > 0 ? "text-red-700" : undefined} />
-            <Stat label={t("riskClass")} value={loanLabel(t, f.risk_class)} tone={RISK_TONE[f.risk_class]} />
+            <Stat
+              label={t("dpd")}
+              value={f.days_past_due ?? 0}
+              tone={f.days_past_due > 0 ? "text-red-700" : undefined}
+            />
+            <Stat
+              label={t("riskClass")}
+              value={loanLabel(t, f.risk_class)}
+              tone={RISK_TONE[f.risk_class]}
+            />
           </div>
         </div>
         <div className="mt-3 flex justify-end">
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
-        {pendingRestructure && <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("restructureWaiting", { term: `${pendingRestructure.term_value} ${loanLabel(t, pendingRestructure.term_unit)}`, rate: ratePct(pendingRestructure.annual_rate) })}</p>}
-        {pendingWriteOff && <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{t("writeOffWaiting", { name: pendingWriteOff.proposed_by, reason: pendingWriteOff.reason })}</p>}
+        {pendingRestructure && (
+          <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+            {t("restructureWaiting", {
+              term: `${pendingRestructure.term_value} ${loanLabel(t, pendingRestructure.term_unit)}`,
+              rate: ratePct(pendingRestructure.annual_rate),
+            })}
+          </p>
+        )}
+        {pendingWriteOff && (
+          <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+            {t("writeOffWaiting", {
+              name: pendingWriteOff.proposed_by,
+              reason: pendingWriteOff.reason,
+            })}
+          </p>
+        )}
       </div>
 
       {loan.due && <DueCard due={loan.due} currency={cur} />}
@@ -223,12 +540,21 @@ function FacilityView({ id, onBack }) {
           { key: "restructures", count: loan.restructures?.length },
           { key: "write_offs", count: loan.write_offs?.length },
           { key: "provisions", count: loan.provisions?.length },
-          { key: "collections", count: (loan.collection_actions?.length ?? 0) + (loan.recovery_mandates?.length ?? 0) },
+          {
+            key: "collections",
+            count: (loan.collection_actions?.length ?? 0) + (loan.recovery_mandates?.length ?? 0),
+          },
+          { key: "officers" },
           { key: "history" },
         ]}
       />
 
-      {tab === "schedule" && (loan.schedule?.length ? <ScheduleTable installments={loan.schedule} currency={cur} /> : <p className="text-sm text-muted-foreground">{t("scheduleOnPayout")}</p>)}
+      {tab === "schedule" &&
+        (loan.schedule?.length ? (
+          <ScheduleTable installments={loan.schedule} currency={cur} />
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("scheduleOnPayout")}</p>
+        ))}
       {tab === "summary" && (
         <Facts
           rows={[
@@ -236,6 +562,20 @@ function FacilityView({ id, onBack }) {
             [t("principalDisbursed"), m(f.principal_disbursed)],
             [t("netDisbursed"), m(f.net_disbursed)],
             [t("provision"), m(f.provision_amount)],
+            f.ecl_stage != null && [t("eclStage"), t("eclStageN", { n: f.ecl_stage })],
+            f.non_accrual && [t("nonAccrualSince"), dayDate(f.non_accrual_since), "text-amber-700"],
+            Number(f.suspended_interest) > 0 && [
+              t("suspendedInterest"),
+              m(f.suspended_interest),
+              "text-amber-700",
+            ],
+            f.branch_name && [t("branch"), f.branch_name],
+            [t("loanOfficer"), f.officer_name ?? "—"],
+            f.group_code && [t("borrowerGroup"), f.group_code],
+            f.refinanced_facility_id && [
+              t("topUpOf"),
+              f.refinanced_facility_number ?? `#${f.refinanced_facility_id}`,
+            ],
             [t("disbursementWallet"), f.disbursement_acct_num],
             [t("repaymentWallet"), f.repayment_acct_num],
             [t("loanAccount"), f.loan_acct_num ?? "—"],
@@ -246,18 +586,40 @@ function FacilityView({ id, onBack }) {
             [t("scheduleVersion"), f.schedule_version ?? "—"],
             [t("repaymentFrequency"), loanLabel(t, f.repayment_frequency)],
             [t("installmentMethod"), loanLabel(t, f.installment_method)],
-            [t("calculationMethod"), `${loanLabel(t, f.calculation_method)} · ${loanLabel(t, f.day_count_convention)}`],
+            [
+              t("calculationMethod"),
+              `${loanLabel(t, f.calculation_method)} · ${loanLabel(t, f.day_count_convention)}`,
+            ],
             [t("gracePeriodDays"), t("daysN", { count: f.grace_period_days ?? 0 })],
             [t("earlySettlement"), t(f.early_settlement_allowed ? "yes" : "no")],
-            [t("prepaymentCharge"), f.prepayment_charge_type === "NONE" ? t("none") : `${loanLabel(t, f.prepayment_charge_type)} ${f.prepayment_charge_value}`],
-            [t("lateCharge"), f.late_charge_type === "NONE" ? t("none") : `${loanLabel(t, f.late_charge_type)} ${f.late_charge_value}`],
-            [t("allocationOrder"), (f.repayment_allocation_order ?? []).map((x) => loanLabel(t, x)).join(" → ")],
+            [
+              t("prepaymentCharge"),
+              f.prepayment_charge_type === "NONE"
+                ? t("none")
+                : `${loanLabel(t, f.prepayment_charge_type)} ${f.prepayment_charge_value}`,
+            ],
+            [
+              t("lateCharge"),
+              f.late_charge_type === "NONE"
+                ? t("none")
+                : `${loanLabel(t, f.late_charge_type)} ${f.late_charge_value}`,
+            ],
+            [
+              t("allocationOrder"),
+              (f.repayment_allocation_order ?? []).map((x) => loanLabel(t, x)).join(" → "),
+            ],
             [t("autoDebit"), t(f.auto_debit_enabled ? "yes" : "no")],
-            f.written_off_date && [t("writtenOff"), `${m(f.written_off_amount)} · ${dayDate(f.written_off_date)}`],
+            f.written_off_date && [
+              t("writtenOff"),
+              `${m(f.written_off_amount)} · ${dayDate(f.written_off_date)}`,
+            ],
             f.written_off_date && [t("recovered"), m(f.recovered_amount)],
             f.settled_date && [t("settledOn"), dayDate(f.settled_date)],
             [t("createdBy"), `${f.created_by ?? "—"} · ${accountDate(f.created_time)}`],
-            f.disbursed_by && [t("disbursedBy"), `${f.disbursed_by} · ${accountDate(f.disbursed_time)}`],
+            f.disbursed_by && [
+              t("disbursedBy"),
+              `${f.disbursed_by} · ${accountDate(f.disbursed_time)}`,
+            ],
           ]}
         />
       )}
@@ -267,7 +629,11 @@ function FacilityView({ id, onBack }) {
           rows={loan.transactions}
           rowClass={(x) => (x.status === "REVERSED" ? "opacity-50 line-through" : undefined)}
           columns={[
-            { key: "transaction_type", label: t("type"), render: (x) => <b>{loanLabel(t, x.transaction_type)}</b> },
+            {
+              key: "transaction_type",
+              label: t("type"),
+              render: (x) => <b>{loanLabel(t, x.transaction_type)}</b>,
+            },
             { key: "value_date", label: t("valueDate"), render: (x) => dayDate(x.value_date) },
             { key: "amount", label: t("amount"), amount: true, strong: true },
             { key: "principal_component", label: t("principal"), amount: true, hideIfZero: true },
@@ -276,9 +642,29 @@ function FacilityView({ id, onBack }) {
             { key: "penalty_component", label: t("penalty"), amount: true, hideIfZero: true },
             { key: "source", label: t("source"), render: (x) => loanLabel(t, x.source) },
             { key: "rrn", label: "RRN" },
-            { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
-            { key: "by", label: t("by"), render: (x) => `${x.created_by} · ${accountDate(x.transaction_time)}` },
-            canReverse && { key: "reverse", label: "", render: (x) => (x.id === reversible.id ? <ActionIconButton label={t("reverse")} intent="deauth" icon={Undo2} onClick={() => setDialog({ reverse: x })} /> : null) },
+            {
+              key: "status",
+              label: t("status"),
+              render: (x) => <StatusBadge status={x.status} variant="subtle" />,
+            },
+            {
+              key: "by",
+              label: t("by"),
+              render: (x) => `${x.created_by} · ${accountDate(x.transaction_time)}`,
+            },
+            canReverse && {
+              key: "reverse",
+              label: "",
+              render: (x) =>
+                x.id === reversible.id ? (
+                  <ActionIconButton
+                    label={t("reverse")}
+                    intent="deauth"
+                    icon={Undo2}
+                    onClick={() => setDialog({ reverse: x })}
+                  />
+                ) : null,
+            },
           ].filter(Boolean)}
         />
       )}
@@ -287,10 +673,16 @@ function FacilityView({ id, onBack }) {
       {tab === "restructures" && (
         <div className="grid gap-3">
           {(loan.restructures ?? []).map((r) => (
-            <Section key={r.id} title={`${t("restructureN", { id: r.id })} · ${r.term_value} ${loanLabel(t, r.term_unit)} · ${ratePct(r.annual_rate)}`} action={<StatusBadge status={r.status} variant="subtle" />}>
+            <Section
+              key={r.id}
+              title={`${t("restructureN", { id: r.id })} · ${r.term_value} ${loanLabel(t, r.term_unit)} · ${ratePct(r.annual_rate)}`}
+              action={<StatusBadge status={r.status} variant="subtle" />}
+            >
               <p className="mb-2 text-xs text-muted-foreground">
                 {r.reason}
-                {r.moratorium_days ? ` · ${t("moratoriumDaysN", { count: r.moratorium_days })}` : ""}
+                {r.moratorium_days
+                  ? ` · ${t("moratoriumDaysN", { count: r.moratorium_days })}`
+                  : ""}
               </p>
               {r.preview && (
                 <>
@@ -300,16 +692,26 @@ function FacilityView({ id, onBack }) {
                       [t("asOf"), dayDate(r.preview.as_of)],
                       [t("outstanding"), m(r.preview.principal_outstanding)],
                       [t("capitalisedInterest"), m(r.preview.capitalised_interest)],
-                      [t("capitalisedFees"), m(Number(r.preview.capitalised_fees ?? 0) + Number(r.preview.capitalised_penalty ?? 0))],
+                      [
+                        t("capitalisedFees"),
+                        m(
+                          Number(r.preview.capitalised_fees ?? 0) +
+                            Number(r.preview.capitalised_penalty ?? 0),
+                        ),
+                      ],
                       [t("newPrincipal"), m(r.preview.new_principal), "text-primary"],
                     ]}
                   />
-                  {r.preview.schedule?.installments && <ScheduleTable installments={r.preview.schedule.installments} currency={cur} />}
+                  {r.preview.schedule?.installments && (
+                    <ScheduleTable installments={r.preview.schedule.installments} currency={cur} />
+                  )}
                 </>
               )}
             </Section>
           ))}
-          {!loan.restructures?.length && <p className="text-sm text-muted-foreground">{t("nothingYet")}</p>}
+          {!loan.restructures?.length && (
+            <p className="text-sm text-muted-foreground">{t("nothingYet")}</p>
+          )}
         </div>
       )}
       {tab === "write_offs" && (
@@ -317,12 +719,25 @@ function FacilityView({ id, onBack }) {
           currency={cur}
           rows={loan.write_offs}
           columns={[
-            { key: "status", label: t("status"), render: (w) => <StatusBadge status={w.status} variant="subtle" /> },
+            {
+              key: "status",
+              label: t("status"),
+              render: (w) => <StatusBadge status={w.status} variant="subtle" />,
+            },
             { key: "reason", label: t("reason") },
             { key: "principal", label: t("principal"), amount: true },
             { key: "interest", label: t("interest"), amount: true },
-            { key: "proposed_by", label: t("proposedBy"), render: (w) => `${w.proposed_by} · ${accountDate(w.proposed_at)}` },
-            { key: "decided_by", label: t("decidedBy"), render: (w) => (w.decided_by ? `${w.decided_by} · ${accountDate(w.decided_at)}` : "—") },
+            {
+              key: "proposed_by",
+              label: t("proposedBy"),
+              render: (w) => `${w.proposed_by} · ${accountDate(w.proposed_at)}`,
+            },
+            {
+              key: "decided_by",
+              label: t("decidedBy"),
+              render: (w) =>
+                w.decided_by ? `${w.decided_by} · ${accountDate(w.decided_at)}` : "—",
+            },
             { key: "decision_note", label: t("note"), render: (w) => w.decision_note || "—" },
           ]}
         />
@@ -334,11 +749,33 @@ function FacilityView({ id, onBack }) {
           rowKey={(p, i) => `${p.provision_date}-${i}`}
           columns={[
             { key: "provision_date", label: t("date"), render: (p) => dayDate(p.provision_date) },
-            { key: "risk_class", label: t("riskClass"), render: (p) => <span className={cn("font-bold", RISK_TONE[p.risk_class])}>{loanLabel(t, p.risk_class)}</span> },
-            { key: "provision_percent", label: t("provisionPct"), align: "right", render: (p) => ratePct(p.provision_percent) },
+            {
+              key: "risk_class",
+              label: t("riskClass"),
+              render: (p) => (
+                <span className={cn("font-bold", RISK_TONE[p.risk_class])}>
+                  {loanLabel(t, p.risk_class)}
+                </span>
+              ),
+            },
+            {
+              key: "provision_percent",
+              label: t("provisionPct"),
+              align: "right",
+              render: (p) => ratePct(p.provision_percent),
+            },
             { key: "exposure", label: t("exposure"), amount: true },
             { key: "required", label: t("required"), amount: true, strong: true },
-            { key: "change", label: t("change"), align: "right", render: (p) => <span className={Number(p.change) < 0 ? "text-emerald-700" : "text-red-700"}>{formatNumber(p.change, { min: 2, max: 6 })}</span> },
+            {
+              key: "change",
+              label: t("change"),
+              align: "right",
+              render: (p) => (
+                <span className={Number(p.change) < 0 ? "text-emerald-700" : "text-red-700"}>
+                  {formatNumber(p.change, { min: 2, max: 6 })}
+                </span>
+              ),
+            },
           ]}
         />
       )}
@@ -348,12 +785,29 @@ function FacilityView({ id, onBack }) {
             <MiniTable
               rows={loan.collection_actions}
               columns={[
-                { key: "action_type", label: t("action"), render: (c) => <b>{loanLabel(t, c.action_type)}</b> },
+                {
+                  key: "action_type",
+                  label: t("action"),
+                  render: (c) => <b>{loanLabel(t, c.action_type)}</b>,
+                },
                 { key: "outcome", label: t("outcome"), render: (c) => loanLabel(t, c.outcome) },
-                { key: "promise", label: t("promise"), render: (c) => (c.promise_date ? `${m(c.promise_amount)} · ${dayDate(c.promise_date)}` : "—") },
-                { key: "next_action_date", label: t("nextAction"), render: (c) => dayDate(c.next_action_date) },
+                {
+                  key: "promise",
+                  label: t("promise"),
+                  render: (c) =>
+                    c.promise_date ? `${m(c.promise_amount)} · ${dayDate(c.promise_date)}` : "—",
+                },
+                {
+                  key: "next_action_date",
+                  label: t("nextAction"),
+                  render: (c) => dayDate(c.next_action_date),
+                },
                 { key: "notes", label: t("notes"), render: (c) => c.notes || "—" },
-                { key: "recorded_by", label: t("by"), render: (c) => `${c.recorded_by} · ${accountDate(c.recorded_at)}` },
+                {
+                  key: "recorded_by",
+                  label: t("by"),
+                  render: (c) => `${c.recorded_by} · ${accountDate(c.recorded_at)}`,
+                },
               ]}
             />
           </Section>
@@ -362,35 +816,127 @@ function FacilityView({ id, onBack }) {
               currency={cur}
               rows={loan.recovery_mandates}
               columns={[
-                { key: "mandate_type", label: t("type"), render: (x) => <b>{loanLabel(t, x.mandate_type)}</b> },
+                {
+                  key: "mandate_type",
+                  label: t("type"),
+                  render: (x) => <b>{loanLabel(t, x.mandate_type)}</b>,
+                },
                 { key: "mandate_reference", label: t("reference") },
                 { key: "provider", label: t("provider"), render: (x) => x.provider || "—" },
                 { key: "maximum_amount", label: t("maximumAmount"), amount: true },
-                { key: "period", label: t("period"), render: (x) => `${dayDate(x.start_date)} – ${x.end_date ? dayDate(x.end_date) : "…"}` },
-                { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
-                { key: "cancel", label: "", render: (x) => (x.status === "ACTIVE" && a.collections && can("Edit") ? <ActionIconButton label={t("cancelMandate")} intent="delete" icon={Ban} onClick={() => setDialog({ mandate: x })} /> : x.cancel_reason || null) },
+                {
+                  key: "period",
+                  label: t("period"),
+                  render: (x) =>
+                    `${dayDate(x.start_date)} – ${x.end_date ? dayDate(x.end_date) : "…"}`,
+                },
+                {
+                  key: "status",
+                  label: t("status"),
+                  render: (x) => <StatusBadge status={x.status} variant="subtle" />,
+                },
+                {
+                  key: "cancel",
+                  label: "",
+                  render: (x) =>
+                    x.status === "ACTIVE" && a.collections && can("Edit") ? (
+                      <ActionIconButton
+                        label={t("cancelMandate")}
+                        intent="delete"
+                        icon={Ban}
+                        onClick={() => setDialog({ mandate: x })}
+                      />
+                    ) : (
+                      x.cancel_reason || null
+                    ),
+                },
               ]}
             />
           </Section>
         </div>
       )}
+      {tab === "officers" && <OfficerHistory id={id} />}
       {tab === "history" && <Timeline events={loan.events} currency={cur} />}
+      {dialog === "reassign" && (
+        <ReassignDialog
+          facility={f}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            void reload();
+          }}
+        />
+      )}
 
-      {["disburse", "restructure_auth", "restructure_deauth", "write_off_auth", "write_off_deauth"].includes(dialog) && (
+      {[
+        "disburse",
+        "restructure_auth",
+        "restructure_deauth",
+        "write_off_auth",
+        "write_off_deauth",
+      ].includes(dialog) && (
         <NarrationDialog
           title={buttons.find((b) => b?.key === dialog)?.label}
-          hint={t(`facConfirmHint_${dialog}`, { amount: m(f.principal_approved), wallet: f.disbursement_acct_num })}
+          hint={t(`facConfirmHint_${dialog}`, {
+            amount: m(f.principal_approved),
+            wallet: f.disbursement_acct_num,
+          })}
           confirmLabel={buttons.find((b) => b?.key === dialog)?.label}
           variant={dialog.endsWith("deauth") ? "danger" : "primary"}
           busy={busy}
           onClose={() => setDialog(null)}
-          onSave={(text) => act(dialog, text ? (dialog === "disburse" ? { narration: text } : { note: text }) : {})}
+          onSave={(text) =>
+            act(dialog, text ? (dialog === "disburse" ? { narration: text } : { note: text }) : {})
+          }
         />
       )}
-      {dialog === "cancel" && <OneFieldDialog title={t("cancelLoan")} hint={t("cancelLoanHint")} label={t("reason")} danger busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act("cancel", { reason })} />}
-      {dialog === "write_off" && <OneFieldDialog title={t("writeOff")} hint={t("writeOffHint")} label={t("reason")} multiline danger busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act("write_off", { reason })} />}
-      {dialog?.reverse && <OneFieldDialog title={t("reverse")} hint={t("reverseHint", { type: loanLabel(t, dialog.reverse.transaction_type), amount: m(dialog.reverse.amount) })} label={t("reason")} danger busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act("reverse", { loan_transaction_id: dialog.reverse.id, reason })} />}
-      {dialog?.mandate && <OneFieldDialog title={t("cancelMandate")} label={t("reason")} danger busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act("mandate_cancel", { mandate_id: dialog.mandate.id, reason })} />}
+      {dialog === "cancel" && (
+        <OneFieldDialog
+          title={t("cancelLoan")}
+          hint={t("cancelLoanHint")}
+          label={t("reason")}
+          danger
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={(reason) => act("cancel", { reason })}
+        />
+      )}
+      {dialog === "write_off" && (
+        <OneFieldDialog
+          title={t("writeOff")}
+          hint={t("writeOffHint")}
+          label={t("reason")}
+          multiline
+          danger
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={(reason) => act("write_off", { reason })}
+        />
+      )}
+      {dialog?.reverse && (
+        <OneFieldDialog
+          title={t("reverse")}
+          hint={t("reverseHint", {
+            type: loanLabel(t, dialog.reverse.transaction_type),
+            amount: m(dialog.reverse.amount),
+          })}
+          label={t("reason")}
+          danger
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={(reason) => act("reverse", { loan_transaction_id: dialog.reverse.id, reason })}
+        />
+      )}
+      {dialog?.mandate && (
+        <OneFieldDialog
+          title={t("cancelMandate")}
+          label={t("reason")}
+          danger
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSave={(reason) => act("mandate_cancel", { mandate_id: dialog.mandate.id, reason })}
+        />
+      )}
       {dialog === "repay" && (
         <FormDialog
           title={t("repay")}
@@ -400,11 +946,35 @@ function FacilityView({ id, onBack }) {
           onSave={(body) => act("repay", body)}
           initial={{ amount: loan.due?.total_due ?? "", source: "WALLET" }}
           required={["amount"]}
-          toBody={pick}
-          problem={(x) => (Number(x.amount) > Number(loan.due?.total_due ?? 0) ? t("moreThanDue", { due: m(loan.due?.total_due) }) : "")}
+          toBody={(x) => {
+            const body = pick(x);
+            if (body.source !== "TILL") delete body.till_id;
+            else body.till_id = Number(body.till_id);
+            return body;
+          }}
+          problem={(x) =>
+            Number(x.amount) > Number(loan.due?.total_due ?? 0)
+              ? t("moreThanDue", { due: m(loan.due?.total_due) })
+              : x.source === "TILL" && !x.till_id
+                ? t("chooseTill")
+                : ""
+          }
           fields={[
             { key: "amount", label: t("amountIn", { currency: cur }), type: "amount" },
-            { key: "source", label: t("source"), type: "select", options: SOURCES },
+            {
+              key: "source",
+              label: t("source"),
+              type: "select",
+              options: tills.length ? REPAY_SOURCES : SOURCES,
+            },
+            {
+              key: "till_id",
+              label: t("till"),
+              type: "select",
+              blank: t("chooseTill"),
+              options: tills,
+              showIf: (x) => x.source === "TILL",
+            },
             { key: "narration", label: t("narrationOptional"), span: "sm:col-span-2" },
           ]}
         />
@@ -412,14 +982,20 @@ function FacilityView({ id, onBack }) {
       {dialog === "recover" && (
         <FormDialog
           title={t("recover")}
-          hint={t("recoverHint", { left: m(Number(f.written_off_amount ?? 0) - Number(f.recovered_amount ?? 0)) })}
+          hint={t("recoverHint", {
+            left: m(Number(f.written_off_amount ?? 0) - Number(f.recovered_amount ?? 0)),
+          })}
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={(body) => act("recover", body)}
           initial={{ source: "WALLET" }}
           required={["amount"]}
           toBody={pick}
-          problem={(x) => (Number(x.amount) > Number(f.written_off_amount ?? 0) - Number(f.recovered_amount ?? 0) ? t("moreThanWrittenOff") : "")}
+          problem={(x) =>
+            Number(x.amount) > Number(f.written_off_amount ?? 0) - Number(f.recovered_amount ?? 0)
+              ? t("moreThanWrittenOff")
+              : ""
+          }
           fields={[
             { key: "amount", label: t("amountIn", { currency: cur }), type: "amount" },
             { key: "source", label: t("source"), type: "select", options: SOURCES },
@@ -433,13 +1009,26 @@ function FacilityView({ id, onBack }) {
           hint={t("restructureHint")}
           busy={busy}
           onClose={() => setDialog(null)}
-          onSave={(x) => act("restructure", { term_value: Number(x.term_value), term_unit: x.term_unit, reason: x.reason.trim(), ...(x.annual_rate ? { annual_rate: x.annual_rate } : {}), ...(x.moratorium_days ? { moratorium_days: Number(x.moratorium_days) } : {}) })}
+          onSave={(x) =>
+            act("restructure", {
+              term_value: Number(x.term_value),
+              term_unit: x.term_unit,
+              reason: x.reason.trim(),
+              ...(x.annual_rate ? { annual_rate: x.annual_rate } : {}),
+              ...(x.moratorium_days ? { moratorium_days: Number(x.moratorium_days) } : {}),
+            })
+          }
           initial={{ term_unit: f.term_unit ?? "MONTHS" }}
           required={["term_value", "term_unit", "reason"]}
           fields={[
             { key: "term_value", label: t("newTerm"), type: "int" },
             { key: "term_unit", label: t("termUnit"), type: "select", options: TERM_UNITS },
-            { key: "annual_rate", label: t("ratePct"), type: "percent", hint: t("currentRate", { rate: ratePct(f.annual_rate) }) },
+            {
+              key: "annual_rate",
+              label: t("ratePct"),
+              type: "percent",
+              hint: t("currentRate", { rate: ratePct(f.annual_rate) }),
+            },
             { key: "moratorium_days", label: t("moratoriumDays"), type: "int" },
             { key: "reason", label: t("reason"), span: "sm:col-span-2" },
           ]}
@@ -455,7 +1044,11 @@ function FacilityView({ id, onBack }) {
           initial={{ action_type: "CALL", outcome: "CONTACTED" }}
           required={["action_type", "outcome"]}
           toBody={pick}
-          problem={(x) => (x.outcome === "PROMISE_TO_PAY" && (!x.promise_date || !x.promise_amount) ? t("promiseNeedsDateAmount") : "")}
+          problem={(x) =>
+            x.outcome === "PROMISE_TO_PAY" && (!x.promise_date || !x.promise_amount)
+              ? t("promiseNeedsDateAmount")
+              : ""
+          }
           fields={[
             { key: "action_type", label: t("action"), type: "select", options: ACTION_TYPES },
             { key: "outcome", label: t("outcome"), type: "select", options: OUTCOMES },
@@ -487,7 +1080,14 @@ function FacilityView({ id, onBack }) {
           ]}
         />
       )}
-      {dialog === "settle" && <SettleDialog loan={f} busy={busy} onClose={() => setDialog(null)} onSettle={(body) => act("settle", body)} />}
+      {dialog === "settle" && (
+        <SettleDialog
+          loan={f}
+          busy={busy}
+          onClose={() => setDialog(null)}
+          onSettle={(body) => act("settle", body)}
+        />
+      )}
     </div>
   );
 }
@@ -495,8 +1095,12 @@ function FacilityView({ id, onBack }) {
 function Stat({ label, value, tone }) {
   return (
     <div className="min-w-0">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className={cn("amount-fit text-lg font-black tabular-nums text-foreground", tone)}>{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <p className={cn("amount-fit text-lg font-black tabular-nums text-foreground", tone)}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -507,21 +1111,39 @@ function DueCard({ due, currency }) {
   const m = (v) => money(v, currency);
   const owing = Number(due.total_due) > 0;
   return (
-    <div className={cn("mb-4 rounded-2xl border p-4", owing ? "border-red-200 bg-red-50" : "border-border bg-card")}>
+    <div
+      className={cn(
+        "mb-4 rounded-2xl border p-4",
+        owing ? "border-red-200 bg-red-50" : "border-border bg-card",
+      )}
+    >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("dueNow")}</p>
-          <p className={cn("amount-fit text-xl font-black sm:text-2xl tabular-nums", owing ? "text-red-700" : "text-foreground")}>{m(due.total_due)}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+            {t("dueNow")}
+          </p>
+          <p
+            className={cn(
+              "amount-fit text-xl font-black sm:text-2xl tabular-nums",
+              owing ? "text-red-700" : "text-foreground",
+            )}
+          >
+            {m(due.total_due)}
+          </p>
         </div>
         <div className="flex flex-wrap gap-6 sm:text-right">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("nextDue")}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("nextDue")}
+            </p>
             <p className="text-sm font-bold">
               {m(due.next_amount)} · {dayDate(due.next_due_date)}
             </p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("totalOutstanding")}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {t("totalOutstanding")}
+            </p>
             <p className="text-sm font-bold">{m(due.total_outstanding)}</p>
           </div>
         </div>
@@ -534,12 +1156,31 @@ function DueCard({ due, currency }) {
             columns={[
               { key: "installment_number", label: "#" },
               { key: "due_date", label: t("dueDate"), render: (i) => dayDate(i.due_date) },
-              { key: "status", label: t("status"), render: (i) => <StatusBadge status={i.status} variant="subtle" /> },
-              { key: "principal", label: t("principal"), align: "right", render: (i) => m(i.principal) },
-              { key: "interest", label: t("interest"), align: "right", render: (i) => m(i.interest) },
+              {
+                key: "status",
+                label: t("status"),
+                render: (i) => <StatusBadge status={i.status} variant="subtle" />,
+              },
+              {
+                key: "principal",
+                label: t("principal"),
+                align: "right",
+                render: (i) => m(i.principal),
+              },
+              {
+                key: "interest",
+                label: t("interest"),
+                align: "right",
+                render: (i) => m(i.interest),
+              },
               { key: "fees", label: t("fees"), align: "right", render: (i) => m(i.fees) },
               { key: "penalty", label: t("penalty"), align: "right", render: (i) => m(i.penalty) },
-              { key: "total", label: t("total"), align: "right", render: (i) => <b>{m(i.total)}</b> },
+              {
+                key: "total",
+                label: t("total"),
+                align: "right",
+                render: (i) => <b>{m(i.total)}</b>,
+              },
             ]}
           />
         </div>
@@ -572,18 +1213,24 @@ function SettleDialog({ loan, busy, onClose, onSettle }) {
   }, [fetchQuote]);
 
   const settle = async () => {
-    const ok = await onSettle({ source, expected_total: quote.total, ...(narration.trim() ? { narration: narration.trim() } : {}) });
+    const ok = await onSettle({
+      source,
+      expected_total: quote.total,
+      ...(narration.trim() ? { narration: narration.trim() } : {}),
+    });
     if (!ok) void fetchQuote();
   };
 
-  const lines = quote && [
-    ["principal", quote.principal],
-    ["interestEarned", quote.interest],
-    ["fees", quote.fees],
-    ["penalty", quote.penalty],
-    Number(quote.prepayment_charge) !== 0 && ["prepaymentCharge", quote.prepayment_charge],
-    Number(quote.settlement_fees) !== 0 && ["settlementFees", quote.settlement_fees],
-  ].filter(Boolean);
+  const lines =
+    quote &&
+    [
+      ["principal", quote.principal],
+      ["interestEarned", quote.interest],
+      ["fees", quote.fees],
+      ["penalty", quote.penalty],
+      Number(quote.prepayment_charge) !== 0 && ["prepaymentCharge", quote.prepayment_charge],
+      Number(quote.settlement_fees) !== 0 && ["settlementFees", quote.settlement_fees],
+    ].filter(Boolean);
 
   return (
     <Modal
@@ -606,7 +1253,9 @@ function SettleDialog({ loan, busy, onClose, onSettle }) {
       {!quote && !error && <Spinner size={18} />}
       {quote && (
         <div className="grid gap-3">
-          <p className="text-xs text-muted-foreground">{t(quote.early ? "settleEarlyHint" : "settleHint", { date: dayDate(quote.as_of) })}</p>
+          <p className="text-xs text-muted-foreground">
+            {t(quote.early ? "settleEarlyHint" : "settleHint", { date: dayDate(quote.as_of) })}
+          </p>
           <dl className="grid gap-1 text-sm">
             {lines.map(([key, value]) => (
               <div key={key} className="flex justify-between gap-3">
@@ -619,12 +1268,24 @@ function SettleDialog({ loan, busy, onClose, onSettle }) {
               <dd className="tabular-nums text-primary">{m(quote.total)}</dd>
             </div>
           </dl>
-          {(Number(quote.interest_waived) > 0 || Number(quote.fees_waived) > 0) && <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">{t("waived", { interest: m(quote.interest_waived), fees: m(quote.fees_waived) })}</p>}
+          {(Number(quote.interest_waived) > 0 || Number(quote.fees_waived) > 0) && (
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+              {t("waived", { interest: m(quote.interest_waived), fees: m(quote.fees_waived) })}
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={labelClass}>
               {t("source")}
-              <Field field={{ type: "select", options: SOURCES }} value={source} onChange={setSource} />
-              {source === "WALLET" && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("fromWallet", { wallet: loan.repayment_acct_num })}</span>}
+              <Field
+                field={{ type: "select", options: SOURCES }}
+                value={source}
+                onChange={setSource}
+              />
+              {source === "WALLET" && (
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                  {t("fromWallet", { wallet: loan.repayment_acct_num })}
+                </span>
+              )}
             </label>
             <label className={labelClass}>
               {t("narrationOptional")}
@@ -634,5 +1295,111 @@ function SettleDialog({ loan, busy, onClose, onSettle }) {
         </div>
       )}
     </Modal>
+  );
+}
+
+const NonAccrualBadge = () => {
+  const { t } = useTranslation("loans");
+  return (
+    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+      {t("nonAccrual")}
+    </span>
+  );
+};
+
+// Move one loan (`facility`) or every loan of an officer to another officer.
+function ReassignDialog({ facility, onClose, onDone }) {
+  const { t } = useTranslation("loans");
+  const { scope } = useInstitutionScope();
+  const officers = officerOptions(useCoreBanking(scope));
+  const [busy, setBusy] = useState(false);
+  const save = async (f) => {
+    setBusy(true);
+    try {
+      const body = {
+        ...(facility ? { facility_ids: [facility.id] } : { from_user_id: Number(f.from_user_id) }),
+        to_user_id: Number(f.to_user_id),
+        reason: f.reason.trim(),
+      };
+      const r = await loanFacilitiesApi.reassign_officer(scope(body));
+      notifications.success(t("loansMoved", { count: Number(recordOf(r)?.moved ?? 0) }));
+      onDone();
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <FormDialog
+      title={facility ? t("reassignOfficer") : t("reassignPortfolio")}
+      hint={
+        facility
+          ? t("reassignOneHint", { name: facility.officer_name ?? "—" })
+          : t("reassignAllHint")
+      }
+      busy={busy}
+      onClose={onClose}
+      onSave={save}
+      required={[...(facility ? [] : ["from_user_id"]), "to_user_id", "reason"]}
+      problem={(f) => (f.from_user_id && f.from_user_id === f.to_user_id ? t("sameOfficer") : "")}
+      fields={[
+        !facility && {
+          key: "from_user_id",
+          label: t("fromOfficer"),
+          type: "select",
+          blank: t("choose"),
+          options: officers,
+        },
+        {
+          key: "to_user_id",
+          label: t("toOfficer"),
+          type: "select",
+          blank: t("choose"),
+          options: officers.filter(
+            (o) => !facility || o.value !== String(facility.officer_user_id),
+          ),
+        },
+        { key: "reason", label: t("reason"), span: "sm:col-span-2" },
+      ]}
+    />
+  );
+}
+
+// Who has held this loan, newest first.
+function OfficerHistory({ id }) {
+  const { t } = useTranslation("loans");
+  const { scope } = useInstitutionScope();
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    loanFacilitiesApi
+      .officer_history(scope({ id }))
+      .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
+      .catch((e) => (setRows([]), notifications.error(e.message)));
+  }, [id, scope]);
+  if (!rows) return <PageSkeleton />;
+  return (
+    <MiniTable
+      rows={rows}
+      empty={t("noOfficerChanges")}
+      columns={[
+        {
+          key: "from",
+          label: t("fromOfficer"),
+          render: (h) => h.from_user_name ?? h.from_name ?? "—",
+        },
+        {
+          key: "to",
+          label: t("toOfficer"),
+          render: (h) => <b>{h.to_user_name ?? h.to_name ?? "—"}</b>,
+        },
+        { key: "reason", label: t("reason"), wrap: true, render: (h) => h.reason || "—" },
+        {
+          key: "by",
+          label: t("by"),
+          render: (h) => `${h.changed_by ?? h.actor ?? "—"} · ${accountDate(h.changed_at ?? h.at)}`,
+        },
+      ]}
+    />
   );
 }

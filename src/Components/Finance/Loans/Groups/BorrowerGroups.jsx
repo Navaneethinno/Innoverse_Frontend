@@ -13,7 +13,6 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { dayDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
-import { tellerApi } from "@/Services/Accounting/accounting.api";
 import { borrowerGroupsApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -29,6 +28,7 @@ import {
   branchOptions,
   officerOptions,
   useCoreBanking,
+  useOpenTills,
 } from "../../coreBankingShared";
 import { Field, MiniTable, Tabs, Timeline, useInstitutionScope } from "../loanShared";
 
@@ -575,7 +575,7 @@ function CollectionSheet({ group, onCollected }) {
   const [sheet, setSheet] = useState(null);
   const [amounts, setAmounts] = useState({});
   const [source, setSource] = useState("CASH");
-  const [tills, setTills] = useState([]);
+  const tills = useOpenTills(scope, source === "TILL");
   const [tillId, setTillId] = useState("");
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState(false);
@@ -600,13 +600,6 @@ function CollectionSheet({ group, onCollected }) {
   useEffect(() => {
     load();
   }, [load]);
-  useEffect(() => {
-    if (source !== "TILL") return;
-    tellerApi
-      .list(scope({ branch_id: group.branch_id, kind: "TILL", status: "ACTIVE", limit: 100 }))
-      .then((r) => setTills((Array.isArray(r?.data) ? r.data : []).filter((x) => x.session)))
-      .catch(() => setTills([]));
-  }, [source, group.branch_id, scope]);
   const payments = Object.entries(amounts)
     .filter(([, v]) => Number(v) > 0)
     .map(([facility_id, amount]) => ({ facility_id: Number(facility_id), amount }));
@@ -724,10 +717,7 @@ function CollectionSheet({ group, onCollected }) {
                     field={{
                       type: "select",
                       blank: t("choose"),
-                      options: tills.map((x) => ({
-                        value: String(x.id),
-                        label: `${x.code} · ${x.name}`,
-                      })),
+                      options: tills,
                     }}
                     value={tillId}
                     onChange={setTillId}

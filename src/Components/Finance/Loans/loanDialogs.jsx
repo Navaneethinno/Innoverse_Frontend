@@ -19,13 +19,37 @@ export function CollateralTable({ rows, currency, onRemove }) {
       rows={rows}
       currency={currency}
       columns={[
-        { key: "collateral_type", label: t("type"), render: (c) => <b>{loanLabel(t, c.collateral_type)}</b> },
+        {
+          key: "collateral_type",
+          label: t("type"),
+          render: (c) => <b>{loanLabel(t, c.collateral_type)}</b>,
+        },
         { key: "description", label: t("description") },
         { key: "declared_value", label: t("declaredValue"), amount: true },
         { key: "accepted_value", label: t("acceptedValue"), amount: true, strong: true },
-        { key: "registry_reference", label: t("registryLien"), render: (c) => [c.registry_reference, c.lien_reference].filter(Boolean).join(" · ") || "—" },
-        { key: "status", label: t("status"), render: (c) => <StatusBadge status={c.status} variant="subtle" /> },
-        onRemove && { key: "remove", label: "", render: (c) => <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => onRemove(c)} /> },
+        {
+          key: "registry_reference",
+          label: t("registryLien"),
+          render: (c) =>
+            [c.registry_reference, c.lien_reference].filter(Boolean).join(" · ") || "—",
+        },
+        {
+          key: "status",
+          label: t("status"),
+          render: (c) => <StatusBadge status={c.status} variant="subtle" />,
+        },
+        onRemove && {
+          key: "remove",
+          label: "",
+          render: (c) => (
+            <ActionIconButton
+              label={t("remove")}
+              intent="delete"
+              icon={Trash2}
+              onClick={() => onRemove(c)}
+            />
+          ),
+        },
       ].filter(Boolean)}
     />
   );
@@ -40,18 +64,45 @@ export function FeesTable({ rows, currency }) {
       rowKey={(f, i) => `${f.fee_code}-${f.rrn ?? i}`}
       columns={[
         { key: "fee_name", label: t("fee"), render: (f) => <b>{f.fee_name ?? f.fee_code}</b> },
-        { key: "collection_point", label: t("charged"), render: (f) => loanLabel(t, f.collection_point) },
+        {
+          key: "collection_point",
+          label: t("charged"),
+          render: (f) => loanLabel(t, f.collection_point),
+        },
         { key: "amount", label: t("amount"), amount: true, strong: true },
         { key: "rrn", label: "RRN", render: (f) => f.rrn ?? "—" },
         { key: "charged_time", label: t("when"), render: (f) => accountDate(f.charged_time) },
-        { key: "refund", label: t("refund"), render: (f) => (f.refund_rrn ? <span className="font-semibold text-emerald-700">{t("refundedRrn", { rrn: f.refund_rrn })}</span> : f.refundable ? t("refundable") : "—") },
+        {
+          key: "refund",
+          label: t("refund"),
+          render: (f) =>
+            f.refund_rrn ? (
+              <span className="font-semibold text-emerald-700">
+                {t("refundedRrn", { rrn: f.refund_rrn })}
+              </span>
+            ) : f.refundable ? (
+              t("refundable")
+            ) : (
+              "—"
+            ),
+        },
       ]}
     />
   );
 }
 
 // A dialog with one required text (consent reference, a message, reasons).
-export function OneFieldDialog({ title, hint, label, placeholder, multiline, danger, busy, onClose, onSave }) {
+export function OneFieldDialog({
+  title,
+  hint,
+  label,
+  placeholder,
+  multiline,
+  danger,
+  busy,
+  onClose,
+  onSave,
+}) {
   const { t } = useTranslation("loans");
   const [value, setValue] = useState("");
   return (
@@ -65,7 +116,12 @@ export function OneFieldDialog({ title, hint, label, placeholder, multiline, dan
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant={danger ? "danger" : "primary"} loading={busy} disabled={!value.trim()} onClick={() => onSave(value.trim())}>
+          <Button
+            variant={danger ? "danger" : "primary"}
+            loading={busy}
+            disabled={!value.trim()}
+            onClick={() => onSave(value.trim())}
+          >
             {title}
           </Button>
         </>
@@ -74,14 +130,41 @@ export function OneFieldDialog({ title, hint, label, placeholder, multiline, dan
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
       <label className={labelClass}>
         {label}
-        {multiline ? <textarea className={cn(inputClass, "mt-1.5 min-h-24")} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} /> : <input className={cn(inputClass, "mt-1.5")} placeholder={placeholder} value={value} onChange={(e) => setValue(e.target.value)} />}
+        {multiline ? (
+          <textarea
+            className={cn(inputClass, "mt-1.5 min-h-24")}
+            placeholder={placeholder}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        ) : (
+          <input
+            className={cn(inputClass, "mt-1.5")}
+            placeholder={placeholder}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        )}
       </label>
     </Modal>
   );
 }
 
 // A form dialog built from Field definitions; `required` keys must be set.
-export function FormDialog({ title, hint, fields, initial = {}, required = [], confirmLabel, danger, busy, onClose, onSave, toBody = (f) => f, problem }) {
+export function FormDialog({
+  title,
+  hint,
+  fields,
+  initial = {},
+  required = [],
+  confirmLabel,
+  danger,
+  busy,
+  onClose,
+  onSave,
+  toBody = (f) => f,
+  problem,
+}) {
   const { t } = useTranslation("loans");
   const [form, setForm] = useState(initial);
   const missing = required.some((k) => String(form[k] ?? "").trim() === "");
@@ -97,7 +180,12 @@ export function FormDialog({ title, hint, fields, initial = {}, required = [], c
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant={danger ? "danger" : "primary"} loading={busy} disabled={missing || Boolean(extra)} onClick={() => onSave(toBody(form))}>
+          <Button
+            variant={danger ? "danger" : "primary"}
+            loading={busy}
+            disabled={missing || Boolean(extra)}
+            onClick={() => onSave(toBody(form))}
+          >
             {confirmLabel ?? title}
           </Button>
         </>
@@ -105,14 +193,24 @@ export function FormDialog({ title, hint, fields, initial = {}, required = [], c
     >
       {hint && <p className="mb-3 text-sm text-muted-foreground">{hint}</p>}
       <div className="grid gap-3 sm:grid-cols-2">
-        {fields.filter(Boolean).map((f) => (
-          <label key={f.key} className={cn(labelClass, f.span ?? "")}>
-            {f.label}
-            {required.includes(f.key) && <span className="text-red-500"> *</span>}
-            <Field field={f} value={form[f.key]} onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))} />
-            {f.hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{f.hint}</span>}
-          </label>
-        ))}
+        {fields
+          .filter((f) => f && (!f.showIf || f.showIf(form)))
+          .map((f) => (
+            <label key={f.key} className={cn(labelClass, f.span ?? "")}>
+              {f.label}
+              {required.includes(f.key) && <span className="text-red-500"> *</span>}
+              <Field
+                field={f}
+                value={form[f.key]}
+                onChange={(v) => setForm((x) => ({ ...x, [f.key]: v }))}
+              />
+              {f.hint && (
+                <span className="mt-1 block text-[11px] font-normal text-muted-foreground">
+                  {f.hint}
+                </span>
+              )}
+            </label>
+          ))}
       </div>
       {extra && (
         <div className="mt-3">

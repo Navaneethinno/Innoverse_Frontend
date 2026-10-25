@@ -53,6 +53,9 @@ export const loanApplicationsApi = calls("/config/loan/application", [
   "withdraw",
   "get",
   "list",
+  "guarantor_add",
+  "guarantor_remove",
+  "bureau_check",
 ]);
 
 // Loan Facilities (menu 187): the loan, its payout, repayments, early
@@ -78,7 +81,13 @@ export const loanFacilitiesApi = calls("/config/loan/facility", [
   "collection_add",
   "mandate_add",
   "mandate_cancel",
+  "reassign_officer",
+  "officer_history",
 ]);
+
+// Portfolio quality (Loan Facilities View): PAR 1/30/90, ageing buckets,
+// provisions and interest in suspense by product, branch, officer or group.
+export const loanPortfolioApi = { par: (body) => request("/config/loan/portfolio/par", body) };
 
 // Regulatory Submissions (menu 188): reports of the loan book.
 export const regulatorySubmissionsApi = calls("/config/loan/regulatory_submission", ["generate", "record", "get", "list"]);
