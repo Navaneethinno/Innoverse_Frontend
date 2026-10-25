@@ -109,7 +109,7 @@ export function RowsEditor({ rows, fields, onChange, blank, addLabel, disabled, 
               {fields.filter((f) => !f.showIf || f.showIf(row)).map((f) => (
                 <label key={f.key} className={cn(labelClass, f.type === "bool" && "flex items-center justify-between gap-2 self-end rounded-xl border border-border px-3 py-2", f.span)}>
                   {f.label}
-                  <Field field={f} value={row[f.key]} disabled={disabled} decimals={decimals} invalid={invalid.includes(f.key)} onChange={(v) => set(i, { [f.key]: v })} />
+                  <Field field={f} value={row[f.key]} disabled={disabled || f.disabledIf?.(row)} decimals={decimals} invalid={invalid.includes(f.key)} onChange={(v) => set(i, { [f.key]: v })} />
                 </label>
               ))}
             </div>

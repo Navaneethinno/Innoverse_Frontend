@@ -1,4 +1,7 @@
 import {
+  Banknote,
+  CalendarCheck,
+  Building,
   FileCode2,
   FileStack,
   GitCompareArrows,
@@ -155,6 +158,10 @@ const MENU_ICON_RULES = [
   [/card stock/i, Package],
   [/card summary/i, CreditCard],
   [/lending regulatory/i, Scale],
+  [/core banking setup/i, Building],
+  [/accounting periods/i, CalendarCheck],
+  [/borrower groups/i, UsersRound],
+  [/^teller$/i, Banknote],
   [/loan applications/i, FileSignature],
   [/loan facilities/i, Landmark],
   [/regulatory submissions/i, FileBarChart],

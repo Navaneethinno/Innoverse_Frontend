@@ -36,3 +36,14 @@ export const glReportsApi = {
   statementExport: exporter("statement_export", "gl_statement"),
   trialBalanceExport: exporter("trial_balance_export", "trial_balance"),
 };
+
+// Core Banking Setup (menu 193): branches, staff (loan officers, tellers),
+// withholding tax, IFRS 9 ECL, credit bureau and the fiscal year; one
+// document per institution under maker-checker. edit replaces only the
+// sections sent (a list sent replaces the whole list).
+export const coreBankingApi = calls("/config/accounting/core_banking", ["get", "edit", "auth", "deauth"]);
+
+// Accounting Periods (menu 195): close a month (the fiscal year's last also
+// posts the year-end close), reopen the latest closed one (another user),
+// and a closed month's GL balances.
+export const accountingPeriodsApi = calls("/config/accounting/period", ["list", "close", "reopen", "balances"]);
