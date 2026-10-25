@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound, House } from "lucide-react";
+import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound, House, ShieldCheck } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
@@ -15,6 +15,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { TourButton } from "@/Components/Tour/TourButton";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { isDemoUser } from "@/Utils/Lib/demoInstitution";
+import { useKeyCustody } from "@/Components/KeyCustody/KeyCustodyProvider";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,6 +32,8 @@ export function TopBar() {
   const { collapsed, hovering, toggleMobile } = useSidebar();
   const { mode, toggleMode } = useColorMode();
   const logout = useAuth((s) => s.logout);
+  // Key custodians get Key Custody in this menu.
+  const custodian = Boolean(useKeyCustody().status);
   const user = useAuth((s) => s.user);
   // The DEMO institution has no My profile / Change password.
   const demo = isDemoUser(user);
@@ -221,6 +224,17 @@ export function TopBar() {
                   >
                     <KeyRound size={13} /> {t("layout:changePassword")}
                   </button>
+                  {custodian && (
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate("/key-custody");
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-foreground hover:bg-primary-light transition-colors"
+                    >
+                      <ShieldCheck size={13} /> {t("keyCustody:title")}
+                    </button>
+                  )}
                   </>
                   )}
                   <button

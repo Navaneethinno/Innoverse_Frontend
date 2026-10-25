@@ -17,10 +17,13 @@ const ChangePasswordPage = lazy(() =>
 // path too since that's this page's own natural route name and may still
 // be used elsewhere (e.g. any direct/manual navigation), but the singular
 // alias is what the actual sidebar menu name requires.
+// Key Custody: for key custodians only (no menu; the page says so to others).
+const KeyCustodyPage = lazy(() => import("@/Components/KeyCustody/KeyCustodyPage").then((m) => ({ default: m.KeyCustodyPage })));
 export const profileRoutes = [
   { path: "/profiles", element: pageElement(ProfilesPage) },
   { path: "/profiles/:id", element: pageElement(ProfilesPage) },
   { path: "/profile/:id", element: pageElement(ProfilesPage) },
   { path: "/change-password", element: pageElement(ChangePasswordPage) },
   { path: "/my-profile", element: pageElement(MyProfilePage) },
+  { path: "/key-custody", element: pageElement(KeyCustodyPage) },
 ];

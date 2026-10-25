@@ -86,10 +86,11 @@ export async function request(path, body = {}) {
     // bypassed that priority and always surfaced the backend's internal
     // field-name remark ("field 'max_value' must be...") in the toast
     // instead of its own user-facing message ("Maximum Value Must Be...").
-    if (statusError) throw new Error(getApiErrorMessage(payload, statusError));
+    // `code`: the reply's error_code, for screens that branch on it.
+    if (statusError) throw Object.assign(new Error(getApiErrorMessage(payload, statusError)), { code: payload?.error_code, status: response.status });
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
       // problemKeys: where each problem is, for wizards to open that step.
-      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed")), { problemKeys: getApiProblemKeys(payload) });
+      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed")), { problemKeys: getApiProblemKeys(payload), code: payload?.error_code, status: response.status });
     }
     return payload;
   } finally {

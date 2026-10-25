@@ -2374,6 +2374,9 @@ export const myProfile = {
 };
 
 export const common = {
+  "hexChars": "{{count}} خانة سداسية عشرية",
+  "show": "إظهار",
+  "hide": "إخفاء",
   "change": "تغيير",
   backToTop: "العودة إلى الأعلى",
   appName: "Innoverse",
@@ -5963,9 +5966,51 @@ export const loans = {
   "never": "أبدًا",
 };
 
+export const keyCustody = {
+  "title": "عهدة المفاتيح",
+  "subtitle": "تحمل أحد مكوني المفتاح الرئيسي للمنصة. في الإنتاج تُقفل المفاتيح بعد كل إعادة تشغيل: يفتحها هنا أمين من الخانة A وأمين من الخانة B.",
+  "lockedBanner": "مفاتيح المنصة مقفلة. يجب أن يفتحها أمينان للمفاتيح.",
+  "notCustodian": "لست أمينًا للمفاتيح.",
+  "youHold": "تحمل المكون",
+  "role_PRIMARY": "أساسي",
+  "role_BACKUP": "احتياطي",
+  "state_locked": "مقفلة",
+  "state_notSetUp": "غير مُعدّة",
+  "state_open": "مفتوحة",
+  "oneEntered": "أُدخل مكون واحد: بانتظار أمين الخانة الأخرى (15 دقيقة).",
+  "unlockTitle": "فتح المفاتيح",
+  "unlockHint": "أدخل مكونك. تعود المدفوعات والأرقام السرية والبطاقات للعمل عندما يدخل أمين الخانة الأخرى مكونه.",
+  "openTitle": "المفاتيح مفتوحة",
+  "lockKeys": "قفل المفاتيح",
+  "lockNow": "اقفل الآن",
+  "lockConfirm": "ستتوقف المدفوعات والأرقام السرية والبطاقات حتى يفتح أمينان المفاتيح. القفل الآن؟",
+  "lockNote": "السبب (اختياري)",
+  "masterKcv": "قيمة تحقق المفتاح الرئيسي",
+  "created": "أُنشئ",
+  "custody": "يُفتح بواسطة",
+  "custody_file": "ملف على الخادم (UAT)",
+  "custody_custodian": "الأمناء",
+  "custodians": "الأمناء",
+  "slotN": "الخانة {{slot}}",
+  "noCustodians": "لا أحد يحمل هذه الخانة.",
+  "ceremonyTitle": "مراسم المفاتيح",
+  "ceremonyWarning": "يجب حضور الأمينين. يدخل كل منهما مكونًا جديدًا ويسجل قيمة التحقق في نموذج المراسم.",
+  "startCeremony": "بدء المراسم",
+  "enterToUnlock": "إدخال المكون",
+  "enterComponent": "إدخال مكون جديد",
+  "componentAccepted": "قُبل المكون. قيمة التحقق {{kcv}}: قارنها بسجلك. الآن يدخل أمين الخانة الأخرى مكونه خلال 15 دقيقة.",
+  "unlocked": "فُتحت المفاتيح.",
+  "ceremonyComplete": "اكتملت المراسم. قيمة تحقق المفتاح الرئيسي {{kcv}}: يسجلها الأمينان.",
+  "refused_mismatch": "المكونان لا يفتحان المفاتيح: يجب أن يبدأ الأمينان من جديد.",
+  "refused_sameSlot": "يجب أن يدخل أمين الخانة الأخرى مكونه.",
+  "refused_sameCustodian": "يجب أن يدخل أمين آخر المكون الثاني.",
+  "refused_unlockFirst": "المفاتيح مقفلة: افتحها أولًا.",
+};
+
 export default Object.fromEntries(
   Object.entries({
     atm,
+    keyCustody,
     loans,
     corebank,
     routing,

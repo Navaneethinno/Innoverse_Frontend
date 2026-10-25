@@ -4,7 +4,8 @@ import { Button } from "@/Components/Common/Button";
 import { useAuth } from "@/Hooks/useAuth";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { inputClass, labelClass } from "../Finance/Deposits/depositShared";
+import { HexComponentInput } from "@/Components/Common/HexComponentInput";
+import { labelClass } from "../Finance/Deposits/depositShared";
 import { mmsDate } from "./mmsShared";
 
 // Load a device's master key (TMK; a POS terminal or an ATM): two key custodians, each signed in as
@@ -56,16 +57,7 @@ export function LoadMasterKey({ device, load, onLoaded }) {
       <div className="flex flex-wrap items-end gap-2">
         <label className={`${labelClass} min-w-72 flex-1`}>
           {t("keyComponent")}
-          <input
-            type="password"
-            autoComplete="new-password"
-            spellCheck={false}
-            className={`${inputClass} mt-1 font-mono`}
-            maxLength={32}
-            value={component}
-            onChange={(e) => setComponent(e.target.value.toUpperCase().replace(/[^0-9A-F]/g, ""))}
-            placeholder="32 hex"
-          />
+          <HexComponentInput className="mt-1" value={component} onChange={setComponent} length={32} />
         </label>
         <Button size="sm" loading={busy} disabled={component.length !== 32} onClick={() => void submit()}>
           {t("enterComponent")}

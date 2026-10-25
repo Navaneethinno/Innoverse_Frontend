@@ -17,6 +17,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { TourProvider } from "@/Components/Tour/TourProvider";
 import { BackToTop } from "./BackToTop";
+import { KeyCustodyProvider, KeysLockedBanner } from "@/Components/KeyCustody/KeyCustodyProvider";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
@@ -35,23 +36,26 @@ function Layout() {
   // width on a ~375px-wide phone was eating a real chunk of the viewport
   // for a sidebar the user couldn't otherwise hide.
   return (
-    <div className="min-h-screen flex w-full">
-      <DynamicSidebar />
-      <div
-        style={{
-          paddingLeft: isMobile ? 0 : sidebarW + 16,
-          transition: "padding-left 0.28s cubic-bezier(0.22,1,0.36,1)",
-        }}
-        className="flex flex-col flex-1 min-w-0 px-3 md:pl-0 md:pr-3"
-      >
-        <TopBar />
-        <WorkspaceContainer>
-          <PageBreadcrumbs />
-          {/* A new Institution filter reloads the page's lists. */}
-          <PageAccessGate key={institution} />
-        </WorkspaceContainer>
+    <KeyCustodyProvider>
+      <div className="min-h-screen flex w-full">
+        <DynamicSidebar />
+        <div
+          style={{
+            paddingLeft: isMobile ? 0 : sidebarW + 16,
+            transition: "padding-left 0.28s cubic-bezier(0.22,1,0.36,1)",
+          }}
+          className="flex flex-col flex-1 min-w-0 px-3 md:pl-0 md:pr-3"
+        >
+          <TopBar />
+          <WorkspaceContainer>
+            <KeysLockedBanner />
+            <PageBreadcrumbs />
+            {/* A new Institution filter reloads the page's lists. */}
+            <PageAccessGate key={institution} />
+          </WorkspaceContainer>
+        </div>
       </div>
-    </div>
+    </KeyCustodyProvider>
   );
 }
 

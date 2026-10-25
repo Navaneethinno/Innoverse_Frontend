@@ -67,6 +67,7 @@ void i18n
       "recon",
       "routing",
       "atm",
+      "keyCustody",
       "corebank",
     ],
     interpolation: { escapeValue: false },
