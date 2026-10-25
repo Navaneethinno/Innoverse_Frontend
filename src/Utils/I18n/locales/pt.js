@@ -3118,6 +3118,21 @@ export const cases = {
 };
 
 export const accounts = {
+  "tab_liens": "Ónus",
+  "underLien": "Sob ónus",
+  "freeOfLiens": "Disponível livre de ónus",
+  "placeLien": "Constituir ónus",
+  "placeLienHint": "Apenas sobre dinheiro livre de outros ónus ({{amount}}). Nenhum débito lhe pode tocar até ser libertado.",
+  "releaseLien": "Libertar ónus",
+  "releaseLienHint": "{{amount}} volta a estar livre. Indique o motivo.",
+  "noLiens": "Sem ónus nesta conta.",
+  "lienReason": "Motivo",
+  "lien_COURT_ORDER": "Ordem judicial",
+  "lien_OTHER": "Outro",
+  "lien_COMPULSORY_SAVINGS": "Poupança obrigatória",
+  "lien_GUARANTEE": "Penhor de garantia",
+  "placed": "Constituído",
+  "narration": "Descrição",
   agentWallet: "Carteira de agente",
   ptTitle: "Dinheiro à espera de números",
   ptPhone: "Número de telefone",
@@ -3681,6 +3696,10 @@ export const deposits = {
 };
 
 export const loans = {
+  "nonAccrualTitle": "Juros em suspenso",
+  "nonAccrualDays": "Deixar de reconhecer juros a partir de (dias de atraso)",
+  "nonAccrualDaysHint": "Depois disto, os juros vão para suspenso e só são reconhecidos quando pagos ou quando o empréstimo regulariza. 0 = nunca.",
+  "never": "Nunca",
   rateStatus_PENDING: "A aguardar aprovação",
   rateStatus_ACTIVE: "Ativa",
   rateStatus_REJECTED: "Rejeitada",
@@ -5937,6 +5956,8 @@ export const providers = {
 
 // ACCOUNTING: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
 export const accounting = {
+  "allBranches": "Todas as agências",
+  "interBranchPosition": "Posição interagências: {{value}}",
   type_ASSET: "Ativo",
   type_LIABILITY: "Passivo",
   type_EQUITY: "Capital próprio",

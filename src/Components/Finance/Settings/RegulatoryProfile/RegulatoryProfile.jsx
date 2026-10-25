@@ -28,6 +28,7 @@ const toBody = (p) => ({
   reporting_frequency: p.reporting_frequency,
   credit_bureau_check_required: Boolean(p.credit_bureau_check_required),
   standing_instruction_recovery_enabled: Boolean(p.standing_instruction_recovery_enabled),
+  non_accrual_days: Number(p.non_accrual_days ?? 90) || 0,
   consumer_disclosure_template_code: String(p.consumer_disclosure_template_code ?? "").trim(),
   classification: (p.classification ?? []).map((c) => ({ risk_class: c.risk_class, minimum_days_past_due: Number(c.minimum_days_past_due) || 0, provision_percent: String(c.provision_percent ?? "0") || "0" })),
 });
@@ -168,6 +169,13 @@ export function RegulatoryProfile() {
               </div>
             )}
           </Section>
+          <Section title={t("nonAccrualTitle")}>
+            <label className={`${labelClass} block max-w-xs`}>
+              {t("nonAccrualDays")}
+              <Field field={{ type: "int" }} value={String(form.non_accrual_days ?? 90)} onChange={set("non_accrual_days")} />
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("nonAccrualDaysHint")}</span>
+            </label>
+          </Section>
           <Section title={t("classificationTitle")}>
             <p className="mb-3 text-xs text-muted-foreground">{t("classificationHint")}</p>
             <RowsEditor
@@ -249,6 +257,7 @@ function ProfileSummary({ profile, other }) {
     [t("reportingFrequency"), loanLabel(t, p.reporting_frequency)],
     [t("credit_bureau_check_required"), yes(p.credit_bureau_check_required)],
     [t("standing_instruction_recovery_enabled"), yes(p.standing_instruction_recovery_enabled)],
+    [t("nonAccrualDays"), p.non_accrual_days == null ? "—" : Number(p.non_accrual_days) === 0 ? t("never") : p.non_accrual_days],
   ];
   const before = other ? Object.fromEntries(rows(other)) : null;
   return (

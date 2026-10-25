@@ -13,7 +13,8 @@ import { glAccountsApi, glReportsApi } from "@/Services/Accounting/accounting.ap
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { Tabs } from "./Loans/loanShared";
+import { Tabs, useInstitutionScope } from "./Loans/loanShared";
+import { branchOptions, useCoreBanking } from "./coreBankingShared";
 import { ExportButtons } from "../Reports/Shared/reportShared";
 import { inputClass } from "./Deposits/depositShared";
 import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingShared";
@@ -170,10 +171,13 @@ function Statement({ currencies }) {
 
 function TrialBalance({ currencies }) {
   const { t } = useTranslation("accounting");
-  const [q, setQ] = useState({ as_of: today(), currency_id: "", include_zero: false });
+  const [q, setQ] = useState({ as_of: today(), currency_id: "", branch_id: "", include_zero: false });
+  // A branch's trial balance: only its postings; the difference is then the
+  // branch's inter-branch position, not an error.
+  const branches = branchOptions(useCoreBanking(useInstitutionScope().scope));
   const [data, setData] = useState(null);
   const [open, setOpen] = useState(() => new Set());
-  const body = useMemo(() => ({ ...(q.as_of ? { as_of: q.as_of } : {}), ...(q.currency_id ? { currency_id: Number(q.currency_id) } : {}), include_zero: q.include_zero }), [q]);
+  const body = useMemo(() => ({ ...(q.as_of ? { as_of: q.as_of } : {}), ...(q.currency_id ? { currency_id: Number(q.currency_id) } : {}), ...(q.branch_id ? { branch_id: Number(q.branch_id) } : {}), include_zero: q.include_zero }), [q]);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,6 +229,7 @@ function TrialBalance({ currencies }) {
             <DateInput className={cn(inputClass, "w-auto")} value={q.as_of} max={today()} onChange={(e) => setQ((x) => ({ ...x, as_of: e.target.value }))} />
           </label>
           <FilterSelect value={q.currency_id} onChange={(v) => setQ((x) => ({ ...x, currency_id: v }))} options={[{ value: "", label: t("baseCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: c.alpha_code }))]} />
+          {branches.length > 0 && <FilterSelect value={q.branch_id} onChange={(v) => setQ((x) => ({ ...x, branch_id: v }))} options={[{ value: "", label: t("allBranches") }, ...branches]} />}
           <Toggle showLabel label={t("includeZero")} checked={q.include_zero} onChange={(v) => setQ((x) => ({ ...x, include_zero: v }))} />
           <ExportButtons exportFile={(format) => glReportsApi.trialBalanceExport({ ...body, format })} />
         </>
@@ -291,9 +296,13 @@ function TrialBalance({ currencies }) {
               </tr>
               <tr>
                 <td colSpan={5} className="px-4 pb-3">
-                  <span className={cn("inline-block rounded-xl px-3 py-1.5 text-xs font-bold", diff === 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
-                    {diff === 0 ? t("balanced") : t("differenceX", { value: glAmount(diff, cur) })}
-                  </span>
+                  {q.branch_id ? (
+                    <span className="inline-block rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-800">{t("interBranchPosition", { value: glAmount(diff, cur) })}</span>
+                  ) : (
+                    <span className={cn("inline-block rounded-xl px-3 py-1.5 text-xs font-bold", diff === 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
+                      {diff === 0 ? t("balanced") : t("differenceX", { value: glAmount(diff, cur) })}
+                    </span>
+                  )}
                   {(data.by_type ?? []).length > 0 && (
                     <span className="ml-3 inline-flex flex-wrap gap-2 align-middle">
                       {data.by_type.map((x) => (

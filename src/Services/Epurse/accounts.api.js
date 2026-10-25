@@ -59,3 +59,11 @@ export const accountStatementsApi = {
   list: (body) => request("/config/account/statement/list", body),
   get: (body) => request("/config/account/statement/get", body),
 };
+
+// Liens (Accounts menu): money held that no debit may touch. list { acct_id | acct_num }
+// (active first) · add { acct_id, amount, reason COURT_ORDER | OTHER, narration } · release { id, narration }.
+export const accountLiensApi = {
+  list: (body) => request("/config/account/lien/list", body),
+  add: (body) => request("/config/account/lien/add", body),
+  release: (body) => request("/config/account/lien/release", body),
+};

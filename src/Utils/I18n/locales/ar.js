@@ -311,6 +311,21 @@ export const limits = {
 };
 
 export const accounts = {
+  "tab_liens": "الحجوزات",
+  "underLien": "محجوز",
+  "freeOfLiens": "المتاح خارج الحجوزات",
+  "placeLien": "وضع حجز",
+  "placeLienHint": "فقط على مال الحساب الخالي من حجوزات أخرى ({{amount}}). لا يمكن لأي خصم المساس به حتى يُفك.",
+  "releaseLien": "فك الحجز",
+  "releaseLienHint": "يصبح {{amount}} متاحًا مجددًا. اذكر السبب.",
+  "noLiens": "لا حجوزات على هذا الحساب.",
+  "lienReason": "السبب",
+  "lien_COURT_ORDER": "أمر محكمة",
+  "lien_OTHER": "أخرى",
+  "lien_COMPULSORY_SAVINGS": "ادخار إلزامي",
+  "lien_GUARANTEE": "رهن ضمان",
+  "placed": "وُضع",
+  "narration": "البيان",
   agentWallet: "محفظة الوكيل",
   ptTitle: "أموال بانتظار أرقام",
   ptPhone: "رقم الهاتف",
@@ -1022,6 +1037,8 @@ export const providers = {
 };
 
 export const accounting = {
+  "allBranches": "كل الفروع",
+  "interBranchPosition": "المركز بين الفروع: {{value}}",
   type_ASSET: "أصل",
   type_LIABILITY: "التزام",
   type_EQUITY: "حقوق ملكية",
@@ -5812,9 +5829,17 @@ export const corebank = {
   "closingBalance": "الرصيد الختامي",
 };
 
+export const loans = {
+  "nonAccrualTitle": "الفوائد المعلقة",
+  "nonAccrualDays": "إيقاف الاعتراف بالفائدة من (أيام التأخر)",
+  "nonAccrualDaysHint": "بعد ذلك تُعلّق فائدة القرض ولا يُعترف بها إلا عند الدفع أو عند انتظام القرض. 0 = أبدًا.",
+  "never": "أبدًا",
+};
+
 export default Object.fromEntries(
   Object.entries({
     atm,
+    loans,
     corebank,
     routing,
     recon,

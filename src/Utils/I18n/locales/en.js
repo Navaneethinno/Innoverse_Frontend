@@ -3104,6 +3104,21 @@ export const cases = {
 };
 
 export const accounts = {
+  "tab_liens": "Liens",
+  "underLien": "Under lien",
+  "freeOfLiens": "Available free of liens",
+  "placeLien": "Place a lien",
+  "placeLienHint": "Only over money the account holds free of other liens ({{amount}}). No debit can touch it until it is released.",
+  "releaseLien": "Release lien",
+  "releaseLienHint": "{{amount}} becomes free to use again. Give the reason.",
+  "noLiens": "No liens on this account.",
+  "lienReason": "Reason",
+  "lien_COURT_ORDER": "Court order",
+  "lien_OTHER": "Other",
+  "lien_COMPULSORY_SAVINGS": "Compulsory savings",
+  "lien_GUARANTEE": "Guarantee pledge",
+  "placed": "Placed",
+  "narration": "Narration",
   agentWallet: "Agent wallet",
   ptTitle: "Money waiting for numbers",
   ptPhone: "Phone number",
@@ -3667,6 +3682,10 @@ export const deposits = {
 };
 
 export const loans = {
+  "nonAccrualTitle": "Interest in suspense",
+  "nonAccrualDays": "Stop recognising interest from (days past due)",
+  "nonAccrualDaysHint": "Past this, a loan's interest goes into suspense and is recognised only when paid or when the loan cures. 0 = never.",
+  "never": "Never",
   rateStatus_PENDING: "Waiting for approval",
   rateStatus_ACTIVE: "Active",
   rateStatus_REJECTED: "Rejected",
@@ -5923,6 +5942,8 @@ export const providers = {
 
 // ACCOUNTING: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
 export const accounting = {
+  "allBranches": "All branches",
+  "interBranchPosition": "Inter-branch position: {{value}}",
   type_ASSET: "Asset",
   type_LIABILITY: "Liability",
   type_EQUITY: "Equity",

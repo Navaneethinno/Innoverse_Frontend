@@ -2,6 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AccountLiens } from "./AccountLiens";
 import { Landmark, PlusCircle, ScrollText } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
@@ -198,9 +199,10 @@ function AccountDetail({ account, onClose, onStatement }) {
           </Button>
         </div>
       </div>
-      {a.acct_class !== "DEPOSIT" && <Tabs tabs={[{ key: "overview" }, { key: "requests" }, { key: "parties" }, { key: "statements" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />}
+      {a.acct_class !== "DEPOSIT" && <Tabs tabs={[{ key: "overview" }, { key: "requests" }, { key: "parties" }, { key: "liens" }, { key: "statements" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />}
       {tab === "requests" && <AccountRequests account={a} onChanged={() => setVersion((n) => n + 1)} />}
       {tab === "parties" && <AccountParties account={a} />}
+      {tab === "liens" && <AccountLiens account={a} />}
       {tab === "statements" && <AccountStatements account={a} />}
       {tab === "overview" && (
         <>
