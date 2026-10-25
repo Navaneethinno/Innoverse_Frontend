@@ -81,3 +81,8 @@ export const loanFacilitiesApi = calls("/config/loan/facility", [
 
 // Regulatory Submissions (menu 188): reports of the loan book.
 export const regulatorySubmissionsApi = calls("/config/loan/regulatory_submission", ["generate", "record", "get", "list"]);
+
+// Borrower Groups (menu 194): solidarity groups with an officer, meetings
+// and joint liability; members, the collection sheet and one collection
+// (Loan Facilities Add) for all the group's loans at once.
+export const borrowerGroupsApi = calls("/config/loan/group", ["list", "get", "add", "edit", "deactivate", "member_add", "member_role", "member_remove", "collection_sheet", "collect"]);
