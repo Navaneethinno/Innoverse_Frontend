@@ -49,7 +49,7 @@ export function useAuth(selector) {
       // visible in the console instead of being indistinguishable from a
       // genuine wrong-password rejection.
       console.error("Login failed:", error);
-      return { success: false, message: error instanceof Error ? error.message : undefined, status: error?.status, retryAfter: error?.retryAfter };
+      return { success: false, message: error instanceof Error ? error.message : undefined, status: error?.status, errorCode: error?.code, retryAfter: error?.retryAfter };
     }
   };
   // A forced change (is_force_pwd, first sign-in) is done once this succeeds:

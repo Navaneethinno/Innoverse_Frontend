@@ -135,12 +135,14 @@ export function LoginPage() {
       navigate("/dashboard");
       return;
     }
-    if (result.status === 429 && result.retryAfter)
-      setWaitUntil(Date.now() + result.retryAfter * 1000);
-    // Only a wrong code (401 while the code is still alive) keeps the code
-    // screen; too many wrong codes (429), an expired or used one, or no
-    // email on the account start over.
-    if (code && (result.status !== 401 || Date.now() >= challenge.expiresAt)) backToForm();
+    // Branch on error_code, never on the message. The gateway's rate limit
+    // keeps sign-in off for Retry-After seconds (no header: message only).
+    if (result.errorCode === "generic.too_many_requests" && result.retryAfter) setWaitUntil(Date.now() + result.retryAfter * 1000);
+    // A wrong code clears the box and stays; an expired or used code, too
+    // many wrong codes, or no email on the account start over. Any other
+    // refusal just shows its message.
+    if (result.errorCode === "login.mfa_code_wrong") setMfaCode("");
+    else if (["login.mfa_expired", "login.mfa_too_many", "login.mfa_no_email"].includes(result.errorCode)) backToForm();
     const msg = result.message || t("invalidCredentials");
     setError(msg);
     notifications.error(msg);
