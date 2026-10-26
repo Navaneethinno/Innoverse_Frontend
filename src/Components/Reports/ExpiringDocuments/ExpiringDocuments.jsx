@@ -42,7 +42,7 @@ export function ExpiringDocuments() {
       <div className="pb-8 pt-4">
         <KycReportView
           api={REPORT_APIS[open.subject_type]}
-          body={{ reference_id: open.party_reference }}
+          body={{ customer_id: open.subject_id }}
           onBack={detail.back}
           title={open.party_name}
         />
@@ -83,7 +83,7 @@ export function ExpiringDocuments() {
             label: t("open"),
             sortable: false,
             render: (r) =>
-              r.party_reference && REPORT_APIS[r.subject_type] ? (
+              r.subject_id && REPORT_APIS[r.subject_type] ? (
                 <RowActions buttons={{ view: true }} onView={() => detail.show(r)} />
               ) : null,
           },
