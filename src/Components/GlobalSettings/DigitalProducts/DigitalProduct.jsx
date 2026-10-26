@@ -86,7 +86,7 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
             form="digital-product-form"
             data-mode="submit"
             disabled={saving}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
           >
             {saving && <Spinner size={13} />}
             {editing ? tr("Save changes") : `${tr("Add")} ${tr(config.title)}`}
@@ -411,7 +411,7 @@ export function DigitalProduct({ entity }) {
         setEditing(null);
         setOpen(true);
       }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
     >
       <Plus size={14} /> {tr("Add")} {tr(config.title)}
     </button>

@@ -225,7 +225,7 @@ export function CustomerOnboardingResource() {
     <button
       type="button"
       onClick={() => setWizard({ referenceId: null })}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
     >
       <Plus size={14} /> {t("customer:newOnboarding")}
     </button>

@@ -102,7 +102,7 @@ export function MenuItem({
   // last page's row to this one (layoutId) instead of blinking across.
   const highlightClasses = isHighlighted
     ? isRoot
-      ? "bg-[var(--primary)] text-white shadow-sm"
+      ? "bg-[var(--primary)] text-primary-foreground shadow-sm"
       : cn("text-[var(--primary)] font-semibold", !isActiveLeaf && "bg-[var(--primary-light)]")
     : "text-muted-foreground hover:text-[var(--primary)] hover:bg-[var(--primary-light)]";
 

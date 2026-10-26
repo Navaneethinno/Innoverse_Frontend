@@ -153,7 +153,7 @@ export function InstitutionProfile() {
             <button
               type="button"
               onClick={() => navigate("/institutions/create")}
-              className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+              className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
             >
               <Plus size={14} /> {t("institutions:newInstitution")}
             </button>

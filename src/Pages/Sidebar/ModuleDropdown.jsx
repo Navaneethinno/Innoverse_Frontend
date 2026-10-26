@@ -45,7 +45,7 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, isColl
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         className={cn(
-          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-white transition-colors bg-[var(--primary)] shadow-md",
+          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-primary-foreground transition-colors bg-[var(--primary)] shadow-md",
           isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full justify-between",
         )}
         style={{ boxShadow: "0 4px 10px var(--primary-light)" }}

@@ -51,7 +51,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
             <button
               type="button"
               onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
             >
               {tr("Next")}
             </button>

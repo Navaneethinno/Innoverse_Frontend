@@ -277,7 +277,7 @@ export function CustomerMasterConfigResource({ entity }) {
         setEditing(null);
         setOpen(true);
       }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
     >
       <Plus size={14} /> {t("onboarding:addTitle", { title: displayTitle })}
     </button>
@@ -317,7 +317,7 @@ export function CustomerMasterConfigResource({ entity }) {
                 form="customer-master-config-form"
                 data-mode="submit"
                 disabled={saving}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white"
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 {saving && <Spinner size={13} />}
                 {editing ? t("onboarding:saveChanges") : t("onboarding:addTitle", { title: displayTitle })}

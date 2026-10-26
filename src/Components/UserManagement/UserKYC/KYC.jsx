@@ -133,7 +133,7 @@ function KycForm({
             type="button"
             disabled={pending || !isValid}
             onClick={() => onSave(false)}
-            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
           >
             {editing ? "Submit changes" : "Submit"}
           </button>
@@ -464,7 +464,7 @@ export function KYC() {
                   setForm(EMPTY);
                   setShowForm(true);
                 }}
-                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
               >
                 <Plus size={14} /> {tr("Add")} KYC
               </button>

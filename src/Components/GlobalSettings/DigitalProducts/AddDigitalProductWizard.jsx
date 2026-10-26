@@ -169,7 +169,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               type="button"
               disabled={savingStep}
               onClick={() => void goNext()}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {savingStep && <Spinner size={13} />}
               {tr("Next")}
@@ -179,7 +179,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
               type="button"
               disabled={submitting}
               onClick={() => void handleSubmit()}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {submitting && <Spinner size={13} />}
               {tr("Submit")}

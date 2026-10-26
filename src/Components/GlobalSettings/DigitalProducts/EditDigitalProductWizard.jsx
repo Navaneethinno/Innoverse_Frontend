@@ -149,7 +149,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
             type="button"
             disabled={saving || savingDraft || initialLoading}
             onClick={() => void handleSave()}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             {saving && <Spinner size={13} />}
             {tr("Save Changes")}

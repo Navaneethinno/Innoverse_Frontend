@@ -479,7 +479,7 @@ export function PasswordPolicy() {
               setEditing(null);
               setShowForm(true);
             }}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
           >
             <Plus size={14} /> {tr("Add")} {tr("policy")}
           </button>

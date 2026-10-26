@@ -259,7 +259,7 @@ export function Modal({
                     setPendingSubmit(null);
                     button.click();
                   }}
-                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white"
+                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
                 >
                   {t("submit")}
                 </button>

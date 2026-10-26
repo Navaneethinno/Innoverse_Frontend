@@ -169,7 +169,7 @@ export function MyProfilePage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/users?edit=${userId}`)}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white sm:flex-none"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground sm:flex-none"
                   >
                     <Pencil size={14} /> {t("editProfile")}
                   </button>

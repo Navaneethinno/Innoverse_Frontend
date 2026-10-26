@@ -271,7 +271,7 @@ export function CorporateOnboardingConfigurationPage() {
         setForm(emptyForm);
         setOpen(true);
       }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white"
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
     >
       <Plus size={14} /> {t("onboarding:addCorporateCustomerType")}
     </button>
@@ -300,7 +300,7 @@ export function CorporateOnboardingConfigurationPage() {
               type="button"
               disabled={saving}
               onClick={() => void create()}
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {saving && <Spinner size={13} />}
               {t("onboarding:create")}

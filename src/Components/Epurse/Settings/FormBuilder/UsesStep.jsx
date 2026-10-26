@@ -145,7 +145,7 @@ function OrderedChips({ fields, value, onChange, disabled, isDisabled }) {
               "disabled:cursor-not-allowed disabled:opacity-40",
             )}
           >
-            {index >= 0 && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] text-white">{index + 1}</span>}
+            {index >= 0 && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] text-primary-foreground">{index + 1}</span>}
             {f.label}
           </button>
         );
