@@ -202,7 +202,7 @@ function AccountDetail({ account, onClose, onStatement }) {
       {a.acct_class !== "DEPOSIT" && <Tabs tabs={[{ key: "overview" }, { key: "requests" }, { key: "parties" }, { key: "liens" }, { key: "statements" }]} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />}
       {tab === "requests" && <AccountRequests account={a} onChanged={() => setVersion((n) => n + 1)} />}
       {tab === "parties" && <AccountParties account={a} />}
-      {tab === "liens" && <AccountLiens account={a} />}
+      {tab === "liens" && <AccountLiens account={a} onChanged={() => setVersion((n) => n + 1)} />}
       {tab === "statements" && <AccountStatements account={a} />}
       {tab === "overview" && (
         <>

@@ -1386,18 +1386,18 @@ function OfficerHistory({ id }) {
         {
           key: "from",
           label: t("fromOfficer"),
-          render: (h) => h.from_user_name ?? h.from_name ?? "—",
+          render: (h) => h.from_name ?? "—",
         },
         {
           key: "to",
           label: t("toOfficer"),
-          render: (h) => <b>{h.to_user_name ?? h.to_name ?? "—"}</b>,
+          render: (h) => <b>{h.to_name}</b>,
         },
         { key: "reason", label: t("reason"), wrap: true, render: (h) => h.reason || "—" },
         {
           key: "by",
           label: t("by"),
-          render: (h) => `${h.changed_by ?? h.actor ?? "—"} · ${accountDate(h.changed_at ?? h.at)}`,
+          render: (h) => `${h.actor} · ${accountDate(h.at)}`,
         },
       ]}
     />

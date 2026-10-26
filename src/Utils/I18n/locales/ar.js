@@ -5585,6 +5585,8 @@ const withArabicPlurals = (ns) => {
 };
 
 export const corebank = {
+  "fundVault": "تمويل الخزنة",
+  "fundVaultNarration": "نقد مُسلَّم إلى الخزنة {{code}}",
   "submissionsTab_regulator": "تقارير الجهة الرقابية",
   "submissionsTab_bureau": "ملف مكتب الائتمان",
   "bureauFiles": "ملفات مكتب الائتمان",
@@ -5712,7 +5714,6 @@ export const corebank = {
   "time": "الوقت",
   "movement": "الحركة",
   "reference": "المرجع",
-  "counterparty": "الحساب / القرض",
   "amount": "المبلغ",
   "notATeller": "يتطلب العمل على صندوق إجراء Self في قائمة الصراف.",
   "openATill": "فتح صندوق",

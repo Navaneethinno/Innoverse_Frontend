@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowDownToLine,
   ArrowLeftRight,
   ArrowUpFromLine,
   HandCoins,
+  Landmark,
   LockKeyhole,
   Plus,
   Unlock,
@@ -21,7 +23,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHooks";
 import { useOwnIds } from "@/Hooks/useInstitutionScope";
-import { usePagePermission } from "@/Hooks/usePermission";
+import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { tellerApi } from "@/Services/Accounting/accounting.api";
 import { recordOf } from "@/Services/Loans/loans.api";
@@ -70,10 +72,8 @@ export function Teller() {
 }
 
 const kindLabel = (t, kind) => t(`kind_${kind}`, { defaultValue: kind });
-const sessionOwner = (s) =>
-  s?.opened_by_name ?? s?.opened_by?.name ?? s?.opened_by ?? s?.user_name ?? "—";
-const sessionOwnerId = (s) =>
-  String(s?.opened_by_id ?? s?.opened_by_userid ?? s?.user_id ?? s?.opened_by?.id ?? "");
+const sessionOwner = (s) => s?.user_name ?? "—";
+const sessionOwnerId = (s) => String(s?.user_id ?? "");
 
 function TillList() {
   const { t } = useTranslation(["corebank", "common"]);
@@ -361,6 +361,8 @@ function TillDetail({ id, onClose }) {
   const { t } = useTranslation("corebank");
   const { scope } = useInstitutionScope();
   const [till, setTill] = useState(null);
+  const navigate = useNavigate();
+  const canJournal = useMenuPermission("Finance Transaction");
   useEffect(() => {
     tellerApi
       .get(scope({ id }))
@@ -388,6 +390,31 @@ function TillDetail({ id, onClose }) {
               [t("status"), <StatusBadge key="s" status={till.status} />],
             ]}
           />
+          {/* Cash reaches a vault by a manual journal: DR the vault, CR its source. */}
+          {till.kind === "VAULT" && till.status === "ACTIVE" && canJournal("Add") && (
+            <div>
+              <Button
+                size="sm"
+                icon={Landmark}
+                onClick={() =>
+                  navigate("/manualjournal", {
+                    state: {
+                      journal: {
+                        currency_id: till.currency_id,
+                        narration: t("fundVaultNarration", { code: till.code }),
+                        lines: [
+                          { gl_account_id: String(till.gl_account_id), op: "DR" },
+                          { gl_account_id: "", op: "CR" },
+                        ],
+                      },
+                    },
+                  })
+                }
+              >
+                {t("fundVault")}
+              </Button>
+            </div>
+          )}
           {till.session && (
             <Section title={t("openSession", { name: sessionOwner(till.session) })}>
               <Movements session={till.session} currency={till.currency} />
@@ -430,13 +457,13 @@ function SessionTable({ sessions, currency }) {
           key: "opening_count",
           label: t("openingCount"),
           align: "right",
-          render: (s) => money(s.opening_count ?? s.opened_count, currency),
+          render: (s) => money(s.opening_counted, currency),
         },
         {
           key: "closing_count",
           label: t("closingCount"),
           align: "right",
-          render: (s) => money(s.closing_count ?? s.closed_count, currency),
+          render: (s) => money(s.closing_counted, currency),
         },
         {
           key: "variance",
@@ -466,7 +493,7 @@ function Movements({ session, currency }) {
     <div className="grid gap-3">
       <Facts
         rows={[
-          [t("openingCount"), money(session.opening_count ?? session.opened_count, currency)],
+          [t("openingCount"), money(session.opening_counted, currency)],
           [t("cashIn"), money(session.cash_in, currency), "text-emerald-700"],
           [t("cashOut"), money(session.cash_out, currency), "text-red-700"],
           session.variance != null && [t("variance"), money(session.variance, currency)],
@@ -477,34 +504,21 @@ function Movements({ session, currency }) {
         empty={t("noMovements")}
         columns={[
           {
-            key: "created_at",
+            key: "at",
             label: t("time"),
-            render: (m) => (
-              <span className="text-xs">{accountDate(m.created_at ?? m.posted_at)}</span>
-            ),
+            render: (m) => <span className="text-xs">{accountDate(m.at)}</span>,
           },
           {
-            key: "kind",
+            key: "txn_type",
             label: t("movement"),
             render: (m) => (
-              <span className="text-xs font-semibold">
-                {t(`move_${m.kind ?? m.type}`, { defaultValue: m.kind ?? m.type })}
-              </span>
+              <span className="text-xs font-semibold">{m.description ?? m.txn_type}</span>
             ),
           },
           {
-            key: "reference",
+            key: "rrn",
             label: t("reference"),
-            render: (m) => <span className="font-mono text-xs">{m.reference}</span>,
-          },
-          {
-            key: "counterparty",
-            label: t("counterparty"),
-            render: (m) => (
-              <span className="text-xs">
-                {m.acct_num ?? m.facility_number ?? m.counterparty ?? m.narration ?? "—"}
-              </span>
-            ),
+            render: (m) => <span className="font-mono text-xs">{m.rrn}</span>,
           },
           {
             key: "amount",
@@ -513,9 +527,8 @@ function Movements({ session, currency }) {
             render: (m) => (
               <b
                 className={cn(
-                  m.direction === "OUT" || Number(m.amount) < 0
-                    ? "text-red-700"
-                    : "text-emerald-700",
+                  // DR is cash into the till, CR is cash out.
+                  m.op === "CR" ? "text-red-700" : "text-emerald-700",
                 )}
               >
                 {money(m.amount, currency)}

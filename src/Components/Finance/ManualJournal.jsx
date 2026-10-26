@@ -3,6 +3,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { BookOpenCheck, Plus, Scale, Send, X } from "lucide-react";
 import { AmountInput } from "@/Components/Common/AmountInput";
 import { Button } from "@/Components/Common/Button";
@@ -39,7 +40,8 @@ export function ManualJournal() {
   const { t } = useTranslation("accounting");
   const can = usePagePermission();
   const [tab, setTab] = useState("journals");
-  const [form, setForm] = useState(null); // a prefill for a new journal
+  // A prefill for a new journal; another screen may hand one over (Teller's Fund vault).
+  const [form, setForm] = useState(useLocation().state?.journal ?? null);
   const [viewing, setViewing] = useState(null);
   const [version, setVersion] = useState(0);
   const [currencies, setCurrencies] = useState([]);

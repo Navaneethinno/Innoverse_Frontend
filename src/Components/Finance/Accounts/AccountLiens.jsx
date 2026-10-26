@@ -23,7 +23,7 @@ const REASONS = ["COURT_ORDER", "OTHER"];
 // An account's liens, active first: money held that no debit may touch
 // (court orders, loan pledges and compulsory savings). Staff place a lien
 // over free money and release it; loans place and release their own.
-export function AccountLiens({ account }) {
+export function AccountLiens({ account, onChanged }) {
   const { t } = useTranslation("accounts");
   const can = usePagePermission();
   const [liens, setLiens] = useState(null);
@@ -41,10 +41,8 @@ export function AccountLiens({ account }) {
   useEffect(() => {
     void load();
   }, [load]);
-  const held = (liens ?? [])
-    .filter((l) => l.status === "ACTIVE")
-    .reduce((sum, l) => sum + Number(l.amount || 0), 0);
-  const free = Number(account.avail_bal ?? 0) - held;
+  const held = Number(account.lien_total ?? 0);
+  const free = account.free_balance;
   const run = async (verb, body) => {
     try {
       const r = await accountLiensApi[verb](body);
@@ -52,6 +50,7 @@ export function AccountLiens({ account }) {
       setDialog(null);
       setAmount("");
       await load();
+      onChanged?.();
     } catch (e) {
       notifications.error(e.message);
     }

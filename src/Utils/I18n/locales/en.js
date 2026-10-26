@@ -7340,6 +7340,8 @@ export const atm = {
 };
 
 export const corebank = {
+  "fundVault": "Fund vault",
+  "fundVaultNarration": "Cash delivered to vault {{code}}",
   "submissionsTab_regulator": "Regulator reports",
   "submissionsTab_bureau": "Credit bureau file",
   "bureauFiles": "Credit bureau files",
@@ -7467,7 +7469,6 @@ export const corebank = {
   "time": "Time",
   "movement": "Movement",
   "reference": "Reference",
-  "counterparty": "Account / loan",
   "amount": "Amount",
   "notATeller": "Working a till needs the Teller menu's Self action.",
   "openATill": "Open a till",

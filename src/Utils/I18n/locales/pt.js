@@ -7354,6 +7354,8 @@ export const atm = {
 };
 
 export const corebank = {
+  "fundVault": "Abastecer cofre",
+  "fundVaultNarration": "Numerário entregue ao cofre {{code}}",
   "submissionsTab_regulator": "Relatórios ao regulador",
   "submissionsTab_bureau": "Ficheiro da central de crédito",
   "bureauFiles": "Ficheiros da central de crédito",
@@ -7481,7 +7483,6 @@ export const corebank = {
   "time": "Hora",
   "movement": "Movimento",
   "reference": "Referência",
-  "counterparty": "Conta / empréstimo",
   "amount": "Valor",
   "notATeller": "Operar uma caixa requer a ação Self do menu Caixa.",
   "openATill": "Abrir uma caixa",

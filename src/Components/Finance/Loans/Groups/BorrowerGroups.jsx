@@ -646,9 +646,9 @@ function CollectionSheet({ group, onCollected }) {
                 label: t("member"),
                 render: (l) => (
                   <span className="text-xs leading-tight">
-                    <b className="block">{l.member_name ?? l.name}</b>
+                    <b className="block">{l.name}</b>
                     <span className="font-mono text-[10px] text-muted-foreground">
-                      {l.facility_number}
+                      {l.facility_number} · {t(`role_${l.role}`, { defaultValue: l.role })}
                     </span>
                   </span>
                 ),
