@@ -4753,6 +4753,8 @@ export const tour = {
 };
 
 export const recon = {
+  "setting": "الإعداد",
+  "noDefinitionChanges": "لا يختلف أي إعداد عن النسخة السارية.",
   "chooseSourceFirst": "اختر المصدر أولًا",
   "upload_Choose a file": "اختيار ملف",
   "upload_Replace": "استبدال",

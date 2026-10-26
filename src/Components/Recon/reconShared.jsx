@@ -284,9 +284,120 @@ export function EventsSection({ api, id }) {
   );
 }
 
-// JSON, read only.
+// A definition (or any settings object), read only and readable: plain values
+// as labelled facts, lists of items (record types, fields, passes) as tables,
+// lists of values as chips. Works on whatever keys the server sends.
 export function JsonView({ value, className }) {
-  return <pre className={cn("max-h-96 overflow-auto rounded-xl border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed", className)}>{JSON.stringify(value ?? null, null, 2)}</pre>;
+  return (
+    <div className={cn("grid gap-3", className)}>
+      <ValueBlock value={value} />
+    </div>
+  );
+}
+
+const isPlain = (v) => v == null || typeof v !== "object";
+const isObjectList = (v) => Array.isArray(v) && v.length > 0 && v.every((x) => x && typeof x === "object" && !Array.isArray(x));
+
+// One value on a line: nested objects and lists summarised.
+function inline(v, t) {
+  if (v == null || v === "") return "—";
+  if (typeof v === "boolean") return v ? t("common:yes") : t("common:no");
+  if (Array.isArray(v)) return v.map((x) => inline(x, t)).join(", ") || "—";
+  if (typeof v === "object") {
+    const entries = Object.entries(v);
+    // An item named by its "op" / "kind" reads as "date (YYYY-MM-DD, …)".
+    const head = v.op ?? v.kind;
+    const rest = entries.filter(([k]) => (head != null ? k !== "op" && k !== "kind" : true));
+    const body = rest.map(([k, x]) => (typeof x === "boolean" ? (x ? humanize(k) : null) : `${humanize(k)}: ${inline(x, t)}`)).filter(Boolean).join(" · ");
+    return head != null ? (body ? `${head} (${body})` : String(head)) : body || "—";
+  }
+  return String(v);
+}
+
+function ValueBlock({ value }) {
+  const { t } = useTranslation(["recon", "common"]);
+  if (isPlain(value) || (Array.isArray(value) && !isObjectList(value))) return <p className="text-sm">{inline(value, t)}</p>;
+  if (isObjectList(value)) return <ItemTable rows={value} />;
+  const entries = Object.entries(value);
+  const facts = entries.filter(([, v]) => isPlain(v) || (Array.isArray(v) && !isObjectList(v)));
+  const nested = entries.filter(([, v]) => !(isPlain(v) || (Array.isArray(v) && !isObjectList(v))));
+  return (
+    <>
+      {facts.length > 0 && (
+        <Facts
+          rows={facts.map(([k, v]) => [
+            humanize(k),
+            Array.isArray(v) ? (
+              <span key={k} className="flex flex-wrap gap-1">
+                {v.length ? v.map((x, i) => <Chip key={i}>{inline(x, t)}</Chip>) : "—"}
+              </span>
+            ) : (
+              inline(v, t)
+            ),
+          ])}
+        />
+      )}
+      {nested.map(([k, v]) =>
+        // A list of named groups (record types): one titled table each.
+        isObjectList(v) && v.every((x) => Object.values(x).some(isObjectList)) ? (
+          v.map((group, i) => <Group key={`${k}-${i}`} title={`${humanize(k)} · ${group.name ?? group.code ?? i + 1}`} value={group} />)
+        ) : (
+          <Group key={k} title={humanize(k)} value={v} />
+        ),
+      )}
+    </>
+  );
+}
+
+function Group({ title, value }) {
+  return (
+    <div className="rounded-xl border border-border p-3">
+      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <div className="grid gap-3">
+        <ValueBlock value={value} />
+      </div>
+    </div>
+  );
+}
+
+const Chip = ({ children }) => <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px]">{children}</span>;
+
+// Items with the same kind of keys, as a table: one column per key.
+function ItemTable({ rows }) {
+  const { t } = useTranslation(["recon", "common"]);
+  const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
+  return (
+    <MiniTable
+      rows={rows.map((r, i) => ({ ...r, _row: i }))}
+      rowKey={(r) => r._row}
+      columns={keys.map((k) => ({
+        key: k,
+        label: humanize(k),
+        wrap: true,
+        render: (r) =>
+          typeof r[k] === "boolean" ? (
+            r[k] ? <CheckCircle2 size={14} className="text-emerald-600" aria-label={t("common:yes")} /> : <span className="text-muted-foreground">—</span>
+          ) : (
+            <span className={cn("text-xs", k === "name" && "font-bold")}>{inline(r[k], t)}</span>
+          ),
+      }))}
+    />
+  );
+}
+
+// Every setting as a readable path ("Record types · posting · Fields · amount
+// · Required") with its value, for comparing two versions.
+function flatten(value, t, path = [], out = new Map()) {
+  if (isPlain(value) || (Array.isArray(value) && !isObjectList(value))) {
+    out.set(path.join(" · ") || "—", inline(value, t));
+    return out;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, i) => flatten(item, t, [...path, String(item.name ?? item.code ?? item.set ?? i + 1)], out));
+    return out;
+  }
+  for (const [k, v] of Object.entries(value)) flatten(v, t, [...path, humanize(k)], out);
+  return out;
 }
 
 // A file read with a layout (a read or a preview): the counts, the controls
@@ -474,33 +585,23 @@ export function JsonEditor({ value, onChange, error, className, rows = 18 }) {
   );
 }
 
-// The version in force beside the waiting one, changed lines marked.
+// The version in force beside the waiting one: only the settings that differ.
 export function DefinitionCompare({ current, pending }) {
-  const { t } = useTranslation("recon");
-  const a = JSON.stringify(current ?? null, null, 2).split("\n");
-  const b = JSON.stringify(pending ?? null, null, 2).split("\n");
-  const inA = new Set(a);
-  const inB = new Set(b);
-  const side = (lines, other, tone) => (
-    <pre className="max-h-[28rem] overflow-auto rounded-xl border border-border bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
-      {lines.map((line, i) => (
-        <div key={i} className={cn(!other.has(line) && tone)}>
-          {line || " "}
-        </div>
-      ))}
-    </pre>
-  );
+  const { t } = useTranslation(["recon", "common"]);
+  const a = flatten(current ?? {}, t);
+  const b = flatten(pending ?? {}, t);
+  const changed = [...new Set([...a.keys(), ...b.keys()])].filter((k) => a.get(k) !== b.get(k));
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
-      <div className="min-w-0">
-        <p className="mb-1 text-xs font-bold">{t("inForce")}</p>
-        {side(a, inB, "bg-red-100 text-red-800")}
-      </div>
-      <div className="min-w-0">
-        <p className="mb-1 text-xs font-bold text-amber-700">{t("waitingApproval")}</p>
-        {side(b, inA, "bg-emerald-100 text-emerald-800")}
-      </div>
-    </div>
+    <MiniTable
+      rows={changed.map((setting) => ({ setting, now: a.get(setting), next: b.get(setting) }))}
+      rowKey={(r) => r.setting}
+      empty={t("noDefinitionChanges")}
+      columns={[
+        { key: "setting", label: t("setting"), wrap: true, render: (r) => <span className="text-xs font-semibold">{r.setting}</span> },
+        { key: "now", label: t("inForce"), wrap: true, render: (r) => <span className="text-xs text-red-700">{r.now ?? "—"}</span> },
+        { key: "next", label: t("waitingApproval"), wrap: true, render: (r) => <span className="text-xs font-semibold text-emerald-700">{r.next ?? "—"}</span> },
+      ]}
+    />
   );
 }
 

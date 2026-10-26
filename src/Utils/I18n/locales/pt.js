@@ -6535,6 +6535,8 @@ export const bulkReg = {
 };
 
 export const recon = {
+  "setting": "Configuração",
+  "noDefinitionChanges": "Nenhuma configuração difere da versão em vigor.",
   "chooseSourceFirst": "Escolha primeiro a fonte",
   "upload_Choose a file": "Escolher um ficheiro",
   "upload_Replace": "Substituir",

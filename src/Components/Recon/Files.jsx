@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Download, FileUp, ShieldCheck, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -17,7 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass } from "../Finance/Deposits/depositShared";
 import { Tabs } from "../Finance/Loans/loanShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField } from "./reconShared";
+import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, humanize, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField } from "./reconShared";
 
 // Recon Files (menu 189): files received from each source (uploaded, picked
 // up by SFTP or generated from the ledger), read with the source's layout.
@@ -331,7 +331,16 @@ function FileRecords({ fileId }) {
               open === r.id ? (
                 <div className="max-w-md text-left">
                   <pre className="whitespace-pre-wrap break-all font-mono text-[10px]">{r.raw}</pre>
-                  {r.extra && <pre className="mt-1 whitespace-pre-wrap break-all font-mono text-[10px] text-muted-foreground">{JSON.stringify(r.extra)}</pre>}
+                  {r.extra && Object.keys(r.extra).length > 0 && (
+                    <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[10px]">
+                      {Object.entries(r.extra).map(([k, v]) => (
+                        <Fragment key={k}>
+                          <dt className="font-semibold text-muted-foreground">{humanize(k)}</dt>
+                          <dd className="break-all font-mono">{v == null || v === "" ? "—" : typeof v === "object" ? Object.values(v).join(", ") : String(v)}</dd>
+                        </Fragment>
+                      ))}
+                    </dl>
+                  )}
                   {r.warnings?.length > 0 && <p className="mt-1 text-[10px] text-amber-700">{r.warnings.join(" · ")}</p>}
                 </div>
               ) : (
