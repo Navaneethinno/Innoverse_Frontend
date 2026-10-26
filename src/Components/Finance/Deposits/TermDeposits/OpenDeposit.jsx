@@ -241,10 +241,10 @@ export function OwnerFinder({ onPick }) {
     setBusy(true);
     try {
       const byNumber = /^\d{6,}$/.test(q);
-      const data = rowsOf(await accountsApi.list({ page: 1, limit: 20, acct_class: "CUSTOMER", ...(byNumber ? { acct_num: q } : { owner_name: q }) }))[0];
+      const accounts = rowsOf(await accountsApi.list({ page: 1, limit: 20, acct_class: "CUSTOMER", ...(byNumber ? { acct_num: q } : { owner_name: q }) }));
       // One row per owner.
       const seen = new Map();
-      for (const a of data?.accounts ?? []) if (a.owner?.id && !seen.has(`${a.owner.kind}-${a.owner.id}`)) seen.set(`${a.owner.kind}-${a.owner.id}`, a);
+      for (const a of accounts) if (a.owner?.id && !seen.has(`${a.owner.kind}-${a.owner.id}`)) seen.set(`${a.owner.kind}-${a.owner.id}`, a);
       setRows([...seen.values()]);
     } catch (error) {
       notifications.error(error.message);
