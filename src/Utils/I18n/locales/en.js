@@ -7655,6 +7655,8 @@ export const keyCustody = {
 };
 
 export const expiry = {
+  "expiresOnDate": "expires {{date}}",
+  "noWatched": "No watched documents: this customer's form has no expiry date.",
   "rulesTitle": "Expiry Rules",
   "rulesSubtitle": "When to warn before a date runs out, when to remind, how long the grace lasts after it and what happens then. A change waits for a checker.",
   "documentCounts": "{{expiring}} customer documents expire soon and {{grace}} are in grace.",

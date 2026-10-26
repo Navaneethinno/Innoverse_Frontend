@@ -7669,6 +7669,8 @@ export const keyCustody = {
 };
 
 export const expiry = {
+  "expiresOnDate": "expira em {{date}}",
+  "noWatched": "Sem documentos vigiados: o formulário deste cliente não tem data de validade.",
   "rulesTitle": "Regras de validade",
   "rulesSubtitle": "Quando avisar antes de uma data expirar, quando relembrar, quanto dura a tolerância depois e o que acontece a seguir. Uma alteração aguarda um verificador.",
   "documentCounts": "{{expiring}} documentos de clientes expiram em breve e {{grace}} estão em tolerância.",
