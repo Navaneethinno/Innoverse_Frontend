@@ -10,8 +10,8 @@ import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 const WIDE_RATIO = 1.6;
 
 // The signed-in institution's logo and display name (login branding), at the
-// top of the sidebar while it is open. Nothing shows until the branding has
-// either; with the sidebar collapsed they show in the top bar instead.
+// top of the sidebar. Nothing shows until the branding has either. On the
+// collapsed rail only the logo shows, as a small tile.
 //
 // The card follows the logo's shape: a square mark sits in a tile beside the
 // name, a wide wordmark spans the card with the name as a caption under it.
@@ -21,7 +21,25 @@ export function SidebarBrand({ isCollapsed }) {
   const navigate = useNavigate();
   const { logoUrl, displayName } = useBrandTheme();
   const [ratio, setRatio] = useState(null);
-  if (isCollapsed || (!logoUrl && !displayName)) return null;
+  if (!logoUrl && !displayName) return null;
+  if (isCollapsed)
+    return (
+      <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        title={displayName ? `${displayName} · ${t("backToDashboard")}` : t("backToDashboard")}
+        aria-label={t("backToDashboard")}
+        className="mx-auto flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-white shadow-md ring-1 ring-black/10 transition-transform duration-200 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {logoUrl ? (
+          <img src={logoUrl} alt={displayName ?? ""} className="h-full w-full object-contain" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-primary text-base font-black text-primary-foreground">
+            {displayName.charAt(0).toUpperCase()}
+          </span>
+        )}
+      </button>
+    );
 
   const wide = logoUrl && ratio != null && ratio >= WIDE_RATIO;
   const caption = t("adminPortal");

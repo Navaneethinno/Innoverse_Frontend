@@ -38,11 +38,11 @@ export function TopBar() {
   // The DEMO institution has no My profile / Change password.
   const demo = isDemoUser(user);
   const isMobile = useIsMobile();
-  // The institution's logo and name show once: in the sidebar while it is
-  // pinned open (desktop), otherwise here.
+  // The institution's logo and name show once: in the sidebar on desktop
+  // (open, or its logo on the collapsed rail), here on mobile.
   const { logoUrl, displayName } = useBrandTheme();
   const branded = Boolean(logoUrl || displayName);
-  const brandInSidebar = branded && !isMobile && !collapsed;
+  const brandInSidebar = branded && !isMobile;
   // Was keyed off `collapsed` alone, so it never reacted while the sidebar
   // was only hover-expanded (not pinned open) — the header stayed put at
   // the collapsed offset while the sidebar rail grew past it underneath,
