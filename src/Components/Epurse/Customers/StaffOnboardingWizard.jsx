@@ -129,6 +129,10 @@ function seedOf(section) {
   return withDefaults(section.values && !Array.isArray(section.values) ? section.values : {});
 }
 
+// The earlier screens a section shows again (includes): their answers as
+// they stand, by section key.
+const seedIncludes = (section) => Object.fromEntries((section?.includes ?? []).map((inc) => [inc.key, { ...(inc.values ?? {}) }]));
+
 // Only the section's own fields go back, blanks left out.
 function cleanRow(row, keys) {
   return Object.fromEntries(Object.entries(row ?? {}).filter(([k, v]) => keys.has(k) && !isBlank(v)));
@@ -151,6 +155,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const [loading, setLoading] = useState(Boolean(referenceId));
   const [activeKey, setActiveKey] = useState(null);
   const [draft, setDraft] = useState(null);
+  const [includeDraft, setIncludeDraft] = useState({});
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitLevel, setSubmitLevel] = useState("");
@@ -206,8 +211,21 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     seedKeyRef.current = seedKey;
     effectiveDraft = seedOf(section);
     setDraft(effectiveDraft);
+    setIncludeDraft(seedIncludes(section));
   }
-  const dirty = editable && effectiveDraft != null && JSON.stringify(effectiveDraft) !== JSON.stringify(seedOf(section));
+  // The included screens' answers changed here: only these go back.
+  const changedIncludes = () => {
+    const out = {};
+    for (const inc of section?.includes ?? [])
+      for (const f of inc.fields ?? []) {
+        const now = includeDraft[inc.key]?.[f.key];
+        if (JSON.stringify(now ?? null) !== JSON.stringify(inc.values?.[f.key] ?? null)) out[f.key] = now;
+      }
+    return out;
+  };
+  const dirty =
+    editable &&
+    ((effectiveDraft != null && JSON.stringify(effectiveDraft) !== JSON.stringify(seedOf(section))) || Object.keys(changedIncludes()).length > 0);
   const { guard, dialog: unsavedDialog } = useUnsavedChangesGuard(dirty);
 
   // Start: individual picks a sub type ("No sub type" when the ownership's
@@ -279,6 +297,12 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   // A refusal's first problem with a place (problem_keys): its section opens
   // and its field comes into view.
   const openProblem = (keys) => {
+    // A problem in an earlier screen shown on this one stays here.
+    const included = (keys ?? []).find((k) => k?.section && (section?.includes ?? []).some((inc) => inc.key === k.section));
+    if (included) {
+      setScrollTarget(included.field ?? null);
+      return;
+    }
     const key = (keys ?? []).find((k) => k?.section && sections.some((s) => s.key === k.section));
     if (!key) return;
     setActiveKey(key.section);
@@ -305,7 +329,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     setSaving(true);
     setProblems([]);
     const keys = new Set((section.fields ?? []).map((f) => f.key));
-    const data = Array.isArray(effectiveDraft) ? effectiveDraft.map((row) => cleanRow(row, keys)).filter((row) => Object.keys(row).length) : cleanRow(effectiveDraft, keys);
+    const data = Array.isArray(effectiveDraft)
+      ? effectiveDraft.map((row) => cleanRow(row, keys)).filter((row) => Object.keys(row).length)
+      : { ...cleanRow(effectiveDraft, keys), ...changedIncludes() };
     try {
       const w = first(
         await api.edit({
@@ -482,6 +508,27 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         </div>
         {!editable && !portalDraft && <p className="mb-3 rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">{notEditableReason}</p>}
         <div ref={formRef}>
+          {(section.includes ?? []).map((inc) => (
+            <div key={inc.key} className="mb-4 rounded-xl border border-border bg-muted/30 p-4">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">{inc.heading ?? inc.key}</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(inc.fields ?? []).map((field) => (
+                  <FieldPreview
+                    key={field.key}
+                    field={field}
+                    instProfileId={wizard.onboarding?.inst_profile_id}
+                    value={includeDraft[inc.key]?.[field.key]}
+                    choices={choicesFor(field, includeDraft[inc.key])}
+                    disabled={!editable}
+                    issue={inc.issues?.find((i) => i.field === field.key)?.message}
+                    note={levelNote(field)}
+                    file={fileFor(field)}
+                    onChange={(v) => setIncludeDraft((prev) => ({ ...prev, [inc.key]: { ...prev[inc.key], [field.key]: v } }))}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
           {section.multi_row ? (
             <div className="grid gap-3">
               {rows.map((row, i) => renderRow(row, i))}

@@ -2050,6 +2050,7 @@ export const cases = {
 };
 
 export const formBuilder = {
+  "showEarlierScreens": "عرض الشاشات السابقة عليها:",
   "usesExpiryTitle": "انتهاء المستند",
   "usesExpiryOff": "غير مراقب",
   "usesExpiryIntro": "تنبه المنصة العميل قبل هذا التاريخ وتطبق قواعد انتهاء الصلاحية الخاصة بالمؤسسة بعده.",

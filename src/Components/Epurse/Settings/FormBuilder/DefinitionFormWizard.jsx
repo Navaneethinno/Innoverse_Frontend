@@ -64,10 +64,20 @@ function MoveButtons({ index, count, onMove, onRemove, t }) {
 const resolvedFields = (section, fieldDetails) =>
   section?.resolved_fields ?? (section?.fields ?? []).map((p) => ({ ...fieldDetails.get(p.field_key), key: p.field_key, ...(p.label ? { label: p.label } : {}), ...(typeof p.required === "boolean" ? { required: p.required } : {}) }));
 
+// The earlier screens a placed section may show again ("includes"): placed
+// before it, one row each, and showing nothing themselves. The section
+// itself must have one row.
+function includeChoices(sections, index, sectionByKey) {
+  if (sectionByKey.get(sections[index].section_key)?.multi_row) return [];
+  return sections.slice(0, index).filter((s) => !sectionByKey.get(s.section_key)?.multi_row && !(s.includes ?? []).length);
+}
+
 // One section on the definition: drag grip, its name, a fields pill that
-// opens the list of the fields it asks, Required, and move / remove.
-function SectionCard({ placed, index, count, section, fields, typeName, readOnly, dnd, onRequired, onMove, onRemove, t }) {
+// opens the list of the fields it asks, Required, the earlier screens it
+// shows again, and move / remove.
+function SectionCard({ placed, index, count, section, fields, typeName, readOnly, dnd, onRequired, onMove, onRemove, choices, headingOf, onIncludes, t }) {
   const [open, setOpen] = useState(false);
+  const [includesOpen, setIncludesOpen] = useState(false);
   return (
     <div {...(readOnly ? {} : dnd.rowProps(index))} className={cn("rounded-xl border bg-white/70", !readOnly && dnd.rowClass(index))}>
       <div className="flex flex-wrap items-center gap-3 px-3 py-2.5">
@@ -100,6 +110,31 @@ function SectionCard({ placed, index, count, section, fields, typeName, readOnly
         <CheckboxPill checked={placed.required !== false} disabled={readOnly} onChange={onRequired} label={t("formBuilder:requiredSection")} />
         {!readOnly && <MoveButtons t={t} index={index} count={count} onMove={onMove} onRemove={onRemove} />}
       </div>
+      {choices.length > 0 && !(placed.includes ?? []).length && !readOnly && !includesOpen && (
+        <div className="border-t px-3 py-1.5">
+          <button type="button" onClick={() => setIncludesOpen(true)} className="text-[11px] font-bold text-primary hover:underline">
+            + {t("formBuilder:showEarlierScreens")}
+          </button>
+        </div>
+      )}
+      {choices.length > 0 && ((placed.includes ?? []).length > 0 || (!readOnly && includesOpen)) && (
+        <div className="flex flex-wrap items-center gap-2 border-t px-3 py-2">
+          <span className="text-[11px] font-bold text-muted-foreground">{t("formBuilder:showEarlierScreens")}</span>
+          {/* Viewing: only the screens it shows. */}
+          {(readOnly ? choices.filter((c) => (placed.includes ?? []).includes(c.section_key)) : choices).map((c) => {
+            const on = (placed.includes ?? []).includes(c.section_key);
+            return (
+              <CheckboxPill
+                key={c.section_key}
+                checked={on}
+                disabled={readOnly}
+                label={headingOf(c.section_key)}
+                onChange={(next) => onIncludes(next ? [...(placed.includes ?? []), c.section_key] : (placed.includes ?? []).filter((k) => k !== c.section_key))}
+              />
+            );
+          })}
+        </div>
+      )}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} className="overflow-hidden">
@@ -338,7 +373,12 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
 
 
   const payloadForm = () => ({
-    sections: form.sections.map((s) => ({ section_key: s.section_key, required: s.required !== false })),
+    sections: form.sections.map((s, i) => {
+      // An include no longer valid after a move or a removal is dropped.
+      const allowed = new Set(includeChoices(form.sections, i, sectionByKey).map((c) => c.section_key));
+      const includes = (s.includes ?? []).filter((k) => allowed.has(k));
+      return { section_key: s.section_key, required: s.required !== false, ...(includes.length ? { includes } : {}) };
+    }),
     rules: form.rules.map((r) => ({
       ...r,
       priority: r.priority === "" || r.priority === undefined ? 100 : Number(r.priority),
@@ -563,6 +603,9 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                     readOnly={readOnly}
                     dnd={dnd}
                     onRequired={(on) => change({ sections: form.sections.map((x, i) => (i === index ? { ...x, required: on } : x)) })}
+                    choices={includeChoices(form.sections, index, sectionByKey)}
+                    headingOf={(key) => sectionByKey.get(key)?.heading ?? sectionByKey.get(key)?.name ?? key}
+                    onIncludes={(includes) => change({ sections: form.sections.map((x, i) => (i === index ? { ...x, includes } : x)) })}
                     onMove={(d) => moveSection(index, index + d)}
                     onRemove={() => change({ sections: form.sections.filter((_, i) => i !== index) })}
                   />

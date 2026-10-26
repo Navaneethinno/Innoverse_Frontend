@@ -2475,6 +2475,7 @@ export const tour = {
 };
 
 export const formBuilder = {
+  "showEarlierScreens": "Show earlier screens on it:",
   "usesExpiryTitle": "Document expiry",
   "usesExpiryOff": "Not watched",
   "usesExpiryIntro": "The platform warns the customer before this date and applies the institution's Expiry Rules after it.",

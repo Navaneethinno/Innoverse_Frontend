@@ -2489,6 +2489,7 @@ export const tour = {
 };
 
 export const formBuilder = {
+  "showEarlierScreens": "Mostrar ecrãs anteriores nele:",
   "usesExpiryTitle": "Validade do documento",
   "usesExpiryOff": "Não vigiado",
   "usesExpiryIntro": "A plataforma avisa o cliente antes desta data e aplica as Regras de validade da instituição depois dela.",
