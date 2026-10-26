@@ -3,7 +3,12 @@ import store from "@/Redux/Store";
 import { setSession } from "@/Redux/AuthToken";
 import { refreshTokenRequest } from "@/Services/Auth/auth.service";
 import { cachedFetch } from "@/Services/api/readCache";
-import { getAccessToken, getRefreshToken, persistAuthSession, readAuthUser } from "@/Services/api/authStorage";
+import {
+  getAccessToken,
+  getRefreshToken,
+  persistAuthSession,
+  readAuthUser,
+} from "@/Services/api/authStorage";
 import { withInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 
 // Silent session renewal. Every request helper calls authFetch instead of
@@ -22,11 +27,15 @@ async function renew() {
     const response = await refreshTokenRequest();
     // Refresh may not re-send scope or the session user id: keep the login's.
     const stored = readAuthUser();
-    const base = response.user ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope } : stored;
+    const base = response.user
+      ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope }
+      : stored;
     // The refresh carries the institution's current formats: replace them.
     const user = base && response.formats ? { ...base, formats: response.formats } : base;
     persistAuthSession(user, response.access_token, response.refresh_token);
-    store.dispatch(setSession({ token: response.access_token, refreshToken: response.refresh_token, user }));
+    store.dispatch(
+      setSession({ token: response.access_token, refreshToken: response.refresh_token, user }),
+    );
     return true;
   } catch (error) {
     // Replaced by a sign-in elsewhere (one session per user): say so, not
@@ -45,11 +54,34 @@ function refreshSession() {
 
 const bearer = (init) => String(init?.headers?.Authorization ?? "").startsWith("Bearer ");
 
+// An expired password (the password policy's expiry): the server refuses
+// every menu call until it is changed. Marked on the stored user like a
+// forced change at sign-in, so the app opens Change password (ProtectRoute).
+async function mustChangePassword(response) {
+  if (response.status !== 403) return;
+  const body = await response
+    .clone()
+    .json()
+    .catch(() => null);
+  if (body?.error_code !== "auth.password_change_required") return;
+  const user = readAuthUser();
+  if (!user || Number(user.is_force_pwd) === 1) return;
+  const next = { ...user, is_force_pwd: 1 };
+  persistAuthSession(next, getAccessToken(), getRefreshToken());
+  store.dispatch(
+    setSession({ token: getAccessToken(), refreshToken: getRefreshToken(), user: next }),
+  );
+}
+
 export async function authFetch(url, given = {}) {
   // A list request carries the top bar's Institution filter.
   const init = withInstitutionFilter(url, given);
   const response = await cachedFetch(url, init, () => fetch(url, init));
+  await mustChangePassword(response);
   if (response.status !== 401 || !bearer(init) || !getRefreshToken()) return response;
   if (!(await refreshSession())) return response;
-  return fetch(url, { ...init, headers: { ...init.headers, Authorization: `Bearer ${getAccessToken()}` } });
+  return fetch(url, {
+    ...init,
+    headers: { ...init.headers, Authorization: `Bearer ${getAccessToken()}` },
+  });
 }

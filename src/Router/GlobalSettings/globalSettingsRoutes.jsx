@@ -13,7 +13,11 @@ const ExtProviders = lazy(() => import("@/Components/GlobalSettings/ExternalProv
 // GLOBAL SETTINGS > Transaction Routing (menu 192).
 const TransactionRouting = lazy(() => import("@/Components/GlobalSettings/Routing/TransactionRouting.jsx").then((m) => ({ default: m.TransactionRouting })));
 
+// GLOBAL SETTINGS > Expiry Rules (menu 197).
+const ExpiryRules = lazy(() => import("@/Components/GlobalSettings/ExpiryRules/ExpiryRules.jsx").then((m) => ({ default: m.ExpiryRules })));
+
 export const globalSettingsRoutes = [
+  { path: "expiryrules", element: pageElement(ExpiryRules) },
   { path: "feeschedules", element: pageElement(FeeSchedules) },
   { path: "feeschedules/:id", element: pageElement(FeeSchedules) },
   { path: "externalproviders", element: pageElement(ExtProviders) },

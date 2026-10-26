@@ -2,6 +2,7 @@ import { createElement, useCallback, useEffect, useState, Fragment } from "react
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
+  CalendarClock,
   Briefcase,
   CheckCircle2,
   ChevronRight,
@@ -31,6 +32,13 @@ import { CustomerStateBadges } from "@/Components/Epurse/Customers/customerPorta
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { MiniTable } from "@/Components/Finance/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
+import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
+import {
+  corpCustomerOnboardingApi,
+  corpMerchantOnboardingApi,
+} from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { expiringDocumentsApi } from "@/Services/Expiry/expiry.api";
+import { documentColumns } from "../ExpiringDocuments/expiryShared";
 import { glassCard } from "../Shared/reportShared";
 import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 import { AlsoOnChips, WeightNote, matchScore } from "@/Components/InnoAML/Shared/amlShared";
@@ -465,6 +473,39 @@ function DocTile({ doc, download, large }) {
         </p>
       </figcaption>
     </figure>
+  );
+}
+
+// Who the report is about, by the onboarding API it was opened with.
+const PARTY_OF = new Map([
+  [customerOnboardingApi, "CUST_INDV"],
+  [corpCustomerOnboardingApi, "CUST_CORP"],
+  [merchantOnboardingApi, "MERCH_INDV"],
+  [corpMerchantOnboardingApi, "MERCH_CORP"],
+]);
+
+// The party's watched documents and how close each is to its expiry (from
+// Expiring Documents); hidden when nothing is watched or the user can't see
+// that report.
+function ExpiryCard({ party, subjectId }) {
+  const { t } = useTranslation("expiry");
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    if (!party || !subjectId) return;
+    let cancelled = false;
+    expiringDocumentsApi
+      .list({ tab: "all", filters: { party }, subject_id: subjectId, page: 1, limit: 50 })
+      .then((r) => !cancelled && setRows(rowsOf(r?.data)))
+      .catch(() => !cancelled && setRows([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [party, subjectId]);
+  if (!rows.length) return null;
+  return (
+    <Card id="kyc-expiry" icon={CalendarClock} title={t("documentExpiry")} count={rows.length}>
+      <MiniTable rows={rows} rowKey={(r) => r.id} columns={documentColumns(t)} />
+    </Card>
   );
 }
 
@@ -1378,6 +1419,7 @@ export function KycReportView({ api, body, onBack, title }) {
           <SectionLinks />
           <ProfileCard profile={data.profile} />
           <DocumentsCard documents={data.documents} download={download} />
+          <ExpiryCard party={PARTY_OF.get(api)} subjectId={report.profile_record?.id} />
           <div className="grid gap-4 xl:grid-cols-2">
             <IdentityCard checks={report.identity_checks} />
             <KycCard kyc={report.kyc} processes={report.kyc_processes} />

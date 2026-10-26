@@ -24,6 +24,7 @@ const RELATED = ["related_party_name", "related_party_role", "related_party_birt
 const SUBMIT_CHANNELS = ["APP", "WEB", "USSD"];
 const AGENT_TIERS = ["AGENT", "SUPER_AGENT"];
 const IDV = ["idv_front", "idv_back", "idv_selfie", "idv_face_side", "idv_id_number"];
+const DOC_EXPIRY = ["doc_expiry", "doc_expiry_type", "doc_number"];
 
 // Identity verification: the photos are single-image files in a one-row
 // section; the side choice is a list whose fixed choices include the values
@@ -475,6 +476,27 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
     </Card>
   );
 
+  // Document expiry: the dates the platform watches (several allowed, also
+  // one per row of a repeatable section), each with its document type and
+  // number in the same row or section. Nothing is watched without a date.
+  const dateFields = fields.filter((f) => f.field_type === "DATE");
+  const expirySet = get("doc_expiry").length > 0;
+  const expiryCard = dateFields.length > 0 && (
+    <Card key="expiry" title={t("usesExpiryTitle")} summary={expirySet ? labels(get("doc_expiry")) : t("usesExpiryOff")} open={open.has("expiry")} onToggle={() => toggle("expiry")} problems={problemsFor(problems, DOC_EXPIRY, "expiry")}>
+      <p className="text-xs text-muted-foreground">{t("usesExpiryIntro")}</p>
+      <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("usesExpiryDate")}</p>
+      <OrderedChips fields={dateFields} value={get("doc_expiry")} disabled={readOnly} onChange={(keys) => set({ doc_expiry: keys })} />
+      <p className="mb-1.5 text-sm font-semibold text-slate-700">
+        {t("usesExpiryType")} <span className="font-normal text-muted-foreground">{t("usesOptional")}</span>
+      </p>
+      <OrderedChips fields={fields.filter(isDocTypeList)} value={get("doc_expiry_type")} disabled={readOnly} onChange={(keys) => set({ doc_expiry_type: keys })} />
+      <p className="mb-1.5 text-sm font-semibold text-slate-700">
+        {t("usesExpiryNumber")} <span className="font-normal text-muted-foreground">{t("usesOptional")}</span>
+      </p>
+      <OrderedChips fields={ofType(["TEXT"], fields)} value={get("doc_number")} disabled={readOnly} onChange={(keys) => set({ doc_number: keys })} />
+    </Card>
+  );
+
   // The guardian a minor names: their phone (one field per path that asks
   // it), who they are, and the KYC level they must hold.
   const guardianSet = get("guardian_phone").length > 0;
@@ -575,6 +597,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
       {duplicateCard}
       {kycCard}
       {idvCard}
+      {expiryCard}
       {relatedCard}
       {guardianCard}
       {submitCard}

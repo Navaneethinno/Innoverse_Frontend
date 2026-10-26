@@ -18,6 +18,7 @@ import { NoAccess } from "@/Components/Common/NoAccess";
 import { TourProvider } from "@/Components/Tour/TourProvider";
 import { BackToTop } from "./BackToTop";
 import { KeyCustodyProvider, KeysLockedBanner } from "@/Components/KeyCustody/KeyCustodyProvider";
+import { ExpiryBanner } from "./ExpiryBanner";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
@@ -49,6 +50,7 @@ function Layout() {
           <TopBar />
           <WorkspaceContainer>
             <KeysLockedBanner />
+            <ExpiryBanner />
             <PageBreadcrumbs />
             {/* A new Institution filter reloads the page's lists. */}
             <PageAccessGate key={institution} />

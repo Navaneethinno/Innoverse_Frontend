@@ -13,6 +13,8 @@ const REPORTS = {
   // KYC Report (group 204): Customer (206) and Merchant (205).
   customerkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.CustomerKycReport }))),
   merchantkycreport: lazy(() => import("@/Components/Reports/KycReport/KycReport.jsx").then((m) => ({ default: m.MerchantKycReport }))),
+  // Expiring Documents (198).
+  expiringdocuments: lazy(() => import("@/Components/Reports/ExpiringDocuments/ExpiringDocuments.jsx").then((m) => ({ default: m.ExpiringDocuments }))),
 };
 
 export const reportRoutes = [
