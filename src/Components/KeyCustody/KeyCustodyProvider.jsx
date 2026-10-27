@@ -6,16 +6,19 @@ import { keyCustodyApi } from "@/Services/Auth/keyCustody.api";
 
 const KeyCustodyContext = createContext({ status: null, refresh: () => {} });
 
-// Whether the signed-in user is a key custodian (the status call answers;
-// anyone else gets keys.not_custodian, quietly) and the keys' state, read
-// at sign-in and every minute. `status` is null for non-custodians.
+// Whether the signed-in user is a key custodian (the status call answers
+// is_custodian) and the keys' state, read at sign-in and every minute.
+// `status` is null for non-custodians.
 export function KeyCustodyProvider({ children }) {
   const [status, setStatus] = useState(null);
   const refresh = useCallback(
     () =>
       keyCustodyApi
         .status()
-        .then((r) => setStatus((Array.isArray(r?.data) ? r.data[0] : r?.data) ?? null))
+        .then((r) => {
+          const data = (Array.isArray(r?.data) ? r.data[0] : r?.data) ?? null;
+          setStatus(data?.is_custodian === false ? null : data);
+        })
         .catch(() => setStatus(null)),
     [],
   );
