@@ -133,7 +133,8 @@ export function Profile() {
     setForm({
       profile_name: profile.profile_name ?? "",
       inst_profile_id: profile.inst_profile_id ?? "",
-      menu_info: Array.isArray(profile.menu_info) ? profile.menu_info : [],
+      // The list sends the grants as menu_actions (View reads the same).
+      menu_info: profile.menu_actions ?? profile.menu_info ?? [],
     });
     setShowForm(true);
   };
