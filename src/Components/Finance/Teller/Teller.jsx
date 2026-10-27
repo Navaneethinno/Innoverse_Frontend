@@ -30,6 +30,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { ReceiptDialog } from "@/Components/Finance/Transactions/txnShared";
 import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHooks";
+import { useAuth } from "@/Hooks/useAuth";
 import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
@@ -93,12 +94,10 @@ export function Teller() {
 }
 
 // What only this user can complete, read every QUEUE_EVERY: transfers (as
-// vault custodian, or as the teller cash is sent to), and tills whose close
-// waits for a custodian's approval (not this user's own session). The server
-// decides who may approve; a non-custodian is refused.
+// vault custodian, or as the teller cash is sent to), and the tills of their
+// branch whose close waits for them as vault custodian.
 function useWaitingForMe(enabled) {
   const { scope } = useInstitutionScope();
-  const me = useOwnIds().userId;
   const [rows, setRows] = useState([]);
   const [closes, setCloses] = useState([]);
   const reload = useCallback(async () => {
@@ -109,16 +108,11 @@ function useWaitingForMe(enabled) {
         .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
         .catch(() => {}),
       tellerApi
-        .list(scope({ status: "ACTIVE", kind: "TILL", limit: 200 }))
-        .then(async (r) => {
-          const waitingTills = (Array.isArray(r?.data) ? r.data : []).filter(
-            (x) => x.session?.status === "PENDING_CLOSE" && sessionOwnerId(x.session) !== String(me),
-          );
-          setCloses(await Promise.all(waitingTills.map(async (x) => recordOf(await tellerApi.get(scope({ id: x.id }))) ?? x)));
-        })
+        .list(scope({ awaits_me: true, limit: 200 }))
+        .then((r) => setCloses(Array.isArray(r?.data) ? r.data : []))
         .catch(() => {}),
     ]);
-  }, [enabled, scope, me]);
+  }, [enabled, scope]);
   useEffect(() => {
     void reload();
     const timer = window.setInterval(() => void reload(), QUEUE_EVERY);
@@ -727,7 +721,8 @@ function Desk({ waiting }) {
   const waitingTill = useRef(null);
   const load = useCallback(async () => {
     try {
-      const r = await tellerApi.list(scope({ status: "ACTIVE", limit: 200 }));
+      // The tills of the user's own branch (none when they work at no branch).
+      const r = await tellerApi.list(scope({ mine: true, status: "ACTIVE", limit: 200 }));
       const rows = Array.isArray(r?.data) ? r.data : [];
       setTills(rows);
       const mine = rows.find((x) => x.session && sessionOwnerId(x.session) === me);
@@ -1962,7 +1957,9 @@ function EndOfDay() {
   const can = usePagePermission();
   const { scope } = useInstitutionScope();
   const branches = branchOptions(useCoreBanking(scope), { openOnly: true });
-  const [branch, setBranch] = useState("");
+  // The user's own branch first (from the sign-in), else the first open one.
+  const home = useAuth((x) => x.user?.branch?.branch_id);
+  const [branch, setBranch] = useState(home ? String(home) : "");
   const [date, setDate] = useState(today());
   const [report, setReport] = useState(null);
   const [dialog, setDialog] = useState(null);

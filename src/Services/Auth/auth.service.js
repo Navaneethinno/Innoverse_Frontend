@@ -58,6 +58,9 @@ function parseSessionResponse(payload, { flat = false } = {}) {
       ? {
           ...data.user_details,
           ...(data?.scope ? { scope: data.scope } : {}),
+          // The branch the user works at and their roles there (teller,
+          // vault_custodian, loan_officer), or null; read at every sign-in.
+          branch: data?.branch ?? null,
           // The institution's date and number formats (number_format: WESTERN,
           // INDIAN, EUROPEAN or SPACE; Utils/Lib/numberFormat.js).
           ...(data?.formats ? { formats: data.formats } : {}),

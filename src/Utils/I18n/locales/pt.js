@@ -8071,6 +8071,7 @@ export const monitoring = {
 };
 
 export const regReports = {
+  "latestOf": "A mostrar as últimas {{shown}} de {{total}} transações.",
   "title": "Relatórios regulamentares",
   "subtitle": "Relatórios de transações suspeitas e de transações em numerário para o regulador.",
   "tab_str": "Transações suspeitas (STR)",
@@ -8117,13 +8118,12 @@ export const regReports = {
   "cancel": "Cancelar",
   "saveDraft": "Guardar rascunho",
   "partyAccount": "A conta do cliente ou comerciante",
-  "partyAccountHint": "O relatório é sobre o titular da conta; escolha as transações no seu extrato.",
+  "partyAccountHint": "Encontre o cliente ou comerciante por uma das suas contas; depois escolha entre as transações de todas as contas.",
   "pickTransactions": "Escolha as transações ({{count}} escolhidas)",
   "noTxns": "Sem transações.",
   "pick": "Escolher",
   "date": "Data",
   "type": "Tipo",
-  "drCr": "D / C",
   "amount": "Montante",
   "draftTxns": "{{count}} transações neste rascunho.",
   "groundsCount": "{{count}} caracteres (pelo menos {{min}} para submeter)",

@@ -8057,6 +8057,7 @@ export const monitoring = {
 };
 
 export const regReports = {
+  "latestOf": "Showing the latest {{shown}} of {{total}} transactions.",
   "title": "Regulatory Reports",
   "subtitle": "Suspicious transaction reports and currency transaction reports for the regulator.",
   "tab_str": "Suspicious transactions (STR)",
@@ -8103,13 +8104,12 @@ export const regReports = {
   "cancel": "Cancel",
   "saveDraft": "Save draft",
   "partyAccount": "The customer's or merchant's account",
-  "partyAccountHint": "The report is about the account's owner; pick the transactions from its statement.",
+  "partyAccountHint": "Find the customer or merchant by one of their accounts; you then pick from their transactions across all their accounts.",
   "pickTransactions": "Pick the transactions ({{count}} picked)",
   "noTxns": "No transactions.",
   "pick": "Pick",
   "date": "Date",
   "type": "Type",
-  "drCr": "DR / CR",
   "amount": "Amount",
   "draftTxns": "{{count}} transactions in this draft.",
   "groundsCount": "{{count}} characters (at least {{min}} to submit)",

@@ -14,7 +14,7 @@ import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass 
 import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
 import { ExportButtons } from "@/Components/Reports/Shared/reportShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { accountsApi } from "@/Services/Epurse/accounts.api";
+import { transactionsApi } from "@/Services/Transactions/transactions.api";
 import { amlReportsApi } from "@/Services/InnoAML/aml.api";
 import { recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -22,6 +22,8 @@ import { cn } from "@/Utils/Lib/utils";
 import { TxnTable } from "../Monitoring/TransactionMonitoring";
 
 const MIN_GROUNDS = 20;
+// A party's latest transactions offered for a new report.
+const PICK_LIMIT = 100;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : []);
 
 // InnoAML › Regulatory Reports (menu 200): suspicious transaction reports
@@ -249,24 +251,30 @@ function StrDetail({ id, onClose, onChanged }) {
   );
 }
 
-// A new STR (pick a customer's or merchant's account, then their
-// transactions from its statement), or a draft's grounds and transactions.
+// A new STR (find the customer or merchant by one of their accounts, then
+// pick from their transactions across all accounts), or a draft's grounds
+// and transactions.
 function StrForm({ str, onClose, onSaved }) {
   const { t } = useTranslation("regReports");
   const { scope } = useInstitutionScope();
   const [account, setAccount] = useState(null);
   const [lines, setLines] = useState(null);
+  const [total, setTotal] = useState(0);
   const [txnIds, setTxnIds] = useState(() => new Set(str?.txn_ids ?? []));
   const [grounds, setGrounds] = useState(str?.grounds ?? "");
   const [actionTaken, setActionTaken] = useState(str?.action_taken ?? "");
   const [busy, setBusy] = useState(false);
-  // The account's latest transactions, to pick from.
+  // The party's latest transactions on every account, to pick from.
   useEffect(() => {
-    if (!account) return;
+    const party = account?.owner;
+    if (!party) return;
     setLines(null);
-    accountsApi
-      .ledger({ acct_num: account.acct_num, page: 1, limit: 100 })
-      .then((r) => setLines(recordOf(r)?.lines ?? []))
+    transactionsApi
+      .list({ entity_type: party.kind, entity_id: party.id, page: 1, page_size: PICK_LIMIT, limit: PICK_LIMIT })
+      .then((r) => {
+        setLines(rowsOf(r));
+        setTotal(Number(r?.pagination?.totalRecords) || 0);
+      })
       .catch((e) => {
         setLines([]);
         notifications.error(e.message);
@@ -331,15 +339,15 @@ function StrForm({ str, onClose, onSaved }) {
                 rowKey={(l) => l.id}
                 empty={t("noTxns")}
                 columns={[
-                  { key: "pick", label: "", render: (l) => <input type="checkbox" aria-label={t("pick")} checked={txnIds.has(l.txn_id)} onChange={() => toggle(l.txn_id)} /> },
+                  { key: "pick", label: "", render: (l) => <input type="checkbox" aria-label={t("pick")} checked={txnIds.has(l.id)} onChange={() => toggle(l.id)} /> },
                   { key: "tran_date_time", label: t("date"), render: (l) => <span className="text-xs">{accountDate(l.tran_date_time)}</span> },
                   { key: "txn_type", label: t("type"), render: (l) => <span className="text-xs font-semibold">{l.txn_short_desc ?? l.txn_type}</span> },
-                  { key: "operation_type", label: t("drCr"), render: (l) => <span className="text-xs">{l.operation_type}</span> },
                   { key: "txn_amount", label: t("amount"), align: "right", render: (l) => <b className="tabular-nums">{money(l.txn_amount, l.currency_code)}</b> },
                   { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-xs">{l.rrn}</span> },
                 ]}
               />
             )}
+            {total > PICK_LIMIT && <p className="mt-2 text-[11px] text-muted-foreground">{t("latestOf", { shown: PICK_LIMIT, total })}</p>}
           </Section>
         )}
         {str && <p className="text-xs text-muted-foreground">{t("draftTxns", { count: txnIds.size })}</p>}

@@ -28,7 +28,7 @@ async function renew() {
     // Refresh may not re-send scope or the session user id: keep the login's.
     const stored = readAuthUser();
     const base = response.user
-      ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope }
+      ? { ...stored, ...response.user, scope: response.user.scope ?? stored?.scope, branch: response.user.branch ?? stored?.branch ?? null }
       : stored;
     // The refresh carries the institution's current formats: replace them.
     const user = base && response.formats ? { ...base, formats: response.formats } : base;

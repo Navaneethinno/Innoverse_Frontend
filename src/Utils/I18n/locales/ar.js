@@ -6420,6 +6420,7 @@ export const monitoring = {
 };
 
 export const regReports = {
+  "latestOf": "عرض أحدث {{shown}} من {{total}} معاملة.",
   "title": "التقارير التنظيمية",
   "subtitle": "تقارير المعاملات المشبوهة والمعاملات النقدية للجهة الرقابية.",
   "tab_str": "المعاملات المشبوهة (STR)",
@@ -6466,13 +6467,12 @@ export const regReports = {
   "cancel": "إلغاء",
   "saveDraft": "حفظ المسودة",
   "partyAccount": "حساب العميل أو التاجر",
-  "partyAccountHint": "التقرير عن صاحب الحساب؛ اختر المعاملات من كشفه.",
+  "partyAccountHint": "ابحث عن العميل أو التاجر بأحد حساباته؛ ثم اختر من معاملاته عبر كل حساباته.",
   "pickTransactions": "اختر المعاملات ({{count}} مختارة)",
   "noTxns": "لا توجد معاملات.",
   "pick": "اختيار",
   "date": "التاريخ",
   "type": "النوع",
-  "drCr": "مدين / دائن",
   "amount": "المبلغ",
   "draftTxns": "{{count}} معاملة في هذه المسودة.",
   "groundsCount": "{{count}} حرفًا (على الأقل {{min}} للإرسال)",
