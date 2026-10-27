@@ -148,7 +148,8 @@ function ListToolbar({ tb, actions, onExport }) {
   );
 }
 
-function TabButton({ active, onClick, children }) {
+// A list's status tab: a small pill, tinted when active.
+export function TabButton({ active, onClick, children }) {
   return (
     <button
       type="button"

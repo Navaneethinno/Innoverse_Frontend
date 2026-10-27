@@ -130,6 +130,17 @@ function MultiPick({ options, value, onChange, disabled }) {
   const valueOf = (o) => (typeof o === "object" ? o.value : o);
   const labelOf = (o) => (typeof o === "object" ? o.label : loanLabel(t, o));
   const isOn = (o) => list.some((x) => String(x) === String(valueOf(o)));
+  // Read only: just the picked ones, as plain pills.
+  if (disabled)
+    return list.length ? (
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {options.filter(isOn).map((o) => (
+          <span key={valueOf(o)} className="rounded-full bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground">
+            {labelOf(o)}
+          </span>
+        ))}
+      </div>
+    ) : null;
   const needle = q.trim().toLowerCase();
   const shown = many
     ? options

@@ -21,7 +21,8 @@ import {
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { AmountInput } from "@/Components/Common/AmountInput";
 import { Button } from "@/Components/Common/Button";
-import { ListTable } from "@/Components/Common/ListView";
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { ListTable, TabButton } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -1467,75 +1468,59 @@ function Transfers({ waiting }) {
   const me = useOwnIds().userId;
   const [view, setView] = useState(waiting.closes.length ? "closes" : waiting.rows.length ? "waiting" : "mine");
   const [filters, setFilters] = useState({ kind: "", status: "" });
+  const tabs = [
+    ["waiting", waiting.rows.length],
+    ["closes", waiting.closes.length],
+    ["mine"],
+    ["all"],
+  ];
+  const select = (key, blank, values, prefix) => (
+    <FilterSelect
+      size="sm"
+      className="w-40"
+      value={filters[key]}
+      onChange={(v) => setFilters((f) => ({ ...f, [key]: v }))}
+      options={[{ value: "", label: t(blank) }, ...values.map((k) => ({ value: k, label: t(`${prefix}${k}`) }))]}
+    />
+  );
+  const hint = { waiting: "waitingHint", closes: "closesHint" }[view];
   return (
-    <div className="grid gap-3">
-      <Tabs
-        tabs={[
-          { key: "waiting", count: waiting.rows.length || undefined },
-          { key: "closes", count: waiting.closes.length || undefined },
-          { key: "mine" },
-          { key: "all" },
-        ]}
-        value={view}
-        onChange={setView}
-        labelOf={(k) => t(`transfersTab_${k}`)}
-      />
-      {view === "waiting" && (
-        <Section title={t("transfersTab_waiting")}>
-          <p className="mb-3 text-xs text-muted-foreground">{t("waitingHint")}</p>
-          <TransferRows rows={waiting.rows} onChanged={waiting.reload} />
-        </Section>
-      )}
-      {view === "closes" && (
-        <Section title={t("transfersTab_closes")}>
-          <p className="mb-3 text-xs text-muted-foreground">{t("closesHint")}</p>
-          <PendingCloses tills={waiting.closes} onChanged={waiting.reload} />
-        </Section>
-      )}
+    <Section className="grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="thin-scrollbar flex min-w-0 items-center gap-1.5 overflow-x-auto">
+          {tabs.map(([key, count]) => (
+            <TabButton key={key} active={view === key} onClick={() => setView(key)}>
+              {t(`transfersTab_${key}`)}
+              {count > 0 && (
+                <span className="ml-1.5 rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{count}</span>
+              )}
+            </TabButton>
+          ))}
+        </div>
+        {view === "all" && (
+          <div className="flex flex-wrap gap-2">
+            {select("kind", "anyKind", ["REQUISITION", "RETURN", "TRANSFER"], "transfer_")}
+            {select("status", "anyStatus", ["PENDING", "COMPLETED", "REJECTED", "CANCELLED"], "transferStatus_")}
+          </div>
+        )}
+      </div>
+      {hint && <p className="text-xs text-muted-foreground">{t(hint)}</p>}
+      {view === "waiting" && <TransferRows rows={waiting.rows} onChanged={waiting.reload} />}
+      {view === "closes" && <PendingCloses tills={waiting.closes} onChanged={waiting.reload} />}
       {view === "mine" && (
-        <Section title={t("transfersTab_mine")}>
-          <TransferTable
-            query={{ status: "PENDING" }}
-            keep={(r) => String(r.requested_user_id) === String(me)}
-            onChanged={waiting.reload}
-          />
-        </Section>
+        <TransferTable
+          query={{ status: "PENDING" }}
+          keep={(r) => String(r.requested_user_id) === String(me)}
+          onChanged={waiting.reload}
+        />
       )}
       {view === "all" && (
-        <Section title={t("transfersTab_all")}>
-          <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:w-1/2">
-            <Field
-              field={{
-                type: "select",
-                blank: t("anyKind"),
-                options: ["REQUISITION", "RETURN", "TRANSFER"].map((k) => ({
-                  value: k,
-                  label: t(`transfer_${k}`),
-                })),
-              }}
-              value={filters.kind}
-              onChange={(kind) => setFilters((f) => ({ ...f, kind }))}
-            />
-            <Field
-              field={{
-                type: "select",
-                blank: t("anyStatus"),
-                options: ["PENDING", "COMPLETED", "REJECTED", "CANCELLED"].map((k) => ({
-                  value: k,
-                  label: t(`transferStatus_${k}`),
-                })),
-              }}
-              value={filters.status}
-              onChange={(status) => setFilters((f) => ({ ...f, status }))}
-            />
-          </div>
-          <TransferTable
-            query={Object.fromEntries(Object.entries(filters).filter(([, v]) => v))}
-            onChanged={waiting.reload}
-          />
-        </Section>
+        <TransferTable
+          query={Object.fromEntries(Object.entries(filters).filter(([, v]) => v))}
+          onChanged={waiting.reload}
+        />
       )}
-    </div>
+    </Section>
   );
 }
 
