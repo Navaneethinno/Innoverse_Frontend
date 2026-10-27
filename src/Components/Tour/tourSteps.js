@@ -102,6 +102,10 @@ export const PAGE_TOURS = {
       { id: "teller_openBy", target: sel("till-open-by"), placement: "bottom" },
       { id: "teller_movements", target: sel("till-movements"), placement: "top" },
       { id: "teller_variance", target: sel("till-variance"), placement: "top" },
+      { id: "teller_pendingClose", target: sel("teller-pending-close"), placement: "bottom" },
+      { id: "teller_proof", target: sel("teller-proof"), placement: "top" },
+      { id: "eod_status", target: sel("eod-status"), placement: "bottom" },
+      { id: "eod_readiness", target: sel("eod-readiness"), placement: "top" },
     ],
   },
   individualrisk: {

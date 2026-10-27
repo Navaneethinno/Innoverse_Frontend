@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownToLine,
   ArrowLeftRight,
   ArrowUpFromLine,
+  Calculator,
   CheckCircle2,
+  FileText,
   HandCoins,
   Landmark,
   LockKeyhole,
@@ -31,7 +33,9 @@ import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHook
 import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
-import { tellerApi } from "@/Services/Accounting/accounting.api";
+import { glReportsApi, tellerApi, tellerProofExport } from "@/Services/Accounting/accounting.api";
+import { DateInput } from "@/Components/Common/DateInput";
+import { ExportButtons } from "@/Components/Reports/Shared/reportShared";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -67,6 +71,7 @@ export function Teller() {
   const can = usePagePermission();
   const [tab, setTab] = useState(can("Self") ? "desk" : "tills");
   const waiting = useWaitingForMe(can("Self"));
+  const waitingCount = waiting.rows.length + waiting.closes.length;
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5" data-tour="page-title">
@@ -74,7 +79,7 @@ export function Teller() {
         <p className="mt-1 text-sm text-muted-foreground">{t("tellerSubtitle")}</p>
       </div>
       <Tabs
-        tabs={[{ key: "desk" }, { key: "transfers", count: waiting.rows.length || undefined }, { key: "tills" }]}
+        tabs={[{ key: "desk" }, { key: "transfers", count: waitingCount || undefined }, { key: "tills" }, { key: "eod" }]}
         value={tab}
         onChange={setTab}
         labelOf={(k) => t(`tellerTab_${k}`)}
@@ -82,31 +87,44 @@ export function Teller() {
       {tab === "desk" && <Desk waiting={waiting} />}
       {tab === "transfers" && <Transfers waiting={waiting} />}
       {tab === "tills" && <TillList />}
+      {tab === "eod" && <EndOfDay />}
     </div>
   );
 }
 
-// What only this user can complete (as vault custodian, or as the teller a
-// transfer is sent to), read every QUEUE_EVERY.
+// What only this user can complete, read every QUEUE_EVERY: transfers (as
+// vault custodian, or as the teller cash is sent to), and tills whose close
+// waits for a custodian's approval (not this user's own session). The server
+// decides who may approve; a non-custodian is refused.
 function useWaitingForMe(enabled) {
   const { scope } = useInstitutionScope();
+  const me = useOwnIds().userId;
   const [rows, setRows] = useState([]);
-  const reload = useCallback(
-    () =>
-      enabled
-        ? tellerApi
-            .transfers(scope({ awaits_me: true }))
-            .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
-            .catch(() => {})
-        : Promise.resolve(),
-    [enabled, scope],
-  );
+  const [closes, setCloses] = useState([]);
+  const reload = useCallback(async () => {
+    if (!enabled) return;
+    await Promise.all([
+      tellerApi
+        .transfers(scope({ awaits_me: true }))
+        .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
+        .catch(() => {}),
+      tellerApi
+        .list(scope({ status: "ACTIVE", kind: "TILL", limit: 200 }))
+        .then(async (r) => {
+          const waitingTills = (Array.isArray(r?.data) ? r.data : []).filter(
+            (x) => x.session?.status === "PENDING_CLOSE" && sessionOwnerId(x.session) !== String(me),
+          );
+          setCloses(await Promise.all(waitingTills.map(async (x) => recordOf(await tellerApi.get(scope({ id: x.id }))) ?? x)));
+        })
+        .catch(() => {}),
+    ]);
+  }, [enabled, scope, me]);
   useEffect(() => {
     void reload();
     const timer = window.setInterval(() => void reload(), QUEUE_EVERY);
     return () => window.clearInterval(timer);
   }, [reload]);
-  return { rows, reload };
+  return { rows, closes, reload };
 }
 
 const kindLabel = (t, kind) => t(`kind_${kind}`, { defaultValue: kind });
@@ -216,6 +234,14 @@ function TillList() {
             onDeactivate={() => setDeciding({ verb: "deactivate", till: r })}
             onReactivate={() => setDeciding({ verb: "reactivate", till: r })}
           />
+          {r.kind === "VAULT" && r.status === "ACTIVE" && can("Self") && (
+            <ActionIconButton
+              label={t("countVault")}
+              intent="edit"
+              icon={Calculator}
+              onClick={() => setOpening({ ...r, verb: "vault" })}
+            />
+          )}
           {r.kind === "TILL" && !r.session && r.status === "ACTIVE" && can("Self") && (
             <ActionIconButton
               label={t("openTill")}
@@ -267,7 +293,7 @@ function TillList() {
       )}
       {opening && (
         <CountDialog
-          verb="open"
+          verb={opening.verb ?? "open"}
           till={opening}
           onClose={() => setOpening(null)}
           onDone={() => {
@@ -442,6 +468,7 @@ function TillDetail({ id, onClose }) {
   const { t } = useTranslation("corebank");
   const { scope } = useInstitutionScope();
   const [till, setTill] = useState(null);
+  const [proof, setProof] = useState(null);
   const navigate = useNavigate();
   const canJournal = useMenuPermission("Finance Transaction");
   useEffect(() => {
@@ -506,19 +533,30 @@ function TillDetail({ id, onClose }) {
               <Movements session={till.session} currency={till.currency} />
             </Section>
           )}
-          <Section title={t("lastSessions")}>
-            <SessionTable sessions={till.sessions ?? []} currency={till.currency} />
-          </Section>
+          {till.kind === "VAULT" ? (
+            <Section title={t("vaultCounts")}>
+              <VaultCounts vault={till} />
+            </Section>
+          ) : (
+            <Section title={t("lastSessions")}>
+              <SessionTable
+                sessions={till.sessions ?? []}
+                currency={till.currency}
+                onProof={(sessionId) => setProof({ till, sessionId })}
+              />
+            </Section>
+          )}
           <Section title={t("tillTransfers")}>
             <TransferTable query={{ till_id: till.id }} />
           </Section>
         </div>
       )}
+      {proof && <ProofSheet till={proof.till} sessionId={proof.sessionId} onClose={() => setProof(null)} />}
     </Modal>
   );
 }
 
-function SessionTable({ sessions, currency }) {
+function SessionTable({ sessions, currency, onProof }) {
   const { t } = useTranslation("corebank");
   return (
     <MiniTable
@@ -572,7 +610,16 @@ function SessionTable({ sessions, currency }) {
           wrap: true,
           render: (s) => <span className="font-mono text-[11px]">{notesText(s.denominations)}</span>,
         },
-      ]}
+        onProof && {
+          key: "proof",
+          label: "",
+          render: (s) => (
+            <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => onProof(s.id)}>
+              {t("proofSheet")}
+            </button>
+          ),
+        },
+      ].filter(Boolean)}
     />
   );
 }
@@ -660,7 +707,10 @@ function Movements({ session, currency }) {
   );
 }
 
-// The teller's own open till, or the tills to open one.
+// The teller's own till (open, or its close waiting for a custodian), else
+// the tills to open one. A close beyond the tolerance waits: the till can't
+// be used and is read again every QUEUE_EVERY until it is approved (the
+// summary shows) or sent back for a recount (the custodian's note shows).
 function Desk({ waiting }) {
   const { t } = useTranslation("corebank");
   const can = usePagePermission();
@@ -671,13 +721,36 @@ function Desk({ waiting }) {
   const [dialog, setDialog] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [summary, setSummary] = useState(null);
+  const [proof, setProof] = useState(null);
+  const [closedDays, setClosedDays] = useState([]);
+  // The till whose close is waiting, to show its summary once approved.
+  const waitingTill = useRef(null);
   const load = useCallback(async () => {
     try {
       const r = await tellerApi.list(scope({ status: "ACTIVE", limit: 200 }));
       const rows = Array.isArray(r?.data) ? r.data : [];
       setTills(rows);
       const mine = rows.find((x) => x.session && sessionOwnerId(x.session) === me);
-      setTill(mine ? recordOf(await tellerApi.get(scope({ id: mine.id }))) : null);
+      const detail = mine ? recordOf(await tellerApi.get(scope({ id: mine.id }))) : null;
+      setTill(detail);
+      if (detail?.session?.status === "PENDING_CLOSE") waitingTill.current = detail;
+      else if (waitingTill.current && !detail) {
+        // Approved: the session just closed is the till's latest.
+        const closed = recordOf(await tellerApi.get(scope({ id: waitingTill.current.id })));
+        if (closed?.sessions?.[0]) setSummary({ session: closed.sessions[0], till: closed });
+        waitingTill.current = null;
+      } else waitingTill.current = null;
+      // A closed branch day stops all till work there.
+      const branches = [...new Set((detail ? [detail] : rows.filter((x) => x.kind === "TILL")).map((x) => x.branch_id))].slice(0, 5);
+      const reports = await Promise.all(
+        branches.map((id) =>
+          tellerApi
+            .eod_report(scope({ branch_id: id }))
+            .then((x) => recordOf(x))
+            .catch(() => null),
+        ),
+      );
+      setClosedDays(reports.filter((x) => x?.status === "CLOSED"));
     } catch (e) {
       setTills([]);
       notifications.error(e.message);
@@ -686,6 +759,12 @@ function Desk({ waiting }) {
   useEffect(() => {
     void load();
   }, [load]);
+  const pendingClose = till?.session?.status === "PENDING_CLOSE";
+  useEffect(() => {
+    if (!pendingClose) return undefined;
+    const timer = window.setInterval(() => void load(), QUEUE_EVERY);
+    return () => window.clearInterval(timer);
+  }, [pendingClose, load]);
   const done = () => {
     setDialog(null);
     void load();
@@ -695,10 +774,30 @@ function Desk({ waiting }) {
   if (!tills) return <PageSkeleton />;
   if (!can("Self"))
     return <p className="py-8 text-center text-sm text-muted-foreground">{t("notATeller")}</p>;
+  const dayBanner = closedDays.length > 0 && (
+    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-800">
+      {t("branchDayClosed", { branches: closedDays.map((d) => d.branch_name).join(", ") })}
+    </p>
+  );
+  const modals = (
+    <>
+      {receipt && <ReceiptDialog txnId={receipt} onClose={() => setReceipt(null)} />}
+      {summary && (
+        <SessionSummary
+          session={summary.session}
+          till={summary.till}
+          onClose={() => setSummary(null)}
+          onProof={() => setProof({ till: summary.till, sessionId: summary.session.id })}
+        />
+      )}
+      {proof && <ProofSheet till={proof.till} sessionId={proof.sessionId} onClose={() => setProof(null)} />}
+    </>
+  );
   if (!till) {
     const closed = tills.filter((x) => x.kind === "TILL" && !x.session);
     return (
       <div className="grid gap-4">
+        {dayBanner}
         <WaitingPanel waiting={waiting} onChanged={done} />
         <Section title={t("openATill")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("openATillHint")}</p>
@@ -747,16 +846,19 @@ function Desk({ waiting }) {
             />
           )}
         </Section>
+        {modals}
       </div>
     );
   }
+  const session = till.session;
   const sameDrawer = (x) =>
     x.branch_id === till.branch_id && x.currency_id === till.currency_id && x.id !== till.id;
   const vault = tills.find((x) => x.kind === "VAULT" && sameDrawer(x));
   // A transfer goes only to an open till of the same branch and currency.
-  const openTills = tills.filter((x) => x.kind === "TILL" && x.session && sameDrawer(x));
+  const openTills = tills.filter((x) => x.kind === "TILL" && x.session?.status === "OPEN" && sameDrawer(x));
   return (
     <div className="grid gap-4">
+      {dayBanner}
       <div className="flex flex-wrap items-end justify-between gap-3 rounded-2xl border border-border bg-card p-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
@@ -778,43 +880,73 @@ function Desk({ waiting }) {
           </p>
         </div>
       </div>
+      {pendingClose && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900" data-tour="teller-pending-close">
+          <p className="text-sm font-bold">{t("closeWaiting", { amount: money(session.variance, till.currency) })}</p>
+          <p className="mt-1 text-xs">{t("closeWaitingHint")}</p>
+          <div className="mt-3">
+            <Facts
+              rows={[
+                [t("expected"), money(session.closing_expected, till.currency)],
+                [t("closingCount"), money(session.closing_counted, till.currency)],
+                [t("variance"), <Variance key="v" value={session.variance} currency={till.currency} />],
+              ]}
+            />
+          </div>
+        </div>
+      )}
+      {!pendingClose && session?.close_decision_note && (
+        <p className="rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900">
+          {t("recountNote", { name: session.close_decided_by ?? "—", note: session.close_decision_note })}
+        </p>
+      )}
       <div data-tour="teller-balance">
         <BalanceFacts till={till} />
       </div>
       <ActionButtons
         buttons={[
+          ...(pendingClose
+            ? []
+            : [
+                {
+                  key: "deposit",
+                  label: t("deposit"),
+                  icon: ArrowDownToLine,
+                  variant: "primary",
+                  run: () => setDialog({ kind: "deposit" }),
+                },
+                {
+                  key: "withdraw",
+                  label: t("withdraw"),
+                  icon: ArrowUpFromLine,
+                  run: () => setDialog({ kind: "withdraw" }),
+                },
+                {
+                  key: "loan_repay",
+                  label: t("loanRepay"),
+                  icon: HandCoins,
+                  run: () => setDialog({ kind: "loan_repay" }),
+                },
+                {
+                  key: "requisition",
+                  label: t("askVault"),
+                  icon: Vault,
+                  run: () => setDialog({ kind: "REQUISITION" }),
+                },
+                {
+                  key: "send",
+                  label: t("sendCash"),
+                  icon: ArrowLeftRight,
+                  run: () => setDialog({ kind: "TRANSFER" }),
+                },
+              ]),
           {
-            key: "deposit",
-            label: t("deposit"),
-            icon: ArrowDownToLine,
-            variant: "primary",
-            run: () => setDialog({ kind: "deposit" }),
+            key: "proof",
+            label: t("proofSheet"),
+            icon: FileText,
+            run: () => setProof({ till }),
           },
-          {
-            key: "withdraw",
-            label: t("withdraw"),
-            icon: ArrowUpFromLine,
-            run: () => setDialog({ kind: "withdraw" }),
-          },
-          {
-            key: "loan_repay",
-            label: t("loanRepay"),
-            icon: HandCoins,
-            run: () => setDialog({ kind: "loan_repay" }),
-          },
-          {
-            key: "requisition",
-            label: t("askVault"),
-            icon: Vault,
-            run: () => setDialog({ kind: "REQUISITION" }),
-          },
-          {
-            key: "send",
-            label: t("sendCash"),
-            icon: ArrowLeftRight,
-            run: () => setDialog({ kind: "TRANSFER" }),
-          },
-          {
+          !pendingClose && {
             key: "close",
             label: t("closeTill"),
             icon: LockKeyhole,
@@ -828,15 +960,15 @@ function Desk({ waiting }) {
         <TransferTable query={{ till_id: till.id, status: "PENDING" }} onChanged={done} />
       </Section>
       <Section title={t("thisSession")}>
-        {till.session && <Movements session={till.session} currency={till.currency} />}
+        {session && <Movements session={session} currency={till.currency} />}
       </Section>
       {dialog?.kind === "close" && (
         <CountDialog
           verb="close"
           till={till}
           onClose={() => setDialog(null)}
-          onDone={(session) => {
-            setSummary(session);
+          onDone={(closed) => {
+            if (closed?.status === "CLOSED") setSummary({ session: closed, till });
             done();
           }}
         />
@@ -862,17 +994,16 @@ function Desk({ waiting }) {
           onDone={done}
         />
       )}
-      {receipt && <ReceiptDialog txnId={receipt} onClose={() => setReceipt(null)} />}
-      {summary && (
-        <SessionSummary session={summary} till={till} onClose={() => setSummary(null)} />
-      )}
+      {modals}
     </div>
   );
 }
 
-// Open or close a till with the cash counted. Opening warns before a count
-// that differs from the books (the difference posts as a variance at once);
-// closing may count by note and is refused while transfers are pending.
+// Open or close a till, or count a vault, with the cash counted. A count
+// that differs from the books is warned about before it is sent. Opening and
+// a vault count post the difference at once; closing may wait for a
+// custodian (beyond the tolerance), and is refused while transfers are
+// pending. Closing and a vault count may count by note.
 function CountDialog({ verb, till, onClose, onDone }) {
   const { t } = useTranslation("corebank");
   const { scope } = useInstitutionScope();
@@ -892,7 +1023,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
             notes.filter((n) => n.value && n.count).map((n) => [n.value, Number(n.count)]),
           )
         : undefined;
-      const r = await tellerApi[verb](
+      const r = await tellerApi[verb === "vault" ? "vault_count" : verb](
         scope({
           id: till.id,
           counted: amount || "0",
@@ -900,13 +1031,16 @@ function CountDialog({ verb, till, onClose, onDone }) {
           ...(denominations ? { denominations } : {}),
         }),
       );
-      const session = verb === "close" ? recordOf(r) : recordOf(r)?.session;
-      notifications.success(
-        Number(session?.variance)
-          ? t("countedWithVariance", { amount: money(session.variance, till.currency) })
-          : r?.message,
-      );
-      onDone(session);
+      const result = verb === "open" ? recordOf(r)?.session : recordOf(r);
+      if (result?.status === "PENDING_CLOSE")
+        notifications.info(t("closeWaiting", { amount: money(result.variance, till.currency) }));
+      else
+        notifications.success(
+          Number(result?.variance)
+            ? t("countedWithVariance", { amount: money(result.variance, till.currency) })
+            : r?.message,
+        );
+      onDone(result);
     } catch (e) {
       notifications.error(e.message);
     } finally {
@@ -917,7 +1051,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
     <Modal
       open
       onClose={onClose}
-      title={t(verb === "open" ? "openTillTitle" : "closeTillTitle", { code: till.code })}
+      title={t(`countTitle_${verb}`, { code: till.code })}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
@@ -929,7 +1063,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
             variant={verb === "close" ? "danger" : "primary"}
             onClick={() => void save()}
           >
-            {t(verb === "open" ? "openTill" : "closeTill")}
+            {t(`countConfirm_${verb}`)}
           </Button>
         </>
       }
@@ -964,7 +1098,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
           })}
         </p>
       )}
-      {verb === "close" && (
+      {verb !== "open" && (
         <div className="mt-3">
           <p className={labelClass}>{t("byNote")}</p>
           <div className="mt-1.5 grid gap-2">
@@ -1026,7 +1160,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
 }
 
 // The closed session as an end-of-day summary the teller can print.
-function SessionSummary({ session, till, onClose }) {
+function SessionSummary({ session, till, onClose, onProof }) {
   const { t } = useTranslation("corebank");
   const c = till.currency;
   return (
@@ -1036,9 +1170,14 @@ function SessionSummary({ session, till, onClose }) {
       onClose={onClose}
       title={t("endOfDay", { code: till.code })}
       footer={
-        <Button icon={Printer} onClick={() => window.print()}>
-          {t("print")}
-        </Button>
+        <>
+          <Button variant="outline" icon={FileText} onClick={onProof}>
+            {t("proofSheet")}
+          </Button>
+          <Button icon={Printer} onClick={() => window.print()}>
+            {t("print")}
+          </Button>
+        </>
       }
     >
       <div className="grid gap-3">
@@ -1331,13 +1470,14 @@ function WaitingPanel({ waiting, onChanged }) {
 function Transfers({ waiting }) {
   const { t } = useTranslation("corebank");
   const me = useOwnIds().userId;
-  const [view, setView] = useState(waiting.rows.length ? "waiting" : "mine");
+  const [view, setView] = useState(waiting.closes.length ? "closes" : waiting.rows.length ? "waiting" : "mine");
   const [filters, setFilters] = useState({ kind: "", status: "" });
   return (
     <div className="grid gap-3">
       <Tabs
         tabs={[
           { key: "waiting", count: waiting.rows.length || undefined },
+          { key: "closes", count: waiting.closes.length || undefined },
           { key: "mine" },
           { key: "all" },
         ]}
@@ -1349,6 +1489,12 @@ function Transfers({ waiting }) {
         <Section title={t("transfersTab_waiting")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("waitingHint")}</p>
           <TransferRows rows={waiting.rows} onChanged={waiting.reload} />
+        </Section>
+      )}
+      {view === "closes" && (
+        <Section title={t("transfersTab_closes")}>
+          <p className="mb-3 text-xs text-muted-foreground">{t("closesHint")}</p>
+          <PendingCloses tills={waiting.closes} onChanged={waiting.reload} />
         </Section>
       )}
       {view === "mine" && (
@@ -1597,5 +1743,452 @@ function TransferRows({ rows, empty, onChanged }) {
         />
       )}
     </>
+  );
+}
+
+// A session's proof sheet: everything the till did, by type, against the
+// opening and closing counts (opening + in − out is what the books expect).
+// No session: the till's current one.
+function ProofSheet({ till, sessionId, onClose }) {
+  const { t } = useTranslation("corebank");
+  const { scope } = useInstitutionScope();
+  const [proof, setProof] = useState(null);
+  const body = useMemo(() => ({ id: till.id, ...(sessionId ? { session_id: sessionId } : {}) }), [till.id, sessionId]);
+  useEffect(() => {
+    tellerApi
+      .proof(scope(body))
+      .then((r) => setProof(recordOf(r) ?? {}))
+      .catch((e) => {
+        notifications.error(e.message);
+        setProof({});
+      });
+  }, [body, scope]);
+  const c = proof?.currency ?? till.currency;
+  const session = proof?.session ?? {};
+  return (
+    <Modal
+      open
+      size="lg"
+      onClose={onClose}
+      title={t("proofTitle", { code: proof?.till_code ?? till.code })}
+      footer={<ExportButtons formats={["XLSX", "CSV"]} exportFile={(format) => tellerProofExport(scope({ ...body, format }))} />}
+    >
+      {!proof ? (
+        <PageSkeleton />
+      ) : (
+        <div className="grid gap-3" data-tour="teller-proof">
+          <Facts
+            rows={[
+              [t("till"), `${proof.till_code ?? till.code} · ${proof.till_name ?? till.name ?? ""}`],
+              [t("branch"), proof.branch_name ?? till.branch_name],
+              [t("teller"), sessionOwner(session)],
+              [t("opened"), accountDate(session.opened_at)],
+              [t("closed"), session.closed_at ? accountDate(session.closed_at) : "—"],
+              [t("status"), t(`sessionStatus_${session.status}`, { defaultValue: session.status ?? "—" })],
+              [t("openingCount"), money(proof.opening_counted, c)],
+            ]}
+          />
+          <MiniTable
+            rows={proof.lines ?? []}
+            rowKey={(l) => l.txn_type}
+            empty={t("noMovements")}
+            columns={[
+              { key: "name", label: t("movement"), render: (l) => <span className="text-xs font-semibold">{l.name ?? l.txn_type}</span> },
+              { key: "count", label: t("count"), align: "right" },
+              { key: "cash_in", label: t("cashIn"), align: "right", render: (l) => <span className="tabular-nums text-emerald-700">{money(l.cash_in, c)}</span> },
+              { key: "cash_out", label: t("cashOut"), align: "right", render: (l) => <span className="tabular-nums text-red-700">{money(l.cash_out, c)}</span> },
+            ]}
+          />
+          <Facts
+            rows={[
+              [t("totalIn"), money(proof.total_in, c), "text-emerald-700"],
+              [t("totalOut"), money(proof.total_out, c), "text-red-700"],
+              [t("expected"), money(proof.expected, c), "font-black"],
+              proof.counted != null && [t("closingCount"), money(proof.counted, c), "font-black"],
+              proof.variance != null && [t("variance"), <Variance key="v" value={proof.variance} currency={c} />],
+              session.denominations && [t("byNote"), notesText(session.denominations)],
+            ]}
+          />
+          {proof.balanced && (
+            <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+              <CheckCircle2 size={14} /> {t("balanced")}
+            </p>
+          )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// A vault's counts, latest first (at most 100).
+function VaultCounts({ vault }) {
+  const { t } = useTranslation("corebank");
+  const { scope } = useInstitutionScope();
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    tellerApi
+      .vault_counts(scope({ id: vault.id }))
+      .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
+      .catch((e) => {
+        setRows([]);
+        notifications.error(e.message);
+      });
+  }, [vault.id, scope]);
+  if (!rows) return <PageSkeleton />;
+  return (
+    <MiniTable
+      rows={rows}
+      rowKey={(v) => v.id}
+      empty={t("noVaultCounts")}
+      columns={[
+        { key: "business_date", label: t("businessDate"), render: (v) => <span className="text-xs">{v.business_date}</span> },
+        {
+          key: "counted_at",
+          label: t("countedBy"),
+          render: (v) => (
+            <span className="text-xs leading-tight">
+              <b className="block">{v.counted_by}</b>
+              <span className="text-muted-foreground">{accountDate(v.counted_at)}</span>
+            </span>
+          ),
+        },
+        { key: "expected", label: t("expected"), align: "right", render: (v) => money(v.expected, vault.currency) },
+        { key: "counted", label: t("counted"), align: "right", render: (v) => money(v.counted, vault.currency) },
+        { key: "variance", label: t("variance"), align: "right", render: (v) => <Variance value={v.variance} currency={vault.currency} /> },
+        { key: "rrn", label: "RRN", render: (v) => <span className="font-mono text-xs">{v.rrn || "—"}</span> },
+        { key: "note", label: t("note"), wrap: true, render: (v) => <span className="text-xs">{v.note || "—"}</span> },
+      ]}
+    />
+  );
+}
+
+// Tills whose close waits for a vault custodian: approve the difference (it
+// is booked and the till closes) or send it back for a recount (a reason is
+// required; the till is open again).
+function PendingCloses({ tills, onChanged }) {
+  const { t } = useTranslation("corebank");
+  const { scope } = useInstitutionScope();
+  const [deciding, setDeciding] = useState(null);
+  const [proof, setProof] = useState(null);
+  const decide = async (note) => {
+    const { verb, till } = deciding;
+    try {
+      const r = await tellerApi[verb](scope({ id: till.id, ...(note ? { note } : {}) }));
+      if (r?.message) notifications.success(r.message);
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setDeciding(null);
+      onChanged?.();
+    }
+  };
+  return (
+    <>
+      <MiniTable
+        rows={tills}
+        rowKey={(x) => x.id}
+        empty={t("noPendingCloses")}
+        columns={[
+          {
+            key: "till",
+            label: t("till"),
+            render: (x) => (
+              <span className="text-xs leading-tight">
+                <b className="block font-mono">{x.code}</b>
+                <span className="text-muted-foreground">{x.branch_name}</span>
+              </span>
+            ),
+          },
+          { key: "teller", label: t("teller"), render: (x) => <span className="text-xs">{sessionOwner(x.session)}</span> },
+          { key: "expected", label: t("expected"), align: "right", render: (x) => money(x.session?.closing_expected, x.currency) },
+          { key: "counted", label: t("closingCount"), align: "right", render: (x) => money(x.session?.closing_counted, x.currency) },
+          { key: "variance", label: t("variance"), align: "right", render: (x) => <Variance value={x.session?.variance} currency={x.currency} /> },
+          { key: "notes", label: t("byNote"), wrap: true, render: (x) => <span className="font-mono text-[11px]">{notesText(x.session?.denominations)}</span> },
+          {
+            key: "actions",
+            label: "",
+            render: (x) => (
+              <span className="flex flex-wrap justify-end gap-1">
+                <Button size="sm" variant="ghost" icon={FileText} onClick={() => setProof(x)}>
+                  {t("proofSheet")}
+                </Button>
+                <Button size="sm" icon={CheckCircle2} onClick={() => setDeciding({ verb: "close_approve", till: x })}>
+                  {t("approveDifference")}
+                </Button>
+                <Button size="sm" variant="danger" icon={XCircle} onClick={() => setDeciding({ verb: "close_reject", till: x })}>
+                  {t("sendBackRecount")}
+                </Button>
+              </span>
+            ),
+          },
+        ]}
+      />
+      {deciding && (
+        <NarrationDialog
+          title={t(deciding.verb === "close_approve" ? "approveDifference" : "sendBackRecount")}
+          hint={t(deciding.verb === "close_approve" ? "approveDifferenceHint" : "sendBackHint", {
+            amount: money(deciding.till.session?.variance, deciding.till.currency),
+            code: deciding.till.code,
+          })}
+          confirmLabel={t(deciding.verb === "close_approve" ? "approveDifference" : "sendBackRecount")}
+          variant={deciding.verb === "close_approve" ? "primary" : "danger"}
+          required={deciding.verb === "close_reject"}
+          onClose={() => setDeciding(null)}
+          onSave={decide}
+        />
+      )}
+      {proof && <ProofSheet till={proof} onClose={() => setProof(null)} />}
+    </>
+  );
+}
+
+const today = () => new Date().toISOString().slice(0, 10);
+const ReadyLine = ({ ok, children }) => (
+  <li className={cn("flex items-start gap-2 rounded-xl px-3 py-2 text-sm", ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800")}>
+    {ok ? <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> : <XCircle size={16} className="mt-0.5 shrink-0" />}
+    <span className="min-w-0">{children}</span>
+  </li>
+);
+// A readiness entry may be a code or an object naming the till.
+const tillText = (x) => (typeof x === "object" && x ? `${x.code ?? x.till_code ?? ""}${x.user_name ? ` (${x.user_name})` : ""}` : String(x));
+const codeOf = (x) => (typeof x === "object" && x ? (x.code ?? x.till_code) : x);
+
+// A branch's end of day: the readiness checklist, cash position, tills,
+// vault counts, differences, transactions and transfers of the day; a vault
+// custodian closes the day once everything is ready (no more till work there
+// until it is reopened, with a reason, or the next day starts).
+function EndOfDay() {
+  const { t } = useTranslation("corebank");
+  const can = usePagePermission();
+  const { scope } = useInstitutionScope();
+  const branches = branchOptions(useCoreBanking(scope), { openOnly: true });
+  const [branch, setBranch] = useState("");
+  const [date, setDate] = useState(today());
+  const [report, setReport] = useState(null);
+  const [dialog, setDialog] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [proof, setProof] = useState(null);
+  const branchId = branch || branches[0]?.value || "";
+  const load = useCallback(() => {
+    if (!branchId) return;
+    setReport(null);
+    tellerApi
+      .eod_report(scope({ branch_id: Number(branchId), ...(date ? { date } : {}) }))
+      .then((r) => setReport(recordOf(r) ?? {}))
+      .catch((e) => {
+        notifications.error(e.message);
+        setReport({});
+      });
+  }, [branchId, date, scope]);
+  useEffect(() => {
+    load();
+  }, [load]);
+  const act = async (verb, body = {}) => {
+    setBusy(true);
+    try {
+      const r = await tellerApi[verb](scope({ branch_id: Number(branchId), ...body }));
+      if (r?.message) notifications.success(r.message);
+      setDialog(null);
+      setReport(recordOf(r) ?? report);
+    } catch (e) {
+      notifications.error(e.message);
+      setDialog(null);
+      load();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const ready = report?.readiness ?? {};
+  const closed = report?.status === "CLOSED";
+  const isToday = !date || date === today();
+  const cashOf = (code) => (report?.cash ?? []).find((c) => c.code === code);
+  return (
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="w-64">
+          <Field field={{ type: "select", options: branches.length ? branches : [{ value: "", label: t("noBranches") }] }} value={branchId} onChange={setBranch} />
+        </div>
+        <DateInput className={cn(inputClass, "w-44")} value={date} max={today()} onChange={(e) => setDate(e.target.value)} />
+        {branchId && (
+          <span className="ml-auto flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            {t("branchTrialBalance")}
+            <ExportButtons formats={["XLSX", "CSV"]} exportFile={(format) => glReportsApi.trialBalanceExport({ branch_id: Number(branchId), ...(date ? { as_of: date } : {}), format })} />
+          </span>
+        )}
+      </div>
+      {!branchId ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">{t("noBranches")}</p>
+      ) : !report ? (
+        <PageSkeleton />
+      ) : (
+        <>
+          <div
+            className={cn("flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4", closed ? "border-slate-300 bg-slate-50" : "border-emerald-200 bg-emerald-50")}
+            data-tour="eod-status"
+          >
+            <div className="text-sm">
+              <p className="font-black">
+                {report.branch_code} · {report.branch_name} · {report.business_date}: {t(closed ? "dayClosed" : "dayOpen")}
+              </p>
+              {closed && <p className="text-xs">{t("dayClosedBy", { name: report.closed_by, date: accountDate(report.closed_at) })}</p>}
+              {report.snapshot && <p className="text-xs font-semibold">{t("reportAsAtClose", { date: accountDate(report.closed_at) })}</p>}
+              {report.reopen_reason && <p className="text-xs">{t("dayReopenedBy", { name: report.reopened_by, date: accountDate(report.reopened_at), reason: report.reopen_reason })}</p>}
+            </div>
+            {can("Self") && isToday && (
+              <ActionButtons
+                busy={busy}
+                buttons={[
+                  closed && { key: "reopen", label: t("reopenDay"), icon: Unlock, run: () => setDialog("reopen") },
+                  !closed && { key: "close", label: t("closeDay"), icon: LockKeyhole, variant: "danger", disabled: !ready.ready, run: () => setDialog("close") },
+                ]}
+              />
+            )}
+          </div>
+          {!closed && (
+            <Section title={t("readiness")}>
+              <ul className="grid gap-1.5" data-tour="eod-readiness">
+                <ReadyLine ok={!(ready.open_tills ?? []).length}>
+                  <b>{t("checkTills")}</b>
+                  {(ready.open_tills ?? []).length > 0 && <span className="block text-xs">{ready.open_tills.map(tillText).join(", ")}</span>}
+                </ReadyLine>
+                <ReadyLine ok={!Number(ready.transfers_pending)}>
+                  <b>{t("checkTransfers")}</b>
+                  {Number(ready.transfers_pending) > 0 && <span className="block text-xs">{t("transfersPendingN", { count: Number(ready.transfers_pending) })}</span>}
+                </ReadyLine>
+                <ReadyLine ok={!(ready.vaults_not_counted ?? []).length}>
+                  <b>{t("checkVaults")}</b>
+                  {(ready.vaults_not_counted ?? []).map((x) => {
+                    const v = cashOf(codeOf(x));
+                    return (
+                      <span key={String(codeOf(x))} className="mt-1 flex items-center gap-2 text-xs">
+                        {codeOf(x)}
+                        {v && can("Self") && (
+                          <Button size="sm" variant="outline" icon={Calculator} onClick={() => setDialog({ vault: { id: v.till_id, code: v.code, name: v.name, balance: v.balance, currency: v.currency } })}>
+                            {t("countVault")}
+                          </Button>
+                        )}
+                      </span>
+                    );
+                  })}
+                </ReadyLine>
+              </ul>
+            </Section>
+          )}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Section title={t("cashPosition")}>
+              <MiniTable
+                rows={report.cash ?? []}
+                rowKey={(c) => c.till_id}
+                empty={t("noTills")}
+                columns={[
+                  { key: "code", label: t("till"), render: (c) => <span className="text-xs"><b className="font-mono">{c.code}</b> · {c.name}</span> },
+                  { key: "kind", label: t("kind"), render: (c) => <span className="text-xs">{kindLabel(t, c.kind)}</span> },
+                  { key: "balance", label: t("balance"), align: "right", render: (c) => <b className="tabular-nums">{money(c.balance, c.currency)}</b> },
+                ]}
+              />
+              {(report.cash_totals ?? []).map((x) => (
+                <p key={x.currency} className="mt-2 text-right text-xs">
+                  {t("cashTotals", { tills: money(x.tills, x.currency), vaults: money(x.vaults, x.currency) })} · <b>{money(x.total, x.currency)}</b>
+                </p>
+              ))}
+            </Section>
+            <Section title={t("differences")}>
+              <MiniTable
+                rows={report.variance_totals ?? []}
+                rowKey={(x) => x.currency}
+                empty={t("noDifferences")}
+                columns={[
+                  { key: "currency", label: t("currency") },
+                  { key: "tills", label: t("tills"), align: "right", render: (x) => <Variance value={x.tills} currency={x.currency} /> },
+                  { key: "vaults", label: t("vaults"), align: "right", render: (x) => <Variance value={x.vaults} currency={x.currency} /> },
+                  { key: "total", label: t("total"), align: "right", render: (x) => <Variance value={x.total} currency={x.currency} /> },
+                ]}
+              />
+              <p className="mt-3 text-xs text-muted-foreground">
+                {t("transfersToday", {
+                  completed: report.transfers?.completed ?? 0,
+                  rejected: report.transfers?.rejected ?? 0,
+                  cancelled: report.transfers?.cancelled ?? 0,
+                  pending: report.transfers?.pending ?? 0,
+                })}
+              </p>
+            </Section>
+          </div>
+          <Section title={t("tillsToday")}>
+            <MiniTable
+              rows={report.sessions ?? []}
+              rowKey={(x) => x.session_id}
+              empty={t("noSessions")}
+              columns={[
+                { key: "till_code", label: t("till"), render: (x) => <b className="font-mono text-xs">{x.till_code}</b> },
+                { key: "user_name", label: t("teller"), render: (x) => <span className="text-xs">{x.user_name}</span> },
+                { key: "opened_at", label: t("opened"), render: (x) => <span className="text-xs">{accountDate(x.opened_at)}</span> },
+                { key: "closed_at", label: t("closed"), render: (x) => <span className="text-xs">{x.closed_at ? accountDate(x.closed_at) : "—"}</span> },
+                { key: "opening_counted", label: t("openingCount"), align: "right", render: (x) => money(x.opening_counted, x.currency) },
+                { key: "expected", label: t("expected"), align: "right", render: (x) => money(x.expected, x.currency) },
+                { key: "counted", label: t("closingCount"), align: "right", render: (x) => money(x.counted, x.currency) },
+                { key: "variance", label: t("variance"), align: "right", render: (x) => <Variance value={x.variance} currency={x.currency} /> },
+                { key: "status", label: t("status"), render: (x) => <span className="text-xs font-semibold">{t(`sessionStatus_${x.status}`, { defaultValue: x.status })}</span> },
+                {
+                  key: "proof",
+                  label: "",
+                  render: (x) => (
+                    <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setProof({ till: { id: x.till_id, code: x.till_code }, sessionId: x.session_id })}>
+                      {t("proofSheet")}
+                    </button>
+                  ),
+                },
+              ]}
+            />
+          </Section>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Section title={t("vaultCountsToday")}>
+              <MiniTable
+                rows={report.vault_counts ?? []}
+                rowKey={(v) => v.id}
+                empty={t("noVaultCounts")}
+                columns={[
+                  { key: "till_code", label: t("till"), render: (v) => <b className="font-mono text-xs">{v.till_code}</b> },
+                  { key: "counted_by", label: t("countedBy"), render: (v) => <span className="text-xs">{v.counted_by} · {accountDate(v.counted_at)}</span> },
+                  { key: "counted", label: t("counted"), align: "right", render: (v) => money(v.counted, v.currency) },
+                  { key: "variance", label: t("variance"), align: "right", render: (v) => <Variance value={v.variance} currency={v.currency} /> },
+                ]}
+              />
+            </Section>
+            <Section title={t("transactionsToday")}>
+              <MiniTable
+                rows={report.transactions ?? []}
+                rowKey={(x) => `${x.txn_type}-${x.currency}`}
+                empty={t("noMovements")}
+                columns={[
+                  { key: "name", label: t("movement"), render: (x) => <span className="text-xs font-semibold">{x.name ?? x.txn_type}</span> },
+                  { key: "count", label: t("count"), align: "right" },
+                  { key: "debits", label: t("debits"), align: "right", render: (x) => money(x.debits, x.currency) },
+                  { key: "credits", label: t("credits"), align: "right", render: (x) => money(x.credits, x.currency) },
+                ]}
+              />
+            </Section>
+          </div>
+        </>
+      )}
+      {dialog === "close" && (
+        <NarrationDialog title={t("closeDay")} hint={t("closeDayHint")} confirmLabel={t("closeDay")} variant="danger" busy={busy} label={t("noteOptional")} onClose={() => setDialog(null)} onSave={() => act("day_close")} />
+      )}
+      {dialog === "reopen" && (
+        <NarrationDialog title={t("reopenDay")} hint={t("reopenDayHint")} label={t("reason")} confirmLabel={t("reopenDay")} required busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act("day_reopen", { reason })} />
+      )}
+      {dialog?.vault && (
+        <CountDialog
+          verb="vault"
+          till={dialog.vault}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            load();
+          }}
+        />
+      )}
+      {proof && <ProofSheet till={proof.till} sessionId={proof.sessionId} onClose={() => setProof(null)} />}
+    </div>
   );
 }

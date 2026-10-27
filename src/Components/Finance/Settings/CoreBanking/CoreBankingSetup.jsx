@@ -50,6 +50,9 @@ const toBody = (s) => ({
   teller: {
     till_cash_gl_id: Number(s.teller?.till_cash_gl_id) || 0,
     vault_cash_gl_id: Number(s.teller?.vault_cash_gl_id) || 0,
+    // A closing difference beyond the tolerance waits for a vault custodian.
+    variance_approval: Boolean(s.teller?.variance_approval),
+    variance_tolerance: String(s.teller?.variance_tolerance || "0"),
   },
   withholding_tax: {
     ...s.withholding_tax,
@@ -378,6 +381,27 @@ export function CoreBankingSetup() {
                       />
                     </label>
                   ))}
+                </div>
+                <div className="mt-5">
+                  <Toggle
+                    showLabel
+                    label={t("varianceApproval")}
+                    disabled={!editing}
+                    checked={Boolean(shown.teller?.variance_approval)}
+                    onChange={(v) => set("teller")({ variance_approval: v })}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">{t("varianceApprovalHint")}</p>
+                  {shown.teller?.variance_approval && (
+                    <label className={`${labelClass} mt-3 block max-w-xs`}>
+                      {t("varianceTolerance")}
+                      <Field
+                        field={{ type: "rate" }}
+                        disabled={!editing}
+                        value={String(shown.teller?.variance_tolerance ?? "")}
+                        onChange={(v) => set("teller")({ variance_tolerance: v })}
+                      />
+                    </label>
+                  )}
                 </div>
               </Section>
             )}

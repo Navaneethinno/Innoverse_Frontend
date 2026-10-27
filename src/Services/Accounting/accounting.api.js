@@ -65,4 +65,6 @@ export const accountingPeriodsApi = calls("/config/accounting/period", ["list", 
 // its own GL account. Self is working a till: open / close with a count,
 // deposit, withdraw, loan repayment and transfers with the vault. Every
 // money call carries the slip `reference` (never posts twice).
-export const tellerApi = calls("/config/teller", ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer_request", "transfer_approve", "transfer_reject", "transfer_cancel", "transfers", "transfer_get"]);
+export const tellerApi = calls("/config/teller", ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer_request", "transfer_approve", "transfer_reject", "transfer_cancel", "transfers", "transfer_get", "close_approve", "close_reject", "proof", "vault_count", "vault_counts", "eod_report", "day_close", "day_reopen"]);
+// A till session's proof sheet as Excel or CSV.
+export const tellerProofExport = (body) => downloadAttachment("/config/teller/proof_export", body, `proof.${body.format === "CSV" ? "csv" : "xlsx"}`);
