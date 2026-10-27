@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -74,6 +74,16 @@ export function DynamicSidebar() {
   // it, same as the reference.
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [menuSearch, setMenuSearch] = useState("");
+  // Open module list: no search, no menu tree, every branch closed again.
+  const [modulesOpen, setModulesOpen] = useState(false);
+  const [treeKey, setTreeKey] = useState(0);
+  const onModulesOpen = useCallback((open) => {
+    setModulesOpen(open);
+    if (open) {
+      setMenuSearch("");
+      setTreeKey((k) => k + 1);
+    }
+  }, []);
   const searchInputRef = useRef(null);
 
   // Only active menus are ever considered for navigation/hierarchy — a
@@ -175,6 +185,19 @@ export function DynamicSidebar() {
     () => filterSidebarMenus(searchableMenuItems, menuSearch),
     [searchableMenuItems, menuSearch],
   );
+
+  // Search runs over every module: each module's matches sit under its name,
+  // so the same menu in two modules is not mistaken for a duplicate.
+  const searchGroups = useMemo(() => {
+    if (!isSearching) return [{ module: null, items: filteredMenuItems }];
+    const groups = filteredModules
+      .map((module) => ({
+        module,
+        items: filteredMenuItems.filter((m) => Number(m.module_id) === Number(module.module_id)),
+      }))
+      .filter((g) => g.items.length);
+    return groups.length ? groups : [{ module: null, items: [] }];
+  }, [isSearching, filteredMenuItems, filteredModules]);
 
   const focusSearch = useCallback(() => searchInputRef.current?.focus(), []);
   const clearSearch = useCallback(() => {
@@ -308,6 +331,7 @@ export function DynamicSidebar() {
             const name = activeMenuArray.find((m) => Number(m.module_id) === Number(module.module_id))?.module_name ?? module.module_name;
             if (name) handleNavigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
           }}
+          onOpenChange={onModulesOpen}
           isCollapsed={!isExpanded}
         />
       </div>
@@ -316,34 +340,27 @@ export function DynamicSidebar() {
         className="thin-scrollbar mt-3 flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto"
         style={{ overflowX: "hidden" }}
       >
-        {selectedModule &&
-          (() => {
-            const SelectedIcon = getModuleIcon(selectedModule.module_name);
-            return (
-              <div className="px-2 min-w-0">
-                <div
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0",
-                    isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
-                  )}
-                >
-                  <SelectedIcon size={15} strokeWidth={1.8} className="shrink-0 text-primary" />
-                  {isExpanded && <span className="truncate">{moduleLabel(selectedModule)}</span>}
-                </div>
-              </div>
-            );
-          })()}
-        <div className="px-2 min-w-0">
-          <MenuList
-            menuItems={filteredMenuItems}
-            routeMenuId={routeMenu?.menu_id ?? null}
-            navigate={handleNavigate}
-            isCollapsed={!isExpanded}
-            searchQuery={trimmedSearch}
-            autoExpandedMenuIds={searchExpandedMenuIds}
-            isSearching={isSearching}
-          />
-        </div>
+        {!modulesOpen && !isSearching && selectedModule && (
+          <div className="px-2 min-w-0">
+            <ModuleChip module={selectedModule} isExpanded={isExpanded} />
+          </div>
+        )}
+        {!modulesOpen &&
+          searchGroups.map(({ module, items }) => (
+            <div key={module?.module_id ?? "all"} className="px-2 min-w-0">
+              {module && <ModuleChip module={module} isExpanded={isExpanded} />}
+              <MenuList
+                key={treeKey}
+                menuItems={items}
+                routeMenuId={routeMenu?.menu_id ?? null}
+                navigate={handleNavigate}
+                isCollapsed={!isExpanded}
+                searchQuery={trimmedSearch}
+                autoExpandedMenuIds={searchExpandedMenuIds}
+                isSearching={isSearching}
+              />
+            </div>
+          ))}
       </div>
 
       <div className="px-2 mt-2">
@@ -422,3 +439,20 @@ export function DynamicSidebar() {
 }
 
 export const SIDEBAR_WIDTHS = { expanded: SIDEBAR_EXPANDED_W, collapsed: SIDEBAR_COLLAPSED_W };
+
+// The module a menu tree belongs to, as a tinted heading.
+function ModuleChip({ module, isExpanded }) {
+  return (
+    <div className="mb-1 min-w-0">
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0",
+          isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
+        )}
+      >
+        {createElement(getModuleIcon(module.module_name), { size: 15, strokeWidth: 1.8, className: "shrink-0 text-primary" })}
+        {isExpanded && <span className="truncate">{moduleLabel(module)}</span>}
+      </div>
+    </div>
+  );
+}

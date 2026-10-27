@@ -18,10 +18,13 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 // module's name) so the user always has a visible way to switch modules.
 // The list floats over the sidebar as an overlay so opening it never
 // pushes the search bar, or anything else, around.
-export function ModuleDropdown({ modules, selectedModule, onSelectModule, isCollapsed }) {
+export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpenChange, isCollapsed }) {
   const { t } = useTranslation("sidebar");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+
+  // The sidebar shows only the module list while it is open.
+  useEffect(() => onOpenChange?.(isOpen), [isOpen, onOpenChange]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
