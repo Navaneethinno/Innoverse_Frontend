@@ -1466,13 +1466,13 @@ function WaitingPanel({ waiting, onChanged }) {
 function Transfers({ waiting }) {
   const { t } = useTranslation("corebank");
   const me = useOwnIds().userId;
-  const [view, setView] = useState(waiting.closes.length ? "closes" : waiting.rows.length ? "waiting" : "mine");
+  const [view, setView] = useState(waiting.closes.length ? "closes" : waiting.rows.length ? "waiting" : "all");
   const [filters, setFilters] = useState({ kind: "", status: "" });
   const tabs = [
+    ["all"],
     ["waiting", waiting.rows.length],
     ["closes", waiting.closes.length],
     ["mine"],
-    ["all"],
   ];
   const select = (key, blank, values, prefix) => (
     <FilterSelect
