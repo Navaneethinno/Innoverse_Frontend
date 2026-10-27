@@ -21,6 +21,7 @@ import { BlacklistDetail } from "./BlacklistDetail";
 import { BlacklistForm } from "./BlacklistForm";
 import { BlacklistImport } from "./BlacklistImport";
 import { CountryList, EntryStatus } from "./blacklistShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // "" = the server's default: ACTIVE and PENDING.
 
@@ -148,7 +149,7 @@ export function Blacklist() {
     },
     { key: "reason", label: t("aml:blReason"), render: (row) => (row.data?.reason ? t(`aml:blReason_${row.data.reason}`, { defaultValue: row.data.reason }) : "-") },
     { key: "comment", label: t("aml:comment"), align: "left", render: (row) => <span className="line-clamp-2 max-w-64 text-xs">{row.comment || "-"}</span> },
-    { key: "proposed_by", label: t("aml:maker"), render: (row) => row.proposed_by ?? "-" },
+    { key: "proposed_by", label: t("aml:maker"), render: (row) => actorText(row, "proposed_by", "-") },
     {
       key: "actions",
       label: t("common:actions"),

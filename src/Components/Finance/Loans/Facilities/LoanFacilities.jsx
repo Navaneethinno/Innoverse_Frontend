@@ -55,6 +55,7 @@ import {
 import { officerOptions, useCoreBanking, useOpenTills } from "../../coreBankingShared";
 import { PortfolioQuality } from "./PortfolioQuality";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { actorText } from "@/Utils/Lib/actor";
 
 const SOURCES = ["WALLET", "CASH"];
 // A repayment can also be taken at an open teller till.
@@ -519,7 +520,7 @@ function FacilityView({ id, onBack }) {
         {pendingWriteOff && (
           <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
             {t("writeOffWaiting", {
-              name: pendingWriteOff.proposed_by,
+              name: actorText(pendingWriteOff, "proposed_by", ""),
               reason: pendingWriteOff.reason,
             })}
           </p>
@@ -615,10 +616,10 @@ function FacilityView({ id, onBack }) {
             ],
             f.written_off_date && [t("recovered"), m(f.recovered_amount)],
             f.settled_date && [t("settledOn"), dayDate(f.settled_date)],
-            [t("createdBy"), `${f.created_by ?? "—"} · ${accountDate(f.created_time)}`],
-            f.disbursed_by && [
+            [t("createdBy"), `${actorText(f, "created_by", "—")} · ${accountDate(f.created_time)}`],
+            actorText(f, "disbursed_by", "") && [
               t("disbursedBy"),
-              `${f.disbursed_by} · ${accountDate(f.disbursed_time)}`,
+              `${actorText(f, "disbursed_by", "")} · ${accountDate(f.disbursed_time)}`,
             ],
           ]}
         />
@@ -650,7 +651,7 @@ function FacilityView({ id, onBack }) {
             {
               key: "by",
               label: t("by"),
-              render: (x) => `${x.created_by} · ${accountDate(x.transaction_time)}`,
+              render: (x) => `${actorText(x, "created_by", "")} · ${accountDate(x.transaction_time)}`,
             },
             canReverse && {
               key: "reverse",
@@ -730,13 +731,13 @@ function FacilityView({ id, onBack }) {
             {
               key: "proposed_by",
               label: t("proposedBy"),
-              render: (w) => `${w.proposed_by} · ${accountDate(w.proposed_at)}`,
+              render: (w) => `${actorText(w, "proposed_by", "")} · ${accountDate(w.proposed_at)}`,
             },
             {
               key: "decided_by",
               label: t("decidedBy"),
               render: (w) =>
-                w.decided_by ? `${w.decided_by} · ${accountDate(w.decided_at)}` : "—",
+                actorText(w, "decided_by", "") ? `${actorText(w, "decided_by", "")} · ${accountDate(w.decided_at)}` : "—",
             },
             { key: "decision_note", label: t("note"), render: (w) => w.decision_note || "—" },
           ]}
@@ -806,7 +807,7 @@ function FacilityView({ id, onBack }) {
                 {
                   key: "recorded_by",
                   label: t("by"),
-                  render: (c) => `${c.recorded_by} · ${accountDate(c.recorded_at)}`,
+                  render: (c) => `${actorText(c, "recorded_by", "")} · ${accountDate(c.recorded_at)}`,
                 },
               ]}
             />

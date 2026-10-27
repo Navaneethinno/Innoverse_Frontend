@@ -18,6 +18,7 @@ import { ActionButtons, NarrationDialog, labelClass } from "../../Finance/Deposi
 import { MiniTable, Tabs } from "../../Finance/Loans/loanShared";
 import { MerchantStores } from "../Stores/Stores";
 import { MmsStatus, RoleBadge, pageOf, partyKey, partyRef } from "../mmsShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // The list tabs: party type and tier filters, then the checker's queue.
 // The agents (tier and status from the list's own filters), and the role
@@ -283,7 +284,7 @@ function AgentDetail({ party, onClose, onChanged }) {
                   </p>
                   <p className="mt-1 text-sm font-bold text-foreground">{changeText(t, pending)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {pending.reason} · {pending.requested_by}
+                    {pending.reason} · {actorText(pending, "requested_by", "")}
                   </p>
                   <div className="mt-3">
                     <ActionButtons busy={decision.busy} buttons={decision.buttons(pending)} />
@@ -323,7 +324,7 @@ function AgentDetail({ party, onClose, onChanged }) {
                       label: t("status"),
                       render: (r) => <MmsStatus value={r.status} />,
                     },
-                    { key: "by", label: t("requestedBy"), render: (r) => r.requested_by ?? "—" },
+                    { key: "by", label: t("requestedBy"), render: (r) => actorText(r, "requested_by", "—") },
                   ]}
                 />
               </div>
@@ -463,7 +464,7 @@ function RoleRequests() {
     {
       key: "requested_by",
       label: t("requestedBy"),
-      render: (r) => <span className="text-xs">{r.requested_by}</span>,
+      render: (r) => <span className="text-xs">{actorText(r, "requested_by", "")}</span>,
     },
     {
       key: "actions",

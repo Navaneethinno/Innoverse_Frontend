@@ -23,6 +23,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, Section, inputClass } from "../Finance/Deposits/depositShared";
 import { MiniTable } from "../Finance/Loans/loanShared";
 import { CardNumber, CardPill, Labelled, cardWord } from "./cardOpsShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 
 // The emboss file holds full card numbers and CVVs: it goes straight from
@@ -86,7 +87,7 @@ export function CardOrders({ receiving = false }) {
     { key: "perso_mode", label: t("persoMode"), render: (o) => <span className="text-xs">{cardWord(t, "opt", o.perso_mode)}</span> },
     { key: "quantity", label: t("quantity"), render: (o) => <span className="text-xs font-bold tabular-nums">{o.quantity}</span> },
     { key: "order_status", label: t("status"), render: (o) => <span className="inline-flex flex-wrap gap-1"><CardPill prefix="ord" code={o.order_status} />{o.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}</span> },
-    { key: "created_by", label: t("orderedBy"), render: (o) => <span className="text-xs">{o.created_by}</span> },
+    { key: "created_by", label: t("orderedBy"), render: (o) => <span className="text-xs">{actorText(o, "created_by", "")}</span> },
     { key: "created_time", label: t("orderedAt"), render: (o) => <span className="whitespace-nowrap text-xs">{accountDate(o.created_time)}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (o) => <RowActions buttons={{ view: true }} onView={() => setOpenId(o.id)} /> },
   ];
@@ -456,7 +457,7 @@ function OrderView({ id, onBack }) {
               {order.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">{[`${order.issuance_group_code} · ${order.issuance_group_name}`, order.product_code, cardWord(t, "opt", order.perso_mode), t("cardsN", { count: Number(order.quantity) }), order.inst_profile_name].join(" · ")}</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">{t("orderedByAt", { name: order.created_by, date: accountDate(order.created_time) })}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">{t("orderedByAt", { name: actorText(order, "created_by", ""), date: accountDate(order.created_time) })}</p>
           </div>
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
@@ -473,7 +474,7 @@ function OrderView({ id, onBack }) {
               { key: "job_ref", label: t("job"), render: (j) => <span className="font-mono">{j.job_ref}</span> },
               { key: "card_count", label: t("cards"), align: "right" },
               { key: "emboss_status", label: t("status"), render: (j) => cardWord(t, "emb", j.emboss_status) },
-              { key: "created_by", label: t("madeBy"), render: (j) => `${j.created_by} · ${accountDate(j.created_time)}` },
+              { key: "created_by", label: t("madeBy"), render: (j) => `${actorText(j, "created_by", "")} · ${accountDate(j.created_time)}` },
               { key: "sha256", label: "SHA-256", render: (j) => <span className="font-mono text-[10px]" title={j.sha256}>{String(j.sha256).slice(0, 12)}…</span> },
             ]}
           />
@@ -488,7 +489,7 @@ function OrderView({ id, onBack }) {
               { key: "quantity_received", label: t("received"), align: "right" },
               { key: "missing", label: t("missing"), align: "right", render: (b) => b.missing_card_ids?.length ?? 0 },
               { key: "batch_status", label: t("status"), render: (b) => cardWord(t, "batch", b.batch_status) },
-              { key: "received_at", label: t("recordedBy"), render: (b) => `${b.created_by} · ${accountDate(b.received_at ?? b.created_time)}` },
+              { key: "received_at", label: t("recordedBy"), render: (b) => `${actorText(b, "created_by", "")} · ${accountDate(b.received_at ?? b.created_time)}` },
             ]}
           />
         </Section>

@@ -2386,6 +2386,15 @@ export const myProfile = {
 };
 
 export const common = {
+  "actor_SYSTEM": "النظام",
+  "actor_CUSTOMER": "بوابة العميل",
+  "actor_CUSTOMER_APP": "تطبيق العميل",
+  "actor_CUSTOMER_WEB": "موقع العميل",
+  "actor_CUSTOMER_USSD": "USSD العميل",
+  "actor_MERCHANT": "بوابة التاجر",
+  "actor_MERCHANT_APP": "تطبيق التاجر",
+  "actor_MERCHANT_WEB": "موقع التاجر",
+  "actor_MERCHANT_POS": "نقطة بيع التاجر",
   "pickInstitutionFirst": "اختر المؤسسة أولًا: الخيارات أدناه تعتمد عليها.",
   "hexChars": "{{count}} خانة سداسية عشرية",
   "show": "إظهار",

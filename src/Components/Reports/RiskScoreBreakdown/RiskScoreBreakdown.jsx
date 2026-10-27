@@ -23,6 +23,7 @@ import {
   useReportDetail,
 } from "../Shared/reportShared";
 import { BreakdownDetail } from "./BreakdownDetail";
+import { actorText } from "@/Utils/Lib/actor";
 
 const KINDS = ["INDIVIDUAL", "CORPORATE"];
 const SOURCES = ["APPROVAL", "PORTAL", "BACKFILL"];
@@ -213,7 +214,7 @@ export function RiskScoreBreakdown() {
     {
       key: "assessed_by",
       label: t("by"),
-      render: (row) => <span className="text-xs">{row.assessed_by ?? "-"}</span>,
+      render: (row) => <span className="text-xs">{actorText(row, "assessed_by", "-")}</span>,
     },
     {
       key: "actions",

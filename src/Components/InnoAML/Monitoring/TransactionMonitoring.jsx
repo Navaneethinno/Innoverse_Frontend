@@ -26,6 +26,7 @@ import { recordOf } from "@/Services/Loans/loans.api";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { actorText } from "@/Utils/Lib/actor";
 
 const SEVERITY_TONE = {
   HIGH: "bg-red-50 text-red-700",
@@ -298,7 +299,7 @@ function AlertDetail({ id, onClose, onChanged }) {
               [t("amount"), money(alert.amount, alert.currency), "font-black"],
               [t("window"), `${accountDate(alert.window_from)} – ${accountDate(alert.window_to)}`],
               [t("assignedTo"), alert.assigned_to || "—"],
-              alert.closure_reason && [t("closedAs"), `${t(`closure_${alert.closure_reason}`)} · ${alert.closed_by ?? ""}`],
+              alert.closure_reason && [t("closedAs"), `${t(`closure_${alert.closure_reason}`)} · ${actorText(alert, "closed_by", "")}`],
               alert.str_reference && [t("str"), alert.str_reference],
             ]}
           />
@@ -531,7 +532,7 @@ function Setup() {
       </div>
       {pending && !form && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
-          <span>{t("pendingBy", { name: data.pending.proposed_by?.name ?? "—", date: accountDate(data.pending.proposed_at) })}</span>
+          <span>{t("pendingBy", { name: actorText(data.pending, "proposed_by", "—"), date: accountDate(data.pending.proposed_at) })}</span>
           <Toggle showLabel label={t("showProposed")} checked={showPending} onChange={setShowPending} />
         </div>
       )}

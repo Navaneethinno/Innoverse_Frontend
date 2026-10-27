@@ -18,6 +18,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../Finance/Deposits/depositShared";
 import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord } from "./cardOpsShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
@@ -166,7 +167,7 @@ function RequestDialog({ id, onClose, onChanged }) {
               r.card_order_id > 0 && [t("order"), `#${r.card_order_id}`],
               r.card_instance_id > 0 && [t("cardMade"), `#${r.card_instance_id}`],
               r.reference_card_id > 0 && [t("virtualCard"), `#${r.reference_card_id}`],
-              [t("requestedAt"), `${accountDate(r.created_time)} · ${r.created_by ?? "—"}`],
+              [t("requestedAt"), `${accountDate(r.created_time)} · ${actorText(r, "created_by", "—")}`],
             ]}
           />
         </div>

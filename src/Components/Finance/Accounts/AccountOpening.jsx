@@ -18,6 +18,7 @@ import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../Depos
 import { OwnerFinder } from "../Deposits/TermDeposits/OpenDeposit";
 import { MiniTable } from "../Loans/loanShared";
 import { accountDate, money, productLabel } from "./accountShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Opening a further account for a customer or merchant (Admin handoff
 // 2026-10-22): the maker picks one of the account products the owner's
@@ -208,8 +209,8 @@ export function OpeningRequests() {
     { key: "reason", label: t("reason"), render: (r) => <span className="text-xs">{r.reason || "—"}</span> },
     { key: "status", label: t("status"), render: (r) => <span className="text-xs font-bold">{t(`reqStatus_${r.status}`, { defaultValue: r.status })}</span> },
     { key: "acct_num", label: t("accountNumber"), render: (r) => <span className="font-mono text-xs">{r.acct_num ?? "—"}</span> },
-    { key: "requested", label: t("requested"), render: (r) => <span className="text-[11px]">{r.requested_by} · {accountDate(r.requested_at)}</span> },
-    { key: "decided", label: t("decided"), render: (r) => <span className="text-[11px]">{r.decided_by ? `${r.decided_by} · ${accountDate(r.decided_at)}${r.decision_note ? ` · ${r.decision_note}` : ""}` : "—"}</span> },
+    { key: "requested", label: t("requested"), render: (r) => <span className="text-[11px]">{actorText(r, "requested_by", "")} · {accountDate(r.requested_at)}</span> },
+    { key: "decided", label: t("decided"), render: (r) => <span className="text-[11px]">{actorText(r, "decided_by", "") ? `${actorText(r, "decided_by", "")} · ${accountDate(r.decided_at)}${r.decision_note ? ` · ${r.decision_note}` : ""}` : "—"}</span> },
     {
       key: "actions",
       label: t("common:actions"),

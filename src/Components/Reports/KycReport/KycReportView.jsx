@@ -38,6 +38,7 @@ import { ExpiryStateBadge, MoneyHeldTag } from "../ExpiringDocuments/expiryShare
 import { glassCard } from "../Shared/reportShared";
 import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 import { AlsoOnChips, WeightNote, matchScore } from "@/Components/InnoAML/Shared/amlShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // KYC Report: everything about one customer or merchant on one read-only
 // page (Admin portal handoff "KYC Report"). `api` is the onboarding API of
@@ -730,7 +731,7 @@ function RiskHistoryRow({ item }) {
         {item.risk_action_name && <span className="text-muted-foreground">{item.risk_action_name}</span>}
         <span className="ml-auto text-muted-foreground">
           {when(item.assessed_at)}
-          {item.assessed_by ? ` · ${item.assessed_by}` : ""}
+          {actorText(item, "assessed_by", "") ? ` · ${actorText(item, "assessed_by", "")}` : ""}
         </span>
       </button>
       {open && (
@@ -822,7 +823,7 @@ function AmlFacts({ screening: s }) {
         items={[
           [t("subject"), <AmlSubject key="s" subject={s.subject} />],
           [t("trigger"), show(s.trigger)],
-          [t("by"), show(s.screened_by)],
+          [t("by"), show(actorText(s, "screened_by", ""))],
           [t("score"), show(s.score)],
           [t("effectiveScore"), show(s.effective_score)],
           [t("matches"), show(s.match_count ?? rowsOf(s.matches).length)],
@@ -846,7 +847,7 @@ function AmlHistoryRow({ screening: s }) {
         {s.status && s.status !== "DONE" && <StatusBadge status={s.status} variant="subtle" />}
         <span className="ml-auto text-muted-foreground">
           {when(s.screened_at)}
-          {s.screened_by ? ` · ${s.screened_by}` : ""}
+          {actorText(s, "screened_by", "") ? ` · ${actorText(s, "screened_by", "")}` : ""}
         </span>
       </button>
       {open && (
@@ -935,7 +936,7 @@ function CasesCard({ cases }) {
                   [
                     t("closed"),
                     c.closed_at
-                      ? `${when(c.closed_at)}${c.closed_by ? ` · ${c.closed_by}` : ""}`
+                      ? `${when(c.closed_at)}${actorText(c, "closed_by", "") ? ` · ${actorText(c, "closed_by", "")}` : ""}`
                       : "—",
                   ],
                   [
@@ -1337,8 +1338,8 @@ function RecordCard({ onboarding, record }) {
           [t("signupCompleted"), when(o.completed_at)],
           [t("signupStatus"), o.onboarding_status ? <StatusBadge status={o.onboarding_status} variant="subtle" /> : "—"],
           [t("attempts"), show(o.attempt_count)],
-          [t("createdBy"), by(r.created_by, r.created_time)],
-          [t("lastChangedBy"), by(r.updated_by, r.updated_time)],
+          [t("createdBy"), by(actorText(r, "created_by", ""), r.created_time)],
+          [t("lastChangedBy"), by(actorText(r, "updated_by", ""), r.updated_time)],
           [t("approval"), r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—"],
         ]}
       />

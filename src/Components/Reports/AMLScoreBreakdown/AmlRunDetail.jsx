@@ -8,6 +8,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
 import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 function Section({ title, children }) {
   return (
@@ -291,7 +292,7 @@ export function AmlRunDetail({ runId, onClose }) {
             <BandChip name={item.band?.name ?? t("noBand")} color={item.band?.color_code} />
             <span className="text-xs font-semibold">{item.band?.risk_action_name ?? "—"}</span>
             <span className="text-xs text-muted-foreground">
-              {t(`kind_${item.customer_kind}`)} · {atIst(item.screened_at)} · {item.screened_by} ·{" "}
+              {t(`kind_${item.customer_kind}`)} · {atIst(item.screened_at)} · {actorText(item, "screened_by", "")} ·{" "}
               {item.trigger_name}
             </span>
             {!item.is_latest && (

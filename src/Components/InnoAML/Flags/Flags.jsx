@@ -13,6 +13,7 @@ import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { amlFlagApi } from "@/Services/InnoAML/aml.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, when } from "../Shared/amlShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const STATE_TONE = { OPEN: "bg-amber-50 text-amber-700", CASE_RAISED: "bg-sky-50 text-sky-700", DISMISSED: "bg-muted text-muted-foreground" };
 
@@ -103,7 +104,7 @@ export function Flags() {
           )}
           {f.state === "DISMISSED" && f.settle_comment && (
             <span className="line-clamp-2 max-w-48 text-[10px] text-muted-foreground" title={f.settle_comment}>
-              {f.settled_by}: {f.settle_comment}
+              {actorText(f, "settled_by", "")}: {f.settle_comment}
             </span>
           )}
         </span>

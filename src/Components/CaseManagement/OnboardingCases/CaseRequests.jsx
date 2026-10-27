@@ -7,6 +7,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { caseDate } from "./caseShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const KINDS = ["FIELDS", "SECTION", "DOCUMENT", "QUESTION"];
 const REQUEST_TONE = {
@@ -110,7 +111,7 @@ export function RequestsTab({ requests, canEdit, api, referenceId, busy, onAccep
                 <p className="mt-0.5 text-xs text-muted-foreground">{targetText(t, r)}</p>
               </div>
               <p className="text-right text-[11px] text-muted-foreground">
-                {t("requestedBy", { name: r.requested_by ?? "—", date: caseDate(r.requested_at) })}
+                {t("requestedBy", { name: actorText(r, "requested_by", "—"), date: caseDate(r.requested_at) })}
                 <br />
                 <span className={overdue ? "font-bold text-red-700" : ""}>{t("dueOn", { date: caseDate(r.due_at) })}</span>
               </p>

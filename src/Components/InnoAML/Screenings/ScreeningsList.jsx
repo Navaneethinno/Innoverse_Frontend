@@ -10,6 +10,7 @@ import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { EffectiveResult, partyLabel, when } from "../Shared/amlShared";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { CustomerAmlModal } from "../Shared/CustomerAml";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Every screening of the institution's customers. Tabs and filters come
 // from list/options; band and minimum score filter on the effective values.
@@ -29,7 +30,7 @@ export function ScreeningsList({ initial = {} }) {
     { key: "trigger", label: t("aml:trigger"), render: (row) => (row.trigger ? t(`aml:trigger_${row.trigger}`) : "-") },
     { key: "effective_score", label: t("aml:result"), render: (row) => <EffectiveResult row={row} /> },
     { key: "match_count", label: t("aml:matches"), render: (row) => row.match_count ?? 0 },
-    { key: "screened_by", label: t("aml:screenedBy"), render: (row) => row.screened_by ?? "-" },
+    { key: "screened_by", label: t("aml:screenedBy"), render: (row) => actorText(row, "screened_by", "-") },
     {
       key: "actions",
       label: t("common:actions"),

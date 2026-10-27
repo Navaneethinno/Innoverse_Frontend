@@ -25,6 +25,7 @@ import { MiniTable, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
 import { PlanCard, ReceiptDialog, TotalCell, typeLabel } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { actorText } from "@/Utils/Lib/actor";
 const clean = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => String(v ?? "").trim() !== "").map(([k, v]) => [k, String(v).trim()]));
 
 // EPURSE > Transactions (menu 189): the journal of every money movement
@@ -413,7 +414,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
       },
       { key: "total_amount", label: t("amount"), render: (r) => <TotalCell total={r.total_amount} amount={r.amount} fee={r.fee_amount} currency={r.currency_code} /> },
       { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
-      { key: "requested_by", label: t("requestedBy"), render: (r) => <span className="text-xs">{r.requested_userid_name ?? r.requested_by}</span> },
+      { key: "requested_by", label: t("requestedBy"), render: (r) => <span className="text-xs">{r.requested_userid_name ?? actorText(r, "requested_by", "")}</span> },
       { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpen(r.id)} /> },
     ],
     [t],
@@ -516,8 +517,8 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
               [t("reason"), req.reason],
               req.reference && [t("voucher"), req.reference],
               req.client_reference && [t("clientReference"), req.client_reference],
-              [t("requestedBy"), `${req.requested_userid_name ?? req.requested_by} · ${atIst(req.requested_at)}`],
-              req.decided_by && [t("decidedBy"), `${req.decided_by} · ${atIst(req.decided_at)}`],
+              [t("requestedBy"), `${req.requested_userid_name ?? actorText(req, "requested_by", "")} · ${atIst(req.requested_at)}`],
+              actorText(req, "decided_by", "") && [t("decidedBy"), `${actorText(req, "decided_by", "")} · ${atIst(req.decided_at)}`],
               req.decision_narration && [t("narration"), req.decision_narration],
               req.balance_after != null && req.rrn && [t("balanceAfter"), m(req.balance_after)],
             ]}

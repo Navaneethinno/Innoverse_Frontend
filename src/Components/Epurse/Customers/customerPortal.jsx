@@ -8,9 +8,8 @@ import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 // still filling the form, and Active/AUTHORIZED straight after they submit
 // (no approval step, can_authorise false, audit_action SELF).
 // Merchant sign-ups (MMS) come from `MerchantPortal` the same way.
-const PORTAL_ACTORS = new Set(["CustomerPortal", "MerchantPortal"]);
-
-const isPortalCustomer = (record) => PORTAL_ACTORS.has(String(record?.created_by ?? "").trim());
+// created_by_portal says so (the raw created_by text is not parsed).
+const isPortalCustomer = (record) => ["CUSTOMER", "MERCHANT"].includes(String(record?.created_by_portal ?? "").toUpperCase());
 
 // A portal draft is the customer's own form, still being filled in. The
 // handoff recommends showing it read-only (no Save/Submit) until the

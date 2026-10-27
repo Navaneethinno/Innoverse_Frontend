@@ -18,6 +18,7 @@ import { AmlPill, isApproval, outcomeWord, CaseStatus, OverdueFlag, PriorityFlag
 import { AmlProposeDialog, AssignDialog, CloseCaseDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { actorText } from "@/Utils/Lib/actor";
 
 const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "account"];
 // An AML case is about an active customer: the conversation with them
@@ -234,7 +235,7 @@ function ProposalBanner({ proposal, closed }) {
       <Icon size={18} className={cn("mt-0.5 shrink-0", neutral ? "text-muted-foreground" : approve ? "text-emerald-600" : "text-red-600")} />
       <div className="min-w-0">
         <p className="font-bold">
-          {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}
+          {t(closed ? "decisionTaken" : "proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: actorText(proposal, "proposed_by", "—"), date: caseDate(proposal.proposed_at) })}
         </p>
         {proposal.restriction && <p className="mt-1 text-xs"><span className="font-semibold">{t("restriction")}:</span> {t(`restriction_${proposal.restriction}`, { defaultValue: proposal.restriction })}</p>}
         {proposal.reason && <p className="mt-1 text-xs"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}

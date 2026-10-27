@@ -16,6 +16,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, inputClass, labelClass, percentInput } from "../Deposits/depositShared";
 import { MiniTable } from "../Loans/loanShared";
 import { accountDate, money } from "./accountShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Account actions, parties and statements (Accounts handoffs 5 and 6).
 // Every change is a request a second user approves (Self posts at once);
@@ -111,7 +112,7 @@ export function AccountRequests({ account, onChanged }) {
           <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-200">{t("pendingRequest")}</p>
           <p className="mt-1 text-sm font-bold text-foreground">{actionLabel(t, pending)}</p>
           <p className="text-xs text-muted-foreground">
-            {pending.reason} · {pending.requested_by} · {accountDate(pending.requested_at)}
+            {pending.reason} · {actorText(pending, "requested_by", "")} · {accountDate(pending.requested_at)}
           </p>
           <div className="mt-3">
             <ActionButtons
@@ -139,8 +140,8 @@ export function AccountRequests({ account, onChanged }) {
               { key: "action", label: t("action"), render: (r) => <span className="text-xs font-semibold">{actionLabel(t, r)}</span> },
               { key: "reason", label: t("reason"), render: (r) => <span className="text-xs">{r.reason || "—"}</span> },
               { key: "status", label: t("status"), render: (r) => <span className="text-xs font-bold">{t(`reqStatus_${r.status}`, { defaultValue: r.status })}</span> },
-              { key: "requested", label: t("requested"), render: (r) => <span className="text-[11px]">{r.requested_by} · {accountDate(r.requested_at)}</span> },
-              { key: "decided", label: t("decided"), render: (r) => <span className="text-[11px]">{r.decided_by ? `${r.decided_by} · ${accountDate(r.decided_at)}${r.decision_note ? ` · ${r.decision_note}` : ""}` : "—"}</span> },
+              { key: "requested", label: t("requested"), render: (r) => <span className="text-[11px]">{actorText(r, "requested_by", "")} · {accountDate(r.requested_at)}</span> },
+              { key: "decided", label: t("decided"), render: (r) => <span className="text-[11px]">{actorText(r, "decided_by", "") ? `${actorText(r, "decided_by", "")} · ${accountDate(r.decided_at)}${r.decision_note ? ` · ${r.decision_note}` : ""}` : "—"}</span> },
             ]}
           />
         )}

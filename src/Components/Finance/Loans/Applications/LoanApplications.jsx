@@ -35,6 +35,7 @@ import { ApplicationForm, Disclosure } from "./ApplicationForm";
 import { BureauCheckDialog, BureauReport, GuarantorDialog, Guarantors } from "./Guarantors";
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { actorText } from "@/Utils/Lib/actor";
 
 // LOANS > Loan Applications (menu 186): staff apply for a borrower, record
 // the offer's acceptance, credit checks and collateral, and approve. An
@@ -664,7 +665,7 @@ function CreditChecks({ rows }) {
           </div>
           <div className="mt-3 flex items-end justify-between gap-2">
             <p className="text-[11px] text-muted-foreground">
-              {c.recorded_by} · {accountDate(c.completed_time ?? c.requested_time)}
+              {actorText(c, "recorded_by", "")} · {accountDate(c.completed_time ?? c.requested_time)}
             </p>
             {c.score != null && c.score !== "" && (
               <p className="text-right">
@@ -846,7 +847,7 @@ function ApprovalsPanel({ app, readiness: r, currency }) {
                   </span>
                   <div className="min-w-0">
                     <p className="text-[11px] text-muted-foreground">
-                      {x.decided_by} · {accountDate(x.decided_time)}
+                      {actorText(x, "decided_by", "")} · {accountDate(x.decided_time)}
                     </p>
                     {x.decision_reasons?.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">

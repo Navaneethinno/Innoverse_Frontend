@@ -25,6 +25,7 @@ import { formatDay, formatDateTime } from "@/Utils/Lib/dateFormat";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { glassCard, partyLabel, useInstitutionScope } from "../Shared/amlShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // AML > Adverse Media (handoff 20): news searched for a person or company on
 // demand, judged article by article. Not part of the AML score. Search and
@@ -861,7 +862,7 @@ function RelationReview({ r, search, onChange }) {
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState(null);
   const review = r.review ?? { state: "OPEN" };
-  const waiting = review.state === "PENDING" ? { review_id: review.review_id, decision: review.decision, proposed_by: review.proposed_by } : review.pending;
+  const waiting = review.state === "PENDING" ? { review_id: review.review_id, decision: review.decision, proposed_by: actorText(review, "proposed_by", "") } : review.pending;
   const run = async (fn) => {
     setBusy(true);
     try {
@@ -885,7 +886,7 @@ function RelationReview({ r, search, onChange }) {
       {waiting ? (
         canAuthorize && (
           <div className="flex flex-wrap items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
-            <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: waiting.proposed_by ?? "" })}</span>
+            <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: actorText(waiting, "proposed_by", "") })}</span>
             <span className="ml-auto flex gap-1">
               <Button size="sm" variant="danger" icon={XCircle} onClick={() => setDialog({ verb: "deauth", id: waiting.review_id })}>{t("reject")}</Button>
               <Button size="sm" icon={CheckCircle2} onClick={() => setDialog({ verb: "auth", id: waiting.review_id })}>{t("approve")}</Button>
@@ -1037,7 +1038,7 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
   const { t } = useTranslation("aml");
   const [open, setOpen] = useState(false);
   const review = a.review ?? { state: "OPEN" };
-  const waiting = review.state === "PENDING" ? { review_id: review.review_id, decision: review.decision, proposed_by: review.proposed_by } : review.pending;
+  const waiting = review.state === "PENDING" ? { review_id: review.review_id, decision: review.decision, proposed_by: actorText(review, "proposed_by", "") } : review.pending;
   const adverse = a.verdict === "ADVERSE";
   return (
     <li className={cn("rounded-xl border p-3", a.verdict === "NOT_SUBJECT" ? "border-dashed opacity-70" : adverse ? "border-red-200" : "border-border")}>
@@ -1078,12 +1079,12 @@ function ArticleCard({ a, selectable, selected, onSelect, onDecide }) {
                 ))}
               </ul>
               {(a.evidence ?? []).slice(1).map((e, i) => <Highlighted key={i} text={e.text} highlights={e.highlights} />)}
-              {review.comment && <p className="italic text-muted-foreground">“{review.comment}” · {review.proposed_by}</p>}
+              {review.comment && <p className="italic text-muted-foreground">“{review.comment}” · {actorText(review, "proposed_by", "")}</p>}
             </div>
           )}
           {waiting && onDecide && (
             <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-900">
-              <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: waiting.proposed_by ?? "" })}</span>
+              <span className="font-semibold">{t("mediaWaiting", { decision: t(`mediaReview_${waiting.decision}`, { defaultValue: waiting.decision ?? "" }), name: actorText(waiting, "proposed_by", "") })}</span>
               <span className="ml-auto flex gap-1.5">
                 <Button size="sm" variant="danger" icon={XCircle} onClick={() => onDecide("deauth", waiting.review_id)}>{t("reject")}</Button>
                 <Button size="sm" icon={CheckCircle2} onClick={() => onDecide("auth", waiting.review_id)}>{t("approve")}</Button>
@@ -1243,7 +1244,7 @@ function ResultView({ search, onChange }) {
       {search.status === "ERROR" && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{t("mediaFailed")}</p>}
       <Funnel steps={[["found", stats.found], ["unique", stats.unique], ["read", stats.read], ["about", stats.about_subject], ["adverse", stats.adverse]]} />
       <p className="text-[11px] text-muted-foreground">
-        {[search.searched_by, formatDateTime(search.started_at), stats.took_ms && t("mediaTook", { seconds: Math.round(stats.took_ms / 1000) }), (stats.languages ?? []).join(", ").toUpperCase(), (stats.providers ?? []).map((p) => t(`mediaProvider_${p}`, { defaultValue: p })).join(", ")].filter(Boolean).join(" · ")}
+        {[actorText(search, "searched_by", ""), formatDateTime(search.started_at), stats.took_ms && t("mediaTook", { seconds: Math.round(stats.took_ms / 1000) }), (stats.languages ?? []).join(", ").toUpperCase(), (stats.providers ?? []).map((p) => t(`mediaProvider_${p}`, { defaultValue: p })).join(", ")].filter(Boolean).join(" · ")}
       </p>
 
       {categories.length > 0 && (
@@ -1498,7 +1499,7 @@ export function AdverseMediaLookup() {
     },
     { key: "level", label: t("aml:result"), render: (r) => <LevelPill row={r} /> },
     { key: "adverse", label: t("aml:mediaFunnel_adverse"), render: (r) => <span className="tabular-nums">{r.stats?.adverse ?? "—"}</span> },
-    { key: "searched_by", label: t("aml:screenedBy"), render: (r) => r.searched_by ?? "—" },
+    { key: "searched_by", label: t("aml:screenedBy"), render: (r) => actorText(r, "searched_by", "—") },
     { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpenId(r.id)} /> },
   ];
 
@@ -1740,7 +1741,7 @@ export function MediaReviews() {
         </span>
       ),
     },
-    { key: "proposed_by", label: t("aml:mediaProposedBy"), render: (r) => r.proposed_by ?? "—" },
+    { key: "proposed_by", label: t("aml:mediaProposedBy"), render: (r) => actorText(r, "proposed_by", "—") },
     {
       key: "actions",
       label: t("common:actions"),

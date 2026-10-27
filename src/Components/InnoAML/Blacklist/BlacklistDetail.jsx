@@ -10,6 +10,7 @@ import { formatDay } from "@/Utils/Lib/dateFormat";
 import { notifications } from "@/Utils/Lib/notifications";
 import { NameText, when } from "../Shared/amlShared";
 import { CountryList, EntryStatus, identifierText } from "./blacklistShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const FIELDS = ["entity_type", "name", "aliases", "birth_date", "countries", "identifiers", "reason", "remarks", "expires_on"];
 const show = (value) => (Array.isArray(value) ? value.map((v) => (typeof v === "object" ? identifierText(v) : v)).join(", ") : (value ?? "")) || "-";
@@ -42,8 +43,8 @@ function Change({ change, entry }) {
         <span className="font-bold">{t(`blAction_${change.action}`, { defaultValue: change.action })}</span>
         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold">{t(`blChangeState_${change.state}`, { defaultValue: change.state })}</span>
         <span className="text-muted-foreground">
-          {change.proposed_by} · {when(change.proposed_at)}
-          {change.decided_by && ` → ${change.decided_by} · ${when(change.decided_at)}`}
+          {actorText(change, "proposed_by", "")} · {when(change.proposed_at)}
+          {actorText(change, "decided_by", "") && ` → ${actorText(change, "decided_by", "")} · ${when(change.decided_at)}`}
         </span>
       </div>
       {change.comment && <p className="mt-1 whitespace-pre-wrap">{change.comment}</p>}
@@ -101,7 +102,7 @@ export function BlacklistDetail({ id, onClose }) {
             </ViewItem>
             <ViewItem label={t("aml:blExpiresOn")}>{entry.expires_on ? formatDay(entry.expires_on) : t("aml:neverExpires")}</ViewItem>
             <ViewItem label={t("aml:addedBy")}>
-              {entry.created_by} · {when(entry.created_at)}
+              {actorText(entry, "created_by", "")} · {when(entry.created_at)}
             </ViewItem>
             {entry.aliases?.length > 0 && (
               <div className="rounded-xl border p-3 sm:col-span-2">

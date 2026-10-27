@@ -17,6 +17,7 @@ import {
 } from "../Deposits/depositShared";
 import { Field, MiniTable } from "../Loans/loanShared";
 import { accountDate, money } from "./accountShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const REASONS = ["COURT_ORDER", "OTHER"];
 
@@ -111,7 +112,7 @@ export function AccountLiens({ account, onChanged }) {
             label: t("placed"),
             render: (l) => (
               <span className="text-xs leading-tight">
-                {l.created_by}
+                {actorText(l, "created_by", "")}
                 <span className="block text-[10px] text-muted-foreground">
                   {accountDate(l.created_at)}
                 </span>
@@ -126,7 +127,7 @@ export function AccountLiens({ account, onChanged }) {
                 <StatusBadge status={l.status} />
                 {l.released_at && (
                   <span className="block text-[10px] text-muted-foreground">
-                    {[l.released_by, accountDate(l.released_at)].filter(Boolean).join(" · ")}
+                    {[actorText(l, "released_by", ""), accountDate(l.released_at)].filter(Boolean).join(" · ")}
                   </span>
                 )}
               </span>

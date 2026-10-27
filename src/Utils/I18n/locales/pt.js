@@ -2,6 +2,15 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  "actor_SYSTEM": "Sistema",
+  "actor_CUSTOMER": "Portal do cliente",
+  "actor_CUSTOMER_APP": "App do cliente",
+  "actor_CUSTOMER_WEB": "Web do cliente",
+  "actor_CUSTOMER_USSD": "USSD do cliente",
+  "actor_MERCHANT": "Portal do comerciante",
+  "actor_MERCHANT_APP": "App do comerciante",
+  "actor_MERCHANT_WEB": "Web do comerciante",
+  "actor_MERCHANT_POS": "POS do comerciante",
   "pickInstitutionFirst": "Escolha primeiro a instituição: as opções abaixo dependem dela.",
   "hexChars": "{{count}} caracteres hexadecimais",
   "show": "Mostrar",

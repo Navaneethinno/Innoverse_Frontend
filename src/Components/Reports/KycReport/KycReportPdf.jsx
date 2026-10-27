@@ -7,6 +7,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ink, loadLogo, rgb, tint } from "../Shared/reportPdf";
 import { scoredRisk, screenedAml } from "./kycShared";
 import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
+import { actorText } from "@/Utils/Lib/actor";
 
 // The KYC Report as a printed bank form (A4 portrait): the institution's
 // logo and name on top, its logo faint behind every page, the selfie in a
@@ -404,8 +405,8 @@ async function buildPdf({ data, t, title, brand, logo, selfie, photos }) {
       [t("signupStarted"), when(ob.started_at)],
       [t("signupCompleted"), when(ob.completed_at)],
       [t("attempts"), ob.attempt_count],
-      [t("createdBy"), [rec.created_by, when(rec.created_time)].filter(Boolean).join(" · ")],
-      [t("lastChangedBy"), [rec.updated_by, when(rec.updated_time)].filter(Boolean).join(" · ")],
+      [t("createdBy"), [actorText(rec, "created_by", ""), when(rec.created_time)].filter(Boolean).join(" · ")],
+      [t("lastChangedBy"), [actorText(rec, "updated_by", ""), when(rec.updated_time)].filter(Boolean).join(" · ")],
       [t("approval"), words(rec.auth_status)],
     ],
     { cols: 3 },

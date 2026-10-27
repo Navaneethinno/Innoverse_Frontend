@@ -25,6 +25,7 @@ import {
   useReportDetail,
 } from "../Shared/reportShared";
 import { AmlRunDetail } from "./AmlRunDetail";
+import { actorText } from "@/Utils/Lib/actor";
 
 const KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];
 const TRIGGERS = ["SUBMIT", "RESCREEN", "ONGOING"];
@@ -242,7 +243,7 @@ export function AMLScoreBreakdown() {
     {
       key: "screened_by",
       label: t("by"),
-      render: (row) => <span className="text-xs">{row.screened_by ?? "-"}</span>,
+      render: (row) => <span className="text-xs">{actorText(row, "screened_by", "-")}</span>,
     },
     {
       key: "actions",

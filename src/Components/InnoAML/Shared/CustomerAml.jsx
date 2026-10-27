@@ -15,6 +15,7 @@ import { AdverseMediaBadge, AdverseMediaCustomer } from "../AdverseMedia/Adverse
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
+import { actorText } from "@/Utils/Lib/actor";
 const first = (response) => rowsOf(response)[0] ?? null;
 
 // A customer's current AML result (screening/customer shape, also the `aml`
@@ -27,7 +28,7 @@ function CustomerAmlResult({ result, onOpenScreening }) {
       <div className="flex flex-wrap items-center gap-3">
         <BandBadge band={result.band} score={result.score} showAction />
         <span className="text-xs text-muted-foreground">
-          {t("partiesMatched", { matched: result.matched_parties ?? 0, parties: result.parties ?? 0 })} · {result.screened_by} · {when(result.screened_at)}
+          {t("partiesMatched", { matched: result.matched_parties ?? 0, parties: result.parties ?? 0 })} · {actorText(result, "screened_by", "")} · {when(result.screened_at)}
         </span>
       </div>
       <ul className="divide-y rounded-xl border">

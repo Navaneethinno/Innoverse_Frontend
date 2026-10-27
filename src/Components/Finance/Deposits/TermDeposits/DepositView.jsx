@@ -18,6 +18,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, dayDate, inputClass, labelClass, ratePct } from "../depositShared";
 import { earlyText, optionLabel } from "../../Settings/DepositProducts/productShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { actorText } from "@/Utils/Lib/actor";
 
 const TABS = ["summary", "interest", "history", "transactions"];
 const INSTRUCTIONS = ["PAYOUT", "RENEW_PRINCIPAL", "RENEW_PRINCIPAL_AND_INTEREST", "HOLD"];
@@ -136,8 +137,8 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
           <RenewalLinks deposit={deposit} onOpen={setId} />
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
-        {deposit.closure_requested_by && deposit.status === "ACTIVE" && (
-          <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("closureRequestedBy", { name: deposit.closure_requested_by, date: accountDate(deposit.closure_requested_at) })}</p>
+        {actorText(deposit, "closure_requested_by", "") && deposit.status === "ACTIVE" && (
+          <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("closureRequestedBy", { name: actorText(deposit, "closure_requested_by", ""), date: accountDate(deposit.closure_requested_at) })}</p>
         )}
         {deposit.status === "MATURED" && <p className="mt-3 rounded-xl bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">{t("maturedHint", { days: deposit.grace_period_days })}</p>}
       </div>
@@ -173,8 +174,8 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
               [t("graceDays"), t("daysN", { count: deposit.grace_period_days ?? 0 })],
               [t("earlyWithdrawal"), deposit.early_withdrawal_allowed ? earlyText(t, deposit) : t("notAllowed")],
               [t("recoverPaidInterest"), t(deposit.recover_previously_paid_interest ? "yes" : "no")],
-              [t("requestedBy"), `${deposit.requested_userid_name ?? deposit.requested_by ?? "—"} · ${accountDate(deposit.requested_at)}`],
-              deposit.decided_by && [t("decidedBy"), `${deposit.decided_by} · ${accountDate(deposit.decided_at)}`],
+              [t("requestedBy"), `${deposit.requested_userid_name ?? actorText(deposit, "requested_by", "—")} · ${accountDate(deposit.requested_at)}`],
+              actorText(deposit, "decided_by", "") && [t("decidedBy"), `${actorText(deposit, "decided_by", "")} · ${accountDate(deposit.decided_at)}`],
               deposit.closed_time && [t("closedAt"), accountDate(deposit.closed_time)],
             ]}
           />

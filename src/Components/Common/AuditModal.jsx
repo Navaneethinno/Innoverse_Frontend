@@ -9,6 +9,7 @@ import { CopyButton } from "@/Components/Common/CopyButton";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Values the backend sends as literal placeholder strings for "no value" —
 // treated the same as null/empty everywhere below.
@@ -205,19 +206,19 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
           <User size={11} className="shrink-0" />
           {t("common:createdBy")}{" "}
           <span className="font-semibold text-foreground">
-            {entry.created_by ?? entry.created_username ?? "—"}
+            {actorText(entry, "created_by", "") ?? entry.created_username ?? "—"}
           </span>
         </span>
         <span className="flex items-center gap-1.5">
           <CalendarClock size={11} className="shrink-0" />
           {formatTimestamp(entry.created_time)}
         </span>
-        {!isEmptyPlaceholder(entry.auth_username ?? entry.updated_by) && (
+        {!isEmptyPlaceholder(entry.auth_username ?? actorText(entry, "updated_by", "")) && (
           <span className="flex items-center gap-1.5">
             <User size={11} className="shrink-0" />
             {entry.auth_username ? t("common:authorizedBy") : t("common:updatedBy")}{" "}
             <span className="font-semibold text-foreground">
-              {entry.auth_username ?? entry.updated_by}
+              {entry.auth_username ?? actorText(entry, "updated_by", "")}
             </span>
             {" · "}
             {formatTimestamp(entry.auth_time ?? entry.updated_time)}
@@ -260,7 +261,7 @@ const asRecord = (entry) =>
     ? {
         ...entry,
         audit_action: entry.action,
-        created_by: entry.created_by ?? entry.actor,
+        created_by: actorText(entry, "created_by", "") || entry.actor,
         created_time: entry.created_time ?? entry.at,
         auth_status: entry.auth_status ?? entry.process_status_name ?? entry.status_name,
       }

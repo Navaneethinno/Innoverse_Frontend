@@ -4,6 +4,15 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  "actor_SYSTEM": "System",
+  "actor_CUSTOMER": "Customer portal",
+  "actor_CUSTOMER_APP": "Customer app",
+  "actor_CUSTOMER_WEB": "Customer web",
+  "actor_CUSTOMER_USSD": "Customer USSD",
+  "actor_MERCHANT": "Merchant portal",
+  "actor_MERCHANT_APP": "Merchant app",
+  "actor_MERCHANT_WEB": "Merchant web",
+  "actor_MERCHANT_POS": "Merchant POS",
   "pickInstitutionFirst": "Pick the institution first: the choices below depend on it.",
   "hexChars": "{{count}} hexadecimal characters",
   "show": "Show",

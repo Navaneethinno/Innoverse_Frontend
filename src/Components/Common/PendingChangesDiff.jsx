@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Fetches and renders the /{entity}/pending {id} diff inside an Auth/Deauth
 // confirm dialog, so the checker sees exactly what a maker is asking to
@@ -181,8 +182,8 @@ export function PendingChangesDiff({ data, isLoading, error, renderValue }) {
         <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
           {isAdd ? t("newRecordRequested") : isDelete ? t("deleteRequested") : t("requestedChanges")}
         </span>
-        {data.requested_by && (
-          <span className="text-[11px] text-muted-foreground">{t("by")} {data.requested_by}</span>
+        {actorText(data, "requested_by", "") && (
+          <span className="text-[11px] text-muted-foreground">{t("by")} {actorText(data, "requested_by", "")}</span>
         )}
       </div>
 

@@ -22,6 +22,7 @@ import { AdverseMediaLookup } from "../AdverseMedia/AdverseMedia";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
+import { actorText } from "@/Utils/Lib/actor";
 const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: [], gender: "", reason: "" });
 
 // InnoAML > AML Screening > Name Lookup (menu 103): screen a name that isn't
@@ -81,7 +82,7 @@ export function NameLookup() {
     { key: "inst_profile_name", label: t("aml:institution"), render: (row) => row.inst_profile_name ?? "-" },
     { key: "effective_score", label: t("aml:result"), render: (row) => <EffectiveResult row={row} /> },
     { key: "match_count", label: t("aml:matches"), render: (row) => row.match_count ?? 0 },
-    { key: "screened_by", label: t("aml:screenedBy"), render: (row) => row.screened_by ?? "-" },
+    { key: "screened_by", label: t("aml:screenedBy"), render: (row) => actorText(row, "screened_by", "-") },
     { key: "actions", label: t("common:actions"), sortable: false, render: (row) => <RowActions buttons={{ view: true }} onView={() => setOpenId(row.id)} /> },
   ];
 

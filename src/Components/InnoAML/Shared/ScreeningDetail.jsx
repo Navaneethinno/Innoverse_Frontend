@@ -12,6 +12,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, NameText, ReviewStateBadge, ViaTag, WeightNote, blacklistByIdentifier, matchScore, when } from "./amlShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
@@ -99,8 +100,8 @@ function ReviewSummary({ review }) {
     <div className="space-y-1 text-[11px]">
       {review.decision && (
         <p className="text-muted-foreground">
-          <b className="text-slate-700">{t(`review_${review.decision}`)}</b>: {review.comment} — {review.proposed_by}
-          {review.decided_by ? ` / ${review.decided_by}` : ""} {review.decided_at ? `· ${when(review.decided_at)}` : ""}
+          <b className="text-slate-700">{t(`review_${review.decision}`)}</b>: {review.comment} — {actorText(review, "proposed_by", "")}
+          {actorText(review, "decided_by", "") ? ` / ${actorText(review, "decided_by", "")}` : ""} {review.decided_at ? `· ${when(review.decided_at)}` : ""}
           {review.expires_on && (
             <span className={`ml-1 font-semibold ${review.state === "EXPIRED" ? "text-amber-700" : ""}`}>
               · {t(review.state === "EXPIRED" ? "expiredOn" : "expiresOn", { date: formatDay(review.expires_on) })}
@@ -115,7 +116,7 @@ function ReviewSummary({ review }) {
       )}
       {review.pending && (
         <p className="rounded-lg bg-amber-50 px-2 py-1 text-amber-700">
-          {t("waitingForChecker", { decision: t(`review_${review.pending.decision}`), by: review.pending.proposed_by })}: {review.pending.comment}
+          {t("waitingForChecker", { decision: t(`review_${review.pending.decision}`), by: actorText(review.pending, "proposed_by", "") })}: {review.pending.comment}
         </p>
       )}
     </div>
@@ -316,7 +317,7 @@ export function ScreeningDetail({ screening, onChange }) {
         <div className="min-w-0">
           <NameText name={screening.name ?? subject.name} latin={screening.subject_name_latin} className="text-lg font-black text-slate-800" />
           <p className="text-[11px] text-muted-foreground">
-            {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), screening.screened_by, when(screening.screened_at)].filter(Boolean).join(" · ")}
+            {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), actorText(screening, "screened_by", ""), when(screening.screened_at)].filter(Boolean).join(" · ")}
           </p>
           {/* A customer's screening (not a Name Lookup) can open an AML case. */}
           {canRaise && screening.reference_id && screening.customer_kind && screening.customer_kind !== "NONE" && (

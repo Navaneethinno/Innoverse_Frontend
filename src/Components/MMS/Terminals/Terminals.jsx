@@ -18,6 +18,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../../Finance/Deposits/depositShared";
 import { MmsStatus, mmsDate, pageOf, partyKey, partyRef } from "../mmsShared";
 import { LoadMasterKey } from "../LoadMasterKey";
+import { actorText } from "@/Utils/Lib/actor";
 
 // "POS terminal · PAX A920" (no make or model: just the type).
 const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
@@ -188,7 +189,7 @@ function PosPolicyDialog({ canEdit, onClose }) {
             </span>
           </label>
         )}
-        {policy?.updated_by && <p className="text-[11px] text-muted-foreground">{t("posIdleUpdated", { by: policy.updated_by, at: mmsDate(policy.updated_at) })}</p>}
+        {actorText(policy, "updated_by", "") && <p className="text-[11px] text-muted-foreground">{t("posIdleUpdated", { by: actorText(policy, "updated_by", ""), at: mmsDate(policy.updated_at) })}</p>}
       </div>
     </Modal>
   );
@@ -497,10 +498,10 @@ function TerminalDetail({ terminal, onClose, onEdit, onChanged }) {
     ["store", x.store ? `${x.store.name} (${x.store.code})${x.name ? ` · ${x.name}` : ""}` : "—"],
     ["lastSeen", mmsDate(x.last_seen_at)],
     ["appVersion", x.app_version],
-    ["added", `${x.created_by ?? ""} · ${mmsDate(x.created_at)}`],
+    ["added", `${actorText(x, "created_by", "")} · ${mmsDate(x.created_at)}`],
     ["decisionNote", x.decision_note],
     // The master key two custodians load, and the PIN key the terminal downloads.
-    ["tmkKey", x.keys?.tmk_kcv ? t("keyLoaded", { kcv: x.keys.tmk_kcv, by: x.keys.tmk_loaded_by ?? "—", at: mmsDate(x.keys.tmk_loaded_at) }) : t("keyNotLoaded")],
+    ["tmkKey", x.keys?.tmk_kcv ? t("keyLoaded", { kcv: x.keys.tmk_kcv, by: actorText(x.keys, "tmk_loaded_by", "—"), at: mmsDate(x.keys.tmk_loaded_at) }) : t("keyNotLoaded")],
     ["tpkKey", x.keys?.tpk_kcv ? t("keyIssued", { kcv: x.keys.tpk_kcv, at: mmsDate(x.keys.tpk_issued_at) }) : t("keyNotIssued")],
   ];
 

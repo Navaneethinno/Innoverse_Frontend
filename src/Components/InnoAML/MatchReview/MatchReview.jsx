@@ -14,6 +14,7 @@ import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { MediaReviews } from "../AdverseMedia/AdverseMedia";
+import { actorText } from "@/Utils/Lib/actor";
 
 // Waiting rows from one "clear all" share a batch_id: shown as one entry
 // (the first row, with `batch` = every row of it on this page), decided
@@ -135,14 +136,14 @@ export function MatchReview() {
         </span>
       ),
     },
-    { key: "proposed_by", label: t("aml:maker"), render: (row) => row.proposed_by ?? "-" },
+    { key: "proposed_by", label: t("aml:maker"), render: (row) => actorText(row, "proposed_by", "-") },
     {
       key: "state",
       label: t("common:status"),
       render: (row) => (
         <span className="inline-grid justify-items-center gap-0.5">
           <StatusBadge status={row.state} />
-          {row.decided_by && <span className="text-[11px] text-muted-foreground">{row.decided_by}</span>}
+          {actorText(row, "decided_by", "") && <span className="text-[11px] text-muted-foreground">{actorText(row, "decided_by", "")}</span>}
         </span>
       ),
     },

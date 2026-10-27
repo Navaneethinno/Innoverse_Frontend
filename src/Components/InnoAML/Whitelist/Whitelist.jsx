@@ -25,6 +25,7 @@ import { ReviewHistory, ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { usePagedList } from "../Shared/usePagedList";
 import { BatchBar, BatchChip } from "../Shared/BatchBar";
 import { WhitelistImport } from "./WhitelistImport";
+import { actorText } from "@/Utils/Lib/actor";
 const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 const daysLeft = (date) => Math.ceil((new Date(`${date}T00:00:00`) - new Date(new Date().toDateString())) / 864e5);
 
@@ -251,7 +252,7 @@ export function Whitelist() {
       label: t("aml:approvedBy"),
       render: (row) => (
         <span className="grid text-xs">
-          {row.decided_by || "-"}
+          {actorText(row, "decided_by", "-")}
           <span className="text-[10px] text-muted-foreground">{when(row.decided_at)}</span>
         </span>
       ),
@@ -287,7 +288,7 @@ export function Whitelist() {
       ),
     },
     { key: "comment", label: t("aml:commentAndEvidence"), align: "left", render: commentCell },
-    { key: "proposed_by", label: t("aml:maker"), render: (row) => row.proposed_by ?? "-" },
+    { key: "proposed_by", label: t("aml:maker"), render: (row) => actorText(row, "proposed_by", "-") },
     {
       key: "actions",
       label: t("common:actions"),
