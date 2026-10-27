@@ -163,12 +163,17 @@ export function UserForm({
             {key === "inst_id" || key === "profile_id" ? (
               <FilterSelect
                 className="w-full"
-                disabled={readOnly}
+                // A profile is one of the picked institution's own.
+                disabled={readOnly || (key === "profile_id" && canChooseInstitution && !form.inst_id)}
+                disabledReason={t("common:pickInstitutionFirst")}
                 value={form[key]}
-                onChange={(next) => setForm({ ...form, [key]: next })}
+                onChange={(next) => setForm(key === "inst_id" ? { ...form, inst_id: next, profile_id: "" } : { ...form, [key]: next })}
                 options={[
                   { value: "", label: key === "inst_id" ? t("selectInstitution") : t("selectProfile") },
-                  ...(key === "inst_id" ? institutions : profiles).map((option) => {
+                  ...(key === "inst_id"
+                    ? institutions
+                    : profiles.filter((p) => !canChooseInstitution || p.inst_profile_id == null || String(p.inst_profile_id) === String(form.inst_id))
+                  ).map((option) => {
                     // A profile row also carries its institution's
                     // inst_profile_id, so each list reads its own id first.
                     const id =

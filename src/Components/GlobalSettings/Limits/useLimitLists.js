@@ -4,13 +4,15 @@ import { extProvidersApi } from "@/Services/Transactions/transactions.api";
 import { masterRows, rowsOf, request } from "@/Services/Epurse/onboarding.api";
 
 // Everything the limit rule editor picks from (Global Settings > Limit
-// handoff, "Lists you need"), loaded once per page load and shared.
+// handoff, "Lists you need"), loaded once per page load and institution and
+// shared. KYC schemes and products are the limit group's institution's own.
 // A list that fails comes back empty rather than blocking the screen.
-let listsPromise = null;
+const listsPromises = new Map();
 const safe = (promise) => promise.catch(() => []);
-const activeRows = (path) => safe(request(path, { view: "dropdown" }).then(rowsOf));
 
-function loadLists() {
+function loadLists(instProfileId) {
+  const activeRows = (path) =>
+    safe(request(path, { view: "dropdown", ...(instProfileId ? { inst_profile_id: Number(instProfileId) } : {}) }).then(rowsOf));
   return Promise.all([
     safe(masterRows("/master/limit_category")),
     safe(masterRows("/master/limit_dimension")),
@@ -46,18 +48,20 @@ function loadLists() {
   });
 }
 
-export function useLimitLists() {
+export function useLimitLists(instProfileId) {
   const [lists, setLists] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    listsPromise ??= loadLists();
-    listsPromise.then((data) => !cancelled && setLists(data)).catch(() => {
-      listsPromise = null;
-    });
+    const key = String(instProfileId ?? "");
+    if (!listsPromises.has(key)) listsPromises.set(key, loadLists(instProfileId));
+    listsPromises
+      .get(key)
+      .then((data) => !cancelled && setLists(data))
+      .catch(() => listsPromises.delete(key));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [instProfileId]);
   return lists;
 }
 

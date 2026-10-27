@@ -4,6 +4,7 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  "pickInstitutionFirst": "Pick the institution first: the choices below depend on it.",
   "hexChars": "{{count}} hexadecimal characters",
   "show": "Show",
   "hide": "Hide",

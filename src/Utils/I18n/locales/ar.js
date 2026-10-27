@@ -2386,6 +2386,7 @@ export const myProfile = {
 };
 
 export const common = {
+  "pickInstitutionFirst": "اختر المؤسسة أولًا: الخيارات أدناه تعتمد عليها.",
   "hexChars": "{{count}} خانة سداسية عشرية",
   "show": "إظهار",
   "hide": "إخفاء",

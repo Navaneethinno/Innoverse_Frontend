@@ -22,11 +22,12 @@ export function AssignDialog({ kase, busy, onClose, onSave }) {
   const [userId, setUserId] = useState(kase.assigned_to?.id ? String(kase.assigned_to.id) : "");
 
   useEffect(() => {
+    // The case's institution's users.
     usersApi
-      .getActive()
+      .getActive({ view: "dropdown", ...(kase.inst_profile_id ? { inst_profile_id: Number(kase.inst_profile_id) } : {}) })
       .then((r) => setUsers(rowsOf(r).map((u) => ({ value: String(u.id ?? u.user_id), label: u.username ?? u.user_name ?? u.name ?? String(u.id) }))))
       .catch(() => setUsers([]));
-  }, []);
+  }, [kase.inst_profile_id]);
 
   return (
     <Modal

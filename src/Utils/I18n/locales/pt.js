@@ -2,6 +2,7 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  "pickInstitutionFirst": "Escolha primeiro a instituição: as opções abaixo dependem dela.",
   "hexChars": "{{count}} caracteres hexadecimais",
   "show": "Mostrar",
   "hide": "Ocultar",

@@ -1,5 +1,6 @@
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { cn } from "@/Utils/Lib/cn";
 import { CONFIGS, DigitalProductFieldInput, isRequiredField } from "./digitalProductFields";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
@@ -210,7 +211,9 @@ export function requiredFieldMessage([key, label], tr = (s) => s) {
 // Exactly the dropdown sources DigitalProduct.jsx's own Add/Edit
 // forms use for these fields, gated by the CURRENT wizard step instead of a
 // route entity — same API calls, same hooks, same error surfacing.
-export function useDigitalProductLookups(currentEntity) {
+// `institution`: the product's; account products and KYC groups are that
+// institution's own (none until it is picked, for a user who picks one).
+export function useDigitalProductLookups(currentEntity, institution) {
   const { data: institutions = [], error: institutionsError } = useActiveInstitutionsQuery();
   const { channels = [], error: channelsError } = useChannels(currentEntity === "channel_config");
   const { transactions = [], error: transactionsError } = useTransactions(currentEntity === "channel_transaction");
@@ -230,20 +233,25 @@ export function useDigitalProductLookups(currentEntity) {
   useEffect(() => {
     if (residencyTypesError) notifications.error(residencyTypesError.message);
   }, [residencyTypesError]);
+  const scoped = useCallback(
+    (entity, set) => {
+      if (canChooseInstitution() && !institution) {
+        set([]);
+        return;
+      }
+      configKycApi(entity)
+        .getActive({ view: "dropdown", ...(institution ? { inst_profile_id: Number(institution) } : {}) })
+        .then((r) => set(rowsOf(r)))
+        .catch((e) => notifications.error(e.message));
+    },
+    [institution],
+  );
   useEffect(() => {
-    if (currentEntity !== "product_map") return;
-    configKycApi("acct_product")
-      .getActive({ view: "dropdown" })
-      .then((r) => setAccountProducts(rowsOf(r)))
-      .catch((e) => notifications.error(e.message));
-  }, [currentEntity]);
+    if (currentEntity === "product_map") scoped("acct_product", setAccountProducts);
+  }, [currentEntity, scoped]);
   useEffect(() => {
-    if (currentEntity !== "kyc_config") return;
-    configKycApi("kyc_group")
-      .getActive({ view: "dropdown" })
-      .then((r) => setKycGroups(rowsOf(r)))
-      .catch((e) => notifications.error(e.message));
-  }, [currentEntity]);
+    if (currentEntity === "kyc_config") scoped("kyc_group", setKycGroups);
+  }, [currentEntity, scoped]);
 
   return { institutions, accountProducts, kycGroups, channels, transactions, residencyTypes };
 }

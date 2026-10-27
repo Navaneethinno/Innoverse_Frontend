@@ -417,14 +417,8 @@ export function AcctConfigResource({ entity }) {
   const { dormancyActions = [] } = useAcctDormancyActions(entity === "acct_product_dormancy_config");
   const { sequenceTypes = [] } = useAcctSequenceTypes(entity === "acct_product_numbering_config");
   const { frequencies = [] } = useFrequencies(entity === "acct_product_statement_config");
+
   const [controlGls, setControlGls] = useState([]);
-  useEffect(() => {
-    if (entity !== "acct_product") return;
-    glAccountsApi
-      .list({ has_pl: true, status: 1, limit: 500 })
-      .then((response) => setControlGls(listPage(response).items))
-      .catch((error) => notifications.error(error.message));
-  }, [entity]);
   const [acctProducts, setAcctProducts] = useState([]);
   useEffect(() => {
     if (!needsAcctProducts) return;
@@ -513,6 +507,18 @@ export function AcctConfigResource({ entity }) {
     institutionCurrencyApi
       .getActive({ view: "dropdown", ...(productInstitution ? { inst_profile_id: Number(productInstitution) } : {}) })
       .then((response) => setInstCurrencies(rowsOf(response)))
+      .catch((error) => notifications.error(error.message));
+  }, [entity, productInstitution]);
+  // The control GL too: one of the picked institution's GL accounts.
+  useEffect(() => {
+    if (entity !== "acct_product") return;
+    if (canChooseInstitution() && !productInstitution) {
+      setControlGls([]);
+      return;
+    }
+    glAccountsApi
+      .list({ has_pl: true, status: 1, limit: 500, ...(productInstitution ? { inst_profile_id: Number(productInstitution) } : {}) })
+      .then((response) => setControlGls(listPage(response).items))
       .catch((error) => notifications.error(error.message));
   }, [entity, productInstitution]);
   const currencyOptions = instCurrencies.map((c) => ({ value: c.currency_code, label: c.name ?? String(c.currency_code) }));
@@ -752,8 +758,11 @@ export function AcctConfigResource({ entity }) {
                         <FilterSelect
                           className="mt-1.5"
                           value={form[key] ?? ""}
-                          onChange={(value) => setForm({ ...form, [key]: value })}
-                          disabled={isReadOnly}
+                          onChange={(value) =>
+                            // A new institution: its own currencies and GLs, so those picked go.
+                            setForm(key === "inst_profile_id" ? { ...form, [key]: value, currency_code: "", control_gl_account_id: "" } : { ...form, [key]: value })
+                          }
+                          disabled={isReadOnly || (canChooseInstitution() && entity === "acct_product" && key !== "inst_profile_id" && lookupKey && lookupKey !== "acctProdTypes" && !form.inst_profile_id)}
                           disabledReason="Can't be changed after creation."
                           options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...(lookupKey === "currencies" ? currencyOptions : optionsFor(lookupKey))]}
                         />

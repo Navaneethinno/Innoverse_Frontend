@@ -47,10 +47,18 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
   const isLastStep = stepIndex === steps.length - 1;
-  const lookups = useDigitalProductLookups(currentEntity);
+  const lookups = useDigitalProductLookups(currentEntity, values.product?.inst_profile_id);
 
+  // A new institution: the account product and KYC group picked for the
+  // old one no longer apply.
   const setFieldValue = (key, next) =>
-    setValues((prev) => ({ ...prev, [currentEntity]: { ...prev[currentEntity], [key]: next } }));
+    setValues((prev) => ({
+      ...prev,
+      [currentEntity]: { ...prev[currentEntity], [key]: next },
+      ...(currentEntity === "product" && key === "inst_profile_id"
+        ? { product_map: { ...prev.product_map, acct_product_id: "" }, kyc_config: { ...prev.kyc_config, kyc_group_id: "" } }
+        : {}),
+    }));
 
   // Persists whatever the current step holds (creating the product itself
   // on step 0's first save) and, once a nested step's parent has a real id,

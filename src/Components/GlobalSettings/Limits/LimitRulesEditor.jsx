@@ -323,7 +323,7 @@ function RulesSummary({ title, rules, t }) {
 
 export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSaved }) {
   const { t } = useTranslation("limits");
-  const baseLists = useLimitLists();
+  const baseLists = useLimitLists(group.inst_profile_id);
   const providerSources = useProviderSources(group.inst_profile_id);
   const lists = useMemo(() => baseLists && { ...baseLists, sources: { ...baseLists.sources, ...providerSources } }, [baseLists, providerSources]);
   const [record, setRecord] = useState(group);

@@ -21,7 +21,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => two(h));
 const MINUTES = Array.from({ length: 12 }, (_, m) => two(m * 5));
 export function LimitEvaluate({ group, onClose }) {
   const { t } = useTranslation("limits");
-  const lists = useLimitLists();
+  const lists = useLimitLists(group?.inst_profile_id);
   const [form, setForm] = useState({ reference_id: "", direction: "", transaction_id: "", channel_id: "", kyc_level_no: "", registration_days: "", at: "", currency_code: "", amount: "" });
   const [used, setUsed] = useState([]);
   const [result, setResult] = useState(null);

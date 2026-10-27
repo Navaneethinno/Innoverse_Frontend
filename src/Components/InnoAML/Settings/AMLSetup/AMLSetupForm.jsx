@@ -123,7 +123,7 @@ export function AMLSetupForm({ editing, onClose, onSaved }) {
       footer={<FormFooter saving={saving} editing={editing} addLabel={addLabel} onCancel={onClose} onSave={(draft) => void save(draft)} />}
     >
       <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
-        <InstitutionField value={form.inst_profile_id} disabled={Boolean(editing)} onChange={(v) => setForm({ ...form, inst_profile_id: v })} />
+        <InstitutionField value={form.inst_profile_id} disabled={Boolean(editing)} onChange={(v) => setForm({ ...form, inst_profile_id: v, levels: form.levels.map((l) => ({ ...l, risk_action_id: "", merchant_risk_action_id: "" })) })} />
         <label className={labelClass}>
           {t("aml:minMatchScore")} <span className="text-red-500">*</span>
           <input type="number" min={30} max={100} value={form.min_match_score} onChange={(e) => setForm({ ...form, min_match_score: e.target.value })} className={inputClass} />

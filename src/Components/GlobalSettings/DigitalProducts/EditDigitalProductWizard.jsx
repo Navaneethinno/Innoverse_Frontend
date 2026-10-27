@@ -56,7 +56,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   const [pendingNav, setPendingNav] = useState(null);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
-  const lookups = useDigitalProductLookups(currentEntity);
+  const lookups = useDigitalProductLookups(currentEntity, product?.inst_profile_id);
 
   const isDirty = JSON.stringify(values[currentEntity]) !== JSON.stringify(savedValues[currentEntity]);
   const setFieldValue = (key, next) =>

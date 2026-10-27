@@ -23,7 +23,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
   const { values, loading } = useDigitalProductExistingData(product);
   const currentStep = steps[stepIndex];
   const currentEntity = currentStep.entity;
-  const lookups = useDigitalProductLookups(currentEntity);
+  const lookups = useDigitalProductLookups(currentEntity, product?.inst_profile_id);
   const currentConfigured = currentEntity === "product" || isStepConfigured(currentEntity, values);
 
   return (
