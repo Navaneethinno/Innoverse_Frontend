@@ -537,9 +537,9 @@ function Setup() {
       )}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
         <Section title={t("rules")}>
-          <ul className="grid gap-1.5" data-tour="monitoring-rules">
+          <ul className="grid grid-cols-1 gap-1.5" data-tour="monitoring-rules">
             {rules.map((r, i) => (
-              <li key={i}>
+              <li key={i} className="min-w-0">
                 <button
                   type="button"
                   onClick={() => setSelected(i)}
