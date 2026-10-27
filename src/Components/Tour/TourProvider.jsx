@@ -14,7 +14,13 @@ const find = (target) => (typeof target === "string" ? (target === "body" ? null
 const present = (target) => Boolean(find(target));
 const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 const nextFrame = () => new Promise((r) => window.requestAnimationFrame(() => window.requestAnimationFrame(r)));
-const slugOf = (path) => path.split("/").filter(Boolean)[0] ?? "";
+// The page's tour key: the path segment (dashes dropped) that has its own
+// steps, the last one first (sidebar pages open at /<module>/<menu path>),
+// else the first segment.
+const slugOf = (path) => {
+  const parts = path.split("/").filter(Boolean).map((p) => p.replace(/-/g, ""));
+  return [...parts].reverse().find((p) => PAGE_TOURS[p]) ?? parts[0] ?? "";
+};
 const modalCount = () => document.querySelectorAll(sel("modal-body")).length;
 
 // Joyride measures a target once, before its own smooth scroll ends, and

@@ -67,6 +67,20 @@ export const FOOTER_STEPS = [
 // segment). `form` is walked after Add is clicked; `list` is shown after
 // the generic list steps.
 export const PAGE_TOURS = {
+  // FINANCE › Teller: the desk, the tills list and the till detail; a step
+  // whose marker isn't on the open tab is dropped.
+  teller: {
+    list: [
+      { id: "teller_open", target: sel("teller-open"), placement: "left" },
+      { id: "teller_balance", target: sel("teller-balance"), placement: "bottom" },
+      { id: "teller_waiting", target: sel("teller-waiting"), placement: "top" },
+      { id: "teller_tillBalance", target: sel("till-balance"), placement: "bottom" },
+      { id: "teller_available", target: sel("till-available"), placement: "bottom" },
+      { id: "teller_openBy", target: sel("till-open-by"), placement: "bottom" },
+      { id: "teller_movements", target: sel("till-movements"), placement: "top" },
+      { id: "teller_variance", target: sel("till-variance"), placement: "top" },
+    ],
+  },
   individualrisk: {
     form: [
       { id: "risk_institution", target: sel("field-institution"), placement: "bottom-start" },

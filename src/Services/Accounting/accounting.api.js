@@ -52,4 +52,4 @@ export const accountingPeriodsApi = calls("/config/accounting/period", ["list", 
 // its own GL account. Self is working a till: open / close with a count,
 // deposit, withdraw, loan repayment and transfers with the vault. Every
 // money call carries the slip `reference` (never posts twice).
-export const tellerApi = calls("/config/teller", ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer"]);
+export const tellerApi = calls("/config/teller", ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer_request", "transfer_approve", "transfer_reject", "transfer_cancel", "transfers", "transfer_get"]);

@@ -4,6 +4,7 @@ import { CheckCircle2, Pencil, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { MenuLink } from "@/Components/Common/MenuLink";
 import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -20,7 +21,7 @@ import {
 } from "../../Deposits/depositShared";
 import { Field, RowsEditor, Tabs, useInstitutionScope } from "../../Loans/loanShared";
 
-const TABS = ["branches", "staff", "withholding_tax", "ecl", "credit_bureau", "accounting"];
+const TABS = ["branches", "staff", "teller", "withholding_tax", "ecl", "credit_bureau", "accounting"];
 const STAGES = [1, 2, 3];
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const blankStages = () => STAGES.map(() => ({ pd: "", lgd: "" }));
@@ -40,7 +41,13 @@ const toBody = (s) => ({
     branch_code: r.branch_code,
     loan_officer: Boolean(r.loan_officer),
     teller: Boolean(r.teller),
+    vault_custodian: Boolean(r.vault_custodian),
   })),
+  // The chart-of-accounts groups every till's and vault's GL sits under.
+  teller: {
+    till_cash_gl_id: Number(s.teller?.till_cash_gl_id) || 0,
+    vault_cash_gl_id: Number(s.teller?.vault_cash_gl_id) || 0,
+  },
   withholding_tax: {
     ...s.withholding_tax,
     enabled: Boolean(s.withholding_tax.enabled),
@@ -278,7 +285,8 @@ export function CoreBankingSetup() {
             )}
             {tab === "staff" && (
               <Section title={t("tab_staff")}>
-                <p className="mb-3 text-xs text-muted-foreground">{t("staffHint")}</p>
+                <p className="mb-1 text-xs text-muted-foreground">{t("staffHint")}</p>
+                <p className="mb-3 text-xs text-muted-foreground">{t("vaultCustodianHint")}</p>
                 <RowsEditor
                   rows={(shown.staff ?? []).map((r) => ({
                     ...r,
@@ -291,6 +299,7 @@ export function CoreBankingSetup() {
                     branch_code: "",
                     loan_officer: false,
                     teller: false,
+                    vault_custodian: false,
                   })}
                   addLabel={t("addStaff")}
                   fields={[
@@ -317,8 +326,39 @@ export function CoreBankingSetup() {
                     },
                     { key: "loan_officer", label: t("loanOfficer"), type: "bool" },
                     { key: "teller", label: t("teller"), type: "bool" },
+                    { key: "vault_custodian", label: t("vaultCustodian"), type: "bool" },
                   ]}
                 />
+              </Section>
+            )}
+            {tab === "teller" && (
+              <Section title={t("tab_teller")}>
+                <p className="mb-3 text-xs text-muted-foreground">{t("tellerGlHint")}</p>
+                {!(data.gl_parents ?? []).length && (
+                  <p className="mb-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                    {t("noAssetGroups")} <MenuLink slug="chartofaccounts" label={t("openChartOfAccounts")} />
+                  </p>
+                )}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {["till_cash_gl_id", "vault_cash_gl_id"].map((key) => (
+                    <label key={key} className={labelClass}>
+                      {t(`gl_${key}`)}
+                      <Field
+                        field={{
+                          type: "select",
+                          blank: t("notSet"),
+                          options: (data.gl_parents ?? []).map((g) => ({
+                            value: String(g.id),
+                            label: [g.gl_code, g.name].filter(Boolean).join(" · "),
+                          })),
+                        }}
+                        disabled={!editing}
+                        value={Number(shown.teller?.[key]) ? String(shown.teller[key]) : ""}
+                        onChange={(v) => set("teller")({ [key]: v })}
+                      />
+                    </label>
+                  ))}
+                </div>
               </Section>
             )}
             {tab === "withholding_tax" && (
