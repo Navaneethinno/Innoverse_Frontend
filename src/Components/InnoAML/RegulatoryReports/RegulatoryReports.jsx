@@ -71,7 +71,7 @@ function StrList({ openId }) {
     void load();
   }, [load]);
   return (
-    <div className="grid gap-3">
+    <Section className="grid gap-3">
       <div className="flex flex-wrap items-end gap-2">
         <div className="w-48">
           <Field
@@ -124,7 +124,7 @@ function StrList({ openId }) {
           }}
         />
       )}
-    </div>
+    </Section>
   );
 }
 
@@ -423,7 +423,7 @@ function CtrList() {
     }
   };
   return (
-    <div className="grid gap-3">
+    <Section className="grid gap-3">
       <p className="text-xs text-muted-foreground">{t("ctrHint")}</p>
       <div className="flex flex-wrap items-end gap-2">
         <DateInput className={cn(inputClass, "w-40")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
@@ -502,6 +502,6 @@ function CtrList() {
           </label>
         </Modal>
       )}
-    </div>
+    </Section>
   );
 }

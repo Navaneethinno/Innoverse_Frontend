@@ -3735,6 +3735,7 @@ export const deposits = {
 };
 
 export const loans = {
+  "searchOptions": "Search… ({{count}} picked)",
   "facilitiesTab_loans": "Loans",
   "facilitiesTab_portfolio": "Portfolio quality",
   "nonAccrual": "Non-accrual",

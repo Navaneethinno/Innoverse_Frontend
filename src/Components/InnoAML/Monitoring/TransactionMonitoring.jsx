@@ -131,7 +131,7 @@ function Alerts() {
   };
 
   return (
-    <div className="grid gap-3">
+    <Section className="grid gap-3">
       {party && (
         <p className="flex flex-wrap items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-xs font-semibold">
           {t("partyAlerts", { name: party.name })}
@@ -145,7 +145,7 @@ function Alerts() {
           ["status", ["OPEN", "ESCALATED", "CLOSED"], "anyStatus", "alertStatus_"],
           ["severity", ["HIGH", "MEDIUM", "LOW"], "anySeverity", "severity_"],
         ].map(([key, values, blank, prefix]) => (
-          <div key={key} className="w-40">
+          <div key={key} className="w-36">
             <Field
               field={{ type: "select", blank: t(blank), options: values.map((v) => ({ value: v, label: t(`${prefix}${v}`) })) }}
               value={filters[key]}
@@ -153,10 +153,10 @@ function Alerts() {
             />
           </div>
         ))}
-        <input className={cn(inputClass, "w-36")} placeholder={t("ruleCode")} value={filters.rule_code} onChange={(e) => set("rule_code")(e.target.value.toUpperCase())} />
-        <input className={cn(inputClass, "w-48")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-40")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-40")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+        <input className={cn(inputClass, "w-32")} placeholder={t("ruleCode")} value={filters.rule_code} onChange={(e) => set("rule_code")(e.target.value.toUpperCase())} />
+        <input className={cn(inputClass, "w-44")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
         <div className="ml-auto flex gap-2">
           {can("Edit") && picked.length > 0 && (
             <Button size="sm" variant="danger" icon={ShieldAlert} onClick={() => setEscalating(true)}>
@@ -243,7 +243,7 @@ function Alerts() {
           onSave={escalate}
         />
       )}
-    </div>
+    </Section>
   );
 }
 
@@ -516,8 +516,8 @@ function Setup() {
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">{t(data.id ? "setupHint" : "setupExamplesHint")}</p>
+      <div className="flex items-center justify-between gap-3">
+        <p className="min-w-0 flex-1 text-xs text-muted-foreground">{t(data.id ? "setupHint" : "setupExamplesHint")}</p>
         {!form && (
           <ActionButtons
             busy={busy}

@@ -6067,6 +6067,7 @@ export const corebank = {
 };
 
 export const loans = {
+  "searchOptions": "بحث… ({{count}} مختار)",
   "facilitiesTab_loans": "القروض",
   "facilitiesTab_portfolio": "جودة المحفظة",
   "nonAccrual": "متوقف عن الاستحقاق",

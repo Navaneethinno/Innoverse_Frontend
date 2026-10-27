@@ -1,6 +1,6 @@
 import { TypedInput } from "@/Components/Common/DateInput";
 import { PagedList } from "@/Components/Common/Pager";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
@@ -84,35 +84,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
       />
     );
   }
-  if (type === "multi") {
-    const list = Array.isArray(value) ? value : [];
-    return (
-      <div className="mt-1 flex flex-wrap gap-1.5">
-        {options.map((o) => {
-          const v = typeof o === "object" ? o.value : o;
-          const on = list.some((x) => String(x) === String(v));
-          return (
-            <button
-              key={v}
-              type="button"
-              disabled={disabled}
-              onClick={() =>
-                onChange(on ? list.filter((x) => String(x) !== String(v)) : [...list, v])
-              }
-              className={cn(
-                "rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors",
-                on
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border text-muted-foreground hover:border-primary hover:text-primary",
-              )}
-            >
-              {typeof o === "object" ? o.label : loanLabel(t, o)}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
+  if (type === "multi") return <MultiPick options={options} value={value} onChange={onChange} disabled={disabled} />;
   const clean = {
     amount: (v) => amountInput(v, decimals),
     rate: (v) => amountInput(v, 6),
@@ -145,6 +117,60 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
       value={value ?? ""}
       onChange={(e) => onChange(clean ? clean(e.target.value) : e.target.value)}
     />
+  );
+}
+
+// Many choices as pills. Past 12 they sit in a short scrolling box with a
+// search, the picked ones first, so a long list stays compact.
+function MultiPick({ options, value, onChange, disabled }) {
+  const { t } = useTranslation("loans");
+  const [q, setQ] = useState("");
+  const list = Array.isArray(value) ? value : [];
+  const many = options.length > 12;
+  const valueOf = (o) => (typeof o === "object" ? o.value : o);
+  const labelOf = (o) => (typeof o === "object" ? o.label : loanLabel(t, o));
+  const isOn = (o) => list.some((x) => String(x) === String(valueOf(o)));
+  const needle = q.trim().toLowerCase();
+  const shown = many
+    ? options
+        .filter((o) => !needle || String(labelOf(o)).toLowerCase().includes(needle))
+        .sort((a, b) => Number(isOn(b)) - Number(isOn(a)))
+    : options;
+  const pills = (
+    <div className="flex flex-wrap gap-1.5">
+      {shown.map((o) => {
+        const v = valueOf(o);
+        const on = isOn(o);
+        return (
+          <button
+            key={v}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(on ? list.filter((x) => String(x) !== String(v)) : [...list, v])}
+            className={cn(
+              "rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors",
+              on
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border text-muted-foreground hover:border-primary hover:text-primary",
+            )}
+          >
+            {labelOf(o)}
+          </button>
+        );
+      })}
+    </div>
+  );
+  if (!many) return <div className="mt-1">{pills}</div>;
+  return (
+    <div className="mt-1 rounded-xl border border-border p-2">
+      <input
+        className="mb-2 w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+        placeholder={t("searchOptions", { count: list.length })}
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
+      <div className="max-h-36 overflow-y-auto">{pills}</div>
+    </div>
   );
 }
 

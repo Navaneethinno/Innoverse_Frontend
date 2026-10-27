@@ -3749,6 +3749,7 @@ export const deposits = {
 };
 
 export const loans = {
+  "searchOptions": "Pesquisar… ({{count}} escolhidos)",
   "facilitiesTab_loans": "Empréstimos",
   "facilitiesTab_portfolio": "Qualidade da carteira",
   "nonAccrual": "Sem acréscimo de juros",

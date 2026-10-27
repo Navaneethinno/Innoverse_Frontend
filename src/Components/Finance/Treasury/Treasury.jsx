@@ -77,7 +77,7 @@ function Movements() {
   }, [load]);
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
   return (
-    <div className="grid gap-3">
+    <Section className="grid gap-3">
       <p className="text-xs text-muted-foreground">{t("movementsHint")}</p>
       <div className="flex flex-wrap items-center gap-2">
         <div className="w-44">
@@ -155,7 +155,7 @@ function Movements() {
           }}
         />
       )}
-    </div>
+    </Section>
   );
 }
 

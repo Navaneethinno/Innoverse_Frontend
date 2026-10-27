@@ -10,7 +10,7 @@ import { formatNumber } from "@/Utils/Lib/numberFormat";
 // Pieces shared by the Term Deposits screens (products, deposits, balance
 // adjustments, scheduled jobs).
 
-export const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary disabled:bg-muted/40";
+export const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary disabled:bg-muted/40";
 export const labelClass = "text-xs font-semibold text-slate-700";
 
 export { dayDate } from "@/Components/Finance/Accounts/accountShared";
