@@ -2749,6 +2749,8 @@ export const institutions = {
 };
 
 export const profiles = {
+  "wholeColumn": "العمود بأكمله، في كل الوحدات المعروضة:",
+  "menu": "القائمة",
   createProfile: "إنشاء ملف صلاحيات",
   newProfile: "ملف صلاحيات جديد",
   editProfile: "تعديل ملف الصلاحيات",

@@ -255,6 +255,34 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
     );
   };
 
+  // A column: one action across many menus. All of them hold it → it is
+  // taken off each (a menu left with nothing drops out); otherwise every
+  // menu that has the action gets it.
+  const columnsOf = (menus) => {
+    const byId = new Map();
+    menus.forEach((menu) => menu.actions.forEach((a) => byId.has(a.action_id) || byId.set(a.action_id, a)));
+    return [...byId.values()].sort(byActionOrder);
+  };
+  const holders = (menus, actionId) => menus.filter((menu) => menu.actions.some((a) => a.action_id === actionId));
+  const columnOn = (menus, actionId) => {
+    const list = holders(menus, actionId);
+    return list.length > 0 && list.every((menu) => grantFor(menu.menu_id)?.actions.includes(actionId));
+  };
+  const toggleColumn = (menus, actionId) => {
+    const ids = new Set(holders(menus, actionId).map((m) => m.menu_id));
+    const on = columnOn(menus, actionId);
+    const next = grants.map((g) =>
+      ids.has(g.menu_id)
+        ? { ...g, actions: on ? g.actions.filter((a) => a !== actionId) : [...new Set([...g.actions, actionId])] }
+        : g,
+    );
+    if (!on)
+      ids.forEach((id) => {
+        if (!next.some((g) => g.menu_id === id)) next.push({ menu_id: id, actions: [actionId], is_configuration_only: 0 });
+      });
+    commit(next.filter((g) => g.actions.length > 0));
+  };
+
   const filteredModules = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return modules;
@@ -339,6 +367,32 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
         </label>
       )}
 
+      {!readOnly && visibleModules.length > 0 && (
+        <div className="rounded-xl border border-border px-3 py-2">
+          <p className="mb-1.5 text-[11px] font-semibold text-muted-foreground">{t("profiles:wholeColumn")}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {columnsOf(visibleModules.flatMap((m) => m.menus)).map((a) => {
+              const menus = visibleModules.flatMap((m) => m.menus);
+              const on = columnOn(menus, a.action_id);
+              return (
+                <button
+                  key={a.action_id}
+                  type="button"
+                  onClick={() => toggleColumn(menus, a.action_id)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
+                    on ? "border-[var(--primary)] bg-white text-slate-700" : "border-dashed border-border text-muted-foreground hover:border-[var(--primary)]",
+                  )}
+                >
+                  {on ? <Check size={11} className="shrink-0 text-[var(--primary)]" strokeWidth={3} /> : <span className="h-[11px] w-[11px] shrink-0" />}
+                  {a.action_name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
         {visibleModules.map((module) => {
           const allGranted =
@@ -387,83 +441,94 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
               </div>
 
               {isOpen(module.moduleId) && (
-                <div className="space-y-1.5 border-t border-border p-3">
-                  {module.menus.map((menu) => {
-                    const grant = grantFor(menu.menu_id);
-                    const granted = isMenuGranted(menu.menu_id);
-                    return (
-                      <div
-                        key={menu.menu_id}
-                        className="rounded-lg border px-3 py-2 transition-colors"
-                        style={
-                          granted
-                            ? { borderColor: "var(--primary-light)", background: "var(--primary-light)" }
-                            : undefined
-                        }
-                      >
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={granted}
-                            disabled={readOnly}
-                            onChange={() => toggleMenuRow(menu)}
-                            className="h-4 w-4 shrink-0 accent-[var(--primary)]"
-                          />
-                          <span className="text-xs font-semibold text-slate-700">
-                            {menu.menu_name}
-                          </span>
-                        </label>
-
-                        {granted && (
-                          <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-6">
-                            {(menu.actions || []).map((action) => {
-                              const active = !!grant?.actions.includes(action.action_id);
-                              return (
-                                <label
-                                  key={action.action_id}
-                                  className={cn(
-                                    "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold transition-colors",
-                                    active ? "border-[var(--primary)] bg-white text-slate-700" : "border-dashed border-border text-muted-foreground/70",
-                                    !readOnly && "cursor-pointer focus-within:ring-2 focus-within:ring-[var(--primary)]/30 hover:border-[var(--primary)]",
-                                    readOnly && !active && "line-through",
-                                  )}
-                                >
+                <div className="overflow-x-auto border-t border-border">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-muted/40 text-[11px] text-muted-foreground">
+                        <th className="px-3 py-2 text-left font-semibold">{t("profiles:menu")}</th>
+                        {columnsOf(module.menus).map((a) => (
+                          <th key={a.action_id} className="whitespace-nowrap px-2 py-2 text-center font-semibold">
+                            <label className={cn("inline-flex flex-col items-center gap-1", !readOnly && "cursor-pointer")}>
+                              {a.action_name}
+                              {!readOnly && (
+                                <input
+                                  type="checkbox"
+                                  checked={columnOn(module.menus, a.action_id)}
+                                  onChange={() => toggleColumn(module.menus, a.action_id)}
+                                  className="h-3.5 w-3.5 accent-[var(--primary)]"
+                                />
+                              )}
+                            </label>
+                          </th>
+                        ))}
+                        {!readOnly && (
+                          <th className="whitespace-nowrap px-2 py-2 text-center font-semibold">{t("profiles:configurationOnly")}</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {module.menus.map((menu) => {
+                        const grant = grantFor(menu.menu_id);
+                        const granted = isMenuGranted(menu.menu_id);
+                        return (
+                          <tr
+                            key={menu.menu_id}
+                            className="border-t border-border"
+                            style={granted ? { background: "var(--primary-light)" } : undefined}
+                          >
+                            <td className="px-3 py-1.5">
+                              <label className="flex cursor-pointer items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={granted}
+                                  disabled={readOnly}
+                                  onChange={() => toggleMenuRow(menu)}
+                                  className="h-4 w-4 shrink-0 accent-[var(--primary)]"
+                                />
+                                <span className="font-semibold text-slate-700">{menu.menu_name}</span>
+                              </label>
+                            </td>
+                            {columnsOf(module.menus).map((a) => (
+                              <td key={a.action_id} className="px-2 py-1.5 text-center">
+                                {menu.actions.some((x) => x.action_id === a.action_id) ? (
                                   <input
                                     type="checkbox"
-                                    checked={active}
+                                    checked={!!grant?.actions.includes(a.action_id)}
                                     disabled={readOnly}
-                                    onChange={() => toggleAction(menu, action.action_id)}
-                                    className="sr-only"
+                                    onChange={() => toggleAction(menu, a.action_id)}
+                                    aria-label={a.action_name}
+                                    className="h-3.5 w-3.5 accent-[var(--primary)]"
                                   />
-                                  {active ? <Check size={11} className="shrink-0 text-[var(--primary)]" strokeWidth={3} /> : <span className="h-[11px] w-[11px] shrink-0" />}
-                                  {action.action_name}
-                                </label>
-                              );
-                            })}
+                                ) : (
+                                  <span className="text-muted-foreground/50">—</span>
+                                )}
+                              </td>
+                            ))}
                             {!readOnly && (
-                              <label className="flex cursor-pointer items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                              <td className="px-2 py-1.5 text-center">
                                 <input
                                   type="checkbox"
                                   checked={!!grant?.is_configuration_only}
+                                  disabled={!granted}
+                                  aria-label={t("profiles:configurationOnly")}
                                   onChange={() =>
                                     commit(
-                                      grants.map((grant) =>
-                                        grant.menu_id === menu.menu_id
-                                          ? { ...grant, is_configuration_only: grant.is_configuration_only ? 0 : 1 }
-                                          : grant,
+                                      grants.map((g) =>
+                                        g.menu_id === menu.menu_id
+                                          ? { ...g, is_configuration_only: g.is_configuration_only ? 0 : 1 }
+                                          : g,
                                       ),
                                     )
                                   }
                                   className="h-3.5 w-3.5 accent-[var(--primary)]"
                                 />
-                                {t("profiles:configurationOnly")}
-                              </label>
+                              </td>
                             )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

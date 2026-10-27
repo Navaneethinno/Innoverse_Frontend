@@ -410,6 +410,8 @@ export const institutions = {
 };
 
 export const profiles = {
+  "wholeColumn": "Whole column, in every module shown:",
+  "menu": "Menu",
   createProfile: "Create Profile",
   newProfile: "New profile",
   editProfile: "Edit profile",

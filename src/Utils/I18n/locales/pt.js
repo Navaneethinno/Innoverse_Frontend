@@ -405,6 +405,8 @@ export const institutions = {
 };
 
 export const profiles = {
+  "wholeColumn": "Coluna inteira, em todos os módulos mostrados:",
+  "menu": "Menu",
   createProfile: "Criar Perfil",
   newProfile: "Novo perfil",
   editProfile: "Editar perfil",
