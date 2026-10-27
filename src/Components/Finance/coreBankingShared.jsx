@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { money } from "@/Components/Finance/Accounts/accountShared";
-import { coreBankingApi, tellerApi } from "@/Services/Accounting/accounting.api";
+import { X } from "lucide-react";
+import { listPage } from "@/Hooks/useServerList";
+import { coreBankingApi, glAccountsApi, tellerApi } from "@/Services/Accounting/accounting.api";
+import { cn } from "@/Utils/Lib/utils";
 import { accountsApi } from "@/Services/Epurse/accounts.api";
 import { loanFacilitiesApi, recordOf } from "@/Services/Loans/loans.api";
 
@@ -140,5 +143,89 @@ export function FacilityPick({ value, onChange, scope }) {
         </>
       )}
     />
+  );
+}
+
+// Every live GL of the chart (groups and accounts), read once when asked.
+export function useAllGls(enabled = true) {
+  const [gls, setGls] = useState(null);
+  useEffect(() => {
+    if (!enabled || gls) return undefined;
+    let cancelled = false;
+    (async () => {
+      const all = [];
+      for (let page = 1; ; page += 1) {
+        const row = listPage(await glAccountsApi.list({ status: 1, page, limit: 500 }));
+        all.push(...row.items);
+        if (!row.items.length || all.length >= row.total) break;
+      }
+      if (!cancelled) setGls(all);
+    })().catch(() => !cancelled && setGls([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, gls]);
+  return gls;
+}
+
+export const glLabel = (g) => [g.gl_code || g.account_number, g.name].filter(Boolean).join(" · ");
+
+// Several GLs picked from a long chart: the chosen ones as chips, and a
+// search that offers the first matches of `gls`.
+export function GlMultiPick({ value, onChange, gls, disabled }) {
+  const { t } = useTranslation("corebank");
+  const [term, setTerm] = useState("");
+  const byId = useMemo(() => new Map((gls ?? []).map((g) => [g.id, g])), [gls]);
+  const chosen = (value ?? []).map(Number);
+  const matches = term.trim()
+    ? (gls ?? []).filter((g) => !chosen.includes(g.id) && glLabel(g).toLowerCase().includes(term.trim().toLowerCase())).slice(0, 12)
+    : [];
+  return (
+    <div className="mt-1.5 grid gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
+        {chosen.map((id) => (
+          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-foreground">
+            {byId.get(id) ? glLabel(byId.get(id)) : `#${id}`}
+            {!disabled && (
+              <button type="button" aria-label={t("remove")} onClick={() => onChange(chosen.filter((x) => x !== id))} className="text-muted-foreground hover:text-red-600">
+                <X size={12} />
+              </button>
+            )}
+          </span>
+        ))}
+        {!chosen.length && <span className="text-xs text-muted-foreground">{t("noneChosen")}</span>}
+      </div>
+      {!disabled && (
+        <div className="relative">
+          <input
+            className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm font-normal"
+            placeholder={gls ? t("searchGl") : "…"}
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+          />
+          {matches.length > 0 && (
+            <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-card py-1 shadow-lg">
+              {matches.map((g) => (
+                <li key={g.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange([...chosen, g.id]);
+                      setTerm("");
+                    }}
+                    className={cn("flex w-full justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-muted/50")}
+                  >
+                    <span>{glLabel(g)}</span>
+                    <span className="text-muted-foreground">
+                      {g.gl_type} · {t(g.is_account ? "glAccountKind" : "glGroupKind")}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

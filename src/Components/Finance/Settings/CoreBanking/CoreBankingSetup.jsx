@@ -20,9 +20,12 @@ import {
   labelClass,
 } from "../../Deposits/depositShared";
 import { Field, RowsEditor, Tabs, useInstitutionScope } from "../../Loans/loanShared";
+import { GlMultiPick, glLabel, useAllGls } from "../../coreBankingShared";
 
-const TABS = ["branches", "staff", "teller", "withholding_tax", "ecl", "credit_bureau", "accounting"];
+const TABS = ["branches", "staff", "teller", "treasury", "withholding_tax", "ecl", "credit_bureau", "accounting"];
 const STAGES = [1, 2, 3];
+const CASH_FLOW_LISTS = ["cash_gl_ids", "investing_gl_ids", "financing_gl_ids"];
+const BALANCE_SHEET = ["ASSET", "LIABILITY", "EQUITY"];
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const blankStages = () => STAGES.map(() => ({ pd: "", lgd: "" }));
 
@@ -73,7 +76,22 @@ const toBody = (s) => ({
     valid_days: Number(s.credit_bureau.valid_days) || 0,
     required_for_approval: Boolean(s.credit_bureau.required_for_approval),
   },
-  accounting: { fiscal_year_end_month: Number(s.accounting.fiscal_year_end_month) || 12 },
+  accounting: {
+    fiscal_year_end_month: Number(s.accounting.fiscal_year_end_month) || 12,
+    // What the cash flow statement counts as cash, investing and financing.
+    ...Object.fromEntries(CASH_FLOW_LISTS.map((k) => [k, (s.accounting[k] ?? []).map(Number)])),
+  },
+  treasury: {
+    inter_branch_suspense: Boolean(s.treasury?.inter_branch_suspense),
+    counterparties: (s.treasury?.counterparties ?? []).map((c) => ({
+      code: c.code,
+      name: String(c.name ?? "").trim(),
+      kind: c.kind,
+      gl_account_id: Number(c.gl_account_id) || 0,
+      obligation_gl_ids: (c.obligation_gl_ids ?? []).map(Number),
+      minimum_balance: String(c.minimum_balance || "0"),
+    })),
+  },
 });
 
 // Checked before proposing: one head office, codes once, staff once each at
@@ -185,6 +203,8 @@ export function CoreBankingSetup() {
   const set = (section) => (patch) =>
     setForm((f) => ({ ...f, [section]: { ...f[section], ...patch } }));
   const counts = { branches: shown?.branches?.length, staff: shown?.staff?.length };
+  // The chart, for the cash flow and treasury GL pickers.
+  const gls = useAllGls(tab === "accounting" || tab === "treasury");
 
   return (
     <div className="pb-8 pt-4">
@@ -573,6 +593,71 @@ export function CoreBankingSetup() {
                     onChange={(v) => set("accounting")({ fiscal_year_end_month: v })}
                   />
                 </label>
+                <p className="mb-2 mt-5 text-sm font-bold">{t("cashFlowGls")}</p>
+                <p className="mb-3 text-xs text-muted-foreground">{t("cashFlowHint")}</p>
+                <div className="grid gap-3 lg:grid-cols-3">
+                  {CASH_FLOW_LISTS.map((key) => (
+                    <div key={key} className={labelClass}>
+                      {t(`cf_${key}`)}
+                      <GlMultiPick
+                        gls={(gls ?? []).filter((g) => BALANCE_SHEET.includes(g.gl_type))}
+                        disabled={!editing}
+                        value={shown.accounting?.[key] ?? []}
+                        onChange={(ids) => set("accounting")({ [key]: ids })}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+            {tab === "treasury" && (
+              <Section title={t("tab_treasury")}>
+                <Toggle
+                  showLabel
+                  label={t("interBranchSuspense")}
+                  disabled={!editing}
+                  checked={Boolean(shown.treasury?.inter_branch_suspense)}
+                  onChange={(v) => set("treasury")({ inter_branch_suspense: v })}
+                />
+                <p className="mb-4 mt-1 text-xs text-muted-foreground">{t("interBranchSuspenseHint")}</p>
+                <p className="mb-1 text-sm font-bold">{t("counterparties")}</p>
+                <p className="mb-3 text-xs text-muted-foreground">{t("counterpartiesHint")}</p>
+                <RowsEditor
+                  rows={(shown.treasury?.counterparties ?? []).map((c) => ({
+                    ...c,
+                    gl_account_id: Number(c.gl_account_id) ? String(c.gl_account_id) : "",
+                    minimum_balance: String(c.minimum_balance ?? ""),
+                  }))}
+                  disabled={!editing}
+                  onChange={(counterparties) => set("treasury")({ counterparties })}
+                  blank={() => ({ code: "", name: "", kind: "CENTRAL_BANK", gl_account_id: "", obligation_gl_ids: [], minimum_balance: "0" })}
+                  addLabel={t("addCounterparty")}
+                  columns="lg:grid-cols-5"
+                  fields={[
+                    { key: "code", label: t("code"), type: "code" },
+                    { key: "name", label: t("name") },
+                    {
+                      key: "kind",
+                      label: t("cpKind"),
+                      type: "select",
+                      options: (data.options?.counterparty_kinds ?? ["CENTRAL_BANK", "SETTLEMENT_BANK", "CORRESPONDENT"]).map((k) => ({ value: k, label: t(`cpKind_${k}`) })),
+                    },
+                    {
+                      key: "gl_account_id",
+                      label: t("nostroGl"),
+                      type: "select",
+                      blank: t("choose"),
+                      options: (gls ?? []).filter((g) => g.is_account && g.gl_type === "ASSET").map((g) => ({ value: String(g.id), label: glLabel(g) })),
+                    },
+                    { key: "minimum_balance", label: t("minimumBalance"), type: "amount" },
+                  ]}
+                  renderExtra={(row, patch) => (
+                    <div className={`${labelClass} mt-2 block`}>
+                      {t("obligationGls")}
+                      <GlMultiPick gls={(gls ?? []).filter((g) => g.is_account)} disabled={!editing} value={row.obligation_gl_ids ?? []} onChange={(ids) => patch({ obligation_gl_ids: ids })} />
+                    </div>
+                  )}
+                />
               </Section>
             )}
           </div>

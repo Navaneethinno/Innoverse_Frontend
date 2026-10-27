@@ -1,5 +1,7 @@
 import { createElement, useCallback, useEffect, useState, Fragment } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useMenuPermission } from "@/Hooks/usePermission";
 import {
   ArrowLeft,
   CalendarClock,
@@ -1377,6 +1379,8 @@ export function KycReportView({ api, body, onBack, title }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onBack]);
 
+  const navigate = useNavigate();
+  const canAlerts = useMenuPermission("Transaction Monitoring")("View");
   const { data, error } = state;
   const report = data?.report ?? {};
   const referenceId =
@@ -1395,7 +1399,25 @@ export function KycReportView({ api, body, onBack, title }) {
         >
           <ArrowLeft size={14} /> {t("back")}
         </button>
-        {data && <KycPdfButton data={data} download={download} title={title} />}
+        {data && (
+          <div className="flex flex-wrap items-center gap-2">
+            {/* The party's transaction monitoring alerts. */}
+            {canAlerts && data.summary?.party && report.profile_record?.id && (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate("/transactionmonitoring", {
+                    state: { party: { entity_type: data.summary.party, entity_id: report.profile_record.id, name: report.profile_record.display_name } },
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+              >
+                <ShieldAlert size={14} /> {t("monitoringAlerts")}
+              </button>
+            )}
+            <KycPdfButton data={data} download={download} title={title} />
+          </div>
+        )}
       </div>
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">

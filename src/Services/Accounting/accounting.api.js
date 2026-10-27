@@ -32,9 +32,22 @@ export const glJournalsApi = calls("/config/accounting/gl_journal", ["add", "get
 // GL Reports (menu 216): statement of one GL account, and the trial balance.
 const exporter = (verb, name) => (body) => downloadAttachment(`/config/accounting/gl_report/${verb}`, body, `${name}.${body.format === "CSV" ? "csv" : "xlsx"}`);
 export const glReportsApi = {
-  ...calls("/config/accounting/gl_report", ["statement", "trial_balance"]),
+  ...calls("/config/accounting/gl_report", ["statement", "trial_balance", "balance_sheet", "profit_loss", "cash_flow"]),
   statementExport: exporter("statement_export", "gl_statement"),
   trialBalanceExport: exporter("trial_balance_export", "trial_balance"),
+  balanceSheetExport: exporter("balance_sheet_export", "balance_sheet"),
+  profitLossExport: exporter("profit_loss_export", "profit_loss"),
+  cashFlowExport: exporter("cash_flow_export", "cash_flow"),
+};
+
+// Treasury (menu 201): bulk cash movements between a branch vault and a
+// settlement counterparty's chest, or between two branches' vaults
+// (requested, approved by another user, dispatched, received with a count);
+// the settlement positions with each counterparty; and what each branch owes
+// the others through inter-branch suspense.
+export const treasuryApi = {
+  movements: calls("/config/treasury/cash_movement", ["list", "get", "add", "auth", "deauth", "dispatch", "receive", "cancel"]),
+  ...calls("/config/treasury", ["positions", "inter_branch"]),
 };
 
 // Core Banking Setup (menu 193): branches, staff (loan officers, tellers),

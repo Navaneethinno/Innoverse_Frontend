@@ -14,6 +14,8 @@ const PAGES = {
   accountingperiods: page(() => import("@/Components/Finance/Settings/CoreBanking/AccountingPeriods.jsx"), "AccountingPeriods"),
   teller: page(() => import("@/Components/Finance/Teller/Teller.jsx"), "Teller"),
   borrowergroups: page(() => import("@/Components/Finance/Loans/Groups/BorrowerGroups.jsx"), "BorrowerGroups"),
+  // Treasury (201): cash movements, settlement positions, inter-branch position.
+  treasury: page(() => import("@/Components/Finance/Treasury/Treasury.jsx"), "Treasury"),
 };
 
 export const accountingRoutes = Object.entries(PAGES).map(([path, Page]) => ({ path, element: pageElement(Page) }));

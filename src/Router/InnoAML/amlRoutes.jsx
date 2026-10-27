@@ -10,6 +10,8 @@ const Blacklist = lazy(() => import("@/Components/InnoAML/Blacklist").then((m) =
 const Whitelist = lazy(() => import("@/Components/InnoAML/Whitelist").then((m) => ({ default: m.Whitelist })));
 const Flags = lazy(() => import("@/Components/InnoAML/Flags").then((m) => ({ default: m.Flags })));
 const AmlCases = lazy(() => import("@/Components/CaseManagement/AmlCases").then((m) => ({ default: m.AmlCases })));
+const TransactionMonitoring = lazy(() => import("@/Components/InnoAML/Monitoring/TransactionMonitoring").then((m) => ({ default: m.TransactionMonitoring })));
+const RegulatoryReports = lazy(() => import("@/Components/InnoAML/RegulatoryReports/RegulatoryReports").then((m) => ({ default: m.RegulatoryReports })));
 const MatchReview = lazy(() => import("@/Components/InnoAML/MatchReview").then((m) => ({ default: m.MatchReview })));
 
 const pages = {
@@ -22,6 +24,8 @@ const pages = {
   amlcases: AmlCases, // AML Cases (185), after Flags
   blacklist: Blacklist, // Settings > Blacklist (182)
   whitelist: Whitelist, // Settings > Whitelist (183), after Blacklist
+  transactionmonitoring: TransactionMonitoring, // Transaction Monitoring (199)
+  regulatoryreports: RegulatoryReports, // Regulatory Reports (200)
 };
 
 export const amlRoutes = Object.entries(pages).flatMap(([path, page]) => [

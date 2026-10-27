@@ -18,12 +18,14 @@ import { branchOptions, useCoreBanking } from "./coreBankingShared";
 import { ExportButtons } from "../Reports/Shared/reportShared";
 import { inputClass } from "./Deposits/depositShared";
 import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingShared";
+import { FinancialStatement } from "./FinancialStatements";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => `${today().slice(0, 8)}01`;
 
 // ACCOUNTING > GL Reports (menu 216): one GL account's statement for a
-// period, and the trial balance at a date. Amounts are on each GL's normal
+// period, the trial balance at a date, and the financial statements
+// (balance sheet, profit and loss, cash flow). Amounts are on each GL's normal
 // side, so a positive balance is the usual case.
 export function GlReports() {
   const { t } = useTranslation("accounting");
@@ -41,8 +43,15 @@ export function GlReports() {
         <PageTitle>{t("repTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("repSubtitle")}</p>
       </div>
-      <Tabs tabs={[{ key: "statement" }, { key: "trial" }]} value={tab} onChange={setTab} labelOf={(k) => t(`repTab_${k}`)} />
-      {tab === "statement" ? <Statement currencies={currencies} /> : <TrialBalance currencies={currencies} />}
+      <Tabs
+        tabs={[{ key: "statement" }, { key: "trial" }, { key: "balance_sheet" }, { key: "profit_loss" }, { key: "cash_flow" }]}
+        value={tab}
+        onChange={setTab}
+        labelOf={(k) => t(`repTab_${k}`)}
+      />
+      {tab === "statement" && <Statement currencies={currencies} />}
+      {tab === "trial" && <TrialBalance currencies={currencies} />}
+      {["balance_sheet", "profit_loss", "cash_flow"].includes(tab) && <FinancialStatement key={tab} kind={tab} currencies={currencies} />}
     </div>
   );
 }

@@ -67,6 +67,29 @@ export const FOOTER_STEPS = [
 // segment). `form` is walked after Add is clicked; `list` is shown after
 // the generic list steps.
 export const PAGE_TOURS = {
+  // InnoAML › Transaction Monitoring and Regulatory Reports.
+  transactionmonitoring: {
+    list: [
+      { id: "tm_alerts", target: sel("monitoring-filters"), placement: "bottom" },
+      { id: "tm_rules", target: sel("monitoring-rules"), placement: "right" },
+      { id: "tm_ctr", target: sel("monitoring-ctr"), placement: "top" },
+    ],
+  },
+  regulatoryreports: { list: [{ id: "rr_intro", target: PAGE_TITLE, placement: "bottom-start" }] },
+  // FINANCE › Treasury and the GL Reports statements.
+  treasury: {
+    list: [
+      { id: "tr_movements", target: sel("treasury-awaits"), placement: "bottom" },
+      { id: "tr_positions", target: sel("treasury-positions"), placement: "top" },
+    ],
+  },
+  glreports: {
+    list: [
+      { id: "fs_balance", target: sel("statement-balance_sheet"), placement: "top" },
+      { id: "fs_pl", target: sel("statement-profit_loss"), placement: "top" },
+      { id: "fs_cashflow", target: sel("statement-cash_flow"), placement: "top" },
+    ],
+  },
   // FINANCE › Teller: the desk, the tills list and the till detail; a step
   // whose marker isn't on the open tab is dropped.
   teller: {
