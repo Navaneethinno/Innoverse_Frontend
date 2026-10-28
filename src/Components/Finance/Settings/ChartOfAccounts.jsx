@@ -25,6 +25,7 @@ import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass
 import { ProductStatus } from "./DepositProducts/productShared";
 import { Balances, ControlGlBadge, GL_TYPES, GlType, useRecordActions } from "../accountingShared";
 import { GlUploads, UploadDialog } from "../GlUploads";
+import { actorText } from "@/Utils/Lib/actor";
 
 // ACCOUNTING > Chart of Accounts (menu 213): the institution's GL tree.
 // Parents group, accounts receive postings. Each GL is added, changed,
@@ -549,7 +550,7 @@ function GlDetail({ id, onClose, onEdit, onChanged }) {
             <ActionButtons buttons={buttons} busy={busy} />
           </div>
           {gl.pending && (
-            <Section title={t("pendingChange", { action: gl.pending.action, name: gl.pending.proposed_by?.name ?? gl.pending.proposed_by ?? "—", date: accountDate(gl.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+            <Section title={t("pendingChange", { action: gl.pending.action, name: actorText(gl.pending, "proposed_by", "—"), date: accountDate(gl.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
               {Object.keys(pendingFields).length ? (
                 <dl className="grid gap-2 text-xs sm:grid-cols-2">
                   {Object.entries(pendingFields).map(([k, v]) => (

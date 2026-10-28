@@ -22,6 +22,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { institutionDocumentsApi as api } from "@/Services/Institution/institutionDocuments.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { actorText } from "@/Utils/Lib/actor";
 
 // The status tabs, as the list call filters them (Pending is its own call).
 const CODE = /^[A-Z0-9_]{1,64}$/;
@@ -257,7 +258,7 @@ function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
                 <TextsTable texts={d.config.texts} options={options} onOpen={setReading} />
               </Section>
             )}
-            <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${d.pending.action}`, { defaultValue: d.pending.action }), name: d.pending.proposed_by?.name ?? d.pending.proposed_by ?? "—", date: accountDate(d.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+            <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${d.pending.action}`, { defaultValue: d.pending.action }), name: actorText(d.pending, "proposed_by", "—"), date: accountDate(d.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
               {d.pending.config ? <TextsTable texts={d.pending.config.texts} options={options} other={d.config?.texts} onOpen={setReading} /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${d.pending.action}`, { defaultValue: "" })}</p>}
             </Section>
           </div>

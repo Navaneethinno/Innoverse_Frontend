@@ -3084,7 +3084,6 @@ export const dashboard = {
 
 export const forgotPassword = {
   title: "نسيت كلمة المرور",
-  notConnectedYet: "هذه الميزة غير مرتبطة بالخادم بعد. يرجى التواصل مع المسؤول لإعادة تعيين كلمة المرور.",
   backToSignIn: "العودة إلى تسجيل الدخول",
 };
 

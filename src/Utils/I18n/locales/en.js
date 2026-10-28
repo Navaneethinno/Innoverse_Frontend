@@ -745,7 +745,27 @@ export const dashboard = {
 
 export const forgotPassword = {
   title: "Forgot Password",
-  notConnectedYet: "This isn't connected to the backend yet. Please contact your administrator to reset your password.",
+  intro: "Enter your institution code and user name. We'll email a code to the address on your profile.",
+  codeSent: "If the user exists, a code was sent to their email. Enter it with your new password.",
+  institutionCode: "Institution code",
+  username: "User name",
+  enterUser: "Enter your institution code and user name.",
+  sendCode: "Send code",
+  sending: "Sending…",
+  code: "Code",
+  expiresIn: "The code expires in {{time}}.",
+  codeExpired: "The code has expired. Send a new one.",
+  newPassword: "New password",
+  confirmPassword: "Confirm new password",
+  showPassword: "Show password",
+  hidePassword: "Hide password",
+  enterCodeAndPassword: "Enter the {{count}}-digit code and a new password.",
+  passwordsDontMatch: "The passwords don't match.",
+  setPassword: "Set new password",
+  saving: "Saving…",
+  resendCode: "Send a new code",
+  askAgain: "Please ask for a new code.",
+  resetDone: "Your password was reset. Sign in with the new one.",
   backToSignIn: "Back to sign in",
 };
 

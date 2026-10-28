@@ -12,6 +12,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct, AuditTimeline } from "../../Deposits/depositShared";
 import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "../../Loans/loanShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const BOOLS = ["regulatory_reporting_enabled", "credit_bureau_check_required", "standing_instruction_recovery_enabled"];
 
@@ -209,7 +210,7 @@ export function RegulatoryProfile() {
               <Section title={t("inEffect")}>
                 <ProfileSummary profile={data.profile} />
               </Section>
-              <Section title={t("proposedBy", { name: data.pending.proposed_by?.name ?? data.pending.proposed_by ?? "—", date: accountDate(data.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+              <Section title={t("proposedBy", { name: actorText(data.pending, "proposed_by", "—"), date: accountDate(data.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
                 <ProfileSummary profile={data.pending.profile} other={data.profile} />
               </Section>
             </div>

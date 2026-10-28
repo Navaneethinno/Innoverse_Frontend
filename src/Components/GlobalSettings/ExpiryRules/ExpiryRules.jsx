@@ -20,6 +20,7 @@ import { expiryRulesApi } from "@/Services/Expiry/expiry.api";
 import { recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { actorText } from "@/Utils/Lib/actor";
 
 const DOCUMENT_KINDS = ["ID_DOCUMENT", "CORP_DOCUMENT"];
 const DAYS = ["warn_days", "remind_days", "grace_days"];
@@ -174,7 +175,7 @@ export function ExpiryRules() {
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
               <span>
                 {t("pendingBy", {
-                  name: data.pending.proposed_by?.name ?? data.pending.proposed_by ?? "—",
+                  name: actorText(data.pending, "proposed_by", "—"),
                   date: accountDate(data.pending.proposed_at),
                 })}
               </span>

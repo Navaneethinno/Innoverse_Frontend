@@ -17,6 +17,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { feeSchedulesApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
+import { actorText } from "@/Utils/Lib/actor";
 
 const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", tax_percent: "0", shares: [] });
 const str = (v, d = "0") => String(v ?? "").trim() || d;
@@ -259,7 +260,7 @@ function ScheduleView({ id, onBack, onEdit }) {
           <Section title={t("inEffect")}>
             <RulesTable rules={s.config?.rules} options={options} currency={cur} />
           </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: s.pending.proposed_by?.name ?? s.pending.proposed_by ?? "—", date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
             {s.pending.config ? <RulesTable rules={s.pending.config.rules} options={options} currency={cur} other={s.config?.rules} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

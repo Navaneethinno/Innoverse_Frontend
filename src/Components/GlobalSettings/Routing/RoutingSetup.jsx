@@ -20,6 +20,7 @@ import { routingApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { CARD_DIRECTIONS, SECTIONS, code, groupFits, onUsIn, rangeProblem, specificity, toBody, toForm } from "./routingShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // The routing setups (one per institution, maker-checker as a whole, like
 // External Providers): list, view (in effect, waiting, history) and editor.
@@ -254,7 +255,7 @@ export function SetupView({ id, onBack, onEdit }) {
           <Section title={t("fees:inEffect")}>
             <ConfigTables config={s.config} options={options} />
           </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: s.pending.proposed_by?.name ?? s.pending.proposed_by ?? "—", date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
             {s.pending.config ? <ConfigTables config={s.pending.config} other={s.config} options={options} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

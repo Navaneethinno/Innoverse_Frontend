@@ -18,6 +18,7 @@ import { MiniTable, RowsEditor, Tabs } from "../Loans/loanShared";
 import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass } from "../Deposits/depositShared";
 import { ProductStatus } from "./DepositProducts/productShared";
 import { glLabel, useRecordActions } from "../accountingShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const PRODUCT_KEYS = ["digital_product_id", "loan_product_id", "acct_product_id", "card_product_id"];
 const ID_KEYS = ["ext_provider_id", "channel_id", ...PRODUCT_KEYS, "currency_id"];
@@ -153,7 +154,7 @@ export function GlMapping() {
             <Section title={t("inEffect")}>
               <MappingView mapping={setup.mapping} options={options} />
             </Section>
-            <Section title={t("proposedBy", { name: setup.pending.proposed_by?.name ?? setup.pending.proposed_by ?? "—", date: accountDate(setup.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+            <Section title={t("proposedBy", { name: actorText(setup.pending, "proposed_by", "—"), date: accountDate(setup.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
               <MappingView mapping={setup.pending.mapping ?? setup.pending.config} options={options} other={setup.mapping} />
             </Section>
           </div>

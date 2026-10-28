@@ -192,3 +192,30 @@ export async function changePassword(oldPassword, newPassword) {
     ),
   );
 }
+
+// Forgot password, before sign-in (Basic header, like the login). The reply
+// is the same whether or not the user exists: { reset_token, expires_in,
+// code_length }. Asking again sends a new code and ends the earlier one.
+const basicHeaders = () => ({
+  "Content-Type": "application/json",
+  Deviceinfo: JSON.stringify(DEVICE_INFO),
+  Authorization: getBasicAuthorization(),
+  ...apiLanguageHeader(),
+});
+const userOf = (institutionCode, username) => ({ ...trimPayload({ institution_code: institutionCode }), user_name: String(username ?? "").replace(/\s/g, "") });
+
+export async function forgotPasswordRequest(institutionCode, username) {
+  const payload = await request(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { method: "POST", headers: basicHeaders(), body: JSON.stringify(userOf(institutionCode, username)) });
+  return { ...(Array.isArray(payload?.data) ? payload.data[0] : payload?.data), message: payload?.message };
+}
+
+// Sets the new password (sealed) with the emailed code and the reset token.
+export async function resetPasswordRequest(institutionCode, username, resetToken, code, newPassword) {
+  return withSealedRetry(async () =>
+    request(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
+      method: "POST",
+      headers: basicHeaders(),
+      body: JSON.stringify({ ...userOf(institutionCode, username), reset_token: resetToken, code, new_password: await seal(newPassword) }),
+    }),
+  );
+}

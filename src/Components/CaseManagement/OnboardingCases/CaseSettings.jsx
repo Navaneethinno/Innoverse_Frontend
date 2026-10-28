@@ -14,6 +14,7 @@ import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { caseDate } from "./caseShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const PARTS = [
   ["email_subject", 255, false],
@@ -126,7 +127,7 @@ export function CaseSettings({ onBack }) {
             {pending && (
               <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-4">
                 <p className="flex items-center gap-2 text-sm font-bold text-amber-900">
-                  <Clock size={15} /> {t("settingsPending", { name: pending.proposed_by?.name ?? "—", date: caseDate(pending.proposed_at) })}
+                  <Clock size={15} /> {t("settingsPending", { name: actorText(pending, "proposed_by", "—"), date: caseDate(pending.proposed_at) })}
                 </p>
                 <SettingsDiff from={data.settings} to={pending.settings} />
                 {can("Authorize") && !ownPending && (

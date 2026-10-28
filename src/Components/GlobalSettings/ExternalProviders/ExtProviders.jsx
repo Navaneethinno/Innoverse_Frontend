@@ -17,6 +17,7 @@ import { extProvidersApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
+import { actorText } from "@/Utils/Lib/actor";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
@@ -303,7 +304,7 @@ function SetupView({ id, onBack, onEdit }) {
           <Section title={t("fees:inEffect")}>
             <SetupTables config={s.config} />
           </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: s.pending.proposed_by?.name ?? s.pending.proposed_by ?? "—", date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
             {s.pending.config ? <SetupTables config={s.pending.config} other={s.config} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

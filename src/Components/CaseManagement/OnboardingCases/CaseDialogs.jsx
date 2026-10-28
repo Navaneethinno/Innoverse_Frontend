@@ -8,6 +8,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { caseDate, isApproval, outcomeWord } from "./caseShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
 const labelClass = "text-sm font-semibold text-slate-700";
@@ -153,7 +154,7 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
     >
       {proposal && (
         <div className="mb-4 rounded-xl border border-border p-3 text-sm">
-          <p className="font-bold">{t("proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: proposal.proposed_by?.name ?? "—", date: caseDate(proposal.proposed_at) })}</p>
+          <p className="font-bold">{t("proposalWaiting", { outcome: outcomeWord(t, proposal.outcome), name: actorText(proposal, "proposed_by", "—"), date: caseDate(proposal.proposed_at) })}</p>
           {proposal.restriction && <p className="mt-1 text-xs"><span className="font-semibold">{t("restriction")}:</span> {t(`restriction_${proposal.restriction}`, { defaultValue: proposal.restriction })}</p>}
           {proposal.reason && <p className="mt-1 text-xs"><span className="font-semibold">{t("reason")}:</span> {proposal.reason}</p>}
           {proposal.customer_message && <p className="mt-0.5 text-xs"><span className="font-semibold">{t("customerMessage")}:</span> {proposal.customer_message}</p>}

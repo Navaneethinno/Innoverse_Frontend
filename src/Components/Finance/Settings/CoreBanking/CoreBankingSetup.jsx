@@ -21,6 +21,7 @@ import {
 } from "../../Deposits/depositShared";
 import { Field, RowsEditor, Tabs, useInstitutionScope } from "../../Loans/loanShared";
 import { GlMultiPick, glLabel, useAllGls } from "../../coreBankingShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 const TABS = ["branches", "staff", "teller", "treasury", "withholding_tax", "ecl", "credit_bureau", "accounting"];
 const STAGES = [1, 2, 3];
@@ -256,7 +257,7 @@ export function CoreBankingSetup() {
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
               <span>
                 {t("pendingBy", {
-                  name: data.pending.proposed_by?.name ?? data.pending.proposed_by ?? "—",
+                  name: actorText(data.pending, "proposed_by", "—"),
                   date: accountDate(data.pending.proposed_at),
                 })}
               </span>

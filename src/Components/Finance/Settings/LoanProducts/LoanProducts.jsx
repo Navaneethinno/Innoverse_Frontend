@@ -18,6 +18,7 @@ import { loanLabel, useInstitutionScope } from "../../Loans/loanShared";
 import { LoanConfigSummary } from "./loanProductShared";
 import { LoanProductWizard, RateCheck } from "./LoanProductWizard";
 import { ReferenceRates } from "./ReferenceRates";
+import { actorText } from "@/Utils/Lib/actor";
 
 
 // LOANS > Loan Products (menu 184): each product with its terms, rate
@@ -188,7 +189,7 @@ function LoanProductView({ id, onBack, onEdit }) {
               <LoanConfigSummary config={product.config} currency={cur} compact />
             </Section>
           )}
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="min-w-0 border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })} className="min-w-0 border-amber-300 ring-1 ring-amber-200">
             {pending.config ? <LoanConfigSummary config={pending.config} other={product.config} currency={cur} compact={Boolean(product.config)} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

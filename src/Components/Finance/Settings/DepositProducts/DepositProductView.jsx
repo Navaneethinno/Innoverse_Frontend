@@ -13,6 +13,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, amountInput, dayDate, inputClass, labelClass, ratePct, AuditTimeline } from "../../Deposits/depositShared";
 import { ConfigSummary, ProductStatus } from "./productShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // One deposit product: what is in effect, what waits for a checker (side
 // by side, changes marked), its warnings, history and a "try a rate" box.
@@ -114,7 +115,7 @@ export function DepositProductView({ id, onBack, onEdit }) {
               <ConfigSummary config={product.config} currency={currency} compact />
             </Section>
           )}
-          <Section title={t("proposedBy", { action: t(`pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("proposedBy", { action: t(`pending_${pending.action}`, { defaultValue: pending.action }), name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
             {pending.config ? <ConfigSummary config={pending.config} other={product.config} currency={currency} compact={Boolean(product.config)} /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

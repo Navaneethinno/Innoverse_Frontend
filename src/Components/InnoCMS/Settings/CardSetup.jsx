@@ -16,6 +16,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, NarrationDialog, Problems, Section, AuditTimeline } from "../../Finance/Deposits/depositShared";
 import { ProductStatus } from "../../Finance/Settings/DepositProducts/productShared";
 import { useInstitutionScope } from "../../Finance/Loans/loanShared";
+import { actorText } from "@/Utils/Lib/actor";
 
 // The CARDS setup screens (BINs, Card Number Layout, Card Products, Issuance
 // Groups) are one
@@ -185,7 +186,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
           <Section title={t("inEffect")}>
             <CompareFacts groups={record.config && kind.facts(t, record.config, refs)} />
           </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: pending.proposed_by?.name ?? "—", date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
+          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
             {pending.config ? <CompareFacts groups={kind.facts(t, pending.config, refs)} before={record.config && kind.facts(t, record.config, refs)} /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>

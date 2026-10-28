@@ -729,7 +729,6 @@ export const dashboard = {
 
 export const forgotPassword = {
   title: "Esqueceu a Senha",
-  notConnectedYet: "Isso ainda não está conectado ao backend. Entre em contato com o administrador para redefinir sua senha.",
   backToSignIn: "Voltar para o login",
 };
 

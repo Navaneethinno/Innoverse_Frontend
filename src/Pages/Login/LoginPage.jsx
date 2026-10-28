@@ -412,7 +412,7 @@ export function LoginPage() {
                   <div className="text-right -mt-1">
                     <button
                       type="button"
-                      onClick={() => navigate("/forgot-password")}
+                      onClick={() => navigate("/forgot-password", { state: { institutionCode: institutionCode.trim(), username } })}
                       className="text-xs font-semibold text-primary transition hover:text-primary/80"
                     >
                       {t("forgotPassword")}

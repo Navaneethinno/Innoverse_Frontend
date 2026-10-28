@@ -48,6 +48,8 @@ export const API_ENDPOINTS = {
     LOGIN: "/config/user/login",
     REFRESH_TOKEN: "/config/user/refresh_token",
     CHANGE_PASSWORD: "/config/user/change_password",
+    FORGOT_PASSWORD: "/config/user/forgot_password",
+    RESET_PASSWORD: "/config/user/reset_password",
     LOGOUT: "/config/user/logout",
   },
 
