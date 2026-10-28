@@ -129,7 +129,7 @@ export function ForgotPasswordPage() {
       if (RESTART.has(e.code)) {
         setReset(null);
         setCode("");
-        setError(`${sentence(e.message)}. ${t("askAgain")}`);
+        setError(sentence(e.message));
       } else if (e.code === "login.reset_code_wrong") {
         setCode("");
         setError(Number(e.data?.attempts_left) ? `${sentence(e.message)}. ${t("attemptsLeft", { count: Number(e.data.attempts_left) })}` : sentence(e.message));

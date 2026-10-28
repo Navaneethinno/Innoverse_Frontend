@@ -777,7 +777,6 @@ export const forgotPassword = {
   ruleSpecial: "At least {{count}} special character(s): {{chars}}",
   ruleRepeated: "No character {{count}} times in a row",
   ruleHistory: "Not one of your last {{count}} passwords",
-  askAgain: "Please ask for a new code.",
   resetDone: "Your password was reset. Sign in with the new one.",
   backToSignIn: "Back to sign in",
 };
