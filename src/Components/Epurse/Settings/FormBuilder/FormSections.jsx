@@ -16,6 +16,7 @@ import { formSectionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/cn";
 import { inputClass } from "./FieldOptionsEditor";
+import { TranslationFields, cleanTranslations, useTranslationLanguages } from "./Translations";
 import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./formBuilderHooks";
 import { FieldPreview } from "./FieldPreview";
 
@@ -30,6 +31,8 @@ function cleanPlacement(p) {
   const out = { field_key: p.field_key };
   for (const key of OVERRIDES) if (p[key] !== undefined && p[key] !== "") out[key] = p[key];
   for (const key of ["required", "read_only"]) if (typeof p[key] === "boolean") out[key] = p[key];
+  // The placement's own translations (of the texts it overrides) stay.
+  if (p.translations && Object.keys(p.translations).length) out.translations = p.translations;
   return out;
 }
 
@@ -124,6 +127,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
   const [keyTouched, setKeyTouched] = useState(editing);
   const [picking, setPicking] = useState("");
   const [busy, setBusy] = useState(false);
+  const { languages } = useTranslationLanguages();
 
   useEffect(() => {
     if (!editing) return;
@@ -158,6 +162,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
         multi_row: Boolean(form.multi_row),
         ...(form.multi_row && form.max_rows !== "" ? { max_rows: Number(form.max_rows) } : {}),
         fields: form.fields.map(cleanPlacement),
+        translations: cleanTranslations(form.translations),
       };
       const response = editing ? await formSectionApi.edit({ id: record.id, ...body }) : await formSectionApi.add({ key: form.key, ...body });
       notifications.success(apiMessage(response, t("formBuilder:sectionSaved")));
@@ -219,6 +224,18 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
               {t("formBuilder:subheading")}
               <input className={inputClass} disabled={readOnly} value={form.subheading ?? ""} onChange={(e) => set({ subheading: e.target.value })} />
             </label>
+            <div className="md:col-span-2">
+              <TranslationFields
+                languages={languages}
+                disabled={readOnly}
+                value={form.translations ?? {}}
+                onChange={(translations) => set({ translations })}
+                texts={[
+                  { key: "heading", label: t("formBuilder:heading"), english: form.heading },
+                  { key: "subheading", label: t("formBuilder:subheading"), english: form.subheading },
+                ]}
+              />
+            </div>
             <div className="flex items-end">
               <CheckboxPill checked={Boolean(form.multi_row)} disabled={readOnly} onChange={(on) => set({ multi_row: on, ...(on ? {} : { max_rows: "" }) })} label={t("formBuilder:repeatable")} />
             </div>

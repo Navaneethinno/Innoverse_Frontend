@@ -2,7 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useEffect, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Languages, Pencil, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { Modal } from "@/Components/Common/Modal";
@@ -14,6 +14,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { formFieldApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { FieldOptionsEditor, inputClass } from "./FieldOptionsEditor";
+import { TranslationFields, TranslationsModal, cleanTranslations, useTranslationLanguages } from "./Translations";
 import { KEY_PATTERN, keyFromName, useFieldLibrary, useFieldTypes } from "./formBuilderHooks";
 
 import { Button } from "@/Components/Common/Button";
@@ -47,6 +48,7 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
   const [usedBy, setUsedBy] = useState(null);
   const [busy, setBusy] = useState(false);
   const typeDef = vocabulary?.types?.find((x) => x.type === form.field_type);
+  const { languages } = useTranslationLanguages();
 
   useEffect(() => {
     if (!editing) return;
@@ -87,6 +89,8 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
         read_only: Boolean(form.read_only),
         default_value: isPin ? "" : form.default_value,
         options: form.options ?? {},
+        // Every language's texts, replacing the saved ones.
+        translations: cleanTranslations(form.translations),
       };
       let response;
       if (editing) {
@@ -185,6 +189,18 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
             {problem && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">{t(`formBuilder:${problem}`)}</p>}
           </div>
         )}
+        <TranslationFields
+          languages={languages}
+          disabled={readOnly}
+          value={form.translations ?? {}}
+          onChange={(translations) => set({ translations })}
+          texts={[
+            { key: "label", label: t("formBuilder:question"), english: form.label },
+            ...(isPin ? [] : [{ key: "hint", label: t("formBuilder:placeholder"), english: form.hint }]),
+            { key: "help_text", label: t("formBuilder:helpText"), english: form.help_text },
+          ]}
+          choices={Array.isArray(form.options?.choices) ? form.options.choices : []}
+        />
         {editing && usedBy && (
           <p className="text-xs text-muted-foreground">
             {usedBy.length
@@ -208,6 +224,7 @@ export function FormFields() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [translating, setTranslating] = useState(false);
 
   const list = useServerList({ api: formFieldApi.listPath, call: formFieldApi.list });
 
@@ -260,12 +277,18 @@ export function FormFields() {
         <p className="mt-1 text-sm text-muted-foreground">{t("formBuilder:formFieldsSubtitle")}</p>
       </div>
       <ListTable list={list} actions={
-          can("Add") && (
-            <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
-              {t("formBuilder:addField")}
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" icon={Languages} onClick={() => setTranslating(true)}>
+              {t("formBuilder:translations")}
             </Button>
-          )
+            {can("Add") && (
+              <Button size="sm" icon={Plus} onClick={() => setEditing({ record: null })}>
+                {t("formBuilder:addField")}
+              </Button>
+            )}
+          </div>
         } columns={columns} title={t("formBuilder:formFieldsTitle")} />
+      {translating && <TranslationsModal canEdit={can("Edit")} onClose={() => setTranslating(false)} />}
       {editing && (
         <FieldFormModal
           record={editing.record}

@@ -87,10 +87,11 @@ export async function request(path, body = {}) {
     // field-name remark ("field 'max_value' must be...") in the toast
     // instead of its own user-facing message ("Maximum Value Must Be...").
     // `code`: the reply's error_code, for screens that branch on it.
-    if (statusError) throw Object.assign(new Error(getApiErrorMessage(payload, statusError)), { code: payload?.error_code, status: response.status });
+    if (statusError) throw Object.assign(new Error(getApiErrorMessage(payload, statusError)), { code: payload?.error_code, status: response.status, data: Array.isArray(payload?.data) ? payload.data[0] : payload?.data });
     if (!response.ok || String(payload?.status).toLowerCase() === "fail") {
       // problemKeys: where each problem is, for wizards to open that step.
-      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed")), { problemKeys: getApiProblemKeys(payload), code: payload?.error_code, status: response.status });
+      // data: the reply's first data row (e.g. the texts a submit found untranslated).
+      throw Object.assign(new Error(getApiErrorMessage(payload, "Request failed")), { problemKeys: getApiProblemKeys(payload), code: payload?.error_code, status: response.status, data: Array.isArray(payload?.data) ? payload.data[0] : payload?.data });
     }
     return payload;
   } finally {
@@ -136,6 +137,20 @@ function createBuilderApi(base) {
 }
 export const formFieldApi = createBuilderApi("/customer/master_config/form_field");
 export const formSectionApi = createBuilderApi("/customer/master_config/form_section");
+
+// Onboarding texts in the institution's other languages (Form Builder's
+// View / Edit). English is the base text; no maker-checker: a change
+// applies at once. /customer becomes /merchant on MMS pages.
+const translationCall = (path) => (payload = {}) => request(`/customer/master_config/${path}`, payload);
+export const translationApi = {
+  languages: translationCall("translations/languages"),
+  missing: translationCall("translations/missing"),
+  exportCsv: translationCall("translations/export"),
+  importCsv: translationCall("translations/import"),
+  sources: translationCall("list_translation/sources"),
+  listGet: translationCall("list_translation/get"),
+  listEdit: translationCall("list_translation/edit"),
+};
 
 export const onboardingDefinitionApi = { ...createLifecycle("/customer/master_config/indv_onboarding_definition") };
 export const kycSchemeApi = createLifecycle("/config/kyc/group");

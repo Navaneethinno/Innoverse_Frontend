@@ -28,6 +28,7 @@ import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
 
 import { Button } from "@/Components/Common/Button";
 import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../../partyType";
+import { UntranslatedConfirm, untranslatedOf } from "@/Components/Epurse/Settings/FormBuilder/Translations";
 const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 
 // A customer type = the definition, full stop (Onboarding_Configuration_
@@ -63,15 +64,26 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
 
   const pendingInfo = usePendingChanges(pendingApi, row.id, !!action && ["auth", "deauth", "deleteAuth"].includes(action.method));
 
-  const execute = async () => {
+  // A submit refused for untranslated texts: asked, then sent again.
+  const [untranslated, setUntranslated] = useState(null);
+  const execute = async (confirmMissing = false) => {
     if (action.method === "deauth" && !narration.trim()) {
       notifications.error("A reason is required to reject this");
       return;
     }
     setWorking(true);
     try {
-      const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
-      const response = await onboardingDefinitionApi[action.method](payload);
+      const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}), ...(confirmMissing ? { confirm_missing_translations: true } : {}) };
+      let response;
+      try {
+        response = await onboardingDefinitionApi[action.method](payload);
+      } catch (error) {
+        const refusal = action.method === "submit" && untranslatedOf(error);
+        if (!refusal) throw error;
+        setUntranslated(refusal);
+        return;
+      }
+      setUntranslated(null);
       notifications.success(apiMessage(response, t("onboarding:actionSuccessful", { action: action.label })));
       await onRefresh();
       setAction(null);
@@ -98,6 +110,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         onReactivate={() => setAction({ method: "reactivate", label: t("common:reactivate") })}
         onDelete={() => setAction({ method: "delete", label: t("common:delete") })}
       />
+      {untranslated && <UntranslatedConfirm refusal={untranslated} busy={working} onCancel={() => setUntranslated(null)} onConfirm={() => void execute(true)} />}
       <ConfirmDialog
         open={!!action}
         title={t("onboarding:actionOnboardingConfiguration", { action: action?.label ?? t("common:actions") })}

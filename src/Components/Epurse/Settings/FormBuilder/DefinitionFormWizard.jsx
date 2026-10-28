@@ -21,6 +21,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { UsesStep } from "./UsesStep";
 import { ConditionRows, cleanCondition } from "./ConditionRows";
 import { CheckpointsStep, FlowsStep } from "./FlowsCheckpoints";
+import { UntranslatedConfirm, untranslatedOf } from "./Translations";
 
 import { Button } from "@/Components/Common/Button";
 // The form on a definition (Admin portal handoff: onboarding form builder,
@@ -255,6 +256,9 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
   const [form, setForm] = useState(EMPTY_FORM);
   const [snapshot, setSnapshot] = useState(null);
   const [problems, setProblems] = useState(null);
+  // Texts with no translation the submit found: asked about before sending
+  // again with confirm_missing_translations.
+  const [untranslated, setUntranslated] = useState(null);
   const [countries, setCountries] = useState([]);
   const [kycGroups, setKycGroups] = useState([]);
   // The chosen KYC scheme's level numbers, for the submit level per channel.
@@ -468,11 +472,33 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
         setStepIndex(STEPS.length - 1);
         return;
       }
-      if (isRejected) await api.edit({ id, name: def?.name ?? definition.name, ...basicsPayload(), is_draft: false });
-      else await api.submit({ id, narration: basics.narration || t("formBuilder:submittedForReview") });
-      notifications.success(t("formBuilder:submittedForReview"));
-      onSaved?.();
-      onClose();
+      try {
+        await sendSubmit(id, false);
+      } catch (error) {
+        const refusal = untranslatedOf(error);
+        if (!refusal) throw error;
+        setUntranslated({ id, ...refusal });
+        return;
+      }
+      submitted();
+    });
+
+  const sendSubmit = (id, confirmMissing) => {
+    const confirm = confirmMissing ? { confirm_missing_translations: true } : {};
+    return isRejected
+      ? api.edit({ id, name: def?.name ?? definition.name, ...basicsPayload(), is_draft: false, ...confirm })
+      : api.submit({ id, narration: basics.narration || t("formBuilder:submittedForReview"), ...confirm });
+  };
+  const submitted = () => {
+    notifications.success(t("formBuilder:submittedForReview"));
+    onSaved?.();
+    onClose();
+  };
+  const submitAnyway = () =>
+    run("submit", async () => {
+      await sendSubmit(untranslated.id, true);
+      setUntranslated(null);
+      submitted();
     });
 
   const attemptClose = () => {
@@ -701,6 +727,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           )}
         </>
       )}
+      {untranslated && <UntranslatedConfirm refusal={untranslated} busy={busy === "submit"} onCancel={() => setUntranslated(null)} onConfirm={() => void submitAnyway()} />}
     </Modal>
   );
 }
