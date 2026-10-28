@@ -33,7 +33,10 @@ const SEARCH_THRESHOLD = 8;
 // list — for dropdowns fed by a master, so an empty (or incomplete) list can
 // send the user straight to that master to create the missing value.
 // size="sm" matches the 32px controls it sits beside (e.g. table pagination).
-export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction, size = "md" }) {
+// `onSearch(text)` makes the search the server's: it is called with what is
+// typed (and "" on opening), the caller loads the matching `options`, and
+// nothing is filtered here.
+export function FilterSelect({ value, onChange, options, className, panelClassName, disabled, disabledReason, addAction, onSearch, size = "md" }) {
   const { t } = useTranslation("common");
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState(null);
@@ -47,15 +50,21 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   // holds is shown as itself, never swapped for the first option.
   const same = (option) => String(option.value ?? "") === String(value ?? "");
   const selected = options.find(same) ?? (value == null || value === "" ? options[0] : { value, label: String(value) });
-  const showSearch = options.length > SEARCH_THRESHOLD;
+  const showSearch = Boolean(onSearch) || options.length > SEARCH_THRESHOLD;
   const visibleOptions = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return options;
+    if (!q || onSearch) return options;
     return options.filter((option) => {
       const text = option.searchText ?? (typeof option.label === "string" ? option.label : "");
       return text.toLowerCase().includes(q);
     });
-  }, [options, query]);
+  }, [options, query, onSearch]);
+
+  useEffect(() => {
+    if (isOpen) onSearch?.(query.trim());
+    // `onSearch` may be a new function each render; the text drives it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, query]);
 
   useEffect(() => {
     if (!isOpen) setQuery("");

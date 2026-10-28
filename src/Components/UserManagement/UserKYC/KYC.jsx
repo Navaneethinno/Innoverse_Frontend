@@ -4,14 +4,13 @@ import { asQuery, useServerList } from "@/Hooks/useServerList";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import {
   useGenderOptionsQuery,
@@ -90,9 +89,32 @@ function KycForm({
 }) {
   const canChoose = useCanChooseInstitution();
   const { data: institutions = [] } = useInstitutionsQuery({ limit: 100 });
-  // The user picked in the search (the form keeps only the id).
+  // The users matching the dropdown's search (the server searches), and the
+  // one picked, kept as an option while other matches show.
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [picked, setPicked] = useState(null);
+  const lookup = useRef(0);
   const userName = (u) => u?.user_name ?? u?.username ?? u?.name ?? `User #${u?.user_id ?? u?.id}`;
+  const userId = (u) => String(u?.user_id ?? u?.id);
+  const searchUsers = (term) => {
+    const seq = ++lookup.current;
+    setUsersLoading(true);
+    window.setTimeout(() => {
+      if (seq !== lookup.current) return;
+      searchUsersWithoutKyc(institution, term)
+        .then((rows) => seq === lookup.current && setUsers(rows))
+        .catch((e) => seq === lookup.current && (setUsers([]), notifications.error(e.message)))
+        .finally(() => seq === lookup.current && setUsersLoading(false));
+    }, term ? 300 : 0);
+  };
+  // A new institution: its own users.
+  useEffect(() => {
+    lookup.current += 1;
+    setUsers([]);
+    setPicked(null);
+  }, [institution]);
+  const userOptions = [...(picked && !users.some((u) => userId(u) === userId(picked)) ? [picked] : []), ...users];
   const isValid =
     Number.isInteger(Number(form.user_id)) &&
     Number(form.user_id) > 0 &&
@@ -178,17 +200,18 @@ function KycForm({
                     className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-muted-foreground"
                   />
                 ) : (
-                  <SearchPicker
-                    value={form.user_id ? picked : null}
-                    onChange={(u) => {
-                      setPicked(u);
-                      setForm({ ...form, user_id: u ? String(u.user_id ?? u.id) : "" });
+                  <FilterSelect
+                    className="w-full"
+                    value={form.user_id ?? ""}
+                    onSearch={searchUsers}
+                    onChange={(next) => {
+                      setPicked(userOptions.find((u) => userId(u) === String(next)) ?? null);
+                      setForm({ ...form, user_id: next });
                     }}
-                    rowKey={(u) => u.user_id ?? u.id}
-                    placeholder="Search users by name"
-                    empty="No user without KYC matches"
-                    search={(term) => searchUsersWithoutKyc(institution, term)}
-                    renderItem={(u) => <span className="text-sm font-semibold">{userName(u)}</span>}
+                    options={[
+                      { value: "", label: usersLoading ? "Loading users..." : "Select user" },
+                      ...userOptions.map((u) => ({ value: userId(u), label: userName(u) })),
+                    ]}
                   />
                 )}
               </>
