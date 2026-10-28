@@ -3,7 +3,6 @@ import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useListSearch } from "@/Hooks/useListSearch";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useState } from "react";
 import { Plus } from "lucide-react";
@@ -12,13 +11,13 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { SearchBox } from "@/Components/Common/SearchBox";
+import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import {
   useGenderOptionsQuery,
   useHasKycAction,
   useKycMutation,
-  useUsersWithoutKycQuery,
+  searchUsersWithoutKyc,
 } from "@/Hooks/UserManagement/kycHooks";
 import { useInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -83,24 +82,17 @@ function KycForm({
   onSave,
   onClose,
   pending,
-  users,
-  usersLoading,
-  usersError,
   genders,
   gendersLoading,
   gendersError,
   institution,
   setInstitution,
-  userSearch,
 }) {
   const canChoose = useCanChooseInstitution();
   const { data: institutions = [] } = useInstitutionsQuery({ limit: 100 });
-  // The user being edited already has a KYC record, so the picker (users
-  // without one) doesn't list them: keep their own name as the option.
-  const userOptions =
-    editing && !users.some((u) => String(u?.user_id ?? u?.id) === String(form.user_id))
-      ? [{ user_id: form.user_id, username: displayName(editing) }, ...users]
-      : users;
+  // The user picked in the search (the form keeps only the id).
+  const [picked, setPicked] = useState(null);
+  const userName = (u) => u?.user_name ?? u?.username ?? u?.name ?? `User #${u?.user_id ?? u?.id}`;
   const isValid =
     Number.isInteger(Number(form.user_id)) &&
     Number(form.user_id) > 0 &&
@@ -178,34 +170,27 @@ function KycForm({
             </span>
             {key === "user_id" ? (
               <>
-                {!editing && (
-                  <SearchBox {...userSearch} placeholder="Search users" className="mb-2" />
+                {editing || (canChoose && !institution) ? (
+                  // The user being edited keeps their KYC user.
+                  <input
+                    disabled
+                    value={editing ? displayName(editing) : "Select the institution first"}
+                    className="w-full rounded-xl border border-border bg-muted px-3 py-2.5 text-muted-foreground"
+                  />
+                ) : (
+                  <SearchPicker
+                    value={form.user_id ? picked : null}
+                    onChange={(u) => {
+                      setPicked(u);
+                      setForm({ ...form, user_id: u ? String(u.user_id ?? u.id) : "" });
+                    }}
+                    rowKey={(u) => u.user_id ?? u.id}
+                    placeholder="Search users by name"
+                    empty="No user without KYC matches"
+                    search={(term) => searchUsersWithoutKyc(institution, term)}
+                    renderItem={(u) => <span className="text-sm font-semibold">{userName(u)}</span>}
+                  />
                 )}
-                <FilterSelect
-                  className="w-full"
-                  disabled={
-                    Boolean(editing) || usersLoading || (canChoose && !editing && !institution)
-                  }
-                  value={form.user_id ?? ""}
-                  onChange={(next) => setForm({ ...form, user_id: next })}
-                  options={[
-                    {
-                      value: "",
-                      label:
-                        canChoose && !editing && !institution
-                          ? "Select the institution first"
-                          : usersLoading
-                            ? "Loading users..."
-                            : "Select user",
-                    },
-                    ...userOptions.map((user) => {
-                      const id = user?.user_id ?? user?.id;
-                      const label =
-                        user?.user_name ?? user?.username ?? user?.name ?? `User #${id}`;
-                      return { value: id, label };
-                    }),
-                  ]}
-                />
               </>
             ) : key === "gender" ? (
               <FilterSelect
@@ -245,9 +230,6 @@ function KycForm({
                 }
                 className="w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 outline-none focus:border-[var(--primary)] disabled:bg-muted disabled:text-muted-foreground"
               />
-            )}
-            {key === "user_id" && usersError && (
-              <p className="mt-1 text-xs font-medium text-red-600">{usersError.message}</p>
             )}
             {key === "gender" && gendersError && (
               <p className="mt-1 text-xs font-medium text-red-600">{gendersError.message}</p>
@@ -353,8 +335,6 @@ export function KYC() {
   const list = useServerList({ api: API_ENDPOINTS.USER_MANAGEMENT.KYC.LIST, call: usersApi.kycList, reloadOn: "user-kyc:data-changed" });
   const query = asQuery(list);
   const [institution, setInstitution] = useState("");
-  const userSearch = useListSearch();
-  const activeUsersQuery = useUsersWithoutKycQuery(institution, userSearch.body);
   const gendersQuery = useGenderOptionsQuery();
   const add = useKycMutation("kycAdd");
   const edit = useKycMutation("kycEdit");
@@ -477,16 +457,12 @@ export function KYC() {
         setForm={setForm}
         editing={editing}
         pending={add.isPending || edit.isPending}
-        users={activeUsersQuery.users}
-        usersLoading={activeUsersQuery.isLoading}
-        usersError={activeUsersQuery.error}
         genders={gendersQuery.genders}
         gendersLoading={gendersQuery.isLoading}
         gendersError={gendersQuery.error}
         onSave={save}
         institution={institution}
         setInstitution={setInstitution}
-        userSearch={userSearch.bind}
         onClose={() => {
           setEditing(null);
           setInstitution("");

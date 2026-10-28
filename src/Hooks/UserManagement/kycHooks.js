@@ -2,7 +2,6 @@ import { useMenuPermission } from "@/Hooks/usePermission";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { usersApi } from "@/Services/UserManagement/users.api";
 import { masterApi } from "@/Services/Master/master.api";
-import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 const KYC_CHANGED = "user-kyc:data-changed";
@@ -45,17 +44,9 @@ function activeUserRows(payload) {
 // picker data through /user/get_active with { view: "dropdown" }.
 // The users the Add form may pick: active users of the chosen institution
 // (a System or service-provider user picks it first) with no KYC record,
-// matching `search` (the server searches; the first 100 matches show).
-export function useUsersWithoutKycQuery(institution, search) {
-  const needsInstitution = canChooseInstitution();
-  const query = useQuery(
-    useCallback(
-      () => (needsInstitution && !institution ? Promise.resolve(null) : usersApi.list({ page: 1, limit: 100, status: 1, without_kyc: true, ...search, ...(institution ? { inst_profile_id: Number(institution) } : {}) })),
-      [needsInstitution, institution, search],
-    ),
-  );
-  return { ...query, users: activeUserRows(query.data) || [] };
-}
+// matching what was typed (the server searches; the first 20 matches show).
+export const searchUsersWithoutKyc = (institution, term) =>
+  usersApi.list({ page: 1, limit: 20, status: 1, without_kyc: true, search: term, ...(institution ? { inst_profile_id: Number(institution) } : {}) }).then(activeUserRows);
 
 // A staff user's gender: one fixed list (/master/gender, MALE / FEMALE /
 // OTHER), not the institution's customer gender masters. The code is sent.
