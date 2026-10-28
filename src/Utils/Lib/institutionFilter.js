@@ -17,6 +17,11 @@ const UNFILTERED = [
   /\/config\/transaction\/options$/,
   /\/config\/ledger\/adjustment\/options$/,
   /\/config\/card\/bin\/options$/,
+  // For one customer: the server uses the customer's institution and
+  // refuses any other.
+  /\/config\/account\/open\/options$/,
+  /\/config\/deposit\/contract\/options$/,
+  /\/config\/loan\/application\/options$/,
 ];
 
 export function getInstitutionFilter() {

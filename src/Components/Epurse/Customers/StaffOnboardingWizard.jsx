@@ -1,4 +1,6 @@
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
+import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { MenuLink } from "@/Components/Common/MenuLink";
 import { useEffect, useRef, useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -143,7 +145,13 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const { t } = useAudienceTranslation(["customer", "onboarding", "formBuilder", "common"]);
   const corporate = kind === "corporate";
   const [options, setOptions] = useState(null);
-  const [pick, setPick] = useState({ type: null, email: "", phone_number: "", digital_product: "" });
+  // A System or service-provider user names the institution (from the top
+  // bar's filter when one is chosen); a bank / fintech user is always in
+  // its own and sends none.
+  const chooser = canChooseInstitution();
+  const [pick, setPick] = useState(() => ({ type: null, email: "", phone_number: "", digital_product: "", inst_profile_id: chooser ? getInstitutionFilter() : "" }));
+  const institution = chooser ? pick.inst_profile_id : "";
+  const inst = institution ? { inst_profile_id: Number(institution) } : {};
   // The institution's Active digital products: the onboarding is sent with
   // one (X-Digital-Product-Id), picked here when there is more than one.
   const [products, setProducts] = useState([]);
@@ -163,15 +171,19 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
 
   useEffect(() => {
     if (referenceId) return;
+    setOptions(null);
+    setProducts([]);
+    if (chooser && !institution) return;
     api
-      .options({})
+      .options(inst)
       .then((r) => setOptions(first(r) ?? { party_types: [] }))
       .catch((error) => notifications.error(error.message));
     digitalProductApi("product")
-      .getActive()
+      .getActive({ view: "dropdown", ...inst })
       .then((r) => setProducts((Array.isArray(r?.data) ? r.data : []).map((p) => ({ value: String(p.id ?? p.digital_product_id), label: p.name ?? p.product_name ?? p.code ?? String(p.id) }))))
       .catch(() => setProducts([]));
-  }, [referenceId, api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `inst` follows `institution`
+  }, [referenceId, api, chooser, institution]);
 
   const applyWizard = (w) => {
     setWizard(w);
@@ -241,6 +253,10 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const chosenProduct = pick.digital_product || (products.length === 1 ? products[0].value : "");
 
   const beginOnboarding = async () => {
+    if (chooser && !institution) {
+      notifications.error(t("common:pickInstitutionFirst"));
+      return;
+    }
     if (chosenType === null || (corporate && !chosenType)) {
       notifications.error(t("onboarding:noPublishedDefinition"));
       return;
@@ -258,6 +274,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
       const typeId = chosenType ? Number(chosenType) : null;
       const w = first(
         await api.add({
+          ...inst,
           ...(corporate ? { company_type_id: typeId } : { ownership_sub_type_id: typeId }),
           ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
           ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
@@ -440,6 +457,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     if (!referenceId && !wizard) {
       return (
         <div className="grid gap-4">
+          {chooser && (
+            <InstitutionField value={pick.inst_profile_id} onChange={(v) => setPick({ ...pick, inst_profile_id: v, type: null, digital_product: "" })} />
+          )}
           <label className="text-sm font-semibold text-slate-700">
             {corporate ? t("onboarding:companyType") : t("onboarding:subType")} <span className="text-red-500">*</span>
             {options && !typeOptions.length ? (

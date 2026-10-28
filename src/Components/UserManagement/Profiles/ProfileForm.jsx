@@ -5,7 +5,7 @@ import { ProfilePermissionTree } from "@/Components/UserManagement/Profiles/Prof
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 
 export function EMPTY_FORM() {
-  return { profile_name: "", inst_profile_id: "", menu_info: [] };
+  return { profile_name: "", inst_profile_id: "", menu_actions: [] };
 }
 
 export function profileId(profile) {
@@ -54,8 +54,8 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
       <div>
         <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
         <ProfilePermissionTree
-          selected={form.menu_info}
-          onChange={(menu_info) => setForm({ ...form, menu_info })}
+          selected={form.menu_actions}
+          onChange={(menu_actions) => setForm({ ...form, menu_actions })}
         />
       </div>
     </form>

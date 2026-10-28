@@ -13,8 +13,8 @@ import { profileId } from "./ProfileForm";
 const AUDIT_FIELDS = [["profile_name", "Profile Name"]];
 
 function renderMenuGrants(entry) {
-  const grants = Array.isArray(entry.menu_info)
-    ? entry.menu_info
+  const grants = Array.isArray(entry.menu_actions ?? entry.menu_info)
+    ? entry.menu_actions ?? entry.menu_info
     : Array.isArray(entry.menu_audit_array)
       ? entry.menu_audit_array
       : [];

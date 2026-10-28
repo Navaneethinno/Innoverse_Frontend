@@ -76,7 +76,7 @@ export const profilesApi = {
   // detail/edit screens use this directly instead of scanning a list page.
   get: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.GET, payload),
   // POST /profile/add, body {profile_info: {profile_id: 0, profile_name,
-  // inst_profile_id}, menu_info: [{menu_id, actions: [action_id...],
+  // inst_profile_id}, menu_actions: [{menu_id, actions: [action_id...],
   // is_configuration_only}]} — creates a pending-add.
   add: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.ADD, payload),
   submit: (payload) => request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.SUBMIT, payload),

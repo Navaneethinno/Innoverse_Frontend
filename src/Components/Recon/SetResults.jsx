@@ -518,11 +518,12 @@ function AssignDialog({ set, recordIds, onClose, onDone }) {
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState(false);
   useEffect(() => {
+    // The set's institution's users: the server refuses any other.
     usersApi
-      .getActive()
+      .getActive({ view: "dropdown", ...(set.inst_profile_id ? { inst_profile_id: Number(set.inst_profile_id) } : {}) })
       .then((r) => setUsers([...new Set(rowsOf(r).map((u) => u.user_name ?? u.username ?? u.name).filter(Boolean))]))
       .catch(() => setUsers([]));
-  }, []);
+  }, [set.inst_profile_id]);
   const save = async (to) => {
     setBusy(true);
     try {

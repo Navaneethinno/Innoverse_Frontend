@@ -39,6 +39,9 @@ describe("withInstitutionFilter", () => {
       "/config/transaction/options",
       "/config/ledger/adjustment/options",
       "/config/card/bin/options",
+      "/config/account/open/options",
+      "/config/deposit/contract/options",
+      "/config/loan/application/options",
     ])
       expect(sent(`https://x${path}`, {})).toEqual({});
   });

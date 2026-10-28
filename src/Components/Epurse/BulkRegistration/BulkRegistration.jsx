@@ -20,6 +20,9 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass } from "../../Finance/Deposits/depositShared";
 import { Labelled } from "../../InnoCMS/cardOpsShared";
 import { base64Blob, readPeopleFile } from "./readPeopleFile";
+import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
+import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
+import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 
 const ROW_TONES = { APPROVED: "bg-emerald-50 text-emerald-800", IN_REVIEW: "bg-amber-50 text-amber-800", REJECTED: "bg-red-50 text-red-700", FAILED: "bg-red-50 text-red-700", PENDING: "bg-muted text-muted-foreground" };
 const BATCH_TONES = { DONE: "bg-emerald-50 text-emerald-800", PROCESSING: "bg-sky-50 text-sky-800", REJECTED: "bg-red-50 text-red-700", PENDING: "bg-amber-50 text-amber-800" };
@@ -41,7 +44,7 @@ function Progress({ batch }) {
 
 // A corporate customer as the batch's employer: a type-ahead (name,
 // reference, phone or email; at most 20 back).
-function EmployerPicker({ value, onChange }) {
+function EmployerPicker({ value, onChange, inst }) {
   const { t } = useTranslation("bulkReg");
   const [term, setTerm] = useState("");
   const [found, setFound] = useState(null);
@@ -54,7 +57,7 @@ function EmployerPicker({ value, onChange }) {
     let current = true;
     const timer = setTimeout(() => {
       api
-        .employers({ search })
+        .employers({ search, ...inst })
         .then((r) => current && setFound(rowsOf(r)))
         .catch((e) => current && (setFound([]), notifications.error(e.message)));
     }, 300);
@@ -62,6 +65,7 @@ function EmployerPicker({ value, onChange }) {
       current = false;
       clearTimeout(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `inst` is fixed while the picker shows
   }, [term]);
   const describe = (e) => [e.phone_number, e.email, e.reference_id && `${e.reference_id.slice(0, 8)}…`].filter(Boolean).join(" · ");
   if (value) {
@@ -178,7 +182,13 @@ export function BulkRegistration() {
 function NewBatch({ onClose, onSaved }) {
   const { t } = useTranslation(["bulkReg", "common"]);
   const [options, setOptions] = useState(null);
-  const [form, setForm] = useState({ ownership_sub_type_id: "", employer_id: "", employer: null, card_mode: "NONE", issuance_group_id: "", narration: "" });
+  // A System or service-provider user names the institution (from the top
+  // bar's filter when one is chosen); a bank / fintech user sends none.
+  const chooser = canChooseInstitution();
+  const [institution, setInstitution] = useState(() => (chooser ? getInstitutionFilter() : ""));
+  const inst = useMemo(() => (institution ? { inst_profile_id: Number(institution) } : {}), [institution]);
+  const blank = { ownership_sub_type_id: "", employer_id: "", employer: null, card_mode: "NONE", issuance_group_id: "", narration: "" };
+  const [form, setForm] = useState(blank);
   const [file, setFile] = useState(null);
   const [checked, setChecked] = useState(null);
   const [busy, setBusy] = useState("");
@@ -189,11 +199,21 @@ function NewBatch({ onClose, onSaved }) {
   };
 
   useEffect(() => {
+    setOptions(null);
+    setError("");
+    if (chooser && !institution) return;
     api
-      .options({})
+      .options(inst)
       .then((r) => setOptions(rowsOf(r)[0] ?? {}))
       .catch((e) => setError(e.message));
-  }, []);
+  }, [chooser, institution, inst]);
+  // A new institution: its own customer types, employers and card groups.
+  const pickInstitution = (value) => {
+    setInstitution(value);
+    setForm(blank);
+    setFile(null);
+    setChecked(null);
+  };
 
   const max = options?.max_rows ?? 1000;
   const groups = useMemo(() => (options?.issuance_groups ?? []).filter((g) => g.extra === form.card_mode), [options, form.card_mode]);
@@ -213,7 +233,7 @@ function NewBatch({ onClose, onSaved }) {
     }
   };
   const downloadTemplate = run("template", async () => {
-    const reply = rowsOf(await api.template({ ownership_sub_type_id: typeId }))[0];
+    const reply = rowsOf(await api.template({ ...inst, ownership_sub_type_id: typeId }))[0];
     if (reply?.csv_base64) saveBlob(base64Blob(reply.csv_base64), reply.file_name ?? "bulk_registration_template.csv");
   });
   const pickFile = async (picked) => {
@@ -234,11 +254,12 @@ function NewBatch({ onClose, onSaved }) {
     }
   };
   const check = run("check", async () => {
-    const reply = rowsOf(await api.check({ ownership_sub_type_id: typeId, rows }))[0];
+    const reply = rowsOf(await api.check({ ...inst, ownership_sub_type_id: typeId, rows }))[0];
     setChecked({ problems: reply?.problems ?? [], rows: reply?.rows ?? rows.length });
   });
   const submit = run("add", async () => {
     const body = {
+      ...inst,
       ownership_sub_type_id: typeId,
       card_mode: form.card_mode,
       ...(form.employer_id ? { employer_id: Number(form.employer_id) } : {}),
@@ -251,6 +272,22 @@ function NewBatch({ onClose, onSaved }) {
     onSaved(rowsOf(response)[0]?.id);
   });
 
+  const institutionField = chooser && <InstitutionField value={institution} onChange={pickInstitution} />;
+  if (chooser && !institution)
+    return (
+      <div className="pb-8 pt-4">
+        <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+          <ArrowLeft size={15} /> {t("backToBatches")}
+        </button>
+        <h1 className="mb-4 text-2xl font-black tracking-tight text-slate-800">{t("newBatch")}</h1>
+        <Section title={t("stepBatch")}>
+          <div className="grid gap-2 md:w-1/2">
+            {institutionField}
+            <p className="text-xs text-muted-foreground">{t("common:pickInstitutionFirst")}</p>
+          </div>
+        </Section>
+      </div>
+    );
   if (!options) return error ? <Problems message={error} /> : <PageSkeleton />;
   const clean = checked && checked.problems.length === 0;
 
@@ -265,11 +302,12 @@ function NewBatch({ onClose, onSaved }) {
       <div className="grid gap-4">
         <Section title={t("stepBatch")}>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {institutionField}
             <Labelled required label={t("customerType")}>
               <FilterSelect value={form.ownership_sub_type_id} onChange={(v) => set({ ownership_sub_type_id: v })} options={[{ value: "", label: t("choose") }, ...(options.customer_types ?? []).map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))]} />
             </Labelled>
             <Labelled label={t("employerOptional")}>
-              <EmployerPicker value={form.employer} onChange={(employer) => set({ employer, employer_id: employer ? String(employer.id) : "" })} />
+              <EmployerPicker inst={inst} value={form.employer} onChange={(employer) => set({ employer, employer_id: employer ? String(employer.id) : "" })} />
             </Labelled>
             <Labelled label={t("card")}>
               <FilterSelect value={form.card_mode} onChange={(v) => set({ card_mode: v, issuance_group_id: "" })} options={(options.card_modes ?? ["NONE"]).map((m) => ({ value: m, label: t(`card_${m}`, { defaultValue: m }) }))} />

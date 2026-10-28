@@ -422,13 +422,9 @@ export function AcctConfigResource({ entity }) {
   const [acctProducts, setAcctProducts] = useState([]);
   useEffect(() => {
     if (!needsAcctProducts) return;
-    // acct_product's get_active only returns bare {id} records (no name),
-    // unlike every other lookup's get_active — confirmed live. Use list
-    // with a large limit instead, same "full batch" tradeoff profilesApi
-    // uses for its own removed getall endpoint, so the dropdown can show
-    // product_name instead of the raw id.
+    // The active products as {id, code, name} (view: dropdown).
     configKycApi("acct_product")
-      .list({ page: 1, limit: 500 })
+      .getActive({ view: "dropdown" })
       .then((response) => setAcctProducts(rowsOf(response)))
       .catch((error) => notifications.error(error.message));
   }, [needsAcctProducts]);

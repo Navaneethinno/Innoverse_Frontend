@@ -133,8 +133,7 @@ export function Profile() {
     setForm({
       profile_name: profile.profile_name ?? "",
       inst_profile_id: profile.inst_profile_id ?? "",
-      // The list sends the grants as menu_actions (View reads the same).
-      menu_info: profile.menu_actions ?? profile.menu_info ?? [],
+      menu_actions: profile.menu_actions ?? profile.menu_info ?? [],
     });
     setShowForm(true);
   };
@@ -147,7 +146,7 @@ export function Profile() {
       notifications.error("Please select a valid institution");
       return;
     }
-    if (!Array.isArray(form.menu_info) || form.menu_info.length === 0) {
+    if (!Array.isArray(form.menu_actions) || form.menu_actions.length === 0) {
       notifications.error("Select at least one valid menu action");
       return;
     }
@@ -158,7 +157,7 @@ export function Profile() {
           profile_name: form.profile_name,
           inst_profile_id: institutionId,
         },
-        menu_info: form.menu_info,
+        menu_actions: form.menu_actions,
         is_draft: event.nativeEvent.submitter?.dataset?.mode === "draft",
       };
       const result = editing

@@ -392,7 +392,8 @@ function AlertDetail({ id, onClose, onChanged }) {
             placeholder={t("searchUser")}
             empty={t("noUser")}
             search={(term) =>
-              usersApi.list({ page: 1, limit: 20, search: term, status: 0 }).then((r) => (Array.isArray(r?.data) ? r.data : []))
+              // The alert's institution's users: the server refuses any other.
+              usersApi.list({ page: 1, limit: 20, search: term, status: 0, ...(alert?.inst_profile_id ? { inst_profile_id: Number(alert.inst_profile_id) } : {}) }).then((r) => (Array.isArray(r?.data) ? r.data : []))
             }
             renderItem={(u) => <span className="text-sm font-semibold">{u.username ?? u.user_name}</span>}
           />
