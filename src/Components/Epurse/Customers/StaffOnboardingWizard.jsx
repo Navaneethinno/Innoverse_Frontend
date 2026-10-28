@@ -168,6 +168,10 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const [submitting, setSubmitting] = useState(false);
   const [submitLevel, setSubmitLevel] = useState("");
   const [problems, setProblems] = useState([]);
+  // The last refusal's problems by place (problem_keys), shown on their
+  // fields; and the customer a duplicate ID belongs to, when opened.
+  const [refusal, setRefusal] = useState(null);
+  const [holder, setHolder] = useState(null);
 
   useEffect(() => {
     if (referenceId) return;
@@ -243,6 +247,11 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   // Start: individual picks a sub type ("No sub type" when the ownership's
   // own definition is published), corporate a company type.
   const ownership = options?.party_types?.[0]?.ownerships?.[0];
+  // The contacts the institution starts an onboarding with (both when an
+  // older server sends none).
+  const contacts = Array.isArray(options?.contacts) && options.contacts.length ? options.contacts : ["EMAIL", "PHONE"];
+  const askEmail = contacts.includes("EMAIL");
+  const askPhone = contacts.includes("PHONE");
   const typeOptions = corporate
     ? (options?.party_types?.[0]?.company_types ?? []).map((c) => ({ value: String(c.id), label: c.name }))
     : [
@@ -261,8 +270,8 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
       notifications.error(t("onboarding:noPublishedDefinition"));
       return;
     }
-    if (!pick.email.trim() && !pick.phone_number.trim()) {
-      notifications.error(t("customer:atLeastOneOfEmailOrPhone"));
+    if (!(askEmail && pick.email.trim()) && !(askPhone && pick.phone_number.trim())) {
+      notifications.error(askEmail && askPhone ? t("customer:atLeastOneOfEmailOrPhone") : t(askEmail ? "customer:emailRequired" : "customer:phoneRequired"));
       return;
     }
     if (products.length > 1 && !chosenProduct) {
@@ -276,8 +285,8 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
         await api.add({
           ...inst,
           ...(corporate ? { company_type_id: typeId } : { ownership_sub_type_id: typeId }),
-          ...(pick.email.trim() ? { email: pick.email.trim() } : {}),
-          ...(pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
+          ...(askEmail && pick.email.trim() ? { email: pick.email.trim() } : {}),
+          ...(askPhone && pick.phone_number.trim() ? { phone_number: pick.phone_number.trim() } : {}),
         }, { digitalProductId: chosenProduct }),
       );
       if (w?.notice) notifications.info(w.notice);
@@ -299,7 +308,15 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     );
   const addRow = () => setDraft((prev) => [...(Array.isArray(prev) ? prev : []), seedOf({ ...section, multi_row: false, values: {} })]);
   const removeRow = (rowIndex) => setDraft((prev) => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== rowIndex));
-  const issueFor = (key, rowIndex) => section?.issues?.find((i) => i.field === key && (rowIndex === undefined || i.row === undefined || i.row === rowIndex))?.message;
+  const refusedFor = (key) => {
+    const at = (refusal?.keys ?? []).findIndex((k) => k?.field === key && (!k.section || k.section === section?.key || (section?.includes ?? []).some((inc) => inc.key === k.section)));
+    if (at < 0) return undefined;
+    const p = refusal.problems[at];
+    return (typeof p === "string" ? p : p?.message) ?? refusal.message;
+  };
+  const issueFor = (key, rowIndex) => refusedFor(key) ?? section?.issues?.find((i) => i.field === key && (rowIndex === undefined || i.row === undefined || i.row === rowIndex))?.message;
+  // A duplicate ID's holder (admin only): params.existing_reference opens it.
+  const duplicateOf = (refusal?.keys ?? []).find((k) => String(k?.key ?? "").startsWith("form.duplicate") && k.params?.existing_reference)?.params;
 
   // A KYC item names a field: open its section and bring the field into view.
   const formRef = useRef(null);
@@ -345,6 +362,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     if (!section) return;
     setSaving(true);
     setProblems([]);
+    setRefusal(null);
     const keys = new Set((section.fields ?? []).map((f) => f.key));
     const data = Array.isArray(effectiveDraft)
       ? effectiveDraft.map((row) => cleanRow(row, keys)).filter((row) => Object.keys(row).length)
@@ -366,6 +384,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     } catch (error) {
       notifications.error(error.message);
       if (Array.isArray(error.problems)) setProblems(error.problems);
+      setRefusal({ keys: error.problemKeys ?? [], problems: Array.isArray(error.problems) ? error.problems : [], message: error.message });
       openProblem(error.problemKeys);
       if (error.conflict) {
         const fresh = first(await api.get(wizard.onboarding.reference_id).catch(() => null));
@@ -379,6 +398,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const submitForApproval = async () => {
     setSubmitting(true);
     setProblems([]);
+    setRefusal(null);
     try {
       const w = first(
         await api.submit({
@@ -396,6 +416,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
     } catch (error) {
       notifications.error(error.message);
       if (Array.isArray(error.problems)) setProblems(error.problems);
+      setRefusal({ keys: error.problemKeys ?? [], problems: Array.isArray(error.problems) ? error.problems : [], message: error.message });
       openProblem(error.problemKeys);
     } finally {
       setSubmitting(false);
@@ -476,16 +497,22 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             </label>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="text-sm font-semibold text-slate-700">
-              {t("customer:email")}
-              <input type="email" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" value={pick.email} onChange={(e) => setPick({ ...pick, email: e.target.value })} />
-            </label>
-            <label className="text-sm font-semibold text-slate-700">
-              {t("customer:phoneNumber")}
-              <input type="tel" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" inputMode="tel" value={pick.phone_number} onChange={(e) => setPick({ ...pick, phone_number: phoneInput(e.target.value) })} />
-            </label>
+            {askEmail && (
+              <label className="text-sm font-semibold text-slate-700">
+                {t("customer:email")}
+                {!askPhone && <span className="text-red-500"> *</span>}
+                <input type="email" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" value={pick.email} onChange={(e) => setPick({ ...pick, email: e.target.value })} />
+              </label>
+            )}
+            {askPhone && (
+              <label className="text-sm font-semibold text-slate-700">
+                {t("customer:phoneNumber")}
+                {!askEmail && <span className="text-red-500"> *</span>}
+                <input type="tel" className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 text-sm" inputMode="tel" value={pick.phone_number} onChange={(e) => setPick({ ...pick, phone_number: phoneInput(e.target.value) })} />
+              </label>
+            )}
           </div>
-          <p className="text-[11px] text-muted-foreground">{t("customer:atLeastOneOfEmailOrPhone")}</p>
+          {askEmail && askPhone && <p className="text-[11px] text-muted-foreground">{t("customer:atLeastOneOfEmailOrPhone")}</p>}
         </div>
       );
     }
@@ -562,6 +589,19 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             renderRow(effectiveDraft ?? {}, undefined)
           )}
         </div>
+        {duplicateOf && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-red-50 p-3 text-xs text-red-700">
+            <span>{t("customer:duplicateHeldBy", { name: duplicateOf.existing_name || duplicateOf.existing_id })}</span>
+            <Button variant="outline" size="sm" onClick={() => setHolder(duplicateOf)}>
+              {t("customer:openHolder")}
+            </Button>
+          </div>
+        )}
+        {holder && (
+          <Modal open size="xl" title={holder.existing_name || holder.existing_id} onClose={() => setHolder(null)}>
+            <StaffOnboardingWizard kind={kind} api={api} referenceId={holder.existing_reference} forceReadOnly onClose={() => setHolder(null)} />
+          </Modal>
+        )}
         {problems.length > 0 && (
           <ul className="mt-4 list-disc rounded-lg bg-red-50 p-3 pl-7 text-xs text-red-700">
             {problems.map((p, i) => (
