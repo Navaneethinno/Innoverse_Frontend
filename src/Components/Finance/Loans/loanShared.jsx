@@ -122,7 +122,7 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
 
 // Many choices as pills. Past 12 they sit in a short scrolling box with a
 // search, the picked ones first, so a long list stays compact.
-function MultiPick({ options, value, onChange, disabled }) {
+export function MultiPick({ options, value, onChange, disabled }) {
   const { t } = useTranslation("loans");
   const [q, setQ] = useState("");
   const list = Array.isArray(value) ? value : [];

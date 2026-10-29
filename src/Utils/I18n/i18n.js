@@ -36,6 +36,7 @@ void i18n
       "users",
       "dashboard",
       "forgotPassword",
+      "approvals",
       "setup",
       "changePassword",
       "sidebar",

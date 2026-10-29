@@ -104,13 +104,17 @@ export function getMakerCheckerButtons(row, perms = {}) {
   // View/Audit follow the View grant when the page passes one; RowActions
   // also enforces it from the current menu.
   const canView = perms.canView ?? true;
+  // A waiting record under an approval policy says whether this user may
+  // act on it now (their level, their turn, not the maker).
+  const approval = row?.approval ?? null;
+  const mayApprove = !approval || approval.can_approve !== false;
   return {
     view: v.view && canView,
     audit: v.audit && canView,
     edit: v.edit && canEdit,
     submitDraft: v.submitDraft && canSubmit,
-    authorize: v.authorize && canAuthorize,
-    deauthorize: v.deauthorize && canAuthorize,
+    authorize: v.authorize && canAuthorize && mayApprove,
+    deauthorize: v.deauthorize && canAuthorize && mayApprove,
     activate: v.activate && canChangeStatus,
     deactivate: v.deactivate && canChangeStatus,
     delete: v.delete && canDelete,
@@ -121,5 +125,8 @@ export function getMakerCheckerButtons(row, perms = {}) {
     // flag to route that click to the right mutation. Reject always uses
     // the generic /deauth endpoint regardless of which workflow is pending.
     isPendingDelete: v.isPendingDelete,
+    // For RowActions' approval progress and timeline.
+    approval,
+    recordId: row?.id ?? null,
   };
 }

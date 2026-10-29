@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownWideNarrow, SlidersHorizontal, X } from "lucide-react";
+import { scopedPath } from "@/Utils/Lib/apiScope";
+import { ApprovalRouteContext } from "@/Components/GlobalSettings/Approvals/approvalShared";
 import { ExportButtons } from "@/Components/Reports/Shared/reportShared";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -178,7 +180,9 @@ function AmountBox({ value, onChange, placeholder, className }) {
 export function ListTable({ list, actions, onExport, summary, ...table }) {
   return (
     <ListView list={list} actions={actions} onExport={onExport} summary={summary}>
-      <DataTable bare serverSorted rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} {...table} />
+      <ApprovalRouteContext.Provider value={list.api ? scopedPath(list.api).replace(/\/list$/, "") : null}>
+        <DataTable bare serverSorted rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} {...table} />
+      </ApprovalRouteContext.Provider>
     </ListView>
   );
 }

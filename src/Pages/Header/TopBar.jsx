@@ -16,6 +16,7 @@ import { TourButton } from "@/Components/Tour/TourButton";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { isDemoUser } from "@/Utils/Lib/demoInstitution";
 import { useKeyCustody } from "@/Components/KeyCustody/KeyCustodyProvider";
+import { MyApprovalsButton } from "@/Components/GlobalSettings/Approvals/MyApprovals";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -146,6 +147,8 @@ export function TopBar() {
             )}
           </button>
           </UiTooltip>
+
+          <MyApprovalsButton />
 
           <UiTooltip label="Notifications">
           <button

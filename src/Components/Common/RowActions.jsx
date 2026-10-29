@@ -1,4 +1,6 @@
-import { Eye, Pencil, History, Send, ShieldCheck, ShieldOff, Trash2, PowerOff, Power } from "lucide-react";
+import { useState } from "react";
+import { Eye, Pencil, History, ListChecks, Send, ShieldCheck, ShieldOff, Trash2, PowerOff, Power } from "lucide-react";
+import { ApprovalTimeline, approvalText, useApprovalRoute } from "@/Components/GlobalSettings/Approvals/approvalShared";
 import { useTranslation } from "react-i18next";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -41,6 +43,11 @@ export function RowActions({
   const { t } = useTranslation("common");
   const pageCan = usePagePermission();
   const can = permission ?? pageCan;
+  // A record waiting under an approval policy: its progress, and its
+  // timeline when the table knows the record's route.
+  const route = useApprovalRoute();
+  const [timeline, setTimeline] = useState(false);
+  const approval = buttons.approval;
   // Second gate on top of `buttons`: whatever a page computed, a button only
   // shows when the user's profile grants that action on this menu.
   const allow = can.menu
@@ -88,6 +95,10 @@ export function RowActions({
       {buttons.delete && allow.delete && onDelete && (
         <ActionIconButton label={t("delete")} intent="delete" data-tour="action-delete" icon={Trash2} onClick={onDelete} />
       )}
+      {approval && allow.view && (
+        <ActionIconButton label={approvalText(t, approval)} intent="view" icon={ListChecks} onClick={() => route && buttons.recordId != null && setTimeline(true)} />
+      )}
+      {timeline && <ApprovalTimeline route={route} recordId={buttons.recordId} onClose={() => setTimeline(false)} />}
     </div>
   );
 }

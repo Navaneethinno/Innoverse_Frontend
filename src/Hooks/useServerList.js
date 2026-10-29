@@ -161,6 +161,8 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
 
   const pg = state.pagination;
   return {
+    // The list's route, e.g. for a row's approval timeline.
+    api,
     options,
     body,
     rows: state.rows,
