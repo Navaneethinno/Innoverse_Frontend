@@ -16,6 +16,7 @@ import { DateInput } from "@/Components/Common/DateInput";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { MultiPick } from "@/Components/Finance/Loans/loanShared";
+import { SearchBox } from "@/Components/Common/SearchBox";
 import { Section } from "@/Components/Finance/Deposits/depositShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { approvalApi, policyApi } from "@/Services/GlobalSettings/approval.api";
@@ -78,11 +79,55 @@ const stepFrom = (s) => ({
   escalate_profiles: s.escalate_profiles ?? [],
 });
 
+// Users for the pickers, searched on the server (user_search, 50 at a
+// time). Users already picked stay listed whatever the search.
+function useUserSearch(initial) {
+  const [known, setKnown] = useState(() => new Map((initial ?? []).map((u) => [String(u.id), u])));
+  const [found, setFound] = useState(() => (initial ?? []).map((u) => String(u.id)));
+  const [term, setTerm] = useState("");
+  useEffect(() => {
+    const text = term.trim();
+    let live = true;
+    const timer = window.setTimeout(
+      () =>
+        policyApi
+          .options({ user_search: text, user_limit: 50 })
+          .then((r) => {
+            if (!live) return;
+            const users = rowsOf(r)[0]?.users ?? [];
+            setKnown((all) => new Map([...all, ...users.map((u) => [String(u.id), u])]));
+            setFound(users.map((u) => String(u.id)));
+          })
+          .catch(() => {}),
+      text ? 300 : 0,
+    );
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [term]);
+  const optionsFor = (picked) => {
+    const ids = [...new Set([...(picked ?? []).map(String), ...found])];
+    return ids.map((id) => known.get(id)).filter(Boolean).map((u) => ({ value: u.id, label: u.profile ? `${u.name} · ${u.profile}` : u.name }));
+  };
+  return { term, setTerm, optionsFor };
+}
+
+// Users of one picker: a server search above the pills.
+function UserPick({ search, value, onChange, disabled }) {
+  const { t } = useTranslation("approvals");
+  return (
+    <>
+      {!disabled && <SearchBox className="mt-1.5" search={search.term} onSearch={search.setTerm} placeholder={t("searchUsers")} />}
+      <MultiPick options={search.optionsFor(value)} value={value} onChange={onChange} disabled={disabled} />
+    </>
+  );
+}
+
 // One level of the policy.
-function StepEditor({ step, index, count, options, readOnly, onChange, onMove, onRemove }) {
+function StepEditor({ step, index, count, options, userSearch, readOnly, onChange, onMove, onRemove }) {
   const { t } = useTranslation("approvals");
   const set = (patch) => onChange({ ...step, ...patch });
-  const users = (options?.users ?? []).map((u) => ({ value: u.id, label: u.profile ? `${u.name} · ${u.profile}` : u.name }));
   const profiles = (options?.profiles ?? []).map((p) => ({ value: p.id, label: p.name }));
   return (
     <div className="rounded-2xl border border-border bg-muted/30 p-4">
@@ -115,7 +160,7 @@ function StepEditor({ step, index, count, options, readOnly, onChange, onMove, o
         {step.who === "USERS" && (
           <div className={`${labelClass} md:col-span-2`}>
             {t("approvers")}
-            <MultiPick options={users} value={step.users} onChange={(v) => set({ users: v })} disabled={readOnly} />
+            <UserPick search={userSearch} value={step.users} onChange={(v) => set({ users: v })} disabled={readOnly} />
           </div>
         )}
         {step.who === "PROFILES" && (
@@ -154,7 +199,7 @@ function StepEditor({ step, index, count, options, readOnly, onChange, onMove, o
           <>
             <div className={`${labelClass} md:col-span-2`}>
               {t("escalateUsers")}
-              <MultiPick options={users} value={step.escalate_users} onChange={(v) => set({ escalate_users: v })} disabled={readOnly} />
+              <UserPick search={userSearch} value={step.escalate_users} onChange={(v) => set({ escalate_users: v })} disabled={readOnly} />
             </div>
             <div className={`${labelClass} md:col-span-2`}>
               {t("escalateProfiles")}
@@ -185,6 +230,7 @@ function PolicyForm({ record, options, readOnly, onClose, onSaved }) {
       : EMPTY,
   );
   const [busy, setBusy] = useState(false);
+  const userSearch = useUserSearch(options?.users);
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
   const setStep = (i, step) => set({ steps: form.steps.map((s, n) => (n === i ? step : s)) });
   const moveStep = (i, by) => {
@@ -267,6 +313,7 @@ function PolicyForm({ record, options, readOnly, onClose, onSaved }) {
               index={i}
               count={form.steps.length}
               options={options}
+              userSearch={userSearch}
               readOnly={readOnly}
               onChange={(step) => setStep(i, step)}
               onMove={(by) => moveStep(i, by)}
@@ -365,11 +412,11 @@ function ReportModal({ onClose }) {
       ) : (
         <div className="grid gap-4">
           <Section title={t("byMenu")}>
-            {table(report.by_menu, [["menu_name", t("menu")], ["submitted", t("submitted")], ["approved", t("approved")], ["rejected", t("rejected")], ["expired", t("expired")], ["restarted", t("restarted")], ["open", t("open")], ["avg_hours_to_approve", t("avgHoursToApprove"), hours]])}
+            {table(report.by_menu, [["menu_label", t("menu"), (v) => v ?? "—"], ["submitted", t("submitted")], ["approved", t("approved")], ["rejected", t("rejected")], ["expired", t("expired")], ["restarted", t("restarted")], ["open", t("open")], ["avg_hours_to_approve", t("avgHoursToApprove"), hours]])}
           </Section>
-          <Section title={t("byLevel")}>{table(report.by_level, [["menu_name", t("menu")], ["level", t("level")], ["avg_hours_open", t("avgHoursOpen"), hours]])}</Section>
+          <Section title={t("byLevel")}>{table(report.by_level, [["menu_label", t("menu"), (v) => v ?? "—"], ["level", t("level")], ["opened", t("opened")], ["completed", t("completed")], ["avg_hours_open", t("avgHoursOpen"), hours]])}</Section>
           <Section title={t("byUser")}>{table(report.by_user, [["user", t("user")], ["approvals", t("approvals")], ["rejections", t("rejections")], ["avg_hours_to_act", t("avgHoursToAct"), hours]])}</Section>
-          <Section title={t("escalations")}>{table(report.escalations, [["menu_name", t("menu")], ["record_id", t("record")], ["level", t("level")], ["at", t("when")]])}</Section>
+          <Section title={t("escalations")}>{table(report.escalations, [["menu_label", t("menu"), (v) => v ?? "—"], ["record_id", t("record")], ["level", t("level")], ["at", t("when")]])}</Section>
         </div>
       )}
     </Modal>

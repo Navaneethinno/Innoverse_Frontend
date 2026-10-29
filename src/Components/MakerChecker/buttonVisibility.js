@@ -127,6 +127,8 @@ export function getMakerCheckerButtons(row, perms = {}) {
     isPendingDelete: v.isPendingDelete,
     // For RowActions' approval progress and timeline.
     approval,
+    // Set on every row with an approval timeline, waiting or not.
+    approvalChainId: row?.approval_chain_id ?? null,
     recordId: row?.id ?? null,
   };
 }

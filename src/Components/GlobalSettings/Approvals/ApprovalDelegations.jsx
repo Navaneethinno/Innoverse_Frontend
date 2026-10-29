@@ -40,7 +40,7 @@ const day = (at) => (at ? new Date(at).toLocaleDateString() : "—");
 
 // Hand one user's approvals to another for a period (from the start of the
 // first day to the end of the last). A checker approves it.
-function DelegationForm({ users, onClose, onSaved }) {
+function DelegationForm({ users, canDelegateOthers, onClose, onSaved }) {
   const { t } = useTranslation(["approvals", "common"]);
   const me = useAuth((s) => s.user?.session_user_id ?? s.user?.id);
   const [form, setForm] = useState({ from_userid: me ? String(me) : "", to_userid: "", from: "", to: "", reason: "" });
@@ -51,7 +51,7 @@ function DelegationForm({ users, onClose, onSaved }) {
     setBusy(true);
     try {
       const response = await delegationApi.add({
-        ...(form.from_userid ? { from_userid: Number(form.from_userid) } : {}),
+        ...(canDelegateOthers && form.from_userid ? { from_userid: Number(form.from_userid) } : {}),
         to_userid: Number(form.to_userid),
         from_time: new Date(`${form.from}T00:00:00`).toISOString(),
         to_time: new Date(`${form.to}T23:59:59`).toISOString(),
@@ -83,11 +83,14 @@ function DelegationForm({ users, onClose, onSaved }) {
       }
     >
       <div className="grid gap-3 md:grid-cols-2">
-        <label className={labelClass}>
-          {t("delegateFrom")}
-          <FilterSelect className="mt-1.5" value={form.from_userid} onChange={(v) => set({ from_userid: v })} options={[{ value: "", label: t("me") }, ...users]} />
-        </label>
-        <label className={labelClass}>
+        {/* Another user's approvals: Edit on this menu only. */}
+        {canDelegateOthers && (
+          <label className={labelClass}>
+            {t("delegateFrom")}
+            <FilterSelect className="mt-1.5" value={form.from_userid} onChange={(v) => set({ from_userid: v })} options={[{ value: "", label: t("me") }, ...users]} />
+          </label>
+        )}
+        <label className={canDelegateOthers ? labelClass : `${labelClass} md:col-span-2`}>
           {t("delegateTo")} <span className="text-red-500">*</span>
           <FilterSelect className="mt-1.5" value={form.to_userid} onChange={(v) => set({ to_userid: v })} options={[{ value: "", label: t("chooseUser") }, ...users.filter((u) => u.value !== form.from_userid)]} />
         </label>
@@ -138,6 +141,7 @@ function DelegationsTab({ can, users }) {
     { key: "to_user", label: t("delegateTo"), align: "left", render: (r) => r.to_user ?? r.to_userid },
     { key: "from_time", label: t("period"), render: (r) => `${day(r.from_time)} – ${day(r.to_time)}` },
     { key: "reason", label: t("reason"), align: "left", render: (r) => r.reason || "—" },
+    { key: "in_force", label: t("inForce"), render: (r) => (r.in_force ? <span className="font-bold text-emerald-700">{t("inForceNow")}</span> : <span className="text-muted-foreground">—</span>) },
     { key: "status", label: t("common:status"), render: (r) => <StatusBadge status={String(r.process_status_name ?? r.status_name ?? r.state ?? "")} variant="subtle" /> },
     {
       key: "actions",
@@ -174,6 +178,7 @@ function DelegationsTab({ can, users }) {
       {adding && (
         <DelegationForm
           users={users}
+          canDelegateOthers={can("Edit")}
           onClose={() => setAdding(false)}
           onSaved={() => {
             setAdding(false);
@@ -197,7 +202,8 @@ function SupervisorsTab({ can, users }) {
   const [editing, setEditing] = useState(null);
   const [removing, setRemoving] = useState(null);
   const [busy, setBusy] = useState(false);
-  const canEdit = can("Edit") || can("Add");
+  // Setting or removing a supervisor needs Edit.
+  const canEdit = can("Edit");
   const act = async (work, done) => {
     setBusy(true);
     try {

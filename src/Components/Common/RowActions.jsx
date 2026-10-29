@@ -95,8 +95,8 @@ export function RowActions({
       {buttons.delete && allow.delete && onDelete && (
         <ActionIconButton label={t("delete")} intent="delete" data-tour="action-delete" icon={Trash2} onClick={onDelete} />
       )}
-      {approval && allow.view && (
-        <ActionIconButton label={approvalText(t, approval)} intent="view" icon={ListChecks} onClick={() => route && buttons.recordId != null && setTimeline(true)} />
+      {(approval || buttons.approvalChainId) && allow.view && (
+        <ActionIconButton label={approval ? approvalText(t, approval) : t("approvalTimeline")} intent="view" icon={ListChecks} onClick={() => route && buttons.recordId != null && setTimeline(true)} />
       )}
       {timeline && <ApprovalTimeline route={route} recordId={buttons.recordId} onClose={() => setTimeline(false)} />}
     </div>

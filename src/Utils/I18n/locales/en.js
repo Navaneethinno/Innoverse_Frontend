@@ -4,6 +4,7 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  open: "Open",
   all: "All",
   approvalLevel: "Level {{level}} of {{levels}}",
   approvalLevelShort: "Level {{level}}",
@@ -882,6 +883,11 @@ export const approvals = {
   removeSupervisorBody: "{{user}} will no longer have {{supervisor}} as supervisor.",
   noSupervisors: "No supervisors set.",
   updatedBy: "Updated by",
+  searchUsers: "Search users by name or profile",
+  opened: "Opened",
+  completed: "Completed",
+  inForce: "In force",
+  inForceNow: "Now",
 };
 
 export const forgotPassword = {
