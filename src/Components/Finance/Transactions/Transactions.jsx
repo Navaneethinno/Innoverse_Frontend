@@ -90,6 +90,7 @@ function Journal({ actions, onOpen }) {
     {
       key: "rrn",
       label: "RRN",
+      align: "left",
       render: (x) => (
         <button type="button" onClick={() => onOpen({ id: x.id })} className="text-left">
           <span className="block font-mono text-xs font-bold text-primary hover:underline">{x.rrn}</span>
@@ -97,11 +98,23 @@ function Journal({ actions, onOpen }) {
         </button>
       ),
     },
-    { key: "txn_type", label: t("type"), render: (x) => <span className="text-xs font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</span> },
+    // The channel sits under the type: one column less, no empty gap.
+    {
+      key: "txn_type",
+      label: t("type"),
+      align: "left",
+      render: (x) => (
+        <>
+          <span className="block text-xs font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</span>
+          <span className="block text-[10px] text-muted-foreground">
+            {x.channel_type} · {x.initiator_type}
+          </span>
+        </>
+      ),
+    },
     { key: "total_amount", label: t("amount"), render: (x) => <TotalCell total={x.total_amount} amount={x.txn_amount} fee={x.fee_amount} currency={x.currency_code} /> },
-    { key: "fee_amount", label: t("fee"), render: (x) => <span className="whitespace-nowrap text-xs tabular-nums">{Number(x.fee_amount) ? money(x.fee_amount, x.currency_code) : "—"}</span> },
-    { key: "txn_desc", label: t("description"), align: "left", render: (x) => <span className="line-clamp-2 text-xs">{x.status === "FAILED" ? <span className="text-red-700">{x.status_desc}</span> : x.txn_desc || "—"}</span> },
-    { key: "channel_type", label: t("channel"), render: (x) => <span className="text-[11px]">{x.channel_type} · {x.initiator_type}</span> },
+    // The fee shows under the amount (amount + fee).
+    { key: "txn_desc", label: t("description"), align: "left", render: (x) => <span className="line-clamp-2 block min-w-[160px] max-w-[260px] whitespace-normal text-xs">{x.status === "FAILED" ? <span className="text-red-700">{x.status_desc}</span> : x.txn_desc || "—"}</span> },
     { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (x) => <RowActions buttons={{ view: true }} onView={() => onOpen({ id: x.id })} /> },
   ];
