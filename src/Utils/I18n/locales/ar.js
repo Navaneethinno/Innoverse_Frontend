@@ -311,6 +311,7 @@ export const limits = {
 };
 
 export const accounts = {
+  searchOverdrafts: "رقم الحساب (أو آخر أرقامه)",
   "tab_liens": "الحجوزات",
   "underLien": "محجوز",
   "freeOfLiens": "المتاح خارج الحجوزات",
@@ -2386,6 +2387,9 @@ export const myProfile = {
 };
 
 export const common = {
+  notificationsTitle: "الإشعارات",
+  markAllRead: "تعليم الكل كمقروء",
+  notificationsEmpty: "لا توجد إشعارات بعد.",
   "actor_SYSTEM": "النظام",
   "actor_CUSTOMER": "بوابة العميل",
   "actor_CUSTOMER_APP": "تطبيق العميل",

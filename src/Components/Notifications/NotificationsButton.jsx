@@ -152,7 +152,7 @@ export function NotificationsButton() {
                         <span className="min-w-0 flex-1">
                           <span className={`block truncate text-sm ${x.read ? "font-medium text-foreground/80" : "font-bold text-foreground"}`}>{x.title}</span>
                           {x.body && <span className="line-clamp-2 block text-xs text-muted-foreground">{x.body}</span>}
-                          <span className="mt-0.5 block text-[10px] text-muted-foreground">{[x.menu_label ?? x.menu_name, x.created_at && new Date(x.created_at).toLocaleString()].filter(Boolean).join(" · ")}</span>
+                          <span className="mt-0.5 block text-[10px] text-muted-foreground">{[x.menu_label ?? x.menu_name, x.record_id != null && `#${x.record_id}`, x.created_at && new Date(x.created_at).toLocaleString()].filter(Boolean).join(" · ")}</span>
                         </span>
                         {to && <ChevronRight size={14} className="mt-1 shrink-0 text-muted-foreground" />}
                       </button>

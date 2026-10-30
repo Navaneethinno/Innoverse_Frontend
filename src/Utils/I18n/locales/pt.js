@@ -2,6 +2,9 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  notificationsTitle: "Notificações",
+  markAllRead: "Marcar todas como lidas",
+  notificationsEmpty: "Ainda não há notificações.",
   "actor_SYSTEM": "Sistema",
   "actor_CUSTOMER": "Portal do cliente",
   "actor_CUSTOMER_APP": "App do cliente",
@@ -3269,6 +3272,7 @@ export const cases = {
 };
 
 export const accounts = {
+  searchOverdrafts: "Número da conta (ou os últimos dígitos)",
   "tab_liens": "Ónus",
   "underLien": "Sob ónus",
   "freeOfLiens": "Disponível livre de ónus",
