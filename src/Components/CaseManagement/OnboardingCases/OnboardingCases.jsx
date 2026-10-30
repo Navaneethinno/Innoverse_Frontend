@@ -15,6 +15,8 @@ import { CaseSettings } from "./CaseSettings";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 // What differs between the case queues (Onboarding Cases, AML Cases).
+// Optional: `columns(t)` added after the subject, `HeaderAction` beside the
+// title, `TopPanel` above a case's tabs, `closeOutcomes` asked when closing.
 export const ONBOARDING_QUEUE = {
   kind: "onboarding",
   api: onboardingCasesApi,
@@ -120,6 +122,7 @@ export function CaseQueue({ config }) {
         </div>
       ),
     },
+    ...(config.columns?.(t) ?? []),
     { key: "reasons", label: t("reasons"), sortable: false, render: (c) => <ReasonChips reasons={c.reasons} /> },
     ...(conversational
       ? [
@@ -164,6 +167,7 @@ export function CaseQueue({ config }) {
           <p className="mt-1 text-sm text-muted-foreground">{t(config.subtitleKey)}</p>
         </div>
         <div className="flex gap-2">
+          {config.HeaderAction && <config.HeaderAction onOpened={(id) => setOpenId(id)} />}
           {config.settings && (
             <Button variant="secondary" size="sm" icon={Settings2} onClick={() => setSettings(true)}>
               {t("settings")}
@@ -172,7 +176,7 @@ export function CaseQueue({ config }) {
         </div>
       </div>
 
-      <ListTable list={list} columns={columns} rowKey={(c) => c.id} title={t(config.titleKey)} emptyTitle={t("noCases")} emptyDescription={t("noCasesHint")} />
+      <ListTable list={list} columns={columns} rowKey={(c) => c.id} title={t(config.titleKey)} emptyTitle={t("noCases")} emptyDescription={t(config.emptyHintKey ?? "noCasesHint")} />
     </div>
   );
 }

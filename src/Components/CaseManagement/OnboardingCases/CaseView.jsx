@@ -45,7 +45,7 @@ export function CaseView({ id, config, onBack }) {
   const api = config?.api ?? onboardingCasesApi;
   const aml = config?.kind === "aml";
   // AML and support (Customer Cases) cases: a conversation with an active customer.
-  const conversational = aml || config?.kind === "support";
+  const conversational = aml || config?.kind === "support" || config?.kind === "dispute";
   const can = usePagePermission();
   const [kase, setKase] = useState(null);
   const [tab, setTab] = useState("overview");
@@ -150,6 +150,8 @@ export function CaseView({ id, config, onBack }) {
         {kase.proposal && <ProposalBanner proposal={kase.proposal} closed={kase.status === "CLOSED"} />}
       </div>
 
+      {config?.TopPanel && <config.TopPanel kase={kase} onChanged={reload} />}
+
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
         {(conversational ? AML_TABS : TABS).map((key) => (
           <button
@@ -203,7 +205,7 @@ export function CaseView({ id, config, onBack }) {
       )}
       {dialog === "decide" && <DecideDialog proposal={kase.proposal} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("decide", body)} canConfirm={allowed.confirm} canReturn={allowed.return} />}
       {dialog === "message" && <NoteDialog title={t("action_message")} hint={t("messageHint")} label={t("messageToCustomer")} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("message", { body })} />}
-      {dialog === "close" && <CloseCaseDialog busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("close", body)} />}
+      {dialog === "close" && <CloseCaseDialog outcomes={config?.closeOutcomes} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("close", body)} />}
       {dialog === "amlPropose" && (
         <AmlProposeDialog allowCleared={allowed.propose_cleared} allowClose={allowed.propose_close} openMatches={kase.aml_open_matches} busy={busy} onClose={() => setDialog(null)} onSave={(body) => act("propose", body)} />
       )}

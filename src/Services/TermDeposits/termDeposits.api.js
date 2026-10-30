@@ -49,7 +49,7 @@ export const depositsApi = calls("/config/deposit/contract", [
 // corrections, posted through the transaction engine when a checker
 // approves. options lists the four types; quote is the plan (fee, balance
 // after) for the same body as add.
-export const balanceAdjustmentsApi = calls("/config/ledger/adjustment", ["options", "quote", "add", "auth", "deauth", "cancel", "list", "get"]);
+export const balanceAdjustmentsApi = calls("/config/ledger/adjustment", ["options", "lookup", "quote", "add", "auth", "deauth", "cancel", "list", "get"]);
 
 // GLOBAL SETTINGS > Scheduled Jobs (menu 183): the platform's daily jobs.
 export const scheduledJobsApi = calls("/config/scheduler/job", ["list", "runs", "edit", "run"]);

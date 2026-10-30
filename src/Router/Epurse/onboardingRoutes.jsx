@@ -67,6 +67,9 @@ onboardingRoutes.push({ path: "onboardingcases", element: pageElement(Onboarding
 // CASE MANAGEMENT > Customer Cases (186): support cases customers open.
 const CustomerCases = lazy(() => import("@/Components/CaseManagement/CustomerCases").then((m) => ({ default: m.CustomerCases })));
 onboardingRoutes.push({ path: "customercases", element: pageElement(CustomerCases) }, { path: "customercases/:id", element: pageElement(CustomerCases) });
+// CASE MANAGEMENT > Disputes (204): customer cases about one transaction.
+const Disputes = lazy(() => import("@/Components/CaseManagement/Disputes/Disputes").then((m) => ({ default: m.Disputes })));
+onboardingRoutes.push({ path: "disputes", element: pageElement(Disputes) }, { path: "disputes/:id", element: pageElement(Disputes) });
 
 // Term Deposits (Admin Portal: Term Deposits handoff): TERM DEPOSITS >
 // Deposit Products (180) and Deposits (181), EPURSE > Balance Adjustments

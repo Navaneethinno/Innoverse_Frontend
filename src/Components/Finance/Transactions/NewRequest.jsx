@@ -191,6 +191,7 @@ export function NewRequest({ preset, onClose, onDone }) {
                 }}
                 options={types.map((x) => ({ value: x.txn_type, label: `${x.name} (${x.from} → ${x.to})` }))}
               />
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("correctionsHint")}</span>
             </label>
             {needs.card && (
               <div className={cn(labelClass, "sm:col-span-2")}>

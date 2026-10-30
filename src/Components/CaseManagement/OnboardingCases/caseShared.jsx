@@ -41,6 +41,7 @@ const OUTCOME_TONE = {
   WITHDRAWN: "bg-muted text-muted-foreground",
   CLEARED: "bg-emerald-50 text-emerald-700",
   RESOLVED: "bg-emerald-50 text-emerald-700",
+  ADJUSTED: "bg-emerald-50 text-emerald-700",
   CONFIRMED: "bg-red-50 text-red-700",
   NO_ACTION: "bg-muted text-muted-foreground",
 };

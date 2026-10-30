@@ -1,4 +1,3 @@
-import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -14,8 +13,6 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { Modal } from "@/Components/Common/Modal";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
-import { SearchPicker } from "@/Components/Common/SearchPicker";
-import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
 import { TxnLimitWarning } from "@/Components/Common/TxnLimitWarning";
 import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
@@ -133,7 +130,7 @@ function JournalList({ actions, version, onView }) {
   );
 }
 
-const blankLine = (op = "DR") => ({ kind: "GL", gl_account_id: "", account: null, op, amount: "", note: "" });
+const blankLine = (op = "DR") => ({ gl_account_id: "", op, amount: "", note: "" });
 const SIDES = ["DR", "CR"];
 const OWNER_KINDS = { CUST_INDV: "ownerCustIndv", CUST_CORP: "ownerCustCorp", MERCH_INDV: "ownerMerchIndv", MERCH_CORP: "ownerMerchCorp" };
 
@@ -157,7 +154,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
   const dr = units(lines, "DR", decimals);
   const cr = units(lines, "CR", decimals);
   const balanced = dr > 0 && dr === cr;
-  const picked = (l) => (l.kind === "GL" ? Boolean(l.gl_account_id) : Boolean(l.account));
+  const picked = (l) => Boolean(l.gl_account_id);
   const ready = head.currency_id && head.narration.trim() && SIDES.every((op) => lines.some((l) => l.op === op)) && lines.every((l) => picked(l) && Number(l.amount) > 0) && balanced;
   const gls = useMemo(() => (accounts ?? []).filter((g) => g.multi_currency || !code || g.currency_code === code), [accounts, code]);
   const glOptions = useMemo(() => gls.map((g) => ({ value: String(g.id), label: `${g.name} · ${[g.gl_code, g.account_number].filter(Boolean).join(" · ")}` })), [gls]);
@@ -179,7 +176,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
         narration: head.narration.trim(),
         ...(head.reference.trim() ? { reference: head.reference.trim() } : {}),
         lines: lines.map((l) => ({
-          ...(l.kind === "GL" ? { gl_account_id: Number(l.gl_account_id) } : { acct_num: l.account.acct_num }),
+          gl_account_id: Number(l.gl_account_id),
           op: l.op,
           amount: String(l.amount),
           ...(String(l.note ?? "").trim() ? { note: l.note.trim() } : {}),
@@ -249,7 +246,6 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
                       line={l}
                       gls={gls}
                       glOptions={glOptions}
-                      currencyId={head.currency_id}
                       code={code}
                       decimals={decimals}
                       onChange={(patch) => setLine(i, patch)}
@@ -271,30 +267,18 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
   );
 }
 
-// One row: a GL or an account, its balance under the picker, the amount
-// (in the institution's number format) and remarks.
-function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onChange, onRemove }) {
+// One row: a GL (a journal moves money between GLs only; customer accounts
+// are corrected in Balance Adjustments), its balance under the picker, the
+// amount (in the institution's number format) and remarks.
+function JournalLine({ line: l, gls, glOptions, code, decimals, onChange, onRemove }) {
   const { t } = useTranslation("accounting");
-  const gl = l.kind === "GL" && gls.find((g) => String(g.id) === String(l.gl_account_id));
+  const gl = gls.find((g) => String(g.id) === String(l.gl_account_id));
   const glBalance = gl && (gl.balances ?? []).find((b) => !code || b.currency_code === code);
   return (
-    <li className="grid gap-2 rounded-xl border border-border bg-card p-2.5 lg:grid-cols-[auto_3fr_1.2fr_2fr_auto] lg:items-start">
-      <SegmentedSwitch value={l.kind} onChange={(kind) => onChange({ kind, gl_account_id: "", account: null })} options={[{ value: "GL", label: t("lineGl") }, { value: "ACCOUNT", label: t("lineAccount") }]} />
+    <li className="grid gap-2 rounded-xl border border-border bg-card p-2.5 lg:grid-cols-[3fr_1.2fr_2fr_auto] lg:items-start">
       <div className="min-w-0">
-        {l.kind === "GL" ? (
-          <FilterSelect value={String(l.gl_account_id || "")} onChange={(v) => onChange({ gl_account_id: v })} options={[{ value: "", label: t("choose") }, ...glOptions]} />
-        ) : (
-          <AccountPicker value={l.account} currencyId={currencyId} onChange={(account) => onChange({ account })} />
-        )}
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {gl && t("balanceX", { value: glBalance ? money(glBalance.balance, glBalance.currency_code) : money(0, code) })}
-          {l.account && (
-            <>
-              {t("availableX", { value: money(l.account.avail_bal, l.account.currency_code) })} · {t("ledgerX", { value: money(l.account.ledger_bal, l.account.currency_code) })}
-              {l.account.restriction && <b className="ml-1 text-red-700">{t(`restriction_${l.account.restriction}`)}</b>}
-            </>
-          )}
-        </p>
+        <FilterSelect value={String(l.gl_account_id || "")} onChange={(v) => onChange({ gl_account_id: v })} options={[{ value: "", label: t("choose") }, ...glOptions]} />
+        <p className="mt-1 text-[11px] text-muted-foreground">{gl && t("balanceX", { value: glBalance ? money(glBalance.balance, glBalance.currency_code) : money(0, code) })}</p>
       </div>
       <AmountInput className={inputClass} value={l.amount} decimals={decimals} onChange={(amount) => onChange({ amount })} />
       <input className={inputClass} placeholder={t("note")} value={l.note} onChange={(e) => onChange({ note: e.target.value })} />
@@ -306,31 +290,6 @@ function JournalLine({ line: l, gls, glOptions, currencyId, code, decimals, onCh
         <span />
       )}
     </li>
-  );
-}
-
-// Active customer and merchant wallets in the journal's currency: part of
-// the account number, the holder's name or reference.
-function AccountPicker({ value, currencyId, onChange }) {
-  const { t } = useTranslation("accounting");
-  return (
-    <SearchPicker
-      value={value}
-      onChange={onChange}
-      rowKey={(a) => a.acct_num}
-      placeholder={t("searchAccounts")}
-      empty={t("noAccountsFound")}
-      search={(search) => glJournalsApi.accounts({ search, ...(currencyId ? { currency_id: Number(currencyId) } : {}), limit: 20 }).then((r) => listPage(r).items)}
-      renderItem={(a) => (
-        <>
-          <b className="font-mono">{a.acct_num}</b> · {a.owner_name}
-          <span className="block truncate text-[10px] text-muted-foreground">
-            {[t(OWNER_KINDS[a.owner_kind] ?? "", { defaultValue: a.owner_kind }), a.acct_product_name, a === value ? null : money(a.avail_bal, a.currency_code)].filter(Boolean).join(" · ")}
-            {a !== value && a.restriction && <b className="ml-1 text-red-700">{t(`restriction_${a.restriction}`)}</b>}
-          </span>
-        </>
-      )}
-    />
   );
 }
 

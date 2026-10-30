@@ -257,8 +257,10 @@ export function AmlProposeDialog({ allowCleared, allowClose, openMatches, busy, 
 
 // Close a support case in one step (no checker): an internal reason and an
 // optional message the customer sees.
-export function CloseCaseDialog({ busy, onClose, onSave }) {
+// `outcomes` (Disputes: RESOLVED / REJECTED): the outcome is asked too.
+export function CloseCaseDialog({ outcomes, busy, onClose, onSave }) {
   const { t } = useTranslation("cases");
+  const [outcome, setOutcome] = useState(outcomes?.[0] ?? "");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
   return (
@@ -269,7 +271,7 @@ export function CloseCaseDialog({ busy, onClose, onSave }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          <Button disabled={!reason.trim()} loading={busy} onClick={() => onSave({ reason: reason.trim(), ...(message.trim() ? { customer_message: message.trim() } : {}) })}>
+          <Button disabled={!reason.trim()} loading={busy} onClick={() => onSave({ ...(outcome ? { outcome } : {}), reason: reason.trim(), ...(message.trim() ? { customer_message: message.trim() } : {}) })}>
             {t("action_closeCase")}
           </Button>
         </>
@@ -277,6 +279,20 @@ export function CloseCaseDialog({ busy, onClose, onSave }) {
     >
       <div className="grid gap-4">
         <p className="text-sm text-muted-foreground">{t("closeCaseHint")}</p>
+        {outcomes?.length > 0 && (
+          <div className="flex gap-2">
+            {outcomes.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onClick={() => setOutcome(o)}
+                className={`flex-1 rounded-xl border px-3 py-2 text-sm font-bold ${outcome === o ? "border-primary bg-[var(--primary-light)] text-primary" : "border-border hover:border-primary/50"}`}
+              >
+                {t(`outcome_${o}`)}
+              </button>
+            ))}
+          </div>
+        )}
         <label className={labelClass}>
           {t("reason")} <span className="text-red-500">*</span>
           <textarea value={reason} maxLength={4000} onChange={(e) => setReason(e.target.value)} className={areaClass} />
