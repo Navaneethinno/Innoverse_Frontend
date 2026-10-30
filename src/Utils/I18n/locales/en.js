@@ -4163,6 +4163,17 @@ export const deposits = {
 };
 
 export const loans = {
+  approvalLimits: "Approval limits",
+  approvalLimitsHint: "Who may approve how much. A user's own limit wins over their profile's; above it they forward the application to the next level with a note. Once any limit is set, approval works by limits instead of the product's approval matrix. Saved at once.",
+  whoApproves: "Who",
+  upToAmount: "Up to",
+  noApprovalLimits: "No limits yet: approval follows each product's approval matrix.",
+  authority_USER: "User",
+  authority_PROFILE: "Profile",
+  limitFor: "Limit for",
+  addLimit: "Add limit",
+  boardFrom: "Board approval from",
+  boardFromHint: "At or above this amount, a signed board resolution must be uploaded to the application.",
   choosePurpose: "Choose a purpose",
   creditScore: "Credit score (optional)",
   creditScoreHint: "From the bureau report. Products priced by score use it to pick the rate.",

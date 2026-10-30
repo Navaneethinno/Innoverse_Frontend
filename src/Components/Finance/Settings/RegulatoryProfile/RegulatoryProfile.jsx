@@ -11,8 +11,9 @@ import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHook
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct, AuditTimeline } from "../../Deposits/depositShared";
-import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "../../Loans/loanShared";
+import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope, Tabs } from "../../Loans/loanShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { ApprovalLimits } from "./ApprovalLimits";
 
 const BOOLS = ["regulatory_reporting_enabled", "credit_bureau_check_required", "standing_instruction_recovery_enabled"];
 
@@ -62,6 +63,8 @@ export function RegulatoryProfile() {
   const [error, setError] = useState("");
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  // The profile itself, or who may approve how much.
+  const [view, setView] = useState("profile");
 
   const load = useCallback(async () => {
     if (chooser && !institution) return;
@@ -122,7 +125,12 @@ export function RegulatoryProfile() {
         )}
       </div>
 
-      {chooser && !institution ? null : !data ? (
+      {!form && !(chooser && !institution) && (
+        <Tabs tabs={[{ key: "profile" }, { key: "limits" }]} value={view} onChange={setView} labelOf={(k) => t(k === "profile" ? "profileTitle" : "approvalLimits")} />
+      )}
+      {view === "limits" && !form && !(chooser && !institution) ? (
+        <ApprovalLimits scope={scope} />
+      ) : chooser && !institution ? null : !data ? (
         <PageSkeleton />
       ) : form ? (
         <div className="grid gap-4">
