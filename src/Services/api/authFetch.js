@@ -73,11 +73,36 @@ async function mustChangePassword(response) {
   );
 }
 
+// Refused from where the user is (the institution's Access by Location
+// policy): the admin portal signs out and the sign-in page shows why. Only
+// this error_code means it; other 403s are left to the caller.
+export const SIGNIN_NOTICE_KEY = "innoverse-admin:signin-notice";
+let signingOut = false;
+async function locationBlocked(response, init) {
+  if (response.status !== 403 || !bearer(init) || signingOut) return;
+  const body = await response
+    .clone()
+    .json()
+    .catch(() => null);
+  if (body?.error_code !== "access.location_blocked") return;
+  signingOut = true;
+  try {
+    window.sessionStorage.setItem(SIGNIN_NOTICE_KEY, body.message ?? "");
+  } catch {
+    // Storage blocked: the sign-in page shows its usual text.
+  }
+  window.dispatchEvent(new Event("auth:unauthorized"));
+  window.setTimeout(() => {
+    signingOut = false;
+  }, 3000);
+}
+
 export async function authFetch(url, given = {}) {
   // A list request carries the top bar's Institution filter.
   const init = withInstitutionFilter(url, given);
   const response = await cachedFetch(url, init, () => fetch(url, init));
   await mustChangePassword(response);
+  await locationBlocked(response, init);
   if (response.status !== 401 || !bearer(init) || !getRefreshToken()) return response;
   if (!(await refreshSession())) return response;
   return fetch(url, {

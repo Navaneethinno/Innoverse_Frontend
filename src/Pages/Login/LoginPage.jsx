@@ -24,6 +24,7 @@ import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import loginIllustrationLight from "@/assets/login-illustration.png";
 import loginIllustrationDark from "@/assets/login-illustration-dark.png";
+import { SIGNIN_NOTICE_KEY } from "@/Services/api/authFetch";
 function GradientMesh() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -76,7 +77,16 @@ export function LoginPage() {
   const unlock = (key) => () => !typing[key] && setTyping((t) => ({ ...t, [key]: true }));
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // Why the session ended, when it was refused for its location: shown once.
+  const [error, setError] = useState(() => {
+    try {
+      const notice = window.sessionStorage.getItem(SIGNIN_NOTICE_KEY) ?? "";
+      window.sessionStorage.removeItem(SIGNIN_NOTICE_KEY);
+      return notice;
+    } catch {
+      return "";
+    }
+  });
   const navigate = useNavigate();
   const login = useAuth((state) => state.login);
   const { mode, toggleMode } = useColorMode();
