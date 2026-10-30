@@ -452,6 +452,8 @@ export const institutions = {
 };
 
 export const profiles = {
+  requestedPermissions: "Permissions after this change",
+  requestedPermissionsHint: "Every menu and action this profile will have once you approve. The backend doesn't yet send which ones were added or removed.",
   "wholeColumn": "Whole column, in every module shown:",
   "menu": "Menu",
   createProfile: "Create Profile",

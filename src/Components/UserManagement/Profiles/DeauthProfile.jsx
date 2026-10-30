@@ -3,6 +3,7 @@ import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
+import { RequestedPermissions } from "./RequestedPermissions";
 
 // Deauthorize-profile confirmation (requires narration) — split out of the
 // old shared ConfirmDialog instance in ProfilesPage.jsx. Shows the checker
@@ -33,6 +34,7 @@ export function DeauthProfile({ profile, narration, setNarration, pending, onClo
       onConfirm={onConfirm}
     >
       <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
+      <RequestedPermissions profileId={open ? profileId(profile) : null} open={open} />
       <textarea
         value={narration}
         onChange={(e) => setNarration(e.target.value)}
