@@ -50,7 +50,7 @@ export function GuideProvider({ children }) {
   const user = useAuth((s) => s.user);
   const menus = useSelector((state) => state.menu.menuArray);
   const [progress, setProgress] = useGuideProgress(user?.user_id ?? user?.username);
-  const [run, setRun] = useState(null); // { topic, steps, index, slug }
+  const [run, setRun] = useState(null); // { topic, steps, index, path }
   const [waiting, setWaiting] = useState(false);
   const [practiced, setPracticed] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
