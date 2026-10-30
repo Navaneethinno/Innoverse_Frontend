@@ -321,6 +321,8 @@ function FacilityView({ id, onBack }) {
   const m = (v) => money(v, cur);
   const ask = (key) => () => setDialog(key);
   const pendingRestructure = loan.restructures?.find((r) => r.status === "PENDING");
+  const rateType = loan.rate_type ?? f.rate_type;
+  const paidInParts = Boolean(loan.paid_in_parts ?? f.paid_in_parts);
   const pendingWriteOff = loan.write_offs?.find((w) => w.status === "PENDING");
   const buttons = [
     a.cancel &&
@@ -539,8 +541,9 @@ function FacilityView({ id, onBack }) {
             key: "collections",
             count: (loan.collection_actions?.length ?? 0) + (loan.recovery_mandates?.length ?? 0),
           },
-          (a.reprice || a.reprice_mode || f.reference_rate_code) && { key: "repricing" },
-          (a.tranche_plan || a.tranche_disburse || a.tranche_proof || Number(f.tranche_count) > 0) && { key: "tranches" },
+          // A variable-rate loan, or one paid out in parts (whatever actions are open).
+          (rateType === "VARIABLE" || a.reprice || a.reprice_mode) && { key: "repricing" },
+          (paidInParts || a.tranche_plan) && { key: "tranches" },
           (loan.deceased ?? f.deceased) && { key: "deceased" },
           { key: "officers" },
           { key: "history" },

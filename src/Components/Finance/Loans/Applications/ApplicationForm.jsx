@@ -19,7 +19,7 @@ import {
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Facts, Problems, dayDate, labelClass, ratePct } from "../../Deposits/depositShared";
-import { branchOptions, officerOptions, useCoreBanking } from "../../coreBankingShared";
+import { officerOptions, useCoreBanking } from "../../coreBankingShared";
 import { Field, MiniTable, ScheduleTable, loanLabel, useInstitutionScope } from "../loanShared";
 
 const EMPTY = {
@@ -31,7 +31,6 @@ const EMPTY = {
   application_channel: "BRANCH",
   disbursement_acct_id: "",
   credit_score: "",
-  branch_id: "",
   repayment_acct_id: "",
   monthly_income: "",
   operating_months: "",
@@ -57,7 +56,6 @@ function toBody(entity, f) {
     ...(f.disbursement_acct_id ? { disbursement_acct_id: Number(f.disbursement_acct_id) } : {}),
     // From the bureau report: picks the band priced by score.
     ...(f.credit_score ? { credit_score: Number(f.credit_score) } : {}),
-    ...(f.application_channel === "BRANCH" && f.branch_id ? { branch_id: Number(f.branch_id) } : {}),
     ...(f.repayment_acct_id ? { repayment_acct_id: Number(f.repayment_acct_id) } : {}),
     ...(f.purpose_description.trim() ? { purpose_description: f.purpose_description.trim() } : {}),
     ...(f.monthly_income ? { monthly_income: f.monthly_income } : {}),
@@ -93,7 +91,6 @@ export function ApplicationForm({ application, onClose, onSaved }) {
           application_channel: application.application_channel ?? "BRANCH",
           disbursement_acct_id: Number(application.disbursement_acct_id) ? String(application.disbursement_acct_id) : "",
           credit_score: application.credit_score ? String(application.credit_score) : "",
-          branch_id: application.branch_id ? String(application.branch_id) : "",
           repayment_acct_id:
             application.repayment_acct_id &&
             application.repayment_acct_id !== application.disbursement_acct_id
@@ -195,7 +192,6 @@ export function ApplicationForm({ application, onClose, onSaved }) {
     (w) => !product || w.currency_id === product.currency_code,
   );
   const individual = String(entity?.entity_type ?? "").endsWith("INDV");
-  const branches = branchOptions(setup, { openOnly: true, operational: true });
   const rules = product?.config?.eligibility_rules ?? {};
   const savingsPct = Number(product?.config?.collateral_policy?.compulsory_savings_percent ?? 0);
   const topUps = running.filter((x) => String(x.loan_product_id) === form.loan_product_id);
@@ -206,7 +202,6 @@ export function ApplicationForm({ application, onClose, onSaved }) {
     Number(form.amount) > 0 &&
     /^[A-Z0-9_]+$/.test(form.purpose_code) &&
     (form.disbursement_acct_id || rules.wallet_not_required) &&
-    (form.application_channel !== "BRANCH" || form.branch_id || !branches.length) &&
     (!rules.group_only || form.group_id);
   const body = ready ? toBody(entity, form) : null;
   const { narration: _n, ...quoteBody } = body ?? {};
@@ -434,12 +429,7 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                   onChange={set("application_channel")}
                 />,
               )}
-              {form.application_channel === "BRANCH" &&
-                branches.length > 0 &&
-                field(
-                  t("branch"),
-                  <Field field={{ type: "select", blank: t("choose"), options: branches }} value={form.branch_id} onChange={set("branch_id")} />,
-                )}
+              {form.application_channel === "BRANCH" && <p className="self-end text-[11px] text-muted-foreground">{t("branchFromUser")}</p>}
               {individual
                 ? field(
                     t("monthlyIncome"),

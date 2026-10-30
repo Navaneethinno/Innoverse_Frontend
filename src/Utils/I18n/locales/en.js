@@ -4163,6 +4163,7 @@ export const deposits = {
 };
 
 export const loans = {
+  branchFromUser: "The application takes your own branch.",
   done: "Done.",
   payNextPart: "Pay next part",
   payoutHint: "Pays out {{amount}}.",

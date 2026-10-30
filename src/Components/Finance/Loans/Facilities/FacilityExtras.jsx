@@ -133,7 +133,7 @@ export function Repricing({ loan, onChanged }) {
   return (
     <div className="grid gap-4 rounded-2xl border border-border bg-card p-4">
       <p className="text-sm">
-        {f.pricing_type === "VARIABLE" || f.reference_rate_code
+        {(loan.rate_type ?? f.rate_type) === "VARIABLE"
           ? t("variableRateLine", { rate: ratePct(f.annual_rate), code: f.reference_rate_code ?? "—", spread: ratePct(f.spread ?? 0) })
           : t("fixedRateLine", { rate: ratePct(f.annual_rate) })}
       </p>
@@ -227,7 +227,7 @@ export function Tranches({ loan, onChanged }) {
   const f = loan.facility ?? {};
   const a = loan.actions ?? {};
   const cur = f.currency_alpha_code;
-  const [rows, setRows] = useState(null);
+  const [rows, setRows] = useState(loan.tranches ?? null);
   const [plan, setPlan] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
