@@ -37,7 +37,12 @@ const toBody = (s) => ({
     code: b.code,
     name: String(b.name ?? "").trim(),
     address: String(b.address ?? "").trim(),
-    head_office: Boolean(b.head_office),
+    // "" a branch; a head office is OPERATIONAL or ADMINISTRATIVE (no counters,
+    // cash or loans there). The server sets head_office from it.
+    head_office_type: b.head_office_type ?? "",
+    // The most cash the branch may hold (tills and vaults, base currency);
+    // above it the branch can't close its day. "0": no limit.
+    cash_holding_limit: String(b.cash_holding_limit || "0"),
     status: b.status || "OPEN",
   })),
   staff: s.staff.map((r) => ({
@@ -46,14 +51,13 @@ const toBody = (s) => ({
     loan_officer: Boolean(r.loan_officer),
     teller: Boolean(r.teller),
     vault_custodian: Boolean(r.vault_custodian),
+    // Sees only their branch's accounts, applications and loans.
+    own_branch_only: Boolean(r.own_branch_only),
   })),
   // The chart-of-accounts groups every till's and vault's GL sits under.
   teller: {
     till_cash_gl_id: Number(s.teller?.till_cash_gl_id) || 0,
     vault_cash_gl_id: Number(s.teller?.vault_cash_gl_id) || 0,
-    // A closing difference beyond the tolerance waits for a vault custodian.
-    variance_approval: Boolean(s.teller?.variance_approval),
-    variance_tolerance: String(s.teller?.variance_tolerance || "0"),
   },
   withholding_tax: {
     ...s.withholding_tax,
@@ -105,10 +109,14 @@ function setupProblem(t, s) {
   if (s.branches.some((b) => !b.code || !String(b.name ?? "").trim()))
     return t("branchNeedsCodeName");
   if (new Set(codes).size !== codes.length) return t("branchCodeOnce");
-  if (s.branches.length && s.branches.filter((b) => b.head_office).length !== 1)
-    return t("oneHeadOffice");
+  // At least one head office; at most one of each type.
+  const types = s.branches.map((b) => b.head_office_type).filter(Boolean);
+  if (s.branches.length && !types.length) return t("oneHeadOffice");
+  if (new Set(types).size !== types.length) return t("headOfficeTypeOnce");
   const open = new Set(s.branches.filter((b) => b.status !== "CLOSED").map((b) => b.code));
   if (s.staff.some((r) => !r.user_id || !open.has(r.branch_code))) return t("staffNeedsOpenBranch");
+  const admin = s.branches.find((b) => b.head_office_type === "ADMINISTRATIVE")?.code;
+  if (admin && s.staff.some((r) => r.branch_code === admin && (r.teller || r.vault_custodian || r.loan_officer))) return t("adminOfficeNoRoles");
   if (new Set(s.staff.map((r) => String(r.user_id))).size !== s.staff.length) return t("staffOnce");
   if (s.ecl.enabled && Number(s.ecl.stage3_days) <= Number(s.ecl.stage2_days))
     return t("stage3AfterStage2");
@@ -192,7 +200,7 @@ export function CoreBankingSetup() {
   // A saved branch keeps its code (branches are matched by code).
   const startEdit = () => {
     const s = structuredClone(pending ?? data.setup);
-    setForm({ ...s, branches: s.branches.map((b) => ({ ...b, _saved: true })) });
+    setForm({ ...s, branches: s.branches.map((b) => ({ ...b, head_office_type: b.head_office_type ?? (b.head_office ? "OPERATIONAL" : ""), _saved: true })) });
     setError("");
   };
   const a = data?.actions ?? {};
@@ -201,6 +209,7 @@ export function CoreBankingSetup() {
   const problem = form ? setupProblem(t, form) : "";
   const editing = Boolean(form);
   const users = (data?.users ?? []).map((u) => ({ value: String(u.id), label: u.name }));
+  const adminOffice = (shown?.branches ?? []).find((b) => b.head_office_type === "ADMINISTRATIVE")?.code;
   const branchCodes = (shown?.branches ?? [])
     .filter((b) => b.status !== "CLOSED")
     .map((b) => ({ value: b.code, label: `${b.code} · ${b.name}` }));
@@ -278,7 +287,8 @@ export function CoreBankingSetup() {
             />
             {tab === "branches" && (
               <Section title={t("tab_branches")}>
-                <p className="mb-3 text-xs text-muted-foreground">{t("branchesHint")}</p>
+                <p className="mb-1 text-xs text-muted-foreground">{t("branchesHint")}</p>
+                <p className="mb-3 text-xs text-muted-foreground">{t("headOfficeTypesHint")}</p>
                 <RowsEditor
                   rows={shown.branches ?? []}
                   disabled={!editing}
@@ -287,11 +297,12 @@ export function CoreBankingSetup() {
                     code: "",
                     name: "",
                     address: "",
-                    head_office: !form.branches.length,
+                    head_office_type: form.branches.length ? "" : "OPERATIONAL",
+                    cash_holding_limit: "0",
                     status: "OPEN",
                   })}
                   addLabel={t("addBranch")}
-                  columns="lg:grid-cols-5"
+                  columns="lg:grid-cols-6"
                   fields={[
                     { key: "code", label: t("code"), type: "code", disabledIf: (r) => r._saved },
                     { key: "name", label: t("name") },
@@ -302,7 +313,17 @@ export function CoreBankingSetup() {
                       type: "select",
                       options: data.options?.branch_statuses ?? ["OPEN", "CLOSED"],
                     },
-                    { key: "head_office", label: t("headOffice"), type: "bool" },
+                    {
+                      key: "head_office_type",
+                      label: t("branchType"),
+                      type: "select",
+                      options: [
+                        { value: "", label: t("typeBranch") },
+                        { value: "OPERATIONAL", label: t("typeOperational") },
+                        { value: "ADMINISTRATIVE", label: t("typeAdministrative") },
+                      ],
+                    },
+                    { key: "cash_holding_limit", label: t("cashHoldingLimit"), type: "amount", disabledIf: (r) => r.head_office_type === "ADMINISTRATIVE" },
                   ]}
                 />
               </Section>
@@ -348,11 +369,15 @@ export function CoreBankingSetup() {
                       blank: t("choose"),
                       options: branchCodes,
                     },
-                    { key: "loan_officer", label: t("loanOfficer"), type: "bool" },
-                    { key: "teller", label: t("teller"), type: "bool" },
-                    { key: "vault_custodian", label: t("vaultCustodian"), type: "bool" },
+                    // No counters, cash or loans at the administrative head office.
+                    { key: "loan_officer", label: t("loanOfficer"), type: "bool", disabledIf: (r) => r.branch_code === adminOffice },
+                    { key: "teller", label: t("teller"), type: "bool", disabledIf: (r) => r.branch_code === adminOffice },
+                    { key: "vault_custodian", label: t("vaultCustodian"), type: "bool", disabledIf: (r) => r.branch_code === adminOffice },
+                    { key: "own_branch_only", label: t("ownBranchOnly"), type: "bool" },
                   ]}
                 />
+                <p className="mt-2 text-xs text-muted-foreground">{t("ownBranchOnlyHint")}</p>
+                <StaffTransfers rows={data.staff_history ?? []} />
               </Section>
             )}
             {tab === "teller" && (
@@ -383,27 +408,7 @@ export function CoreBankingSetup() {
                     </label>
                   ))}
                 </div>
-                <div className="mt-5">
-                  <Toggle
-                    showLabel
-                    label={t("varianceApproval")}
-                    disabled={!editing}
-                    checked={Boolean(shown.teller?.variance_approval)}
-                    onChange={(v) => set("teller")({ variance_approval: v })}
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">{t("varianceApprovalHint")}</p>
-                  {shown.teller?.variance_approval && (
-                    <label className={`${labelClass} mt-3 block max-w-xs`}>
-                      {t("varianceTolerance")}
-                      <Field
-                        field={{ type: "rate" }}
-                        disabled={!editing}
-                        value={String(shown.teller?.variance_tolerance ?? "")}
-                        onChange={(v) => set("teller")({ variance_tolerance: v })}
-                      />
-                    </label>
-                  )}
-                </div>
+                <p className="mt-4 text-xs text-muted-foreground">{t("countsMustMatch")}</p>
               </Section>
             )}
             {tab === "withholding_tax" && (
@@ -771,6 +776,42 @@ function StageGrid({ stages, disabled, onChange }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// Staff moved between branches (newest first): from where, to where, from when.
+function StaffTransfers({ rows }) {
+  const { t } = useTranslation("corebank");
+  if (!rows.length) return null;
+  const sorted = [...rows].sort((x, y) => String(y.effective_from).localeCompare(String(x.effective_from)));
+  return (
+    <div className="mt-5">
+      <p className="mb-2 text-xs font-black uppercase tracking-wider text-muted-foreground">{t("transfers")}</p>
+      <div className="overflow-x-auto rounded-xl border border-border">
+        <table className="w-full text-xs">
+          <thead className="border-b border-border text-left text-[10px] font-bold uppercase text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">{t("user")}</th>
+              <th className="px-3 py-2">{t("fromBranch")}</th>
+              <th className="px-3 py-2">{t("toBranch")}</th>
+              <th className="px-3 py-2">{t("effectiveFrom")}</th>
+              <th className="px-3 py-2">{t("changedBy")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((r, i) => (
+              <tr key={i} className="border-b border-border/50 last:border-0">
+                <td className="px-3 py-1.5 font-semibold">{r.user_name}</td>
+                <td className="px-3 py-1.5">{r.from_branch || t("firstAttachment")}</td>
+                <td className="px-3 py-1.5">{r.to_branch || t("removedFromBranch")}</td>
+                <td className="px-3 py-1.5 whitespace-nowrap">{accountDate(r.effective_from)}</td>
+                <td className="px-3 py-1.5">{r.changed_by ?? "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
