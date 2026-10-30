@@ -4,6 +4,8 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  newVersion: "A new version of the portal is available.",
+  reloadNow: "Reload now",
   open: "Open",
   all: "All",
   approvalLevel: "Level {{level}} of {{levels}}",
