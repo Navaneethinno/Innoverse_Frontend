@@ -15,7 +15,6 @@ import { PageBreadcrumbs } from "./PageBreadcrumbs";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { NoAccess } from "@/Components/Common/NoAccess";
-import { TourProvider } from "@/Components/Tour/TourProvider";
 import { GuideProvider } from "@/Components/Guide/GuideProvider";
 import { BackToTop } from "./BackToTop";
 import { KeyCustodyProvider, KeysLockedBanner } from "@/Components/KeyCustody/KeyCustodyProvider";
@@ -137,11 +136,9 @@ export function AppLayout() {
       <AuthEvents />
       <InactivityLogout />
       <BackToTop />
-      <TourProvider>
-        <GuideProvider>
-          <Layout />
-        </GuideProvider>
-      </TourProvider>
+      <GuideProvider>
+        <Layout />
+      </GuideProvider>
     </SidebarStateProvider>
   );
 }

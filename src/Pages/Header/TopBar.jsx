@@ -12,7 +12,6 @@ import { useAuth } from "@/Hooks/useAuth";
 import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { useIsMobile } from "@/Hooks/useIsMobile";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { TourButton } from "@/Components/Tour/TourButton";
 import { GuideButton } from "@/Components/Guide/GuideButton";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { isDemoUser } from "@/Utils/Lib/demoInstitution";
@@ -120,7 +119,6 @@ export function TopBar() {
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           <GuideButton />
-          <TourButton />
 
           <UiTooltip label={t("layout:keyboardShortcutsHint")}>
           <button

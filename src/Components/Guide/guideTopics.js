@@ -1,5 +1,5 @@
 // The guide's topics: short tours built from the same `data-tour` markers
-// and texts (tour namespace) as the old "Take a tour", grouped by what the
+// and texts (tour namespace) as tourSteps.js, grouped by what the
 // user wants to learn. A step whose marker isn't on the page is dropped, so
 // a topic with no steps left isn't offered.
 //
@@ -35,7 +35,7 @@ import {
   ToggleLeft,
   Trash2,
 } from "lucide-react";
-import { ACTION_STEPS, FOOTER_STEPS, LIST_STEPS, PAGE_TOURS, PAGE_TITLE, sel } from "@/Components/Tour/tourSteps";
+import { ACTION_STEPS, FOOTER_STEPS, LIST_STEPS, PAGE_TOURS, PAGE_TITLE, sel } from "./tourSteps";
 import { pageControlSteps } from "./pageControls";
 
 export const ICONS = {
@@ -70,7 +70,7 @@ export const ICONS = {
 const find = (target) => (typeof target === "string" ? document.querySelector(target) : target);
 export const present = (step) => step.center || Boolean(find(step.target));
 
-// The page's tour key, as the old tour reads it: the last path segment
+// The page's key in PAGE_TOURS: the last path segment
 // (dashes dropped) with its own steps, else the first segment.
 export const slugOf = (path) => {
   const parts = path.split("/").filter(Boolean).map((p) => p.replace(/-/g, ""));

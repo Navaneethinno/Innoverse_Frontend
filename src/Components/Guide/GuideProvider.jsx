@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useAuth } from "@/Hooks/useAuth";
-import { discoverFieldSteps } from "@/Components/Tour/discoverFields";
+import { discoverFieldSteps } from "./discoverFields";
 import { menuPathForItem, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
 import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
 import { GuideInspector } from "./GuideInspector";
@@ -13,7 +13,7 @@ import { GuideOverlay } from "./GuideOverlay";
 import { useGuideProgress } from "./guideProgress";
 import { PAGE_TITLE, availableSteps, formSteps, sel, slugOf, topicByKey } from "./guideTopics";
 
-// The new guide (beside the old "Take a tour" until it replaces it): short
+// The guide: short
 // topic tours per page, practice steps, resume, a getting-started checklist
 // and keyboard control. Started only by the user; it never changes data —
 // a form it opens stays open with whatever was typed.
