@@ -50,6 +50,7 @@ void i18n
       "aml",
       "reports",
       "tour",
+      "guide",
       "formBuilder",
       "limits",
       "accounts",
