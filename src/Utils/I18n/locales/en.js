@@ -7821,6 +7821,14 @@ export const atm = {
 };
 
 export const corebank = {
+  countMustMatch: "The count must match the till's balance exactly.",
+  checkCashLimit: "Cash within the branch's limit",
+  cashOverLimit: "Cash above the branch limit by {{amount}}: send the excess to another branch or the bank.",
+  openTreasury: "Open Treasury",
+  giveCash: "Give cash to a teller",
+  giveCashHint: "Cash leaves vault {{code}} for an open till. It is set aside now; the teller accepts or rejects it.",
+  tellersDay: "Teller's day",
+  transfer_ISSUE: "Given by vault",
   branchType: "Type",
   typeBranch: "Branch",
   typeOperational: "Head office · Operational",

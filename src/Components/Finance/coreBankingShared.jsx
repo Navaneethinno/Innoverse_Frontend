@@ -42,9 +42,11 @@ export function useCoreBanking(scope, enabled = true) {
 }
 
 // Branch options for a select: open branches first ({ value: id, label }).
-export const branchOptions = (setup, { openOnly = false } = {}) =>
+// `operational`: without the administrative head office (no tills, vaults or wallets there).
+export const branchOptions = (setup, { openOnly = false, operational = false } = {}) =>
   (setup?.branches ?? [])
     .filter((b) => !openOnly || b.status !== "CLOSED")
+    .filter((b) => !operational || b.head_office_type !== "ADMINISTRATIVE")
     .map((b) => ({ value: String(b.id), label: `${b.code} · ${b.name}` }));
 
 // Loan officer options ({ value: user_id, label: name · branch }).

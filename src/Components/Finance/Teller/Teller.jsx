@@ -18,6 +18,7 @@ import {
   Vault,
   XCircle,
 } from "lucide-react";
+import { MenuLink } from "@/Components/Common/MenuLink";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { AmountInput } from "@/Components/Common/AmountInput";
 import { Button } from "@/Components/Common/Button";
@@ -381,7 +382,7 @@ function TillForm({ till, onClose, onSaved }) {
                 field={{
                   type: "select",
                   blank: t("choose"),
-                  options: branchOptions(setup, { openOnly: true }),
+                  options: branchOptions(setup, { openOnly: true, operational: true }),
                 }}
                 value={form.branch_id}
                 onChange={set("branch_id")}
@@ -464,6 +465,7 @@ function TillDetail({ id, onClose }) {
   const { scope } = useInstitutionScope();
   const [till, setTill] = useState(null);
   const [proof, setProof] = useState(null);
+  const [issuing, setIssuing] = useState(false);
   const navigate = useNavigate();
   const canJournal = useMenuPermission("Finance Transaction");
   useEffect(() => {
@@ -492,6 +494,14 @@ function TillDetail({ id, onClose }) {
             ]}
           />
           <BalanceFacts till={till} />
+          {till.kind === "VAULT" && till.status === "ACTIVE" && (
+            <div>
+              <Button size="sm" icon={HandCoins} onClick={() => setIssuing(true)}>
+                {t("giveCash")}
+              </Button>
+            </div>
+          )}
+          {issuing && <IssueDialog vault={till} onClose={() => setIssuing(false)} onDone={() => setIssuing(false)} />}
           {/* Cash reaches a vault by a manual journal: DR the vault, CR its source. */}
           {till.kind === "VAULT" && till.status === "ACTIVE" && canJournal("Add") && (
             <div>
@@ -1007,6 +1017,8 @@ function CountDialog({ verb, till, onClose, onDone }) {
   const [notes, setNotes] = useState([]);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  // A till's count must equal its balance exactly; the server's refusal shows here.
+  const [refusal, setRefusal] = useState("");
   const fromNotes = notes.reduce((sum, n) => sum + Number(n.value || 0) * Number(n.count || 0), 0);
   const amount = notes.length ? fromNotes.toFixed(2) : counted;
   const difference = amount === "" ? 0 : Number(amount) - Number(till.balance ?? 0);
@@ -1038,7 +1050,8 @@ function CountDialog({ verb, till, onClose, onDone }) {
         );
       onDone(result);
     } catch (e) {
-      notifications.error(e.message);
+      // Kept open with what was counted: recount, or correct the entries first.
+      setRefusal(e.message);
     } finally {
       setBusy(false);
     }
@@ -1077,9 +1090,15 @@ function CountDialog({ verb, till, onClose, onDone }) {
         <AmountInput
           className={cn(inputClass, "mt-1.5")}
           value={amount}
-          onChange={(v) => !notes.length && setCounted(v)}
+          onChange={(v) => {
+            if (notes.length) return;
+            setCounted(v);
+            setRefusal("");
+          }}
         />
       </label>
+      {refusal && <p className="mt-2 text-xs font-semibold text-red-700">{refusal}</p>}
+      {verb !== "vault" && amount !== "" && difference !== 0 && <p className="mt-1 text-[11px] text-muted-foreground">{t("countMustMatch")}</p>}
       {amount !== "" && difference !== 0 && (
         <p
           className={cn(
@@ -1499,7 +1518,7 @@ function Transfers({ waiting }) {
         </div>
         {view === "all" && (
           <div className="flex flex-wrap gap-2">
-            {select("kind", "anyKind", ["REQUISITION", "RETURN", "TRANSFER"], "transfer_")}
+            {select("kind", "anyKind", ["REQUISITION", "ISSUE", "RETURN", "TRANSFER"], "transfer_")}
             {select("status", "anyStatus", ["PENDING", "COMPLETED", "REJECTED", "CANCELLED"], "transferStatus_")}
           </div>
         )}
@@ -1573,6 +1592,7 @@ function TransferRows({ rows, empty, onChanged }) {
   const { t } = useTranslation("corebank");
   const { scope } = useInstitutionScope();
   const [deciding, setDeciding] = useState(null);
+  const [day, setDay] = useState(null);
   const decide = async (note) => {
     const { verb, row } = deciding;
     try {
@@ -1595,6 +1615,7 @@ function TransferRows({ rows, empty, onChanged }) {
   );
   return (
     <>
+      {day && <ProofSheet till={{ id: day.from_till_id ?? day.till_id, code: day.from_till_code, currency: day.currency }} sessionId={day.till_session_id} onClose={() => setDay(null)} />}
       <MiniTable
         rows={rows}
         rowKey={(r) => r.id}
@@ -1665,6 +1686,11 @@ function TransferRows({ rows, empty, onChanged }) {
             label: "",
             render: (r) => (
               <span className="flex flex-wrap justify-end gap-1">
+                {r.kind === "RETURN" && Number(r.till_session_id) > 0 && (
+                  <Button size="sm" variant="outline" icon={FileText} onClick={() => setDay(r)}>
+                    {t("tellersDay")}
+                  </Button>
+                )}
                 {r.actions?.approve && (
                   <Button
                     size="sm"
@@ -2037,6 +2063,14 @@ function EndOfDay() {
                   <b>{t("checkTransfers")}</b>
                   {Number(ready.transfers_pending) > 0 && <span className="block text-xs">{t("transfersPendingN", { count: Number(ready.transfers_pending) })}</span>}
                 </ReadyLine>
+                <ReadyLine ok={!ready.cash_over_limit}>
+                  <b>{t("checkCashLimit")}</b>
+                  {ready.cash_over_limit && (
+                    <span className="block text-xs">
+                      {t("cashOverLimit", { amount: money(ready.cash_over_limit.excess, ready.cash_over_limit.currency) })} <MenuLink slug="treasury" label={t("openTreasury")} />
+                    </span>
+                  )}
+                </ReadyLine>
                 <ReadyLine ok={!(ready.vaults_not_counted ?? []).length}>
                   <b>{t("checkVaults")}</b>
                   {(ready.vaults_not_counted ?? []).map((x) => {
@@ -2172,5 +2206,84 @@ function EndOfDay() {
       )}
       {proof && <ProofSheet till={proof.till} sessionId={proof.sessionId} onClose={() => setProof(null)} />}
     </div>
+  );
+}
+
+// A vault custodian gives cash to an open till of the branch; the teller
+// accepts (or rejects) it. The cash is set aside in the vault at once.
+function IssueDialog({ vault, onClose, onDone }) {
+  const { t } = useTranslation("corebank");
+  const { scope } = useInstitutionScope();
+  const [tills, setTills] = useState(null);
+  const [form, setForm] = useState({ to_till_id: "", amount: "", reference: newSlip(vault), narration: "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    tellerApi
+      .list(scope({ branch_id: vault.branch_id, kind: "TILL" }))
+      .then((r) => setTills((Array.isArray(r?.data) ? r.data : []).filter((x) => x.session && x.currency === vault.currency)))
+      .catch(() => setTills([]));
+  }, [scope, vault.branch_id, vault.currency]);
+  const ready = form.to_till_id && Number(form.amount) > 0 && form.reference;
+  const save = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await tellerApi.transfer_request(scope({ kind: "ISSUE", to_till_id: Number(form.to_till_id), amount: form.amount, reference: form.reference, narration: form.narration.trim() }));
+      if (r?.message) notifications.success(r.message);
+      onDone();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t("giveCash")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+            {t("giveCash")}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-3">
+        <p className="text-xs text-muted-foreground">{t("giveCashHint", { code: vault.code })}</p>
+        <label className={labelClass}>
+          {t("receivingTill")}
+          <Field
+            field={{
+              type: "select",
+              blank: tills?.length ? t("choose") : t("noOpenTills"),
+              options: (tills ?? []).map((x) => ({ value: String(x.id), label: `${x.code} · ${sessionOwner(x.session)}` })),
+            }}
+            value={form.to_till_id}
+            onChange={(v) => setForm((f) => ({ ...f, to_till_id: v }))}
+          />
+        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className={labelClass}>
+            {t("amountIn", { currency: vault.currency })}
+            <AmountInput className={cn(inputClass, "mt-1.5")} value={form.amount} onChange={(amount) => setForm((f) => ({ ...f, amount }))} />
+          </label>
+          <label className={labelClass}>
+            {t("slipReference")}
+            <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.reference} onChange={(e) => setForm((f) => ({ ...f, reference: slipReference(e.target.value) }))} />
+          </label>
+        </div>
+        <label className={labelClass}>
+          {t("narration")}
+          <input className={cn(inputClass, "mt-1.5")} maxLength={200} value={form.narration} onChange={(e) => setForm((f) => ({ ...f, narration: e.target.value }))} />
+        </label>
+        {error && <p className="text-xs font-semibold text-red-700">{error}</p>}
+      </div>
+    </Modal>
   );
 }
