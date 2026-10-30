@@ -4,6 +4,7 @@
 // any element under the pointer.
 
 import i18n from "i18next";
+import { PAGE_HELP } from "./pageHelp";
 
 const t = (key, vars) => i18n.t(`guide:${key}`, vars);
 const tour = (key) => (i18n.exists(`tour:${key}`) ? i18n.t(`tour:${key}`) : "");
@@ -62,9 +63,24 @@ function markedText(el) {
   return null;
 }
 
-// { title, content } for any element: the tour's text if it has one, else
-// its label, its tooltip (title attribute) and what kind of control it is.
+// The open page's key in PAGE_HELP: its last path segment without dashes.
+export const pageKey = () => (window.location.pathname.split("/").filter(Boolean).pop() ?? "").replace(/-/g, "").toLowerCase();
+
+// Written help for a label on this page, else the shared one.
+export const writtenHelp = (label) => {
+  const key = String(label ?? "").toLowerCase();
+  return PAGE_HELP[pageKey()]?.[key] ?? PAGE_HELP._common[key] ?? null;
+};
+
+// The page's own introduction, when one is written.
+export const pageAbout = () => PAGE_HELP[pageKey()]?.about ?? null;
+
+// { title, content } for any element: its written help if there is one,
+// else the tour's text, else its label, its tooltip and what kind of
+// control it is.
 export function explain(el) {
+  const written = writtenHelp(labelOf(el));
+  if (written) return { title: labelOf(el), content: written };
   const marked = markedText(el);
   if (marked) return marked;
   const kind = kindOf(el);
@@ -92,6 +108,9 @@ export function pageControlSteps() {
   const steps = [];
   const seen = new Set();
   const groups = new Set();
+  const about = pageAbout();
+  const heading = root.querySelector("h1");
+  if (about && heading) steps.push({ id: "pc_about", target: heading, icon: "pageIntro", title: labelOf(heading), content: about });
   for (const el of root.querySelectorAll(INTERACTIVE)) {
     if (!visible(el) || el.matches("th") || el.closest("tbody, tfoot, [data-tour='row-actions'], [data-tour='pagination'], [data-guide-ui]")) continue;
     if (el.closest("[role=tablist]")) {
@@ -118,6 +137,11 @@ export function pageControlSteps() {
   if (head && visible(head)) {
     const cols = [...head.querySelectorAll("th")].map(labelOf).filter(Boolean);
     if (cols.length) steps.push({ id: "pc_columns", target: head, icon: "table", title: t("columnsTitle"), content: t("columnsBody", { names: cols.join(", ") }) });
+    // Columns with written help get a step of their own.
+    for (const th of head.querySelectorAll("th")) {
+      const help = PAGE_HELP[pageKey()]?.[labelOf(th).toLowerCase()];
+      if (help) steps.push({ id: `pc_col_${steps.length}`, target: th, icon: "table", title: labelOf(th), content: help });
+    }
   }
   return steps;
 }

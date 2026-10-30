@@ -8,6 +8,7 @@ import { discoverFieldSteps } from "@/Components/Tour/discoverFields";
 import { menuPathForItem, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
 import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
 import { GuideInspector } from "./GuideInspector";
+import { pageAbout } from "./pageControls";
 import { GuideOverlay } from "./GuideOverlay";
 import { useGuideProgress } from "./guideProgress";
 import { PAGE_TITLE, availableSteps, formSteps, sel, slugOf, topicByKey } from "./guideTopics";
@@ -64,6 +65,8 @@ export function GuideProvider({ children }) {
   const withText = useCallback(
     (step) => {
       if (step.title && step.content) return step;
+      // The page's own written introduction, when there is one.
+      if (step.id === "pageIntro" && pageAbout()) return { ...step, title: pageName(), content: pageAbout() };
       const vars = { page: pageName(), ...step.vars?.() };
       return { ...step, title: t(`tour:${step.id}Title`, vars), content: t(`tour:${step.id}Body`, vars) };
     },
