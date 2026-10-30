@@ -98,7 +98,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   const filterDefs = useMemo(() => (options?.filters ?? []).filter((f) => f.kind !== "select" || f.options?.length), [options]);
   const filters = Object.fromEntries(filterDefs.map((f) => [f.key, get(`f_${f.key}`)]).filter(([, v]) => v !== ""));
   const tab = get("tab") || options?.tabs?.options?.[0]?.value || "";
-  const limit = Number(get("rows")) || options?.default_page_size || 25;
+  const limit = Number(get("rows")) || 10;
   const page = Number(get("page")) || 1;
   const sort = get("sort") || (options?.sort ? options.sort_options?.[0]?.value ?? "desc" : "");
   const range = { date_from: get("from"), date_to: get("to"), amount_min: get("amin"), amount_max: get("amax") };

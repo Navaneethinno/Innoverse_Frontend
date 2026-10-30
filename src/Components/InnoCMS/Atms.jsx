@@ -443,7 +443,7 @@ function Events({ atmId, version }) {
   const { t } = useTranslation("atm");
   const [event, setEvent] = useState("");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(25);
+  const [limit, setLimit] = useState(10);
   const [data, setData] = useState(null);
   useEffect(() => {
     let cancelled = false;

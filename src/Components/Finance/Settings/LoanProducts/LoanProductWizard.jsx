@@ -389,23 +389,31 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
       {STEPS[step] === "eligibility" && (
         <Section title={t("groupEligibility")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("eligibilityHint")}</p>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {/* Limits, then the switches (all one size), then what a switch
+              turned on asks for. */}
+          <div className="grid items-start gap-3 md:grid-cols-2 lg:grid-cols-3">
             {field(t("minimumAge"), <Field field={{ type: "int" }} value={e.individual?.minimum_age} onChange={(v) => setElig({ individual: { ...e.individual, minimum_age: v } })} />)}
             {field(t("maximumAge"), <Field field={{ type: "int" }} value={e.individual?.maximum_age} onChange={(v) => setElig({ individual: { ...e.individual, maximum_age: v } })} />)}
             {field(`${t("minimumMonthlyIncome")} ${cur && `(${cur})`}`, <Field field={{ type: "amount" }} decimals={decimals} value={e.individual?.minimum_monthly_income} onChange={(v) => setElig({ individual: { ...e.individual, minimum_monthly_income: v } })} />)}
             {field(t("maximumDtiRatio"), <Field field={{ type: "rate", placeholder: "0.5" }} value={e.maximum_debt_to_income_ratio} onChange={(v) => setElig({ maximum_debt_to_income_ratio: v })} />, t("dtiHint"))}
             {field(t("minimumOperatingMonths"), <Field field={{ type: "int" }} value={e.corporate?.minimum_operating_months} onChange={(v) => setElig({ corporate: { ...e.corporate, minimum_operating_months: v } })} />)}
-            <Toggle showLabel label={t("creditCheckRequired")} checked={e.credit_check_required} onChange={(v) => setElig({ credit_check_required: v })} className="self-end" />
-            <Toggle showLabel label={t("groupOnly")} checked={e.group_only} onChange={(v) => setElig({ group_only: v })} className="self-end" />
-            <Toggle showLabel label={t("topUpAllowed")} checked={e.top_up_allowed} onChange={(v) => setElig({ top_up_allowed: v })} className="self-end" />
             {field(t("minimumCreditScore"), <Field field={{ type: "int" }} value={e.minimum_credit_score} onChange={(v) => setElig({ minimum_credit_score: v, ...(Number(v) > 0 ? { credit_check_required: true } : {}) })} />, t("minimumCreditScoreHint"))}
-            {e.group_only && field(t("minimumGroupMembers"), <Field field={{ type: "int" }} value={e.minimum_group_members} onChange={(v) => setElig({ minimum_group_members: v })} />)}
-            <Toggle showLabel label={t("coBorrowersAllowed")} checked={e.co_borrowers_allowed} onChange={(v) => setElig({ co_borrowers_allowed: v })} className="self-end" />
-            {e.co_borrowers_allowed && field(t("maximumCoBorrowers"), <Field field={{ type: "int" }} value={e.maximum_co_borrowers} onChange={(v) => setElig({ maximum_co_borrowers: v })} />, t("zeroNoLimit"))}
-            <Toggle showLabel label={t("insuranceRequired")} checked={e.insurance_required} onChange={(v) => setElig({ insurance_required: v })} className="self-end" />
-            <Toggle showLabel label={t("walletNotRequired")} checked={e.wallet_not_required} onChange={(v) => setElig({ wallet_not_required: v })} className="self-end" />
-            {e.top_up_allowed && field(t("topUpMinimumRepaid"), <Field field={{ type: "percent" }} value={e.top_up_minimum_repaid_percent} onChange={(v) => setElig({ top_up_minimum_repaid_percent: v })} />, t("topUpMinimumRepaidHint"))}
           </div>
+          <div className="mt-4 grid auto-rows-fr gap-3 md:grid-cols-2 lg:grid-cols-3">
+            <Toggle showLabel label={t("creditCheckRequired")} checked={e.credit_check_required} onChange={(v) => setElig({ credit_check_required: v })} className="h-full" />
+            <Toggle showLabel label={t("groupOnly")} checked={e.group_only} onChange={(v) => setElig({ group_only: v })} className="h-full" />
+            <Toggle showLabel label={t("coBorrowersAllowed")} checked={e.co_borrowers_allowed} onChange={(v) => setElig({ co_borrowers_allowed: v })} className="h-full" />
+            <Toggle showLabel label={t("topUpAllowed")} checked={e.top_up_allowed} onChange={(v) => setElig({ top_up_allowed: v })} className="h-full" />
+            <Toggle showLabel label={t("insuranceRequired")} checked={e.insurance_required} onChange={(v) => setElig({ insurance_required: v })} className="h-full" />
+            <Toggle showLabel label={t("walletNotRequired")} checked={e.wallet_not_required} onChange={(v) => setElig({ wallet_not_required: v })} className="h-full" />
+          </div>
+          {(e.group_only || e.co_borrowers_allowed || e.top_up_allowed) && (
+            <div className="mt-4 grid items-start gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {e.group_only && field(t("minimumGroupMembers"), <Field field={{ type: "int" }} value={e.minimum_group_members} onChange={(v) => setElig({ minimum_group_members: v })} />)}
+              {e.co_borrowers_allowed && field(t("maximumCoBorrowers"), <Field field={{ type: "int" }} value={e.maximum_co_borrowers} onChange={(v) => setElig({ maximum_co_borrowers: v })} />, t("zeroNoLimit"))}
+              {e.top_up_allowed && field(t("topUpMinimumRepaid"), <Field field={{ type: "percent" }} value={e.top_up_minimum_repaid_percent} onChange={(v) => setElig({ top_up_minimum_repaid_percent: v })} />, t("topUpMinimumRepaidHint"))}
+            </div>
+          )}
           {(e.individual?.minimum_age || e.individual?.maximum_age) && <p className="mt-3 text-xs text-amber-700">{t("ageRuleHint")}</p>}
         </Section>
       )}

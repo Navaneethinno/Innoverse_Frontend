@@ -12,7 +12,7 @@ import { Button } from "@/Components/Common/Button";
 // "Moving customers and merchants between groups"). A move takes effect at
 // once, no checker; it needs Edit. People not listed here (e.g. from the
 // Default group) can be moved in by their reference id.
-const PAGE = 25;
+const PAGE = 10;
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
 export function LimitMembers({ group, canMove, onClose }) {

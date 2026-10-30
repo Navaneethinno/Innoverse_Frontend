@@ -48,7 +48,7 @@ export function TxnLimits() {
   const { scope } = useInstitutionScope();
   const [pending, setPending] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit, setLimit] = useState(10);
   const { term, bind } = useListSearch(() => setPage(1));
   const [data, setData] = useState({ items: [], total: 0 });
   const [loading, setLoading] = useState(false);

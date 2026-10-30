@@ -234,7 +234,7 @@ export function CustomerBalances({ currencies }) {
       .catch(() => setProducts([]));
   }, []);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(50);
+  const [limit, setLimit] = useState(10);
   const body = useMemo(
     () => ({
       as_of: q.as_of,

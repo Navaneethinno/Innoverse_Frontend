@@ -42,7 +42,7 @@ export function Overdrafts() {
   const load = useCallback(() => {
     setData(null);
     overdraftApi
-      .list({ ...(status ? { status } : {}), ...(query ? { search: query } : {}), page, limit: 25 })
+      .list({ ...(status ? { status } : {}), ...(query ? { search: query } : {}), page, limit: 10 })
       .then((r) => setData(pageOf(r)))
       .catch((e) => {
         notifications.error(e.message);
@@ -116,7 +116,7 @@ export function Overdrafts() {
         title={t("overdrafts")}
         emptyTitle={t("noOverdrafts")}
         serverSorted
-        serverPagination={{ page, totalPages: Math.max(1, Math.ceil((data?.total ?? 0) / 25)), totalRecords: data?.total ?? 0, onPageChange: setPage, limit: 25 }}
+        serverPagination={{ page, totalPages: Math.max(1, Math.ceil((data?.total ?? 0) / 10)), totalRecords: data?.total ?? 0, onPageChange: setPage, limit: 10 }}
       />
       {adding && (
         <RequestOverdraft

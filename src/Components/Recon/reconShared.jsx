@@ -71,7 +71,7 @@ export function useRecord(get, id, fallback = null) {
 // a set's groups). `body` without page / limit; null waits.
 export function usePage(call, body) {
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(25);
+  const [limit, setLimit] = useState(10);
   const [state, setState] = useState({ items: [], total: 0, summary: {}, loading: true });
   const [version, setVersion] = useState(0);
   const key = JSON.stringify(body);

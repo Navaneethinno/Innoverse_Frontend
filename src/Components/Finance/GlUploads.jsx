@@ -38,7 +38,7 @@ function UploadRows({ rows }) {
       <DataTable
         bare
         compact
-        pageSize={50}
+        pageSize={10}
         columns={[
           { key: "line", label: t("line"), render: (r) => <span className="text-xs tabular-nums">{r.line}</span> },
           { key: "action", label: t("rowAction"), render: (r) => <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold", ACTION_TONE[r.action])}>{t(`row_${r.action}`)}</span> },
