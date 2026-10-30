@@ -3513,6 +3513,16 @@ export const cases = {
 };
 
 export const accounts = {
+  instWallets: "Institution wallets",
+  instWalletsHint: "The head office's and each branch's own wallet, one per currency. Staff transactions take money only from these. Fund one with a Cash in.",
+  openWallet: "Open wallet",
+  headOffice: "Head Office",
+  branch: "Branch",
+  noInstWallets: "No institution wallets yet",
+  noInstWalletsHint: "Open the head office's wallet first: staff transactions need it.",
+  walletOpened: "Wallet opened.",
+  chooseProduct: "Choose an account product",
+  walletCurrencyHint: "The wallet's currency is the product's. One wallet per branch and currency.",
   "tab_liens": "Liens",
   "underLien": "Under lien",
   "freeOfLiens": "Available free of liens",
@@ -3715,6 +3725,9 @@ export const accounts = {
 };
 
 export const deposits = {
+  recoveryHint: "Take back money the customer owes (may take the wallet below zero).",
+  noRecovery: "Not possible: the transaction took no money from a customer wallet.",
+  recoveryAfter: "The wallet holds {{now}}. After this recovery it will be {{after}}.",
   originalRrn: "Original RRN",
   dispute: "Dispute",
   transactionRrn: "Transaction RRN",
@@ -5075,6 +5088,12 @@ export const mms = {
 };
 
 export const txn = {
+  fromInstitutionWallet: "From (head office or branch wallet)",
+  chooseWallet: "Choose a wallet",
+  headOffice: "Head Office",
+  availableShort: "available",
+  openInstitutionWalletFirst: "Open a head office or branch wallet first (Accounts › Institution wallets).",
+  voucherPlaceholder: "Leave empty to generate",
   correctionsHint: "Corrections are made in Balance Adjustments, against the transaction's RRN.",
   doneBy: "Done by",
   doneByMerchant: "Merchant",
@@ -6484,6 +6503,7 @@ export const providers = {
 
 // ACCOUNTING: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
 export const accounting = {
+  anyAccountProduct: "Any account product",
   wrongSide: "Balance on the other side than usual for this type: check the postings",
   totalOfSection: "Total {{label}}",
   showNoMovement: "Show GLs with no movement",

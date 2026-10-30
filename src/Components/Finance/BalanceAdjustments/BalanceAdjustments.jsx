@@ -2,7 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Info, Plus, Scale, Search, Send } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, HandCoins, Info, Plus, Scale, Search, Send } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
@@ -144,6 +144,9 @@ export function BalanceAdjustments() {
 const KINDS = {
   ADJUST_CREDIT: { adjustable: "credit_adjustable", wallet: "debited_wallet", icon: ArrowDownLeft },
   ADJUST_DEBIT: { adjustable: "debit_adjustable", wallet: "credited_wallet", icon: ArrowUpRight },
+  // Recovery: from a dispute only; takes back what the customer owes from
+  // the wallet the transaction debited, with no ceiling (it may go below zero).
+  RECOVERY: { wallet: "debited_wallet", icon: HandCoins, recovery: true },
 };
 const isOpen = (d) => d.status !== "CLOSED";
 
@@ -175,7 +178,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
       setFound(data);
       const tx = data?.transaction;
       // The only kind left is chosen for the user; an open dispute is preselected.
-      const kinds = Object.keys(KINDS).filter((k) => tx && !tx.cannot_reason && tx[KINDS[k].adjustable] !== "");
+      const kinds = Object.keys(KINDS).filter((k) => !KINDS[k].recovery && tx && !tx.cannot_reason && tx[KINDS[k].adjustable] !== "");
       if (kinds.length === 1) pick(kinds[0], tx);
       if (!disputeId) setDispute((data?.disputes ?? []).find(isOpen)?.id ?? null);
     } catch (e) {
@@ -193,13 +196,20 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
 
   function pick(k, tx = found?.transaction) {
     setKind(k);
-    setForm((f) => ({ ...f, amount: tx?.[KINDS[k].adjustable] ?? "" }));
+    setForm((f) => ({ ...f, amount: KINDS[k].recovery ? "" : (tx?.[KINDS[k].adjustable] ?? "") }));
   }
 
   const tx = found?.transaction;
-  const max = kind ? Number(tx?.[KINDS[kind].adjustable]) : 0;
-  const over = kind && Number(form.amount) > max;
-  const body = tx && kind && Number(form.amount) > 0 && !over ? { txn_type: kind, org_rrn: tx.rrn, amount: form.amount, ...(dispute ? { dispute_case_id: dispute } : {}) } : null;
+  const recovery = Boolean(kind && KINDS[kind].recovery);
+  const max = kind && !recovery ? Number(tx?.[KINDS[kind].adjustable]) : 0;
+  const over = kind && !recovery && Number(form.amount) > max;
+  const body =
+    tx && kind && Number(form.amount) > 0 && !over && (!recovery || dispute)
+      ? recovery
+        ? { txn_type: kind, amount: form.amount, dispute_case_id: dispute }
+        : { txn_type: kind, org_rrn: tx.rrn, amount: form.amount, ...(dispute ? { dispute_case_id: dispute } : {}) }
+      : null;
+  const walletAfter = recovery ? Number(tx?.debited_wallet?.avail_bal ?? 0) - Number(form.amount || 0) : null;
   const bodyKey = JSON.stringify(body);
 
   useEffect(() => {
@@ -307,9 +317,11 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {Object.entries(KINDS).map(([k, meta]) => {
-                  const left = tx[meta.adjustable];
+                  // Recovery is offered only with a dispute and a debited wallet.
+                  if (meta.recovery && !dispute) return null;
+                  const left = meta.recovery ? null : tx[meta.adjustable];
                   const wallet = tx[meta.wallet];
-                  const enabled = left !== "" && left != null;
+                  const enabled = meta.recovery ? Boolean(wallet) : left !== "" && left != null;
                   const Icon = meta.icon;
                   return (
                     <button
@@ -330,11 +342,15 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
                           <span className="mt-1 block text-[11px] text-muted-foreground">
                             {t(k === "ADJUST_CREDIT" ? "adjTo" : "adjFrom", { name: wallet?.name ?? "—", acct: wallet?.acct_num ?? "" })}
                           </span>
-                          <span className="block text-[11px] font-semibold">{t("upTo", { amount: money(left, tx.currency_code) })}</span>
+                          {meta.recovery ? (
+                            <span className="block text-[11px]">{t("recoveryHint")}</span>
+                          ) : (
+                            <span className="block text-[11px] font-semibold">{t("upTo", { amount: money(left, tx.currency_code) })}</span>
+                          )}
                           {k === "ADJUST_DEBIT" && wallet?.avail_bal != null && <span className="block text-[11px] text-muted-foreground">{t("walletAvailable", { amount: money(wallet.avail_bal, tx.currency_code) })}</span>}
                         </>
                       ) : (
-                        <span className="mt-1 block text-[11px] text-muted-foreground">{t(k === "ADJUST_CREDIT" ? "noCreditAdj" : "noDebitAdj")}</span>
+                        <span className="mt-1 block text-[11px] text-muted-foreground">{t(k === "ADJUST_CREDIT" ? "noCreditAdj" : k === "RECOVERY" ? "noRecovery" : "noDebitAdj")}</span>
                       )}
                     </button>
                   );
@@ -354,11 +370,17 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
                     value={form.amount}
                     onChange={(e) => set("amount")(amountInput(e.target.value, tx.amount_decimals ?? 2))}
                   />
-                  <span className={cn("mt-1 block text-[11px] font-normal", over ? "text-red-700" : "text-muted-foreground")}>{t("adjMax", { amount: money(max, tx.currency_code) })}</span>
+                  {recovery ? (
+                    <span className={cn("mt-1 block text-[11px] font-semibold", walletAfter < 0 ? "text-red-700" : "text-muted-foreground")}>
+                      {t("recoveryAfter", { now: money(tx.debited_wallet?.avail_bal, tx.currency_code), after: money(walletAfter, tx.currency_code) })}
+                    </span>
+                  ) : (
+                    <span className={cn("mt-1 block text-[11px] font-normal", over ? "text-red-700" : "text-muted-foreground")}>{t("adjMax", { amount: money(max, tx.currency_code) })}</span>
+                  )}
                 </label>
                 <label className={labelClass}>
-                  {t("referenceOptional")}
-                  <input className={cn(inputClass, "mt-1.5")} maxLength={64} value={form.reference} onChange={(e) => set("reference")(e.target.value)} placeholder={t("referencePlaceholder")} />
+                  {t("txn:voucher")}
+                  <input className={cn(inputClass, "mt-1.5")} maxLength={64} value={form.reference} onChange={(e) => set("reference")(e.target.value)} placeholder={t("txn:voucherPlaceholder")} />
                 </label>
                 <label className={cn(labelClass, "sm:col-span-2")}>
                   {t("reason")} <span className="text-red-500">*</span>

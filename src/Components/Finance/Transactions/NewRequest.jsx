@@ -29,7 +29,9 @@ function typeNeeds(option) {
   const org = Boolean(option?.needs_org_txn) || reversal;
   if (option?.needs_card) return { from: false, to: false, org: false, amount: true, card: true, walletSide: option.from === "CARD_HOLDER" ? "from" : "to" };
   return {
+    // INSTITUTION: a head office or branch wallet, picked from from_wallets.
     from: !org && option?.from !== "CASH",
+    institution: !org && option?.from === "INSTITUTION",
     to: !org && option?.to !== "CASH",
     org,
     amount: !reversal,
@@ -37,7 +39,7 @@ function typeNeeds(option) {
   };
 }
 
-const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "", card: null, wallet_id: "" };
+const EMPTY = { from_acct_id: "", from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", reason: "", reference: "", client_reference: "", card: null, wallet_id: "" };
 
 // A staff transaction: pick the type, fill what it needs, see the quote
 // (fee, tax, totals, limits) as you type, then send it for approval. A user
@@ -47,6 +49,8 @@ const EMPTY = { from_acct_num: "", to_acct_num: "", amount: "", org_rrn: "", rea
 export function NewRequest({ preset, onClose, onDone }) {
   const { t } = useTranslation("txn");
   const [types, setTypes] = useState(null);
+  // The head office's and branches' own wallets: staff money comes only from them.
+  const [fromWallets, setFromWallets] = useState([]);
   const [type, setType] = useState(preset?.txn_type ?? "");
   const [form, setForm] = useState({ ...EMPTY, org_rrn: preset?.org_rrn ?? "", card: preset?.card ?? null });
   const [plan, setPlan] = useState(null);
@@ -69,6 +73,7 @@ export function NewRequest({ preset, onClose, onDone }) {
       .then((r) => {
         const list = (rowsOf(r)[0]?.txn_types ?? []).filter((x) => x.active !== false);
         setTypes(list);
+        setFromWallets(rowsOf(r)[0]?.from_wallets ?? []);
         setType((cur) => cur || list[0]?.txn_type || "");
       })
       .catch((e) => setError(e.message));
@@ -76,12 +81,12 @@ export function NewRequest({ preset, onClose, onDone }) {
 
   const option = types?.find((x) => x.txn_type === type);
   const needs = typeNeeds(option);
-  const complete = option && (!needs.from || form.from_acct_num) && (!needs.to || form.to_acct_num) && (!needs.org || form.org_rrn) && (!needs.amount || Number(form.amount) > 0) && (!needs.card || form.card);
+  const complete = option && (!needs.from || (needs.institution ? form.from_acct_id : form.from_acct_num)) && (!needs.to || form.to_acct_num) && (!needs.org || form.org_rrn) && (!needs.amount || Number(form.amount) > 0) && (!needs.card || form.card);
   const body = complete
     ? {
         txn_type: type,
         ...(needs.card ? { card_id: form.card.id, ...(form.wallet_id ? { [`${needs.walletSide}_acct_id`]: Number(form.wallet_id) } : {}) } : {}),
-        ...(needs.from ? { from_acct_num: form.from_acct_num } : {}),
+        ...(needs.from ? (needs.institution ? { from_acct_id: Number(form.from_acct_id) } : { from_acct_num: form.from_acct_num }) : {}),
         ...(needs.to ? { to_acct_num: form.to_acct_num } : {}),
         ...(needs.org ? { org_rrn: form.org_rrn } : {}),
         ...(needs.amount ? { amount: form.amount } : {}),
@@ -200,7 +205,25 @@ export function NewRequest({ preset, onClose, onDone }) {
               </div>
             )}
             {needs.card && form.card && <HolderWallet card={form.card} value={form.wallet_id} onChange={(wallet_id) => setForm((f) => ({ ...f, wallet_id }))} />}
-            {needs.from && (
+            {needs.institution && (
+              <label className={labelClass}>
+                {t("fromInstitutionWallet")}
+                {fromWallets.length ? (
+                  <FilterSelect
+                    className="mt-1.5"
+                    value={String(form.from_acct_id)}
+                    onChange={(v) => setForm((f) => ({ ...f, from_acct_id: v }))}
+                    options={[
+                      { value: "", label: t("chooseWallet") },
+                      ...fromWallets.map((w) => ({ value: String(w.acct_id), label: `${w.branch_name || t("headOffice")} · ${w.acct_num} · ${w.currency_code} · ${t("availableShort")} ${w.available}` })),
+                    ]}
+                  />
+                ) : (
+                  <span className="mt-1.5 block rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{t("openInstitutionWalletFirst")}</span>
+                )}
+              </label>
+            )}
+            {needs.from && !needs.institution && (
               <label className={labelClass}>
                 {option?.from === "AGENT_FLOAT" ? t("fromAgentWallet") : t("fromWallet")}
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.from_acct_num} onChange={set("from_acct_num")} placeholder="20784000000021" />
@@ -230,7 +253,7 @@ export function NewRequest({ preset, onClose, onDone }) {
             </label>
             <label className={labelClass}>
               {t("voucher")}
-              <input className={cn(inputClass, "mt-1.5")} maxLength={64} value={form.reference} onChange={set("reference")} />
+              <input className={cn(inputClass, "mt-1.5")} maxLength={64} value={form.reference} onChange={set("reference")} placeholder={t("voucherPlaceholder")} />
             </label>
             <label className={labelClass}>
               {t("clientReference")}

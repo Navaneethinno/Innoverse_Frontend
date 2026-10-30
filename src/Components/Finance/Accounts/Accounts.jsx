@@ -17,6 +17,7 @@ import { AccountBalances, AccountClass, WalletPurposeBadge, accountDate, money, 
 import { AccountStatement } from "./AccountStatement";
 import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } from "./AccountActions";
 import { Tabs } from "../Loans/loanShared";
+import { InstitutionWallets } from "./InstitutionWallets";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { PhoneTransfers } from "./PhoneTransfers";
 import { OpenAccount, OpeningRequests } from "./AccountOpening";
@@ -36,6 +37,7 @@ export function Accounts() {
   const can = usePagePermission();
   const [view, setView] = useState("accounts");
   const [opening, setOpening] = useState(false);
+  const [walletAccount, setWalletAccount] = useState(null);
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -51,10 +53,12 @@ export function Accounts() {
           </Button>
         )}
       </div>
-      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", phone: "ptTitle" }[k])} />
+      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", phone: "ptTitle" }[k])} />
       {view === "accounts" && <AccountsList />}
       {view === "opening" && <OpeningRequests />}
       {view === "phone" && <PhoneTransfers />}
+      {view === "wallets" && <InstitutionWallets onOpenAccount={(w) => setWalletAccount({ ...w, id: w.acct_id })} />}
+      {walletAccount && <AccountDetail account={walletAccount} onClose={() => setWalletAccount(null)} onStatement={() => setWalletAccount(null)} />}
       {opening && <OpenAccount onClose={() => setOpening(false)} onDone={(made) => made?.status === "PENDING" && setView("opening")} />}
     </div>
   );

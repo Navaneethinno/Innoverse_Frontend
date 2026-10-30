@@ -163,7 +163,8 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
   const buttons = [
     { key: "receipt", label: t("receipt"), icon: Receipt, run: () => setReceipt(true) },
     posted && x.txn_type === "MERCHANT_PAYMENT" && can("Add") && { key: "refund", label: t("refund"), icon: RotateCcw, run: () => onStart({ txn_type: "MERCHANT_REFUND", org_rrn: x.rrn }) },
-    posted && engine && x.txn_type !== "REVERSAL" && can("Add") && { key: "reverse", label: t("reverse"), icon: Undo2, variant: "danger", run: () => onStart({ txn_type: "REVERSAL", org_rrn: x.rrn }) },
+    // The backend says whether it may be reversed (not with adjustments or a recovery).
+    (x.actions ? x.actions.reverse : posted && engine && x.txn_type !== "REVERSAL") && can("Add") && { key: "reverse", label: t("reverse"), icon: Undo2, variant: "danger", run: () => onStart({ txn_type: "REVERSAL", org_rrn: x.rrn }) },
   ];
 
   return (
@@ -406,6 +407,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
           </button>
         ),
       },
+      { key: "reference", label: t("voucher"), render: (r) => <span className="font-mono text-xs">{r.reference || "—"}</span> },
       { key: "txn_type", label: t("type"), render: (r) => <span className="text-xs font-semibold">{typeLabel(t, r.txn_type, r.txn_type_name)}</span> },
       {
         key: "acct_num",

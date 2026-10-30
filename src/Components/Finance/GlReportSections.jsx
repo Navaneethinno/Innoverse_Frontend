@@ -9,6 +9,10 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
 import { glReportsApi } from "@/Services/Accounting/accounting.api";
+import { request } from "@/Services/Epurse/onboarding.api";
+
+// F3: the active account products for the filter.
+const acctProductsApi = { getActive: (body) => request("/config/acct/product/get_active", body) };
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -215,20 +219,28 @@ export function GlMovement({ currencies }) {
   );
 }
 
-const PARTIES = ["", "CUSTOMER", "MERCHANT"];
+const PARTIES = ["ALL", "CUSTOMER", "MERCHANT"];
 
 // GL Reports › Customer balances: every customer's and merchant's account
 // on a date; with a start date also opening, credits and debits.
 export function CustomerBalances({ currencies }) {
   const { t } = useTranslation("accounting");
-  const [q, setQ] = useState({ as_of: today(), from: "", party: "", currency_id: "", search: "", include_zero: false });
+  const [q, setQ] = useState({ as_of: today(), from: "", party: "ALL", currency_id: "", acct_product_id: "", search: "", include_zero: false });
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    acctProductsApi
+      .getActive({ view: "dropdown" })
+      .then((r) => setProducts(Array.isArray(r?.data) ? r.data : []))
+      .catch(() => setProducts([]));
+  }, []);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const body = useMemo(
     () => ({
       as_of: q.as_of,
       ...(q.from ? { from: q.from } : {}),
-      ...(q.party ? { party: q.party } : {}),
+      party: q.party,
+      acct_product_id: Number(q.acct_product_id || 0),
       currency_id: Number(q.currency_id || 0),
       search: q.search.trim(),
       include_zero: q.include_zero,
@@ -254,7 +266,8 @@ export function CustomerBalances({ currencies }) {
           <SearchBox search={q.search} onSearch={set("search")} placeholder={t("cbSearch")} />
           <DateField label={t("asOf")} value={q.as_of} max={today()} onChange={set("as_of")} />
           <DateField label={t("fromOptional")} value={q.from} max={q.as_of} onChange={set("from")} />
-          <FilterSelect value={q.party} onChange={set("party")} options={PARTIES.map((p) => ({ value: p, label: t(`cbParty_${p || "ALL"}`) }))} />
+          <FilterSelect value={q.party} onChange={set("party")} options={PARTIES.map((p) => ({ value: p, label: t(`cbParty_${p}`) }))} />
+          {products.length > 0 && <FilterSelect value={q.acct_product_id} onChange={set("acct_product_id")} options={[{ value: "", label: t("anyAccountProduct") }, ...products.map((p) => ({ value: String(p.id), label: p.name }))]} />}
           <FilterSelect value={q.currency_id} onChange={set("currency_id")} options={[{ value: "", label: t("allCurrencies") }, ...currencies.map((c) => ({ value: String(c.id), label: c.alpha_code }))]} />
           <Toggle showLabel label={t("includeZeroBalances")} checked={q.include_zero} onChange={set("include_zero")} />
           <ExportButtons exportFile={(format) => glReportsApi.customerBalanceExport({ ...body, format })} />
