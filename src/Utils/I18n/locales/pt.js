@@ -2467,7 +2467,7 @@ export const guide = {
   checkApproval: "Aprender como funciona a aprovação",
   checkAdd: "Percorrer a adição de um registo",
   checkModules: "Visitar cada um dos seus módulos",
-  savedHere: "O seu progresso fica guardado neste navegador.",
+  savedHere: "O seu progresso fica guardado na sua conta, em qualquer computador.",
   shortcuts: "? abre o guia · ← → avançar · Esc fecha",
   keysHint: "← → para avançar",
   stepOf: "{{step}} / {{total}}",

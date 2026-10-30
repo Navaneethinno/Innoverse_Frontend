@@ -26,6 +26,9 @@ export function InstitutionWallets({ onOpenAccount }) {
   const can = usePagePermission();
   const [rows, setRows] = useState(null);
   const [adding, setAdding] = useState(false);
+  // A head office branch's wallet is labelled as such ("FE Test Branch 1 (Head office)").
+  const setup = useCoreBanking(useInstitutionScope().scope);
+  const headOffices = new Set((setup?.branches ?? []).filter((b) => b.head_office_type || b.head_office).map((b) => b.id));
   const load = useCallback(() => {
     walletsApi
       .list({})
@@ -49,7 +52,13 @@ export function InstitutionWallets({ onOpenAccount }) {
       </div>
       <DataTable
         columns={[
-          { key: "branch_name", label: t("branch"), render: (w) => <span className="text-xs font-semibold">{w.branch_id ? w.branch_name : t("headOffice")}</span> },
+          { key: "branch_name", label: t("branch"), render: (w) => (
+            <span className="text-xs font-semibold">
+              {w.branch_name || t("headOffice")}
+              {w.branch_id > 0 && headOffices.has(w.branch_id) && <span className="ml-1 font-normal text-muted-foreground">({t("headOffice")})</span>}
+            </span>
+          ),
+        },
           {
             key: "acct_num",
             label: t("accountNumber"),

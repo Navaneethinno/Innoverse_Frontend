@@ -4,6 +4,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
 import { RequestedPermissions } from "./RequestedPermissions";
+import { PermissionChanges, withoutPermissionRows } from "./PermissionChanges";
 
 // Deauthorize-profile confirmation (requires narration) — split out of the
 // old shared ConfirmDialog instance in ProfilesPage.jsx. Shows the checker
@@ -33,7 +34,8 @@ export function DeauthProfile({ profile, narration, setNarration, pending, onClo
       confirmDisabled={!narration.trim()}
       onConfirm={onConfirm}
     >
-      <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
+      <PendingChangesDiff data={withoutPermissionRows(data)} isLoading={isLoading} error={error} />
+      {data?.pending_action === "EDIT" && <PermissionChanges changes={data.permission_changes} />}
       <RequestedPermissions profileId={open ? profileId(profile) : null} open={open} />
       <textarea
         value={narration}

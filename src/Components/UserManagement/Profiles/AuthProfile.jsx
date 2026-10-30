@@ -4,6 +4,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
 import { RequestedPermissions } from "./RequestedPermissions";
+import { PermissionChanges, withoutPermissionRows } from "./PermissionChanges";
 
 // Authorize-profile confirmation — split out of the old shared ConfirmDialog
 // instance in ProfilesPage.jsx. Shows the checker exactly what the maker
@@ -31,7 +32,8 @@ export function AuthProfile({ profile, pending, onClose, onConfirm }) {
       pending={pending}
       onConfirm={onConfirm}
     >
-      <PendingChangesDiff data={data} isLoading={isLoading} error={error} />
+      <PendingChangesDiff data={withoutPermissionRows(data)} isLoading={isLoading} error={error} />
+      {data?.pending_action === "EDIT" && <PermissionChanges changes={data.permission_changes} />}
       <RequestedPermissions profileId={open ? profileId(profile) : null} open={open} />
     </ConfirmDialog>
   );

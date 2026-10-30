@@ -454,8 +454,10 @@ export const institutions = {
 };
 
 export const profiles = {
+  permissions: "Permissions",
+  noPermissionChanges: "No permission changes",
   requestedPermissions: "Permissions after this change",
-  requestedPermissionsHint: "Every menu and action this profile will have once you approve. The backend doesn't yet send which ones were added or removed.",
+  requestedPermissionsHint: "Every menu and action this profile will have once you approve.",
   "wholeColumn": "Whole column, in every module shown:",
   "menu": "Menu",
   createProfile: "Create Profile",
@@ -2641,7 +2643,7 @@ export const guide = {
   checkApproval: "Learn how approval works",
   checkAdd: "Walk through adding a record",
   checkModules: "Visit each of your modules",
-  savedHere: "Your progress is kept in this browser.",
+  savedHere: "Your progress is saved to your account, on any computer.",
   shortcuts: "? opens the guide · ← → move · Esc closes",
   keysHint: "← → to move",
   stepOf: "{{step}} / {{total}}",

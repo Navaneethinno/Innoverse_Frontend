@@ -4743,7 +4743,7 @@ export const guide = {
   checkApproval: "تعلّم كيف تعمل الموافقة",
   checkAdd: "تعرّف على إضافة سجل",
   checkModules: "زُر كل وحدة من وحداتك",
-  savedHere: "يُحفظ تقدّمك في هذا المتصفح.",
+  savedHere: "يُحفظ تقدّمك في حسابك على أي جهاز.",
   shortcuts: "? يفتح الدليل · ← → للتنقل · Esc للإغلاق",
   keysHint: "← → للتنقل",
   stepOf: "{{step}} / {{total}}",
