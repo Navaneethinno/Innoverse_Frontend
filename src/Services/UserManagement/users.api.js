@@ -7,14 +7,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "@/Utils/Constant";
 import { apiLanguageHeader } from "@/Utils/Lib/apiLanguage";
 
 const REQUEST_TIMEOUT = 10000;
-const DEVICE_INFO = {
-  device_type: "POS",
-  device_id: "98251030780003",
-  app_version: "1.0.0",
-  device_model: "PAX-A920",
-  device_os: "Android",
-  device_name: "Store-1-POS",
-};
+import { DEVICE_INFO } from "@/Services/api/deviceInfo";
 
 async function request(path, body) {
   const controller = new AbortController();

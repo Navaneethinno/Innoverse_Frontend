@@ -13,16 +13,10 @@ import {
   AUTH_BASIC_USERNAME,
 } from "@/Utils/Constant";
 const LOGIN_TIMEOUT = 10000;
-// Exported so other authenticated services (e.g. Master reference-data calls)
-// send the same Deviceinfo header shape the backend expects for this session.
-export const DEVICE_INFO = {
-  device_type: "POS",
-  device_id: "98251030780003",
-  app_version: "1.0.0",
-  device_model: "PAX-A920",
-  device_os: "Android",
-  device_name: "Store-1-POS",
-};
+// The Deviceinfo header every call sends (this browser), re-exported for
+// the services that import it from here.
+export { DEVICE_INFO } from "@/Services/api/deviceInfo";
+import { DEVICE_INFO } from "@/Services/api/deviceInfo";
 
 export function getBasicAuthorization() {
   if (!AUTH_BASIC_PASSWORD) {
