@@ -323,15 +323,34 @@ export function DataTable({
     }
   };
 
-  // "View all" on a server table: the page's own paging, page by page.
-  // loaded: { [page]: rows }, so a page delivered again (a live refresh)
-  // replaces itself instead of adding twice.
+  // "View all" on a server table: the same list call, 50 rows at a time,
+  // the next page asked for as the window is scrolled to its end. With
+  // `serverPagination.fetchPage(page, size)` (every useServerList list) the
+  // window loads on its own and the table behind it doesn't move. Without
+  // one, the window borrows the table's paging and puts it back on close.
   const VIEW_ALL_LIMIT = 50;
+  const fetchPage = isServer ? serverPagination.fetchPage : null;
   const [loaded, setLoaded] = useState({});
+  const [own, setOwn] = useState({ loading: false, totalPages: 1, totalRecords: null, error: "" });
+  const ownSeq = useRef(0);
   const restore = useRef(null);
   const serverPage = isServer ? serverPagination.page : null;
+
+  const loadOwn = (pageNo) => {
+    const id = ownSeq.current;
+    setOwn((o) => ({ ...o, loading: true, error: "" }));
+    fetchPage(pageNo, VIEW_ALL_LIMIT)
+      .then((r) => {
+        if (id !== ownSeq.current) return;
+        setLoaded((cur) => ({ ...cur, [pageNo]: r.rows ?? [] }));
+        setOwn({ loading: false, error: "", totalRecords: r.totalRecords ?? null, totalPages: Math.max(1, r.totalPages || Math.ceil((r.totalRecords ?? 0) / VIEW_ALL_LIMIT) || 1) });
+      })
+      .catch((e) => id === ownSeq.current && setOwn((o) => ({ ...o, loading: false, error: e?.message ?? "" })));
+  };
+
   useEffect(() => {
-    // Kept once the table shows the asked page at the View all size.
+    // Borrowed paging: kept once the table shows the asked page at the View all size.
+    if (fetchPage) return;
     const sized = !serverPagination?.onLimitChange || effectivePageSize === VIEW_ALL_LIMIT;
     if (!viewAllOpen || !isServer || isLoading || !sized) return;
     // Pages often pass a fresh array each render: store only real changes.
@@ -339,10 +358,15 @@ export function DataTable({
     // `rows` arrives with the page it belongs to.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewAllOpen, isServer, isLoading, serverPage, rows, effectivePageSize]);
+
   const openViewAll = () => {
-    if (isServer) {
+    setLoaded({});
+    if (fetchPage) {
+      ownSeq.current += 1;
+      setOwn({ loading: true, totalPages: 1, totalRecords: null, error: "" });
+      loadOwn(1);
+    } else if (isServer) {
       restore.current = { page: serverPagination.page, limit: effectivePageSize };
-      setLoaded({});
       if (serverPagination.onLimitChange && effectivePageSize !== VIEW_ALL_LIMIT) serverPagination.onLimitChange(VIEW_ALL_LIMIT);
       serverPagination.onPageChange(1);
     }
@@ -350,21 +374,26 @@ export function DataTable({
   };
   const closeViewAll = () => {
     setViewAllOpen(false);
-    if (isServer && restore.current) {
+    ownSeq.current += 1;
+    setLoaded({});
+    if (!fetchPage && isServer && restore.current) {
       const back = restore.current;
       restore.current = null;
-      setLoaded({});
       if (serverPagination.onLimitChange && back.limit !== effectivePageSize) serverPagination.onLimitChange(back.limit);
       serverPagination.onPageChange(back.page);
     }
   };
   const loadedPages = Object.keys(loaded).map(Number).sort((x, y) => x - y);
   const lastLoaded = loadedPages.length ? loadedPages[loadedPages.length - 1] : 0;
-  const hasMore = isServer && lastLoaded < totalPages;
+  const modalLoading = fetchPage ? own.loading : isLoading;
+  const modalTotalPages = fetchPage ? own.totalPages : totalPages;
+  const modalTotal = fetchPage ? (own.totalRecords ?? totalRecords) : totalRecords;
+  const hasMore = isServer && lastLoaded < modalTotalPages;
+  const loadNext = () => (fetchPage ? loadOwn(lastLoaded + 1) : serverPagination.onPageChange(lastLoaded + 1));
   const handleModalScroll = () => {
     const el = scrollRef.current;
-    if (!el || !isServer || isLoading || !hasMore || lastLoaded === 0) return;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120) serverPagination.onPageChange(lastLoaded + 1);
+    if (!el || !isServer || modalLoading || !hasMore || lastLoaded === 0) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 120) loadNext();
   };
   const modalRows = isServer ? loadedPages.flatMap((p) => loaded[p]) : sortedRows;
 
@@ -441,19 +470,19 @@ export function DataTable({
         open={viewAllOpen}
         onClose={closeViewAll}
         title={title}
-        subtitle={isServer ? `${modalRows.length} ${t("of")} ${totalRecords} ${t("recordsWord")}${hasMore ? " · " + t("scrollForMore") : ""}` : `${sortedRows.length} ${t("recordsWord")}`}
+        subtitle={isServer ? `${modalRows.length} ${t("of")} ${modalTotal} ${t("recordsWord")}${hasMore ? " · " + t("scrollForMore") : ""}` : `${sortedRows.length} ${t("recordsWord")}`}
         size="xl"
         bodyClassName="px-0 py-0"
       >
         <div ref={scrollRef} onScroll={isServer ? handleModalScroll : undefined} className="thin-scrollbar max-h-[65vh] overflow-y-auto overflow-x-auto px-5 py-3">
           <table data-tour="table" className="w-full min-w-max">
             <TableHead columns={columns} sort={serverOrdered ? {} : sort} onSort={onSort} sortable={!serverOrdered} />
-            <TableBody columns={columns} rows={modalRows} isLoading={isServer && !modalRows.length && isLoading} emptyTitle={emptyTitle} emptyDescription={emptyDescription} rowKey={rowKey} t={t} />
+            <TableBody columns={columns} rows={modalRows} isLoading={isServer && !modalRows.length && modalLoading} emptyTitle={emptyTitle} emptyDescription={emptyDescription} rowKey={rowKey} t={t} />
           </table>
           {isServer && modalRows.length > 0 && (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {isLoading ? t("loadingMore") : hasMore ? (
-                <button type="button" onClick={() => serverPagination.onPageChange(lastLoaded + 1)} className="font-semibold text-[var(--primary)] hover:underline">
+              {modalLoading ? t("loadingMore") : own.error ? <span className="text-red-600">{own.error}</span> : hasMore ? (
+                <button type="button" onClick={loadNext} className="font-semibold text-[var(--primary)] hover:underline">
                   {t("scrollForMore")}
                 </button>
               ) : t("allRecordsLoaded")}

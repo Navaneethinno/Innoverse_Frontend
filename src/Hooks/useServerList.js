@@ -151,6 +151,24 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bodyKey, version]);
 
+  // "View all" loads its own pages with the same body, so the list on the
+  // page keeps its own page and size.
+  const bodyRef = useRef(body);
+  useEffect(() => {
+    bodyRef.current = body;
+  });
+  const fetchPage = useCallback(
+    (pageNo, size) =>
+      Promise.resolve(call({ ...bodyRef.current, page: pageNo, limit: size })).then((r) => ({
+        rows: select ? select(r) : Array.isArray(r?.data) ? r.data : [],
+        totalRecords: r?.pagination?.totalRecords,
+        totalPages: r?.pagination?.totalPages,
+      })),
+    // `call` and `select` are the page's own and stable enough; the body comes from the ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const reload = useCallback(() => setVersion((v) => v + 1), []);
   useLiveChannel(api, reload);
   useEffect(() => {
@@ -194,6 +212,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
       pageSizes: options?.page_sizes,
       onPageChange: (next) => update({ page: next > 1 ? next : "" }, { keepPage: true }),
       onLimitChange: (next) => update({ rows: next === options?.default_page_size ? "" : next }),
+      fetchPage,
     },
   };
 }
