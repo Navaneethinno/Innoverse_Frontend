@@ -3518,6 +3518,7 @@ export const cases = {
 };
 
 export const accounts = {
+  searchOverdrafts: "Account number (or its last digits)",
   overdrafts: "Overdrafts",
   overdraft: "Overdraft",
   od_ALL: "All",

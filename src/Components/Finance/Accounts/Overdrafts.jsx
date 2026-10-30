@@ -12,6 +12,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { amountInput, inputClass, labelClass } from "../Deposits/depositShared";
 import { accountDate, money } from "./accountShared";
+import { SearchBox } from "@/Components/Common/SearchBox";
 
 // Accounts › Overdrafts: an overdraft lets one account go below zero up to a
 // limit; interest accrues daily on the negative balance and is charged on the
@@ -32,20 +33,31 @@ export function Overdrafts() {
   const can = usePagePermission();
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  // Typed text, and what the list was asked for (after a pause or Enter).
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
   const [data, setData] = useState(null);
   const [adding, setAdding] = useState(false);
   const [deciding, setDeciding] = useState(null);
   const load = useCallback(() => {
     setData(null);
     overdraftApi
-      .list({ ...(status ? { status } : {}), page, page_size: 25 })
+      .list({ ...(status ? { status } : {}), ...(query ? { search: query } : {}), page, limit: 25 })
       .then((r) => setData(pageOf(r)))
       .catch((e) => {
         notifications.error(e.message);
         setData({ items: [], total: 0 });
       });
-  }, [status, page]);
+  }, [status, query, page]);
   useEffect(() => load(), [load]);
+  const applySearch = useCallback((text) => {
+    setQuery(text.trim());
+    setPage(1);
+  }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => applySearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search, applySearch]);
 
   return (
     <div className="grid gap-3">
@@ -72,6 +84,7 @@ export function Overdrafts() {
         )}
       </div>
       <p className="text-xs text-muted-foreground">{t("overdraftsHint")}</p>
+      <SearchBox search={search} onSearch={setSearch} onSearchSubmit={() => applySearch(search)} placeholder={t("searchOverdrafts")} className="max-w-sm" />
       <DataTable
         columns={[
           {
