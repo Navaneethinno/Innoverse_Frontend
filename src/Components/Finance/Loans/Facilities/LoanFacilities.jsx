@@ -2,23 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowLeft,
-  Ban,
-  CheckCircle2,
-  Coins,
-  FileX2,
-  Handshake,
-  HandCoins,
-  Landmark,
-  PhoneCall,
-  Repeat,
-  Send,
-  Undo2,
-  UserCog,
-  Wallet,
-  XCircle,
-} from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Coins, FileX2, Handshake, HandCoins, Landmark, PhoneCall, Repeat, Send, Undo2, UserCog, Wallet, XCircle, HeartCrack } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
@@ -56,6 +40,7 @@ import { officerOptions, useCoreBanking, useOpenTills } from "../../coreBankingS
 import { PortfolioQuality } from "./PortfolioQuality";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
+import { DeceasedBanner, DeceasedDialog, PayoutDialog, RecoveryAfterDeath, Repricing, Tranches } from "./FacilityExtras";
 
 const SOURCES = ["WALLET", "CASH"];
 // A repayment can also be taken at an open teller till.
@@ -433,6 +418,14 @@ function FacilityView({ id, onBack }) {
         icon: HandCoins,
         run: ask("mandate"),
       },
+    a.deceased &&
+      can("Edit") && {
+        key: "deceased",
+        label: t("borrowerDeceased"),
+        icon: HeartCrack,
+        variant: "danger",
+        run: ask("deceased"),
+      },
     f.officer_user_id != null &&
       can("Edit") &&
       !["CANCELLED", "SETTLED", "CLOSED", "WRITTEN_OFF"].includes(f.status) && {
@@ -527,6 +520,7 @@ function FacilityView({ id, onBack }) {
         )}
       </div>
 
+      <DeceasedBanner loan={loan} />
       {loan.due && <DueCard due={loan.due} currency={cur} />}
 
       <Tabs
@@ -545,9 +539,12 @@ function FacilityView({ id, onBack }) {
             key: "collections",
             count: (loan.collection_actions?.length ?? 0) + (loan.recovery_mandates?.length ?? 0),
           },
+          (a.reprice || a.reprice_mode || f.reference_rate_code) && { key: "repricing" },
+          (a.tranche_plan || a.tranche_disburse || a.tranche_proof || Number(f.tranche_count) > 0) && { key: "tranches" },
+          (loan.deceased ?? f.deceased) && { key: "deceased" },
           { key: "officers" },
           { key: "history" },
-        ]}
+        ].filter(Boolean)}
       />
 
       {tab === "schedule" &&
@@ -577,7 +574,7 @@ function FacilityView({ id, onBack }) {
               t("topUpOf"),
               f.refinanced_facility_number ?? `#${f.refinanced_facility_id}`,
             ],
-            [t("disbursementWallet"), f.disbursement_acct_num],
+            [t("disbursementWallet"), Number(f.disbursement_acct_id) ? f.disbursement_acct_num : t("cashWalkIn")],
             [t("repaymentWallet"), f.repayment_acct_num],
             [t("loanAccount"), f.loan_acct_num ?? "—"],
             [t("disbursementDate"), dayDate(f.disbursement_date)],
@@ -856,6 +853,9 @@ function FacilityView({ id, onBack }) {
           </Section>
         </div>
       )}
+      {tab === "repricing" && <Repricing loan={loan} onChanged={() => void reload()} />}
+      {tab === "tranches" && <Tranches loan={loan} onChanged={() => void reload()} />}
+      {tab === "deceased" && <RecoveryAfterDeath loan={loan} onChanged={() => void reload()} />}
       {tab === "officers" && <OfficerHistory id={id} />}
       {tab === "history" && <Timeline events={loan.events} currency={cur} />}
       {dialog === "reassign" && (
@@ -869,8 +869,29 @@ function FacilityView({ id, onBack }) {
         />
       )}
 
+      {dialog === "disburse" && (
+        <PayoutDialog
+          verb="disburse"
+          facility={f}
+          amount={f.principal_approved}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            void reload();
+          }}
+        />
+      )}
+      {dialog === "deceased" && (
+        <DeceasedDialog
+          facility={f}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            void reload();
+          }}
+        />
+      )}
       {[
-        "disburse",
         "restructure_auth",
         "restructure_deauth",
         "write_off_auth",
