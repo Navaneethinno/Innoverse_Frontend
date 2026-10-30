@@ -36,6 +36,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ACTION_STEPS, FOOTER_STEPS, LIST_STEPS, PAGE_TOURS, PAGE_TITLE, sel } from "@/Components/Tour/tourSteps";
+import { pageControlSteps } from "./pageControls";
 
 export const ICONS = {
   pageIntro: BookOpen,
@@ -107,6 +108,8 @@ export const TOPICS = [
     icon: Search,
     steps: () => ["pageIntro", "viewSwitch", "statusTabs", "search", "sort", "table", "viewAll", "pagination", "pageSize"].map(listStep),
   },
+  // This page's own buttons, filters, switches and columns, read from the screen.
+  { key: "controls", icon: Sparkles, steps: () => pageControlSteps() },
   { key: "actions", icon: MousePointerClick, steps: () => [listStep("rowActions"), ...ACTION_STEPS] },
   {
     key: "page",
@@ -126,7 +129,7 @@ export const FULL = {
   key: "full",
   icon: BookOpen,
   steps: (slug) => {
-    const [find, actions, page, approval, add] = TOPICS.map((topic) => topic.steps(slug));
+    const [find, , actions, page, approval, add] = TOPICS.map((topic) => topic.steps(slug));
     return [...find, ...page, ...actions, approval[0], ...add];
   },
 };

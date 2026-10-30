@@ -5,7 +5,9 @@ import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useAuth } from "@/Hooks/useAuth";
 import { discoverFieldSteps } from "@/Components/Tour/discoverFields";
-import { moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
+import { menuPathForItem, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
+import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
+import { GuideInspector } from "./GuideInspector";
 import { GuideOverlay } from "./GuideOverlay";
 import { useGuideProgress } from "./guideProgress";
 import { PAGE_TITLE, availableSteps, formSteps, sel, slugOf, topicByKey } from "./guideTopics";
@@ -54,6 +56,8 @@ export function GuideProvider({ children }) {
   const [waiting, setWaiting] = useState(false);
   const [practiced, setPracticed] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  // "What's this?" mode: hover anything for its explanation.
+  const [inspecting, setInspecting] = useState(false);
   const followingRef = useRef(false);
 
   // The text of a step, with {{page}} and the step's own values.
@@ -95,6 +99,7 @@ export function GuideProvider({ children }) {
     if (followingRef.current) followingRef.current = false;
     else stop();
     setPanelOpen(false);
+    setInspecting(false);
   }, [pathname, stop]);
 
   // Modules visited, for the checklist.
@@ -204,9 +209,32 @@ export function GuideProvider({ children }) {
     return [...seen.values()];
   }, [menus]);
 
+  // Every page the user can open (the backend's menus), for the panel's search.
+  const pages = useMemo(() => {
+    const active = (menus ?? []).filter((m) => m?.status === 1);
+    const parents = new Set(active.map((m) => String(m.parent_menu_id ?? "")));
+    return active
+      .filter((m) => !parents.has(String(m.menu_id)))
+      .map((m) => ({ id: m.menu_id, name: menuLabel(m), where: [m.module_label || m.module_name, parentMenuLabel(m)].filter(Boolean).join(" › "), path: menuPathForItem(m, active) }));
+  }, [menus]);
+
   const value = useMemo(
-    () => ({ start, running: Boolean(run), progress, modules, panelOpen, setPanelOpen, slug: slugOf(pathname), pathname }),
-    [start, run, progress, modules, panelOpen, pathname],
+    () => ({
+      start,
+      running: Boolean(run) || inspecting,
+      progress,
+      modules,
+      pages,
+      panelOpen,
+      setPanelOpen,
+      inspect: () => {
+        setPanelOpen(false);
+        setInspecting(true);
+      },
+      slug: slugOf(pathname),
+      pathname,
+    }),
+    [start, run, inspecting, progress, modules, pages, panelOpen, pathname],
   );
 
   return (
@@ -225,6 +253,7 @@ export function GuideProvider({ children }) {
           onClose={() => stop()}
         />
       )}
+      {inspecting && <GuideInspector onClose={() => setInspecting(false)} />}
     </GuideContext.Provider>
   );
 }

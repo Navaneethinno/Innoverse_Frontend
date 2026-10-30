@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap, Keyboard, RotateCcw } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap, Keyboard, MousePointerClick, RotateCcw, Search } from "lucide-react";
 import { useGuide } from "./GuideProvider";
 import { FULL, TOPICS, availableSteps, topicByKey } from "./guideTopics";
 
@@ -48,7 +48,8 @@ export function GuideButton() {
 
 function GuidePanel() {
   const { t } = useTranslation("guide");
-  const { start, progress, modules, slug, pathname } = useGuide();
+  const { start, progress, modules, pages, inspect, slug, pathname } = useGuide();
+  const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const [showModules, setShowModules] = useState(false);
   const topics = TOPICS.map((topic) => ({ topic, count: availableSteps(topic, slug).length })).filter((x) => x.count);
@@ -64,6 +65,11 @@ function GuidePanel() {
     { key: "checkModules", done: modules.length > 0 && visited === modules.length, count: `${visited}/${modules.length}`, modules: true },
   ];
   const doneCount = checklist.filter((c) => c.done).length;
+  // Search: this page's topics and every page the user can open.
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = (text) => words.every((w) => text.toLowerCase().includes(w));
+  const foundTopics = words.length ? topics.filter(({ topic }) => matches(`${t(`topic_${topic.key}`)} ${t(`topic_${topic.key}Hint`)}`)) : [];
+  const foundPages = words.length ? pages.filter((p) => matches(`${p.name} ${p.where}`)).slice(0, 8) : [];
   const canStart = (key) => topics.some((x) => x.topic.key === key);
 
   return (
@@ -71,9 +77,42 @@ function GuidePanel() {
       <div className="border-b bg-primary-light/60 px-4 py-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-primary">{t("guide")}</p>
         <h3 className="text-sm font-black">{t("panelTitle")}</h3>
+        <label className="mt-2 flex items-center gap-2 rounded-xl border bg-[var(--card)] px-3 py-1.5">
+          <Search size={14} className="shrink-0 text-muted-foreground" />
+          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchPlaceholder")} className="min-w-0 flex-1 bg-transparent text-xs outline-none" />
+        </label>
       </div>
 
       <div className="max-h-[70vh] overflow-y-auto p-2">
+        {words.length > 0 && (
+          <div className="mb-2 grid gap-0.5">
+            {!foundTopics.length && !foundPages.length && <p className="px-3 py-3 text-xs text-muted-foreground">{t("noResults")}</p>}
+            {foundTopics.map(({ topic }) => (
+              <button key={topic.key} type="button" onClick={() => start(topic.key)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs hover:bg-muted">
+                <CirclePlay size={14} className="shrink-0 text-primary" />
+                <span className="flex-1 font-semibold">{t(`topic_${topic.key}`)}</span>
+                <span className="text-[10px] text-muted-foreground">{t("onThisPage")}</span>
+              </button>
+            ))}
+            {foundPages.map((p) => (
+              <button key={p.id} type="button" onClick={() => navigate(p.path)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs hover:bg-muted">
+                <ArrowRight size={14} className="shrink-0 text-primary" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{p.name}</span>
+                  <span className="block truncate text-[10px] text-muted-foreground">{p.where}</span>
+                </span>
+              </button>
+            ))}
+            <div className="my-1 border-t" />
+          </div>
+        )}
+        <button type="button" onClick={inspect} className="mb-1 flex w-full items-center gap-3 rounded-xl border border-primary/30 px-3 py-2 text-left hover:bg-muted">
+          <MousePointerClick size={16} className="shrink-0 text-primary" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-bold">{t("inspect")}</span>
+            <span className="block truncate text-[11px] text-muted-foreground">{t("inspectHint")}</span>
+          </span>
+        </button>
         {resume && (
           <button
             type="button"
