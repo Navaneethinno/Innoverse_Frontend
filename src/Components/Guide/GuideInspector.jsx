@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import { MousePointerClick, X } from "lucide-react";
 import { controlAt, explain } from "./pageControls";
 
-// "What's this?": hover any button, filter, tab or column and its
-// explanation shows beside it. Clicks are held back so nothing runs by
-// accident; Esc or the bar's Done ends it.
+// "What's this?": point at (or tap, on a touch screen) any button, filter,
+// tab or column and its explanation shows beside it. Clicks and taps are
+// held back so nothing runs by accident; Esc or the bar's Done ends it.
 export function GuideInspector({ onClose }) {
   const { t } = useTranslation("guide");
   const [hit, setHit] = useState(null); // { rect, title, content }
@@ -21,6 +21,8 @@ export function GuideInspector({ onClose }) {
       if (e.target.closest?.("[data-guide-ui]")) return;
       e.preventDefault();
       e.stopPropagation();
+      // A tap has no hover: it shows the explanation.
+      if (e.type === "click") onMove(e);
     };
     const onKey = (e) => e.key === "Escape" && onClose();
     const onScroll = () => setHit(null);

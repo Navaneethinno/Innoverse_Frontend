@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap, Keyboard, MousePointerClick, RotateCcw, Search } from "lucide-react";
 import { useGuide } from "./GuideProvider";
 import { FULL, TOPICS, availableSteps, topicByKey } from "./guideTopics";
+import { readsWindow } from "./pageControls";
 
 // "Guide" in the top bar: opens the panel of this page's topic tours, a
 // resume row and the getting-started checklist. A pulsing dot marks a page
@@ -14,7 +16,8 @@ export function GuideButton() {
   const ref = useRef(null);
   useEffect(() => {
     if (!guide?.panelOpen) return undefined;
-    const onDown = (e) => ref.current && !ref.current.contains(e.target) && guide.setPanelOpen(false);
+    // Clicks on the button or inside the panel (rendered at the page's top level) keep it open.
+    const onDown = (e) => ref.current && !ref.current.contains(e.target) && !e.target.closest?.("[data-guide-ui]") && guide.setPanelOpen(false);
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, [guide]);
@@ -33,7 +36,6 @@ export function GuideButton() {
       >
         <GraduationCap size={14} />
         <span className="hidden md:inline">{t("guide")}</span>
-        <span className="hidden rounded bg-primary px-1 text-[9px] font-black uppercase text-primary-foreground md:inline">{t("new")}</span>
         {fresh && (
           <span className="absolute -right-0.5 -top-0.5 flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
@@ -41,10 +43,14 @@ export function GuideButton() {
           </span>
         )}
       </button>
-      {panelOpen && <GuidePanel />}
+      {/* Above any open window: at the page's top level, not inside the top bar. */}
+      {panelOpen && createPortal(<GuidePanel />, document.body)}
     </div>
   );
 }
+
+// With a window (a form) open, "This page's buttons and filters" reads it.
+const topicName = (key) => (key === "controls" && readsWindow() ? "controlsForm" : key);
 
 function GuidePanel() {
   const { t } = useTranslation("guide");
@@ -73,7 +79,7 @@ function GuidePanel() {
   const canStart = (key) => topics.some((x) => x.topic.key === key);
 
   return (
-    <div className="fixed inset-x-3 top-16 z-50 sm:absolute sm:inset-x-auto sm:right-0 sm:top-10 sm:w-[23rem] overflow-hidden rounded-2xl border bg-[var(--card)] text-[var(--card-foreground)] shadow-2xl">
+    <div data-guide-ui className="fixed inset-x-3 top-16 z-[10001] sm:inset-x-auto sm:right-4 sm:w-[23rem] overflow-hidden rounded-2xl border bg-[var(--card)] text-[var(--card-foreground)] shadow-2xl">
       <div className="border-b bg-primary-light/60 px-4 py-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-primary">{t("guide")}</p>
         <h3 className="text-sm font-black">{t("panelTitle")}</h3>
@@ -139,8 +145,8 @@ function GuidePanel() {
                       {done ? <Check size={15} /> : <Icon size={15} />}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-bold">{t(`topic_${topic.key}`)}</span>
-                      <span className="block truncate text-[11px] text-muted-foreground">{t(`topic_${topic.key}Hint`)}</span>
+                      <span className="block text-xs font-bold">{t(`topic_${topicName(topic.key)}`)}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">{t(`topic_${topicName(topic.key)}Hint`)}</span>
                     </span>
                     <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">{t("steps", { count })}</span>
                   </button>

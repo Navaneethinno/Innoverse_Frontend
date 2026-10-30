@@ -1,10 +1,11 @@
-// Reads what is actually on the open page, so the guide can explain this
-// page's own controls (its toolbar buttons, filters, switches, tabs and
-// table columns) by their real labels, and so "What's this?" can explain
-// any element under the pointer.
+// Reads what is actually on the open page (or the window open over it), so
+// the guide can explain its own controls (toolbar buttons, filters,
+// switches, tabs, table columns, a form's fields) by their real labels, and
+// so "What's this?" can explain any element pointed at or tapped.
 
 import i18n from "i18next";
-import { PAGE_HELP } from "./pageHelp";
+import { PAGE_HELP, PAGE_HELP_TEXT } from "./pageHelp";
+import { discoverFieldSteps } from "./discoverFields";
 
 const t = (key, vars) => i18n.t(`guide:${key}`, vars);
 const tour = (key) => (i18n.exists(`tour:${key}`) ? i18n.t(`tour:${key}`) : "");
@@ -15,8 +16,15 @@ const visible = (el) => {
 };
 const clean = (text) => String(text ?? "").replace(/\s+/g, " ").trim();
 
-// The page itself: the workspace, never the sidebar, top bar or an open modal.
+// The page itself: the workspace, never the sidebar or top bar.
 export const workspace = () => document.querySelector('[data-tour="workspace"]');
+
+// The window open over the page (its header, fields and buttons), if any.
+export function openWindow() {
+  const bodies = [...document.querySelectorAll('[data-tour="modal-body"]')].filter(visible);
+  const body = bodies[bodies.length - 1];
+  return body ? (body.parentElement ?? body) : null;
+}
 
 export const labelOf = (el) => clean(el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || el.getAttribute("placeholder") || "").slice(0, 60);
 
@@ -66,14 +74,64 @@ function markedText(el) {
 // The open page's key in PAGE_HELP: its last path segment without dashes.
 export const pageKey = () => (window.location.pathname.split("/").filter(Boolean).pop() ?? "").replace(/-/g, "").toLowerCase();
 
-// Written help for a label on this page, else the shared one.
+const lang = () => String(i18n.resolvedLanguage ?? i18n.language ?? "en").slice(0, 2);
+
+// Labels are shown in the user's language; the help is keyed by the English
+// label. The app's own translations lead back: the text found in the
+// user's language, then the same key's English text. Built once per language.
+const reverse = new Map();
+// Every English text the label may stand for (one translation can serve several).
+function englishOf(label) {
+  const code = lang();
+  if (code === "en") return [label];
+  if (!reverse.has(code)) {
+    const map = new Map();
+    const walk = (node, ns, path) => {
+      for (const [k, v] of Object.entries(node ?? {})) {
+        const key = path ? `${path}.${k}` : k;
+        if (typeof v === "string") {
+          const en = i18n.getResource("en", ns, key);
+          if (typeof en === "string") map.set(v.toLowerCase(), [...new Set([...(map.get(v.toLowerCase()) ?? []), en])]);
+        } else if (v && typeof v === "object") walk(v, ns, key);
+      }
+    };
+    for (const [ns, data] of Object.entries(i18n.store?.data?.[code] ?? {})) walk(data, ns, "");
+    reverse.set(code, map);
+  }
+  return reverse.get(code).get(String(label).toLowerCase()) ?? [label];
+}
+
+// One entry of a page's help in the user's language, else in English.
+const helpEntry = (page, key) => PAGE_HELP_TEXT[lang()]?.[page]?.[key] ?? PAGE_HELP[page]?.[key] ?? null;
+
+// The heading of the page (or of the window open over it).
+const headingText = () => labelOf(workspace()?.querySelector("h1") ?? document.createElement("i"));
+
+// Written help for a label on this page, else the shared one. A master-data
+// list explains its Add button and Individual / Corporate views by template.
 export const writtenHelp = (label) => {
-  const key = String(label ?? "").toLowerCase();
-  return PAGE_HELP[pageKey()]?.[key] ?? PAGE_HELP._common[key] ?? null;
+  const page = pageKey();
+  for (const english of englishOf(label)) {
+    const key = String(english ?? "").toLowerCase();
+    if (PAGE_HELP[page]?.master) {
+      if (key.startsWith("add ")) return t("masterAdd", { name: headingText() });
+      if (key === "individual" || key === "corporate") return t(`master_${key}`);
+    }
+    const help = helpEntry(page, key) ?? helpEntry("_common", key);
+    if (help) return help;
+  }
+  return null;
 };
 
+// A button that only closes a banner or a notice, in any language.
+const dismisses = (label) => englishOf(label).some((english) => DISMISS.test(english));
+
 // The page's own introduction, when one is written.
-export const pageAbout = () => PAGE_HELP[pageKey()]?.about ?? null;
+export const pageAbout = () => {
+  const page = pageKey();
+  if (PAGE_HELP[page]?.master) return t("masterAbout", { name: headingText() });
+  return helpEntry(page, "about");
+};
 
 // { title, content } for any element: its written help if there is one,
 // else the tour's text, else its label, its tooltip and what kind of
@@ -100,9 +158,32 @@ export function controlAt(target) {
   return el;
 }
 
+// The open window's steps: one per field (its label and hint, or written
+// help), then its buttons.
+function windowSteps(win) {
+  const steps = discoverFieldSteps(i18n.getFixedT(null, "tour")).map((s, i) => {
+    const written = writtenHelp(s.title);
+    return { ...s, id: `pc_f${i}`, icon: "field", ...(written ? { content: written } : {}) };
+  });
+  const seen = new Set(steps.map((s) => s.title));
+  for (const el of win.querySelectorAll("button")) {
+    const label = labelOf(el);
+    if (!visible(el) || el.closest('[data-tour="modal-body"]') || !label || label.length < 2 || dismisses(label) || seen.has(label)) continue;
+    seen.add(label);
+    steps.push({ id: `pc_b${steps.length}`, target: el, icon: "page", ...explain(el) });
+  }
+  return steps;
+}
+
+// Whether the guide reads a window (a form) rather than the page.
+export const readsWindow = () => Boolean(openWindow());
+
 // One step per control of the page's header and toolbars (not the rows, not
-// the sidebar), then one for the table's columns. Tabs of one bar are one step.
+// the sidebar), then one for the table's columns. Tabs of one bar are one
+// step. With a window open over the page, its fields and buttons instead.
 export function pageControlSteps() {
+  const win = openWindow();
+  if (win) return windowSteps(win);
   const root = workspace();
   if (!root) return [];
   const steps = [];
@@ -122,7 +203,7 @@ export function pageControlSteps() {
       continue;
     }
     const label = labelOf(el);
-    if (!label || label.length < 2 || DISMISS.test(label)) continue;
+    if (!label || label.length < 2 || dismisses(label)) continue;
     // A group (status tabs, the view switch) is one step, on the whole group.
     const marker = markerOf(el);
     const group = marker && GROUPS.has(marker.getAttribute("data-tour")) ? marker : null;
@@ -139,7 +220,7 @@ export function pageControlSteps() {
     if (cols.length) steps.push({ id: "pc_columns", target: head, icon: "table", title: t("columnsTitle"), content: t("columnsBody", { names: cols.join(", ") }) });
     // Columns with written help get a step of their own.
     for (const th of head.querySelectorAll("th")) {
-      const help = PAGE_HELP[pageKey()]?.[labelOf(th).toLowerCase()];
+      const help = englishOf(labelOf(th)).map((english) => helpEntry(pageKey(), String(english).toLowerCase())).find(Boolean);
       if (help) steps.push({ id: `pc_col_${steps.length}`, target: th, icon: "table", title: labelOf(th), content: help });
     }
   }

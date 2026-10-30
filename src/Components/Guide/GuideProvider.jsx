@@ -8,7 +8,7 @@ import { discoverFieldSteps } from "./discoverFields";
 import { menuPathForItem, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
 import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
 import { GuideInspector } from "./GuideInspector";
-import { pageAbout } from "./pageControls";
+import { pageAbout, readsWindow } from "./pageControls";
 import { GuideOverlay } from "./GuideOverlay";
 import { useGuideProgress } from "./guideProgress";
 import { PAGE_TITLE, availableSteps, formSteps, sel, slugOf, topicByKey } from "./guideTopics";
@@ -248,7 +248,7 @@ export function GuideProvider({ children }) {
           step={step}
           index={run.index}
           total={run.steps.length}
-          topicLabel={t(`guide:topic_${run.topic}`)}
+          topicLabel={t(`guide:topic_${run.topic === "controls" && readsWindow() ? "controlsForm" : run.topic}`)}
           waiting={waiting}
           practiced={practiced}
           onNext={() => void next()}

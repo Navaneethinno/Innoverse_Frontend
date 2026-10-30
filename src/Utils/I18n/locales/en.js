@@ -2580,14 +2580,20 @@ export const reports = {
 };
 
 export const guide = {
+  masterAbout: "{{name}}: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+  masterAdd: "Adds an entry to the {{name}} list: its code and name. A checker approves it before forms offer it.",
+  master_individual: "The entries used for individual customers and merchants.",
+  master_corporate: "The entries used for companies.",
+  topic_controlsFormHint: "Every field of the open form, by its own name",
+  topic_controlsForm: "This window's fields and buttons",
   topic_controls: "This page's buttons and filters",
   topic_controlsHint: "Every control on this screen, by its own name",
   searchPlaceholder: "How do I… (search pages and topics)",
   noResults: "Nothing found. Try another word.",
   onThisPage: "on this page",
   inspect: "What's this?",
-  inspectHint: "Point at anything on the page to see what it does",
-  inspectBar: "Point at anything to see what it does. Nothing is clicked meanwhile.",
+  inspectHint: "Point at or tap anything on the page to see what it does",
+  inspectBar: "Point at or tap anything to see what it does. Nothing is clicked meanwhile.",
   thisPage: "this page",
   tabsTitle: "Views of this page",
   tabsBody: "Switch between {{names}}. Each shows its own part of the page.",
