@@ -8,7 +8,7 @@ import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Toggle } from "@/Components/Common/Toggle";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { loanProductsApi } from "@/Services/Loans/loans.api";
+import { loanProductGroupsApi, loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { moveItem, useDragReorder } from "@/Components/Common/dragReorder";
@@ -29,6 +29,9 @@ const optional = (v) => (String(v ?? "").trim() === "" ? undefined : String(v).t
 const optionalInt = (v) => (String(v ?? "").trim() === "" ? undefined : Number(v));
 const clean = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
 const keepId = (x) => (x.id ? { id: x.id } : {});
+
+// A band priced by credit score: from / to (0 = open).
+const scoreBand = (b) => ({ minimum_credit_score: Number(b.minimum_credit_score) || 0, maximum_credit_score: Number(b.maximum_credit_score) || 0 });
 
 // The configuration as the server takes it: amounts and rates as strings,
 // counts as numbers, ids kept on items that already exist; empty optional
@@ -52,7 +55,17 @@ function toBody(c) {
       group_only: Boolean(e.group_only),
       top_up_allowed: Boolean(e.top_up_allowed),
       top_up_minimum_repaid_percent: e.top_up_allowed ? str(e.top_up_minimum_repaid_percent) : undefined,
+      // A minimum credit score makes a credit check required.
+      minimum_credit_score: Number(e.minimum_credit_score) || 0,
+      minimum_group_members: Number(e.minimum_group_members) || 0,
+      co_borrowers_allowed: Boolean(e.co_borrowers_allowed),
+      maximum_co_borrowers: e.co_borrowers_allowed ? Number(e.maximum_co_borrowers) || 0 : 0,
+      // The application then needs an INSURANCE document.
+      insurance_required: Boolean(e.insurance_required),
+      // Walk-in borrowers: no wallet needed; paid out and repaid in cash at a till.
+      wallet_not_required: Boolean(e.wallet_not_required),
     }),
+    product_group_id: Number(c.product_group_id) || 0,
     approval_matrix: (c.approval_matrix ?? []).map((r) => ({ ...keepId(r), minimum_amount: str(r.minimum_amount), maximum_amount: str(r.maximum_amount), required_approvals: Number(r.required_approvals) || 1, ...(r.profile_ids?.length ? { profile_ids: r.profile_ids.map(Number) } : {}) })),
     collateral_policy: {
       required: Boolean(c.collateral_policy?.required),
@@ -60,6 +73,9 @@ function toBody(c) {
       accepted_types: c.collateral_policy?.accepted_types ?? [],
       guarantors_required: Number(c.collateral_policy?.guarantors_required) || 0,
       compulsory_savings_percent: str(c.collateral_policy?.compulsory_savings_percent),
+      required_documents: (c.collateral_policy?.required_documents ?? [])
+        .filter((d) => str(d.code, "").trim())
+        .map((d) => ({ code: str(d.code, "").toUpperCase(), name: str(d.name, "").trim(), mandatory: Boolean(d.mandatory) })),
     },
     policy: {
       ...p,
@@ -67,6 +83,8 @@ function toBody(c) {
       maximum_moratorium_days: p.moratorium_allowed ? Number(p.maximum_moratorium_days) || 0 : 0,
       prepayment_charge_value: str(p.prepayment_charge_value),
       late_charge_value: str(p.late_charge_value),
+      // No early settlement in the first months (0: any time).
+      prepayment_lock_months: Number(p.prepayment_lock_months) || 0,
     },
     terms: (c.terms ?? []).map((term) => ({
       ...keepId(term),
@@ -81,8 +99,8 @@ function toBody(c) {
       // spread (annual_rate is then ignored); FIXED carries its own rate.
       pricing: (term.pricing ?? []).map(({ reference_rate_code, spread, annual_rate, ...b }) =>
         b.pricing_type === "VARIABLE"
-          ? { ...keepId(b), ...b, minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), reference_rate_code: str(reference_rate_code, "").toUpperCase(), spread: str(spread, "0") }
-          : { ...keepId(b), ...b, minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), annual_rate: str(annual_rate, ""), pricing_type: "FIXED" },
+          ? { ...keepId(b), ...b, ...scoreBand(b), minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), reference_rate_code: str(reference_rate_code, "").toUpperCase(), spread: str(spread, "0") }
+          : { ...keepId(b), ...b, ...scoreBand(b), minimum_amount: str(b.minimum_amount), maximum_amount: str(b.maximum_amount), annual_rate: str(annual_rate, ""), pricing_type: "FIXED" },
       ),
     })),
     fees: (c.fees ?? []).map((f) => ({ ...keepId(f), fee_code: str(f.fee_code, "").toUpperCase(), fee_name: str(f.fee_name, ""), calculation_type: f.calculation_type, fee_value: str(f.fee_value), maximum_fee: str(f.maximum_fee), collection_point: f.collection_point, refundable: Boolean(f.refundable) })),
@@ -94,6 +112,14 @@ function toBody(c) {
 // or a Draft / Rejected Add saves each page as a draft and is then
 // submitted; an approved one proposes its changes in one edit.
 export function LoanProductWizard({ product, scope, onClose, onSaved }) {
+  // Product groups (short, medium, long term), for reports.
+  const [groups, setGroups] = useState([]);
+  useEffect(() => {
+    loanProductGroupsApi
+      .list(product?.inst_profile_id ? { inst_profile_id: product.inst_profile_id, active_only: true } : scope({ active_only: true }))
+      .then((r) => setGroups(rowsOf(r)))
+      .catch(() => setGroups([]));
+  }, [product, scope]);
   const { t } = useTranslation(["loans", "common"]);
   const [options, setOptions] = useState(null);
   const [step, setStep] = useState(0);
@@ -250,6 +276,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             {field(t("productCode"), <Field field={{ placeholder: "PL_AED" }} disabled={Boolean(product)} value={product?.product_code ?? head.product_code} onChange={(v) => setHead((h) => ({ ...h, product_code: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") }))} />, !product && t("codeFixedHint"), true)}
             {field(t("currency"), <Field field={{ type: "select", blank: t("chooseCurrency"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}` })) }} disabled={Boolean(product)} value={String(currencyId ?? "")} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />, null, true)}
             {field(t("productCategory"), <Field field={sel(options.product_categories)} value={config.product_category} onChange={(v) => set({ product_category: v })} />)}
+            {field(t("productGroup"), <Field field={{ type: "select", blank: t("noProductGroup"), options: groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` })) }} value={Number(config.product_group_id) ? String(config.product_group_id) : ""} onChange={(v) => set({ product_group_id: v })} />, t("productGroupHint"))}
             {field(t("productName"), <Field field={{}} value={config.product_name} onChange={(v) => set({ product_name: v })} />, null, true)}
             {field(t("effectiveFrom"), <Field field={{ type: "date" }} value={config.effective_from} onChange={(v) => set({ effective_from: v })} />)}
             {field(t("effectiveTo"), <Field field={{ type: "date" }} value={config.effective_to} onChange={(v) => set({ effective_to: v })} />)}
@@ -282,7 +309,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             ]}
             renderExtra={(term, patch) => (
               <div className="mt-3 border-t border-dashed border-border pt-3">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("rateBands")}</p>
+                <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("rateBands")}</p>
+                <p className="mb-1 text-[11px] text-muted-foreground">{t("scorePricingHint")}</p>
+                <p className="mb-2 text-[11px] text-muted-foreground">{t("calculationMethodHint")}</p>
                 <RowsEditor
                   rows={term.pricing ?? []}
                   onChange={(pricing) => patch({ pricing })}
@@ -298,6 +327,8 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
                     { key: "reference_rate_code", label: t("referenceRate"), placeholder: "BASE", type: "code", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "spread", label: t("spreadPct"), type: "percent", showIf: (b) => b.pricing_type === "VARIABLE" },
                     { key: "calculation_method", label: t("calculationMethod"), ...sel(options.calculation_methods) },
+                    { key: "minimum_credit_score", label: t("scoreFrom"), type: "int" },
+                    { key: "maximum_credit_score", label: t("scoreTo"), type: "int" },
                     { key: "day_count_convention", label: t("dayCount"), ...sel(options.day_count_conventions) },
                     { key: "effective_from", label: t("effectiveFrom"), type: "date" },
                   ]}
@@ -348,6 +379,7 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             <Toggle showLabel label={t("earlySettlement")} checked={p.early_settlement_allowed} onChange={(v) => setPolicy({ early_settlement_allowed: v })} />
             <Toggle showLabel label={t("autoDebit")} checked={p.auto_debit_enabled} onChange={(v) => setPolicy({ auto_debit_enabled: v })} />
             <Toggle showLabel label={t("moratoriumAllowed")} checked={p.moratorium_allowed} onChange={(v) => setPolicy({ moratorium_allowed: v })} />
+            {p.early_settlement_allowed && field(t("prepaymentLockMonths"), <Field field={{ type: "int" }} value={p.prepayment_lock_months} onChange={(v) => setPolicy({ prepayment_lock_months: v })} />, t("prepaymentLockHint"))}
             {p.moratorium_allowed && field(t("maximumMoratoriumDays"), <Field field={{ type: "int" }} value={p.maximum_moratorium_days} onChange={(v) => setPolicy({ maximum_moratorium_days: v })} />)}
           </div>
           <AllocationOrder value={p.repayment_allocation_order ?? options.repayment_allocation_parts ?? []} onChange={(v) => setPolicy({ repayment_allocation_order: v })} />
@@ -366,6 +398,12 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
             <Toggle showLabel label={t("creditCheckRequired")} checked={e.credit_check_required} onChange={(v) => setElig({ credit_check_required: v })} className="self-end" />
             <Toggle showLabel label={t("groupOnly")} checked={e.group_only} onChange={(v) => setElig({ group_only: v })} className="self-end" />
             <Toggle showLabel label={t("topUpAllowed")} checked={e.top_up_allowed} onChange={(v) => setElig({ top_up_allowed: v })} className="self-end" />
+            {field(t("minimumCreditScore"), <Field field={{ type: "int" }} value={e.minimum_credit_score} onChange={(v) => setElig({ minimum_credit_score: v, ...(Number(v) > 0 ? { credit_check_required: true } : {}) })} />, t("minimumCreditScoreHint"))}
+            {e.group_only && field(t("minimumGroupMembers"), <Field field={{ type: "int" }} value={e.minimum_group_members} onChange={(v) => setElig({ minimum_group_members: v })} />)}
+            <Toggle showLabel label={t("coBorrowersAllowed")} checked={e.co_borrowers_allowed} onChange={(v) => setElig({ co_borrowers_allowed: v })} className="self-end" />
+            {e.co_borrowers_allowed && field(t("maximumCoBorrowers"), <Field field={{ type: "int" }} value={e.maximum_co_borrowers} onChange={(v) => setElig({ maximum_co_borrowers: v })} />, t("zeroNoLimit"))}
+            <Toggle showLabel label={t("insuranceRequired")} checked={e.insurance_required} onChange={(v) => setElig({ insurance_required: v })} className="self-end" />
+            <Toggle showLabel label={t("walletNotRequired")} checked={e.wallet_not_required} onChange={(v) => setElig({ wallet_not_required: v })} className="self-end" />
             {e.top_up_allowed && field(t("topUpMinimumRepaid"), <Field field={{ type: "percent" }} value={e.top_up_minimum_repaid_percent} onChange={(v) => setElig({ top_up_minimum_repaid_percent: v })} />, t("topUpMinimumRepaidHint"))}
           </div>
           {(e.individual?.minimum_age || e.individual?.maximum_age) && <p className="mt-3 text-xs text-amber-700">{t("ageRuleHint")}</p>}
@@ -403,6 +441,22 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {field(t("guarantorsRequired"), <Field field={{ type: "select", options: Array.from({ length: 11 }, (_, n) => ({ value: String(n), label: String(n) })) }} value={String(col.guarantors_required ?? 0)} onChange={(v) => setColl({ guarantors_required: v })} />, t("guarantorsRequiredHint"))}
             {field(t("compulsorySavingsPercent"), <Field field={{ type: "percent" }} value={col.compulsory_savings_percent} onChange={(v) => setColl({ compulsory_savings_percent: v })} />, t("compulsorySavingsHint"))}
+          </div>
+          <div className="mt-4">
+            <p className={labelClass}>{t("requiredDocuments")}</p>
+            <p className="mb-2 text-[11px] text-muted-foreground">{t("requiredDocumentsHint")}</p>
+            <RowsEditor
+              rows={col.required_documents ?? []}
+              onChange={(required_documents) => setColl({ required_documents })}
+              blank={() => ({ code: "", name: "", mandatory: true })}
+              addLabel={t("addDocument")}
+              columns="lg:grid-cols-3"
+              fields={[
+                { key: "code", label: t("list_code"), type: "code", placeholder: "SALARY_SLIP" },
+                { key: "name", label: t("list_name") },
+                { key: "mandatory", label: t("mandatory"), type: "bool" },
+              ]}
+            />
           </div>
         </Section>
       )}

@@ -2,7 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Pencil, Percent, Plus, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, HandCoins, Layers, Pencil, Percent, Plus, Power, RotateCcw, Send, Target, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -18,6 +18,7 @@ import { loanLabel, useInstitutionScope } from "../../Loans/loanShared";
 import { LoanConfigSummary } from "./loanProductShared";
 import { LoanProductWizard, RateCheck } from "./LoanProductWizard";
 import { ReferenceRates } from "./ReferenceRates";
+import { LoanLists } from "./LoanLists";
 import { actorText } from "@/Utils/Lib/actor";
 
 
@@ -29,6 +30,8 @@ export function LoanProducts() {
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
   const [ratesOpen, setRatesOpen] = useState(false);
+  // Groups or purposes window.
+  const [listOpen, setListOpen] = useState(null);
   const [screen, setScreen] = useState(null);
 
   const list = useServerList({ api: loanProductsApi.listPath, call: loanProductsApi.list });
@@ -68,6 +71,12 @@ export function LoanProducts() {
       <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
         {t("referenceRates")}
       </Button>
+      <Button variant="secondary" size="sm" icon={Layers} onClick={() => setListOpen("groups")}>
+        {t("productGroups")}
+      </Button>
+      <Button variant="secondary" size="sm" icon={Target} onClick={() => setListOpen("purposes")}>
+        {t("loanPurposes")}
+      </Button>
       {can("Add") && (
         <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "wizard", product: null })}>
           {t("newLoanProduct")}
@@ -87,6 +96,7 @@ export function LoanProducts() {
         </div>
       </div>
       {ratesOpen && <ReferenceRates scope={scope} onClose={() => setRatesOpen(false)} />}
+      {listOpen && <LoanLists kind={listOpen} scope={scope} onClose={() => setListOpen(null)} />}
 
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsHint")} />
     </div>

@@ -1,5 +1,5 @@
 import { request } from "@/Services/Epurse/onboarding.api";
-import { downloadAttachment } from "@/Services/api/fileTransfer";
+import { downloadAttachment, downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // Loans (Admin Portal: Loans handoff, module LOANS). Every call is a POST
 // with a JSON body; records carry `actions` saying which buttons apply to
@@ -56,6 +56,14 @@ export const loanApplicationsApi = calls("/config/loan/application", [
   "guarantor_add",
   "guarantor_remove",
   "bureau_check",
+  // Co-borrowers and documents (parts answers both), forwarding.
+  "parts",
+  "co_borrower_add",
+  "co_borrower_remove",
+  "document_add",
+  "document_remove",
+  "forward",
+  "forward_options",
 ]);
 
 // Loan Facilities (menu 187): the loan, its payout, repayments, early
@@ -83,6 +91,20 @@ export const loanFacilitiesApi = calls("/config/loan/facility", [
   "mandate_cancel",
   "reassign_officer",
   "officer_history",
+  // Repricing variable-rate loans.
+  "reprice_mode",
+  "reprice_quote",
+  "reprice",
+  "reprices",
+  // Loans paid out in parts.
+  "tranches",
+  "tranche_plan",
+  "tranche_proof",
+  "tranche_disburse",
+  // A borrower who dies: marked, then claims in order.
+  "deceased",
+  "deceased_claim_add",
+  "deceased_claim_update",
 ]);
 
 // Portfolio quality (Loan Facilities View): PAR 1/30/90, ageing buckets,
@@ -104,3 +126,16 @@ export const bureauSubmissionsApi = {
   ...calls("/config/loan/bureau_submission", ["generate", "list", "submit"]),
   file: (body, fallbackName) => downloadAttachment("/config/loan/bureau_submission/file", body, fallbackName),
 };
+
+// Loan product groups and purposes (Loan Products menu): small lists saved at
+// once (no checker). Each row carries `actions` { edit, delete }.
+export const loanProductGroupsApi = calls("/config/loan/product_group", ["list", "add", "edit", "delete"]);
+export const loanPurposesApi = calls("/config/loan/purpose", ["list", "add", "edit", "delete"]);
+
+// Who may approve how much (Lending Regulatory Profile › Approval limits).
+export const lendingAuthorityApi = calls("/config/loan/lending_authority", ["list", "save", "delete"]);
+
+// A loan document's file: uploaded first (multipart, `id` = application or
+// `facility_id`), then attached with document_add / tranche_proof / deceased.
+export const uploadLoanDocument = (fields) => uploadFile("/config/loan/application/document_upload", fields);
+export const downloadLoanDocument = (body) => downloadFile("/config/loan/application/document_file", body);
