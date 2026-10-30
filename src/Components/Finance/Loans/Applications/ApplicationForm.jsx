@@ -13,12 +13,13 @@ import {
   borrowerGroupsApi,
   loanApplicationsApi,
   loanFacilitiesApi,
+  loanPurposesApi,
   recordOf,
 } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Facts, Problems, dayDate, labelClass, ratePct } from "../../Deposits/depositShared";
-import { officerOptions, useCoreBanking } from "../../coreBankingShared";
+import { branchOptions, officerOptions, useCoreBanking } from "../../coreBankingShared";
 import { Field, MiniTable, ScheduleTable, loanLabel, useInstitutionScope } from "../loanShared";
 
 const EMPTY = {
@@ -29,6 +30,8 @@ const EMPTY = {
   purpose_description: "",
   application_channel: "BRANCH",
   disbursement_acct_id: "",
+  credit_score: "",
+  branch_id: "",
   repayment_acct_id: "",
   monthly_income: "",
   operating_months: "",
@@ -50,7 +53,11 @@ function toBody(entity, f) {
     amount: f.amount,
     purpose_code: f.purpose_code,
     application_channel: f.application_channel,
-    disbursement_acct_id: Number(f.disbursement_acct_id),
+    // Walk-in borrower (product allows it): no wallet, paid out in cash at a till.
+    ...(f.disbursement_acct_id ? { disbursement_acct_id: Number(f.disbursement_acct_id) } : {}),
+    // From the bureau report: picks the band priced by score.
+    ...(f.credit_score ? { credit_score: Number(f.credit_score) } : {}),
+    ...(f.application_channel === "BRANCH" && f.branch_id ? { branch_id: Number(f.branch_id) } : {}),
     ...(f.repayment_acct_id ? { repayment_acct_id: Number(f.repayment_acct_id) } : {}),
     ...(f.purpose_description.trim() ? { purpose_description: f.purpose_description.trim() } : {}),
     ...(f.monthly_income ? { monthly_income: f.monthly_income } : {}),
@@ -84,7 +91,9 @@ export function ApplicationForm({ application, onClose, onSaved }) {
           purpose_code: application.purpose_code ?? "",
           purpose_description: application.purpose_description ?? "",
           application_channel: application.application_channel ?? "BRANCH",
-          disbursement_acct_id: String(application.disbursement_acct_id ?? ""),
+          disbursement_acct_id: Number(application.disbursement_acct_id) ? String(application.disbursement_acct_id) : "",
+          credit_score: application.credit_score ? String(application.credit_score) : "",
+          branch_id: application.branch_id ? String(application.branch_id) : "",
           repayment_acct_id:
             application.repayment_acct_id &&
             application.repayment_acct_id !== application.disbursement_acct_id
@@ -120,6 +129,14 @@ export function ApplicationForm({ application, onClose, onSaved }) {
   const setup = useCoreBanking(scope);
   const [groups, setGroups] = useState([]);
   const [running, setRunning] = useState([]);
+  // The institution's loan purposes: once there is one, the purpose is picked, not typed.
+  const [purposes, setPurposes] = useState([]);
+  useEffect(() => {
+    loanPurposesApi
+      .list(scope({ active_only: true }))
+      .then((r) => setPurposes(Array.isArray(r?.data) ? r.data : []))
+      .catch(() => setPurposes([]));
+  }, [scope]);
   useEffect(() => {
     borrowerGroupsApi
       .list(scope({ status: "ACTIVE", limit: 200 }))
@@ -178,6 +195,7 @@ export function ApplicationForm({ application, onClose, onSaved }) {
     (w) => !product || w.currency_id === product.currency_code,
   );
   const individual = String(entity?.entity_type ?? "").endsWith("INDV");
+  const branches = branchOptions(setup, { openOnly: true, operational: true });
   const rules = product?.config?.eligibility_rules ?? {};
   const savingsPct = Number(product?.config?.collateral_policy?.compulsory_savings_percent ?? 0);
   const topUps = running.filter((x) => String(x.loan_product_id) === form.loan_product_id);
@@ -187,7 +205,8 @@ export function ApplicationForm({ application, onClose, onSaved }) {
     form.term_id &&
     Number(form.amount) > 0 &&
     /^[A-Z0-9_]+$/.test(form.purpose_code) &&
-    form.disbursement_acct_id &&
+    (form.disbursement_acct_id || rules.wallet_not_required) &&
+    (form.application_channel !== "BRANCH" || form.branch_id || !branches.length) &&
     (!rules.group_only || form.group_id);
   const body = ready ? toBody(entity, form) : null;
   const { narration: _n, ...quoteBody } = body ?? {};
@@ -356,20 +375,34 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                         : money(term.maximum_amount, cur),
                   }),
               )}
+              {purposes.length
+                ? field(
+                    t("purpose"),
+                    <Field
+                      field={{ type: "select", blank: t("choosePurpose"), options: purposes.map((x) => ({ value: x.code, label: x.name })) }}
+                      value={form.purpose_code}
+                      onChange={set("purpose_code")}
+                    />,
+                  )
+                : field(
+                    t("purposeCode"),
+                    <Field
+                      field={{ placeholder: "HOME_IMPROVEMENT" }}
+                      value={form.purpose_code}
+                      onChange={(v) => set("purpose_code")(v.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
+                    />,
+                  )}
               {field(
-                t("purposeCode"),
-                <Field
-                  field={{ placeholder: "HOME_IMPROVEMENT" }}
-                  value={form.purpose_code}
-                  onChange={(v) => set("purpose_code")(v.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
-                />,
+                t("creditScore"),
+                <Field field={{ type: "int" }} value={form.credit_score} onChange={set("credit_score")} />,
+                t("creditScoreHint"),
               )}
               {field(
                 t("disbursementWallet"),
                 <Field
                   field={{
                     type: "select",
-                    blank: wallets.length ? t("chooseWallet") : t("noWalletInCurrency"),
+                    blank: rules.wallet_not_required ? t("cashWalkIn") : wallets.length ? t("chooseWallet") : t("noWalletInCurrency"),
                     options: wallets.map((w) => ({
                       value: String(w.id),
                       label: `${w.acct_num} · ${money(w.avail_bal, w.currency_code)}`,
@@ -401,6 +434,12 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                   onChange={set("application_channel")}
                 />,
               )}
+              {form.application_channel === "BRANCH" &&
+                branches.length > 0 &&
+                field(
+                  t("branch"),
+                  <Field field={{ type: "select", blank: t("choose"), options: branches }} value={form.branch_id} onChange={set("branch_id")} />,
+                )}
               {individual
                 ? field(
                     t("monthlyIncome"),

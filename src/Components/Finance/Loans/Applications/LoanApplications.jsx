@@ -2,23 +2,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ArrowLeft,
-  Ban,
-  CheckCircle2,
-  Circle,
-  ClipboardCheck,
-  FileCheck2,
-  FileSignature,
-  HandCoins,
-  MessageSquareWarning,
-  Pencil,
-  Plus,
-  ScanSearch,
-  ShieldCheck,
-  UserPlus,
-  XCircle,
-} from "lucide-react";
+import { ArrowLeft, Ban, CheckCircle2, Circle, ClipboardCheck, FileCheck2, FileSignature, HandCoins, MessageSquareWarning, Pencil, Plus, ScanSearch, ShieldCheck, UserPlus, XCircle, Forward } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -36,6 +20,7 @@ import { BureauCheckDialog, BureauReport, GuarantorDialog, Guarantors } from "./
 import { CollateralTable, FeesTable, FormDialog, OneFieldDialog } from "../loanDialogs";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
+import { CoBorrowers, Documents, ForwardDialog, ForwardHistory, useParts } from "./ApplicationParts";
 
 // LOANS > Loan Applications (menu 186): staff apply for a borrower, record
 // the offer's acceptance, credit checks and collateral, and approve. An
@@ -198,6 +183,8 @@ function ApplicationView({ id, onBack }) {
   const [busy, setBusy] = useState(false);
   const [lists, setLists] = useState(null);
   const [report, setReport] = useState(null);
+  // Co-borrowers and documents.
+  const [parts, setParts] = useParts(id);
 
   const reload = useCallback(async () => {
     try {
@@ -330,6 +317,15 @@ function ApplicationView({ id, onBack }) {
         variant: "danger",
         run: ask("decline"),
       },
+    // Above this user's approval limit: forward it to the next level instead.
+    a.forward &&
+      can("Authorize") && {
+        key: "forward",
+        label: t("forward"),
+        icon: Forward,
+        variant: "outline",
+        run: ask("forward"),
+      },
     a.approve &&
       can("Authorize") && {
         key: "approve",
@@ -398,6 +394,9 @@ function ApplicationView({ id, onBack }) {
             ["purpose", loanLabel(t, app.purpose_code)],
             ["channel", loanLabel(t, app.application_channel)],
             ["submittedAt", accountDate(app.submitted_time)],
+            app.assigned_userid > 0 && ["withUser", app.assigned_user],
+            app.approval_limits_set && ["yourLimit", Number(app.my_approval_limit) ? money(app.my_approval_limit, cur) : t("noLimitSet")],
+            Number(app.disbursement_acct_id) === 0 && ["disbursementWallet", t("cashWalkIn")],
             ["round", app.approval_round ?? 1],
             app.microfinance?.branch_name && ["branch", app.microfinance.branch_name],
             app.microfinance?.officer_name && ["loanOfficer", app.microfinance.officer_name],
@@ -450,7 +449,10 @@ function ApplicationView({ id, onBack }) {
             key: "guarantors",
             count: app.guarantors?.filter((g) => g.status !== "REMOVED").length,
           },
+          (app.eligibility_snapshot?.co_borrowers_allowed || parts?.co_borrowers?.length > 0) && { key: "co_borrowers", count: parts?.co_borrowers?.length },
+          { key: "documents", count: parts?.documents?.length },
           { key: "approvals", count: app.approvals?.length },
+          app.forwards?.length > 0 && { key: "forwards", count: app.forwards.length },
           { key: "fees", count: app.fees_charged?.length },
           { key: "history" },
         ].filter(Boolean)}
@@ -488,6 +490,9 @@ function ApplicationView({ id, onBack }) {
           onRemove={a.guarantors && can("Edit") ? (g) => setDialog({ removeGuarantor: g }) : null}
         />
       )}
+      {tab === "co_borrowers" && <CoBorrowers app={app} parts={parts} onParts={setParts} editable={open && can("Edit")} />}
+      {tab === "documents" && <Documents app={app} parts={parts} onParts={setParts} editable={open && can("Edit")} />}
+      {tab === "forwards" && <ForwardHistory rows={app.forwards} />}
       {tab === "approvals" && <ApprovalsPanel app={app} readiness={r} currency={cur} />}
       {tab === "fees" && <FeesTable rows={app.fees_charged} currency={cur} />}
       {tab === "history" && <Timeline events={app.events} currency={cur} />}
@@ -538,6 +543,16 @@ function ApplicationView({ id, onBack }) {
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={(v) => act("request_info", { message: v })}
+        />
+      )}
+      {dialog === "forward" && (
+        <ForwardDialog
+          app={app}
+          onClose={() => setDialog(null)}
+          onDone={() => {
+            setDialog(null);
+            void reload();
+          }}
         />
       )}
       {dialog === "decline" && (
@@ -886,6 +901,8 @@ function Readiness({ readiness: r, eligibility }) {
     ...Object.keys(OPTIONAL_BLOCKING).filter(
       (k) => blocking.includes(k) || OPTIONAL_BLOCKING[k](eligibility),
     ),
+    // Credit score, pricing score, documents, board resolution: when they block.
+    ...blocking.filter((k) => !BLOCKING.includes(k) && !(k in OPTIONAL_BLOCKING)),
   ];
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -900,7 +917,9 @@ function Readiness({ readiness: r, eligibility }) {
               ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-900",
             )}
           >
-            <Icon size={12} /> {t(`ready_${key}`)}
+            <Icon size={12} /> {t(`ready_${key}`, { defaultValue: key })}
+            {key === "DOCUMENTS" && r.missing_documents?.length > 0 && <span className="font-normal">: {r.missing_documents.join(", ")}</span>}
+            {key === "CREDIT_SCORE" && r.credit_score != null && <span className="font-normal"> ({r.credit_score})</span>}
           </span>
         );
       })}
