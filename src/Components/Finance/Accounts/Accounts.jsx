@@ -18,6 +18,7 @@ import { AccountStatement } from "./AccountStatement";
 import { AccountParties, AccountRequests, AccountStatements, RestrictionBadge } from "./AccountActions";
 import { Tabs } from "../Loans/loanShared";
 import { InstitutionWallets } from "./InstitutionWallets";
+import { OverdraftCard, Overdrafts } from "./Overdrafts";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { PhoneTransfers } from "./PhoneTransfers";
 import { OpenAccount, OpeningRequests } from "./AccountOpening";
@@ -53,10 +54,11 @@ export function Accounts() {
           </Button>
         )}
       </div>
-      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", phone: "ptTitle" }[k])} />
+      <Tabs tabs={[{ key: "accounts" }, { key: "opening" }, { key: "wallets" }, { key: "overdrafts" }, { key: "phone" }]} value={view} onChange={setView} labelOf={(k) => t({ accounts: "title", opening: "openingRequests", wallets: "instWallets", overdrafts: "overdrafts", phone: "ptTitle" }[k])} />
       {view === "accounts" && <AccountsList />}
       {view === "opening" && <OpeningRequests />}
       {view === "phone" && <PhoneTransfers />}
+      {view === "overdrafts" && <Overdrafts />}
       {view === "wallets" && <InstitutionWallets onOpenAccount={(w) => setWalletAccount({ ...w, id: w.acct_id })} />}
       {walletAccount && <AccountDetail account={walletAccount} onClose={() => setWalletAccount(null)} onStatement={() => setWalletAccount(null)} />}
       {opening && <OpenAccount onClose={() => setOpening(false)} onDone={(made) => made?.status === "PENDING" && setView("opening")} />}
@@ -211,6 +213,9 @@ function AccountDetail({ account, onClose, onStatement }) {
       {tab === "overview" && (
         <>
           <AccountBalances account={a} />
+          <div className="mt-4">
+            <OverdraftCard account={a} />
+          </div>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
             {rows.map(([key, value]) => (
               <div key={key} className="rounded-xl border border-border bg-card p-3">

@@ -32,15 +32,20 @@ export function DrCr({ type }) {
 
 const txnTypeLabel = (t, type) => t(`txnType_${type}`, { defaultValue: type ?? "—" });
 
-// The account's statement (/config/account/ledger), newest first, with
-// date and type filters. A line opens its whole transaction.
+const today = () => new Date().toISOString().slice(0, 10);
+const monthStart = () => `${today().slice(0, 8)}01`;
+
+// The account's statement (/config/account/ledger) for any dates, oldest
+// first: the opening balance on the first day, every credit and debit with
+// the balance after it (ledger_amount), and the totals and closing balance.
+// Type filter too. A line opens its whole transaction.
 export function AccountStatement({ account, onClose }) {
   const { t } = useTranslation(["accounts", "common"]);
-  const [filters, setFilters] = useState({ from: "", to: "", txn_type: "" });
+  const [filters, setFilters] = useState({ from: monthStart(), to: today(), txn_type: "" });
   const [applied, setApplied] = useState(filters);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [data, setData] = useState({ lines: [], total: 0 });
+  const [data, setData] = useState({ lines: [], total: 0, summary: null });
   const [loading, setLoading] = useState(false);
   const [txn, setTxn] = useState(null);
 
@@ -48,8 +53,8 @@ export function AccountStatement({ account, onClose }) {
     setLoading(true);
     try {
       const body = Object.fromEntries(Object.entries(applied).filter(([, v]) => v));
-      const row = rowsOf(await accountsApi.ledger({ id: account.id, page, limit, ...body }))[0];
-      setData({ lines: row?.lines ?? [], total: row?.total ?? 0 });
+      const row = rowsOf(await accountsApi.ledger({ id: account.id, order: "ASC", page, limit, ...body }))[0];
+      setData({ lines: row?.lines ?? [], total: row?.total ?? 0, summary: row?.summary ?? null });
     } catch (error) {
       notifications.error(error.message);
     } finally {
@@ -61,6 +66,8 @@ export function AccountStatement({ account, onClose }) {
   }, [load]);
 
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
+  const sum = data.summary;
+  const cur = data.lines[0]?.currency_code ?? account.currency_code;
   const columns = [
     { key: "tran_date_time", label: t("date"), render: (l) => <span className="whitespace-nowrap text-xs">{accountDate(l.tran_date_time)}</span> },
     {
@@ -74,9 +81,10 @@ export function AccountStatement({ account, onClose }) {
         </div>
       ),
     },
-    { key: "operation_type", label: t("drCr"), render: (l) => <DrCr type={l.operation_type} /> },
-    { key: "txn_amount", label: t("amount"), render: (l) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{money(l.txn_amount, l.currency_code)}</span> },
-    { key: "entry_amount", label: t("balanceAfter"), render: (l) => <span className="whitespace-nowrap text-xs tabular-nums">{money(l.entry_amount, l.currency_code)}</span> },
+    { key: "debit", label: t("debit"), render: (l) => <span className="whitespace-nowrap text-xs tabular-nums text-red-700">{l.operation_type === "DR" ? money(l.txn_amount, l.currency_code) : ""}</span> },
+    { key: "credit", label: t("credit"), render: (l) => <span className="whitespace-nowrap text-xs tabular-nums text-emerald-700">{l.operation_type === "CR" ? money(l.txn_amount, l.currency_code) : ""}</span> },
+    // ledger_amount: the account's balance after the line.
+    { key: "ledger_amount", label: t("balanceAfter"), render: (l) => <span className={cn("whitespace-nowrap text-xs font-bold tabular-nums", Number(l.ledger_amount) < 0 && "text-red-700")}>{money(l.ledger_amount, l.currency_code)}</span> },
     { key: "txn_status", label: t("status"), render: (l) => <StatusBadge status={l.txn_status} variant="subtle" /> },
     {
       key: "open",
@@ -114,6 +122,11 @@ export function AccountStatement({ account, onClose }) {
           </Button>
         </div>
       </form>
+      {sum && (
+        <p className="mb-2 rounded-xl bg-muted/40 px-3 py-2 text-xs">
+          {t("openingOn", { date: sum.from })} <b className="tabular-nums">{money(sum.opening_balance, cur)}</b>
+        </p>
+      )}
       <DataTable
         columns={columns}
         rows={data.lines}
@@ -134,6 +147,21 @@ export function AccountStatement({ account, onClose }) {
           },
         }}
       />
+      {sum && (
+        <div className="mt-3 grid gap-2 rounded-2xl border border-border bg-muted/30 p-3 text-xs sm:grid-cols-3">
+          <span>
+            {t("totalCredits")} <b className="block text-sm tabular-nums text-emerald-700">{money(sum.total_credits, cur)}</b>
+            <span className="text-muted-foreground">{t("linesCount", { count: sum.credits })}</span>
+          </span>
+          <span>
+            {t("totalDebits")} <b className="block text-sm tabular-nums text-red-700">{money(sum.total_debits, cur)}</b>
+            <span className="text-muted-foreground">{t("linesCount", { count: sum.debits })}</span>
+          </span>
+          <span>
+            {t("closingOn", { date: sum.to })} <b className={cn("block text-sm tabular-nums", Number(sum.closing_balance) < 0 && "text-red-700")}>{money(sum.closing_balance, cur)}</b>
+          </span>
+        </div>
+      )}
       {txn && <TxnDialog txnId={txn} onClose={() => setTxn(null)} />}
     </Modal>
   );
