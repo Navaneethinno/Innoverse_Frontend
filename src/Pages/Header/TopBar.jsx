@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound, House, ShieldCheck } from "lucide-react";
+import { Command, KeyRound, LogOut, Menu, Moon, Sun, UserRound, House, ShieldCheck } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Logo } from "@/Components/Common/Logo";
@@ -16,6 +16,7 @@ import { GuideButton } from "@/Components/Guide/GuideButton";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { isDemoUser } from "@/Utils/Lib/demoInstitution";
 import { useKeyCustody } from "@/Components/KeyCustody/KeyCustodyProvider";
+import { NotificationsButton } from "@/Components/Notifications/NotificationsButton";
 import { MyApprovalsButton } from "@/Components/GlobalSettings/Approvals/MyApprovals";
 export function TopBar() {
   const { t } = useTranslation(["common", "layout"]);
@@ -150,17 +151,7 @@ export function TopBar() {
 
           <MyApprovalsButton />
 
-          <UiTooltip label="Notifications">
-          <button
-            type="button"
-            onClick={() => navigate("/notifications")}
-            aria-label="Notifications"
-            className="relative p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary-light transition-colors"
-          >
-            <Bell size={15} strokeWidth={1.8} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-gradient" />
-          </button>
-          </UiTooltip>
+          <NotificationsButton />
 
           <div className="relative" ref={menuRef}>
             <button
