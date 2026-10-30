@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap, Keyboard, RotateCcw } from "lucide-react";
 import { useGuide } from "./GuideProvider";
-import { FULL, TOPICS, availableSteps, slugOf, topicByKey } from "./guideTopics";
+import { FULL, TOPICS, availableSteps, topicByKey } from "./guideTopics";
 
 // "Guide" in the top bar: opens the panel of this page's topic tours, a
 // resume row and the getting-started checklist. A pulsing dot marks a page
@@ -19,8 +19,8 @@ export function GuideButton() {
     return () => document.removeEventListener("mousedown", onDown);
   }, [guide]);
   if (!guide) return null;
-  const { panelOpen, setPanelOpen, running, progress, slug } = guide;
-  const fresh = !progress.seen[slug] && !running;
+  const { panelOpen, setPanelOpen, running, progress, pathname } = guide;
+  const fresh = !progress.seen[pathname] && !running;
   return (
     <div ref={ref} className="relative">
       <button
@@ -92,7 +92,7 @@ function GuidePanel() {
           <ul className="grid gap-0.5">
             {topics.map(({ topic, count }) => {
               const Icon = topic.icon;
-              const done = progress.done[`${slugOf(pathname)}:${topic.key}`];
+              const done = progress.done[`${pathname}:${topic.key}`];
               return (
                 <li key={topic.key}>
                   <button type="button" onClick={() => start(topic.key)} className="group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-muted">

@@ -71,7 +71,7 @@ export function GuideProvider({ children }) {
     runRef.current = run;
   }, [run]);
 
-  // Finished: the topic is ticked off. Left halfway: kept to resume
+  // Finished: the topic is ticked off on this page (and counts once for the checklist). Left halfway: kept to resume
   // (not Add, whose form is gone by then).
   const stop = useCallback(
     (finished = false) => {
@@ -81,7 +81,7 @@ export function GuideProvider({ children }) {
       if (!current) return;
       setProgress((p) =>
         finished
-          ? { done: { ...p.done, [`${current.slug}:${current.topic}`]: true, [`any:${current.topic}`]: true }, resume: null }
+          ? { done: { ...p.done, [`${current.path}:${current.topic}`]: true, [`any:${current.topic}`]: true }, resume: null }
           : current.topic !== "add" && current.index > 0
             ? { resume: { path: window.location.pathname, topic: current.topic, index: current.index } }
             : {},
@@ -115,11 +115,11 @@ export function GuideProvider({ children }) {
       const steps = availableSteps(topicByKey(topicKey), slug).map(withText);
       if (!steps.length) return;
       setPanelOpen(false);
-      setProgress((p) => ({ seen: { ...p.seen, [slug]: true }, resume: null }));
+      setProgress((p) => ({ seen: { ...p.seen, [pathname]: true }, resume: null }));
       const index = Math.min(at, steps.length - 1);
       await bringIntoView(steps[index].target);
       setPracticed(false);
-      setRun({ topic: topicKey, steps, index, slug });
+      setRun({ topic: topicKey, steps, index, path: pathname });
     },
     [pathname, setProgress, withText],
   );
