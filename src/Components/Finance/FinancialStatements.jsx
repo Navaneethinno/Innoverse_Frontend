@@ -14,6 +14,8 @@ import { ExportButtons } from "../Reports/Shared/reportShared";
 import { glAmount } from "./accountingShared";
 import { branchOptions, useCoreBanking } from "./coreBankingShared";
 import { inputClass } from "./Deposits/depositShared";
+import { DirectCashFlow, ProfitLossByDay, ProfitLossDetail, ResultRow } from "./GlReportSections";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useInstitutionScope } from "./Loans/loanShared";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -57,15 +59,21 @@ export function FinancialStatement({ kind, currencies }) {
   const spec = KINDS[kind];
   const branches = branchOptions(useCoreBanking(useInstitutionScope().scope));
   const [q, setQ] = useState({ as_of: today(), from: "", to: "", currency_id: "", branch_id: "" });
+  // Profit and loss: Summary | Detailed | By day. Cash flow: Direct | Indirect.
+  const [view, setView] = useState(kind === "cash_flow" ? "DIRECT" : "summary");
+  // Only the cash flow method changes the summary call; the P&L views load their own.
+  const indirect = kind === "cash_flow" && view === "INDIRECT";
   const [data, setData] = useState(null);
   const body = useMemo(
     () => ({
       ...(spec.dated ? (q.as_of ? { as_of: q.as_of } : {}) : { ...(q.from ? { from: q.from } : {}), ...(q.to ? { to: q.to } : {}) }),
       ...(q.currency_id ? { currency_id: Number(q.currency_id) } : {}),
       ...(q.branch_id ? { branch_id: Number(q.branch_id) } : {}),
+      ...(indirect ? { method: "INDIRECT" } : {}),
     }),
-    [q, spec.dated],
+    [q, spec.dated, indirect],
   );
+  const exportBody = { ...body, ...(view === "detail" ? { detail: true } : view === "by_day" ? { by_day: true } : {}) };
   useEffect(() => {
     let cancelled = false;
     setData(null);
@@ -108,7 +116,9 @@ export function FinancialStatement({ kind, currencies }) {
           )}
           <FilterSelect value={q.currency_id} onChange={set("currency_id")} options={[{ value: "", label: t("baseCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: c.alpha_code }))]} />
           {branches.length > 0 && <FilterSelect value={q.branch_id} onChange={set("branch_id")} options={[{ value: "", label: t("wholeInstitution") }, ...branches]} />}
-          <ExportButtons exportFile={(format) => glReportsApi[spec.exportFile]({ ...body, format })} />
+          {kind === "profit_loss" && <SegmentedSwitch value={view} onChange={setView} options={["summary", "detail", "by_day"].map((v) => ({ value: v, label: t(`plView_${v}`) }))} />}
+          {kind === "cash_flow" && <SegmentedSwitch value={view} onChange={setView} options={["DIRECT", "INDIRECT"].map((v) => ({ value: v, label: t(`method_${v}`) }))} />}
+          <ExportButtons exportFile={(format) => glReportsApi[spec.exportFile]({ ...exportBody, format })} />
         </>
       }
     >
@@ -128,11 +138,32 @@ export function FinancialStatement({ kind, currencies }) {
               {t("cashNotConfigured")} <MenuLink slug="corebankingsetup" label={t("openCoreBanking")} />
             </p>
           )}
+          {kind === "profit_loss" && view === "detail" ? (
+            <ProfitLossDetail body={body} currency={cur} />
+          ) : kind === "profit_loss" && view === "by_day" ? (
+            <ProfitLossByDay body={body} currency={cur} />
+          ) : kind === "cash_flow" && data.method === "DIRECT" ? (
+            data.cash_configured !== false && <DirectCashFlow data={data} />
+          ) : (
+            <StatementBody kind={kind} spec={spec} data={data} cur={cur} diff={diff} />
+          )}
+        </div>
+      )}
+    </ListPanel>
+  );
+}
+
+// The summary statement: its sections, the balance sheet's income and
+// expenditure block, the footer figures and the result.
+function StatementBody({ kind, spec, data, cur, diff }) {
+  const { t } = useTranslation("statements");
+  return (
+    <>
           {spec.sections.map((key) => (
             <StatementSection key={key} title={t(`section_${key}`)} section={data[key]} currency={cur} changeLabels={kind === "cash_flow" && key === "operating"} />
           ))}
           <div className="grid gap-1 rounded-2xl border border-border bg-muted/30 p-4">
-            {spec.footer.map(([field, label]) => (
+            {spec.footer.filter(([field]) => !(field === "net_profit" && data.result)).map(([field, label]) => (
               <div key={field} className="flex justify-between gap-3 text-sm">
                 <b>{t(label)}</b>
                 <b className={cn("tabular-nums", Number(data[field]) < 0 && "text-red-700")}>{glAmount(data[field] ?? "0", cur)}</b>
@@ -146,9 +177,16 @@ export function FinancialStatement({ kind, currencies }) {
             )}
           </div>
           {diff !== 0 && <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-bold text-red-700">{t(kind === "cash_flow" ? "cashNotReconciled" : "notBalanced")}</p>}
-        </div>
-      )}
-    </ListPanel>
+          {kind === "balance_sheet" && (data.income || data.expenses) && (
+            <>
+              <StatementSection title={t("ieIncome")} section={data.income} currency={cur} />
+              <StatementSection title={t("ieExpenditure")} section={data.expenses} currency={cur} />
+              <ResultRow result={data.result} currency={cur} />
+              <p className="text-[11px] text-muted-foreground">{t("resultEqualsEquity")}</p>
+            </>
+          )}
+          {kind === "profit_loss" && <ResultRow result={data.result} currency={cur} />}
+    </>
   );
 }
 

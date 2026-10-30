@@ -19,6 +19,7 @@ import { ExportButtons } from "../Reports/Shared/reportShared";
 import { inputClass } from "./Deposits/depositShared";
 import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingShared";
 import { FinancialStatement } from "./FinancialStatements";
+import { BalanceCheck, CustomerBalances, GlMovement, SectionsTable } from "./GlReportSections";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => `${today().slice(0, 8)}01`;
@@ -44,13 +45,15 @@ export function GlReports() {
         <p className="mt-1 text-sm text-muted-foreground">{t("repSubtitle")}</p>
       </div>
       <Tabs
-        tabs={[{ key: "statement" }, { key: "trial" }, { key: "balance_sheet" }, { key: "profit_loss" }, { key: "cash_flow" }]}
+        tabs={[{ key: "statement" }, { key: "trial" }, { key: "movement" }, { key: "balance_sheet" }, { key: "profit_loss" }, { key: "cash_flow" }, { key: "customer_balance" }]}
         value={tab}
         onChange={setTab}
         labelOf={(k) => t(`repTab_${k}`)}
       />
       {tab === "statement" && <Statement currencies={currencies} />}
       {tab === "trial" && <TrialBalance currencies={currencies} />}
+      {tab === "movement" && <GlMovement currencies={currencies} />}
+      {tab === "customer_balance" && <CustomerBalances currencies={currencies} />}
       {["balance_sheet", "profit_loss", "cash_flow"].includes(tab) && <FinancialStatement key={tab} kind={tab} currencies={currencies} />}
     </div>
   );
@@ -248,6 +251,36 @@ function TrialBalance({ currencies }) {
         <div className="flex justify-center p-8">
           <Spinner size={18} />
         </div>
+      ) : data.sections ? (
+        // Laid out by the backend as a statement: sections, groups, their GLs and totals.
+        <SectionsTable
+          sections={data.sections}
+          currency={cur}
+          amounts={[
+            ["debit", "debit"],
+            ["credit", "credit"],
+          ]}
+          footer={
+            <>
+              <tr>
+                <td colSpan={3} className="px-4 py-2.5 text-xs font-black">
+                  {t("totals")} <span className="font-normal text-muted-foreground">· {data.as_of}</span>
+                </td>
+                <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums">{glAmount(data.total_debit, cur)}</td>
+                <td className="px-3 py-2.5 text-right text-sm font-black tabular-nums">{glAmount(data.total_credit, cur)}</td>
+              </tr>
+              <tr>
+                <td colSpan={5} className="px-4 pb-3">
+                  {q.branch_id ? (
+                    <span className="inline-block rounded-xl bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-800">{t("interBranchPosition", { value: glAmount(diff, cur) })}</span>
+                  ) : (
+                    <BalanceCheck difference={diff} currency={cur} />
+                  )}
+                </td>
+              </tr>
+            </>
+          }
+        />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

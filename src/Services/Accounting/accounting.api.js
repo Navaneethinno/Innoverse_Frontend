@@ -32,12 +32,14 @@ export const glJournalsApi = calls("/config/accounting/gl_journal", ["add", "get
 // GL Reports (menu 216): statement of one GL account, and the trial balance.
 const exporter = (verb, name) => (body) => downloadAttachment(`/config/accounting/gl_report/${verb}`, body, `${name}.${body.format === "CSV" ? "csv" : "xlsx"}`);
 export const glReportsApi = {
-  ...calls("/config/accounting/gl_report", ["statement", "trial_balance", "balance_sheet", "profit_loss", "cash_flow"]),
+  ...calls("/config/accounting/gl_report", ["statement", "trial_balance", "balance_sheet", "profit_loss", "cash_flow", "movement", "customer_balance"]),
   statementExport: exporter("statement_export", "gl_statement"),
   trialBalanceExport: exporter("trial_balance_export", "trial_balance"),
   balanceSheetExport: exporter("balance_sheet_export", "balance_sheet"),
   profitLossExport: exporter("profit_loss_export", "profit_loss"),
   cashFlowExport: exporter("cash_flow_export", "cash_flow"),
+  movementExport: exporter("movement_export", "gl_movement"),
+  customerBalanceExport: exporter("customer_balance_export", "customer_balances"),
 };
 
 // Treasury (menu 201): bulk cash movements between a branch vault and a
