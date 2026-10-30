@@ -21,7 +21,31 @@ export const PAGE_HELP = {
     "any category": "Shows only cases of one category (account, transaction, card, complaint).",
     "any status": "Shows only records in one status.",
     "any kind": "Shows only one kind of record.",
-    "settings": "This page's settings: how it works for your institution."
+    "settings": "This page's settings: how it works for your institution.",
+    "edit": "Switches this page into editing. Your changes go to a checker; the approved settings stay in force until then.",
+    "refresh": "Loads the latest figures again.",
+    "run now": "Runs it straight away instead of waiting for its schedule.",
+    "waiting for approval": "Changes waiting for a checker.",
+    "waiting for me": "Only what waits for you to act.",
+    "assigned to me": "Only what is assigned to you.",
+    "import file": "Loads many entries at once from a file. A checker approves them.",
+    "upload file": "Loads entries from a file. A checker approves them.",
+    "any branch": "Shows only one branch's records.",
+    "any loan officer": "Shows only one loan officer's records.",
+    "any loan product": "Shows only one loan product.",
+    "any card product": "Shows only one card product.",
+    "any issuance group": "Shows only one issuance group.",
+    "any currency": "Shows only one currency.",
+    "any bin": "Shows only one BIN.",
+    "any source": "Shows only one source.",
+    "any report": "Shows only one kind of report.",
+    "any deposit product": "Shows only one deposit product.",
+    "any party": "Shows only customers, merchants or agents.",
+    "any customer": "Shows only one kind of customer.",
+    "any risk band": "Shows only one risk band.",
+    "any trigger": "Shows only screenings started one way (onboarding, rescreening, by hand).",
+    "my reports": "The reports you saved and the ones shared with you.",
+    "history": "Every earlier version and who changed it."
   },
   "terminals": {
     "about": "Every POS terminal the bank has registered and handed to merchants. A merchant places each terminal in one of their stores; the status shows whether it can take payments.",
@@ -176,5 +200,517 @@ export const PAGE_HELP = {
     "groups": "Groups of people who receive alerts together.",
     "alerts": "Each alert: when it fires and which groups get it.",
     "add group": "Creates a group of recipients. A checker approves it."
+  },
+  "profile": {
+    "about": "The institutions on the platform: banks, fintechs and the service provider. Each has its modules, currencies, channels, branding and legal details.",
+    "new institution": "Starts a new institution: its details, then its modules, currencies, channels and branding. A checker approves it."
+  },
+  "modules": {
+    "about": "Which modules (EPURSE, Finance, MMS, InnoAML…) each institution uses, and from when to when.",
+    "add module": "Gives an institution a module for a period. A checker approves it.",
+    "effective from": "The module works for the institution from this date."
+  },
+  "currencies": {
+    "about": "The currencies each institution works in. One is its base currency, used for reports and limits.",
+    "add currency": "Adds a currency to an institution. A checker approves it.",
+    "base currency": "The institution's main currency: reports and limits are in it."
+  },
+  "channels": {
+    "about": "The channels each institution offers (web, app, USSD, POS, agent).",
+    "add channel": "Opens a channel for an institution. A checker approves it."
+  },
+  "phonecodes": {
+    "about": "Countries whose phone numbers customers and merchants may use. One is the primary: a number typed without + is read as that country's.",
+    "add phone code": "Allows another country's phone numbers. A checker approves it.",
+    "primary": "Numbers typed without a country code are read as this country's."
+  },
+  "branding": {
+    "about": "Each institution's look in each portal: name, logo and colours (white-label).",
+    "add branding": "Sets an institution's name, logo and colours for one portal. A checker approves it."
+  },
+  "legal": {
+    "about": "Each institution's legal and regulatory details: legal name, registration and licence.",
+    "add legal profile": "Records an institution's legal name, registration and licence. A checker approves it."
+  },
+  "documents": {
+    "about": "Terms, privacy and other documents customers and merchants see and accept. Each text is for a channel and a language.",
+    "new document": "Adds a document: who sees it, its texts per language and whether they must accept it. A checker approves it.",
+    "acceptance": "Whether customers must accept this document before going on."
+  },
+  "passwordpolicy": {
+    "about": "Password rules for the portal's users: length, what a password must contain, how many wrong tries lock the account, and session rules.",
+    "add policy": "Sets the password rules for an institution. A checker approves them.",
+    "max retries": "Wrong passwords allowed before the account locks."
+  },
+  "formbuilder": {
+    "about": "Your institution's library of onboarding questions. Place them in sections, then build each customer type's form from the sections.",
+    "fields": "The questions themselves: type, wording, options and checks.",
+    "sections": "Groups of questions that forms are built from.",
+    "translations": "The questions' texts in each language, with any missing ones listed.",
+    "add field": "Adds a question: its key, type (text, list, date…), wording and whether it's required."
+  },
+  "kycschemes": {
+    "about": "A scheme is an ordered ladder of KYC levels (what a customer must prove at each level and what they may then do). Approve a scheme before pointing a customer type at it.",
+    "add kyc scheme": "Creates a ladder of KYC levels. A checker approves it."
+  },
+  "riskactions": {
+    "about": "What each risk level leads to, such as Onboard, Enhanced due diligence or Reject. Risk and AML setups point their levels at these actions.",
+    "add risk action": "Adds an action and what it does to onboarding. A checker approves it.",
+    "onboarding outcome": "What happens to a new customer whose risk lands on this action."
+  },
+  "bulkregistration": {
+    "about": "Register many people as customers at once, for example a company's employees, from a file. A checker authorises each batch.",
+    "new batch": "Uploads a file of people to register, with their customer type and, if wanted, a card for each. A checker approves the batch.",
+    "file name": "Search by the uploaded file's name."
+  },
+  "riskassessment": {
+    "about": "How risky a customer of each customer type is, scored from their onboarding answers. Each setup weighs criteria and splits the score into risk levels.",
+    "add risk setup": "Builds a risk setup: the criteria, how much each counts and the risk levels. A checker approves it.",
+    "criteria": "The onboarding answers that make up the score.",
+    "risk levels": "The bands the score is split into, each with its action."
+  },
+  "onboardingconfiguration": {
+    "about": "Each customer type is one record: its identity, its form, KYC scheme, limits and maker-checker settings.",
+    "add onboarding configuration": "Creates a customer type and its onboarding setup. A checker approves it."
+  },
+  "termdeposits": {
+    "about": "Term deposits opened for customers and merchants: approval, interest, maturity and early closure.",
+    "open deposit": "Opens a deposit: the holder, the deposit product, amount and term. A checker approves it.",
+    "deposit reference, account or holder": "Search by the deposit's reference, the account or the holder's name."
+  },
+  "loanapplications": {
+    "about": "Loan applications: apply on a borrower's behalf, record their acceptance, credit checks and collateral, then approve.",
+    "new application": "Starts a loan application: the borrower, product, amount and term. The quote shows the rate and schedule.",
+    "application reference or applicant": "Search by the application's reference or the applicant's name."
+  },
+  "accountproducts": {
+    "about": "The account products customers and merchants hold (wallets, savings, term deposit accounts) and their settings.",
+    "add account product": "Creates an account product and its settings. A checker approves it."
+  },
+  "loanfacilities": {
+    "about": "The loans themselves: payout, repayments, early settlement, restructuring, write-off and collections.",
+    "loans": "Every loan and where it stands.",
+    "portfolio quality": "How the loan book is doing: days past due, risk classes and provisions.",
+    "move an officer's loans": "Hands all of one loan officer's loans to another.",
+    "loan reference, account or borrower": "Search by the loan's reference, the account or the borrower.",
+    "days past due": "How late the oldest unpaid instalment is.",
+    "risk class": "The loan's class by days past due, which sets its provision."
+  },
+  "depositproducts": {
+    "about": "The term-deposit setup of each term-deposit account product: its policy, tenors and rates.",
+    "new deposit product": "Sets up a deposit product: tenors, rates and early-closure rules. A checker approves it."
+  },
+  "regulatorysubmissions": {
+    "about": "Reports of the loan book as it stands today for the regulator and the credit bureau. Send them, then record the regulator's reference.",
+    "regulator reports": "The reports for the regulator.",
+    "credit bureau file": "The file for the credit bureau.",
+    "generate report": "Makes a report of the loan book as it is now."
+  },
+  "lendingregulatoryprofile": {
+    "about": "Your institution's lending settings: licence, reporting, credit checks, and the risk classes with their provisions.",
+    "provision %": "How much of an outstanding loan in this class is set aside as a likely loss."
+  },
+  "borrowergroups": {
+    "about": "Solidarity groups with a loan officer and a meeting rhythm. While any member is past due, the group can't get new loans.",
+    "form a group": "Creates a group: its members, branch, loan officer and meetings.",
+    "group code or name": "Search by the group's code or name."
+  },
+  "loanproducts": {
+    "about": "Each loan product with its terms, rate bands, fees and policies. Changes take effect once a checker approves them.",
+    "reference rates": "The reference rates variable-rate loans follow. A new rate reprices running loans from its date.",
+    "new loan product": "Builds a loan product step by step: terms, rates, fees, eligibility and documents."
+  },
+  "glmapping": {
+    "about": "Which GL each posting goes to. The most specific rule that fits wins; the fallback GL takes the rest.",
+    "rules": "The mapping rules by kind of posting.",
+    "test": "Try a posting and see which GL it would go to.",
+    "unmapped": "Postings that found no rule and went to the fallback GL.",
+    "search by provider, type, gl or note": "Search the rules."
+  },
+  "corebankingsetup": {
+    "about": "Branches, staff, withholding tax, expected credit loss, the credit bureau and the fiscal year: the core banking settings.",
+    "accounting": "The fiscal year and the cash GLs used by the cash flow statement.",
+    "head office": "The head office branch."
+  },
+  "accountingperiods": {
+    "about": "Close each month once it has ended, in order. Closing the fiscal year's last month also moves the year's profit to equity."
+  },
+  "bins": {
+    "about": "The first digits of your card numbers on each card network. Card products are made on a BIN.",
+    "new bin": "Adds a BIN on a network. A checker approves it."
+  },
+  "cardnumberlayout": {
+    "about": "How card numbers are made on each BIN: the parts after the BIN, the serial and the check digit.",
+    "new layout": "Defines how numbers are made on a BIN."
+  },
+  "cardorders": {
+    "about": "Orders to the card bureau: blank stock or personalised cards, embossed, received and checked in.",
+    "new order": "Orders cards from the bureau for an issuance group."
+  },
+  "cardproducts": {
+    "about": "Prepaid and debit cards: the BIN and currency, the digital product they're sold under, and their fees and limits.",
+    "new card product": "Creates a card product. A checker approves it."
+  },
+  "prefiles": {
+    "about": "One emboss (PRE) file for the card bureau, made from cards picked across an issuance group's orders.",
+    "make pre file (all waiting)": "Makes one emboss file of every card waiting.",
+    "files made": "Emboss files already made."
+  },
+  "issuancegroups": {
+    "about": "Physical card stock and orders: the defaults and the emboss file sent to the card bureau.",
+    "new issuance group": "Creates a group with its card product and defaults."
+  },
+  "receivecards": {
+    "about": "Orders whose emboss file went to the bureau: record the cards that came back, then a checker confirms them."
+  },
+  "cardstock": {
+    "about": "Instant cards in the vault or held by staff, ready to hand to customers.",
+    "card number or serial": "Search by card number or serial."
+  },
+  "cardrequests": {
+    "about": "Requests for physical cards: made for a customer, ordered and delivered.",
+    "new card request": "Asks for a physical card for a customer."
+  },
+  "cards": {
+    "about": "Every card: who holds it, where it is in production and whether it can be used.",
+    "issue virtual card": "Issues a virtual card to a customer straight away."
+  },
+  "atms": {
+    "about": "The bank's ATMs: each listens on its own switch port. Their keys, commands and events.",
+    "ports": "The switch ports ATMs connect on.",
+    "downloads to all": "Sends the latest configuration to every ATM.",
+    "add atm": "Registers an ATM and its port."
+  },
+  "internalwatchlists": {
+    "about": "The institution's own lists, such as a central bank blacklist or its own fraud cases. Once approved, every screening checks them.",
+    "add watchlist": "Adds a list from a file. A checker approves it."
+  },
+  "screenings": {
+    "about": "Every AML screening of the institution's customers. Results are recorded only; nothing is blocked here.",
+    "changes": "Screenings whose result changed since the last one.",
+    "screened name": "Search by the name that was screened."
+  },
+  "blacklist": {
+    "about": "The institution's own list of people and companies it won't deal with, screened with every check.",
+    "entries": "The people and companies on the list.",
+    "add entry": "Adds one person or company. A checker approves it."
+  },
+  "matchreview": {
+    "about": "Decide each screening match as a false positive or a true match. A maker proposes; another user confirms.",
+    "all reviews": "Every review, proposed and decided.",
+    "news": "Adverse media matches."
+  },
+  "whitelist": {
+    "about": "Approved false positives: one customer cleared against one listed record, so the same match doesn't stop them again until it expires.",
+    "expiring within (days)": "Shows only entries that expire within this many days."
+  },
+  "amlsetup": {
+    "about": "How a screening score reads: score bands mapped to risk actions, the minimum match score and ongoing rescreening.",
+    "add aml setup": "Creates the AML setup. A checker approves it."
+  },
+  "flags": {
+    "about": "Customers whose AML result got worse on rescreening. Raise a case or dismiss each one.",
+    "blacklist match": "Only flags caused by a blacklist match."
+  },
+  "amlcases": {
+    "about": "Active customers whose AML result needs a person: talk to them, then close as cleared, confirmed or no action. Another user confirms."
+  },
+  "namelookup": {
+    "about": "Screen a name that isn't a customer, such as a payment beneficiary. Each lookup is kept with its reason.",
+    "screen name": "Runs the screening for the name you entered.",
+    "lists": "Sanctions and watchlists.",
+    "adverse media": "News about the name."
+  },
+  "transactionmonitoring": {
+    "about": "Rules that watch transactions as they're posted, and the alerts they raise.",
+    "alerts": "Alerts raised by the rules. Open one to see the transactions behind it.",
+    "rules": "The rules: what they watch and their thresholds.",
+    "run scan now": "Checks the latest transactions against the rules now."
+  },
+  "regulatoryreports": {
+    "about": "Suspicious transaction reports (STR) and currency transaction reports (CTR) for the regulator.",
+    "suspicious transactions (str)": "Reports of activity you suspect. Another officer approves before filing.",
+    "currency transactions (ctr)": "Cash at or above the threshold, prepared every night.",
+    "new report": "Writes a suspicious transaction report."
+  },
+  "reconlayouts": {
+    "about": "File formats for reconciliation, as JSON. Start from a built-in layout and edit it; a change waits for approval.",
+    "add layout": "Creates a file layout."
+  },
+  "reconsources": {
+    "about": "Where reconciliation files come from: each source's file layout, name pattern and SFTP pick-up.",
+    "sources": "The sources.",
+    "sftp profiles": "Connections used to pick up files.",
+    "currency decimals": "How many decimals each currency has in the files.",
+    "add source": "Adds a source of files."
+  },
+  "reconfiles": {
+    "about": "Files received from each source (uploaded, collected by SFTP or generated from the ledger) and how they were read.",
+    "generate switch file": "Makes a file from the ledger to reconcile against.",
+    "upload file": "Uploads a file for a source."
+  },
+  "reconsets": {
+    "about": "What is reconciled with what: the rules, their runs and results, and approvals for changes.",
+    "sets": "The reconciliation sets.",
+    "approvals": "Changes waiting for approval.",
+    "add set": "Creates a reconciliation set."
+  },
+  "externalproviders": {
+    "about": "Where customers send money: mobile wallets, banks, airtime operators, prepaid electricity and billers.",
+    "set up providers": "Chooses the providers an institution offers and their settings."
+  },
+  "feeschedules": {
+    "about": "One schedule per currency: the fee each transaction type pays, by channel, product and amount.",
+    "new fee schedule": "Creates a schedule of fees. A checker approves it."
+  },
+  "limits": {
+    "about": "Limit groups decide what customers and merchants may transact. Everyone is in one group.",
+    "limits and usage": "A customer's limits and how much they've used.",
+    "test a customer": "Checks whether a transaction would be allowed for a customer.",
+    "add limit group": "Creates a group of limits. A checker approves it."
+  },
+  "digitalproducts": {
+    "about": "Digital products bundle what a customer gets: account products, cards, channels and security.",
+    "add digital product": "Creates a digital product. A checker approves it."
+  },
+  "scheduledjobs": {
+    "about": "The platform's daily jobs for every institution (interest, fees, rescreening…). A run only does what isn't done yet, so running again is safe.",
+    "switched on": "Whether the job runs on its schedule.",
+    "runs": "Each run of the job and its result."
+  },
+  "transactionrouting": {
+    "about": "Where each transaction goes: which connection delivers a service, and how other banks' cards are handled.",
+    "setups": "Each institution's routing.",
+    "health": "Whether each connection is up.",
+    "simulator": "Try a transaction and see where it would go.",
+    "decisions": "Recent routing decisions and why.",
+    "set up routing": "Chooses the connections for an institution."
+  },
+  "expiryrules": {
+    "about": "When to warn before a document or licence runs out, when to remind, how long the grace lasts after, and what happens then.",
+    "hold money going out": "After the grace period, block payments out until it's renewed.",
+    "tell the customer": "Send the customer reminders.",
+    "email staff": "Email the institution's staff.",
+    "stop the module": "Stop the module when the licence expires.",
+    "messages only": "Only send reminders; block nothing."
+  },
+  "reportbuilder": {
+    "about": "Build a report: pick its source, columns, filters, sorting and totals; preview it and save it for others to run.",
+    "save report": "Saves the report so you and others can run it again.",
+    "add a column…": "Adds a column to the report.",
+    "add filter": "Limits the rows to those that match.",
+    "add group": "Groups rows with subtotals.",
+    "add sort": "Sorts the rows.",
+    "run": "Shows the report with the current settings."
+  },
+  "savedreports": {
+    "about": "The reports saved by you and shared with you. Open one to run and download it.",
+    "report name": "Search by the report's name."
+  },
+  "kycreport": {
+    "about": "Pick a customer or merchant to see everything about them on one page.",
+    "search by name, phone or email": "Find the customer or merchant."
+  },
+  "riskscorebreakdown": {
+    "about": "Customers' risk assessments and exactly how each score was reached.",
+    "current assessment only": "Only each customer's latest assessment.",
+    "all assessments": "Every assessment, including older ones."
+  },
+  "amlscorebreakdown": {
+    "about": "Customers' AML screenings and exactly how each score was reached.",
+    "current screening only": "Only each customer's latest screening.",
+    "all screenings": "Every screening, including older ones."
+  },
+  "useractivity": {
+    "about": "Everything one user did in the maker-checker flow over a period: as maker, as checker, or both.",
+    "select a user": "The user whose activity you want."
+  },
+  "expiringdocuments": {
+    "about": "Customers' and merchants' documents by how close they are to expiry, and what was done about each.",
+    "expiring within (days)": "Only documents that expire within this many days."
+  },
+  "title": {
+    "about": "Title: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add title": "Adds an entry to the Title list: its code and name. A checker approves it before forms offer it."
+  },
+  "addresstype": {
+    "about": "Address Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add address type": "Adds an entry to the Address Type list: its code and name. A checker approves it before forms offer it.",
+    "individual": "The entries used for individual customers and merchants.",
+    "corporate": "The entries used for companies."
+  },
+  "documenttype": {
+    "about": "Document Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add document type": "Adds an entry to the Document Type list: its code and name. A checker approves it before forms offer it.",
+    "individual": "The entries used for individual customers and merchants.",
+    "corporate": "The entries used for companies."
+  },
+  "occupation": {
+    "about": "Occupation: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add occupation": "Adds an entry to the Occupation list: its code and name. A checker approves it before forms offer it."
+  },
+  "ownershipsubtype": {
+    "about": "Ownership Sub Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add ownership sub type": "Adds an entry to the Ownership Sub Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "taxtype": {
+    "about": "Tax Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add tax type": "Adds an entry to the Tax Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "bank": {
+    "about": "Bank: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add bank": "Adds an entry to the Bank list: its code and name. A checker approves it before forms offer it."
+  },
+  "gender": {
+    "about": "Gender: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add gender": "Adds an entry to the Gender list: its code and name. A checker approves it before forms offer it."
+  },
+  "province": {
+    "about": "Province: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add province": "Adds an entry to the Province list: its code and name. A checker approves it before forms offer it."
+  },
+  "identificationtype": {
+    "about": "Identification Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add identification type": "Adds an entry to the Identification Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "designation": {
+    "about": "Designation: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add designation": "Adds an entry to the Designation list: its code and name. A checker approves it before forms offer it."
+  },
+  "companytype": {
+    "about": "Company Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add company type": "Adds an entry to the Company Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "taxclassification": {
+    "about": "Tax Classification: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add tax classification": "Adds an entry to the Tax Classification list: its code and name. A checker approves it before forms offer it."
+  },
+  "bankbranch": {
+    "about": "Bank Branch: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add bank branch": "Adds an entry to the Bank Branch list: its code and name. A checker approves it before forms offer it."
+  },
+  "maritalstatus": {
+    "about": "Marital Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add marital status": "Adds an entry to the Marital Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "district": {
+    "about": "District: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add district": "Adds an entry to the District list: its code and name. A checker approves it before forms offer it."
+  },
+  "immigrationstatus": {
+    "about": "Immigration Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add immigration status": "Adds an entry to the Immigration Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "employment": {
+    "about": "Employment: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add employment": "Adds an entry to the Employment list: its code and name. A checker approves it before forms offer it."
+  },
+  "businessnature": {
+    "about": "Business Nature: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add business nature": "Adds an entry to the Business Nature list: its code and name. A checker approves it before forms offer it.",
+    "individual": "The entries used for individual customers and merchants.",
+    "corporate": "The entries used for companies."
+  },
+  "taxstatus": {
+    "about": "Tax Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add tax status": "Adds an entry to the Tax Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "religion": {
+    "about": "Religion: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add religion": "Adds an entry to the Religion list: its code and name. A checker approves it before forms offer it."
+  },
+  "village": {
+    "about": "Village: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add village": "Adds an entry to the Village list: its code and name. A checker approves it before forms offer it."
+  },
+  "visatype": {
+    "about": "Visa Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add visa type": "Adds an entry to the Visa Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "annualincomerange": {
+    "about": "Annual Income Range: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add annual income range": "Adds an entry to the Annual Income Range list: its code and name. A checker approves it before forms offer it."
+  },
+  "industrysector": {
+    "about": "Industry Sector: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add industry sector": "Adds an entry to the Industry Sector list: its code and name. A checker approves it before forms offer it."
+  },
+  "gstregistrationstatus": {
+    "about": "GST Registration Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add gst registration status": "Adds an entry to the GST Registration Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "disability": {
+    "about": "Disability: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add disability": "Adds an entry to the Disability list: its code and name. A checker approves it before forms offer it."
+  },
+  "verificationmethod": {
+    "about": "Verification Method: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add verification method": "Adds an entry to the Verification Method list: its code and name. A checker approves it before forms offer it."
+  },
+  "monthlyincomerange": {
+    "about": "Monthly Income Range: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add monthly income range": "Adds an entry to the Monthly Income Range list: its code and name. A checker approves it before forms offer it."
+  },
+  "taxexemptionstatus": {
+    "about": "Tax Exemption Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add tax exemption status": "Adds an entry to the Tax Exemption Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "kinship": {
+    "about": "Kinship: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add kinship": "Adds an entry to the Kinship list: its code and name. A checker approves it before forms offer it."
+  },
+  "verificationstatus": {
+    "about": "Verification Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add verification status": "Adds an entry to the Verification Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "networthrange": {
+    "about": "Net Worth Range: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add net worth range": "Adds an entry to the Net Worth Range list: its code and name. A checker approves it before forms offer it."
+  },
+  "pepcategory": {
+    "about": "PEP Category: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add pep category": "Adds an entry to the PEP Category list: its code and name. A checker approves it before forms offer it."
+  },
+  "relationshiptype": {
+    "about": "Relationship Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add relationship type": "Adds an entry to the Relationship Type list: its code and name. A checker approves it before forms offer it.",
+    "individual": "The entries used for individual customers and merchants.",
+    "corporate": "The entries used for companies."
+  },
+  "validationrule": {
+    "about": "Validation Rule: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add validation rule": "Adds an entry to the Validation Rule list: its code and name. A checker approves it before forms offer it."
+  },
+  "turnoverrange": {
+    "about": "Turnover Range: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add turnover range": "Adds an entry to the Turnover Range list: its code and name. A checker approves it before forms offer it."
+  },
+  "pepstatus": {
+    "about": "PEP Status: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add pep status": "Adds an entry to the PEP Status list: its code and name. A checker approves it before forms offer it."
+  },
+  "qualification": {
+    "about": "Qualification: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add qualification": "Adds an entry to the Qualification list: its code and name. A checker approves it before forms offer it."
+  },
+  "sourceoffund": {
+    "about": "Source of Fund: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add source": "Adds an entry to the Source of Fund list: its code and name. A checker approves it before forms offer it."
+  },
+  "screeningtype": {
+    "about": "Screening Type: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add screening type": "Adds an entry to the Screening Type list: its code and name. A checker approves it before forms offer it."
+  },
+  "accountpurpose": {
+    "about": "Account Purpose: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add purpose": "Adds an entry to the Account Purpose list: its code and name. A checker approves it before forms offer it."
+  },
+  "merchantcategory": {
+    "about": "Merchant Category: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add merchant category": "Adds an entry to the Merchant Category list: its code and name. A checker approves it before forms offer it."
+  },
+  "merchantgroup": {
+    "about": "Merchant Group: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
+    "add merchant group": "Adds an entry to the Merchant Group list: its code and name. A checker approves it before forms offer it."
   }
 };
