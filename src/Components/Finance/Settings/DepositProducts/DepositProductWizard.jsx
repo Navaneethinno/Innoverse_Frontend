@@ -191,7 +191,6 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
               <label className={labelClass}>
                 {t("productCode")}
                 <RequiredMark />
-                <span className="text-destructive"> *</span>
                 <input
                   className={cn(inputClass, "mt-1.5 font-mono uppercase")}
                   value={head.product_code}
@@ -205,14 +204,12 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
               <label className={labelClass}>
                 {t("productName")}
                 <RequiredMark />
-                <span className="text-destructive"> *</span>
                 <input className={cn(inputClass, "mt-1.5")} value={head.product_name} maxLength={150} readOnly={!drafting} onChange={(e) => setHead((h) => ({ ...h, product_name: e.target.value }))} />
               </label>
               {!product && (
                 <label className={labelClass}>
                   {t("accountProduct")}
                   <RequiredMark />
-                  <span className="text-destructive"> *</span>
                   <FilterSelect
                     className="mt-1.5"
                     value={productId}
