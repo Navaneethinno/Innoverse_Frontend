@@ -23,7 +23,15 @@ export function useScreenViews() {
     for (let n = parts.length; n > 0 && !menu; n -= 1) menu = findMenuByPath(active, `/${parts.slice(0, n).join("/")}`);
     const crumbs = getRouteMetadata(pathname)?.breadcrumb ?? [];
     const named = crumbs.length && (parts.length === 0 || SEGMENT_LABELS[parts[0]]);
-    const body = menu ? { screen: menu.menu_name, menu_id: Number(menu.menu_id) } : { screen: named ? i18n.getFixedT("en", "routes")(crumbs[crumbs.length - 1]) : `/${parts.join("/")}` };
+    // A module's own dashboard (/case-management/dashboard): "<Module> Dashboard",
+    // named after the module as the backend's menus name it.
+    const moduleName = () => {
+      const slug = parts[0].toLowerCase();
+      const m = active.find((x) => String(x.module_name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-") === slug);
+      return m?.module_name ?? parts[0].replace(/-/g, " ").replace(/(^| )\w/g, (c) => c.toUpperCase());
+    };
+    const screen = parts.length === 2 && parts[1].toLowerCase() === "dashboard" ? `${moduleName()} Dashboard` : named ? i18n.getFixedT("en", "routes")(crumbs[crumbs.length - 1]) : `/${parts.join("/")}`;
+    const body = menu ? { screen: menu.menu_name, menu_id: Number(menu.menu_id) } : { screen };
     request("/config/user/activity/view", body).catch(() => {});
     // Only a new page counts, not a menu reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
