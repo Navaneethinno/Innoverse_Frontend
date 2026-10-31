@@ -12,7 +12,7 @@
 // grouping (e.g. the "USER MANAGEMENT" section header containing "User" and
 // "Profile" rows) so the top bar reads as a clear route, not just a bare
 // page name.
-const SEGMENT_LABELS = {
+export const SEGMENT_LABELS = {
   dashboard: { titleKey: "crumbDashboard", breadcrumb: ["crumbDashboard"] },
   institutions: { titleKey: "crumbInstitutions", breadcrumb: ["crumbInstitution", "crumbInstitutions"] },
   institutionmodule: { titleKey: "crumbInstitutionModule", breadcrumb: ["crumbInstitution", "crumbInstitutionModule"] },
