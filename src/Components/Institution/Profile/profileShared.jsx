@@ -64,7 +64,9 @@ const labelOf = (options, value) => options?.find((o) => String(o.value) === Str
 
 // A value as read-only text (review cards, profile tab, summary panel).
 // null when nothing has been chosen, so it can be left out.
-export function displayOf(field, value, t) {
+// `values`: the whole record, for a group field shown only when a switch
+// outside the group is on.
+export function displayOf(field, value, t, values = {}) {
   if (value == null || value === "" || (Array.isArray(value) && !value.length)) return null;
   switch (field.kind) {
     case "select":
@@ -89,7 +91,7 @@ export function displayOf(field, value, t) {
         .join("\n") || null;
     case "group":
       return field.fields
-        .filter((f) => isShown(f, { [field.key]: value }))
+        .filter((f) => isShown(f, { ...values, [field.key]: value }))
         .map((f) => {
           const shown = displayOf(f, value[f.key], t);
           return shown == null ? null : `${f.label}: ${shown}`;
@@ -163,18 +165,21 @@ export function ProfileField({ field, value, onChange, values, error, locked = f
         return <Matrix field={field} value={value ?? {}} onChange={onChange} disabled={disabled} />;
       case "group":
         return (
-          <div className="mt-1.5 grid gap-3 rounded-xl border border-border bg-muted/30 p-3">
+          // Numbers sit two to a row (tries beside lockout, idle beside
+          // longest), inputs lined up at the bottom; anything else is full width.
+          <div className={cn("mt-1.5 grid gap-3 rounded-xl border border-border bg-muted/30 p-3", field.fields.filter((f) => f.kind === "number").length > 1 && "items-end sm:grid-cols-2")}>
             {field.fields
               .filter((f) => isShown(f, values))
               .map((f) => (
-                <ProfileField
-                  key={f.key}
-                  field={f.key === "default" && field.key === "language" ? { ...f, options: f.options.filter((o) => (value?.supported ?? []).includes(o.value)) } : f}
-                  value={value?.[f.key]}
-                  values={values}
-                  locked={locked}
-                  onChange={(v) => onChange({ ...(value ?? {}), [f.key]: v })}
-                />
+                <div key={f.key} className={cn("min-w-0", f.kind !== "number" && "sm:col-span-2")}>
+                  <ProfileField
+                    field={f.key === "default" && field.key === "language" ? { ...f, options: f.options.filter((o) => (value?.supported ?? []).includes(o.value)) } : f}
+                    value={value?.[f.key]}
+                    values={values}
+                    locked={locked}
+                    onChange={(v) => onChange({ ...(value ?? {}), [f.key]: v })}
+                  />
+                </div>
               ))}
           </div>
         );
@@ -293,7 +298,7 @@ export function SectionForm({ section, values, setValues, errors = {}, lockedFie
 // A section read-only: label / value rows, what has not been chosen left out.
 export function SectionFacts({ section, values, compact = false }) {
   const { t } = useTranslation(["institutions", "common"]);
-  const rows = section.fields.filter((f) => isShown(f, values)).map((f) => [f, displayOf(f, values[f.key], t)]).filter(([, v]) => v != null);
+  const rows = section.fields.filter((f) => isShown(f, values)).map((f) => [f, displayOf(f, values[f.key], t, values)]).filter(([, v]) => v != null);
   if (!rows.length) return <p className="text-xs text-muted-foreground">{t("institutions:nothingChosen")}</p>;
   return (
     <dl className={cn("grid gap-x-4", compact ? "gap-y-1.5" : "gap-y-3 sm:grid-cols-2")}>
