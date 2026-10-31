@@ -20,6 +20,7 @@ import { BackToTop } from "./BackToTop";
 import { KeyCustodyProvider, KeysLockedBanner } from "@/Components/KeyCustody/KeyCustodyProvider";
 import { ExpiryBanner } from "./ExpiryBanner";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
+import { useScreenViews } from "@/Hooks/useScreenViews";
 function Layout() {
   // Reflow the page in sync with the sidebar's actual visual state
   // (pinned-open OR currently hovered) rather than the pinned preference
@@ -28,6 +29,7 @@ function Layout() {
   // rail widens/narrows.
   const { collapsed, hovering } = useSidebar();
   const institution = useInstitutionFilter();
+  useScreenViews();
   const isMobile = useIsMobile();
   const isExpanded = !collapsed || hovering;
   const sidebarW = isExpanded ? SIDEBAR_WIDTHS.expanded : SIDEBAR_WIDTHS.collapsed;

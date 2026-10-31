@@ -74,7 +74,7 @@ export function MyApprovalsButton() {
                       {x.record_name ? ` · ${x.record_name}` : ` #${x.record_id}`}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {[x.maker && t("approvalMaker", { name: x.maker }), x.submitted_at && new Date(x.submitted_at).toLocaleString(), x.amount != null && String(x.amount)].filter(Boolean).join(" · ")}
+                      {[x.inst_profile_name, x.maker && t("approvalMaker", { name: x.maker }), x.submitted_at && new Date(x.submitted_at).toLocaleString(), x.amount != null && String(x.amount)].filter(Boolean).join(" · ")}
                     </p>
                     <p className="text-[11px] font-semibold text-primary">{approvalText(t, x.approval)}</p>
                   </div>
