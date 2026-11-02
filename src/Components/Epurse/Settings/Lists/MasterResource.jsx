@@ -10,6 +10,8 @@ import { FieldInput, cleanConfig } from "../OnboardingConfiguration/ListEditor";
 import { useOnboardingCatalog } from "../OnboardingConfiguration/onboardingHooks";
 
 import { Button } from "@/Components/Common/Button";
+import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { menuLabel } from "@/Pages/Sidebar/menuLabels";
 // One schema-driven page for the institution masters that carry extra fields
 // beyond name/description (guide §5): validation rules, income / net-worth /
 // turnover ranges, document types, plus the plain
@@ -179,7 +181,8 @@ export function MasterResource({ entity }) {
   const config = CONFIGS[entity];
   // config.title stays English: it is also the menu name the permission
   // check matches. The heading/buttons show this translated title instead.
-  const displayTitle = t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
+  const menu = useMenuContext()?.menu;
+  const displayTitle = (menu && menuLabel(menu)) || t(`onboarding:masterTitle_${entity}`, { defaultValue: config.title });
   const api = apiFor(entity);
   const catalog = useOnboardingCatalog();
   const [currencies, setCurrencies] = useState([]);

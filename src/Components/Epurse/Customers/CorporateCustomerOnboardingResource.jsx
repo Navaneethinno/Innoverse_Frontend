@@ -177,7 +177,7 @@ export function CorporateCustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
-          <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step ?? "-" })}</div>
+          <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step_label || r.current_step || "-" })}</div>
         </div>
       ),
     },
@@ -227,7 +227,7 @@ export function CorporateCustomerOnboardingResource() {
       <div className="mb-3">
         <PageTitle>{t("customer:corporateCustomerOnboarding")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t("customer:registerACompanyMerchantOrAgentThrough")}
+          {t(audience === "merchant" ? "customer:registerCompanyAsMerchant" : "customer:registerCompanyAsCustomer")}
         </p>
       </div>
       <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.reference_id} title={t("customer:corporateCustomerOnboarding")} emptyTitle={t("customer:noOnboardingInProgress")} />

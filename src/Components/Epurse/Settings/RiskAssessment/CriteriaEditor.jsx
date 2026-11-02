@@ -1,13 +1,91 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
+import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { Modal } from "@/Components/Common/Modal";
+import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { notifications } from "@/Utils/Lib/notifications";
 import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { percentInput } from "@/Components/Finance/Deposits/depositShared";
 import { round2 } from "./riskShared";
 
 const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
+
+const ComputedTag = () => {
+  const { t } = useTranslation("risk");
+  return <span className="shrink-0 rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-bold text-primary">{t("computed")}</span>;
+};
+
+// The FATF list the @fatf criterion reads (read-only; System keeps it).
+function FatfList({ onClose }) {
+  const { t } = useTranslation("risk");
+  const [rows, setRows] = useState(null);
+  useEffect(() => {
+    request("/master/fatf_country/list", { page: 1, limit: 500 })
+      .then((r) => setRows(rowsOf(r)))
+      .catch((error) => {
+        setRows([]);
+        notifications.error(error.message);
+      });
+  }, []);
+  return (
+    <Modal open size="lg" onClose={onClose} title={t("fatfListTitle")}>
+      {!rows ? (
+        <div className="flex justify-center py-6">
+          <Spinner size={18} />
+        </div>
+      ) : !rows.length ? (
+        <p className="py-4 text-center text-sm text-muted-foreground">{t("fatfListEmpty")}</p>
+      ) : (
+        <ul className="grid max-h-[60vh] gap-1.5 overflow-y-auto">
+          {rows.map((c) => (
+            <li key={c.country_id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 text-sm">
+              <span className="font-semibold text-slate-700">{c.country_name}</span>
+              <span className="text-right text-[11px] text-muted-foreground">
+                <span className={c.list_code === "BLACK" ? "font-bold text-red-600" : "font-bold text-amber-700"}>{c.list_name}</span>
+                <span className="block">{[c.listed_on, c.source].filter(Boolean).join(" · ")}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Modal>
+  );
+}
+
+// Bands of years, each with a score. The upper end is exclusive; left empty
+// (only on the last band) it means no upper end.
+function BandEditor({ bands, onChange }) {
+  const { t } = useTranslation("risk");
+  const put = (i, patch) => onChange(bands.map((b, n) => (n === i ? { ...b, ...patch } : b)));
+  const cell = "w-full rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
+  return (
+    <div className="grid gap-1.5">
+      <p className="text-[11px] text-muted-foreground">{t("bandsHint")}</p>
+      <div className="grid grid-cols-[1fr_1fr_1fr_2rem] gap-2 text-[11px] font-semibold text-muted-foreground">
+        <span>{t("bandFrom")}</span>
+        <span>{t("bandTo")}</span>
+        <span>{t("score")}</span>
+        <span />
+      </div>
+      {bands.map((b, i) => (
+        <div key={i} className="grid grid-cols-[1fr_1fr_1fr_2rem] items-center gap-2">
+          <input type="number" min="0" aria-label={t("bandFrom")} className={cell} value={b.from_years} onChange={(e) => put(i, { from_years: e.target.value })} />
+          <input type="number" min="0" aria-label={t("bandTo")} placeholder={t("bandNoEnd")} className={cell} value={b.to_years} onChange={(e) => put(i, { to_years: e.target.value })} />
+          <input type="number" min="0" max="100" step="any" aria-label={t("score")} className={cell} value={b.score} onChange={(e) => put(i, { score: percentInput(e.target.value) })} />
+          <button type="button" aria-label={t("removeBand")} onClick={() => onChange(bands.filter((_, n) => n !== i))} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive">
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <Button size="sm" variant="secondary" icon={Plus} className="w-fit" onClick={() => onChange([...bands, { from_years: bands[bands.length - 1]?.to_years ?? "", to_years: "", score: "" }])}>
+        {t("addBand")}
+      </Button>
+    </div>
+  );
+}
 
 // Criteria: each an onboarding field from `options` with a weight (the
 // weights total 100) and a 0–100 score per option; an unscored option
@@ -18,6 +96,8 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
   const total = round2(criteria.reduce((sum, c) => sum + (Number(c.weight) || 0), 0));
   const used = new Set(criteria.map((c) => c.field_code));
   const available = risk.options.fields.filter((f) => !used.has(f.field_code));
+  const fieldOf = (code) => risk.options.fields.find((f) => f.field_code === code);
+  const [showFatf, setShowFatf] = useState(false);
 
   // Options of every criterion already on the record (editing a setup).
   useEffect(() => {
@@ -28,8 +108,9 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
   const set = (index, patch) => onChange(criteria.map((c, i) => (i === index ? { ...c, ...patch } : c)));
   const add = (fieldCode) => {
     if (!fieldCode) return;
-    risk.loadValues(fieldCode);
-    onChange([...criteria, { field_code: fieldCode, weight: criteria.length ? "" : "100", scores: {} }]);
+    const banded = fieldOf(fieldCode)?.banded;
+    if (!banded) risk.loadValues(fieldCode);
+    onChange([...criteria, { field_code: fieldCode, weight: criteria.length ? "" : "100", scores: {}, ...(banded ? { bands: [{ from_years: "0", to_years: "", score: "" }] } : {}) }]);
     setOpen(fieldCode);
   };
   const spreadEvenly = () => {
@@ -62,7 +143,17 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
             value=""
             disabled={!available.length}
             onChange={add}
-            options={[{ value: "", label: t("addCriterion") }, ...available.map((f) => ({ value: f.field_code, label: f.name }))]}
+            options={[{ value: "", label: t("addCriterion") }, ...available.map((f) => ({
+              value: f.field_code,
+              searchText: f.name,
+              label: f.computed ? (
+                <span className="flex items-center justify-between gap-2">
+                  {f.name} <ComputedTag />
+                </span>
+              ) : (
+                f.name
+              ),
+            }))]}
           />
           </div>
         </div>
@@ -74,6 +165,8 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
         {criteria.map((c, index) => {
           const values = risk.values[c.field_code];
           const expanded = open === c.field_code;
+          const field = fieldOf(c.field_code);
+          const banded = Boolean(c.bands) || field?.banded;
           const scored = Object.values(c.scores).filter((s) => String(s).trim() !== "").length;
           return (
             <div key={c.field_code} className="rounded-xl border">
@@ -81,8 +174,14 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
                 <button type="button" onClick={() => setOpen(expanded ? null : c.field_code)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-2 text-left">
                   <ChevronDown size={15} className={`shrink-0 text-muted-foreground transition-transform ${expanded ? "" : "-rotate-90"}`} />
                   <span className="truncate text-sm font-semibold">{risk.fieldName(c.field_code)}</span>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{t("scoredCount", { count: scored, total: values?.length ?? "…" })}</span>
+                  {field?.computed && <ComputedTag />}
+                  <span className="shrink-0 text-[11px] text-muted-foreground">{banded ? t("bandsCount", { count: c.bands?.length ?? 0 }) : t("scoredCount", { count: scored, total: values?.length ?? "…" })}</span>
                 </button>
+                {c.field_code === "@fatf" && (
+                  <button type="button" onClick={() => setShowFatf(true)} className="shrink-0 text-xs font-bold text-primary hover:underline">
+                    {t("viewList")}
+                  </button>
+                )}
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   {t("weight")}
                   <input type="number" min="0" max="100" step="any" value={c.weight} onChange={(e) => set(index, { weight: percentInput(e.target.value) })} className={scoreInput} />
@@ -96,7 +195,9 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
               </div>
               {expanded && (
                 <div className="border-t p-2">
-                  {!values ? (
+                  {banded ? (
+                    <BandEditor bands={c.bands ?? []} onChange={(bands) => set(index, { bands })} />
+                  ) : !values ? (
                     <div className="flex justify-center py-3">
                       <Spinner size={16} />
                     </div>
@@ -127,6 +228,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
           );
         })}
       </div>
+      {showFatf && <FatfList onClose={() => setShowFatf(false)} />}
     </section>
   );
 }

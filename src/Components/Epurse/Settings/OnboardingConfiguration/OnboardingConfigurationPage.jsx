@@ -357,12 +357,12 @@ export function OnboardingConfigurationPage() {
       >
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:code")}
+            {t("onboarding:code")} <span className="text-red-500">*</span>
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder="CUSTOMER_INDIVIDUAL_STUDENT" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:codeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:name")}
+            {t("onboarding:name")} <span className="text-red-500">*</span>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
           </label>
           <label className="text-sm font-semibold text-slate-700">
@@ -372,12 +372,12 @@ export function OnboardingConfigurationPage() {
           </label>
           {isMerchant && <PartyTypeSelect value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} />}
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:subType")} <span className="text-red-500">*</span>
+            {t("onboarding:subType")}
             <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...subTypeOptions]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
-            {t("onboarding:minorAgeYears")}
+            {t("onboarding:minorAgeYears")} <span className="text-red-500">*</span>
             <input type="number" min={0} value={form.minor_age_years} onChange={(e) => setForm({ ...form, minor_age_years: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:minorAgeHint")}</span>
           </label>

@@ -5,6 +5,7 @@ import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/cn";
 
 // Step 4 of the definition wizard ("Admin portal: simpler Uses step"): the
@@ -20,7 +21,10 @@ const DOC_TYPE_SOURCE = "cust_master_config.indv_document_type";
 const SCREENING = ["screening_name", "screening_birth_date", "screening_country", "screening_gender", "screening_alt_name"];
 const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
 const KYC = ["kyc_document_type", "kyc_document_front", "kyc_document_back"];
-const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country"];
+const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country", "related_party_pep"];
+const RISK_ROLES = ["pep", "residence_country", "operating_country"];
+// Every role a question below asks about; any other the API lists gets a plain picker.
+const ASKED = new Set(["display_name", "contact_phone", "contact_email", "residency", "guardian_phone", "guardian_relation", ...RISK_ROLES]);
 const SUBMIT_CHANNELS = ["APP", "WEB", "USSD"];
 const AGENT_TIERS = ["AGENT", "SUPER_AGENT"];
 const IDV = ["idv_front", "idv_back", "idv_selfie", "idv_face_side", "idv_id_number"];
@@ -212,11 +216,18 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   const [skipDuplicates, setSkipDuplicates] = useState(() => !isNew && !get("duplicate_key").length);
   const [extraDuplicateRules, setExtraDuplicateRules] = useState(() => DUPLICATE.filter((r) => get(r).length).length);
   const [kycSection, setKycSection] = useState(null);
-  const [relatedSection, setRelatedSection] = useState(null);
+  // Every role, with its label and help, in the user's language.
+  const [roles, setRoles] = useState([]);
+  useEffect(() => {
+    request("/master/form_use_roles", {})
+      .then((r) => setRoles(rowsOf(r)))
+      .catch(() => setRoles([]));
+  }, []);
 
   if (!fields.length) return <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-700">{t("addSectionsFirst")}</p>;
 
   const byKey = new Map(fields.map((f) => [f.key, f]));
+  const roleText = (role) => roles.find((r) => r.role === role) ?? { label: role, description: "" };
   const labels = (keys) => keys.map((k) => byKey.get(k)?.label ?? k).join(" + ");
   const ofType = (types, pool = fields) => pool.filter((f) => types.includes(f.field_type));
   const texts = ofType(["TEXT"]);
@@ -302,7 +313,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
             </div>
           )}
           <div className="grid gap-3 md:grid-cols-3">
-            {dates.length > 0 && <Pick label={t("usesBirthDate")} fields={dates} value={get("screening_birth_date")[0]} disabled={readOnly} emptyLabel={t("usesNotScreened")} onChange={(keys) => set({ screening_birth_date: keys })} />}
+            {dates.length > 0 && <Pick label={corporate ? t("usesIncorporationDate") : t("usesBirthDate")} fields={dates} value={get("screening_birth_date")[0]} disabled={readOnly} emptyLabel={t("usesNotScreened")} onChange={(keys) => set({ screening_birth_date: keys })} optional={t("usesAgeCriterionHint")} />}
             {countries.length > 0 && <Pick label={t("usesCountry")} fields={countries} value={get("screening_country")[0]} disabled={readOnly} emptyLabel={t("usesNotScreened")} onChange={(keys) => set({ screening_country: keys })} />}
             {!corporate && lists.length > 0 && <Pick label={t("usesGender")} fields={lists} value={get("screening_gender")[0]} disabled={readOnly} emptyLabel={t("usesNotScreened")} onChange={(keys) => set({ screening_gender: keys })} />}
           </div>
@@ -410,40 +421,80 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
     </Card>
   );
 
-  // Corporate: related people, from one repeatable section.
-  const repeatableSections = [...new Set(fields.filter((f) => f.multiRow).map((f) => f.section))];
-  const relatedKey = relatedSection ?? byKey.get(get("related_party_name")[0])?.section ?? null;
-  const inRelated = fields.filter((f) => f.section === relatedKey);
-  const relatedCard = corporate && repeatableSections.length > 0 && (
+  // Corporate: related people. One name field per repeatable section (say
+  // Directors and UBOs); every row of each is screened. The other details
+  // sit in one of those sections.
+  const repeatableKeys = new Set(fields.filter((f) => f.multiRow).map((f) => f.section));
+  const relatedNames = get("related_party_name");
+  const relatedSections = [...new Set(relatedNames.map((k) => byKey.get(k)?.section).filter(Boolean))];
+  const inRelated = fields.filter((f) => relatedSections.includes(f.section));
+  const relatedCard = corporate && repeatableKeys.size > 0 && (
     <Card
       key="related"
       title={t("usesRelatedTitle")}
-      summary={get("related_party_name").length ? t("usesRelatedSummary", { section: sectionName(relatedKey) }) : t("usesNotSet")}
+      summary={relatedSections.length ? t("usesRelatedSummary", { section: relatedSections.map(sectionName).join(", ") }) : t("usesNotSet")}
       open={open.has("related")}
       onToggle={() => toggle("related")}
       problems={problemsFor(problems, RELATED)}
     >
-      <label className="text-sm font-semibold text-slate-700">
-        {t("usesRelatedSection")}
-        <FilterSelect
-          className="mt-1.5"
+      <div>
+        <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("usesRelatedName")}</p>
+        <OrderedChips
+          fields={texts.filter((f) => repeatableKeys.has(f.section))}
+          value={relatedNames}
           disabled={readOnly}
-          value={relatedKey ?? ""}
-          onChange={(key) => {
-            setRelatedSection(key || null);
-            set(Object.fromEntries(RELATED.map((r) => [r, []])));
+          isDisabled={(f) => (relatedSections.includes(f.section) ? t("usesOneNamePerSection") : null)}
+          onChange={(keys) => {
+            const kept = new Set(keys.map((k) => byKey.get(k)?.section));
+            const stale = (role) => get(role).filter((k) => kept.has(byKey.get(k)?.section));
+            set({ related_party_name: keys, ...Object.fromEntries(RELATED.slice(1).map((r) => [r, stale(r)])) });
           }}
-          options={[{ value: "", label: t("usesRelatedNone") }, ...repeatableSections.map((s) => ({ value: s, label: sectionName(s) }))]}
         />
-      </label>
-      {relatedKey && (
+        <p className="mt-1 text-[11px] text-muted-foreground">{t("usesRelatedNameHint")}</p>
+      </div>
+      {relatedSections.length > 0 && (
         <div className="grid gap-3 md:grid-cols-2">
-          <Pick label={t("usesRelatedName")} fields={ofType(["TEXT"], inRelated)} value={get("related_party_name")[0]} disabled={readOnly} emptyLabel={t("select")} onChange={(keys) => set({ related_party_name: keys })} />
           <Pick label={t("usesRelatedRole")} fields={inRelated.filter((f) => f.field_type === "TEXT" || isList(f))} value={get("related_party_role")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ related_party_role: keys })} />
           <Pick label={t("usesBirthDate")} fields={ofType(["DATE"], inRelated)} value={get("related_party_birth_date")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ related_party_birth_date: keys })} />
           <Pick label={t("usesCountry")} fields={inRelated.filter(isCountryList)} value={get("related_party_country")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ related_party_country: keys })} />
+          <Pick label={roleText("related_party_pep").label} optional={roleText("related_party_pep").description} fields={ofType(["YES_NO"], inRelated)} value={get("related_party_pep")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ related_party_pep: keys })} />
         </div>
       )}
+    </Card>
+  );
+
+  // What the computed risk criteria read (the risk setup's @pep and @fatf).
+  const riskSet = RISK_ROLES.filter((r) => get(r).length);
+  const riskCard = (
+    <Card key="risk" title={t("usesRiskTitle")} summary={riskSet.length ? riskSet.map((r) => roleText(r).label).join(", ") : t("usesNotSet")} open={open.has("risk")} onToggle={() => toggle("risk")} problems={problemsFor(problems, RISK_ROLES)}>
+      <p className="text-xs text-muted-foreground">{t("usesRiskIntro")}</p>
+      {corporate ? (
+        <div>
+          <p className="mb-1.5 text-sm font-semibold text-slate-700">{roleText("operating_country").label}</p>
+          <OrderedChips fields={countries} value={get("operating_country")} disabled={readOnly} onChange={(keys) => set({ operating_country: keys })} />
+          <p className="mt-1 text-[11px] text-muted-foreground">{roleText("operating_country").description}</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          <Pick label={roleText("pep").label} optional={roleText("pep").description} fields={ofType(["YES_NO"])} value={get("pep")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ pep: keys })} />
+          <Pick label={roleText("residence_country").label} optional={roleText("residence_country").description} fields={countries} value={get("residence_country")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ residence_country: keys })} />
+        </div>
+      )}
+    </Card>
+  );
+
+  // A role added on the server shows here without a frontend change.
+  const known = new Set([...ASKED, ...SCREENING, ...DUPLICATE, ...KYC, ...RELATED, ...IDV, ...DOC_EXPIRY]);
+  const newRoles = roles.filter((r) => !known.has(r.role));
+  const otherCard = newRoles.length > 0 && (
+    <Card key="other" title={t("usesOtherTitle")} summary={newRoles.filter((r) => get(r.role).length).map((r) => r.label).join(", ") || t("usesNotSet")} open={open.has("other")} onToggle={() => toggle("other")} problems={problemsFor(problems, newRoles.map((r) => r.role))}>
+      {newRoles.map((r) => (
+        <div key={r.role}>
+          <p className="mb-1.5 text-sm font-semibold text-slate-700">{r.label}</p>
+          <OrderedChips fields={fields} value={get(r.role)} disabled={readOnly} onChange={(keys) => set({ [r.role]: keys })} />
+          {r.description && <p className="mt-1 text-[11px] text-muted-foreground">{r.description}</p>}
+        </div>
+      ))}
     </Card>
   );
 
@@ -599,6 +650,8 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
       {idvCard}
       {expiryCard}
       {relatedCard}
+      {riskCard}
+      {otherCard}
       {guardianCard}
       {submitCard}
       {agentCard}

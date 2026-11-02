@@ -3563,9 +3563,9 @@ export const onboarding = {
   noSubTypeDefault: "بلا نوع فرعي (افتراضي)",
   subTypeHint: "اختياري — اتركه فارغاً ما لم تتطلب هذه التركيبة واحداً.",
   minorAgeYears: "سن القاصر (سنوات)",
-  minorAgeHint: "تحت هذا العمر تكون حقيقة القاعدة IS_MINOR صحيحة.",
+  minorAgeHint: "يُعامل العملاء الأصغر من هذا العمر كقاصرين.",
   selectCountry: "اختر البلد",
-  homeCountryHint: "مطلوب إن استخدمت أي قاعدة RESIDENCY_STATUS.",
+  homeCountryHint: "مطلوب عندما تتحقق قاعدة مما إذا كان العميل يعيش في بلد المؤسسة.",
   addKycScheme: "إضافة مخطط اعرف عميلك",
   selectKycScheme: "اختر مخطط اعرف عميلك",
   kycSchemeHint: "يجب أن يكون مخططاً معتمداً (نشطاً) عند الإرسال.",
@@ -3860,8 +3860,8 @@ export const notification = {
 
 export const risk = {
   onboardingOutcome: "نتيجة التسجيل",
-  onboardingOutcomeHint: "ما يحدث لعميل أو تاجر جديد عندما يشير مستوى مخاطره أو نطاق مكافحة غسل الأموال لديه إلى هنا.",
-  outcomeDefault: "الافتراضي للرمز (ALLOW يعتمد، والبقية للمراجعة)",
+  onboardingOutcomeHint: "ما يحدث لعميل أو تاجر جديد يشير مستوى مخاطره أو نطاق مكافحة غسل الأموال إلى هذا الإجراء.",
+  outcomeDefault: "الافتراضي",
   outcomeKeep: "الإبقاء على النتيجة الحالية",
   outcome_APPROVE: "اعتماد (عند تفعيل الاعتماد التلقائي)",
   outcome_REVIEW: "مراجعة (فتح حالة)",

@@ -961,6 +961,8 @@ export const routes = {
 };
 
 export const customer = {
+  registerCompanyAsCustomer: "Registe uma empresa como cliente através do formulário de registo empresarial publicado pela instituição.",
+  registerCompanyAsMerchant: "Registe uma empresa como comerciante ou agente através do formulário de registo empresarial publicado pela instituição.",
   signedUpByAgent: "Registado pelo agente: {{name}}",
   kycUpgradeInProgress: "Atualização KYC em curso (pelo cliente)",
   kycUpgradeWaiting: "Atualização KYC",
@@ -1228,9 +1230,9 @@ export const onboarding = {
   noSubTypeDefault: "Sem subtipo (padrão)",
   subTypeHint: "Opcional — deixe em branco a menos que esta combinação exija um.",
   minorAgeYears: "Idade de menoridade (anos)",
-  minorAgeHint: "Abaixo desta idade o fato de regra IS_MINOR é verdadeiro.",
+  minorAgeHint: "Os clientes mais novos do que esta idade são tratados como menores.",
   selectCountry: "Selecione o país",
-  homeCountryHint: "Obrigatório se alguma regra usar RESIDENCY_STATUS.",
+  homeCountryHint: "Necessário quando uma regra verifica se o cliente vive no país da instituição.",
   addKycScheme: "Adicionar esquema KYC",
   selectKycScheme: "Selecione o esquema KYC",
   kycSchemeHint: "Deve ser um esquema aprovado (Ativo) no momento do envio.",
@@ -1584,9 +1586,21 @@ export const notification = {
 };
 
 export const risk = {
+  computed: "calculado",
+  viewList: "Ver lista",
+  fatfListTitle: "Listas do GAFI",
+  fatfListEmpty: "Nenhum país na lista.",
+  bandsHint: "O limite superior não está incluído. Deixe-o vazio na última faixa para não ter limite. As faixas não podem sobrepor-se.",
+  bandFrom: "De (anos)",
+  bandTo: "Até (anos)",
+  bandNoEnd: "Sem limite",
+  score: "Pontuação",
+  removeBand: "Remover faixa",
+  addBand: "Adicionar faixa",
+  bandsCount: "Faixas: {{count}}",
   onboardingOutcome: "Resultado da integração",
-  onboardingOutcomeHint: "O que acontece com um novo cliente ou comerciante quando o nível de risco ou a faixa AML aponta para esta ação.",
-  outcomeDefault: "Padrão do código (ALLOW aprova, os demais vão para revisão)",
+  onboardingOutcomeHint: "O que acontece a um novo cliente ou comerciante cujo nível de risco ou faixa AML aponta para esta ação.",
+  outcomeDefault: "Predefinido",
   outcomeKeep: "Manter o resultado atual",
   outcome_APPROVE: "Aprovar (com aprovação automática ativa)",
   outcome_REVIEW: "Revisar (abrir um caso)",
@@ -2653,6 +2667,20 @@ export const tour = {
 };
 
 export const formBuilder = {
+  usesOneNamePerSection: "Um campo de nome por secção.",
+  usesRelatedNameHint: "Escolha um campo de nome em cada secção que lista pessoas, como administradores ou beneficiários efetivos. Cada linha é verificada.",
+  usesRiskTitle: "Critérios de risco",
+  usesRiskIntro: "Os campos lidos pelos critérios de risco calculados. Um critério cujo campo não esteja definido aqui vale 0.",
+  usesOtherTitle: "Outras utilizações",
+  usesIncorporationDate: "Data de constituição",
+  usesAgeCriterionHint: "Também usado pelo critério de risco de idade.",
+  noDefault: "Sem predefinição",
+  rulesByNone: "Não usado",
+  rulesByChoice: "Resposta",
+  rulesByMin: "Comprimento mín.",
+  rulesByMax: "Comprimento máx.",
+  rulesByPattern: "Padrão",
+  rulesByAddChoice: "Escreva o valor de uma resposta e prima Enter",
   "showEarlierScreens": "Mostrar ecrãs anteriores nele:",
   "usesExpiryTitle": "Validade do documento",
   "usesExpiryOff": "Não vigiado",

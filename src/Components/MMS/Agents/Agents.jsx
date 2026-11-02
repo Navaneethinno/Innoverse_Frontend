@@ -1,3 +1,4 @@
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -51,6 +52,8 @@ export function Agents() {
 
 function AgentList() {
   const { t } = useTranslation(["mms", "common"]);
+  // A bank or fintech only sees its own institution.
+  const canChoose = useCanChooseInstitution();
   const [viewing, setViewing] = useState(null);
   // Part of the name.
 
@@ -66,7 +69,7 @@ function AgentList() {
       render: (r) => (
         <div>
           <p className="text-xs font-semibold">{r.name}</p>
-          <p className="text-[10px] text-muted-foreground">{r.inst_profile_name}</p>
+          {canChoose && <p className="text-[10px] text-muted-foreground">{r.inst_profile_name}</p>}
         </div>
       ),
     },

@@ -13,7 +13,7 @@ import { storesApi } from "@/Services/Merchant/mms.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog } from "../../Finance/Deposits/depositShared";
-import { MiniTable, Tabs } from "../../Finance/Loans/loanShared";
+import { MiniTable } from "../../Finance/Loans/loanShared";
 import { MmsStatus, mmsDate, partyRef } from "../mmsShared";
 
 
@@ -21,7 +21,6 @@ import { MmsStatus, mmsDate, partyRef } from "../mmsShared";
 // approves each new one before it trades, and can close or reopen it.
 export function Stores() {
   const { t } = useTranslation("mms");
-  const [tab, setTab] = useState("all");
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5">
@@ -30,8 +29,7 @@ export function Stores() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("storesSubtitle")}</p>
       </div>
-      <Tabs tabs={[{ key: "all" }, { key: "pending" }]} value={tab} onChange={setTab} labelOf={(k) => t(`storesTab_${k}`)} />
-      <StoreList key={tab} pendingOnly={tab === "pending"} />
+      <StoreList />
     </div>
   );
 }

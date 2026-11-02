@@ -25,6 +25,8 @@ const criteriaOf = (criteria) =>
     field_code: c.field_code,
     weight: String(c.weight ?? ""),
     scores: Object.fromEntries((c.scores ?? []).map((s) => [s.value_id, String(s.score)])),
+    // A banded criterion (age). to_years 0 means no upper end: shown empty.
+    ...(c.bands ? { bands: c.bands.map((b) => ({ from_years: String(b.from_years ?? ""), to_years: b.to_years ? String(b.to_years) : "", score: String(b.score ?? "") })) } : {}),
   }));
 
 const idOrEmpty = (v) => (v === null || v === undefined ? "" : v);
@@ -85,9 +87,13 @@ export function RiskSetupForm({ kind, editing, onClose, onSaved }) {
         criteria: form.criteria.map((c) => ({
           field_code: c.field_code,
           weight: Number(c.weight),
-          scores: Object.entries(c.scores)
-            .filter(([, score]) => String(score).trim() !== "")
-            .map(([valueId, score]) => ({ value_id: Number(valueId), score: Number(score) })),
+          ...(c.bands
+            ? { bands: c.bands.map((b) => ({ from_years: Number(b.from_years) || 0, to_years: Number(b.to_years) || 0, score: Number(b.score) || 0 })) }
+            : {
+                scores: Object.entries(c.scores)
+                  .filter(([, score]) => String(score).trim() !== "")
+                  .map(([valueId, score]) => ({ value_id: Number(valueId), score: Number(score) })),
+              }),
         })),
         levels: chainLevels(form.levels).map((l) => ({
           code: l.code.trim(),

@@ -14,7 +14,8 @@ export function TestScorePanel({ api, row, risk }) {
   const [values, setValues] = useState({});
   const [result, setResult] = useState(null);
   const [scoring, setScoring] = useState(false);
-  const criteria = row.criteria ?? [];
+  // A banded criterion has no choice to pick here.
+  const criteria = (row.criteria ?? []).filter((c) => !c.bands);
 
   useEffect(() => {
     criteria.forEach((c) => risk.loadValues(c.field_code));

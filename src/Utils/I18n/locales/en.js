@@ -1167,6 +1167,8 @@ export const routes = {
 };
 
 export const customer = {
+  registerCompanyAsCustomer: "Register a company as a customer through the institution's published corporate onboarding form.",
+  registerCompanyAsMerchant: "Register a company as a merchant or agent through the institution's published corporate onboarding form.",
   signedUpByAgent: "Signed up by agent: {{name}}",
   kycUpgradeInProgress: "KYC upgrade in progress (by the customer)",
   kycUpgradeWaiting: "KYC upgrade",
@@ -1438,9 +1440,9 @@ export const onboarding = {
   noSubTypeDefault: "No sub type (default)",
   subTypeHint: "Optional — leave unset unless this combination requires one.",
   minorAgeYears: "Minor age (years)",
-  minorAgeHint: "Below this age the IS_MINOR rule fact is true.",
+  minorAgeHint: "Customers younger than this are treated as minors.",
   selectCountry: "Select country",
-  homeCountryHint: "Required if any rule uses RESIDENCY_STATUS.",
+  homeCountryHint: "Needed when a rule checks whether the customer lives in the institution's country.",
   addKycScheme: "Add KYC scheme",
   selectKycScheme: "Select KYC scheme",
   kycSchemeHint: "Must be an approved (Active) scheme by the time you submit.",
@@ -1760,9 +1762,21 @@ export const notification = {
 };
 
 export const risk = {
+  computed: "computed",
+  viewList: "View list",
+  fatfListTitle: "FATF lists",
+  fatfListEmpty: "No country is listed.",
+  bandsHint: "The upper end is not included. Leave it empty on the last band for no upper end. Bands may not overlap.",
+  bandFrom: "From (years)",
+  bandTo: "To (years)",
+  bandNoEnd: "No upper end",
+  score: "Score",
+  removeBand: "Remove band",
+  addBand: "Add band",
+  bandsCount: "Bands: {{count}}",
   onboardingOutcome: "Onboarding outcome",
-  onboardingOutcomeHint: "What happens to a new customer or merchant when their risk level or AML band points here.",
-  outcomeDefault: "Default for the code (ALLOW approves, others review)",
+  onboardingOutcomeHint: "What happens to a new customer or merchant whose risk level or AML band points to this action.",
+  outcomeDefault: "Default",
   outcomeKeep: "Keep the current outcome",
   outcome_APPROVE: "Approve (when auto-approve is on)",
   outcome_REVIEW: "Review (open a case)",
@@ -2829,6 +2843,20 @@ export const tour = {
 };
 
 export const formBuilder = {
+  usesOneNamePerSection: "One name field per section.",
+  usesRelatedNameHint: "Pick one name field in each section that lists people, such as directors or UBOs. Every row is screened.",
+  usesRiskTitle: "Risk criteria",
+  usesRiskIntro: "The fields the computed risk criteria read. A criterion whose field isn't set here scores 0.",
+  usesOtherTitle: "Other uses",
+  usesIncorporationDate: "Date of incorporation",
+  usesAgeCriterionHint: "Also used by the age risk criterion.",
+  noDefault: "No default",
+  rulesByNone: "Not used",
+  rulesByChoice: "Answer",
+  rulesByMin: "Min length",
+  rulesByMax: "Max length",
+  rulesByPattern: "Pattern",
+  rulesByAddChoice: "Type an answer's value and press Enter",
   translations: "Translations",
   translationsHint: "Leave a text empty to show it in English. Saved with this record, in every customer type that uses it.",
   translationsIntro: "English is the base text. Texts in {{languages}} show in English until they are translated. Changes apply at once.",

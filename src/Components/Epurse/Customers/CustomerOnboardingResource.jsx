@@ -182,7 +182,7 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
-          <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step ?? "-" })}</div>
+          <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step_label || r.current_step || "-" })}</div>
           {r.kyc_level_name && (
             <div className="text-[11px] text-muted-foreground">
               {t("customer:kycValue", { level: r.kyc_level_name })}

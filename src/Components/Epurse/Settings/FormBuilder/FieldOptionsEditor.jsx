@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -61,6 +62,66 @@ function ChoicesEditor({ value, onChange, disabled }) {
 // vocabulary (`types[].options[]`, §4.1): `kind` picks the input. A list
 // type takes either a master list (`source_table`) or its own choices,
 // never both.
+// Length and pattern by another field's answer: pick the controlling field,
+// then per choice its limits. Stored as { field, rules: { <choice>: {...} } }.
+function RulesByEditor({ value, parents, onChange, disabled }) {
+  const { t } = useAudienceTranslation("formBuilder");
+  const field = value?.field ?? "";
+  const rules = value?.rules ?? {};
+  const parent = parents.find((f) => f.key === field);
+  const choices = parent?.options?.choices ?? parent?.choices ?? [];
+  const [extra, setExtra] = useState([]);
+  const known = choices.map((c) => String(c?.value ?? c?.code ?? c));
+  const rows = [...new Set([...known, ...Object.keys(rules), ...extra])];
+  const labelOf = (v) => {
+    const c = choices.find((x) => String(x?.value ?? x?.code ?? x) === v);
+    return c?.label ?? c?.name ?? v;
+  };
+  const put = (choice, patch) => {
+    const merged = { ...rules[choice], ...patch };
+    for (const k of Object.keys(merged)) if (merged[k] === "" || merged[k] === undefined) delete merged[k];
+    const next = { ...rules };
+    if (Object.keys(merged).length) next[choice] = merged;
+    else delete next[choice];
+    onChange({ field, rules: next });
+  };
+  const num = (v) => (v === "" ? undefined : Number(v));
+  return (
+    <div className="mt-1.5 grid gap-2 font-normal">
+      <FilterSelect disabled={disabled} value={field} onChange={(next) => onChange(next ? { field: next, rules: {} } : undefined)} options={[{ value: "", label: t("rulesByNone") }, ...parents.map((f) => ({ value: f.key, label: `${f.name} (${f.key})` }))]} />
+      {field && rows.length > 0 && (
+        <div className="grid grid-cols-[minmax(0,1.2fr)_5rem_5rem_minmax(0,2fr)] gap-2 text-[11px] font-semibold text-muted-foreground">
+          <span>{t("rulesByChoice")}</span>
+          <span>{t("rulesByMin")}</span>
+          <span>{t("rulesByMax")}</span>
+          <span>{t("rulesByPattern")}</span>
+        </div>
+      )}
+      {field &&
+        rows.map((choice) => (
+          <div key={choice} className="grid grid-cols-[minmax(0,1.2fr)_5rem_5rem_minmax(0,2fr)] items-center gap-2">
+            <span className="truncate text-xs font-semibold">{labelOf(choice)}</span>
+            <input type="number" min="0" aria-label={t("rulesByMin")} className="rounded-lg border px-2 py-1.5 text-sm" disabled={disabled} value={rules[choice]?.min_length ?? ""} onChange={(e) => put(choice, { min_length: num(e.target.value) })} />
+            <input type="number" min="0" aria-label={t("rulesByMax")} className="rounded-lg border px-2 py-1.5 text-sm" disabled={disabled} value={rules[choice]?.max_length ?? ""} onChange={(e) => put(choice, { max_length: num(e.target.value) })} />
+            <input aria-label={t("rulesByPattern")} className="rounded-lg border px-2 py-1.5 font-mono text-xs" disabled={disabled} value={rules[choice]?.pattern ?? ""} onChange={(e) => put(choice, { pattern: e.target.value })} />
+          </div>
+        ))}
+      {field && !disabled && known.length === 0 && (
+        <input
+          className="rounded-lg border px-2 py-1.5 text-sm"
+          placeholder={t("rulesByAddChoice")}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter" || !e.currentTarget.value.trim()) return;
+            e.preventDefault();
+            setExtra([...extra, e.currentTarget.value.trim()]);
+            e.currentTarget.value = "";
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 export function FieldOptionsEditor({ typeDef, value, onChange, vocabulary, libraryFields = [], selfKey, disabled }) {
   const { t } = useAudienceTranslation("formBuilder");
   if (!typeDef?.options?.length) return null;
@@ -170,6 +231,13 @@ export function FieldOptionsEditor({ typeDef, value, onChange, vocabulary, libra
           value={current ?? ""}
           onChange={(e) => set(key, e.target.value === "" ? undefined : Number(e.target.value))}
         />
+      );
+    } else if (kind === "rules_by") {
+      return (
+        <div key={key} className="text-sm font-semibold text-slate-700 md:col-span-2">
+          {label}
+          <RulesByEditor value={current} parents={parentOptions} disabled={disabled} onChange={(next) => set(key, next)} />
+        </div>
       );
     } else if (kind === "date") {
       control = <DateInput className={inputClass} disabled={disabled} value={current ?? ""} onChange={(e) => set(key, e.target.value)} />;

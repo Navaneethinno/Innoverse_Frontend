@@ -172,8 +172,14 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
           {!isPin && (
           <label className="text-sm font-semibold text-slate-700">
             {t("formBuilder:defaultValue")}
-            <input className={inputClass} disabled={readOnly} value={form.default_value ?? ""} onChange={(e) => set({ default_value: e.target.value })} />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:defaultValueHint")}</span>
+            {form.field_type === "YES_NO" ? (
+              <FilterSelect className="mt-1.5" disabled={readOnly} value={form.default_value ?? ""} onChange={(v) => set({ default_value: v })} options={[{ value: "", label: t("formBuilder:noDefault") }, { value: "true", label: t("common:yes") }, { value: "false", label: t("common:no") }]} />
+            ) : Array.isArray(form.options?.choices) ? (
+              <FilterSelect className="mt-1.5" disabled={readOnly} value={form.default_value ?? ""} onChange={(v) => set({ default_value: v })} options={[{ value: "", label: t("formBuilder:noDefault") }, ...form.options.choices.filter((c) => c?.value !== "" && c?.value != null).map((c) => ({ value: c.value, label: c.label || c.value }))]} />
+            ) : (
+              <input className={inputClass} disabled={readOnly} value={form.default_value ?? ""} onChange={(e) => set({ default_value: e.target.value })} />
+            )}
+            {form.options?.source_table && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:defaultValueHint")}</span>}
           </label>
           )}
           <div className="flex flex-wrap items-end gap-2">
