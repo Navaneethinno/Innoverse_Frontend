@@ -4,4 +4,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 // them and expiry notices. No menu permission; each user sees only theirs.
 const call = (verb) => (body = {}) => request(`/config/user/notification/${verb}`, body);
 
+// Fired when a screen other than the bell marks messages read.
+export const INBOX_CHANGED = "inbox:changed";
+
 export const inboxApi = { list: call("list"), unreadCount: call("unread_count"), read: call("read") };

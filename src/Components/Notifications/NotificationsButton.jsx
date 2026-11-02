@@ -1,31 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bell, ChevronRight } from "lucide-react";
-import { useSelector } from "react-redux";
+import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { menuPathForItem } from "@/Pages/Sidebar/menuRouteMap";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { Spinner } from "@/Components/Common/Spinner";
+import { NotificationRow, useNotificationTarget } from "@/Components/Notifications/NotificationRow";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { inboxApi } from "@/Services/Notifications/inbox.api";
+import { inboxApi, INBOX_CHANGED } from "@/Services/Notifications/inbox.api";
 
-const LIMIT = 20;
+// The rest are on the full page.
+const LIMIT = 5;
 // No live push yet: the count is asked for on load and every minute.
 const POLL_MS = 60_000;
 
-// The signed-in user's inbox in the top bar: newest first, unread in bold,
-// more loaded on scroll. Opening a message marks it read and, when it names a
+// The signed-in user's inbox in the top bar: the latest few, unread in bold,
+// with View all for the full page. Opening a message marks it read and, when it names a
 // screen (menu_id), goes there.
 export function NotificationsButton() {
   const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState(null);
-  const [page, setPage] = useState({ current: 0, total: 1 });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const boxRef = useRef(null);
-  const menus = useSelector((state) => state.menu.menuArray);
+  const { pageOf, go } = useNotificationTarget();
   const navigate = useNavigate();
 
   const countNow = useCallback(
@@ -41,23 +39,23 @@ export function NotificationsButton() {
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") void countNow();
     }, POLL_MS);
-    return () => clearInterval(timer);
+    // The full page marks messages read too.
+    window.addEventListener(INBOX_CHANGED, countNow);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener(INBOX_CHANGED, countNow);
+    };
   }, [countNow]);
 
-  const loadPage = async (n) => {
-    setLoading(true);
+  const load = async () => {
     setError("");
     try {
-      const r = await inboxApi.list({ page: n, limit: LIMIT });
-      const rows = rowsOf(r);
-      setItems((old) => (n === 1 ? rows : [...(old ?? []), ...rows]));
-      setPage({ current: n, total: Number(r?.pagination?.totalPages ?? 1) });
+      const r = await inboxApi.list({ page: 1, limit: LIMIT });
+      setItems(rowsOf(r));
       if (r?.summary?.unread != null) setUnread(Number(r.summary.unread));
     } catch (e) {
       setError(e.message);
-      if (n === 1) setItems([]);
-    } finally {
-      setLoading(false);
+      setItems([]);
     }
   };
 
@@ -77,13 +75,8 @@ export function NotificationsButton() {
     if (open) return setOpen(false);
     setOpen(true);
     setItems(null);
-    void loadPage(1);
+    void load();
   };
-  const onScroll = (e) => {
-    const el = e.currentTarget;
-    if (!loading && page.current < page.total && el.scrollTop + el.clientHeight >= el.scrollHeight - 40) void loadPage(page.current + 1);
-  };
-
   const markRead = (body, ids) =>
     inboxApi
       .read(body)
@@ -94,19 +87,12 @@ export function NotificationsButton() {
       })
       .catch(() => {});
 
-  // The message's screen, found in the sidebar's menus as the sidebar builds it.
-  const pageOf = (x) => {
-    if (!x.menu_id) return null;
-    const active = (menus ?? []).filter((m) => m?.status === 1);
-    const menu = active.find((m) => Number(m.menu_id) === Number(x.menu_id));
-    return menu ? menuPathForItem(menu, active) : null;
-  };
   const openItem = (x) => {
     if (!x.read) void markRead({ ids: [x.id] }, [x.id]);
     const to = pageOf(x);
     if (to) {
       setOpen(false);
-      navigate(to, { state: { menuClick: Date.now(), recordId: x.record_id ?? undefined } });
+      go(x, to);
     }
   };
 
@@ -135,7 +121,7 @@ export function NotificationsButton() {
               </button>
             )}
           </div>
-          <div className="max-h-[60vh] overflow-y-auto" onScroll={onScroll}>
+          <div className="max-h-[60vh] overflow-y-auto">
             {items === null ? (
               <div className="flex justify-center p-6">
                 <Spinner size={16} />
@@ -144,30 +130,24 @@ export function NotificationsButton() {
               <p className="p-6 text-center text-sm text-muted-foreground">{error || t("notificationsEmpty")}</p>
             ) : (
               <ul>
-                {items.map((x) => {
-                  const to = pageOf(x);
-                  return (
-                    <li key={x.id}>
-                      <button type="button" onClick={() => openItem(x)} className={`flex w-full items-start gap-2.5 border-b border-border/50 px-4 py-2.5 text-left transition-colors hover:bg-muted ${x.read ? "" : "bg-primary-light/40"}`}>
-                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${x.read ? "bg-transparent" : "bg-primary"}`} />
-                        <span className="min-w-0 flex-1">
-                          <span className={`block truncate text-sm ${x.read ? "font-medium text-foreground/80" : "font-bold text-foreground"}`}>{x.title}</span>
-                          {x.body && <span className="line-clamp-2 block text-xs text-muted-foreground">{x.body}</span>}
-                          <span className="mt-0.5 block text-[10px] text-muted-foreground">{[x.menu_label ?? x.menu_name, x.record_name || (x.record_id != null && `#${x.record_id}`), x.created_at && new Date(x.created_at).toLocaleString()].filter(Boolean).join(" · ")}</span>
-                        </span>
-                        {to && <ChevronRight size={14} className="mt-1 shrink-0 text-muted-foreground" />}
-                      </button>
-                    </li>
-                  );
-                })}
-                {loading && (
-                  <li className="flex justify-center p-3">
-                    <Spinner size={14} />
+                {items.map((x) => (
+                  <li key={x.id}>
+                    <NotificationRow item={x} to={pageOf(x)} onOpen={() => openItem(x)} />
                   </li>
-                )}
+                ))}
               </ul>
             )}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              navigate("/notifications");
+            }}
+            className="block w-full px-4 py-2.5 text-center text-xs font-semibold text-primary hover:bg-muted"
+          >
+            {t("viewAll")}
+          </button>
         </div>
       )}
     </div>

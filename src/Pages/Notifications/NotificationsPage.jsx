@@ -1,48 +1,96 @@
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Bell } from "lucide-react";
+import { PageTitle } from "@/Components/Common/PageTitle";
+import { Pager } from "@/Components/Common/Pager";
+import { Spinner } from "@/Components/Common/Spinner";
+import { NotificationRow, useNotificationTarget } from "@/Components/Notifications/NotificationRow";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { inboxApi, INBOX_CHANGED } from "@/Services/Notifications/inbox.api";
 
-// The TopBar's bell button has always linked here (navigate("/notifications")
-// in TopBar.jsx), but no route or page ever existed for it — clicking it hit
-// RouteError ("Oops! You're lost") regardless of screen size. There is no
-// notifications API/endpoint anywhere in API_ENDPOINTS yet, so this is
-// deliberately an honest empty state rather than inventing fake notification
-// data or a fake backend call. Once a real notifications endpoint exists,
-// this is the one place to wire it in.
+// Every message in the signed-in user's inbox, a page at a time; the top bar's
+// bell shows only the latest few and links here.
 export function NotificationsPage() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
+  const { t } = useTranslation("common");
+  const { pageOf, go } = useNotificationTarget();
+  const [items, setItems] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [unread, setUnread] = useState(0);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setError("");
+    try {
+      const r = await inboxApi.list({ page, limit: pageSize });
+      setItems(rowsOf(r));
+      setTotal(Number(r?.pagination?.totalRecords ?? 0));
+      setUnread(Number(r?.summary?.unread ?? 0));
+    } catch (e) {
+      setError(e.message);
+      setItems([]);
+    }
+  }, [page, pageSize]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const markRead = (body, ids) =>
+    inboxApi
+      .read(body)
+      .then((r) => {
+        const left = rowsOf(r)[0]?.unread;
+        if (left != null) setUnread(Number(left));
+        setItems((old) => (old ?? []).map((x) => (!ids || ids.includes(x.id) ? { ...x, read: true } : x)));
+        window.dispatchEvent(new Event(INBOX_CHANGED));
+      })
+      .catch(() => {});
+
+  const openItem = (x) => {
+    if (!x.read) void markRead({ ids: [x.id] }, [x.id]);
+    const to = pageOf(x);
+    if (to) go(x, to);
+  };
+
   return (
-    <div className="pb-12 pt-6">
-      <div className="mx-auto w-full max-w-2xl rounded-3xl border border-white/90 bg-white/85 p-6 shadow-xl sm:p-8">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-slate-800"
-        >
-          <ArrowLeft size={16} /> Back
-        </button>
-        <div className="mb-6 flex items-center gap-3">
-          <div
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
-          >
-            <Bell size={18} />
+    <div className="pb-12 pt-2">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <PageTitle icon={Bell}>{t("notificationsTitle")}</PageTitle>
+        {unread > 0 && (
+          <button type="button" onClick={() => void markRead({ all: true }, null)} className="text-xs font-semibold text-primary hover:underline">
+            {t("markAllRead")}
+          </button>
+        )}
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        {items === null ? (
+          <div className="flex justify-center p-10">
+            <Spinner size={18} />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl font-black text-slate-800">{t("layout:notifications")}</h1>
-            <p className="text-sm text-muted-foreground">{t("layout:alertsAndActivityForYourAccount")}</p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-14 text-center sm:py-16">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-muted-foreground">
-            <Bell size={20} />
-          </div>
-          <p className="text-sm font-semibold text-slate-700">{t("layout:noNotificationsYet")}</p>
-          <p className="max-w-xs text-xs text-muted-foreground">
-            {t("layout:youReAllCaughtUpNewNotifications")}
-          </p>
-        </div>
+        ) : !items.length ? (
+          <p className="p-10 text-center text-sm text-muted-foreground">{error || t("notificationsEmpty")}</p>
+        ) : (
+          <>
+            <ul>
+              {items.map((x) => (
+                <li key={x.id}>
+                  <NotificationRow item={x} to={pageOf(x)} onOpen={() => openItem(x)} />
+                </li>
+              ))}
+            </ul>
+            <Pager
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n);
+                setPage(1);
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );
