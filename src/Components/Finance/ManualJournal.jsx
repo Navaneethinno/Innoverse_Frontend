@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -235,7 +236,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
           {SIDES.map((op) => (
             <section key={op} className="rounded-2xl border border-border p-3">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-sm font-black text-slate-700">{t(op === "DR" ? "debits" : "credits")}</p>
+                <p className="text-sm font-black text-slate-700">{t(op === "DR" ? "debits" : "credits")}<RequiredMark /></p>
                 <span className="text-xs font-bold tabular-nums text-muted-foreground">{fromUnits(op === "DR" ? dr : cr)}</span>
               </div>
               <ul className="grid gap-2">

@@ -1,3 +1,4 @@
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -62,7 +63,7 @@ function formatValue(value) {
 function formatTimestamp(value) {
   if (!value || (typeof value === "string" && value.startsWith("0001-01-01"))) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? value : formatDateTime(date);
 }
 
 // Keyed off the real auth_status values seen across Institution/Profile/User
@@ -155,7 +156,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
             {actionLabel}
           </span>
         )}
-        <StatusBadge status={status} />
+        {status && <StatusBadge status={status} />}
         {!isEmptyPlaceholder(entry.audit_key) && (
           <span className="ml-auto flex max-w-full basis-full items-center gap-1 sm:basis-auto">
             <UiTooltip label={entry.audit_key}>

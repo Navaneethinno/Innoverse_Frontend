@@ -23,7 +23,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../Deposits/depositShared";
 import { MiniTable, Tabs } from "../Loans/loanShared";
 import { NewRequest } from "./NewRequest";
-import { PlanCard, ReceiptDialog, TotalCell, typeLabel } from "./txnShared";
+import { PlanCard, ReceiptDialog, TotalCell, typeLabel, useTxnStatusNames } from "./txnShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
 const clean = (f) => Object.fromEntries(Object.entries(f).filter(([, v]) => String(v ?? "").trim() !== "").map(([k, v]) => [k, String(v).trim()]));
@@ -389,6 +389,7 @@ export function PartyHistory({ party, onClose, onOpen }) {
 // The requests: status tabs, newest first; a row opens its decision dialog.
 function Requests({ openId, onOpenTxn, onClose }) {
   const { t } = useTranslation(["txn", "common"]);
+  const statusNames = useTxnStatusNames();
   const [open, setOpen] = useState(openId ?? null);
   // Its own URL keys (r_...): the journal's list shares the page.
   const list = useServerList({ api: transactionRequestsApi.listPath, call: transactionRequestsApi.list, prefix: "r_" });
@@ -428,11 +429,11 @@ function Requests({ openId, onOpenTxn, onClose }) {
         ),
       },
       { key: "total_amount", label: t("amount"), render: (r) => <TotalCell total={r.total_amount} amount={r.amount} fee={r.fee_amount} currency={r.currency_code} /> },
-      { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} variant="subtle" /> },
+      { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} label={statusNames[r.status]} variant="subtle" /> },
       { key: "requested_by", label: t("requestedBy"), render: (r) => <span className="text-xs">{r.requested_userid_name ?? actorText(r, "requested_by", "")}</span> },
       { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpen(r.id)} /> },
     ],
-    [t],
+    [t, statusNames],
   );
 
   return (
@@ -458,6 +459,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
 export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transactionRequestsApi }) {
   const { t } = useTranslation("txn");
   const can = usePagePermission();
+  const statusNames = useTxnStatusNames();
   const [req, setReq] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -507,7 +509,7 @@ export function RequestDialog({ id, onClose, onOpenTxn, onChanged, api = transac
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(req.total_amount ?? req.amount)}</p>
-            <StatusBadge status={req.status} />
+            <StatusBadge status={req.status} label={statusNames[req.status]} />
           </div>
           {req.status === "FAILED" && (
             <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">

@@ -257,7 +257,10 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                     index === highlight && "bg-primary-light text-primary ring-1 ring-primary/40",
                   )}
                 >
-                  <span className="min-w-0 [overflow-wrap:anywhere]">{option.label}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere]">
+                    {option.label}
+                    {option.description && <span className="block text-[11px] font-normal opacity-80">{option.description}</span>}
+                  </span>
                   {isActive && <Check size={14} className="shrink-0" />}
                 </button>
               );

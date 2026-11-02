@@ -183,3 +183,15 @@ export function ReceiptDialog({ txnId, rrn, onClose }) {
     </Modal>
   );
 }
+
+// One name per request status, in the user's language.
+export function useTxnStatusNames() {
+  const [names, setNames] = useState({});
+  useEffect(() => {
+    transactionsApi
+      .options({})
+      .then((r) => setNames(rowsOf(r)[0]?.status_names ?? {}))
+      .catch(() => {});
+  }, []);
+  return names;
+}

@@ -197,6 +197,6 @@ export function Problems({ message, stepOf, onGo, stepLabel, keys = [], fieldLab
 
 // A record's history (an `audit` reply): the shared history view, the
 // same as the Audit window.
-export function AuditTimeline({ audit, renderExtra }) {
-  return <AuditHistory entries={audit} renderExtra={renderExtra} />;
+export function AuditTimeline({ audit, renderExtra, getActionLabel }) {
+  return <AuditHistory entries={audit} renderExtra={renderExtra} getActionLabel={getActionLabel} />;
 }

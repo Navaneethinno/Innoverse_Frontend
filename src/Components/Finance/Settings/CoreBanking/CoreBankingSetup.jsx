@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Send, XCircle } from "lucide-react";
@@ -304,8 +305,8 @@ export function CoreBankingSetup() {
                   addLabel={t("addBranch")}
                   columns="lg:grid-cols-6"
                   fields={[
-                    { key: "code", label: t("code"), type: "code", disabledIf: (r) => r._saved },
-                    { key: "name", label: t("name") },
+                    { key: "code", label: <>{t("code")}<RequiredMark /></>, type: "code", disabledIf: (r) => r._saved },
+                    { key: "name", label: <>{t("name")}<RequiredMark /></> },
                     { key: "address", label: t("address") },
                     {
                       key: "status",

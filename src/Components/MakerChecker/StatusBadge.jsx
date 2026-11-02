@@ -301,7 +301,7 @@ function humanizeCode(value) {
     .join(" ");
 }
 
-export function StatusBadge({ status, variant = "solid" }) {
+export function StatusBadge({ status, variant = "solid", label: givenLabel }) {
   const { t } = useTranslation("statusLabels");
   const normalizedStatus = String(status ?? "").trim().toUpperCase();
   const known = STATUS_CONFIG[normalizedStatus];
@@ -313,7 +313,7 @@ export function StatusBadge({ status, variant = "solid" }) {
   // Known status codes map to a fixed English label — translate it. An
   // unknown value is the backend's own status_name, already translated via
   // x-api-lang, so it is shown as-is.
-  const label = known ? t(cfg.label, { defaultValue: cfg.label }) : cfg.label;
+  const label = givenLabel ?? (known ? t(cfg.label, { defaultValue: cfg.label }) : cfg.label);
   if (variant === "subtle") {
     return (
       <span

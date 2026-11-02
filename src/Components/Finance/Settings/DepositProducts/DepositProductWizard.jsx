@@ -15,7 +15,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, Section, firstProblemStep, problemStepOf, amountInput, inputClass, labelClass, percentInput } from "../../Deposits/depositShared";
-import { PERIOD_DAYS, optionLabel } from "./productShared";
+import { PERIOD_DAYS, optionLabel, useTermDepositTypeName } from "./productShared";
 
 const STEPS = ["policy", "tenors", "rates"];
 // The step a refused problem starts with ("tenor 90D: ...").
@@ -59,6 +59,7 @@ function toBody(config) {
 // for a checker to approve.
 export function DepositProductWizard({ product, onClose, onSaved }) {
   const { t } = useTranslation(["deposits", "common"]);
+  const type = useTermDepositTypeName();
   const openMenu = useOpenMenu();
   const [options, setOptions] = useState(null);
   const [step, setStep] = useState(0);
@@ -215,7 +216,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                     value={productId}
                     onChange={setProductId}
                     addAction={{ label: t("addAccountProduct"), onClick: () => openMenu("accountproduct") }}
-                    options={[{ value: "", label: options.available_products?.length ? t("chooseProduct") : t("noProductsAvailable") }, ...(options.available_products ?? []).map((p) => ({ value: String(p.id ?? p.acct_product_id), label: `${p.product_name} · ${p.product_code} (${p.currency_code})` }))]}
+                    options={[{ value: "", label: options.available_products?.length ? t("chooseProduct", { type }) : t("noProductsAvailable") }, ...(options.available_products ?? []).map((p) => ({ value: String(p.id ?? p.acct_product_id), label: `${p.product_name} · ${p.product_code} (${p.currency_code})` }))]}
                   />
                 </label>
               )}
@@ -229,7 +230,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("zeroNoLimit")}</span>
               </label>
             </div>
-            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint")}</p>}
+            {!product && !options.available_products?.length && <p className="mt-3 text-xs text-amber-700">{t("noProductsHint", { type })}</p>}
           </Section>
 
           <Section title={t("interestTitle")}>

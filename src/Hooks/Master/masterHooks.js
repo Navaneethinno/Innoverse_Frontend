@@ -1,3 +1,5 @@
+import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useCallback, useEffect, useState } from "react";
 import { masterApi } from "@/Services/Master/master.api";
 
@@ -156,7 +158,8 @@ export function useAcctProdTypes(enabled = true) {
   const load = useCallback(async () => {
     if (!enabled) return;
     try {
-      setAcctProdTypes(await masterApi.acctProdTypeList());
+      // { code, name }: the types the API accepts on a product.
+      setAcctProdTypes(rowsOf(await request(API_ENDPOINTS.CONFIG_ACCT.ACCT_PRODUCT.OPTIONS))[0]?.product_types ?? []);
       setError(null);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError : new Error("Failed to load account product types"));

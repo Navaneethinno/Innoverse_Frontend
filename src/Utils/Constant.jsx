@@ -487,6 +487,7 @@ export const API_ENDPOINTS = {
   // reference (2026-09).
   CONFIG_ACCT: {
     ACCT_PRODUCT: {
+      OPTIONS: "/config/acct/product/options",
       ADD: "/config/acct/product/add",
       SUBMIT: "/config/acct/product/submit",
       EDIT: "/config/acct/product/edit",

@@ -194,9 +194,9 @@ export function NewRequest({ preset, onClose, onDone }) {
                   setType(v);
                   setForm((f) => ({ ...EMPTY, reason: f.reason, reference: f.reference }));
                 }}
-                options={types.map((x) => ({ value: x.txn_type, label: `${x.name} (${x.from} → ${x.to})` }))}
+                options={types.map((x) => ({ value: x.txn_type, label: `${x.name} (${x.from_name ?? x.from} → ${x.to_name ?? x.to})`, description: x.description, searchText: `${x.name} ${x.description ?? ""}` }))}
               />
-              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("correctionsHint")}</span>
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{option?.description ? `${option.description}. ` : ""}{t("correctionsHint")}</span>
             </label>
             {needs.card && (
               <div className={cn(labelClass, "sm:col-span-2")}>
@@ -232,6 +232,7 @@ export function NewRequest({ preset, onClose, onDone }) {
             {needs.to && (
               <label className={labelClass}>
                 {option?.to === "AGENT_FLOAT" ? t("toAgentWallet") : t("toWallet")}
+                <RequiredMark />
                 <input className={cn(inputClass, "mt-1.5 font-mono")} value={form.to_acct_num} onChange={set("to_acct_num")} placeholder="20784000000013" />
               </label>
             )}
@@ -243,12 +244,14 @@ export function NewRequest({ preset, onClose, onDone }) {
             )}
             {needs.amount && (
               <label className={labelClass}>
-                {t("amountIn", { currency: plan?.currency_code ?? "" })}
+                {plan?.currency_code ? t("amountIn", { currency: plan.currency_code }) : t("amount")}
+                <RequiredMark />
                 <input className={cn(inputClass, "mt-1.5 text-base font-bold tabular-nums")} inputMode="decimal" placeholder="0.00" value={form.amount} onChange={set("amount")} />
               </label>
             )}
             <label className={cn(labelClass, "sm:col-span-2")}>
-              {t("reasonRequired")}
+              {t("reason")}
+              <RequiredMark />
               <input className={cn(inputClass, "mt-1.5")} maxLength={255} value={form.reason} onChange={set("reason")} />
             </label>
             <label className={labelClass}>

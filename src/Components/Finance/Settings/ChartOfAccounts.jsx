@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronRight, Download, Eye, FolderTree, Plus, Save, Send, Upload } from "lucide-react";
@@ -440,6 +441,7 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("glType")}
+          {!parentRow && <RequiredMark />}
           <FilterSelect className="mt-1.5" disabled={Boolean(parentRow)} value={values.gl_type} onChange={set("gl_type")} options={[{ value: "", label: t("choose") }, ...GL_TYPES.map((x) => ({ value: x, label: t(`type_${x}`) }))]} />
           {parentRow && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("typeFromParent")}</span>}
         </label>

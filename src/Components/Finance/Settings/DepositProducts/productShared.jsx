@@ -1,3 +1,4 @@
+import { useAcctProdTypes } from "@/Hooks/Master/masterHooks";
 import { useTranslation } from "react-i18next";
 import { money } from "@/Components/Finance/Accounts/accountShared";
 import { cn } from "@/Utils/Lib/utils";
@@ -131,3 +132,9 @@ const STATUS_TONE = {
   9: "bg-muted text-muted-foreground",
   13: "bg-orange-50 text-orange-700",
 };
+
+// The API name of the term deposit product type, for help text.
+export function useTermDepositTypeName() {
+  const { acctProdTypes = [] } = useAcctProdTypes();
+  return acctProdTypes.find((x) => x.code === "TERM_DEPOSIT")?.name ?? "";
+}

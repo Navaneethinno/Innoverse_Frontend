@@ -11,7 +11,7 @@ import { useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHook
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, dayDate, labelClass, ratePct, AuditTimeline } from "../../Deposits/depositShared";
-import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope, Tabs } from "../../Loans/loanShared";
+import { Field, MiniTable, RowsEditor, useInstitutionScope, Tabs } from "../../Loans/loanShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { ApprovalLimits } from "./ApprovalLimits";
 
@@ -101,6 +101,8 @@ export function RegulatoryProfile() {
 
   const a = data?.actions ?? {};
   const options = data?.options ?? {};
+  // A list's codes as dropdown options, named by the API.
+  const named = (list) => (options[list] ?? []).map((code) => ({ value: code, label: data?.option_names?.[list]?.[code] ?? code }));
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const classProblem = form ? classificationProblem(t, form.classification) : "";
 
@@ -138,7 +140,7 @@ export function RegulatoryProfile() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <label className={labelClass}>
                 {t("licenseCategory")}
-                <Field field={{ type: "select", options: options.license_categories ?? [] }} value={form.license_category} onChange={set("license_category")} />
+                <Field field={{ type: "select", options: named("license_categories") }} value={form.license_category} onChange={set("license_category")} />
               </label>
               <label className={labelClass}>
                 {t("policyVersion")}
@@ -173,7 +175,7 @@ export function RegulatoryProfile() {
                 </label>
                 <label className={labelClass}>
                   {t("reportingFrequency")}
-                  <Field field={{ type: "select", options: options.reporting_frequencies ?? [] }} value={form.reporting_frequency} onChange={set("reporting_frequency")} />
+                  <Field field={{ type: "select", options: named("reporting_frequencies") }} value={form.reporting_frequency} onChange={set("reporting_frequency")} />
                 </label>
               </div>
             )}
@@ -194,7 +196,7 @@ export function RegulatoryProfile() {
               addLabel={t("addClass")}
               columns="lg:grid-cols-3"
               fields={[
-                { key: "risk_class", label: t("riskClass"), type: "select", blank: t("choose"), options: options.risk_classes ?? [] },
+                { key: "risk_class", label: t("riskClass"), type: "select", blank: t("choose"), options: named("risk_classes") },
                 { key: "minimum_days_past_due", label: t("fromDaysPastDue"), type: "int" },
                 { key: "provision_percent", label: t("provisionPct"), type: "percent" },
               ]}
@@ -216,19 +218,19 @@ export function RegulatoryProfile() {
           {data.pending ? (
             <div className="grid gap-4 xl:grid-cols-2">
               <Section title={t("inEffect")}>
-                <ProfileSummary profile={data.profile} />
+                <ProfileSummary profile={data.profile} names={data.option_names} />
               </Section>
               <Section title={t("proposedBy", { name: actorText(data.pending, "proposed_by", "—"), date: accountDate(data.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-                <ProfileSummary profile={data.pending.profile} other={data.profile} />
+                <ProfileSummary profile={data.pending.profile} other={data.profile} names={data.option_names} />
               </Section>
             </div>
           ) : (
             <Section title={t("inEffect")}>
-              <ProfileSummary profile={data.profile} />
+              <ProfileSummary profile={data.profile} names={data.option_names} />
             </Section>
           )}
           <Section title={t("history")}>
-            <AuditTimeline audit={(data.history ?? []).map((h) => ({ ...h, status_name: h.profile?.policy_version }))} />
+            <AuditTimeline audit={data.history ?? []} getActionLabel={(h) => [h.action_name ?? h.action, h.profile?.policy_version].filter(Boolean).join(" · ")} />
           </Section>
         </div>
       )}
@@ -251,19 +253,20 @@ export function RegulatoryProfile() {
 
 // The profile as tiles plus the classification; with `other`, what changed
 // is marked.
-function ProfileSummary({ profile, other }) {
+function ProfileSummary({ profile, other, names }) {
   const { t } = useTranslation("loans");
   if (!profile) return <p className="text-sm text-muted-foreground">{t("noProfileYet")}</p>;
   const yes = (v) => t(v ? "yes" : "no");
+  const nameOf = (list, code) => names?.[list]?.[code] ?? code ?? "—";
   const rows = (p) => [
-    [t("licenseCategory"), loanLabel(t, p.license_category)],
+    [t("licenseCategory"), nameOf("license_categories", p.license_category)],
     [t("policyVersion"), p.policy_version || "—"],
     [t("effectiveFrom"), dayDate(p.effective_from)],
     [t("disclosureTemplate"), p.consumer_disclosure_template_code || "—"],
     [t("regulatory_reporting_enabled"), yes(p.regulatory_reporting_enabled)],
     [t("reportingCurrency"), p.reporting_currency_code_name ?? p.reporting_currency_code ?? "—"],
     [t("reportingThreshold"), p.reporting_threshold ?? "—"],
-    [t("reportingFrequency"), loanLabel(t, p.reporting_frequency)],
+    [t("reportingFrequency"), nameOf("reporting_frequencies", p.reporting_frequency)],
     [t("credit_bureau_check_required"), yes(p.credit_bureau_check_required)],
     [t("standing_instruction_recovery_enabled"), yes(p.standing_instruction_recovery_enabled)],
     [t("nonAccrualDays"), p.non_accrual_days == null ? "—" : Number(p.non_accrual_days) === 0 ? t("never") : p.non_accrual_days],
@@ -276,7 +279,7 @@ function ProfileSummary({ profile, other }) {
         rows={profile.classification}
         rowKey={(r) => r.risk_class}
         columns={[
-          { key: "risk_class", label: t("riskClass"), render: (r) => <b>{loanLabel(t, r.risk_class)}</b> },
+          { key: "risk_class", label: t("riskClass"), render: (r) => <b>{nameOf("risk_classes", r.risk_class)}</b> },
           { key: "minimum_days_past_due", label: t("fromDaysPastDue"), align: "right" },
           { key: "provision_percent", label: t("provisionPct"), align: "right", render: (r) => <span className={cn(Number(r.provision_percent) >= 50 && "font-bold text-red-700")}>{ratePct(r.provision_percent)}</span> },
         ]}

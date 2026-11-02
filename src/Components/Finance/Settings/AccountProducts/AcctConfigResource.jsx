@@ -67,12 +67,6 @@ const CONFIGS = {
     subtitle: "The account products customers and merchants hold, and their settings.",
     menuName: "Account Products",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
-    // Confirmed live: the backend has a NOT-NULL DB constraint on
-    // effective_from — submitting without it doesn't even get a clean
-    // validation message, it 500s ("null value in column effective_from
-    // ... violates not-null constraint"). Guarded client-side same as the
-    // lookup fields below, so a user gets one clear toast instead of that.
-    required: ["effective_from", "effective_to"],
     // Lookups that may stay blank (sent as 0: none / unlink).
     optional: ["control_gl_account_id"],
     fields: [
@@ -96,26 +90,26 @@ const CONFIGS = {
       ["branch_required", "Branch required", "boolean"],
       ["kyc_required", "KYC required", "boolean"],
       ["minimum_kyc_level", "Minimum KYC level", "number"],
-      ["ownership_config_enabled", "Ownership config enabled", "boolean"],
-      ["party_type_config_enabled", "Party type config enabled", "boolean"],
-      ["opening_config_enabled", "Opening config enabled", "boolean"],
-      ["numbering_config_enabled", "Numbering config enabled", "boolean"],
-      ["currency_config_enabled", "Currency config enabled", "boolean"],
-      ["balance_config_enabled", "Balance config enabled", "boolean"],
-      ["interest_config_enabled", "Interest config enabled", "boolean"],
-      ["tax_config_enabled", "Tax config enabled", "boolean"],
-      ["transaction_config_enabled", "Transaction config enabled", "boolean"],
-      ["channel_config_enabled", "Channel config enabled", "boolean"],
-      ["lifecycle_config_enabled", "Lifecycle config enabled", "boolean"],
-      ["dormancy_config_enabled", "Dormancy config enabled", "boolean"],
-      ["joint_config_enabled", "Joint config enabled", "boolean"],
-      ["minor_config_enabled", "Minor config enabled", "boolean"],
-      ["group_config_enabled", "Group config enabled", "boolean"],
-      ["nominee_config_enabled", "Nominee config enabled", "boolean"],
-      ["statement_config_enabled", "Statement config enabled", "boolean"],
-      ["alert_config_enabled", "Alert config enabled", "boolean"],
-      ["eligibility_config_enabled", "Eligibility config enabled", "boolean"],
-      ["accting_config_enabled", "Accounting config enabled", "boolean"],
+      ["ownership_config_enabled", "Ownership settings", "boolean"],
+      ["party_type_config_enabled", "Party type settings", "boolean"],
+      ["opening_config_enabled", "Opening settings", "boolean"],
+      ["numbering_config_enabled", "Numbering settings", "boolean"],
+      ["currency_config_enabled", "Currency settings", "boolean"],
+      ["balance_config_enabled", "Balance settings", "boolean"],
+      ["interest_config_enabled", "Interest settings", "boolean"],
+      ["tax_config_enabled", "Tax settings", "boolean"],
+      ["transaction_config_enabled", "Transaction settings", "boolean"],
+      ["channel_config_enabled", "Channel settings", "boolean"],
+      ["lifecycle_config_enabled", "Lifecycle settings", "boolean"],
+      ["dormancy_config_enabled", "Dormancy settings", "boolean"],
+      ["joint_config_enabled", "Joint settings", "boolean"],
+      ["minor_config_enabled", "Minor settings", "boolean"],
+      ["group_config_enabled", "Group settings", "boolean"],
+      ["nominee_config_enabled", "Nominee settings", "boolean"],
+      ["statement_config_enabled", "Statement settings", "boolean"],
+      ["alert_config_enabled", "Alert settings", "boolean"],
+      ["eligibility_config_enabled", "Eligibility settings", "boolean"],
+      ["accting_config_enabled", "Accounting settings", "boolean"],
     ],
   },
   acct_product_ownership: {
@@ -564,6 +558,8 @@ export function AcctConfigResource({ entity }) {
         ...Object.fromEntries(
           config.fields
             .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
+            // A date left empty is not sent: no end date means open-ended.
+            .filter(([key, , type]) => type !== "date" || form[key])
             // Plain (non-lookup) "number" fields left untouched keep their
             // initial "" from the Add-button's reset (see the
             // "Add {config.title}" button below) — send 0 instead of "",

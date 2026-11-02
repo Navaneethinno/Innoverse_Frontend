@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { HandCoins, Plus, Trash2, UserPlus } from "lucide-react";
@@ -252,6 +253,7 @@ function GroupForm({ group, onClose, onSaved }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <label className={labelClass}>
           {t("code")}
+          <RequiredMark />
           <Field
             field={{ type: "code" }}
             disabled={Boolean(group)}
@@ -261,6 +263,7 @@ function GroupForm({ group, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("name")}
+          <RequiredMark />
           <Field field={{}} value={form.name} onChange={set("name")} />
         </label>
         <label className={labelClass}>

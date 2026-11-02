@@ -10,13 +10,14 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { depositProductsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { DepositProductView } from "./DepositProductView";
 import { DepositProductWizard } from "./DepositProductWizard";
-import { ProductStatus } from "./productShared";
+import { ProductStatus, useTermDepositTypeName } from "./productShared";
 
 // TERM DEPOSITS > Deposit Products (menu 180): the term-deposit setup of
 // each TERM_DEPOSIT account product. All / Pending tabs, a view with the
 // checker's comparison, and the add / edit wizard.
 export function DepositProducts() {
   const { t } = useTranslation(["deposits", "common"]);
+  const type = useTermDepositTypeName();
   const can = usePagePermission();
   const [screen, setScreen] = useState(null);
   const list = useServerList({ api: depositProductsApi.listPath, call: depositProductsApi.list });
@@ -80,11 +81,11 @@ export function DepositProducts() {
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
             <PiggyBank size={22} className="text-primary" /> {t("productsTitle")}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("productsSubtitle", { type })}</p>
         </div>
       </div>
 
-      <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsListHint")} />
+      <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsListHint", { type })} />
     </div>
   );
 }
