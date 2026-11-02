@@ -111,7 +111,7 @@ function SetupView({ kind, row }) {
         </ul>
       </ViewItem>
       <ViewItem label={t("common:status")}>{row.process_status_name ?? row.status_name}</ViewItem>
-      <TestScorePanel api={api} row={row} risk={risk} />
+      <TestScorePanel api={api} row={row} risk={risk} kind={kind} />
     </dl>
   );
 }

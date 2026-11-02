@@ -1586,6 +1586,10 @@ export const notification = {
 };
 
 export const risk = {
+  ageInYears: "Idade em anos",
+  yearsSinceIncorporation: "Anos desde a constituição",
+  bandRange: "{{from}}–{{to}} anos",
+  bandOver: "{{from}} anos ou mais",
   computed: "calculado",
   viewList: "Ver lista",
   fatfListTitle: "Listas do GAFI",
@@ -2674,7 +2678,7 @@ export const formBuilder = {
   usesOtherTitle: "Outras utilizações",
   usesIncorporationDate: "Data de constituição",
   usesAgeCriterionHint: "Também usado pelo critério de risco de idade.",
-  noDefault: "Sem predefinição",
+  noDefault: "Nenhum",
   rulesByNone: "Não usado",
   rulesByChoice: "Resposta",
   rulesByMin: "Comprimento mín.",

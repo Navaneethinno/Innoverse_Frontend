@@ -1762,6 +1762,10 @@ export const notification = {
 };
 
 export const risk = {
+  ageInYears: "Age in years",
+  yearsSinceIncorporation: "Years since incorporation",
+  bandRange: "{{from}}–{{to}} years",
+  bandOver: "{{from}} years and over",
   computed: "computed",
   viewList: "View list",
   fatfListTitle: "FATF lists",
@@ -2850,7 +2854,7 @@ export const formBuilder = {
   usesOtherTitle: "Other uses",
   usesIncorporationDate: "Date of incorporation",
   usesAgeCriterionHint: "Also used by the age risk criterion.",
-  noDefault: "No default",
+  noDefault: "None",
   rulesByNone: "Not used",
   rulesByChoice: "Answer",
   rulesByMin: "Min length",

@@ -1,3 +1,4 @@
+import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -49,6 +50,24 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
   const [busy, setBusy] = useState(false);
   const typeDef = vocabulary?.types?.find((x) => x.type === form.field_type);
   const { languages } = useTranslationLanguages();
+
+  // A master list's entries, for the Default value dropdown. The institution
+  // is the record's, else the one the top bar is looking at.
+  const sourceTable = form.options?.source_table;
+  const instProfileId = record?.inst_profile_id ?? getInstitutionFilter();
+  const [sourceValues, setSourceValues] = useState(null);
+  useEffect(() => {
+    if (!sourceTable) return undefined;
+    let live = true;
+    setSourceValues(null);
+    formFieldApi
+      .sourceValues({ source_table: sourceTable, ...(instProfileId ? { inst_profile_id: Number(instProfileId) } : {}) })
+      .then((response) => live && setSourceValues(rowsOf(response)))
+      .catch(() => live && setSourceValues(false));
+    return () => {
+      live = false;
+    };
+  }, [sourceTable, instProfileId]);
 
   useEffect(() => {
     if (!editing) return;
@@ -174,12 +193,14 @@ function FieldFormModal({ record, vocabulary, libraryFields, readOnly, onClose, 
             {t("formBuilder:defaultValue")}
             {form.field_type === "YES_NO" ? (
               <FilterSelect className="mt-1.5" disabled={readOnly} value={form.default_value ?? ""} onChange={(v) => set({ default_value: v })} options={[{ value: "", label: t("formBuilder:noDefault") }, { value: "true", label: t("common:yes") }, { value: "false", label: t("common:no") }]} />
+            ) : sourceTable && sourceValues ? (
+              <FilterSelect className="mt-1.5" disabled={readOnly} value={form.default_value ?? ""} onChange={(v) => set({ default_value: String(v) })} options={[{ value: "", label: t("formBuilder:noDefault") }, ...sourceValues.map((v) => ({ value: String(v.id), label: v.name }))]} />
             ) : Array.isArray(form.options?.choices) ? (
               <FilterSelect className="mt-1.5" disabled={readOnly} value={form.default_value ?? ""} onChange={(v) => set({ default_value: v })} options={[{ value: "", label: t("formBuilder:noDefault") }, ...form.options.choices.filter((c) => c?.value !== "" && c?.value != null).map((c) => ({ value: c.value, label: c.label || c.value }))]} />
             ) : (
               <input className={inputClass} disabled={readOnly} value={form.default_value ?? ""} onChange={(e) => set({ default_value: e.target.value })} />
             )}
-            {form.options?.source_table && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:defaultValueHint")}</span>}
+            {sourceTable && sourceValues === false && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("formBuilder:defaultValueHint")}</span>}
           </label>
           )}
           <div className="flex flex-wrap items-end gap-2">

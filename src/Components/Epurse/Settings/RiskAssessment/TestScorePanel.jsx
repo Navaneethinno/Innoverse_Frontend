@@ -9,16 +9,24 @@ import { LevelChip, RiskPointsTable } from "./riskShared";
 
 // "Test score": one dropdown per criterion, POST <base>/score. Scores the
 // setup as saved (a pending edit isn't used until approved); nothing is saved.
-export function TestScorePanel({ api, row, risk }) {
+export function TestScorePanel({ api, row, risk, kind }) {
   const { t } = useTranslation("risk");
   const [values, setValues] = useState({});
   const [result, setResult] = useState(null);
   const [scoring, setScoring] = useState(false);
-  // A banded criterion has no choice to pick here.
-  const criteria = (row.criteria ?? []).filter((c) => !c.bands);
+  const criteria = row.criteria ?? [];
+  // A band's name for the result: the reply's value_id is its place (from 1)
+  // in from_years order.
+  const bandName = (code, id) => {
+    const bands = [...(criteria.find((c) => c.field_code === code)?.bands ?? [])].sort((a, b) => a.from_years - b.from_years);
+    const band = bands[id - 1];
+    if (!band) return `#${id}`;
+    return band.to_years ? t("bandRange", { from: band.from_years, to: band.to_years }) : t("bandOver", { from: band.from_years });
+  };
+  const pointsRisk = { ...risk, valueName: (code, id) => (criteria.find((c) => c.field_code === code)?.bands ? bandName(code, id) : risk.valueName(code, id)) };
 
   useEffect(() => {
-    criteria.forEach((c) => risk.loadValues(c.field_code));
+    criteria.filter((c) => !c.bands).forEach((c) => risk.loadValues(c.field_code));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [row.id, risk.loadValues]);
 
@@ -42,6 +50,19 @@ export function TestScorePanel({ api, row, risk }) {
         {criteria.map((c) => (
           <label key={c.field_code} className="block text-xs font-semibold text-muted-foreground">
             {risk.fieldName(c.field_code)} · {c.weight}%
+            {c.bands ? (
+              <input
+                type="number"
+                min="0"
+                placeholder={kind === "corporate" ? t("yearsSinceIncorporation") : t("ageInYears")}
+                className="mt-1 w-full rounded-lg border px-2 py-1.5 text-sm font-normal"
+                value={values[c.field_code] ?? ""}
+                onChange={(e) => {
+                  setValues((prev) => ({ ...prev, [c.field_code]: e.target.value === "" ? "" : Number(e.target.value) }));
+                  setResult(null);
+                }}
+              />
+            ) : (
             <FilterSelect
               size="sm"
               className="mt-1"
@@ -52,6 +73,7 @@ export function TestScorePanel({ api, row, risk }) {
               }}
               options={[{ value: "", label: t("unanswered") }, ...(risk.values[c.field_code] ?? []).map((v) => ({ value: v.id, label: v.name }))]}
             />
+            )}
           </label>
         ))}
       </div>
@@ -68,7 +90,7 @@ export function TestScorePanel({ api, row, risk }) {
               <p className="mt-0.5 text-[11px] text-muted-foreground">{risk.actionName(result.level?.risk_action_id)}</p>
             </div>
           </div>
-          <RiskPointsTable points={result.points} risk={risk} />
+          <RiskPointsTable points={result.points} risk={pointsRisk} />
         </div>
       )}
     </div>
