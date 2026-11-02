@@ -11,6 +11,8 @@ export const common = {
   notificationsTitle: "Notificações",
   markAllRead: "Marcar todas como lidas",
   notificationsEmpty: "Ainda não há notificações.",
+  unreadTab: "Não lidas",
+  notificationsNoUnread: "Não tem notificações por ler.",
   "actor_SYSTEM": "Sistema",
   "actor_CUSTOMER": "Portal do cliente",
   "actor_CUSTOMER_APP": "App do cliente",

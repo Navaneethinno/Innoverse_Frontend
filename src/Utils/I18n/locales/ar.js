@@ -2396,6 +2396,8 @@ export const common = {
   notificationsTitle: "الإشعارات",
   markAllRead: "تعليم الكل كمقروء",
   notificationsEmpty: "لا توجد إشعارات بعد.",
+  unreadTab: "غير مقروءة",
+  notificationsNoUnread: "لا توجد إشعارات غير مقروءة.",
   "actor_SYSTEM": "النظام",
   "actor_CUSTOMER": "بوابة العميل",
   "actor_CUSTOMER_APP": "تطبيق العميل",

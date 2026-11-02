@@ -13,6 +13,8 @@ export const common = {
   notificationsTitle: "Notifications",
   markAllRead: "Mark all as read",
   notificationsEmpty: "No notifications yet.",
+  unreadTab: "Unread",
+  notificationsNoUnread: "You have no unread notifications.",
   newVersion: "A new version of the portal is available.",
   reloadNow: "Reload now",
   open: "Open",

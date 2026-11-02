@@ -67,6 +67,7 @@ const CONFIGS = {
     subtitle: "The account products customers and merchants hold, and their settings.",
     menuName: "Account Products",
     readOnlyOnEdit: ["inst_profile_id", "product_code"],
+    required: ["effective_from"],
     // Lookups that may stay blank (sent as 0: none / unlink).
     optional: ["control_gl_account_id"],
     fields: [
@@ -558,8 +559,9 @@ export function AcctConfigResource({ entity }) {
         ...Object.fromEntries(
           config.fields
             .filter(([key]) => !editing || !config.readOnlyOnEdit?.includes(key))
-            // A date left empty is not sent: no end date means open-ended.
-            .filter(([key, , type]) => type !== "date" || form[key])
+            // A date left empty is not sent, except an emptied end date on
+            // edit: null makes the product open-ended, leaving it out keeps it.
+            .filter(([key, , type]) => type !== "date" || form[key] || (editing && key === "effective_to"))
             // Plain (non-lookup) "number" fields left untouched keep their
             // initial "" from the Add-button's reset (see the
             // "Add {config.title}" button below) — send 0 instead of "",
@@ -567,7 +569,7 @@ export function AcctConfigResource({ entity }) {
             // of thing this backend rejects as "not valid JSON".
             .map(([key, , type, lookupKey]) => [
               key,
-              (!lookupKey || config.optional?.includes(key)) && type === "number" && (form[key] === "" || form[key] == null) ? 0 : form[key],
+              type === "date" && !form[key] ? null : (!lookupKey || config.optional?.includes(key)) && type === "number" && (form[key] === "" || form[key] == null) ? 0 : form[key],
             ]),
         ),
         is_draft: draft,

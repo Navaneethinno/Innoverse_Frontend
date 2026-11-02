@@ -115,7 +115,7 @@ function Journal({ actions, onOpen }) {
     { key: "total_amount", label: t("amount"), render: (x) => <TotalCell total={x.total_amount} amount={x.txn_amount} fee={x.fee_amount} currency={x.currency_code} /> },
     // The fee shows under the amount (amount + fee).
     { key: "txn_desc", label: t("description"), align: "left", render: (x) => <span className="line-clamp-2 block min-w-[160px] max-w-[260px] whitespace-normal text-xs">{x.status === "FAILED" ? <span className="text-red-700">{x.status_desc}</span> : x.txn_desc || "—"}</span> },
-    { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} variant="subtle" /> },
+    { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} label={x.status_name} variant="subtle" /> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (x) => <RowActions buttons={{ view: true }} onView={() => onOpen({ id: x.id })} /> },
   ];
 
@@ -177,7 +177,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black">{x.rrn}</h1>
-              <StatusBadge status={x.status} />
+              <StatusBadge status={x.status} label={x.status_name} />
             </div>
             <p className="mt-1 text-sm font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
