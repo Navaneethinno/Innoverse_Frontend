@@ -103,6 +103,8 @@ export function PreFiles() {
 
   const again = cards.toolbar.tab === "PREFILED";
   const canMake = can("Add") && groupId && !jobs && (ticked.size > 0 || (!again && data.total > 0));
+  // Why the button is off, shown beside it.
+  const blocked = canMake || jobs ? "" : !groupId ? t("preFilePickGroup") : again ? t("preFileTickAgain") : t("preFileNoneWaiting");
 
   return (
     <div className="pb-8 pt-4">
@@ -113,9 +115,10 @@ export function PreFiles() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("preFilesSubtitle")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {!jobs && can("Add") && blocked && <span className="text-xs font-semibold text-amber-700">{blocked}</span>}
           {!jobs && can("Add") && (
-            <Button size="sm" icon={FileDown} loading={busy && !asking} disabled={!canMake || busy} onClick={() => (again ? setAsking(true) : void generate())}>
+            <Button size="sm" icon={FileDown} loading={busy && !asking} disabled={!canMake || busy} disabledReason={blocked} onClick={() => (again ? setAsking(true) : void generate())}>
               {ticked.size ? t("makePreFileN", { count: ticked.size }) : t("makePreFileAll")}
             </Button>
           )}

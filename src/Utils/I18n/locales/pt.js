@@ -5221,6 +5221,9 @@ export const limits = {
 };
 
 export const cards = {
+  preFilePickGroup: "Escolha primeiro um grupo de emissão: um ficheiro PRE é gerado para um grupo.",
+  preFileNoneWaiting: "Não há cartões a aguardar neste grupo.",
+  preFileTickAgain: "Marque os cartões a incluir novamente num ficheiro.",
   txnt_CARD_LOAD: "Carga de cartão",
   txnt_CARD_UNLOAD: "Descarga de cartão",
   txnt_CARD_PURCHASE_CP: "Pagamento (terminal)",

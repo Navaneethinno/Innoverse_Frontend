@@ -5714,6 +5714,9 @@ export const limits = {
 };
 
 export const cards = {
+  preFilePickGroup: "Pick an issuance group first: a PRE file is made for one group.",
+  preFileNoneWaiting: "No cards are waiting in this group.",
+  preFileTickAgain: "Tick the cards to put in a file again.",
   txnt_CARD_LOAD: "Card load",
   txnt_CARD_UNLOAD: "Card unload",
   txnt_CARD_PURCHASE_CP: "Payment (terminal)",

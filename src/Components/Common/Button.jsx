@@ -1,11 +1,13 @@
 import { forwardRef } from "react";
 import { Loader2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/Components/UI/tooltip";
 import { cn } from "@/Utils/Lib/utils";
 
 // The app's button. Pick a look with `variant` and a size with `size`;
 // `icon` goes before the label and `loading` swaps it for a spinner and
 // disables the button. Press/hover motion comes from theme.css (every
-// button), the primary lift from here.
+// button), the primary lift from here. `disabledReason`: why it is blocked,
+// shown on hover or focus while it is disabled.
 const VARIANTS = {
   primary: "bg-primary text-primary-foreground shadow-sm hover:bg-[var(--primary-hover)] hover:shadow-md hover:-translate-y-px",
   outline: "border border-[var(--primary-light)] bg-card text-primary hover:bg-[var(--primary-light)]",
@@ -20,11 +22,11 @@ const SIZES = {
 };
 
 export const Button = forwardRef(function Button(
-  { variant = "primary", size = "md", icon: Icon, loading = false, disabled, className, children, type = "button", ...props },
+  { variant = "primary", size = "md", icon: Icon, loading = false, disabled, disabledReason, className, children, type = "button", ...props },
   ref,
 ) {
   const iconSize = size === "md" ? 15 : 14;
-  return (
+  const button = (
     <button
       ref={ref}
       type={type}
@@ -41,5 +43,17 @@ export const Button = forwardRef(function Button(
       {loading ? <Loader2 size={iconSize} className="animate-spin" /> : Icon && <Icon size={iconSize} />}
       {children}
     </button>
+  );
+  if (!disabled || loading || !disabledReason) return button;
+  // A disabled button gets no pointer events, so the wrapper holds the tooltip.
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span tabIndex={0} className="inline-flex cursor-not-allowed rounded-xl">
+          {button}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{disabledReason}</TooltipContent>
+    </Tooltip>
   );
 });
