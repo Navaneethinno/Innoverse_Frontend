@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,6 +14,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Modal } from "@/Components/Common/Modal";
 import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
 import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
@@ -80,7 +82,7 @@ export function InstitutionDocuments() {
     }
   };
 
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "name",
       label: t("document"),
@@ -107,7 +109,7 @@ export function InstitutionDocuments() {
         return <RowActions buttons={{ view: b.view, edit: b.edit, audit: b.audit }} onView={() => setScreen({ kind: "view", id: d.id })} onEdit={() => void openEditor(d.id)} onAudit={() => setScreen({ kind: "view", id: d.id, tab: "history" })} />;
       },
     },
-  ];
+  ]);
 
   return (
     <div className="space-y-4 pb-6">
@@ -516,11 +518,13 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <label className={labelClass}>
             {t("code")}
+            <RequiredMark />
             <Field field={{ placeholder: "TERMS" }} disabled={Boolean(doc)} value={doc?.code ?? code} onChange={(v) => setCode(v.toUpperCase().replace(/[^A-Z0-9_]/g, "").slice(0, 64))} />
             {!doc && <span className="mt-1 block text-[10px] font-normal text-muted-foreground">{t("codeHint")}</span>}
           </label>
           <label className={labelClass}>
             {t("name")}
+            <RequiredMark />
             <Field field={{ placeholder: "Terms and Conditions" }} value={config.name} onChange={(v) => setConfig((c) => ({ ...c, name: v }))} />
           </label>
           <label className={labelClass}>
@@ -538,7 +542,12 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
       </Section>
 
       <Section
-        title={t("texts")}
+        title={
+          <>
+            {t("texts")}
+            <RequiredMark /> <span className="text-[11px] font-normal text-muted-foreground">{t("common:atLeastOne")}</span>
+          </>
+        }
         action={
           <Button size="sm" variant="secondary" icon={Plus} onClick={() => setConfig((c) => ({ ...c, texts: [...(c.texts ?? []), blankText()] }))}>
             {t("addText")}

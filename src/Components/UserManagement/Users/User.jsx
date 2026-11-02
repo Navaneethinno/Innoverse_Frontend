@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { mapUserListResponse } from "@/Hooks/UserManagement/userHooks";
 import { ListTable } from "@/Components/Common/ListView";
@@ -250,7 +251,7 @@ export function User() {
     deactivateMutation.isPending ||
     reactivateMutation.isPending;
 
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "user",
       label: tr("User"),
@@ -343,7 +344,7 @@ export function User() {
         );
       },
     },
-  ];
+  ]);
 
   return (
     <div className="pt-1 pb-6">

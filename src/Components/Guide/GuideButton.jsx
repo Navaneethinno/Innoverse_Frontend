@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Check, ChevronDown, ChevronRight, CirclePlay, GraduationCap, Keyboard, MousePointerClick, RotateCcw, Search } from "lucide-react";
 import { useGuide } from "./GuideProvider";
-import { FULL, TOPICS, availableSteps, topicByKey } from "./guideTopics";
+import { DASHBOARD_TOPIC, FULL, TOPICS, availableSteps, isDashboardPath, topicByKey } from "./guideTopics";
 import { readsWindow } from "./pageControls";
 
 // "Guide" in the top bar: opens the panel of this page's topic tours, a
@@ -58,8 +58,9 @@ function GuidePanel() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const [showModules, setShowModules] = useState(false);
-  const topics = TOPICS.map((topic) => ({ topic, count: availableSteps(topic, slug).length })).filter((x) => x.count);
-  const full = availableSteps(FULL, slug).length;
+  const onDashboard = isDashboardPath(pathname);
+  const topics = (onDashboard ? [DASHBOARD_TOPIC] : TOPICS).map((topic) => ({ topic, count: availableSteps(topic, slug).length })).filter((x) => x.count);
+  const full = onDashboard ? 0 : availableSteps(FULL, slug).length;
   const resume = progress.resume?.path === pathname && topicByKey(progress.resume.topic) ? progress.resume : null;
 
   const visited = modules.filter((m) => progress.modules[m.segment]).length;
@@ -69,7 +70,7 @@ function GuidePanel() {
     { key: "checkApproval", done: Boolean(progress.done["any:approval"]), topic: "approval" },
     { key: "checkAdd", done: Boolean(progress.done["any:add"]), topic: "add" },
     { key: "checkModules", done: modules.length > 0 && visited === modules.length, count: `${visited}/${modules.length}`, modules: true },
-  ];
+  ].filter((c) => !onDashboard || !c.topic); // those need a list or form
   const doneCount = checklist.filter((c) => c.done).length;
   // Search: this page's topics and every page the user can open.
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);

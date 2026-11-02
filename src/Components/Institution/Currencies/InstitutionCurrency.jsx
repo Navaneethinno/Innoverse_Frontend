@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -190,7 +191,7 @@ function AssignmentPage({ kind }) {
   const options = kind.useOptions();
   const add = useAssignmentMutation(kind.api, "add");
   const edit = useAssignmentMutation(kind.api, "edit");
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: kind.nameKey,
       label: tr(kind.itemLabel),
@@ -247,7 +248,7 @@ function AssignmentPage({ kind }) {
         />
       ),
     },
-  ];
+  ]);
   const submit = async (values) => {
     try {
       if (editing)

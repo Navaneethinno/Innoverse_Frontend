@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
@@ -161,7 +162,7 @@ export function InstitutionLegal() {
   const institutions = useActiveInstitutionsQuery();
   const add = useInstitutionLegalMutation("add");
   const edit = useInstitutionLegalMutation("edit");
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "legal_name",
       label: tr("Legal Name"),
@@ -218,7 +219,7 @@ export function InstitutionLegal() {
         />
       ),
     },
-  ];
+  ]);
   const submit = async (values) => {
     try {
       if (editing)

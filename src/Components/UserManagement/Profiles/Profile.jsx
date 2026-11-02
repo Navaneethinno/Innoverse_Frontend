@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { mapProfileListResponse } from "@/Hooks/UserManagement/profileHooks";
 import { ListTable } from "@/Components/Common/ListView";
@@ -230,7 +231,7 @@ export function Profile() {
     deleteMutation.isPending ||
     deleteAuthMutation.isPending;
 
-  const columns = [
+  const columns = mergeStatusColumns([
     { key: "profile_name", label: t("profileName"), align: "left", render: (p) => renderProfileValue(p, "profile_name") },
     {
       key: "institution_name",
@@ -287,7 +288,7 @@ export function Profile() {
         );
       },
     },
-  ];
+  ]);
 
   return (
     <div className="pt-1 pb-6">

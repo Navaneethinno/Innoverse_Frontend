@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Activity, ArrowRight, Globe, Radio, Shield, Smartphone, UserCog, Zap } from "lucide-react";
+import { useSelector } from "react-redux";
+import { Activity, ArrowRight, Blocks, Globe, Radio, Shield, Smartphone, UserCog, Zap } from "lucide-react";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { menuPathForItem, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
 import { useWidgetData } from "../layout/dashboardData";
 import { sourceLabel } from "./ChartWidgets";
 import { WidgetBody, WidgetCard } from "./WidgetCard";
@@ -135,35 +137,83 @@ export function PortalChannelsWidget() {
   );
 }
 
-// Shortcuts to the screens admins open most, opened through their menus
-// (the sidebar's routing), so they follow the user's modules.
-const QUICK_ACTIONS = [
-  { key: "newInstitution", path: "/institutions/create" },
-  { key: "startOnboarding", slug: "onboardingwizard" },
-  { key: "configureCustomerTypes", slug: "onboardingconfiguration" },
-  { key: "manageKycSchemes", slug: "kycschemes" },
-];
-
+// What this user may add, as the server lists it; each opens its menu the
+// way the sidebar does. Hidden when there is none (dashboardData.isHidden).
 export function QuickActionsWidget() {
   const { t } = useTranslation("dashboard");
-  const openMenu = useOpenMenu();
+  const menus = useSelector((state) => state.menu.menuArray);
   const navigate = useNavigate();
+  const { data, loading, failed } = useWidgetData("quickActions");
+  const active = (menus ?? []).filter((m) => m?.status === 1);
+  const pathOf = (a) => {
+    const menu = active.find((m) => Number(m.menu_id) === Number(a.menu_id) && m.module_name === a.module_name);
+    return menu ? menuPathForItem(menu, active) : null;
+  };
+  const items = (data?.items ?? []).filter(pathOf);
   return (
     <WidgetCard title={t("quickActions")} icon={Zap}>
-      <div className="grid gap-2">
-        {QUICK_ACTIONS.map((a) => (
-          <button
-            key={a.key}
-            type="button"
-            onClick={() => (a.path ? navigate(a.path) : openMenu(a.slug))}
-            className="flex items-center justify-between rounded-xl border px-3 py-2.5 text-xs font-bold transition-colors hover:bg-[var(--primary-light)]"
-            style={{ color: "var(--primary)", borderColor: "var(--primary-light)" }}
-          >
-            {t(a.key)}
-            <ArrowRight size={13} />
-          </button>
-        ))}
-      </div>
+      <WidgetBody loading={loading} failed={failed} empty={!items.length}>
+        <div className="grid gap-2">
+          {items.map((a) => (
+            <button
+              key={`${a.module_name}:${a.menu_id}`}
+              type="button"
+              onClick={() => navigate(pathOf(a), { state: { menuClick: Date.now() } })}
+              className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-bold transition-colors hover:bg-[var(--primary-light)]"
+              style={{ color: "var(--primary)", borderColor: "var(--primary-light)" }}
+            >
+              <span className="min-w-0">
+                {a.menu_label ?? a.menu_name}
+                {a.module_label && <span className="block text-[10px] font-medium text-muted-foreground">{a.module_label}</span>}
+              </span>
+              <ArrowRight size={13} className="shrink-0" />
+            </button>
+          ))}
+        </div>
+      </WidgetBody>
+    </WidgetCard>
+  );
+}
+
+// One row per module the user can open; a module with a dashboard opens it.
+export function ModuleSummariesWidget() {
+  const { t } = useTranslation("dashboard");
+  const navigate = useNavigate();
+  const { data, loading, failed } = useWidgetData("moduleSummaries");
+  const items = data?.items ?? [];
+  return (
+    <WidgetCard title={t("byModule")} icon={Blocks}>
+      <WidgetBody loading={loading} failed={failed} empty={!items.length}>
+        <ul className="grid gap-1.5">
+          {items.map((m) => {
+            const body = (
+              <>
+                <span className="min-w-0 truncate font-semibold text-slate-700">{m.module_label ?? m.module_name}</span>
+                <span className="flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className={m.pending_approvals ? "font-bold text-amber-700" : undefined}>{t("waitingN", { count: m.pending_approvals ?? 0 })}</span>
+                  <span>
+                    {t("changesN", { count: m.changes_this_month ?? 0 })}
+                    {m.change_pct != null && ` (${m.change_pct > 0 ? "+" : ""}${m.change_pct}%)`}
+                  </span>
+                  {m.has_dashboard && <ArrowRight size={12} className="text-primary" />}
+                </span>
+              </>
+            );
+            const row = "flex w-full items-center justify-between gap-3 rounded-xl border border-border px-3 py-2 text-left text-xs";
+            return (
+              <li key={m.module_name}>
+                {m.has_dashboard ? (
+                  <button type="button" className={`${row} transition-colors hover:bg-[var(--primary-light)]`} onClick={() => navigate(moduleDashboardPath(m.module_name))}>
+                    {body}
+                  </button>
+                ) : (
+                  <div className={row}>{body}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </WidgetBody>
     </WidgetCard>
   );
 }

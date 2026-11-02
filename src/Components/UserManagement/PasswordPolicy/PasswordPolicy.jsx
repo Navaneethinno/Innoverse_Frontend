@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -438,7 +439,7 @@ export function PasswordPolicy() {
     }
   };
 
-  const columns = [
+  const columns = mergeStatusColumns([
     { key: "policy_name", label: tr("Policy Name"), align: "left", render: (row) => row.policy_name ?? "-" },
     { key: "min_length", label: tr("Min Length"), render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: tr("Max Retries"), render: (row) => row.max_retry_count ?? "-" },
@@ -462,13 +463,13 @@ export function PasswordPolicy() {
         />
       ),
     },
-  ];
+  ]);
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
         <PageTitle>Password Policy</PageTitle>
-        <p className="mt-1 text-sm text-muted-foreground">Manage password rules, lockout, and session security.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Manage staff password rules and lockout.</p>
       </div>
 
       <ListTable list={list} actions={canAdd && (

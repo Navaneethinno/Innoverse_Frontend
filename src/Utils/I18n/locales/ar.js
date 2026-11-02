@@ -2387,6 +2387,12 @@ export const myProfile = {
 };
 
 export const common = {
+  atLeastOne: "(واحد على الأقل)",
+  approvalAction_add: "إضافة",
+  approvalAction_edit: "تعديل",
+  approvalAction_delete: "حذف",
+  approvalAction_deactivate: "إلغاء التفعيل",
+  approvalAction_reactivate: "إعادة التفعيل",
   notificationsTitle: "الإشعارات",
   markAllRead: "تعليم الكل كمقروء",
   notificationsEmpty: "لا توجد إشعارات بعد.",
@@ -2885,6 +2891,11 @@ export const users = {
 };
 
 export const dashboard = {
+  onboarded: "المسجلون",
+  byModule: "حسب الوحدة",
+  waitingN: "{{count}} في الانتظار",
+  changesN: "تغييرات هذا الشهر: {{count}}",
+  noModuleDashboard: "لا توجد لوحة لهذه الوحدة بعد. اختر إحدى شاشاتها من القائمة.",
   md: {
     overview: "لوحة الوحدة",
     sample: "بيانات تجريبية",
@@ -4686,6 +4697,8 @@ export const reports = {
 };
 
 export const guide = {
+  topic_dashboard: "هذه اللوحة",
+  topic_dashboardHint: "البطاقات والتحديث وموافقاتي والإشعارات",
   masterAbout: "{{name}}: إحدى القوائم التي تختار منها نماذج التسجيل والسجلات. لكل مؤسسة إدخالاتها؛ ويُعرض الإدخال الجديد أو المعدّل بعد موافقة المدقّق.",
   masterAdd: "يضيف إدخالاً إلى قائمة {{name}}: رمزه واسمه. يوافق مدقّق قبل أن تعرضه النماذج.",
   master_individual: "الإدخالات المستخدمة للعملاء والتجار الأفراد.",
@@ -4773,6 +4786,14 @@ export const guide = {
 };
 
 export const tour = {
+  dashCardsTitle: "البطاقات",
+  dashCardsBody: "تعرض كل بطاقة أرقامًا حالية لمؤسستك بحسب صلاحياتك.",
+  dashRefreshTitle: "تحديث",
+  dashRefreshBody: "يعيد قراءة كل البطاقات لتكون الأرقام محدثة.",
+  dashApprovalsTitle: "موافقاتي",
+  dashApprovalsBody: "ما ينتظر موافقتك. تعرض الشارة العدد.",
+  dashNotificationsTitle: "الإشعارات",
+  dashNotificationsBody: "رسائلك، مثل تغيير أُرسل للموافقة أو تمت الموافقة عليه أو رفضه. انقر على رسالة لفتح شاشتها.",
   "teller_pendingCloseTitle": "بانتظار الموافقة",
   "teller_pendingCloseBody": "يختلف عدّك عن السجلات بأكثر من المسموح، فيجب أن يوافق أمين الخزنة. لا يمكنك استخدام الصندوق في الأثناء. إذا طُلب إعادة العد فأغلق مجددًا.",
   "teller_proofTitle": "ورقة الإثبات",

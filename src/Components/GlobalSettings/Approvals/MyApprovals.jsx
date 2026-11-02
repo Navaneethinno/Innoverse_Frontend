@@ -9,6 +9,7 @@ import { Button } from "@/Components/Common/Button";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { approvalApi } from "@/Services/GlobalSettings/approval.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
+import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ApprovalTimeline, approvalText } from "./approvalShared";
 
@@ -47,6 +48,7 @@ export function MyApprovalsButton() {
       <UiTooltip label={t("myApprovals")}>
         <button
           type="button"
+          data-tour="my-approvals"
           aria-label={t("myApprovals")}
           onClick={() => {
             setOpen(true);
@@ -70,11 +72,11 @@ export function MyApprovalsButton() {
                 <li key={`${x.route}:${x.record_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-800">
-                      {[x.module_label ?? x.module_name, x.parent_menu_label ?? x.parent_menu_name, x.menu_label ?? x.menu_name].filter(Boolean).join(" › ")} · {x.action}
+                      {[x.module_label ?? x.module_name, x.parent_menu_label ?? x.parent_menu_name, x.menu_label ?? x.menu_name].filter(Boolean).join(" › ")} · {t(`approvalAction_${x.action}`, { defaultValue: String(x.action ?? "").replace(/^./, (c) => c.toUpperCase()) })}
                       {x.record_name ? ` · ${x.record_name}` : ` #${x.record_id}`}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
-                      {[x.inst_profile_name, x.maker && t("approvalMaker", { name: x.maker }), x.submitted_at && new Date(x.submitted_at).toLocaleString(), x.amount != null && String(x.amount)].filter(Boolean).join(" · ")}
+                      {[x.inst_profile_name, x.maker && t("approvalMaker", { name: x.maker }), x.submitted_at && new Date(x.submitted_at).toLocaleString(), x.amount != null && formatNumber(x.amount)].filter(Boolean).join(" · ")}
                     </p>
                     <p className="text-[11px] font-semibold text-primary">{approvalText(t, x.approval)}</p>
                   </div>

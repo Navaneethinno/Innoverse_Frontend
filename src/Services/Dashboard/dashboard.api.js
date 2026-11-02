@@ -19,6 +19,8 @@ export const dashboardApi = {
         ...(layout ? { layout_version: LAYOUT_VERSION } : {}),
       }),
     ),
+  // One module's own dashboard; a module without one answers config.dashboard_module_unknown.
+  module: async (module) => first(await request("/config/dashboard/module", { module })),
   // widgets: ids to refresh (all when left out).
   summary: async (body = {}) => first(await request("/config/dashboard/summary", { dashboard_key: DASHBOARD_KEY, ...body })),
 };

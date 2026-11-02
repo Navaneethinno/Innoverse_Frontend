@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
@@ -27,17 +28,6 @@ import {
 } from "@/Hooks/Institution/institutionHooks";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
-
-// Admin Panel handoff §4 (2026-09): an institution's WEB / APP channels now
-// also switch customer self-onboarding on the customer portal on and off
-// (web portal / mobile app), taking effect once the channel is Active.
-const PORTAL_CHANNEL_HINTS = {
-  WEB: "Enables customer self-onboarding on the web portal",
-  APP: "Enables customer self-onboarding in the mobile app",
-  USSD: "Enables customer sign-up over USSD",
-};
-const portalHintFor = (channel) =>
-  PORTAL_CHANNEL_HINTS[String(channel?.channel_code ?? channel?.code ?? channel?.channel_name ?? channel?.name ?? "").trim().toUpperCase()];
 
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
@@ -159,14 +149,14 @@ export function InstitutionChannel() {
   const { channels } = useMasterChannels();
   const add = useInstitutionChannelMutation("add");
   const edit = useInstitutionChannelMutation("edit");
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "channel_name",
       label: tr("Channel"),
       render: (r) => (
         <span className="inline-flex flex-col">
           <span className="font-semibold text-foreground">{display(r, "channel_name")}</span>
-          {portalHintFor(r) && <span className="text-[11px] text-muted-foreground">{tr(portalHintFor(r))}</span>}
+          {r.channel_description && <span className="text-[11px] text-muted-foreground">{r.channel_description}</span>}
         </span>
       ),
     },
@@ -214,7 +204,7 @@ export function InstitutionChannel() {
         />
       ),
     },
-  ];
+  ]);
   // A refusal (e.g. "Channel Already Exists") also shows on the form.
   const [formError, setFormError] = useState("");
   const submit = async (values) => {
@@ -375,14 +365,18 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
             { value: "", label: tr("Select channel") },
             ...channels.filter((c) => !taken.includes(String(c.channel_id ?? c.id))).map((c) => ({
               value: c.channel_id ?? c.id,
-              label: c.channel_name ?? c.name,
+              label: c.channel_description ? (
+                <span className="block">
+                  {c.channel_name ?? c.name}
+                  <span className="block text-[11px] font-normal text-muted-foreground">{c.channel_description}</span>
+                </span>
+              ) : (
+                (c.channel_name ?? c.name)
+              ),
+              searchText: c.channel_name ?? c.name,
             })),
           ]}
         />
-        {(() => {
-          const hint = portalHintFor(channels.find((c) => String(c.channel_id ?? c.id) === String(form.channel_id)));
-          return hint ? <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{tr(hint)}</span> : null;
-        })()}
       </label>
       <label className="block text-sm font-medium">
         Narration

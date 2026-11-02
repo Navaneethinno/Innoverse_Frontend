@@ -9,7 +9,7 @@ import {
   TotalInstitutionsWidget,
 } from "../widgets/StatWidgets";
 import { CustomerSourcesWidget, KycLevelsWidget, OnboardingTrendWidget } from "../widgets/ChartWidgets";
-import { PortalChannelsWidget, QuickActionsWidget, RecentOnboardingWidget, RequestBreakdownWidget } from "../widgets/ListWidgets";
+import { ModuleSummariesWidget, PortalChannelsWidget, QuickActionsWidget, RecentOnboardingWidget, RequestBreakdownWidget } from "../widgets/ListWidgets";
 
 /**
  * @typedef {object} WidgetDefinition
@@ -45,6 +45,7 @@ export const WIDGET_REGISTRY = {
   onboardingTrend: { component: OnboardingTrendWidget, titleKey: "onboardingTrend", w: 2, h: 9, minH: 6 },
   customerSources: { component: CustomerSourcesWidget, titleKey: "customerSources", w: 1, h: 9, minH: 7 },
   requestBreakdown: { component: RequestBreakdownWidget, titleKey: "requestBreakdown", w: 1, h: 9, minH: 4 },
+  moduleSummaries: { component: ModuleSummariesWidget, titleKey: "byModule", w: 2, h: 12, minH: 5 },
   activeCustomers: stat(ActiveCustomersWidget, "activeCustomers"),
   onboardingInProgress: stat(OnboardingInProgressWidget, "onboardingInProgress"),
   onboardingCases: { ...stat(OnboardingCasesWidget, "onboardingCases"), h: 5 },

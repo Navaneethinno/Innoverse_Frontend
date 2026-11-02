@@ -66,7 +66,7 @@ export function ControlSpacePage() {
         </div>
         <div className="flex items-center gap-2">
           {!editing && (
-            <Button variant="secondary" size="sm" disabled={summary.loading} onClick={() => void summary.refresh(Object.keys(WIDGET_REGISTRY))}>
+            <Button data-tour="dashboard-refresh" variant="secondary" size="sm" disabled={summary.loading} onClick={() => void summary.refresh(Object.keys(WIDGET_REGISTRY))}>
               <RefreshCw size={13} className={summary.loading ? "animate-spin" : ""} /> {t("refresh")}
             </Button>
           )}
@@ -83,7 +83,9 @@ export function ControlSpacePage() {
 
       <DashboardDataContext.Provider value={summary}>
         {layout ? (
-          <DashboardGrid layout={layout} visibleIds={visibleIds} setLayout={setLayout} editing={editing} />
+          <div data-tour="dashboard-cards">
+            <DashboardGrid layout={layout} visibleIds={visibleIds} setLayout={setLayout} editing={editing} />
+          </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (

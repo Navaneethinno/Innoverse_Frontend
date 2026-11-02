@@ -449,7 +449,7 @@ const PT = {
   "Search users...": "Pesquisar usuários...",
   "No users found": "Nenhum usuário encontrado",
   "Password Policy": "Política de Senha",
-  "Manage password rules, lockout, and session security.": "Gerencie as regras de senha, bloqueio e segurança de sessão.",
+  "Manage staff password rules and lockout.": "Gerencie as regras de senha e o bloqueio da equipa.",
   "Search password policies...": "Pesquisar políticas de senha...",
   "No password policies found": "Nenhuma política de senha encontrada",
   "View password policy": "Visualizar política de senha",

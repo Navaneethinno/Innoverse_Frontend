@@ -2,6 +2,12 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  atLeastOne: "(pelo menos um)",
+  approvalAction_add: "Adicionar",
+  approvalAction_edit: "Editar",
+  approvalAction_delete: "Eliminar",
+  approvalAction_deactivate: "Desativar",
+  approvalAction_reactivate: "Reativar",
   notificationsTitle: "Notificações",
   markAllRead: "Marcar todas como lidas",
   notificationsEmpty: "Ainda não há notificações.",
@@ -529,6 +535,11 @@ export const users = {
 };
 
 export const dashboard = {
+  onboarded: "Registados",
+  byModule: "Por módulo",
+  waitingN: "{{count}} a aguardar",
+  changesN: "Alterações este mês: {{count}}",
+  noModuleDashboard: "Este módulo ainda não tem painel. Escolha um dos seus ecrãs no menu.",
   md: {
     overview: "Painel do módulo",
     sample: "Dados de exemplo",
@@ -2409,6 +2420,8 @@ export const reports = {
 };
 
 export const guide = {
+  topic_dashboard: "Este painel",
+  topic_dashboardHint: "Os cartões, Atualizar, As minhas aprovações e Notificações",
   masterAbout: "{{name}}: uma das listas de onde os formulários de registo e os registos escolhem. Cada instituição tem as suas entradas; uma entrada nova ou alterada fica disponível quando um verificador a aprova.",
   masterAdd: "Adiciona uma entrada à lista {{name}}: o código e o nome. Um verificador aprova antes de os formulários a oferecerem.",
   master_individual: "As entradas usadas para clientes e comerciantes particulares.",
@@ -2496,6 +2509,14 @@ export const guide = {
 };
 
 export const tour = {
+  dashCardsTitle: "Os cartões",
+  dashCardsBody: "Cada cartão mostra valores atuais da sua instituição, conforme o seu acesso.",
+  dashRefreshTitle: "Atualizar",
+  dashRefreshBody: "Lê novamente todos os cartões para que os valores estejam atualizados.",
+  dashApprovalsTitle: "As minhas aprovações",
+  dashApprovalsBody: "O que aguarda a sua aprovação. O contador mostra quantos.",
+  dashNotificationsTitle: "Notificações",
+  dashNotificationsBody: "As suas mensagens, como uma alteração enviada para aprovação, aprovada ou rejeitada. Clique numa para abrir o ecrã.",
   "teller_pendingCloseTitle": "A aguardar aprovação",
   "teller_pendingCloseBody": "A sua contagem difere dos registos mais do que o permitido; um custódio tem de aprovar. Não pode usar a caixa entretanto. Se pedir recontagem, feche de novo.",
   "teller_proofTitle": "Folha de prova",

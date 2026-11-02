@@ -4,6 +4,12 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  atLeastOne: "(at least one)",
+  approvalAction_add: "Add",
+  approvalAction_edit: "Edit",
+  approvalAction_delete: "Delete",
+  approvalAction_deactivate: "Deactivate",
+  approvalAction_reactivate: "Reactivate",
   notificationsTitle: "Notifications",
   markAllRead: "Mark all as read",
   notificationsEmpty: "No notifications yet.",
@@ -583,6 +589,11 @@ export const users = {
 };
 
 export const dashboard = {
+  onboarded: "Onboarded",
+  byModule: "By module",
+  waitingN: "{{count}} waiting",
+  changesN: "Changes this month: {{count}}",
+  noModuleDashboard: "This module has no dashboard yet. Pick one of its screens from the menu.",
   md: {
     overview: "Module dashboard",
     sample: "Sample data",
@@ -2585,6 +2596,8 @@ export const reports = {
 };
 
 export const guide = {
+  topic_dashboard: "This dashboard",
+  topic_dashboardHint: "The cards, Refresh, My approvals and Notifications",
   masterAbout: "{{name}}: one of the lists the onboarding forms and records choose from. Each institution keeps its own entries; a new or changed entry is offered once a checker approves it.",
   masterAdd: "Adds an entry to the {{name}} list: its code and name. A checker approves it before forms offer it.",
   master_individual: "The entries used for individual customers and merchants.",
@@ -2672,6 +2685,14 @@ export const guide = {
 };
 
 export const tour = {
+  dashCardsTitle: "The cards",
+  dashCardsBody: "Each card shows live figures for your institution, as far as your access allows.",
+  dashRefreshTitle: "Refresh",
+  dashRefreshBody: "Reads every card again, so the figures are up to date.",
+  dashApprovalsTitle: "My approvals",
+  dashApprovalsBody: "What is waiting for you to approve. The badge shows how many.",
+  dashNotificationsTitle: "Notifications",
+  dashNotificationsBody: "Your messages, such as a change sent for approval, or approved or rejected. Click one to open its screen.",
   "teller_pendingCloseTitle": "Waiting for approval",
   "teller_pendingCloseBody": "Your count differs from the books by more than the allowed amount, so a vault custodian must approve it. You can't use the till meanwhile. If they ask you to recount, close again with the new count.",
   "teller_proofTitle": "Proof sheet",

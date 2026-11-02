@@ -106,11 +106,12 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => navigate("/dashboard")}
-          title={t("layout:backToDashboard")}
-          className="group hidden items-center gap-1.5 truncate rounded-full border border-transparent px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-all hover:border-[var(--primary-light)] hover:bg-primary-light hover:text-primary sm:flex"
+          title={`${t("layout:adminPortal")}: ${t("layout:backToDashboard")}`}
+          aria-label={t("layout:adminPortal")}
+          className="group hidden shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-transparent px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-all hover:border-[var(--primary-light)] hover:bg-primary-light hover:text-primary sm:flex"
         >
           <House size={12} className="shrink-0 transition-transform group-hover:-translate-y-px" />
-          {t("layout:adminPortal")}
+          <span className="hidden xl:inline">{t("layout:adminPortal")}</span>
         </button>
 
         <div className="flex-1 min-w-0" />

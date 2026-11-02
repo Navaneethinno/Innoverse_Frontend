@@ -125,6 +125,19 @@ export const TOPICS = [
   { key: "add", icon: Plus, steps: () => [addStep(), { id: "formLoading", center: true }] },
 ];
 
+// A dashboard has no list or form: only its cards, Refresh and the top bar.
+export const DASHBOARD_TOPIC = {
+  key: "dashboard",
+  icon: Sparkles,
+  steps: () => [
+    { id: "dashCards", target: sel("dashboard-cards"), placement: "top" },
+    { id: "dashRefresh", target: sel("dashboard-refresh"), placement: "bottom-end" },
+    { id: "dashApprovals", target: sel("my-approvals"), placement: "bottom-end" },
+    { id: "dashNotifications", target: sel("notifications"), placement: "bottom-end" },
+  ],
+};
+export const isDashboardPath = (path) => path === "/" || /\/dashboard\/?$/i.test(path ?? "");
+
 export const FULL = {
   key: "full",
   icon: BookOpen,
@@ -134,7 +147,7 @@ export const FULL = {
   },
 };
 
-export const topicByKey = (key) => (key === "full" ? FULL : TOPICS.find((topic) => topic.key === key));
+export const topicByKey = (key) => (key === "full" ? FULL : key === "dashboard" ? DASHBOARD_TOPIC : TOPICS.find((topic) => topic.key === key));
 
 // The topic's steps that are on the page now.
 export function availableSteps(topic, slug) {

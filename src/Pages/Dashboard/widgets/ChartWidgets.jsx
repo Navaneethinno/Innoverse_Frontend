@@ -87,7 +87,7 @@ export function CustomerSourcesWidget() {
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-xl font-black text-slate-800">{Number(total).toLocaleString()}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("customers")}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{t("onboarded")}</span>
           </div>
         </div>
         <ul className="mt-3 grid gap-1.5">

@@ -1,3 +1,5 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -219,7 +221,7 @@ export function InstitutionBranding() {
   const add = useInstitutionBrandingMutation("add");
   const edit = useInstitutionBrandingMutation("edit");
   const submitDraft = useInstitutionBrandingMutation("submit");
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "display_name",
       label: tr("Display Name"),
@@ -285,7 +287,7 @@ export function InstitutionBranding() {
         />
       ),
     },
-  ];
+  ]);
   const submit = async (values) => {
     try {
       const instProfileId = editing ? editing.inst_profile_id : values.inst_profile_id;
@@ -556,6 +558,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       )}
       <label className="text-sm font-medium sm:col-span-2">
         {tr("Portal")}
+        {!editing && <RequiredMark />}
         {editing ? (
           <p className="mt-1.5 rounded-xl border border-border bg-muted/40 p-3 text-sm font-semibold">{tr(portalLabel(editing))}</p>
         ) : (

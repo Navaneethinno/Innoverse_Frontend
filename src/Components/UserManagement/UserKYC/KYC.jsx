@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -391,7 +392,7 @@ export function KYC() {
     }
   };
 
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "user",
       label: tr("User"),
@@ -447,7 +448,7 @@ export function KYC() {
         />
       ),
     },
-  ];
+  ]);
 
   return (
     <div className="pt-1 pb-6">

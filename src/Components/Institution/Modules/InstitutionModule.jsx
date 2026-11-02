@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
@@ -159,7 +160,7 @@ export function InstitutionModule() {
   const { masterModules } = useMasterModules();
   const addMutation = useInstitutionModuleMutation("add");
   const editMutation = useInstitutionModuleMutation("edit");
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "module_name",
       label: tr("Module"),
@@ -218,7 +219,7 @@ export function InstitutionModule() {
         />
       ),
     },
-  ];
+  ]);
   return (
     <div className="space-y-4 pb-6">
       <div className="flex items-start justify-between gap-3">

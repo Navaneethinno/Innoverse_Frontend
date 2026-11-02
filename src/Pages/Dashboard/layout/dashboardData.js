@@ -41,6 +41,6 @@ export function useWidgetData(id) {
   return { data: data?.available ? data : null, loading: loading && !data, failed: Boolean(error) && !data };
 }
 
-// Widgets the server says this user can't see are hidden. quickActions is
-// frontend-only and always shown.
-export const isHidden = (widgets, id) => id !== "quickActions" && widgets?.[id]?.available === false;
+// Widgets the server says this user can't see are hidden, and Quick actions
+// when this user may add nothing.
+export const isHidden = (widgets, id) => widgets?.[id]?.available === false || (id === "quickActions" && Boolean(widgets) && !widgets.quickActions?.items?.length);

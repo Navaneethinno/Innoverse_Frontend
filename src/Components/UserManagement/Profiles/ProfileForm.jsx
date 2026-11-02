@@ -52,7 +52,9 @@ export function ProfileForm({ form, setForm, institutions, onSubmit }) {
       </label>
       )}
       <div>
-        <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}</p>
+        <p className="mb-1.5 block text-sm font-medium text-slate-700">{t("menuActionGrants")}
+          <RequiredMark /> <span className="text-[11px] font-normal text-muted-foreground">{t("common:atLeastOne")}</span>
+        </p>
         <ProfilePermissionTree
           selected={form.menu_actions}
           onChange={(menu_actions) => setForm({ ...form, menu_actions })}

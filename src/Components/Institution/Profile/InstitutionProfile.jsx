@@ -1,3 +1,4 @@
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { ListTable } from "@/Components/Common/ListView";
 import { asQuery, useServerList } from "@/Hooks/useServerList";
@@ -66,7 +67,7 @@ export function InstitutionProfile() {
   const activeCount = useMemo(() => institutions.filter((inst) => Number(inst.status) === 1).length, [institutions]);
 
 
-  const columns = [
+  const columns = mergeStatusColumns([
     { key: "code", label: t("institutions:columnCode"), render: (r) => <span className="font-mono font-bold text-slate-700">{r.code ?? "—"}</span> },
     {
       key: "name",
@@ -137,7 +138,7 @@ export function InstitutionProfile() {
         );
       },
     },
-  ];
+  ]);
 
   return (
     <div className="pt-1 pb-6">

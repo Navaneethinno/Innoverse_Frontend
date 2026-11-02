@@ -217,7 +217,7 @@ export function InstitutionPage() {
                 {t("institutions:reasonForChange")}
                 <textarea className={cn(inputClass, "mt-1.5 min-h-20")} maxLength={500} value={narration} onChange={(e) => setNarration(e.target.value)} />
               </label>
-              <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 rounded-2xl border border-border bg-card/95 p-3 backdrop-blur">
+              <div className="flex flex-wrap justify-end gap-2 rounded-2xl border border-border bg-card p-3">
                 <Button variant="ghost" disabled={busy} onClick={stopEdit}>
                   {t("common:cancel")}
                 </Button>
