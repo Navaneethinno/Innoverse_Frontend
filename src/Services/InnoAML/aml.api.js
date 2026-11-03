@@ -161,7 +161,7 @@ export const amlFlagApi = {
 const MONITORING = "/config/aml/monitoring";
 export const amlMonitoringApi = {
   setup: { get: call(`${MONITORING}/setup`, "get"), edit: call(`${MONITORING}/setup`, "edit"), auth: call(`${MONITORING}/setup`, "auth"), deauth: call(`${MONITORING}/setup`, "deauth") },
-  alerts: Object.fromEntries(["list", "get", "note", "assign", "close", "escalate"].map((v) => [v, call(`${MONITORING}/alert`, v)])),
+  alerts: Object.fromEntries(["list", "get", "note", "assign", "close", "escalate", "release"].map((v) => [v, call(`${MONITORING}/alert`, v)])),
   scan: call(MONITORING, "scan"),
 };
 

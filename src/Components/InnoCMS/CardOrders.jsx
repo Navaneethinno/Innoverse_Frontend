@@ -222,12 +222,12 @@ function NewOrder({ groups, onClose, onDone }) {
       }
     >
       <div className="grid gap-3">
-        <Labelled label={t("group")} hint={group && t(personalised ? "orderPersoHint" : "orderInstantHint")}>
+        <Labelled required label={t("group")} hint={group && t(personalised ? "orderPersoHint" : "orderInstantHint")}>
           <FilterSelect value={groupId} onChange={setGroupId} options={groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name} · ${cardWord(t, "opt", g.perso_mode)}` }))} />
         </Labelled>
         {group && personalised && group.customer_type && group.customer_type !== "ALL" && <p className="text-xs text-muted-foreground">{t("groupHolderType", { type: t(`holder_${group.customer_type}`, { defaultValue: group.customer_type }) })}</p>}
         {group && !personalised && (
-          <Labelled label={t("numberOfCards")} hint={t("upToN", { count: max })}>
+          <Labelled required label={t("numberOfCards")} hint={t("upToN", { count: max })}>
             <input className={inputClass} inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, "").slice(0, 4))} />
           </Labelled>
         )}
@@ -244,7 +244,7 @@ function NewOrder({ groups, onClose, onDone }) {
                         <span className="block truncate font-bold">{h.name}</span>
                         <span className="block truncate text-[10px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
                       </span>
-                      <Labelled label={t("nameOnCard")} hint={!group.emboss_name_required ? t("nameOnCardBlankHint") : undefined}>
+                      <Labelled required={Boolean(group.emboss_name_required)} label={t("nameOnCard")} hint={!group.emboss_name_required ? t("nameOnCardBlankHint") : undefined}>
                         <input className={inputClass} value={h.name_on_card} onChange={(e) => setHolder(i, { name_on_card: e.target.value.slice(0, 26) })} />
                       </Labelled>
                       <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => setHolders((list) => list.filter((_, j) => j !== i))} />

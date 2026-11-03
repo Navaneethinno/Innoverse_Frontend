@@ -390,7 +390,7 @@ export const PAGE_HELP = {
     "new layout": "Defines how numbers are made on a BIN."
   },
   "cardorders": {
-    "about": "Orders to the card bureau: blank stock or personalised cards, embossed, received and checked in.",
+    "about": "Orders to the card bureau: blank stock or personalized cards, embossed, received and checked in.",
     "new order": "Orders cards from the bureau for an issuance group."
   },
   "cardproducts": {

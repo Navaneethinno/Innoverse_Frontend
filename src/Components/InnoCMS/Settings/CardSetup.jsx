@@ -17,6 +17,9 @@ import { ActionButtons, NarrationDialog, Problems, Section, AuditTimeline } from
 import { ProductStatus } from "../../Finance/Settings/DepositProducts/productShared";
 import { useInstitutionScope } from "../../Finance/Loans/loanShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
+import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
+import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 
 // The CARDS setup screens (BINs, Card Number Layout, Card Products, Issuance
 // Groups) are one
@@ -248,8 +251,14 @@ function CompareFacts({ groups, before }) {
 // Add or edit, on one page. A new record or a Draft / Rejected add saves
 // drafts and is then submitted; an approved one proposes the fields that
 // changed (fixed fields are read-only once added).
-function CardForm({ kind, record, scope, onClose, onSaved }) {
+function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
   const { t } = useTranslation(["cards", "deposits", "common"]);
+  // A service provider with no institution picked chooses it here first; the
+  // dropdowns are that institution's.
+  const picked = useInstitutionFilter();
+  const needsInstitution = useCanChooseInstitution() && !record && !picked;
+  const [chosen, setChosen] = useState("");
+  const scope = useCallback((body = {}) => (needsInstitution ? { ...body, inst_profile_id: Number(chosen) } : pageScope(body)), [needsInstitution, chosen, pageScope]);
   const [options, setOptions] = useState(null);
   const [values, setValues] = useState(null);
   const [id, setId] = useState(record?.id ?? null);
@@ -259,7 +268,10 @@ function CardForm({ kind, record, scope, onClose, onSaved }) {
   const added = Boolean(id);
 
   useEffect(() => {
+    if (needsInstitution && !chosen) return undefined;
     let cancelled = false;
+    setOptions(null);
+    setValues(null);
     kind.api
       .options(record?.inst_profile_id ? { inst_profile_id: record.inst_profile_id } : scope())
       .then((r) => {
@@ -275,7 +287,7 @@ function CardForm({ kind, record, scope, onClose, onSaved }) {
     return () => {
       cancelled = true;
     };
-  }, [kind, record, scope]);
+  }, [kind, record, scope, needsInstitution, chosen]);
 
   const body = () => kind.toBody(values, options);
   // Fixed fields go only with the add; an edit of an approved record sends
@@ -324,6 +336,22 @@ function CardForm({ kind, record, scope, onClose, onSaved }) {
     }
   };
 
+  const institutionField = needsInstitution && (
+    <div className="mb-4 max-w-md">
+      <InstitutionField value={chosen} onChange={setChosen} />
+    </div>
+  );
+  if (needsInstitution && !chosen) {
+    return (
+      <div className="pb-8 pt-4">
+        <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+          <ArrowLeft size={15} /> {t(kind.backLabel)}
+        </button>
+        <h1 className="mb-4 text-2xl font-black tracking-tight text-slate-800">{t(kind.newLabel)}</h1>
+        {institutionField}
+      </div>
+    );
+  }
   if (!values || !options) {
     return (
       <div className="flex items-center gap-2 pt-10 text-sm text-muted-foreground">
@@ -345,6 +373,7 @@ function CardForm({ kind, record, scope, onClose, onSaved }) {
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{record ? t("editX", { name: record.name || record.code }) : t(kind.newLabel)}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("formDraftHint") : t("formProposeHint")}</p>
 
+      {institutionField}
       <div className="grid gap-4">
         <Form values={values} set={set} options={options} locked={added} record={record} />
         <Problems message={error} />

@@ -266,7 +266,7 @@ function AcceptRequest({ request, busy, onClose, onSave }) {
           </>
         ) : (
           <>
-            <Labelled label={t("group")} hint={groups && !groups.length && t("noPersonalisedGroup")}>
+            <Labelled required label={t("group")} hint={groups && !groups.length && t("noPersonalisedGroup")}>
               {groups === null ? <Spinner size={16} /> : <FilterSelect value={groupId} onChange={setGroupId} options={groups.map((g) => ({ value: String(g.id), label: `${g.code} · ${g.name}` }))} />}
             </Labelled>
             <Labelled label={t("nameOnCard")}>
@@ -336,13 +336,13 @@ function NewCardRequest({ options, onClose, onDone }) {
     >
       <WithCard card={<ProductCardPreview product={product} form="PHYSICAL" name={name} holder={holder} />}>
         <p className="text-sm text-muted-foreground">{t("newRequestHint")}</p>
-        <Labelled label={t("product")} hint={!products.length && t("noPersonalisedProduct")}>
+        <Labelled required label={t("product")} hint={!products.length && t("noPersonalisedProduct")}>
           <FilterSelect value={productId} onChange={setProductId} options={products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name} · ${p.currency_code}` }))} />
         </Labelled>
-        <Labelled label={t("holder")}>
+        <Labelled required label={t("holder")}>
           <HolderPicker value={holder} onChange={setHolder} />
         </Labelled>
-        <Labelled label={t("nameOnCard")} hint={product?.emboss_name_required ? t("nameRequired") : t("nameDefaults")}>
+        <Labelled required={Boolean(product?.emboss_name_required)} label={t("nameOnCard")} hint={product?.emboss_name_required ? t("nameRequired") : t("nameDefaults")}>
           <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />
         </Labelled>
         <DeliveryFields modes={options.delivery_modes} value={delivery} onChange={setDelivery} />

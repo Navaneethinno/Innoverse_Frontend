@@ -1,3 +1,4 @@
+import { Toggle } from "@/Components/Common/Toggle";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, Repeat, ShieldAlert, Truck } from "lucide-react";
@@ -181,13 +182,13 @@ function IssueCardDialog({ products, onClose, onIssued }) {
     >
       <WithCard card={<ProductCardPreview product={product} form="VIRTUAL" name={name} holder={holder} />}>
         <p className="text-sm text-muted-foreground">{t("issueHint")}</p>
-        <Labelled label={t("product")}>
+        <Labelled required label={t("product")}>
           <FilterSelect value={productId} onChange={setProductId} options={products.map((p) => ({ value: String(p.id), label: `${p.product_code} · ${p.product_name} · ${p.currency_code}` }))} />
         </Labelled>
-        <Labelled label={t("holder")}>
+        <Labelled required label={t("holder")}>
           <HolderPicker value={holder} onChange={setHolder} />
         </Labelled>
-        <Labelled label={t("nameOnCard")} hint={product?.emboss_name_required ? t("nameRequired") : t("nameDefaults")}>
+        <Labelled required={Boolean(product?.emboss_name_required)} label={t("nameOnCard")} hint={product?.emboss_name_required ? t("nameRequired") : t("nameDefaults")}>
           <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />
         </Labelled>
         <Labelled label={t("narration")}>
@@ -210,6 +211,8 @@ function CardView({ id, options, onBack, onOpen }) {
   const [busy, setBusy] = useState(false);
   // A load / unload sent from here and waiting for a checker.
   const [waiting, setWaiting] = useState(null);
+  // UAT only: the full number, kept here only while the view is open.
+  const [pan, setPan] = useState(null);
 
   const reload = useCallback(async () => {
     try {
@@ -220,6 +223,7 @@ function CardView({ id, options, onBack, onOpen }) {
   }, [id]);
   useEffect(() => {
     setCard(null);
+    setPan(null);
     void reload();
   }, [reload]);
   useLiveChannel(cardsApi.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
@@ -266,6 +270,14 @@ function CardView({ id, options, onBack, onOpen }) {
     issued && card.form_factor === "VIRTUAL" && product?.allow_virtual_to_physical && canRequest("Add") && { key: "plastic", label: t("orderPlastic"), icon: Truck, run: () => setDialog("plastic") },
   ];
   const yes = (v) => t(v ? "yes" : "no");
+  const togglePan = async (on) => {
+    if (!on) return setPan(null);
+    try {
+      setPan(rowsOf(await cardsApi.get({ id, unmasked: true }))[0]?.pan ?? null);
+    } catch (error) {
+      notifications.error(error.message);
+    }
+  };
 
   return (
     <div className="pb-8 pt-4">
@@ -282,11 +294,13 @@ function CardView({ id, options, onBack, onOpen }) {
           <CardFace card={card} className="sm:w-64" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-black text-foreground">{card.pan_masked}</h1>
+              <h1 className="font-mono text-xl font-black text-foreground">{pan ?? card.pan_masked}</h1>
               <CardPill prefix="ops" code={card.ops_status} />
               <CardPill prefix="iss" code={card.issuance_status} />
             </div>
             <StatusBy by={card.status_by} />
+            {card.can_unmask && <Toggle showLabel label={t("showFullNumber")} checked={Boolean(pan)} onChange={togglePan} />}
+            {card.pin_change_required && <p className="mt-1 text-xs font-semibold text-amber-700">{t("oneTimePinPending")}</p>}
             <p className="mt-1 text-xs text-muted-foreground">{[card.holder_name || t("inStock"), card.name_on_card, `${card.product_code} · ${cardWord(t, "opt", card.product_class)}`, cardWord(t, "opt", card.form_factor), card.network_code, card.inst_profile_name].filter(Boolean).join(" · ")}</p>
             {card.replaced_by_card_id > 0 && (
               <button type="button" onClick={() => onOpen(card.replaced_by_card_id)} className="mt-1 text-xs font-bold text-primary hover:underline">

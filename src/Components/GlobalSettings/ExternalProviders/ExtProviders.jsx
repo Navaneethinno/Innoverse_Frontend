@@ -1,3 +1,4 @@
+import { useCountries } from "@/Hooks/Master/masterHooks";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -50,6 +51,8 @@ const toBody = (c) => ({
     name_lookup: Boolean(p.name_lookup),
     // An aggregator: delivers other providers' services, used only by routing.
     connection_only: Boolean(p.connection_only),
+    // Empty: domestic.
+    country_id: Number(p.country_id) || 0,
     ...(p.kind === "BANK" ? { account_format: formatOf(p) } : {}),
     ...(p.kind === "BILLER" ? { biller: billerBody(p.biller) } : {}),
   })),
@@ -339,6 +342,7 @@ function SetupView({ id, onBack, onEdit }) {
 // one proposes its changes in one edit (the whole lists).
 function SetupEditor({ setup, scope, onClose, onSaved }) {
   const { t } = useTranslation(["providers", "fees", "deposits"]);
+  const { countries: masterCountries } = useCountries();
   const options = useProviderOptions(setup?.inst_profile_id ?? scope().inst_profile_id);
   const [config, setConfig] = useState(null);
   const [id, setId] = useState(setup?.id ?? null);
@@ -405,6 +409,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
   if (!config || !options) return <PageSkeleton />;
   const codes = (list) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: t(`kind_${v}`, { defaultValue: v }) })) });
   const dial = (options.phone_codes ?? []).join(" / ");
+  const countries = (masterCountries ?? []).map((c) => ({ value: String(c.id ?? c.country_id), label: c.name ?? c.country_name }));
 
   return (
     <div className="pb-8 pt-4">
@@ -430,6 +435,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
             { key: "account_format", label: t("accountFormat"), type: "select", options: BANK_FORMATS.map((f) => ({ value: f, label: t(`format_${f}`) })), showIf: (p) => p.kind === "BANK" },
             { key: "adapter", label: t("adapter"), ...codes(options.adapters) },
             { key: "currency_code", label: t("fees:currency"), type: "select", options: (options.currencies ?? []).map((c) => ({ value: c.alpha_code, label: `${c.alpha_code} · ${c.name}` })) },
+            { key: "country_id", label: t("countrySendsTo"), type: "select", blank: t("domestic"), options: countries },
             { key: "min_amount", label: t("minAmount"), type: "amount" },
             { key: "max_amount", label: t("maxAmount"), type: "amount" },
             { key: "priority", label: t("priority"), type: "int" },

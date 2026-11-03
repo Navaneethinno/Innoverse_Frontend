@@ -917,6 +917,8 @@ export const builder = {
 };
 
 export const providers = {
+  "countrySendsTo": "البلد الذي يرسل إليه",
+  "domestic": "محلي",
   connectionOnly: "اتصال فقط",
   connectionOnlyHint: "يقدّم خدمات مزوّدين آخرين (مُجمِّع). لا يراه العملاء؛ يُستخدم فقط في توجيه المعاملات.",
   draftHint: "احفظ مسودة أثناء العمل، ثم أرسلها: يعتمد مستخدم ثانٍ الإعداد قبل أن يسري.",
@@ -6437,6 +6439,8 @@ export const expiry = {
 };
 
 export const monitoring = {
+  "held": "محتجزة",
+  "release": "إفراج",
   "partyAlerts": "تنبيهات {{name}}",
   "allAlerts": "عرض كل التنبيهات",
   "title": "مراقبة المعاملات",

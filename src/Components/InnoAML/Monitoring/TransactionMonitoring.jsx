@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, Pencil, Plus, Radar, Send, ShieldAlert, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -49,7 +50,12 @@ const NEEDS = {
   VELOCITY_AMOUNT: ["amount", "window_minutes"],
   STRUCTURING: ["amount", "count", "window_minutes", "near_percent"],
   PASS_THROUGH: ["amount", "window_minutes", "near_percent"],
+  HIGH_RISK_COUNTRY: [],
 };
+const HIGH_RISK = "HIGH_RISK_COUNTRY";
+
+// A High-risk country rule that is on needs a country or a FATF list.
+const countryRuleMissing = (r) => r.enabled && r.kind === HIGH_RISK && !r.countries?.length && !r.fatf_lists?.length;
 
 // InnoAML › Transaction Monitoring (menu 199): the alerts the institution's
 // rules raise on posted transactions, and the rules themselves (one setup
@@ -222,6 +228,7 @@ function Alerts() {
               render: (r) => (
                 <span className="text-xs leading-tight">
                   <b className="block">{t(`alertStatus_${r.status}`, { defaultValue: r.status })}</b>
+                  {r.held && <span className="mt-0.5 inline-flex rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">{t("held")}</span>}
                   {r.assigned_to && <span className="text-muted-foreground">{r.assigned_to}</span>}
                 </span>
               ),
@@ -301,8 +308,26 @@ function AlertDetail({ id, onClose, onChanged }) {
               [t("assignedTo"), alert.assigned_to || "—"],
               alert.closure_reason && [t("closedAs"), `${t(`closure_${alert.closure_reason}`)} · ${actorText(alert, "closed_by", "")}`],
               alert.str_reference && [t("str"), alert.str_reference],
+              alert.action && [t("action"), t(`alertAction_${alert.action}`, { defaultValue: alert.action })],
+              alert.held && [t("held"), t("heldRef", { rrn: alert.held_rrn ?? "—" })],
+              alert.case_id && [
+                t("case"),
+                <button key="c" type="button" className="font-bold text-primary hover:underline" onClick={() => navigate(`/customercases/${alert.case_id}`)}>
+                  {alert.case_number ?? alert.case_id}
+                </button>,
+              ],
+              alert.risk_raised_to && [t("risk"), t("riskRaisedTo", { level: alert.risk_raised_to })],
+              alert.released_at && [t("released"), t("releasedBy", { name: actorText(alert, "released_by", "—"), date: accountDate(alert.released_at) })],
             ]}
           />
+          {alert.can_release && can("Edit") && (
+            <div>
+              <Button size="sm" icon={CheckCircle2} onClick={() => setDialog("release")}>
+                {t("release")}
+              </Button>
+              <p className="mt-1 text-[11px] text-muted-foreground">{t("releaseHint")}</p>
+            </div>
+          )}
           {editable && (
             <ActionButtons
               buttons={[
@@ -333,6 +358,9 @@ function AlertDetail({ id, onClose, onChanged }) {
             )}
           </Section>
         </div>
+      )}
+      {dialog === "release" && (
+        <NarrationDialog title={t("release")} hint={t("releaseHint")} label={t("note")} confirmLabel={t("release")} required onClose={() => setDialog(null)} onSave={(note) => act("release", { note })} />
       )}
       {dialog === "note" && (
         <NarrationDialog title={t("addNote")} label={t("note")} confirmLabel={t("addNote")} required onClose={() => setDialog(null)} onSave={(note) => act("note", { note })} />
@@ -443,10 +471,15 @@ const blankRule = (kind) => ({
   count: 0,
   window_minutes: 0,
   near_percent: "0",
+  action: "ALERT",
+  hold: false,
+  raise_risk_to: "",
+  countries: [],
+  fatf_lists: [],
 });
 
 // The setup as the server takes it: numbers as numbers, amounts as strings.
-const toBody = (setup) => ({
+const toBody = (setup, holdKinds) => ({
   rules: setup.rules.map((r) => ({
     ...r,
     amount: String(r.amount || "0"),
@@ -454,6 +487,11 @@ const toBody = (setup) => ({
     count: Number(r.count) || 0,
     window_minutes: Number(r.window_minutes) || 0,
     enabled: Boolean(r.enabled),
+    action: r.action || "ALERT",
+    hold: Boolean(r.hold) && holdKinds.includes(r.kind),
+    raise_risk_to: r.raise_risk_to || "",
+    countries: r.kind === HIGH_RISK ? (r.countries ?? []) : [],
+    fatf_lists: r.kind === HIGH_RISK ? (r.fatf_lists ?? []) : [],
   })),
   ctr: { ...setup.ctr, enabled: Boolean(setup.ctr?.enabled), threshold: String(setup.ctr?.threshold || "0") },
 });
@@ -502,6 +540,8 @@ function Setup() {
   if (data.missing) return null;
   const a = data.actions ?? {};
   const options = data.options ?? {};
+  const names = data.names ?? {};
+  const holdKinds = options.hold_kinds ?? [];
   const pending = data.pending?.setup ?? null;
   const shown = form ?? (pending && showPending ? pending : data.setup);
   const editing = Boolean(form);
@@ -555,7 +595,7 @@ function Setup() {
                     <b className="block font-mono">{r.code || "—"}</b>
                     <span className="block truncate">{r.name}</span>
                     <span className="block truncate text-muted-foreground">
-                      {t(`kind_${r.kind}`, { defaultValue: r.kind })} · {summary(r)}
+                      {[names.kinds?.[r.kind] ?? t(`kind_${r.kind}`, { defaultValue: r.kind }), summary(r)].filter(Boolean).join(" · ")}
                     </span>
                   </span>
                   <span className="shrink-0">
@@ -611,7 +651,7 @@ function Setup() {
               <label className={labelClass}>
                 {t("kind")}
                 <Field
-                  field={{ type: "select", options: (options.kinds ?? Object.keys(NEEDS)).map((k) => ({ value: k, label: t(`kind_${k}`) })) }}
+                  field={{ type: "select", options: (options.kinds ?? Object.keys(NEEDS)).map((k) => ({ value: k, label: names.kinds?.[k] ?? t(`kind_${k}`, { defaultValue: k }) })) }}
                   disabled={!editing}
                   value={rule.kind}
                   onChange={(v) => setRule({ kind: v })}
@@ -620,7 +660,7 @@ function Setup() {
               <label className={labelClass}>
                 {t("severity")}
                 <Field
-                  field={{ type: "select", options: (options.severities ?? ["LOW", "MEDIUM", "HIGH"]).map((k) => ({ value: k, label: t(`severity_${k}`) })) }}
+                  field={{ type: "select", options: (options.severities ?? ["LOW", "MEDIUM", "HIGH"]).map((k) => ({ value: k, label: names.severities?.[k] ?? t(`severity_${k}`) })) }}
                   disabled={!editing}
                   value={rule.severity}
                   onChange={(v) => setRule({ severity: v })}
@@ -654,6 +694,56 @@ function Setup() {
               ))}
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">{t(`kindHint_${rule.kind}`)}</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className={labelClass}>
+                {t("ruleAction")}
+                <RequiredMark />
+                <Field
+                  field={{ type: "select", options: (options.actions ?? []).map((k) => ({ value: k, label: names.actions?.[k] ?? k })) }}
+                  disabled={!editing}
+                  value={rule.action || "ALERT"}
+                  onChange={(v) => setRule({ action: v })}
+                />
+              </label>
+              <label className={labelClass}>
+                {t("raiseRiskTo")}
+                <Field
+                  field={{ type: "select", blank: t("dontChange"), options: (data.risk_levels ?? []).map((l) => ({ value: l.code, label: l.name })) }}
+                  disabled={!editing}
+                  value={rule.raise_risk_to ?? ""}
+                  onChange={(v) => setRule({ raise_risk_to: v })}
+                />
+              </label>
+              {holdKinds.includes(rule.kind) && (
+                <label className={cn(labelClass, "flex items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 sm:col-span-2")}>
+                  <span>
+                    {t("holdTxn")}
+                    <span className="block text-[11px] font-normal text-muted-foreground">{t("holdTxnHint")}</span>
+                  </span>
+                  <Field field={{ type: "bool" }} disabled={!editing} value={rule.hold} onChange={(v) => setRule({ hold: v })} />
+                </label>
+              )}
+            </div>
+            {rule.kind === HIGH_RISK && (
+              <div className="mt-3 grid gap-3">
+                <label className={labelClass}>
+                  {t("fatfLists")}
+                  <Field field={{ type: "multi", options: (options.fatf_lists ?? []).map((k) => ({ value: k, label: names.fatf_lists?.[k] ?? k })) }} disabled={!editing} value={rule.fatf_lists ?? []} onChange={(v) => setRule({ fatf_lists: v })} />
+                </label>
+                <label className={labelClass}>
+                  {t("countries")}
+                  <Field
+                    field={{ type: "multi", options: (data.countries ?? []).map((c) => ({ value: c.id, label: c.fatf_list ? `${c.name} · ${names.fatf_lists?.[c.fatf_list] ?? c.fatf_list}` : c.name })) }}
+                    disabled={!editing}
+                    value={rule.countries ?? []}
+                    onChange={(v) => setRule({ countries: v })}
+                  />
+                </label>
+                <p className={cn("text-[11px]", countryRuleMissing(rule) ? "font-semibold text-amber-700" : "text-muted-foreground")}>
+                  <RequiredMark /> {t("countryOrList")}
+                </p>
+              </div>
+            )}
             <div className="mt-3 grid gap-3">
               <label className={labelClass}>
                 {t("txnTypes")} <span className="font-normal text-muted-foreground">{t("emptyMeansAll")}</span>
@@ -700,7 +790,7 @@ function Setup() {
             <Button variant="ghost" onClick={() => setForm(null)}>
               {t("loans:cancel")}
             </Button>
-            <Button icon={Send} onClick={() => setDialog("edit")}>
+            <Button icon={Send} disabled={form.rules.some(countryRuleMissing)} disabledReason={t("countryRuleBlocked", { rule: form.rules.find(countryRuleMissing)?.code ?? "" })} onClick={() => setDialog("edit")}>
               {t("loans:proposeChanges")}
             </Button>
           </div>
@@ -727,7 +817,7 @@ function Setup() {
           required={dialog === "deauth"}
           busy={busy}
           onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, { ...(dialog === "edit" ? toBody(form) : {}), ...(narration ? { narration } : {}) })}
+          onSave={(narration) => act(dialog, { ...(dialog === "edit" ? toBody(form, holdKinds) : {}), ...(narration ? { narration } : {}) })}
         />
       )}
     </div>

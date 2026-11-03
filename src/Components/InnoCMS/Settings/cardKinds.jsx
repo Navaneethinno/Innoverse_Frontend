@@ -54,31 +54,23 @@ const grid = "grid gap-3 md:grid-cols-2 lg:grid-cols-3";
 
 function BinForm({ values: v, set, options, locked }) {
   const { t } = useTranslation("cards");
-  const after = num(v.pan_length) - String(v.bin_code ?? "").length;
-  // The card as it will read: the BIN, then the rest of the length as dots,
-  // in groups of four.
-  const length = Math.min(19, Math.max(13, num(v.pan_length) || 16));
-  const digits = String(v.bin_code ?? "").padEnd(length, "•").slice(0, length);
+  // The card as it will read: the BIN, then dots, in groups of four. The real
+  // length is set on the card number layout.
+  const digits = String(v.bin_code ?? "").padEnd(16, "•");
   const network = codes(options.networks).find((n) => n.value === v.network_code);
   const preview = { pan_masked: digits.replace(/(.{4})(?=.)/g, "$1 "), network_code: network?.label ?? v.network_code, product_code: t("binPreview"), form_factor: "PHYSICAL", name_on_card: t("binPreviewName"), expiry: "MM/YY", ops_status: "ACTIVE" };
   return (
     <Section title={t("groupBin")}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className={cn(grid, "flex-1 lg:grid-cols-2")}>
-          <F required label={t("binCode")} hint={!locked && t("fixedOnceAdded")}>
-            <Field field={{ placeholder: "498765" }} disabled={locked} value={v.bin_code} onChange={(x) => set({ bin_code: x.replace(/\D/g, "").slice(0, 12) })} />
+          <F required label={t("binCode")} hint={!locked && t("binCodeHint")}>
+            <Field field={{ placeholder: "498765" }} disabled={locked} value={v.bin_code} onChange={(x) => set({ bin_code: x.replace(/\D/g, "").slice(0, 8) })} />
           </F>
           <F required label={t("network")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ type: "select", blank: t("choose"), options: codes(options.networks) }} disabled={locked} value={v.network_code} onChange={(x) => set({ network_code: x })} />
           </F>
-          <F label={t("panLength")} hint={t("panLengthHint")} warn={v.bin_code && after < 7 && t("panTooShort", { count: after })}>
-            <Field field={{ type: "int" }} value={v.pan_length} onChange={(x) => set({ pan_length: x.slice(0, 2) })} />
-          </F>
           <F label={t("serviceCode")} hint={t("serviceCodeHint")}>
             <Field field={{ type: "int" }} value={v.service_code} onChange={(x) => set({ service_code: x.slice(0, 3) })} />
-          </F>
-          <F label={t("minSerialDigits")} hint={t("minSerialDigitsHint")} warn={v.min_serial_digits !== "" && (num(v.min_serial_digits) < 1 || num(v.min_serial_digits) > 12) && t("betweenXY", { min: 1, max: 12 })}>
-            <Field field={{ type: "int" }} value={v.min_serial_digits} onChange={(x) => set({ min_serial_digits: x.slice(0, 2) })} />
           </F>
           <F label={t("description")} span="md:col-span-2">
             <Field field={{}} value={v.description} onChange={(x) => set({ description: x.slice(0, 255) })} />
@@ -104,22 +96,20 @@ export const binKind = {
   fixed: ["bin_code", "network_code"],
   columns: (t) => [
     { key: "network", label: t("network"), render: (r) => <span className="text-xs font-semibold">{r.summary?.network_code}</span> },
-    { key: "pan_length", label: t("panLength"), render: (r) => <span className="text-xs">{r.summary?.pan_length}</span> },
     { key: "service_code", label: t("serviceCode"), render: (r) => <span className="font-mono text-xs">{r.summary?.service_code}</span> },
-    { key: "min_serial_digits", label: t("minSerialDigits"), render: (r) => <span className="text-xs">{r.summary?.min_serial_digits}</span> },
   ],
-  headline: (t, s) => [s.network_code, s.pan_length && t("digitsN", { count: Number(s.pan_length) })],
-  facts: (t, c) => [["groupBin", [[t("binCode"), c.bin_code], [t("network"), c.network_code], [t("panLength"), c.pan_length], [t("serviceCode"), c.service_code], [t("minSerialDigits"), c.min_serial_digits], [t("description"), c.description]]]],
-  initial: (o, c) => {
-    const v = { ...o.defaults, ...(c ?? {}) };
-    return { ...v, pan_length: String(v.pan_length ?? 16), min_serial_digits: String(v.min_serial_digits ?? 6) };
-  },
-  toBody: (v) => ({ bin_code: v.bin_code ?? "", network_code: v.network_code ?? "", pan_length: num(v.pan_length), service_code: v.service_code ?? "", min_serial_digits: num(v.min_serial_digits), description: v.description ?? "" }),
-  missing: (v) => (!/^\d{6,12}$/.test(v.bin_code ?? "") ? "needBinCode" : !v.network_code ? "needNetwork" : num(v.min_serial_digits) < 1 || num(v.min_serial_digits) > 12 ? "needMinSerialDigits" : ""),
+  headline: (t, s) => [s.network_code],
+  facts: (t, c) => [["groupBin", [[t("binCode"), c.bin_code], [t("network"), c.network_code], [t("serviceCode"), c.service_code], [t("description"), c.description]]]],
+  initial: (o, c) => ({ ...o.defaults, ...(c ?? {}) }),
+  toBody: (v) => ({ bin_code: v.bin_code ?? "", network_code: v.network_code ?? "", service_code: v.service_code ?? "", description: v.description ?? "" }),
+  missing: (v) => (!/^(\d{6}|\d{8})$/.test(v.bin_code ?? "") ? "needBinCode" : !v.network_code ? "needNetwork" : ""),
   Form: BinForm,
 };
 
 // ------------------------------------------------------- Card Products ----
+
+const FIRST_PINS = ["HOLDER_SETS", "ONE_TIME_SMS"];
+const PIN_CHANNELS = ["ATM", "POS", "APP", "WEB"];
 
 function ProductForm({ values: v, set, options, locked }) {
   const { t } = useTranslation("cards");
@@ -132,6 +122,8 @@ function ProductForm({ values: v, set, options, locked }) {
   const layouts = (options.number_layouts ?? []).filter((l) => v.bin_id && String(l.extra) === String(v.bin_id));
   const physical = (v.allowed_form_factors ?? []).includes("PHYSICAL");
   const pin = v.pin_policy ?? {};
+  const firstPin = pin.first_pin || "HOLDER_SETS";
+  const oneTime = firstPin === "ONE_TIME_SMS";
   const pp = v.prepaid ?? {};
   const setPin = (patch) => set({ pin_policy: { ...pin, ...patch } });
   const setPp = (patch) => set({ prepaid: { ...pp, ...patch } });
@@ -156,7 +148,7 @@ function ProductForm({ values: v, set, options, locked }) {
           <F required label={t("productCode")} hint={!locked && t("fixedOnceAdded")}>
             <Field field={{ placeholder: "GOLD_PREPAID" }} disabled={locked} value={v.product_code} onChange={(x) => set({ product_code: upperCode(x) })} />
           </F>
-          <F label={t("productClass")} hint={!locked && t("creditLater")}>
+          <F required label={t("productClass")} hint={!locked && t("creditLater")}>
             <Field
               field={{ type: "select", blank: t("choose"), options: codes(options.product_classes) }}
               disabled={locked}
@@ -206,7 +198,7 @@ function ProductForm({ values: v, set, options, locked }) {
           <F required label={t("formFactors")}>
             <Field field={{ type: "multi", options: codes(options.form_factors) }} value={v.allowed_form_factors} onChange={setFactors} />
           </F>
-          <F label={t("defaultFormFactor")}>
+          <F required label={t("defaultFormFactor")}>
             <Field field={{ type: "select", options: codes(options.form_factors).filter((o) => (v.allowed_form_factors ?? []).includes(o.value)) }} value={v.default_form_factor} onChange={(x) => set({ default_form_factor: x })} />
           </F>
           <F label={t("activationMode")} hint={t(`activationHint_${v.activation_mode}`, { defaultValue: "" })}>
@@ -215,13 +207,13 @@ function ProductForm({ values: v, set, options, locked }) {
           <F required label={t("persoModes")} hint={!physical && t("personalisedNeedsPhysical")}>
             <Field field={{ type: "multi", options: codes(options.perso_modes).filter((o) => physical || o.value !== "PERSONALIZED") }} value={v.allowed_perso_modes} onChange={setPerso} />
           </F>
-          <F label={t("defaultPersoMode")}>
+          <F required label={t("defaultPersoMode")}>
             <Field field={{ type: "select", options: codes(options.perso_modes).filter((o) => (v.allowed_perso_modes ?? []).includes(o.value)) }} value={v.default_perso_mode} onChange={(x) => set({ default_perso_mode: x })} />
           </F>
-          <F label={t("expiryMonths")} hint={t("expiryMonthsHint")}>
+          <F required label={t("expiryMonths")} hint={t("expiryMonthsHint")}>
             <Field field={{ type: "int" }} value={v.expiry_months} onChange={(x) => set({ expiry_months: x.slice(0, 3) })} />
           </F>
-          <F label={t("maxCardsPerCustomer")} hint={dp ? t("dpAllowsN", { count: Number(dp.extra ?? 1) }) : t("maxCardsHint")}>
+          <F required label={t("maxCardsPerCustomer")} hint={dp ? t("dpAllowsN", { count: Number(dp.extra ?? 1) }) : t("maxCardsHint")}>
             <Field field={{ type: "int" }} value={v.max_cards_per_customer} onChange={(x) => set({ max_cards_per_customer: x.slice(0, 3) })} />
           </F>
           <F label={t("renewalNoticeDays")} hint={t("renewalNoticeHint")}>
@@ -241,14 +233,25 @@ function ProductForm({ values: v, set, options, locked }) {
 
       <Section title={t("groupPin")}>
         <div className={grid}>
-          <F label={t("pinLength")} hint={t("betweenXY", { min: options.pin_length?.min ?? 4, max: options.pin_length?.max ?? 12 })}>
+          <F required label={t("pinLength")} hint={t("betweenXY", { min: options.pin_length?.min ?? 4, max: options.pin_length?.max ?? 12 })}>
             <Field field={{ type: "int" }} value={pin.length} onChange={(x) => setPin({ length: x.slice(0, 2) })} />
           </F>
-          <F label={t("pinMaxTries")} hint={t("betweenXY", { min: 1, max: options.pin_max_tries ?? 10 })}>
+          <F required label={t("pinMaxTries")} hint={t("betweenXY", { min: 1, max: options.pin_max_tries ?? 10 })}>
             <Field field={{ type: "int" }} value={pin.max_tries} onChange={(x) => setPin({ max_tries: x.slice(0, 2) })} />
           </F>
+          <F label={t("pinLockMinutes")} hint={t("pinLockMinutesHint")}>
+            <Field field={{ type: "int" }} value={pin.lock_minutes} onChange={(x) => setPin({ lock_minutes: x.slice(0, 5) })} />
+          </F>
+          <F required label={t("firstPin")} hint={t(`firstPinHint_${firstPin}`)}>
+            <Field field={{ type: "select", options: FIRST_PINS.map((x) => ({ value: x, label: t(`firstPin_${x}`) })) }} value={firstPin} onChange={(x) => setPin({ first_pin: x })} />
+          </F>
+          {oneTime && (
+            <F required label={t("firstChangeChannels")} hint={t("firstChangeChannelsHint")}>
+              <Field field={{ type: "multi", options: PIN_CHANNELS.map((x) => ({ value: x, label: x })) }} value={pin.first_change_channels ?? []} onChange={(x) => setPin({ first_change_channels: x })} />
+            </F>
+          )}
           <div className="self-end">
-            <Switch label={t("pinAllowChange")} value={pin.allow_change} onChange={(x) => setPin({ allow_change: x })} />
+            <Switch label={t("pinAllowChange")} hint={oneTime && t("oneTimeNeedsChange")} value={pin.allow_change} onChange={(x) => setPin({ allow_change: x })} />
           </div>
         </div>
       </Section>
@@ -308,7 +311,14 @@ const productBody = (v) => {
     max_cards_per_customer: num(v.max_cards_per_customer),
     renewal_notice_days: num(v.renewal_notice_days),
     unactivated_close_days: num(v.unactivated_close_days),
-    pin_policy: { length: num(pin.length), allow_change: Boolean(pin.allow_change), max_tries: num(pin.max_tries) },
+    pin_policy: {
+      length: num(pin.length),
+      allow_change: Boolean(pin.allow_change),
+      max_tries: num(pin.max_tries),
+      lock_minutes: num(pin.lock_minutes),
+      first_pin: pin.first_pin || "HOLDER_SETS",
+      first_change_channels: pin.first_pin === "ONE_TIME_SMS" ? (pin.first_change_channels ?? []) : [],
+    },
     effective_from: v.effective_from ?? "",
     effective_to: v.effective_to ?? "",
     ...(prepaid
@@ -380,6 +390,9 @@ export const productKind = {
       ["groupPin", [
         [t("pinLength"), pin.length],
         [t("pinMaxTries"), pin.max_tries],
+        [t("pinLockMinutes"), pin.lock_minutes],
+        [t("firstPin"), t(`firstPin_${pin.first_pin || "HOLDER_SETS"}`)],
+        ...(pin.first_pin === "ONE_TIME_SMS" ? [[t("firstChangeChannels"), (pin.first_change_channels ?? []).join(", ")]] : []),
         [t("pinAllowChange"), yes(t, pin.allow_change)],
       ]],
       ...(pp
@@ -419,6 +432,8 @@ export const productKind = {
     if (!v.digital_product_id) return "needDigitalProduct";
     if (!v.allowed_form_factors?.length) return "needFormFactor";
     if (!v.allowed_perso_modes?.length) return "needPersoMode";
+    if (v.pin_policy?.first_pin === "ONE_TIME_SMS" && !v.pin_policy.allow_change) return "needAllowPinChange";
+    if (v.pin_policy?.first_pin === "ONE_TIME_SMS" && !v.pin_policy.first_change_channels?.length) return "needFirstChangeChannels";
     return "";
   },
   Form: ProductForm,
@@ -709,9 +724,9 @@ function LayoutPreview({ answer, v }) {
         </ul>
       )}
       {!segments.length && answer.preview && <p className="font-mono text-lg font-bold tracking-wider text-foreground">{answer.preview}</p>}
-      {answer.serial_digits != null && <p className="text-xs text-muted-foreground">{t("serialDigitsN", { count: Number(answer.serial_digits), min: answer.min_serial_digits })}</p>}
+      {answer.serial_digits != null && <p className="text-xs text-muted-foreground">{answer.serial_capacity_text ? t("serialCapacity", { count: Number(answer.serial_digits), capacity: answer.serial_capacity_text }) : t("serialDigitsShort", { count: Number(answer.serial_digits) })}</p>}
       {(answer.problems ?? []).map((p) => (
-        <p key={p} className="rounded-lg bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">{p}</p>
+        <p key={p} className="rounded-lg bg-red-50 px-2 py-1 text-xs font-semibold text-red-700">{p}</p>
       ))}
     </div>
   );
@@ -760,12 +775,15 @@ function LayoutForm({ values: v, set, options, locked, record }) {
               <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
             </F>
             <F required label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
-              <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins, (b) => b.extra && t("binLengthMin", { value: b.extra })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
+              <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
             </F>
-            <F label={t("panLength")}>
+            <F required label={t("panLength")}>
               <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} disabled={limited} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />
             </F>
-            <F label={t("description")} span="md:col-span-2">
+            <F label={t("serialDigits")} hint={t("serialDigitsHint")}>
+              <Field field={{}} disabled value={answer?.serial_digits != null ? String(answer.serial_digits) : ""} onChange={() => {}} />
+            </F>
+            <F label={t("description")}>
               <Field field={{}} value={v.description} onChange={(x) => set({ description: x })} />
             </F>
           </div>
@@ -773,26 +791,28 @@ function LayoutForm({ values: v, set, options, locked, record }) {
         <Section title={t("layoutParts")}>
           <p className={cn("mb-3 text-xs", limited ? "font-semibold text-amber-700" : "text-muted-foreground")}>{t(limited ? "layoutInUse" : "layoutPartsHint")}</p>
           <ul className="divide-y divide-border rounded-xl border border-border">
-            {PARTS.map((part) => {
+            {PARTS.filter((p) => p === "product_code" || num(v[widthKey(p)]) > 0).map((part) => {
               const width = num(v[widthKey(part)]);
-              const coded = CODED_PARTS.includes(part) && width > 0;
+              // A part from before only the product code could follow the BIN.
+              const old = part !== "product_code";
+              const coded = old && width > 0;
               return (
                 <li key={part} className="grid gap-3 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="flex items-center gap-2 text-sm font-bold">
                       <span className={cn("h-2.5 w-2.5 rounded-full", DOT[part])} />
                       {t(`part_${part}`)}
-                      <span className="text-[11px] font-medium text-muted-foreground">{t("widthUpTo", { count: widths[part] ?? 2 })}</span>
+                      <span className="text-[11px] font-medium text-muted-foreground">{t("widthUpTo", { count: widths[part] ?? width })}</span>
                     </span>
-                    <WidthPicker value={width} max={widths[part] ?? 2} disabled={limited} onChange={(x) => set({ [widthKey(part)]: x })} />
+                    <WidthPicker value={width} max={widths[part] ?? width} disabled={limited || old} onChange={(x) => set({ [widthKey(part)]: x })} />
                   </div>
                   {coded && (
                     <div>
                       <p className={cn("mb-1.5 text-[10px] font-black uppercase tracking-wider", bad.includes(part) ? "text-amber-700" : "text-muted-foreground")}>{t("partCodes", { part: t(`part_${part}`) })}</p>
                       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                        {(options.part_values?.[part] ?? []).map((value) => (
+                        {Object.keys(v.part_codes?.[part] ?? {}).map((value) => (
                           <F key={value} label={t(part === "customer_type" ? `holder_${value}` : value, { defaultValue: loanLabel(t, value) })}>
-                            <Field field={{}} disabled={limited} value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, width))} />
+                            <Field field={{}} disabled value={v.part_codes?.[part]?.[value] ?? ""} onChange={(x) => setCode(part, value, x.slice(0, width))} />
                           </F>
                         ))}
                       </div>
@@ -813,12 +833,17 @@ function LayoutForm({ values: v, set, options, locked, record }) {
 }
 
 // The fields `preview` and the body share; codes only for parts in the number.
-const layoutShape = (v) => ({
-  bin_id: num(v.bin_id),
-  pan_length: num(v.pan_length),
-  ...Object.fromEntries(PARTS.map((p) => [widthKey(p), num(v[widthKey(p)])])),
-  part_codes: Object.fromEntries(CODED_PARTS.filter((p) => num(v[widthKey(p)]) > 0).map((p) => [p, v.part_codes?.[p] ?? {}])),
-});
+// A new layout has only the product code; an older one keeps its parts.
+const layoutShape = (v) => {
+  const old = CODED_PARTS.filter((p) => num(v[widthKey(p)]) > 0);
+  return {
+    bin_id: num(v.bin_id),
+    pan_length: num(v.pan_length),
+    product_code_width: num(v.product_code_width),
+    ...Object.fromEntries(old.map((p) => [widthKey(p), num(v[widthKey(p)])])),
+    ...(old.length ? { part_codes: Object.fromEntries(old.map((p) => [p, v.part_codes?.[p] ?? {}])) } : {}),
+  };
+};
 
 export const layoutKind = {
   api: cardNumberLayoutsApi,
@@ -845,9 +870,10 @@ export const layoutKind = {
       [t("panLength"), c.pan_length],
       [t("layoutPreview"), refs.preview],
       [t("serialDigits"), refs.serial_digits],
+      [t("serialCapacityLabel"), refs.serial_capacity_text],
       [t("description"), c.description],
     ]],
-    ["layoutParts", PARTS.map((p) => [t(`part_${p}`), num(c[widthKey(p)]) ? t("digitsN", { count: num(c[widthKey(p)]) }) : t("notInNumber")])],
+    ["layoutParts", PARTS.filter((p) => p === "product_code" || num(c[widthKey(p)]) > 0).map((p) => [t(`part_${p}`), num(c[widthKey(p)]) ? t("digitsN", { count: num(c[widthKey(p)]) }) : t("notInNumber")])],
     ...CODED_PARTS.filter((p) => num(c[widthKey(p)]) > 0).map((p) => [`part_${p}`, Object.entries(c.part_codes?.[p] ?? {}).map(([value, code]) => [p === "customer_type" ? t(`holder_${value}`, { defaultValue: value }) : loanLabel(t, value), code])]),
   ],
   initial: (o, c) => {
@@ -857,8 +883,6 @@ export const layoutKind = {
       bin_id: id(v.bin_id),
       pan_length: String(v.pan_length ?? 16),
       ...Object.fromEntries(PARTS.map((p) => [widthKey(p), String(v[widthKey(p)] ?? 0)])),
-      // Codes not chosen yet start from the defaults.
-      part_codes: Object.fromEntries(CODED_PARTS.map((p) => [p, { ...(o.defaults?.part_codes?.[p] ?? {}), ...(v.part_codes?.[p] ?? {}) }])),
     };
   },
   toBody: (v) => ({ code: v.code ?? "", name: v.name ?? "", description: v.description ?? "", ...layoutShape(v) }),
