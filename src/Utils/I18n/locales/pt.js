@@ -5276,15 +5276,14 @@ export const limits = {
 };
 
 export const cards = {
+  "takenBy": "Ocupado por {{code}}",
   "binCodeHint": "6 ou 8 dígitos. Não pode ser alterado depois de adicionado.",
   "serialCapacity": "{{count}} dígitos de série: até {{capacity}} cartões por produto",
   "serialCapacityLabel": "Cartões por produto",
   "serialDigitsHint": "Calculado: comprimento − BIN − código do produto − 1 dígito de controlo. Pelo menos 6.",
   "pinLockMinutes": "Minutos de bloqueio do PIN",
-  "pinLockMinutesHint": "0–10080. Após as tentativas erradas o PIN fica bloqueado este tempo. 0: bloqueado até a equipa o libertar ou o titular o repor.",
+  "pinLockMinutesHint": "{{min}}–{{max}}. Após as tentativas erradas o PIN fica bloqueado este tempo. 0: bloqueado até a equipa o libertar ou o titular o repor.",
   "firstPin": "Primeiro PIN",
-  "firstPin_HOLDER_SETS": "O titular define",
-  "firstPin_ONE_TIME_SMS": "PIN único por SMS",
   "firstPinHint_HOLDER_SETS": "O titular escolhe o primeiro PIN.",
   "firstPinHint_ONE_TIME_SMS": "Um PIN único é enviado por SMS na emissão do cartão. O cartão funciona depois de o titular o alterar.",
   "firstChangeChannels": "Canais de alteração do PIN único",
@@ -6176,6 +6175,8 @@ export const builder = {
 
 // GLOBAL SETTINGS > External Providers.
 export const providers = {
+  "fatf_GREY": "Lista cinzenta do GAFI",
+  "fatf_BLACK": "Lista negra do GAFI",
   "countrySendsTo": "País para onde envia",
   "domestic": "Nacional",
   connectionOnly: "Apenas ligação",

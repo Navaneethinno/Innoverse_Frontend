@@ -1,3 +1,4 @@
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -260,6 +261,7 @@ function AlertDetail({ id, onClose, onChanged }) {
   const { t } = useTranslation("monitoring");
   const can = usePagePermission();
   const navigate = useNavigate();
+  const openMenu = useOpenMenu();
   const [alert, setAlert] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [reason, setReason] = useState("FALSE_POSITIVE");
@@ -312,7 +314,7 @@ function AlertDetail({ id, onClose, onChanged }) {
               alert.held && [t("held"), t("heldRef", { rrn: alert.held_rrn ?? "—" })],
               alert.case_id && [
                 t("case"),
-                <button key="c" type="button" className="font-bold text-primary hover:underline" onClick={() => navigate(`/customercases/${alert.case_id}`)}>
+                <button key="c" type="button" className="font-bold text-primary hover:underline" onClick={() => openMenu("amlcases", { caseId: alert.case_id })}>
                   {alert.case_number ?? alert.case_id}
                 </button>,
               ],

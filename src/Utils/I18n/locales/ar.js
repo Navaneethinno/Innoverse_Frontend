@@ -917,6 +917,8 @@ export const builder = {
 };
 
 export const providers = {
+  "fatf_GREY": "القائمة الرمادية لمجموعة العمل المالي",
+  "fatf_BLACK": "القائمة السوداء لمجموعة العمل المالي",
   "countrySendsTo": "البلد الذي يرسل إليه",
   "domestic": "محلي",
   connectionOnly: "اتصال فقط",
@@ -6439,6 +6441,27 @@ export const expiry = {
 };
 
 export const monitoring = {
+  "heldRef": "محاولة موقوفة {{rrn}}",
+  "case": "حالة",
+  "risk": "المخاطر",
+  "riskRaisedTo": "رُفعت المخاطر إلى {{level}}",
+  "released": "تم الإفراج",
+  "releasedBy": "أفرج عنها {{name}} في {{date}}",
+  "releaseHint": "يمكن للعميل إجراء المعاملة نفسها بالمبلغ نفسه مرة واحدة خلال 24 ساعة. يبقى التنبيه مفتوحًا.",
+  "alertAction_ALERT": "تنبيه فقط",
+  "alertAction_MARK": "تم وسم المعاملات",
+  "alertAction_CASE": "تم فتح حالة",
+  "ruleAction": "الإجراء",
+  "raiseRiskTo": "رفع مخاطر العميل إلى",
+  "dontChange": "بدون تغيير",
+  "holdTxn": "احتجاز المعاملة للمراجعة",
+  "holdTxnHint": "تتوقف قبل أي حركة للأموال. يُطلب من العميل المحاولة لاحقًا أو الاتصال بكم.",
+  "fatfLists": "قوائم مجموعة العمل المالي",
+  "countries": "البلدان",
+  "countryOrList": "اختر بلدًا واحدًا أو قائمة واحدة على الأقل.",
+  "countryRuleBlocked": "القاعدة {{rule}} مفعلة وتحتاج إلى بلد أو قائمة.",
+  "kind_HIGH_RISK_COUNTRY": "بلد عالي المخاطر",
+  "kindHint_HIGH_RISK_COUNTRY": "تعمل عند إرسال أموال إلى بلد في القوائم المختارة أو مختار هنا. البلد هو بلد المزود الخارجي.",
   "held": "محتجزة",
   "release": "إفراج",
   "partyAlerts": "تنبيهات {{name}}",
@@ -6753,13 +6776,33 @@ export const statements = {
   "line_CLASS_LOAN": "القروض",
 };
 
+export const cards = {
+  "takenBy": "يستخدمه {{code}}",
+  "binCodeHint": "6 أو 8 أرقام. لا يمكن تغييره بعد الإضافة.",
+  "serialCapacity": "{{count}} أرقام تسلسلية: حتى {{capacity}} بطاقة لكل منتج",
+  "serialCapacityLabel": "البطاقات لكل منتج",
+  "serialDigitsHint": "محسوبة: الطول − BIN − رمز المنتج − رقم تحقق واحد. 6 على الأقل.",
+  "pinLockMinutes": "دقائق تجميد الرقم السري",
+  "pinLockMinutesHint": "{{min}}–{{max}}. بعد المحاولات الخاطئة يُجمَّد الرقم السري هذه المدة. 0: يبقى مجمدًا حتى يفرج عنه الموظفون أو يعيد الحامل تعيينه.",
+  "firstPin": "الرقم السري الأول",
+  "firstPinHint_HOLDER_SETS": "يختار الحامل الرقم السري الأول.",
+  "firstPinHint_ONE_TIME_SMS": "يُرسل رقم سري لمرة واحدة عبر SMS عند إصدار البطاقة. تعمل البطاقة بعد أن يغيره الحامل.",
+  "firstChangeChannels": "قنوات تغيير الرقم السري لمرة واحدة",
+  "firstChangeChannelsHint": "أين يمكن للحامل تغيير الرقم السري لمرة واحدة.",
+  "oneTimeNeedsChange": "مطلوب للرقم السري لمرة واحدة.",
+  "needAllowPinChange": "الرقم السري لمرة واحدة يتطلب السماح بتغيير الرقم السري.",
+  "needFirstChangeChannels": "اختر قناة واحدة على الأقل لتغيير الرقم السري لمرة واحدة.",
+  "showFullNumber": "إظهار الرقم الكامل",
+  "oneTimePinPending": "لم يتم تغيير الرقم السري لمرة واحدة بعد",
+};
+
 export default Object.fromEntries(
   Object.entries({
     atm,
     statements,
     treasury,
     regReports,
-    monitoring,
+    cards, monitoring,
     expiry,
     keyCustody,
     loans,

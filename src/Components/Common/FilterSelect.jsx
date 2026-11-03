@@ -149,7 +149,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         setHighlight(e.key === "Home" ? 0 : last);
       } else if (e.key === "Enter") {
         const option = visibleOptions[highlight];
-        if (!option) return;
+        if (!option || option.disabled) return;
         e.preventDefault();
         onChange(option.value);
         setIsOpen(false);
@@ -246,6 +246,8 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                   type="button"
                   data-option={index}
                   tabIndex={-1}
+                  disabled={option.disabled}
+                  title={option.disabled ? option.disabledReason : undefined}
                   onMouseEnter={() => setHighlight(index)}
                   onClick={() => {
                     onChange(option.value);
@@ -255,6 +257,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                     "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
                     isActive ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-primary-light hover:text-primary",
                     index === highlight && "bg-primary-light text-primary ring-1 ring-primary/40",
+                    option.disabled && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground",
                   )}
                 >
                   <span className="min-w-0 [overflow-wrap:anywhere]">

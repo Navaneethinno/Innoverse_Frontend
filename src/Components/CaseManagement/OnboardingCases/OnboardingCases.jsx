@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
@@ -61,7 +61,9 @@ export function CaseQueue({ config }) {
   // AML and support cases are conversations with an active customer.
   const conversational = config.kind !== "onboarding";
   const location = useLocation();
-  const [openId, setOpenId] = useState(() => location.state?.caseId ?? null);
+  // A link to one case (…/amlcases/95) opens it.
+  const { id: routeId } = useParams();
+  const [openId, setOpenId] = useState(() => location.state?.caseId ?? (Number(routeId) || null));
   const [openedFor, setOpenedFor] = useState(location.state?.menuClick);
   if (location.state?.caseId && location.state.menuClick !== openedFor) {
     setOpenedFor(location.state.menuClick);

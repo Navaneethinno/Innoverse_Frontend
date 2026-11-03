@@ -5769,15 +5769,14 @@ export const limits = {
 };
 
 export const cards = {
+  "takenBy": "Taken by {{code}}",
   "binCodeHint": "6 or 8 digits. Cannot be changed once added.",
   "serialCapacity": "{{count}} serial digits: up to {{capacity}} cards per product",
   "serialCapacityLabel": "Cards per product",
   "serialDigitsHint": "Worked out: length − BIN − product code − 1 check digit. At least 6.",
   "pinLockMinutes": "PIN freeze minutes",
-  "pinLockMinutesHint": "0–10080. After the wrong tries the PIN is frozen this long. 0: frozen until staff clear it or the holder resets it.",
+  "pinLockMinutesHint": "{{min}}–{{max}}. After the wrong tries the PIN is frozen this long. 0: frozen until staff clear it or the holder resets it.",
   "firstPin": "First PIN",
-  "firstPin_HOLDER_SETS": "Holder sets it",
-  "firstPin_ONE_TIME_SMS": "One-time PIN by SMS",
   "firstPinHint_HOLDER_SETS": "The holder chooses the first PIN.",
   "firstPinHint_ONE_TIME_SMS": "A one-time PIN is sent by SMS when the card is issued. The card works once the holder changes it.",
   "firstChangeChannels": "One-time PIN change channels",
@@ -6669,6 +6668,8 @@ export const builder = {
 
 // GLOBAL SETTINGS > External Providers.
 export const providers = {
+  "fatf_GREY": "FATF grey list",
+  "fatf_BLACK": "FATF black list",
   "countrySendsTo": "Country it sends to",
   "domestic": "Domestic",
   connectionOnly: "Connection only",

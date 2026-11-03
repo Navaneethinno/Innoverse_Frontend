@@ -10,7 +10,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
 import { Section, dayDate, labelClass } from "../../Finance/Deposits/depositShared";
 import { Field, loanLabel } from "../../Finance/Loans/loanShared";
-import { pickOptions } from "./CardSetup";
+import { freeOptions, pickOptions } from "./CardSetup";
 import { CardFace } from "../cardOpsShared";
 
 // What differs between the CARDS setup screens: the api, list columns, the
@@ -108,8 +108,7 @@ export const binKind = {
 
 // ------------------------------------------------------- Card Products ----
 
-const FIRST_PINS = ["HOLDER_SETS", "ONE_TIME_SMS"];
-const PIN_CHANNELS = ["ATM", "POS", "APP", "WEB"];
+const nameIn = (list, code) => list?.find((x) => x.code === code)?.name ?? code;
 
 function ProductForm({ values: v, set, options, locked }) {
   const { t } = useTranslation("cards");
@@ -239,15 +238,15 @@ function ProductForm({ values: v, set, options, locked }) {
           <F required label={t("pinMaxTries")} hint={t("betweenXY", { min: 1, max: options.pin_max_tries ?? 10 })}>
             <Field field={{ type: "int" }} value={pin.max_tries} onChange={(x) => setPin({ max_tries: x.slice(0, 2) })} />
           </F>
-          <F label={t("pinLockMinutes")} hint={t("pinLockMinutesHint")}>
+          <F label={t("pinLockMinutes")} hint={t("pinLockMinutesHint", { min: options.pin_lock_minutes?.min ?? 0, max: options.pin_lock_minutes?.max ?? 10080 })}>
             <Field field={{ type: "int" }} value={pin.lock_minutes} onChange={(x) => setPin({ lock_minutes: x.slice(0, 5) })} />
           </F>
           <F required label={t("firstPin")} hint={t(`firstPinHint_${firstPin}`)}>
-            <Field field={{ type: "select", options: FIRST_PINS.map((x) => ({ value: x, label: t(`firstPin_${x}`) })) }} value={firstPin} onChange={(x) => setPin({ first_pin: x })} />
+            <Field field={{ type: "select", options: codes(options.first_pin_modes) }} value={firstPin} onChange={(x) => setPin({ first_pin: x })} />
           </F>
           {oneTime && (
             <F required label={t("firstChangeChannels")} hint={t("firstChangeChannelsHint")}>
-              <Field field={{ type: "multi", options: PIN_CHANNELS.map((x) => ({ value: x, label: x })) }} value={pin.first_change_channels ?? []} onChange={(x) => setPin({ first_change_channels: x })} />
+              <Field field={{ type: "multi", options: codes(options.pin_change_channels) }} value={pin.first_change_channels ?? []} onChange={(x) => setPin({ first_change_channels: x })} />
             </F>
           )}
           <div className="self-end">
@@ -347,6 +346,7 @@ export const productKind = {
   searchHint: "searchProducts",
   noneTitle: "noProducts",
   noneHint: "noProductsHint",
+  viewNames: true,
   fixed: ["product_code", "product_class", "bin_id", "currency_id"],
   columns: (t) => [
     { key: "class", label: t("productClass"), render: (r) => <span className="text-xs font-semibold">{loanLabel(t, r.summary?.product_class)}</span> },
@@ -391,8 +391,8 @@ export const productKind = {
         [t("pinLength"), pin.length],
         [t("pinMaxTries"), pin.max_tries],
         [t("pinLockMinutes"), pin.lock_minutes],
-        [t("firstPin"), t(`firstPin_${pin.first_pin || "HOLDER_SETS"}`)],
-        ...(pin.first_pin === "ONE_TIME_SMS" ? [[t("firstChangeChannels"), (pin.first_change_channels ?? []).join(", ")]] : []),
+        [t("firstPin"), nameIn(refs.names?.first_pin_modes, pin.first_pin || "HOLDER_SETS")],
+        ...(pin.first_pin === "ONE_TIME_SMS" ? [[t("firstChangeChannels"), (pin.first_change_channels ?? []).map((x) => nameIn(refs.names?.pin_change_channels, x)).join(", ")]] : []),
         [t("pinAllowChange"), yes(t, pin.allow_change)],
       ]],
       ...(pp
@@ -524,7 +524,7 @@ function GroupForm({ values: v, set, options, locked }) {
             <Field field={{ placeholder: "BRANCH_STOCK" }} disabled={locked} value={v.code} onChange={(x) => set({ code: upperCode(x) })} />
           </F>
           <F required label={t("product")} hint={!locked && t("physicalProductsOnly")}>
-            <Field field={{ type: "select", blank: options.card_products?.length ? t("choose") : t("noPhysicalProducts"), options: pickOptions(options.card_products) }} disabled={locked} value={id(v.card_product_id)} onChange={(x) => set({ card_product_id: x })} />
+            <Field field={{ type: "select", blank: options.card_products?.length ? t("choose") : t("noPhysicalProducts"), options: freeOptions(options.card_products, v.card_product_id, (code) => t("takenBy", { code })) }} disabled={locked} value={id(v.card_product_id)} onChange={(x) => set({ card_product_id: x })} />
           </F>
           <F required label={t("groupName")}>
             <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
@@ -775,7 +775,7 @@ function LayoutForm({ values: v, set, options, locked, record }) {
               <Field field={{}} value={v.name} onChange={(x) => set({ name: x.slice(0, 128) })} />
             </F>
             <F required label={t("bin")} hint={!locked && t("fixedOnceAdded")}>
-              <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: pickOptions(options.bins) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
+              <Field field={{ type: "select", blank: options.bins?.length ? t("choose") : t("noBinsYet"), options: freeOptions(options.bins, v.bin_id, (code) => t("takenBy", { code })) }} disabled={locked} value={id(v.bin_id)} onChange={(x) => set({ bin_id: x })} />
             </F>
             <F required label={t("panLength")}>
               <Field field={{ type: "select", options: (options.pan_lengths ?? [16, 19]).map((n) => ({ value: String(n), label: t("digitsN", { count: n }) })) }} disabled={limited} value={String(v.pan_length)} onChange={(x) => set({ pan_length: x })} />

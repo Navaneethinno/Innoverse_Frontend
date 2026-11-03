@@ -106,6 +106,16 @@ export function pickOptions(list, extra) {
   }));
 }
 
+// The same, for a list where another record may hold an option (`taken_by`):
+// that one is off and says who holds it; the form's own choice stays open.
+export function freeOptions(list, current, takenLabel) {
+  return pickOptions(list, (o) => o.taken_by && String(o.id) !== String(current) && takenLabel(o.taken_by)).map((option, i) => {
+    const o = list[i];
+    const taken = Boolean(o.taken_by) && String(o.id) !== String(current);
+    return taken ? { ...option, disabled: true, disabledReason: takenLabel(o.taken_by) } : option;
+  });
+}
+
 // One record: status and actions, what is in effect next to what waits for
 // a checker (changes marked), and the history.
 function CardRecordView({ kind, id, onBack, onEdit }) {
@@ -115,6 +125,16 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
   const [audit, setAudit] = useState([]);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  // The names of the codes this record's facts show.
+  const [names, setNames] = useState(null);
+  const instId = record?.inst_profile_id;
+  useEffect(() => {
+    if (!kind.viewNames || !instId) return;
+    kind.api
+      .options({ inst_profile_id: instId })
+      .then((r) => setNames(rowsOf(r)[0] ?? null))
+      .catch(() => {});
+  }, [kind, instId]);
 
   const reload = useCallback(async () => {
     try {
@@ -163,7 +183,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
     a.auth && can("Authorize") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
   ];
   const pending = record.pending;
-  const refs = record.refs ?? {};
+  const refs = { ...record.refs, names };
 
   return (
     <div className="pb-8 pt-4">

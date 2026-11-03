@@ -1,4 +1,3 @@
-import { useCountries } from "@/Hooks/Master/masterHooks";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -342,7 +341,6 @@ function SetupView({ id, onBack, onEdit }) {
 // one proposes its changes in one edit (the whole lists).
 function SetupEditor({ setup, scope, onClose, onSaved }) {
   const { t } = useTranslation(["providers", "fees", "deposits"]);
-  const { countries: masterCountries } = useCountries();
   const options = useProviderOptions(setup?.inst_profile_id ?? scope().inst_profile_id);
   const [config, setConfig] = useState(null);
   const [id, setId] = useState(setup?.id ?? null);
@@ -409,7 +407,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
   if (!config || !options) return <PageSkeleton />;
   const codes = (list) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: t(`kind_${v}`, { defaultValue: v }) })) });
   const dial = (options.phone_codes ?? []).join(" / ");
-  const countries = (masterCountries ?? []).map((c) => ({ value: String(c.id ?? c.country_id), label: c.name ?? c.country_name }));
+  const countries = (options.countries ?? []).map((c) => ({ value: String(c.id), label: c.fatf_list ? `${c.name} · ${t(`fatf_${c.fatf_list}`, { defaultValue: c.fatf_list })}` : c.name }));
 
   return (
     <div className="pb-8 pt-4">
