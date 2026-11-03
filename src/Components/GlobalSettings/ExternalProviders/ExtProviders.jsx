@@ -407,7 +407,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
   if (!config || !options) return <PageSkeleton />;
   const codes = (list) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: t(`kind_${v}`, { defaultValue: v }) })) });
   const dial = (options.phone_codes ?? []).join(" / ");
-  const countries = (options.countries ?? []).map((c) => ({ value: String(c.id), label: c.fatf_list ? `${c.name} · ${t(`fatf_${c.fatf_list}`, { defaultValue: c.fatf_list })}` : c.name }));
+  const countries = (options.countries ?? []).map((c) => ({ value: String(c.id), label: c.fatf_list ? `${c.name} · ${options.names?.fatf_lists?.[c.fatf_list] ?? c.fatf_list}` : c.name }));
 
   return (
     <div className="pb-8 pt-4">

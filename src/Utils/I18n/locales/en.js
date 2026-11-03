@@ -6668,8 +6668,6 @@ export const builder = {
 
 // GLOBAL SETTINGS > External Providers.
 export const providers = {
-  "fatf_GREY": "FATF grey list",
-  "fatf_BLACK": "FATF black list",
   "countrySendsTo": "Country it sends to",
   "domestic": "Domestic",
   connectionOnly: "Connection only",

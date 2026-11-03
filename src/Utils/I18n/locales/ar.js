@@ -917,8 +917,6 @@ export const builder = {
 };
 
 export const providers = {
-  "fatf_GREY": "القائمة الرمادية لمجموعة العمل المالي",
-  "fatf_BLACK": "القائمة السوداء لمجموعة العمل المالي",
   "countrySendsTo": "البلد الذي يرسل إليه",
   "domestic": "محلي",
   connectionOnly: "اتصال فقط",

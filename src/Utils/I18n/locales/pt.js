@@ -6175,8 +6175,6 @@ export const builder = {
 
 // GLOBAL SETTINGS > External Providers.
 export const providers = {
-  "fatf_GREY": "Lista cinzenta do GAFI",
-  "fatf_BLACK": "Lista negra do GAFI",
   "countrySendsTo": "País para onde envia",
   "domestic": "Nacional",
   connectionOnly: "Apenas ligação",
