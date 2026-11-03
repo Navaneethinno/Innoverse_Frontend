@@ -196,6 +196,7 @@ export const auth = {
 };
 
 export const login = {
+  "secureWorkspace": "Inicie sessão para gerir o seu espaço de trabalho seguro.",
   codeSent: "Foi enviado um código de acesso",
   codeLabel: "Introduza o código de {{length}} dígitos enviado para {{sentTo}}",
   enterCode: "Introduza o código de {{length}} dígitos",

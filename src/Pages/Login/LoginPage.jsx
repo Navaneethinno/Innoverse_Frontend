@@ -286,7 +286,7 @@ export function LoginPage() {
               {t("welcomeBack")}
             </motion.h1>
             <motion.p variants={cardItem} className="mt-1 mb-7 text-sm text-muted-foreground">
-              Sign in to manage your secure workspace.
+              {t("login:secureWorkspace")}
             </motion.p>
             <motion.form variants={cardItem} onSubmit={submit} noValidate className="space-y-4">
               {challenge ? (

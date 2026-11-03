@@ -235,6 +235,7 @@ export const auth = {
 // (which is a nav/route-label namespace, not this page's actual copy) so
 // adding "Welcome back" etc. doesn't collide with those existing keys.
 export const login = {
+  "secureWorkspace": "Sign in to manage your secure workspace.",
   codeSent: "A sign-in code was sent",
   codeLabel: "Enter the {{length}}-digit code sent to {{sentTo}}",
   enterCode: "Enter the {{length}}-digit code",

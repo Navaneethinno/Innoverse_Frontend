@@ -2555,6 +2555,7 @@ export const auth = {
 };
 
 export const login = {
+  "secureWorkspace": "سجّل الدخول لإدارة مساحة عملك الآمنة.",
   codeSent: "تم إرسال رمز تسجيل الدخول",
   codeLabel: "أدخل الرمز المكوّن من {{length}} أرقام المرسل إلى {{sentTo}}",
   enterCode: "أدخل الرمز المكوّن من {{length}} أرقام",
