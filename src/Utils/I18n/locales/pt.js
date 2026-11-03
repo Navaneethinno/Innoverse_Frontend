@@ -4869,6 +4869,8 @@ export const mms = {
 };
 
 export const txn = {
+  "feeByInstitution": "Tarifa {{fee}} (paga pela instituição)",
+  "payFrom_INSTITUTION": "paga pela instituição",
   doneBy: "Feito por",
   doneByMerchant: "Comerciante",
   fromAgentWallet: "Da carteira de agente",
@@ -5044,6 +5046,10 @@ export const txn = {
 };
 
 export const fees = {
+  "feePaidBy": "Tarifa paga por",
+  "amountMode": "Valor",
+  "institutionPaysHint": "O cliente não paga nada. As partes dos agentes e parceiros e o imposto são pagos pela instituição.",
+  "amountIncludedHint": "O valor introduzido inclui a tarifa.",
   noProvider: "Sem fornecedor",
   groupX: "Grupo: {{name}}",
   extProvider: "Fornecedor",

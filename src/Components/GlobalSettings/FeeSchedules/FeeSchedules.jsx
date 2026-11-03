@@ -19,7 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
 
-const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", tax_percent: "0", shares: [] });
+const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const idOrNull = (v) => (v === "" || v == null ? null : Number(v));
 
@@ -48,6 +48,8 @@ const toBody = (c) => ({
     minimum_fee: str(r.minimum_fee),
     maximum_fee: str(r.maximum_fee),
     pay_from: r.pay_from,
+    // Only a fee the sender pays can be included in the amount.
+    amount_mode: r.pay_from === "SENDER" ? r.amount_mode || "EXCLUSIVE" : "EXCLUSIVE",
     tax_percent: str(r.tax_percent),
     shares: (r.shares ?? []).filter((s) => s.purpose).map((s) => ({ purpose: s.purpose, percent: str(s.percent) })),
   })),
@@ -159,8 +161,8 @@ function RulesTable({ rules, options, currency, other }) {
         { key: "narrow", label: t("appliesTo"), render: (r) => [nameOf(options?.channels, r.channel_id), nameOf(options?.digital_products, r.digital_product_id), nameOf(options?.ext_providers, r.ext_provider_id), nameOf(options?.ext_provider_groups, r.ext_provider_group_id)].filter(Boolean).join(" · ") || t("everything") },
         { key: "amounts", label: t("amounts"), render: (r) => `${money(r.minimum_amount, currency)} – ${Number(r.maximum_amount) === 0 ? t("noLimit") : money(r.maximum_amount, currency)}` },
         { key: "price", label: t("fee"), render: (r) => priceText(t, r, currency) },
-        { key: "pay_from", label: t("paidBy"), render: (r) => loanLabel(t, r.pay_from) },
-        { key: "shares", label: t("shares"), render: (r) => (r.shares?.length ? r.shares.map((s) => `${loanLabel(t, s.purpose)} ${ratePct(s.percent)}`).join(", ") : t("allToIncome")) },
+        { key: "pay_from", label: t("paidBy"), render: (r) => [options?.names?.pay_from?.[r.pay_from] ?? loanLabel(t, r.pay_from), r.amount_mode === "INCLUSIVE" && options?.names?.amount_modes?.INCLUSIVE].filter(Boolean).join(" · ") },
+        { key: "shares", label: t("shares"), render: (r) => (r.shares?.length ? r.shares.map((s) => `${options?.names?.share_purposes?.[s.purpose] ?? loanLabel(t, s.purpose)} ${ratePct(s.percent)}`).join(", ") : t("allToIncome")) },
       ]}
     />
   );
@@ -366,7 +368,7 @@ function FeeQuote({ schedule, options }) {
       {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
       {f && (
         <div className="mt-3">
-          <PlanCard plan={{ currency_code: cur, amount: q.amount, fee: f, total_debit: f.pay_from === "SENDER" ? Number(q.amount) + Number(f.total_charge ?? 0) : q.amount, net_credit: f.pay_from === "RECEIVER" ? Number(q.amount) - Number(f.total_charge ?? 0) : q.amount }} />
+          <PlanCard plan={{ currency_code: cur, amount: q.amount, fee: f, total_debit: f.pay_from === "SENDER" && f.amount_mode !== "INCLUSIVE" ? Number(q.amount) + Number(f.total_charge ?? 0) : q.amount, net_credit: f.pay_from === "RECEIVER" || f.amount_mode === "INCLUSIVE" ? Number(q.amount) - Number(f.total_charge ?? 0) : q.amount }} />
         </div>
       )}
     </Section>
@@ -430,7 +432,8 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
     );
   }
   const sel = (rows, blank) => ({ type: "select", blank, options: (rows ?? []).map((x) => ({ value: String(x.id), label: x.name })) });
-  const codes = (list) => ({ type: "select", options: list ?? [] });
+  // A list's codes, with the names the API gives them.
+  const codes = (list, names) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: names?.[v] ?? v })) });
 
   return (
     <div className="pb-8 pt-4">
@@ -492,16 +495,18 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             options.ext_provider_groups?.length > 0 && { key: "ext_provider_group_id", label: t("extProviderGroup"), showIf: (r) => !r.ext_provider_id, ...sel(options.ext_provider_groups, t("anyProviderGroup")) },
             { key: "minimum_amount", label: t("amountFrom"), type: "amount" },
             { key: "maximum_amount", label: t("upToZero"), type: "amount" },
-            { key: "calculation_type", label: t("calculation"), ...codes(options.calculation_types) },
+            { key: "calculation_type", label: t("calculation"), ...codes(options.calculation_types, options.names?.calculation_types) },
             { key: "fixed_amount", label: cur ? t("fixedAmount", { currency: cur }) : t("fixed"), type: "amount" },
             { key: "percent_value", label: t("percent"), type: "percent" },
             { key: "minimum_fee", label: t("minimumFee"), type: "amount" },
             { key: "maximum_fee", label: t("maximumFee"), type: "amount" },
             { key: "tax_percent", label: t("taxPercent"), type: "percent" },
-            { key: "pay_from", label: t("paidBy"), ...codes(options.pay_from) },
+            { key: "pay_from", label: <>{t("feePaidBy")}<RequiredMark /></>, ...codes(options.pay_from, options.names?.pay_from) },
+            { key: "amount_mode", label: <>{t("amountMode")}<RequiredMark /></>, showIf: (r) => r.pay_from === "SENDER", ...codes(options.amount_modes, options.names?.amount_modes) },
           ].filter(Boolean)}
           renderExtra={(rule, patch) => (
             <div className="mt-3 border-t border-dashed border-border pt-3">
+              {(rule.pay_from === "INSTITUTION" || (rule.pay_from === "SENDER" && rule.amount_mode === "INCLUSIVE")) && <p className="mb-3 text-xs text-muted-foreground">{t(rule.pay_from === "INSTITUTION" ? "institutionPaysHint" : "amountIncludedHint")}</p>}
               <p className="mb-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{t("sharesHint")}</p>
               <RowsEditor
                 rows={rule.shares ?? []}
@@ -510,7 +515,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
                 addLabel={t("addShare")}
                 columns="lg:grid-cols-2"
                 fields={[
-                  { key: "purpose", label: t("purpose"), type: "select", options: (options.share_purposes ?? []).map((v) => ({ value: v, label: t(`share_${v}`, { defaultValue: v }) })) },
+                  { key: "purpose", label: t("purpose"), type: "select", options: (options.share_purposes ?? []).map((v) => ({ value: v, label: options.names?.share_purposes?.[v] ?? v })) },
                   { key: "percent", label: t("percent"), type: "percent" },
                 ]}
               />

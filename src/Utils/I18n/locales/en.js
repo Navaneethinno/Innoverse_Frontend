@@ -5355,6 +5355,8 @@ export const mms = {
 };
 
 export const txn = {
+  "feeByInstitution": "Fee {{fee}} (paid by the institution)",
+  "payFrom_INSTITUTION": "paid by the institution",
   fromInstitutionWallet: "From (head office or branch wallet)",
   chooseWallet: "Choose a wallet",
   headOffice: "Head Office",
@@ -5537,6 +5539,10 @@ export const txn = {
 };
 
 export const fees = {
+  "feePaidBy": "Fee paid by",
+  "amountMode": "Amount",
+  "institutionPaysHint": "The customer is charged nothing. Agents' and partners' shares and tax are paid by the institution.",
+  "amountIncludedHint": "The amount entered includes the fee.",
   noProvider: "No provider",
   groupX: "Group: {{name}}",
   extProvider: "Provider",

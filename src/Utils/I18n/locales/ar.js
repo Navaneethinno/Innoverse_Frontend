@@ -515,6 +515,8 @@ export const accounts = {
 };
 
 export const txn = {
+  "feeByInstitution": "الرسوم {{fee}} (تدفعها المؤسسة)",
+  "payFrom_INSTITUTION": "تدفعها المؤسسة",
   doneBy: "نفّذها",
   doneByMerchant: "التاجر",
   fromAgentWallet: "من محفظة الوكيل",
@@ -690,6 +692,10 @@ export const txn = {
 };
 
 export const fees = {
+  "feePaidBy": "الرسوم يدفعها",
+  "amountMode": "المبلغ",
+  "institutionPaysHint": "لا يدفع العميل شيئًا. تدفع المؤسسة حصص الوكلاء والشركاء والضريبة.",
+  "amountIncludedHint": "المبلغ المدخل يشمل الرسوم.",
   noProvider: "بلا مزوّد",
   groupX: "المجموعة: {{name}}",
   extProvider: "المزوّد",

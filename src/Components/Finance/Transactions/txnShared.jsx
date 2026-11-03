@@ -26,12 +26,12 @@ export const typeLabel = (t, code, name) => (name && name !== code ? name : t(`t
 // and reaches the receiver, and each party's limits with what is left.
 // An amount cell in a list: the total (amount + fee), with the split under it
 // when there is a fee.
-export function TotalCell({ total, amount, fee, currency }) {
+export function TotalCell({ total, amount, fee, currency, feeBy }) {
   const { t } = useTranslation("txn");
   return (
     <span className="flex flex-col whitespace-nowrap text-xs">
       <b className="tabular-nums">{money(total ?? amount, currency)}</b>
-      {Number(fee) > 0 && <span className="text-[10px] text-muted-foreground">{t("amountPlusFee", { amount: money(amount, currency), fee: money(fee, currency) })}</span>}
+      {Number(fee) > 0 && <span className="text-[10px] text-muted-foreground">{feeBy === "INSTITUTION" ? t("feeByInstitution", { fee: money(fee, currency) }) : t("amountPlusFee", { amount: money(amount, currency), fee: money(fee, currency) })}</span>}
     </span>
   );
 }

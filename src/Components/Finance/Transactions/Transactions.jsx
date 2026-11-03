@@ -112,7 +112,7 @@ function Journal({ actions, onOpen }) {
         </>
       ),
     },
-    { key: "total_amount", label: t("amount"), render: (x) => <TotalCell total={x.total_amount} amount={x.txn_amount} fee={x.fee_amount} currency={x.currency_code} /> },
+    { key: "total_amount", label: t("amount"), render: (x) => <TotalCell total={x.total_amount} amount={x.txn_amount} fee={x.fee_amount} currency={x.currency_code} feeBy={x.fee_pay_from} /> },
     // The fee shows under the amount (amount + fee).
     { key: "txn_desc", label: t("description"), align: "left", render: (x) => <span className="line-clamp-2 block min-w-[160px] max-w-[260px] whitespace-normal text-xs">{x.status === "FAILED" ? <span className="text-red-700">{x.status_desc}</span> : x.txn_desc || "—"}</span> },
     { key: "status", label: t("status"), render: (x) => <StatusBadge status={x.status} label={x.status_name} variant="subtle" /> },
@@ -188,7 +188,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             <p className="amount-fit text-xl font-black tabular-nums sm:text-2xl">{m(x.total_amount ?? x.txn_amount)}</p>
             {Number(x.fee_amount) > 0 && (
               <p className="text-xs text-muted-foreground">
-                {t("amount")} {m(x.txn_amount)} {t("plusFee", { fee: m(x.fee_amount), name: x.fee_name || t("fee"), payer: t(`payFrom_${x.fee_pay_from}`, { defaultValue: x.fee_pay_from ?? "" }) })}
+                {x.fee_pay_from === "INSTITUTION" ? t("feeByInstitution", { fee: m(x.fee_amount) }) : <>{t("amount")} {m(x.txn_amount)} {t("plusFee", { fee: m(x.fee_amount), name: x.fee_name || t("fee"), payer: t(`payFrom_${x.fee_pay_from}`, { defaultValue: x.fee_pay_from ?? "" }) })}</>}
               </p>
             )}
           </div>
