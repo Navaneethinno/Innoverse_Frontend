@@ -1,3 +1,4 @@
+import { SCREEN_MENUS } from "./menuNames";
 // A menu's page is registered under a one-segment slug (the old menu name,
 // slugged); MENU_PAGES below maps each menu of the current tree to it. A
 // menu with no registered page shows the app's not-found screen (the
@@ -127,4 +128,20 @@ export function menuPage(item) {
   const page = typeof entry === "string" ? { slug: entry } : entry;
   const slug = page.slug ?? page.views?.[0]?.slug ?? null;
   return { ...page, slug, slugs: [...(page.views ?? []).map((v) => v.slug), ...(page.slug ? [page.slug] : []), ...(page.also ?? [])] };
+}
+
+// Whether a one-segment link (/<slug>/...) is a menu's page this user's active
+// menus do not include. A page of no menu, or a menu list not loaded yet, is
+// never denied.
+const ALL_MENU_SLUGS = new Set(
+  [...Object.values(MENU_PAGES), ...SCREEN_MENUS.map((name) => MENU_PAGES[name.toLowerCase()] ?? slugifyMenuName(name))].flatMap((entry) => {
+    const page = typeof entry === "string" ? { slug: entry } : entry;
+    return [...(page.views ?? []).map((view) => view.slug), page.slug].filter((slug) => slug !== "notifications");
+  }).filter(Boolean),
+);
+export function slugDenied(menus, pathname) {
+  if (!menus?.length) return false;
+  const slug = String(pathname ?? "").split("/").filter(Boolean)[0]?.toLowerCase();
+  if (!slug || !ALL_MENU_SLUGS.has(slug)) return false;
+  return !menus.some((menu) => menu?.status === 1 && menuPage(menu).slugs.includes(slug));
 }

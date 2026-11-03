@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { AppLayout } from "@/Components/Layout/AppLayout";
 import { RouteError } from "@/Components/Common/RouteError";
 import { ProtectRoute } from "./ProtectRoute";
+import { MenuGuard } from "./MenuGuard";
 import { MenuPage } from "@/Pages/Sidebar/MenuPage";
 import { accountingRoutes, dashboardRoutes, epurseRoutes, globalSettingsRoutes, innoAmlRoutes, innoReconRoutes, institutionRoutes, publicRoutes, reportsRoutes, userManagementRoutes } from "./index";
 // Every page registered by its menu slug. Sidebar menus open at
@@ -18,6 +19,6 @@ export const appRouter = createBrowserRouter([
       </ProtectRoute>
     ),
     errorElement: <RouteError />,
-    children: [...pageRoutes, { path: "/:module/*", element: <MenuPage routes={pageRoutes} /> }],
+    children: [{ element: <MenuGuard />, children: pageRoutes }, { path: "/:module/*", element: <MenuPage routes={pageRoutes} /> }],
   },
 ]);
