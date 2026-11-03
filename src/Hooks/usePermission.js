@@ -47,7 +47,7 @@ export function findMenuByName(menus, name, module) {
   return pick(menus, matches, module);
 }
 
-function buildCan(menu) {
+export function buildCan(menu) {
   const can = (action) => menuHasAction(menu, action);
   can.menu = menu;
   return can;
