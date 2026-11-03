@@ -19,7 +19,7 @@ import { Field, RowsEditor } from "../loanShared";
 // out in parts, and a borrower who dies. Every button follows `actions`.
 
 // The till the signed-in user has open now (walk-in payouts, payout parts).
-export function useMyTill(enabled) {
+function useMyTill(enabled) {
   const [till, setTill] = useState(undefined);
   useEffect(() => {
     if (!enabled) return;

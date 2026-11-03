@@ -1331,7 +1331,7 @@ function ResultView({ search, onChange }) {
 // its result straight away. `popup`: the live investigation opens in its
 // own window and the result lands on the page when it's done (Name Lookup);
 // without it (already inside a window) it plays in place.
-export function MediaSearchView({ searchId, initial, popup = false }) {
+function MediaSearchView({ searchId, initial, popup = false }) {
   const { t } = useTranslation("aml");
   const [search, setSearch] = useState(initial ?? null);
   const [loading, setLoading] = useState(!initial);

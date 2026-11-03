@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cn } from "@/Utils/Lib/cn";
 
-export const PAGE_SIZES = [10, 25, 50, 100];
+const PAGE_SIZES = [10, 25, 50, 100];
 
 // Numbered page pills with an ellipsis for far-away pages, instead of a
 // bare "Page X of Y" + manual go-to-page input — always shows the first

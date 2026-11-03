@@ -105,7 +105,7 @@ export function SetRuns({ set, onChanged }) {
 }
 
 // What a run found, per source and per pass. Amounts stay per currency.
-export function RunSummary({ run }) {
+function RunSummary({ run }) {
   const { t } = useTranslation("recon");
   const s = run.summary ?? {};
   return (
@@ -420,7 +420,7 @@ export function SetAging({ set }) {
 // ---- Requests, notes and owners ----
 
 // Ask for a change to the results; another user approves it.
-export function RequestDialog({ set, kind, target, group, records, onClose, onDone }) {
+function RequestDialog({ set, kind, target, group, records, onClose, onDone }) {
   const { t } = useTranslation("recon");
   const [options, setOptions] = useState(null);
   const [reason, setReason] = useState("");

@@ -3,9 +3,9 @@ import store from "@/Redux/Store";
 
 // The institution's date format (login / refresh `formats.date_format`, set
 // on Institution > Profile). Display only: the API always gets YYYY-MM-DD.
-export const DATE_FORMATS = ["YYYY-MM-DD", "DD-MM-YYYY", "DD/MM/YYYY", "MM/DD/YYYY", "DD.MM.YYYY", "DD MMM YYYY"];
+const DATE_FORMATS = ["YYYY-MM-DD", "DD-MM-YYYY", "DD/MM/YYYY", "MM/DD/YYYY", "DD.MM.YYYY", "DD MMM YYYY"];
 
-export const dateFormat = () => {
+const dateFormat = () => {
   const value = store.getState()?.token?.user?.formats?.date_format;
   return DATE_FORMATS.includes(value) ? value : "YYYY-MM-DD";
 };

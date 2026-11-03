@@ -37,7 +37,7 @@ export function MoneyHeldTag({ holds }) {
 }
 
 // "in 6 days", "today", "5 days ago".
-export const daysLeftText = (t, days) =>
+const daysLeftText = (t, days) =>
   days == null
     ? ""
     : days > 0

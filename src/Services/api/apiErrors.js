@@ -28,7 +28,7 @@ export function getApiProblemKeys(payload) {
 // A refusal's data[0].problems given as objects ({field, section, message}),
 // one per field (institution profile validate / add / edit / submit). [] when
 // the problems are plain text or absent.
-export function getApiFieldProblems(payload) {
+function getApiFieldProblems(payload) {
   const data = payload?.data;
   const list = Array.isArray(data) ? data.find((item) => Array.isArray(item?.problems))?.problems : data?.problems;
   return Array.isArray(list) ? list.filter((p) => p && typeof p === "object" && p.field) : [];

@@ -17,19 +17,19 @@ const visible = (el) => {
 const clean = (text) => String(text ?? "").replace(/\s+/g, " ").trim();
 
 // The page itself: the workspace, never the sidebar or top bar.
-export const workspace = () => document.querySelector('[data-tour="workspace"]');
+const workspace = () => document.querySelector('[data-tour="workspace"]');
 
 // The window open over the page (its header, fields and buttons), if any.
-export function openWindow() {
+function openWindow() {
   const bodies = [...document.querySelectorAll('[data-tour="modal-body"]')].filter(visible);
   const body = bodies[bodies.length - 1];
   return body ? (body.parentElement ?? body) : null;
 }
 
-export const labelOf = (el) => clean(el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || el.getAttribute("placeholder") || "").slice(0, 60);
+const labelOf = (el) => clean(el.getAttribute("aria-label") || el.textContent || el.getAttribute("title") || el.getAttribute("placeholder") || "").slice(0, 60);
 
 // What kind of control an element is, and the sentence that explains it.
-export function kindOf(el) {
+function kindOf(el) {
   const role = el.getAttribute("role");
   if (role === "switch" || el.matches('input[type="checkbox"]')) return "switch";
   if (role === "tab") return "tab";
@@ -72,7 +72,7 @@ function markedText(el) {
 }
 
 // The open page's key in PAGE_HELP: its last path segment without dashes.
-export const pageKey = () => (window.location.pathname.split("/").filter(Boolean).pop() ?? "").replace(/-/g, "").toLowerCase();
+const pageKey = () => (window.location.pathname.split("/").filter(Boolean).pop() ?? "").replace(/-/g, "").toLowerCase();
 
 const lang = () => String(i18n.resolvedLanguage ?? i18n.language ?? "en").slice(0, 2);
 
@@ -109,7 +109,7 @@ const headingText = () => labelOf(workspace()?.querySelector("h1") ?? document.c
 
 // Written help for a label on this page, else the shared one. A master-data
 // list explains its Add button and Individual / Corporate views by template.
-export const writtenHelp = (label) => {
+const writtenHelp = (label) => {
   const page = pageKey();
   for (const english of englishOf(label)) {
     const key = String(english ?? "").toLowerCase();

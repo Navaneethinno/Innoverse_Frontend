@@ -164,7 +164,7 @@ export function DynamicSidebar() {
         module_name: t("moduleFallbackName", { id: selectedModuleId }),
       }
     );
-  }, [filteredModules, selectedModuleId]);
+  }, [filteredModules, selectedModuleId, t]);
 
   const menuItemsForModule = useMemo(
     () =>

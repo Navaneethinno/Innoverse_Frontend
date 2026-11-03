@@ -269,7 +269,7 @@ const asRecord = (entry) =>
     : entry;
 
 // A raw action code ("EDIT_AUTH", "SELF") as words.
-export const auditActionLabel = (t, code) =>
+const auditActionLabel = (t, code) =>
   code == null || code === "" ? "" : t([`common:auditAction_${String(code).toUpperCase()}`, `deposits:audit_${code}`], { defaultValue: String(code).replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase()) });
 
 // The audit modal: the shared history inside a modal.

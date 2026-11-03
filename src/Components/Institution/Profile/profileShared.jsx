@@ -58,7 +58,7 @@ export function bodyOf(sections, values) {
 
 const at = (values, path) => String(path).split(".").reduce((v, k) => v?.[k], values);
 // show_when: {field, equals}; a dotted field points inside a group.
-export const isShown = (field, values) => !field.show_when || at(values, field.show_when.field) === field.show_when.equals;
+const isShown = (field, values) => !field.show_when || at(values, field.show_when.field) === field.show_when.equals;
 
 const labelOf = (options, value) => options?.find((o) => String(o.value) === String(value))?.label ?? value;
 
@@ -66,7 +66,7 @@ const labelOf = (options, value) => options?.find((o) => String(o.value) === Str
 // null when nothing has been chosen, so it can be left out.
 // `values`: the whole record, for a group field shown only when a switch
 // outside the group is on.
-export function displayOf(field, value, t, values = {}) {
+function displayOf(field, value, t, values = {}) {
   if (value == null || value === "" || (Array.isArray(value) && !value.length)) return null;
   switch (field.kind) {
     case "select":
@@ -105,7 +105,7 @@ export function displayOf(field, value, t, values = {}) {
 
 // One field, drawn by its kind. `onChange(next)` gets the field's whole
 // value. `locked`: fixed once approved (lock icon, read-only).
-export function ProfileField({ field, value, onChange, values, error, locked = false, phoneCodes = [] }) {
+function ProfileField({ field, value, onChange, values, error, locked = false, phoneCodes = [] }) {
   const { t } = useTranslation(["institutions", "common"]);
   const disabled = locked;
   const control = (() => {

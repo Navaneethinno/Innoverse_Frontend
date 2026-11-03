@@ -22,7 +22,7 @@ const PRIORITIES = ["LOW", "NORMAL", "HIGH"];
 // CASE MANAGEMENT > Disputes (menu 204): Customer Cases about one
 // transaction. The list adds the RRN; a case shows its transaction on top,
 // with Make adjustment when the backend allows it; closing asks the outcome.
-export const DISPUTE_QUEUE = {
+const DISPUTE_QUEUE = {
   ...SUPPORT_QUEUE,
   kind: "dispute",
   api: disputeCasesApi,

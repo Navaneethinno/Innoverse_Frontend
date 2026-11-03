@@ -220,4 +220,3 @@ export const partyLabel = (row) => [row?.name, row?.party_role].filter(Boolean).
 
 // Customers and merchants are screened by the same AML (merchant APIs handoff).
 export const CUSTOMER_KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];
-export const TRIGGERS = ["SUBMIT", "RESCREEN", "ONGOING"];

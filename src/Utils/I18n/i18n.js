@@ -2,8 +2,6 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./locales/en";
-import pt from "./locales/pt";
-import ar from "./locales/ar";
 
 // Resources are assembled from one file PER LANGUAGE (locales/en.js,
 // locales/pt.js, ...) rather than a single inline object holding every
@@ -14,8 +12,6 @@ import ar from "./locales/ar";
 // namespaces if useful later.
 const resources = {
   en,
-  pt,
-  ar,
 };
 
 void i18n
@@ -23,6 +19,7 @@ void i18n
   .use(initReactI18next)
   .init({
     resources,
+    partialBundledLanguages: true,
     fallbackLng: "en",
     defaultNS: "common",
     ns: [
@@ -90,5 +87,20 @@ void i18n
       caches: ["localStorage"],
     },
   });
+
+
+// Other languages load when first used, so nobody downloads all of them.
+const OTHERS = { pt: () => import("./locales/pt"), ar: () => import("./locales/ar") };
+export async function loadLanguage(lng) {
+  const code = String(lng ?? "").split("-")[0];
+  if (!OTHERS[code] || i18n.hasResourceBundle(code, "common")) return;
+  const { default: bundle } = await OTHERS[code]();
+  Object.entries(bundle).forEach(([ns, data]) => i18n.addResourceBundle(code, ns, data, true, true));
+}
+const switchLanguage = i18n.changeLanguage.bind(i18n);
+i18n.changeLanguage = async (lng, callback) => {
+  await loadLanguage(lng);
+  return switchLanguage(lng, callback);
+};
 
 export { i18n };

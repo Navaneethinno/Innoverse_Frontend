@@ -121,7 +121,7 @@ const KIND_ORDER = ["section", "field", "placement", "choice", "ussd_step", "lis
 
 // The texts still missing, grouped by kind (most first). Shared by the
 // Customer types tab and the publish check.
-export function MissingTexts({ items, languages }) {
+function MissingTexts({ items, languages }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const [kind, setKind] = useState("all");
   const counts = useMemo(() => {

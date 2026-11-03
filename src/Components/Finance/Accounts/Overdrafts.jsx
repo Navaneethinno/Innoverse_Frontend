@@ -19,7 +19,7 @@ import { SearchBox } from "@/Components/Common/SearchBox";
 // 1st of each month. Requested, then approved by another user (Self at once).
 // Buttons follow each row's `actions` (auth, deauth, cancel, close).
 const BASE = "/config/account/overdraft";
-export const overdraftApi = Object.fromEntries(["list", "get", "add", "auth", "deauth", "cancel", "close"].map((v) => [v, (body) => request(`${BASE}/${v}`, body)]));
+const overdraftApi = Object.fromEntries(["list", "get", "add", "auth", "deauth", "cancel", "close"].map((v) => [v, (body) => request(`${BASE}/${v}`, body)]));
 
 const TABS = ["", "PENDING", "ACTIVE", "CLOSED"];
 // The list answers the overdrafts as `data` with the usual pagination block.
@@ -142,7 +142,7 @@ export function Overdrafts() {
 }
 
 // Used against the limit, as a bar; what is left (headroom) under it.
-export function UsageBar({ od }) {
+function UsageBar({ od }) {
   const { t } = useTranslation("accounts");
   const used = Number(od.used || 0);
   const limit = Number(od.limit_amount || 0);
@@ -159,7 +159,7 @@ export function UsageBar({ od }) {
   );
 }
 
-export function OverdraftButtons({ od, onAct }) {
+function OverdraftButtons({ od, onAct }) {
   const { t } = useTranslation("accounts");
   const a = od.actions ?? {};
   return (
@@ -191,7 +191,7 @@ export function OverdraftButtons({ od, onAct }) {
 // Approve, reject (with a note), cancel one's own request, or close an
 // active overdraft (only once the account is back at zero; the interest
 // accrued is charged then).
-export function DecideOverdraft({ verb, od, onClose, onDone }) {
+function DecideOverdraft({ verb, od, onClose, onDone }) {
   const { t } = useTranslation(["accounts", "common"]);
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState(false);
@@ -240,7 +240,7 @@ export function DecideOverdraft({ verb, od, onClose, onDone }) {
   );
 }
 
-export function RequestOverdraft({ acctNum, onClose, onDone }) {
+function RequestOverdraft({ acctNum, onClose, onDone }) {
   const { t } = useTranslation(["accounts", "common"]);
   const [form, setForm] = useState({ acct_num: acctNum ?? "", limit_amount: "", annual_rate: "", expiry_date: "", reason: "" });
   const [busy, setBusy] = useState(false);

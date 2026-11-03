@@ -282,7 +282,7 @@ function LayoutEdit({ layout, onClose, onSaved }) {
 
 // Read a file with a layout and save nothing: a file already received, or
 // one from this computer (up to 20 MB). `with`: { layout_id } or { definition }.
-export function Preview({ with: using }) {
+function Preview({ with: using }) {
   const { t } = useTranslation("recon");
   const [from, setFrom] = useState("received");
   const [fileId, setFileId] = useState("");

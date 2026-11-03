@@ -131,12 +131,6 @@ export function useActiveInstitutionsQuery() {
   return { ...query, data: mapped.institutions };
 }
 
-export function useInstitutionCreateMutation() {
-  return useInstitutionMutation(useCallback((payload) => institutionsApi.add(payload), []));
-}
-export function useInstitutionUpdateMutation() {
-  return useInstitutionMutation(useCallback((payload) => institutionsApi.edit(payload), []));
-}
 export function useInstitutionAuthMutation() {
   return useInstitutionMutation(useCallback((payload) => institutionsApi.auth(payload), []));
 }

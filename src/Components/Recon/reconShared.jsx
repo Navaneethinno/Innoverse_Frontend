@@ -142,7 +142,7 @@ export function RecordStatus({ record }) {
 // approve / reject a pending record or a pending change of an active one
 // (never the maker's own: recon.maker_checker), edit, deactivate /
 // reactivate, delete (the server refuses one in use), and its history.
-export function reconButtons(record, can, me) {
+function reconButtons(record, can, me) {
   const pending = record.status === "PENDING" || Boolean(record.has_pending);
   const maker = record.has_pending ? record.pending_by : (record.pending_by ?? record.updated_by ?? record.created_by);
   const mine = Boolean(me) && maker === me;
@@ -464,7 +464,7 @@ export function ReadResult({ result, records, rejects }) {
 }
 
 // A preview's records: their fields as columns, the raw line on a click.
-export function RecordRows({ rows }) {
+function RecordRows({ rows }) {
   const { t } = useTranslation("recon");
   const [open, setOpen] = useState(null);
   const keys = [...new Set(rows.flatMap((r) => Object.keys(r.fields ?? {})))].slice(0, 12);
@@ -495,7 +495,7 @@ export function RecordRows({ rows }) {
 }
 
 // Lines that could not be read, with their problems.
-export function RejectRows({ rows }) {
+function RejectRows({ rows }) {
   const { t } = useTranslation("recon");
   return (
     <MiniTable

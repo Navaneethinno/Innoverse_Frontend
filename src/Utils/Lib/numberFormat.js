@@ -9,9 +9,7 @@ const LOCALES = {
   EUROPEAN: "de-DE", // 1.234.567,89
   SPACE: "fr-FR", // 1 234 567,89
 };
-export const NUMBER_FORMATS = Object.keys(LOCALES);
-
-export const numberFormat = () => {
+const numberFormat = () => {
   const value = store.getState()?.token?.user?.formats?.number_format;
   return LOCALES[value] ? value : "WESTERN";
 };

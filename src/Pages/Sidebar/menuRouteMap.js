@@ -17,7 +17,7 @@ export function buildMenuPathForItem(item, menuItems) {
   return menuPathForItem(item, menuItems);
 }
 
-export const kebab = (text) =>
+const kebab = (text) =>
   String(text ?? "")
     .trim()
     .toLowerCase()
@@ -128,9 +128,3 @@ export function menuPage(item) {
   const slug = page.slug ?? page.views?.[0]?.slug ?? null;
   return { ...page, slug, slugs: [...(page.views ?? []).map((v) => v.slug), ...(page.slug ? [page.slug] : []), ...(page.also ?? [])] };
 }
-
-// The Individual / Corporate half a menu opens, or null.
-export const menuBranch = (item) => menuPage(item).branch ?? null;
-
-// The page registry key for a menu (the slug its page is registered under).
-export const menuSlugForItem = (item) => menuPage(item).slug;

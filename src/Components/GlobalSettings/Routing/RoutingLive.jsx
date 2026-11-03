@@ -30,7 +30,7 @@ const STATE_TONES = {
   FORCED_DOWN: "border border-red-500 text-red-700",
   FORCED_UP: "border border-emerald-500 text-emerald-700",
 };
-export function HealthBadge({ state }) {
+function HealthBadge({ state }) {
   const { t } = useTranslation("routing");
   if (!state) return null;
   return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-black", STATE_TONES[state] ?? "bg-muted text-muted-foreground")}>{t(`state_${state}`, { defaultValue: state })}</span>;
@@ -200,7 +200,7 @@ export function Simulator({ scope, instProfileId }) {
 const REASONS = ["MEMBER_INACTIVE", "INTERFACE_INACTIVE", "PROVIDER_INACTIVE", "DOWN", "FORCED_DOWN", "TYPE_NOT_TAKEN", "AMOUNT_BAND"];
 
 // One decision: outcome, why, the card, and every candidate in rank order.
-export function DecisionView({ decision: d }) {
+function DecisionView({ decision: d }) {
   const { t } = useTranslation("routing");
   const chosen = d.chosen_interface ?? d.chosen?.interface;
   return (

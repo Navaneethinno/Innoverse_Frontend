@@ -35,7 +35,7 @@ const SEVERITY_TONE = {
   MEDIUM: "bg-amber-50 text-amber-800",
   LOW: "bg-slate-100 text-slate-700",
 };
-export const SeverityBadge = ({ value }) => {
+const SeverityBadge = ({ value }) => {
   const { t } = useTranslation("monitoring");
   return (
     <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold", SEVERITY_TONE[value] ?? SEVERITY_TONE.LOW)}>

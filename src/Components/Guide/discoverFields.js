@@ -13,7 +13,7 @@ const visible = (el) => {
 };
 
 // Where the form is: the open modal's body, else the page itself.
-export function formRoot() {
+function formRoot() {
   const bodies = [...document.querySelectorAll('[data-tour="modal-body"]')].filter(visible);
   return bodies[bodies.length - 1] ?? document.querySelector('[data-tour="workspace"]');
 }

@@ -53,10 +53,6 @@ export const ACTION_STEPS = ["view", "edit", "audit", "submit", "authorize", "re
   placement: "left",
 }));
 
-export const MAKER_CHECKER_STEP = { id: "makerChecker", center: true };
-
-export const ADD_STEP = { id: "add", target: sel("add"), placement: "bottom-end" };
-
 // Closing steps of any add/edit form that uses the shared FormFooter.
 export const FOOTER_STEPS = [
   { id: "saveDraft", target: sel("save-draft"), placement: "top" },

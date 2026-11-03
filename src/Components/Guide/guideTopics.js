@@ -68,7 +68,7 @@ export const ICONS = {
 };
 
 const find = (target) => (typeof target === "string" ? document.querySelector(target) : target);
-export const present = (step) => step.center || Boolean(find(step.target));
+const present = (step) => step.center || Boolean(find(step.target));
 
 // The page's key in PAGE_TOURS: the last path segment
 // (dashes dropped) with its own steps, else the first segment.

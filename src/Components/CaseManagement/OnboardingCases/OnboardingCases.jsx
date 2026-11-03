@@ -17,7 +17,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 // What differs between the case queues (Onboarding Cases, AML Cases).
 // Optional: `columns(t)` added after the subject, `HeaderAction` beside the
 // title, `TopPanel` above a case's tabs, `closeOutcomes` asked when closing.
-export const ONBOARDING_QUEUE = {
+const ONBOARDING_QUEUE = {
   kind: "onboarding",
   api: onboardingCasesApi,
   outcomes: ["APPROVED", "REJECTED", "WITHDRAWN"],

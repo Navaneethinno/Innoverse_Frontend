@@ -168,7 +168,7 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
   );
 }
 
-export const RESTRICTIONS = ["NONE", "BLOCK_OUTGOING", "SUSPEND"];
+const RESTRICTIONS = ["NONE", "BLOCK_OUTGOING", "SUSPEND"];
 
 // Close an AML case, for a second user to confirm (a System user's applies
 // at once): CLEARED (only once every match is decided in Match Review),

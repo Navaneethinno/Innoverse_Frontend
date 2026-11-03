@@ -3,7 +3,7 @@
 // column goes into `fields` as text. Blank lines are skipped.
 
 // RFC 4180: quoted cells may hold commas, quotes ("") and line breaks.
-export function parseCsv(text) {
+function parseCsv(text) {
   const rows = [];
   let row = [];
   let cell = "";

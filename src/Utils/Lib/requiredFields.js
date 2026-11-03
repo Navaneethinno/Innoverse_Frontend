@@ -4,7 +4,7 @@
 // isn't listed; the server's problem_keys still name those against the field.
 // Fields needed only to send for approval ("on submit") are included.
 // A form marks these with an asterisk (requiredFor / isRequired).
-export const REQUIRED_FIELDS = {
+const REQUIRED_FIELDS = {
   "/config/account/action/add": ["action", "reason"],
   "/config/account/open/add": ["acct_product_id", "entity_id", "entity_type", "reason"],
   "/config/acct/alert_config/add": ["acct_product_id"],
@@ -96,6 +96,3 @@ export const REQUIRED_FIELDS = {
 
 // The required fields of a call (its full path).
 export const requiredFor = (path) => REQUIRED_FIELDS[path] ?? [];
-
-// Whether one field of a call is required.
-export const isRequired = (path, key) => requiredFor(path).includes(key);
