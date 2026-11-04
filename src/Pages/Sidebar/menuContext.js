@@ -21,7 +21,7 @@ export function useOpenMenu() {
   return (slug, state = {}) => {
     const active = (menus ?? []).filter((m) => m?.status === 1);
     const inModule = active.filter((m) => !context?.module || m.module_name === context.module);
-    const target = inModule.find((m) => menuPage(m).slugs.includes(slug)) ?? inModule.find((m) => menuPage(m).slugs.includes(`corp${slug}`));
+    const target = inModule.find((m) => menuPage(m).slugs.includes(slug)) ?? inModule.find((m) => menuPage(m).slugs.includes(`corp${slug}`)) ?? active.find((m) => menuPage(m).slugs.includes(slug));
     // A merged menu opens on the view that page is.
     const view = target && menuPage(target).views?.slice(1).find((v) => v.slug === slug || v.slug === `corp${slug}`);
     navigate(target ? `${menuPathForItem(target, active)}${view ? `?view=${view.key}` : ""}` : `/${slug}`, { state: { menuClick: Date.now(), ...state } });

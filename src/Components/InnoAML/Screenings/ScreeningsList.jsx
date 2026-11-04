@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,14 @@ export function ScreeningsList({ initial = {} }) {
   // Opened for one customer: only their screenings.
   const list = useServerList({ api: amlScreeningApi.listPath, call: amlScreeningApi.list, extra: initial.reference_id ? { reference_id: initial.reference_id } : null });
   useLiveChannel(amlScreeningApi.listPath, () => list.reload());
+  // Opened for a person from a case: straight to the latest, once.
+  const opened = useRef(false);
+  const latest = initial.openLatest ? list.rows?.[0]?.id : null;
+  useEffect(() => {
+    if (!latest || opened.current) return;
+    opened.current = true;
+    setOpenId(latest);
+  }, [latest]);
 
   const columns = [
     { key: "screened_at", label: t("aml:screenedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.screened_at)}</span> },

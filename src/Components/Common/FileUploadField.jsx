@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FileText, Upload, X } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 
@@ -91,6 +92,7 @@ export function FileUploadField({
   hint,
   disabled = false,
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef(null);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -197,6 +199,7 @@ export function FileUploadField({
         >
           <Upload size={15} className="shrink-0" />
           {tr(uploadLabel)}
+          {!disabled && <span className="font-normal opacity-70">· {t("common:orDropHere")}</span>}
         </button>
       )}
       {hint && !uploading && <p className="mt-1 text-[11px] text-muted-foreground">{tr(hint)}</p>}

@@ -199,6 +199,12 @@ export function DynamicSidebar() {
     return groups.length ? groups : [{ module: null, items: [] }];
   }, [isSearching, filteredMenuItems, filteredModules]);
 
+  // A module's own dashboard, from picking it or clicking its name.
+  const openModuleDashboard = (module) => {
+    const name = activeMenuArray.find((m) => Number(m.module_id) === Number(module.module_id))?.module_name ?? module.module_name;
+    if (name) handleNavigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
+  };
+
   const focusSearch = useCallback(() => searchInputRef.current?.focus(), []);
   const clearSearch = useCallback(() => {
     setMenuSearch("");
@@ -327,10 +333,9 @@ export function DynamicSidebar() {
           selectedModule={selectedModule}
           onSelectModule={(module) => {
             setSelectedModuleId(Number(module.module_id));
-            // Picking a module opens its own dashboard (as in payse).
-            const name = activeMenuArray.find((m) => Number(m.module_id) === Number(module.module_id))?.module_name ?? module.module_name;
-            if (name) handleNavigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
+            openModuleDashboard(module);
           }}
+          onOpenModule={openModuleDashboard}
           onOpenChange={onModulesOpen}
           isCollapsed={!isExpanded}
         />
@@ -340,15 +345,10 @@ export function DynamicSidebar() {
         className="thin-scrollbar mt-3 flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto"
         style={{ overflowX: "hidden" }}
       >
-        {!modulesOpen && !isSearching && selectedModule && (
-          <div className="px-2 min-w-0">
-            <ModuleChip module={selectedModule} isExpanded={isExpanded} />
-          </div>
-        )}
         {!modulesOpen &&
           searchGroups.map(({ module, items }) => (
             <div key={module?.module_id ?? "all"} className="px-2 min-w-0">
-              {module && <ModuleChip module={module} isExpanded={isExpanded} />}
+              {module && <ModuleChip module={module} isExpanded={isExpanded} onOpen={() => openModuleDashboard(module)} />}
               <MenuList
                 key={treeKey}
                 menuItems={items}
@@ -441,18 +441,20 @@ export function DynamicSidebar() {
 export const SIDEBAR_WIDTHS = { expanded: SIDEBAR_EXPANDED_W, collapsed: SIDEBAR_COLLAPSED_W };
 
 // The module a menu tree belongs to, as a tinted heading.
-function ModuleChip({ module, isExpanded }) {
+function ModuleChip({ module, isExpanded, onOpen }) {
   return (
     <div className="mb-1 min-w-0">
-      <div
+      <button
+        type="button"
+        onClick={onOpen}
         className={cn(
-          "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0",
+          "flex items-center gap-3 rounded-lg h-10 text-xs font-semibold bg-primary-light text-primary min-w-0 transition-opacity hover:opacity-80",
           isExpanded ? "px-3.5 w-full" : "justify-center w-10 mx-auto px-0",
         )}
       >
         {createElement(getModuleIcon(module.module_name), { size: 15, strokeWidth: 1.8, className: "shrink-0 text-primary" })}
         {isExpanded && <span className="truncate">{moduleLabel(module)}</span>}
-      </div>
+      </button>
     </div>
   );
 }

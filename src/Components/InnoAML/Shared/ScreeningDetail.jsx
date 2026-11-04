@@ -400,9 +400,9 @@ export function ScreeningDetail({ screening, onChange }) {
       {clearing && <ClearAllDialog screeningId={screening.id} name={screening.name ?? subject.name} onClose={() => setClearing(false)} onDone={(next) => onChange?.(next ?? screening)} />}
 
       {reviewing && (
-        <div className="sticky bottom-0 flex items-center justify-end gap-2 rounded-xl border bg-card/95 p-2 backdrop-blur">
+        <div className="sticky bottom-0 z-10 flex items-center justify-end gap-2 rounded-xl border bg-card p-2 shadow-lg">
           {canClearAll && (
-            <button type="button" disabled={saving} onClick={() => setClearing(true)} className="mr-auto flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold text-primary hover:border-primary disabled:opacity-50">
+            <button type="button" disabled={saving} onClick={() => setClearing(true)} className="mr-auto flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold bg-card text-foreground hover:border-primary disabled:opacity-50">
               <ListChecks size={14} /> {t("clearAll")}
             </button>
           )}

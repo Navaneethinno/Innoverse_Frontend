@@ -2,7 +2,7 @@ import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle, ScanSearch } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
@@ -17,6 +17,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { AmlPill, isApproval, outcomeWord, CaseStatus, OverdueFlag, PriorityFlag, ReasonChips, RiskPill, caseDate, subjectKind } from "./caseShared";
+import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { AmlProposeDialog, AssignDialog, CloseCaseDialog, DecideDialog, NoteDialog, ProposeDialog } from "./CaseDialogs";
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -44,6 +45,8 @@ const subjectApi = (subject) =>
 // action replies with the whole case, which replaces what is shown.
 export function CaseView({ id, config, onBack }) {
   const { t } = useTranslation(["cases", "common"]);
+  const canScreenings = useMenuPermission("Screenings");
+  const openMenu = useOpenMenu();
   const api = config?.api ?? onboardingCasesApi;
   const aml = config?.kind === "aml";
   // AML and support (Customer Cases) cases: a conversation with an active customer.
@@ -129,6 +132,11 @@ export function CaseView({ id, config, onBack }) {
               <PriorityFlag priority={kase.priority} />
               <OverdueFlag overdue={kase.overdue} />
             </div>
+            {kase.aml_open_matches > 0 && kase.subject?.reference_id && canScreenings("View") && (
+              <button type="button" onClick={() => openMenu("screenings", { referenceId: kase.subject.reference_id })} className="mt-2 flex w-fit items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100">
+                <ScanSearch size={13} /> {t("reviewAmlMatches", { count: kase.aml_open_matches })}
+              </button>
+            )}
             <p className="mt-1 text-sm font-semibold text-foreground">
               {kase.subject?.name || t("noNameYet")}
               <span className="ml-2 text-xs font-medium text-muted-foreground">{subjectKind(t, kase.subject)}{kase.subject?.customer_type ? ` · ${kase.subject.customer_type}` : ""}</span>

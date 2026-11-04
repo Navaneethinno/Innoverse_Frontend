@@ -1729,6 +1729,7 @@ export const mms = {
 };
 
 export const cases = {
+  reviewAmlMatches: "مراجعة {{count}} من مطابقات مكافحة غسل الأموال المفتوحة في الفحوصات",
   settings: "الإعدادات",
   tab_OVERDUE: "متأخرة",
   loading: "جارٍ التحميل…",
@@ -2400,6 +2401,8 @@ export const myProfile = {
 };
 
 export const common = {
+  orDropHere: "أو أفلته هنا",
+  fileTypeRefused: "نوع الملف هذا غير مقبول هنا ({{accept}}).",
   actorProposedBy: "اقترحه",
   actorApprovedBy: "وافق عليه",
   actorRejectedBy: "رفضه",

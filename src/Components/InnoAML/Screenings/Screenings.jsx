@@ -1,7 +1,7 @@
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useAmlBands } from "./useAmlBands";
 import { ScreeningsList } from "./ScreeningsList";
@@ -16,7 +16,9 @@ export function Screenings() {
   const [params] = useSearchParams();
   const [view, setView] = useState(params.get("view") === "changes" ? "changes" : "screenings");
   const bands = useAmlBands();
-  const referenceId = params.get("reference_id") ?? "";
+  // From a case: that person's screenings, the latest one open.
+  const fromCase = useLocation().state?.referenceId ?? "";
+  const referenceId = fromCase || (params.get("reference_id") ?? "");
 
   return (
     <div className="pt-1 pb-6">
@@ -33,7 +35,7 @@ export function Screenings() {
         value={view}
         onChange={setView}
       />
-      {view === "changes" ? <ScreeningChanges bands={bands} /> : <ScreeningsList initial={referenceId ? { reference_id: referenceId } : {}} />}
+      {view === "changes" ? <ScreeningChanges bands={bands} /> : <ScreeningsList initial={referenceId ? { reference_id: referenceId, openLatest: Boolean(fromCase) } : {}} />}
     </div>
   );
 }

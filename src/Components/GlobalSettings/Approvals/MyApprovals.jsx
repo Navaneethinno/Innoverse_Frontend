@@ -69,8 +69,8 @@ export function MyApprovalsButton() {
           ) : (
             <ul className="grid max-h-[60vh] gap-2 overflow-y-auto">
               {items.map((x) => (
-                <li key={`${x.route}:${x.record_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
-                  <div className="min-w-0">
+                <li key={`${x.route}:${x.record_id}`} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-slate-800">
                       {[x.module_label ?? x.module_name, x.parent_menu_label ?? x.parent_menu_name, x.menu_label ?? x.menu_name].filter(Boolean).join(" › ")} · {t(`approvalAction_${x.action}`, { defaultValue: String(x.action ?? "").replace(/^./, (c) => c.toUpperCase()) })}
                       {x.record_name ? ` · ${x.record_name}` : ` #${x.record_id}`}

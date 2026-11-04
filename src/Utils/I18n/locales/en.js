@@ -4,6 +4,8 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  orDropHere: "or drop it here",
+  fileTypeRefused: "This file type isn't accepted here ({{accept}}).",
   actorProposedBy: "Proposed by",
   actorApprovedBy: "Approved by",
   actorRejectedBy: "Rejected by",
@@ -3228,6 +3230,7 @@ export const formBuilder = {
 };
 
 export const cases = {
+  reviewAmlMatches: "Review {{count}} open AML matches in Screenings",
   disputesTitle: "Disputes",
   noDisputesHint: "A dispute opens when a customer questions a transaction, or when you raise one with its RRN.",
   disputesSubtitle: "Customer cases about one transaction. Settle one with a balance adjustment, or close it as resolved or rejected.",

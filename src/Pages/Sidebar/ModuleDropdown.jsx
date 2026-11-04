@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, LayoutGrid } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -13,12 +13,11 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 // changes which menu tree is shown; per Phase 24C spec it never fabricates
 // a navigation route from the module name.
 //
-// This is the PERMANENT module-selector control — its label always reads
-// "Select module" (it never gets swapped out for the currently selected
-// module's name) so the user always has a visible way to switch modules.
+// This is the PERMANENT module-selector control: it reads "Select module" until
+// one is chosen, then that module's name; its arrow always switches module.
 // The list floats over the sidebar as an overlay so opening it never
 // pushes the search bar, or anything else, around.
-export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpenChange, isCollapsed }) {
+export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpenModule, onOpenChange, isCollapsed }) {
   const { t } = useTranslation("sidebar");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -44,25 +43,30 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpen
 
   return (
     <div className="relative px-2" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
+      <div
         className={cn(
-          "flex items-center gap-2.5 rounded-xl h-10 text-xs font-bold text-primary-foreground transition-colors bg-[var(--primary)] shadow-md",
-          isCollapsed ? "justify-center w-10 mx-auto px-0" : "px-3 w-full justify-between",
+          "flex items-center rounded-xl h-10 text-xs font-bold text-primary-foreground transition-colors bg-[var(--primary)] shadow-md",
+          isCollapsed ? "justify-center w-10 mx-auto" : "w-full",
         )}
         style={{ boxShadow: "0 4px 10px var(--primary-light)" }}
       >
-        <span className="flex items-center gap-2 truncate">
-          <LayoutGrid size={15} strokeWidth={1.8} className="shrink-0" />
-          {!isCollapsed && <span className="truncate">{t("selectModule")}</span>}
-        </span>
+        {/* The chosen module's name opens its dashboard; the arrow switches module. */}
+        <button
+          type="button"
+          onClick={() => (selectedModule && !isCollapsed ? onOpenModule?.(selectedModule) : setIsOpen((open) => !open))}
+          className={cn("flex h-full min-w-0 flex-1 items-center gap-2 truncate text-xs font-bold", isCollapsed ? "justify-center" : "pl-3")}
+        >
+          {createElement(selectedModule ? getModuleIcon(selectedModule.module_name) : LayoutGrid, { size: 15, strokeWidth: 1.8, className: "shrink-0" })}
+          {!isCollapsed && <span className="truncate">{selectedModule ? moduleLabel(selectedModule) : t("selectModule")}</span>}
+        </button>
         {!isCollapsed && (
-          <motion.span animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
-            <ChevronRight size={14} />
-          </motion.span>
+          <button type="button" aria-label={t("selectModule")} title={t("selectModule")} onClick={() => setIsOpen((open) => !open)} className="flex h-full shrink-0 items-center px-3">
+            <motion.span className="flex" animate={{ rotate: isOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
+              <ChevronRight size={14} />
+            </motion.span>
+          </button>
         )}
-      </button>
+      </div>
 
       <AnimatePresence>
       {isOpen && (

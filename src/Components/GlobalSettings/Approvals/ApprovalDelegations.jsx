@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, PowerOff, Trash2, UserCog } from "lucide-react";
-import { ListTable, TabButton } from "@/Components/Common/ListView";
+import { ListTable } from "@/Components/Common/ListView";
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { Modal } from "@/Components/Common/Modal";
@@ -310,14 +311,7 @@ export function ApprovalDelegations() {
         <PageTitle>{t("delegationsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("delegationsSubtitle")}</p>
       </div>
-      <div className="mb-4 flex gap-1.5">
-        <TabButton active={tab === "delegations"} onClick={() => setTab("delegations")}>
-          {t("delegations")}
-        </TabButton>
-        <TabButton active={tab === "supervisors"} onClick={() => setTab("supervisors")}>
-          {t("supervisors")}
-        </TabButton>
-      </div>
+      <SegmentedSwitch className="mb-4" options={[{ value: "delegations", label: t("delegations") }, { value: "supervisors", label: t("supervisors") }]} value={tab} onChange={setTab} />
       {tab === "delegations" ? <DelegationsTab can={can} users={users} /> : <SupervisorsTab can={can} users={users} />}
     </div>
   );

@@ -2,6 +2,8 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  orDropHere: "ou largue-o aqui",
+  fileTypeRefused: "Este tipo de ficheiro não é aceite aqui ({{accept}}).",
   actorProposedBy: "Proposto por",
   actorApprovedBy: "Aprovado por",
   actorRejectedBy: "Rejeitado por",
@@ -3000,6 +3002,7 @@ export const formBuilder = {
 };
 
 export const cases = {
+  reviewAmlMatches: "Rever {{count}} correspondências AML abertas em Triagens",
   settings: "Configurações",
   tab_OVERDUE: "Atrasados",
   loading: "Carregando…",
