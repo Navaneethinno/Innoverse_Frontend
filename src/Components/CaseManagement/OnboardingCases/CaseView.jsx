@@ -2,7 +2,7 @@ import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle, ScanSearch } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle, ScanSearch, ArrowRight } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
@@ -133,8 +133,9 @@ export function CaseView({ id, config, onBack }) {
               <OverdueFlag overdue={kase.overdue} />
             </div>
             {kase.aml_open_matches > 0 && kase.subject?.reference_id && canScreenings("View") && (
-              <button type="button" onClick={() => openMenu("screenings", { referenceId: kase.subject.reference_id })} className="mt-2 flex w-fit items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100">
+              <button type="button" onClick={() => openMenu("screenings", { referenceId: kase.subject.reference_id })} className="group mt-2 flex w-fit cursor-pointer items-center gap-1.5 rounded-xl border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 shadow-sm transition-all hover:-translate-y-px hover:bg-red-600 hover:text-white hover:shadow-md">
                 <ScanSearch size={13} /> {t("reviewAmlMatches", { count: kase.aml_open_matches })}
+                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
               </button>
             )}
             <p className="mt-1 text-sm font-semibold text-foreground">
