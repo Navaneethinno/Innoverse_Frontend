@@ -32,6 +32,7 @@ export const AML_QUEUE = {
   outcomes: ["CLEARED", "CONFIRMED", "NO_ACTION"],
   titleKey: "amlTitle",
   subtitleKey: "amlSubtitle",
+  emptyHintKey: "noAmlCasesHint",
   settings: false,
 };
 // Customer Cases: support cases the customer opened; a new one starts as

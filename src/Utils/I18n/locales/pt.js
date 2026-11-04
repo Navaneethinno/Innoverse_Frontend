@@ -3118,6 +3118,8 @@ export const cases = {
   age: "Idade",
   noCases: "Nenhum caso aqui",
   noCasesHint: "Um caso é aberto quando o resultado de risco ou AML de um novo cliente ou comerciante precisa de revisão.",
+  noAmlCasesHint: "Um caso é aberto quando um resultado de AML ou um alerta é levantado para um cliente ou comerciante.",
+  customerStatus: "Estado do cliente",
   noSupportCasesHint: "Um caso é aberto quando um cliente ou comerciante faz uma pergunta ou uma reclamação na aplicação ou na web.",
   contactEmail: "E-mail",
   contactPhone: "Telefone",

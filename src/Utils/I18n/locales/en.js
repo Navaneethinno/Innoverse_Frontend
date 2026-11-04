@@ -3364,6 +3364,8 @@ export const cases = {
   age: "Age",
   noCases: "No cases here",
   noCasesHint: "A case opens when a new customer's or merchant's risk or AML result needs review.",
+  noAmlCasesHint: "A case opens when an AML result or a flag is raised for a customer or merchant.",
+  customerStatus: "Customer status",
   noSupportCasesHint: "A case opens when a customer or merchant asks a question or makes a complaint in the app or on the web.",
   contactEmail: "Email",
   contactPhone: "Phone",

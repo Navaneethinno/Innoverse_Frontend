@@ -479,10 +479,7 @@ function AmlOverviewTab({ kase }) {
       <Tile label={t("contact")}>
         <ContactLines subject={kase.subject} />
       </Tile>
-      <Tile label={t("customerReference")}>
-        <p className="break-all font-mono text-xs">{kase.subject?.reference_id ?? "—"}</p>
-        <p className="text-xs text-muted-foreground">{kase.subject?.status_name ?? ""}</p>
-      </Tile>
+      <Tile label={t("customerStatus")}>{kase.subject?.status_name || "—"}</Tile>
       {kase.category ? (
         <Tile label={t("category")}>{t(`category_${kase.category}`, { defaultValue: kase.category })}</Tile>
       ) : (
