@@ -22,7 +22,7 @@ export function shouldBlock(type, target) {
   return (type === "copy" || type === "cut") && !closest(target, EDITABLE);
 }
 
-export const isPrintShortcut = (event) => (event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === "p";
+export const isPrintShortcut = (event) => Boolean(event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === "p";
 
 // A deterrent for casual copying, not a protection: browser tools and
 // screenshots (the system's, which no page can stop) still reach what is on screen. Access stays the server's.
