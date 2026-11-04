@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { findMenuByPath, menuChain } from "@/Pages/Sidebar/menuRouteMap";
+import { findMenuByPath, menuChain, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
 import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { menuLabel, moduleLabel } from "@/Pages/Sidebar/menuLabels";
@@ -28,22 +28,28 @@ export function PageBreadcrumbs() {
   const crumbKeys = getRouteMetadata(pathname)?.breadcrumb ?? ["crumbDashboard"];
   const menus = useSelector((state) => state.menu.menuArray);
   // A sidebar menu page (/<module>/<menu path>): its module and menu chain,
-  // as the backend names them. Only the page itself is a link.
+  // as the backend names them. The module opens its dashboard.
   const menuCrumbs = useMemo(() => {
     const active = (menus ?? []).filter((m) => m?.status === 1);
     const menu = findMenuByPath(active, pathname);
-    return menu ? [moduleLabel(menu), ...menuChain(menu, active).map(menuLabel)].filter(Boolean) : null;
+    return menu ? { dashboard: moduleDashboardPath(menu.module_name), names: [moduleLabel(menu), ...menuChain(menu, active).map(menuLabel)].filter(Boolean) } : null;
   }, [menus, pathname]);
 
   if (menuCrumbs) {
     return (
       <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
-        {menuCrumbs.map((name, index) => (
+        {menuCrumbs.names.map((name, index) => (
           <span key={`${name}-${index}`} className="flex min-w-0 items-center gap-1">
             {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />}
-            <span className={index === menuCrumbs.length - 1 ? "truncate font-semibold text-foreground" : "truncate font-medium text-muted-foreground"}>
-              {name}
-            </span>
+            {index === 0 ? (
+              <button type="button" onClick={() => navigate(menuCrumbs.dashboard)} className="truncate font-medium text-muted-foreground transition-colors hover:text-primary hover:underline">
+                {name}
+              </button>
+            ) : (
+              <span className={index === menuCrumbs.names.length - 1 ? "truncate font-semibold text-foreground" : "truncate font-medium text-muted-foreground"}>
+                {name}
+              </span>
+            )}
           </span>
         ))}
       </nav>
