@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Play, RefreshCw, Undo2, XCircle } from "lucide-react";
@@ -77,7 +78,7 @@ export function HealthBoard({ scope }) {
           {t("refresh")}
         </Button>
       </div>
-      {!rows.length && <p className="py-6 text-center text-sm text-muted-foreground">{t("noInterfaces")}</p>}
+      {!rows.length && <EmptyNote>{t("noInterfaces")}</EmptyNote>}
       {rows.map((h) => (
         <div key={h.interface} className="rounded-2xl border border-border bg-card p-3">
           <div className="flex flex-wrap items-start justify-between gap-2">

@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -500,7 +501,7 @@ export function AuditHistory({
           </button>
         </div>
       ) : entries.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">{t("common:noAuditHistoryFound")}</p>
+        <EmptyNote>{t("common:noAuditHistoryFound")}</EmptyNote>
       ) : (
         <div className="space-y-3">
           {entriesWithChanges.map((entry, index) => (

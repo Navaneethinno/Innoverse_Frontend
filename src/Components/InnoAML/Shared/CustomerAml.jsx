@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -106,7 +107,7 @@ export function CustomerAmlModal({ customerKind, referenceId, onClose }) {
       {view === "media" ? (
         <AdverseMediaCustomer customerKind={customerKind} referenceId={referenceId} />
       ) : missing ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{missing}</p>
+        <EmptyNote>{missing}</EmptyNote>
       ) : !result ? (
         <div className="flex justify-center py-8">
           <Spinner size={20} />

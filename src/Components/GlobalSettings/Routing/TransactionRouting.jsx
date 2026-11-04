@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -44,7 +45,7 @@ export function TransactionRouting() {
       </div>
       <Tabs tabs={PAGE_TABS.map((key) => ({ key }))} value={tab} onChange={setTab} labelOf={(k) => t(`tab_${k}`)} />
       {tab === "setups" && <SetupList scope={scope} chooser={chooser} institution={institution} onOpen={setScreen} />}
-      {tab !== "setups" && needsInstitution && <p className="py-8 text-center text-sm text-muted-foreground">{t("pickInstitution")}</p>}
+      {tab !== "setups" && needsInstitution && <EmptyNote>{t("pickInstitution")}</EmptyNote>}
       {!needsInstitution && tab === "health" && <HealthBoard key={institution} scope={scope} />}
       {!needsInstitution && tab === "simulator" && <Simulator key={institution} scope={scope} instProfileId={scope().inst_profile_id} />}
       {!needsInstitution && tab === "decisions" && <Decisions key={institution} instProfileId={scope().inst_profile_id} />}

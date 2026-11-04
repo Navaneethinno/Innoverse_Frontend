@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Plus, X } from "lucide-react";
@@ -37,7 +38,7 @@ function FatfList({ onClose }) {
           <Spinner size={18} />
         </div>
       ) : !rows.length ? (
-        <p className="py-4 text-center text-sm text-muted-foreground">{t("fatfListEmpty")}</p>
+        <EmptyNote>{t("fatfListEmpty")}</EmptyNote>
       ) : (
         <ul className="grid max-h-[60vh] gap-1.5 overflow-y-auto">
           {rows.map((c) => (

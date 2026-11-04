@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -590,7 +591,7 @@ function ConversationTab({ caseId, api, events, canMessage, busy, onSend }) {
             })}
           </ol>
         ) : (
-          <p className="py-6 text-center text-sm text-muted-foreground">{t("noConversation")}</p>
+          <EmptyNote>{t("noConversation")}</EmptyNote>
         )}
       </div>
       {canMessage && (

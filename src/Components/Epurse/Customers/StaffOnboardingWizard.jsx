@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
@@ -517,7 +518,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
       );
     }
     if (loading || !wizard) return <div className="flex justify-center py-10"><Spinner size={22} /></div>;
-    if (!section) return <p className="py-6 text-center text-sm text-muted-foreground">{t("customer:thisCustomerTypeHasNoConfiguredSections")}</p>;
+    if (!section) return <EmptyNote>{t("customer:thisCustomerTypeHasNoConfiguredSections")}</EmptyNote>;
 
     const rows = Array.isArray(effectiveDraft) ? effectiveDraft : [];
     const canAddRow = editable && (!section.max_rows || rows.length < section.max_rows);

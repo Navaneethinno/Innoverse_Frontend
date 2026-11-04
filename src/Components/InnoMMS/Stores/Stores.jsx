@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -427,7 +428,7 @@ function StoreWalletsCard({ merchant, permission }) {
 export function MerchantStores({ merchant }) {
   const can = useMenuPermission("Stores");
   const { t } = useTranslation("mms");
-  if (!can("View")) return <p className="py-4 text-center text-sm text-muted-foreground">{t("noStoresAccess")}</p>;
+  if (!can("View")) return <EmptyNote>{t("noStoresAccess")}</EmptyNote>;
   return (
     <div className="grid gap-4 [&>*]:min-w-0">
       <StoreWalletsCard merchant={merchant} permission={can} />

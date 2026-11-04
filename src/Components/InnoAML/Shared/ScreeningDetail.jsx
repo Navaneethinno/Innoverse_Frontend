@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Ban, BriefcaseBusiness, ChevronDown, History, ListChecks, Send } from "lucide-react";
@@ -71,7 +72,7 @@ export function ReviewHistory({ matchId, onClose, load = amlReviewApi.history })
           <Spinner />
         </div>
       ) : steps.length === 0 ? (
-        <p className="py-4 text-center text-sm text-muted-foreground">{t("noReviewsYet")}</p>
+        <EmptyNote>{t("noReviewsYet")}</EmptyNote>
       ) : (
         <ol className="space-y-2">
           {steps.map((s, i) => (

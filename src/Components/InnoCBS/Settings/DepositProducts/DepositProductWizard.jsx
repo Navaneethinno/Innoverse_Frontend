@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useEffect, useRef, useState } from "react";
@@ -329,7 +330,7 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
                 <ActionIconButton label={t("removeTenor")} intent="delete" icon={Trash2} onClick={() => set({ tenors: config.tenors.filter((_, j) => j !== i) })} className="mb-1" />
               </div>
             ))}
-            {!config.tenors.length && <p className="py-6 text-center text-sm text-muted-foreground">{t("noTenors")}</p>}
+            {!config.tenors.length && <EmptyNote>{t("noTenors")}</EmptyNote>}
           </div>
         </Section>
       )}

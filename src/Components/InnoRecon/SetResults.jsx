@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Download, Link2, MessageSquare, Play, RotateCcw, Stamp, Unlink, UserPlus, XCircle } from "lucide-react";
@@ -180,7 +181,7 @@ export function SetGroups({ set }) {
           <Spinner size={16} />
         </div>
       ) : list.items.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t("noGroups")}</p>
+        <EmptyNote>{t("noGroups")}</EmptyNote>
       ) : (
         list.items.map((g) => (
           <GroupCard

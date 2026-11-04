@@ -6816,6 +6816,7 @@ export const statements = {
 };
 
 export const cards = {
+  layoutTotalDigits: "إجمالي الأرقام",
   holdersTitle: "أصحاب البطاقات",
   orderRequestsTitle: "الطلبات المطلوب إصدارها",
   deliveryDefaultShort: "الافتراضي",

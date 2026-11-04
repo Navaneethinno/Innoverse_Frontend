@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, Search } from "lucide-react";
@@ -104,7 +105,7 @@ export function LimitMembers({ group, canMove, onClose }) {
               <Spinner size={20} />
             </div>
           ) : members.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t("noMembers")}</p>
+            <EmptyNote>{t("noMembers")}</EmptyNote>
           ) : (
             <ul className="divide-y">
               {members.map((m) => (

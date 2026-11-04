@@ -388,11 +388,6 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                     />,
                   )}
               {field(
-                t("creditScore"),
-                <Field field={{ type: "int" }} value={form.credit_score} onChange={set("credit_score")} />,
-                t("creditScoreHint"),
-              )}
-              {field(
                 t("disbursementWallet"),
                 <Field
                   field={{
@@ -428,8 +423,26 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                   value={form.application_channel}
                   onChange={set("application_channel")}
                 />,
+                form.application_channel === "BRANCH" ? t("branchFromUser") : null,
               )}
-              {form.application_channel === "BRANCH" && <p className="self-end text-[11px] text-muted-foreground">{t("branchFromUser")}</p>}
+              {officerOptions(setup).length > 0 &&
+                field(
+                  t("loanOfficer"),
+                  <Field
+                    field={{
+                      type: "select",
+                      blank: t("officerDefault"),
+                      options: officerOptions(setup),
+                    }}
+                    value={form.officer_user_id}
+                    onChange={set("officer_user_id")}
+                  />,
+                )}
+              {field(
+                t("creditScore"),
+                <Field field={{ type: "int" }} value={form.credit_score} onChange={set("credit_score")} />,
+                t("creditScoreHint"),
+              )}
               {individual
                 ? field(
                     t("monthlyIncome"),
@@ -448,19 +461,6 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                       onChange={set("operating_months")}
                     />,
                   )}
-              {officerOptions(setup).length > 0 &&
-                field(
-                  t("loanOfficer"),
-                  <Field
-                    field={{
-                      type: "select",
-                      blank: t("officerDefault"),
-                      options: officerOptions(setup),
-                    }}
-                    value={form.officer_user_id}
-                    onChange={set("officer_user_id")}
-                  />,
-                )}
               {(groups.length > 0 || rules.group_only) &&
                 field(
                   t("borrowerGroup"),
@@ -536,10 +536,10 @@ export function ApplicationForm({ application, onClose, onSaved }) {
                   onChange={set("purpose_description")}
                 />
               </label>
-              {field(
-                t("narrationOptional"),
-                <Field field={{}} value={form.narration} onChange={set("narration")} />,
-              )}
+              <label className={cn(labelClass, "sm:col-span-2 lg:col-span-4")}>
+                {t("narrationOptional")}
+                <Field field={{}} value={form.narration} onChange={set("narration")} />
+              </label>
             </div>
           )}
 

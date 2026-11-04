@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, CheckCircle2, ChevronDown, Landmark, PackageCheck, Plus, Truck, Undo2, XCircle } from "lucide-react";
@@ -450,7 +451,7 @@ function Positions() {
       });
   }, [scope]);
   if (!rows) return <PageSkeleton />;
-  if (!rows.length) return <p className="py-8 text-center text-sm text-muted-foreground">{t("noPositions")}</p>;
+  if (!rows.length) return <EmptyNote>{t("noPositions")}</EmptyNote>;
   return (
     <div className="grid gap-3 lg:grid-cols-2" data-tour="treasury-positions">
       <p className="text-xs text-muted-foreground lg:col-span-2">{t("positionsHint")}</p>
@@ -525,17 +526,17 @@ function InterBranch() {
   }, [asOf, scope]);
   return (
     <div className="grid gap-3">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <p className="max-w-3xl text-xs text-muted-foreground">{t("interBranchHint")}</p>
-        <label className={labelClass}>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+        <p className="min-w-0 flex-1 basis-80 text-xs leading-relaxed text-muted-foreground">{t("interBranchHint")}</p>
+        <label className={cn(labelClass, "flex shrink-0 items-center gap-2")}>
           {t("asOf")}
-          <DateInput className={cn(inputClass, "mt-1.5 w-44")} value={asOf} onChange={(e) => setAsOf(e.target.value)} />
+          <DateInput className={cn(inputClass, "w-44")} value={asOf} onChange={(e) => setAsOf(e.target.value)} />
         </label>
       </div>
       {!rows ? (
         <PageSkeleton />
       ) : !rows.length ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">{t("noInterBranch")}</p>
+        <EmptyNote>{t("noInterBranch")}</EmptyNote>
       ) : (
         rows.map((c) => (
           <Section key={c.currency_id} title={`${c.currency} · ${c.as_of ?? ""}`}>

@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Clock3, History, Play, RefreshCw, Save } from "lucide-react";
@@ -125,7 +126,7 @@ export function ScheduledJobs() {
           );
         })}
       </div>
-      {!loading && !jobs.length && <p className="py-10 text-center text-sm text-muted-foreground">{t("noJobs")}</p>}
+      {!loading && !jobs.length && <EmptyNote>{t("noJobs")}</EmptyNote>}
 
       {runsOf && <JobRuns job={runsOf} onClose={() => setRunsOf(null)} />}
     </div>

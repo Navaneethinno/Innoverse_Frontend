@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -113,7 +114,7 @@ export function PortfolioQuality() {
           ))}
           <Section title={t(`parBy_${groupBy}`)}>
             {!(data.rows ?? []).length ? (
-              <p className="py-4 text-center text-sm text-muted-foreground">{t("noLoans")}</p>
+              <EmptyNote>{t("noLoans")}</EmptyNote>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

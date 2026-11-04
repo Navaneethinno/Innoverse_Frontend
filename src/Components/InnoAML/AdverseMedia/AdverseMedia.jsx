@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
@@ -1304,7 +1305,7 @@ function ResultView({ search, onChange }) {
         )}
         </>
         )}
-        {!articles.length && <p className="py-6 text-center text-sm text-muted-foreground">{t("mediaNothingFound")}</p>}
+        {!articles.length && <EmptyNote>{t("mediaNothingFound")}</EmptyNote>}
         <label className="flex items-center gap-2 text-xs text-muted-foreground">
           <input type="checkbox" checked={ruledOut} onChange={(e) => void toggleRuledOut(e.target.checked)} className="accent-[var(--primary)]" />
           {t("mediaShowRuledOut", { count: stats.not_subject ?? 0 })}

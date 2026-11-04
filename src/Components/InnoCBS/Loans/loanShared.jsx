@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { TypedInput } from "@/Components/Common/DateInput";
 import { PagedList } from "@/Components/Common/Pager";
 import { useCallback, useState } from "react";
@@ -285,7 +286,7 @@ export function MiniTable({
   const { t } = useTranslation("loans");
   if (!rows?.length)
     return (
-      <p className="py-4 text-center text-sm text-muted-foreground">{empty ?? t("nothingYet")}</p>
+      <EmptyNote>{empty ?? t("nothingYet")}</EmptyNote>
     );
   const columns = given.filter((c) => !c.hideIfZero || rows.some((r) => !isZero(valueOf(c, r))));
   const cell = (c, r) => {
@@ -304,7 +305,7 @@ export function MiniTable({
   return (
     <div
       className={cn(
-        "overflow-auto rounded-xl border border-border",
+        "overflow-auto rounded-xl border border-border bg-card",
         rows.length > LONG_TABLE && "max-h-[28rem]",
       )}
     >
@@ -408,7 +409,7 @@ export function ScheduleTable({ installments, currency }) {
 export function Timeline({ events, currency }) {
   const { t } = useTranslation("loans");
   if (!events?.length)
-    return <p className="py-4 text-center text-sm text-muted-foreground">{t("nothingYet")}</p>;
+    return <EmptyNote>{t("nothingYet")}</EmptyNote>;
   const show = (k, v) => {
     if (Array.isArray(v)) return v.map((x) => loanLabel(t, x)).join(", ");
     if (/rate/.test(k)) return ratePct(v);

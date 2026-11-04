@@ -5787,6 +5787,7 @@ export const limits = {
 };
 
 export const cards = {
+  layoutTotalDigits: "Total digits",
   holdersTitle: "Holders",
   orderRequestsTitle: "Requests to order",
   deliveryDefaultShort: "Default",

@@ -5294,6 +5294,7 @@ export const limits = {
 };
 
 export const cards = {
+  layoutTotalDigits: "Total de dígitos",
   holdersTitle: "Titulares",
   orderRequestsTitle: "Pedidos a encomendar",
   deliveryDefaultShort: "Predefinida",

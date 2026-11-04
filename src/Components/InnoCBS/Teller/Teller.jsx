@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -780,7 +781,7 @@ function Desk({ waiting }) {
 
   if (!tills) return <PageSkeleton />;
   if (!can("Self"))
-    return <p className="py-8 text-center text-sm text-muted-foreground">{t("notATeller")}</p>;
+    return <EmptyNote>{t("notATeller")}</EmptyNote>;
   const dayBanner = closedDays.length > 0 && (
     <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-800">
       {t("branchDayClosed", { branches: closedDays.map((d) => d.branch_name).join(", ") })}
@@ -2026,7 +2027,7 @@ function EndOfDay() {
         )}
       </div>
       {!branchId ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">{t("noBranches")}</p>
+        <EmptyNote>{t("noBranches")}</EmptyNote>
       ) : !report ? (
         <PageSkeleton />
       ) : (

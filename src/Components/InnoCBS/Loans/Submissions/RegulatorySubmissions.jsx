@@ -343,11 +343,11 @@ function SubmissionView({ id, onBack }) {
         )}
       </div>
 
-      <div className="mb-4 grid gap-3 lg:grid-cols-2">
+      <div className="mb-4 grid gap-3">
         {Object.entries(report.totals ?? {}).map(([cur, x]) => (
           <Section key={cur} title={t("totalsIn", { currency: cur, count: x.count })}>
             <Facts
-              className="lg:grid-cols-3"
+              className="sm:grid-cols-2 lg:grid-cols-4"
               rows={[
                 [t("principalDisbursed"), money(x.principal_disbursed, cur)],
                 [t("outstanding"), money(x.principal_outstanding, cur)],

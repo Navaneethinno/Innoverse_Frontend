@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyRound, Lock, LockOpen, ShieldAlert } from "lucide-react";
@@ -40,7 +41,7 @@ export function KeyCustodyPage() {
 
   if (!loaded) return <PageSkeleton />;
   if (!status)
-    return <p className="py-8 text-center text-sm text-muted-foreground">{t("notCustodian")}</p>;
+    return <EmptyNote>{t("notCustodian")}</EmptyNote>;
   const k = status.keys ?? {};
   const you = status.you ?? {};
   const state = k.locked

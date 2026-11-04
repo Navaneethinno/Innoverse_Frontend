@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, Send, UserRound } from "lucide-react";
@@ -294,7 +295,7 @@ export function OwnerFinder({ onPick }) {
               </span>
             </button>
           ))}
-          {!rows.length && <p className="py-4 text-center text-sm text-muted-foreground">{t("noOwnersFound")}</p>}
+          {!rows.length && <EmptyNote>{t("noOwnersFound")}</EmptyNote>}
         </div>
       )}
     </div>

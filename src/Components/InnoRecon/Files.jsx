@@ -1,3 +1,4 @@
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -282,7 +283,7 @@ function FileDetail({ file, onClose, onChanged }) {
             onChange={setTab}
             labelOf={(k) => t(`fileTab_${k}`)}
           />
-          {tab === "result" && (f.read_result ? <ReadResult result={f.read_result} /> : <p className="py-6 text-center text-sm text-muted-foreground">{t("notReadYet")}</p>)}
+          {tab === "result" && (f.read_result ? <ReadResult result={f.read_result} /> : <EmptyNote>{t("notReadYet")}</EmptyNote>)}
           {tab === "records" && <FileRecords fileId={f.id} />}
           {tab === "rejects" && <FileRejects fileId={f.id} />}
         </div>
