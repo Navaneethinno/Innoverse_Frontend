@@ -35,7 +35,7 @@ export function Branches() {
   return (
     <SectionScreen api={cbsBranchesApi} fallbackTitle={t("tab_branches")} toForm={toForm} toValue={toValue} problemOf={problemOf}>
       {({ data, shown, editing, setForm }) => {
-        const named = (list) => list.map((value) => ({ value, label: data.names?.[value] ?? value }));
+        const named = (list, key) => list.map((value) => ({ value, label: data.names?.[key]?.[value] ?? value }));
         return (
           <>
             <p className="mb-1 text-xs text-muted-foreground">{t("branchesHint")}</p>
@@ -51,8 +51,8 @@ export function Branches() {
                 { key: "code", label: <>{t("code")}<RequiredMark /></>, type: "code", disabledIf: (r) => r._saved },
                 { key: "name", label: <>{t("name")}<RequiredMark /></> },
                 { key: "address", label: t("address") },
-                { key: "status", label: t("status"), type: "select", options: named(data.options?.branch_statuses ?? ["OPEN", "CLOSED"]) },
-                { key: "head_office_type", label: t("branchType"), type: "select", options: named(data.options?.head_office_types ?? ["", "OPERATIONAL", "ADMINISTRATIVE"]) },
+                { key: "status", label: t("status"), type: "select", options: named(data.options?.branch_statuses ?? ["OPEN", "CLOSED"], "branch_statuses") },
+                { key: "head_office_type", label: t("branchType"), type: "select", options: named(data.options?.head_office_types ?? ["", "OPERATIONAL", "ADMINISTRATIVE"], "head_office_types") },
                 { key: "cash_holding_limit", label: t("cashHoldingLimit"), type: "amount", disabledIf: (r) => r.head_office_type === "ADMINISTRATIVE" },
               ]}
             />

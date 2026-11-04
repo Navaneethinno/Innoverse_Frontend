@@ -43,7 +43,7 @@ export function TreasurySettings() {
               fields={[
                 { key: "code", label: t("code"), type: "code" },
                 { key: "name", label: t("name") },
-                { key: "kind", label: t("cpKind"), type: "select", options: (data.options?.counterparty_kinds ?? ["CENTRAL_BANK", "SETTLEMENT_BANK", "CORRESPONDENT"]).map((k) => ({ value: k, label: data.names?.[k] ?? t(`cpKind_${k}`) })) },
+                { key: "kind", label: t("cpKind"), type: "select", options: (data.options?.counterparty_kinds ?? ["CENTRAL_BANK", "SETTLEMENT_BANK", "CORRESPONDENT"]).map((k) => ({ value: k, label: data.names?.counterparty_kinds?.[k] ?? t(`cpKind_${k}`) })) },
                 { key: "gl_account_id", label: t("nostroGl"), type: "select", blank: t("choose"), options: (gls ?? []).filter((g) => g.is_account && g.gl_type === "ASSET").map((g) => ({ value: String(g.id), label: glLabel(g) })) },
                 { key: "minimum_balance", label: t("minimumBalance"), type: "amount" },
               ]}

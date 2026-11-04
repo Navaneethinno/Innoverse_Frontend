@@ -15,7 +15,7 @@ export function CreditBureau() {
     <SectionScreen api={cbsCreditBureauApi} fallbackTitle={t("tab_credit_bureau")} toValue={toValue} problemOf={problemOf}>
       {({ data, shown, editing, setForm }) => {
         const set = (patch) => setForm((f) => ({ ...f, ...patch }));
-        const providers = (data.options?.bureau_providers ?? ["SIMULATOR", "HTTP"]).map((value) => ({ value, label: data.names?.[value] ?? value }));
+        const providers = (data.options?.bureau_providers ?? ["SIMULATOR", "HTTP"]).map((value) => ({ value, label: data.names?.bureau_providers?.[value] ?? value }));
         return (
           <>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
