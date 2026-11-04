@@ -20,7 +20,9 @@ import { inputClass, Section } from "../Finance/Deposits/depositShared";
 import { MiniTable } from "../Finance/Loans/loanShared";
 import { ListTable } from "@/Components/Common/ListView";
 import { RowActions } from "@/Components/Common/RowActions";
-import { FactGrid, Field, PagedTable, ReconStatus, label, perCurrency, reconDate, recordColumns, useDebounced, usePage } from "./reconShared";
+import { formatDay } from "@/Utils/Lib/dateFormat";
+import { money } from "../Finance/Accounts/accountShared";
+import { FactGrid, Field, PagedTable, ReconStatus, label, perCurrency, reconDate, recordColumns, recordWhen, useDebounced, usePage } from "./reconShared";
 
 // A set's results: its runs, the groups they made, what is still open
 // (timing differences inside the window, breaks past it) and their aging.
@@ -67,7 +69,7 @@ export function SetRuns({ set, onChanged }) {
   };
   const busy = running?.status === "RUNNING";
   const columns = [
-    { key: "business_date", label: t("businessDate"), render: (r) => <span className="text-xs font-semibold">{r.business_date}</span> },
+    { key: "business_date", label: t("businessDate"), render: (r) => <span className="whitespace-nowrap text-xs font-semibold">{formatDay(r.business_date)}</span> },
     { key: "window_from", label: t("windowFrom"), render: (r) => <span className="text-xs">{r.window_from}</span> },
     { key: "set_version", label: t("version"), render: (r) => <span className="text-xs tabular-nums">{r.set_version}</span> },
     { key: "status", label: t("status"), render: (r) => <ReconStatus value={r.status} /> },
@@ -95,7 +97,7 @@ export function SetRuns({ set, onChanged }) {
       )}
       <ListTable list={list} columns={columns} rowKey={(r) => r.id} title={t("runs")} emptyTitle={t("noRuns")} />
       {shown && (
-        <Modal open onClose={() => setShown(null)} size="xl" title={t("runOf", { date: shown.business_date })}>
+        <Modal open onClose={() => setShown(null)} size="xl" title={t("runOf", { date: formatDay(shown.business_date) })}>
           <RunSummary run={shown} />
         </Modal>
       )}
@@ -114,7 +116,7 @@ function RunSummary({ run }) {
         <ReconStatus value={run.status} />
         {run.error && <span className="text-xs font-semibold text-red-700">{run.error}</span>}
       </div>
-      <FactGrid rows={[["window", `${run.window_from} → ${run.business_date}`], ["groups", s.groups], ["reversed", s.reversed], ["merged", s.merged], ["seconds", s.seconds], ["finished", reconDate(run.finished_at)]]} />
+      <FactGrid rows={[["window", `${formatDay(run.window_from)} → ${formatDay(run.business_date)}`], ["groups", s.groups], ["reversed", s.reversed], ["merged", s.merged], ["seconds", s.seconds], ["finished", reconDate(run.finished_at)]]} />
       <Section title={t("perSource")}>
         <MiniTable
           rows={s.sources}
@@ -164,7 +166,7 @@ export function SetGroups({ set }) {
   const [request, setRequest] = useState(null);
   const list = usePage(reconResultsApi.groups, { set_id: set.id, ...(status ? { filters: { status } } : {}), ...(from ? { date_from: from } : {}), ...(to ? { date_to: to } : {}), ...(search.trim() ? { search: search.trim() } : {}) });
   const sources = set.definition?.sources ?? [];
-  const labelOf = (id) => sources.find((s) => s.source_id === id)?.label ?? `#${id}`;
+  const labelOf = (id) => set.names?.sources?.[id] ?? sources.find((s) => s.source_id === id)?.label ?? `#${id}`;
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap items-end gap-2">
@@ -213,10 +215,10 @@ export function GroupCard({ group: g, columns, labelOf, onRequest }) {
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <span className="flex flex-wrap items-center gap-2 text-xs">
           <ReconStatus value={g.status} />
-          {g.reason && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{label(t, "reason", g.reason)}</span>}
+          {g.reason && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{g.reason_name || label(t, "reason", g.reason)}</span>}
           {!g.complete && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">{t("incomplete")}</span>}
-          <span className="text-muted-foreground">{`#${g.id} · ${g.business_date}`}</span>
-          {g.amount_diff != null && <span className={cn("rounded px-1.5 font-bold tabular-nums", diff ? "bg-red-100 text-red-700" : "text-muted-foreground")}>{t("difference", { amount: g.amount_diff })}</span>}
+          <span className="text-muted-foreground">{`#${g.id} · ${formatDay(g.business_date)}`}</span>
+          {g.amount_diff != null && <span className={cn("rounded px-1.5 font-bold tabular-nums", diff ? "bg-red-100 text-red-700" : "text-muted-foreground")}>{t("difference", { amount: money(g.amount_diff) })}</span>}
         </span>
         <span className="flex flex-wrap gap-1">
           {buttons.map(([kind, Icon]) => (
@@ -230,14 +232,14 @@ export function GroupCard({ group: g, columns, labelOf, onRequest }) {
       <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.max(1, columns.length)}, minmax(0, 1fr))` }}>
         {columns.map((sourceId) => (
           <div key={sourceId} className="min-w-0 rounded-xl bg-muted/40 p-2">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{labelOf(sourceId)}</p>
+            <p className="mb-1 text-[11px] font-bold text-muted-foreground">{g.records.find((r) => r.source_id === sourceId)?.source_name ?? labelOf(sourceId)}</p>
             {g.records
               .filter((r) => r.source_id === sourceId)
               .map((r) => (
                 <div key={r.record_id} className="border-t border-border py-1 text-[11px] first:border-0">
                   <p className="flex justify-between gap-2">
-                    <b className="tabular-nums">{`${r.amount} ${r.currency ?? ""}`}</b>
-                    <span className="text-muted-foreground">{[r.txn_date, r.txn_time].filter(Boolean).join(" ")}</span>
+                    <b className="tabular-nums">{money(r.amount, r.currency)}</b>
+                    <span className="text-muted-foreground">{recordWhen(r)}</span>
                   </p>
                   <p className="truncate font-mono text-muted-foreground">{[r.rrn, r.stan, r.card_number, r.terminal_id].filter(Boolean).join(" · ") || "—"}</p>
                   <p className="truncate text-muted-foreground">{[r.txn_type, r.status, r.is_reversal && t("reversal"), r.pass && `${t("pass")} ${r.pass}`].filter(Boolean).join(" · ")}</p>
@@ -293,7 +295,7 @@ export function SetUnmatched({ set }) {
     <div className="grid gap-3">
       <div className="flex flex-wrap items-end gap-2">
         <SearchBox className="min-w-56 flex-1" search={typed} onSearch={setTyped} placeholder={t("recordSearchHint")} />
-        <FilterSelect className="w-44" value={sourceId} onChange={setSourceId} options={[{ value: "", label: t("allSources") }, ...sources.map((s) => ({ value: String(s.source_id), label: s.label }))]} />
+        <FilterSelect className="w-44" value={sourceId} onChange={setSourceId} options={[{ value: "", label: t("allSources") }, ...sources.map((s) => ({ value: String(s.source_id), label: set.names?.sources?.[s.source_id] ?? s.label }))]} />
         <FilterSelect className="w-40" value={state} onChange={setState} options={["", "TIMING", "BREAK"].map((s) => ({ value: s, label: s ? label(t, "status", s) : t("timingAndBreaks") }))} />
         <DateInput className={`${inputClass} w-40`} value={asOf} onChange={(e) => setAsOf(e.target.value)} placeholder={t("asOf")} />
         <Button size="sm" variant="secondary" icon={Download} loading={exporting} onClick={() => void exportCsv()}>
@@ -332,7 +334,7 @@ export function SetUnmatched({ set }) {
             label: "",
             render: (r) => <input type="checkbox" aria-label={t("pick")} disabled={Boolean(r.pending_action_id)} checked={picked.includes(r.record_id)} onChange={() => toggle(r.record_id)} />,
           },
-          { key: "source_code", label: t("source"), render: (r) => sources.find((s) => s.source_id === r.source_id)?.label ?? r.source_code },
+          { key: "source_code", label: t("source"), render: (r) => r.source_name ?? r.source_code },
           ...recordColumns(t),
           { key: "state", label: t("state"), render: (r) => <ReconStatus value={r.state} /> },
           { key: "aging", label: t("age"), render: (r) => t("ageDays", { days: r.age_days, bucket: r.aging }) },
@@ -379,7 +381,7 @@ export function SetAging({ set }) {
     const byRow = new Map();
     (rows ?? []).forEach((x) => {
       const key = `${x.source_code}|${x.state}`;
-      if (!byRow.has(key)) byRow.set(key, { key, source: x.source_code, state: x.state, cells: {} });
+      if (!byRow.has(key)) byRow.set(key, { key, source: x.source_name ?? x.source_code, state: x.state, cells: {} });
       (byRow.get(key).cells[x.aging] ??= []).push(x);
     });
     return [...byRow.values()];
@@ -406,7 +408,7 @@ export function SetAging({ set }) {
               render: (r) =>
                 (r.cells[b] ?? []).map((c) => (
                   <p key={c.currency} className={cn("tabular-nums", r.state === "BREAK" && "font-bold text-red-700")}>
-                    {`${c.count} · ${c.amount} ${c.currency}`}
+                    {`${c.count} · ${money(c.amount, c.currency)}`}
                   </p>
                 )),
             })),
@@ -481,21 +483,21 @@ function RequestDialog({ set, kind, target, group, records, onClose, onDone }) {
       <div className="grid gap-3">
         <p className="text-sm text-muted-foreground">{t(`requestHint_${kind}`)}</p>
         {records?.length > 0 && <p className="text-xs font-semibold">{t("recordsChosen", { count: records.length, total: perCurrency(total) })}</p>}
-        {target.business_date && <p className="text-xs font-semibold">{t("businessDateIs", { date: target.business_date })}</p>}
+        {target.business_date && <p className="text-xs font-semibold">{t("businessDateIs", { date: formatDay(target.business_date) })}</p>}
         {ambiguous && (
           <div className="grid gap-1">
             <p className="text-xs font-semibold">{t("keepRecords")}</p>
             {group.records.map((r) => (
               <label key={r.record_id} className="flex items-center gap-2 text-xs">
                 <input type="checkbox" checked={keep.includes(r.record_id)} onChange={() => setKeep((k) => (k.includes(r.record_id) ? k.filter((x) => x !== r.record_id) : [...k, r.record_id]))} />
-                {`${r.source_code} · ${r.amount} ${r.currency ?? ""} · ${r.rrn ?? r.stan ?? r.record_id}`}
+                {`${r.source_name ?? r.source_code} · ${money(r.amount, r.currency)} · ${r.rrn ?? r.stan ?? r.record_id}`}
               </label>
             ))}
           </div>
         )}
         {reasons.length > 0 && (
           <Field label={t("reason")} required={needsReason}>
-            <FilterSelect value={reason} onChange={setReason} options={[{ value: "", label: t("chooseReason") }, ...reasons.map((r) => ({ value: r, label: label(t, "reason", r) }))]} />
+            <FilterSelect value={reason} onChange={setReason} options={[{ value: "", label: t("chooseReason") }, ...reasons.map((r) => ({ value: r, label: options?.names?.reasons?.[r] ?? label(t, "reason", r) }))]} />
           </Field>
         )}
         {withGl && (
@@ -592,7 +594,7 @@ function NotesDialog({ set, record, onClose, onChanged }) {
     }
   };
   return (
-    <Modal open onClose={onClose} size="md" title={t("notesFor", { amount: `${record.amount} ${record.currency ?? ""}`, ref: record.rrn ?? record.stan ?? record.record_id })}>
+    <Modal open onClose={onClose} size="md" title={t("notesFor", { amount: money(record.amount, record.currency), ref: record.rrn ?? record.stan ?? record.record_id })}>
       <div className="grid gap-3">
         {!notes ? (
           <Spinner size={14} />

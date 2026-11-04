@@ -3,12 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { CheckCircle2, FileCheck2, FileWarning, Pencil, Plus, RefreshCw, Send, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
+import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate, dayDate, money } from "@/Components/Finance/Accounts/accountShared";
 import { AccountPick } from "@/Components/Finance/coreBankingShared";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
 import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
@@ -25,6 +26,7 @@ const MIN_GROUNDS = 20;
 // A party's latest transactions offered for a new report.
 const PICK_LIMIT = 100;
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : []);
+const activityText = (r) => [r.activity_from, r.activity_to].filter(Boolean).map(dayDate).join(" – ") || "—";
 
 // InnoAML › Regulatory Reports (menu 200): suspicious transaction reports
 // (drafted from alerts or by hand, approved by another user, recorded as
@@ -107,7 +109,7 @@ function StrList({ openId }) {
             { key: "subject_name", label: t("subject"), render: (r) => <span className="text-xs font-semibold">{r.subject_name}</span> },
             { key: "status", label: t("status"), render: (r) => <StatusBadge status={r.status} /> },
             { key: "total_amount", label: t("total"), render: (r) => <span className="text-xs tabular-nums">{r.total_amount}</span> },
-            { key: "activity", label: t("activity"), render: (r) => <span className="text-xs">{[r.activity_from, r.activity_to].filter(Boolean).join(" – ") || "—"}</span> },
+            { key: "activity", label: t("activity"), render: (r) => <span className="whitespace-nowrap text-xs">{activityText(r)}</span> },
             { key: "prepared_by", label: t("preparedBy"), render: (r) => <span className="text-xs">{r.prepared_by}</span> },
             { key: "filing_reference", label: t("filedRef"), render: (r) => <span className="font-mono text-xs">{r.filing_reference || "—"}</span> },
           ]}
@@ -185,7 +187,7 @@ function StrDetail({ id, onClose, onChanged }) {
             rows={[
               [t("subject"), str.subject_name],
               [t("total"), str.total_amount, "font-black"],
-              [t("activity"), [str.activity_from, str.activity_to].filter(Boolean).join(" – ") || "—"],
+              [t("activity"), activityText(str)],
               [t("alerts"), (str.alert_ids ?? []).length || "—"],
               str.filing_reference && [t("filedRef"), str.filing_reference],
             ]}
@@ -323,6 +325,7 @@ function StrForm({ str, onClose, onSaved }) {
         {!str && (
           <label className={labelClass}>
             {t("partyAccount")}
+            <RequiredMark />
             <div className="mt-1.5">
               <AccountPick value={account} onChange={setAccount} scope={scope} filter={(a) => a.acct_class === "CUSTOMER"} />
             </div>
@@ -353,6 +356,7 @@ function StrForm({ str, onClose, onSaved }) {
         {str && <p className="text-xs text-muted-foreground">{t("draftTxns", { count: txnIds.size })}</p>}
         <label className={labelClass}>
           {t("grounds")}
+          <RequiredMark />
           <textarea className={cn(inputClass, "mt-1.5 min-h-32")} maxLength={20000} value={grounds} onChange={(e) => setGrounds(e.target.value)} />
           <span className={cn("mt-1 block text-[11px] font-normal", grounds.trim().length < MIN_GROUNDS ? "text-amber-700" : "text-muted-foreground")}>
             {t("groundsCount", { count: grounds.trim().length, min: MIN_GROUNDS })}
@@ -415,7 +419,7 @@ function CtrList() {
   const generate = async () => {
     try {
       const r = recordOf(await amlReportsApi.ctr.generate(genDate ? { date: genDate } : {}));
-      notifications.success(t("ctrGenerated", { count: r?.generated ?? 0, date: r?.business_date }));
+      notifications.success(t("ctrGenerated", { count: r?.generated ?? 0, date: dayDate(r?.business_date) }));
       setDialog(null);
       await load();
     } catch (e) {
@@ -459,7 +463,7 @@ function CtrList() {
               label: "",
               render: (r) => (r.status === "GENERATED" ? <input type="checkbox" aria-label={t("pick")} checked={picked.has(r.id)} onChange={() => toggle(r.id)} /> : null),
             },
-            { key: "business_date", label: t("businessDate"), render: (r) => <span className="text-xs">{r.business_date}</span> },
+            { key: "business_date", label: t("businessDate"), render: (r) => <span className="whitespace-nowrap text-xs">{dayDate(r.business_date)}</span> },
             { key: "party_name", label: t("party"), render: (r) => <span className="text-xs font-semibold">{r.party_name}</span> },
             { key: "currency", label: t("currency") },
             { key: "cash_in", label: t("cashIn"), align: "right", render: (r) => <span className="tabular-nums">{money(r.cash_in, r.currency)}</span> },

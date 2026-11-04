@@ -413,7 +413,7 @@ export function DigitalProduct({ entity }) {
       }}
       className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
     >
-      <Plus size={14} /> {tr("Add")} {tr(config.title)}
+      <Plus size={14} /> {config.addLabel ? tr(config.addLabel) : `${tr("Add")} ${tr(config.title)}`}
     </button>
   ) : null;
 
@@ -421,13 +421,13 @@ export function DigitalProduct({ entity }) {
     <div className="pt-1 pb-6">
       <div className="mb-3 flex items-start justify-between">
         <div>
-          <PageTitle>{tr(config.title)}</PageTitle>
+          <PageTitle>{tr(config.menuName ?? config.title)}</PageTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tr("Manage")} {tr(config.title).toLowerCase()} {tr("configuration")}.
+            {config.description ? tr(config.description) : `${tr("Manage")} ${tr(config.title).toLowerCase()} ${tr("configuration")}.`}
           </p>
         </div>
       </div>
-      <ListTable list={list} actions={addAction} columns={columns} rowKey={idOf} title={tr(config.title)} />
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={idOf} title={tr(config.menuName ?? config.title)} />
       {entity === "product" && wizardOpen && (
         <AddDigitalProductWizard
           onClose={() => setWizardOpen(false)}

@@ -1,5 +1,5 @@
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CheckCircle2, Pencil, Plus, Radar, Send, ShieldAlert, Trash2, XCircle } from "lucide-react";
@@ -7,6 +7,7 @@ import { Button } from "@/Components/Common/Button";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
 import { Modal } from "@/Components/Common/Modal";
+import { Pager } from "@/Components/Common/Pager";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { SearchPicker } from "@/Components/Common/SearchPicker";
@@ -29,6 +30,16 @@ import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
+import { usePagedList } from "../Shared/usePagedList";
+
+// A rule's window as people say it: 60 -> "1 hour", 1440 -> "24 hours",
+// 2880 -> "2 days"; anything else stays in minutes.
+const windowText = (t, minutes) => {
+  const n = Number(minutes) || 0;
+  if (n >= 2880 && n % 1440 === 0) return t("daysN", { count: n / 1440 });
+  if (n >= 60 && n % 60 === 0) return t("hoursN", { count: n / 60 });
+  return t("minutesN", { count: n });
+};
 
 const SEVERITY_TONE = {
   HIGH: "bg-red-50 text-red-700",
@@ -87,27 +98,25 @@ function Alerts() {
   // Opened from a customer's report: that party's alerts, any status.
   const party = useLocation().state?.party;
   const [filters, setFilters] = useState(() => (party ? { ...EMPTY_FILTERS, status: "", entity_type: party.entity_type, entity_id: party.entity_id } : EMPTY_FILTERS));
-  const [rows, setRows] = useState(null);
   const [picked, setPicked] = useState([]);
+  // The rules' names: alerts carry only the rule's code.
+  const [ruleNames, setRuleNames] = useState({});
   const [open, setOpen] = useState(null);
   const [escalating, setEscalating] = useState(false);
   const [scanning, setScanning] = useState(false);
   const body = useMemo(() => Object.fromEntries(Object.entries(filters).filter(([, v]) => v)), [filters]);
-  const load = useCallback(
-    () =>
-      amlMonitoringApi.alerts
-        .list(body)
-        .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
-        .catch((e) => {
-          setRows([]);
-          notifications.error(e.message);
-        }),
-    [body],
-  );
+  const list = usePagedList(amlMonitoringApi.alerts.list, body);
+  const { rows, loading, serverPagination: paging } = list;
+  const load = list.reload;
   useEffect(() => {
     setPicked([]);
-    void load();
-  }, [load]);
+  }, [body]);
+  useEffect(() => {
+    amlMonitoringApi.setup
+      .get({})
+      .then((r) => setRuleNames(Object.fromEntries((recordOf(r)?.setup?.rules ?? []).map((x) => [x.code, x.name]))))
+      .catch(() => setRuleNames({}));
+  }, []);
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
   // Escalation is for one party only: once a row is picked, only that
   // party's open alerts can join it.
@@ -178,7 +187,7 @@ function Alerts() {
           )}
         </div>
       </div>
-      {!rows ? (
+      {loading && !rows.length ? (
         <PageSkeleton />
       ) : (
         <MiniTable
@@ -206,7 +215,7 @@ function Alerts() {
               label: t("rule"),
               render: (r) => (
                 <span className="text-xs leading-tight">
-                  <b className="block font-mono">{r.rule_code}</b>
+                  <b className="block">{ruleNames[r.rule_code] ?? r.rule_code}</b>
                   <span className="text-muted-foreground">{t(`kind_${r.rule_kind}`, { defaultValue: r.rule_kind })}</span>
                 </span>
               ),
@@ -238,7 +247,8 @@ function Alerts() {
           ].filter(Boolean)}
         />
       )}
-      {open && <AlertDetail id={open} onClose={() => setOpen(null)} onChanged={load} />}
+      {paging.totalRecords > 0 && <Pager page={paging.page} pageSize={paging.limit} total={paging.totalRecords} onPageChange={paging.onPageChange} onPageSizeChange={paging.onLimitChange} className="rounded-xl" />}
+      {open && <AlertDetail id={open} ruleNames={ruleNames} onClose={() => setOpen(null)} onChanged={load} />}
       {escalating && (
         <NarrationDialog
           title={t("escalateTitle", { name: picked[0]?.party_name, count: picked.length })}
@@ -257,7 +267,7 @@ function Alerts() {
 }
 
 // One alert: why, the transactions behind it, the notes, and what to do.
-function AlertDetail({ id, onClose, onChanged }) {
+function AlertDetail({ id, ruleNames, onClose, onChanged }) {
   const { t } = useTranslation("monitoring");
   const can = usePagePermission();
   const navigate = useNavigate();
@@ -295,7 +305,7 @@ function AlertDetail({ id, onClose, onChanged }) {
   };
   const editable = alert?.status === "OPEN" && can("Edit");
   return (
-    <Modal open size="xl" onClose={onClose} title={alert ? `${alert.rule_code} · ${alert.party_name}` : t("alert")}>
+    <Modal open size="xl" onClose={onClose} title={alert ? `${ruleNames[alert.rule_code] ?? alert.rule_code} · ${alert.party_name}` : t("alert")}>
       {!alert ? (
         <PageSkeleton />
       ) : (
@@ -443,8 +453,8 @@ export function TxnTable({ txns }) {
       empty={t("noTxns")}
       columns={[
         { key: "at", label: t("date"), render: (x) => <span className="text-xs">{accountDate(x.at)}</span> },
-        { key: "txn_type", label: t("type"), render: (x) => <span className="text-xs font-semibold">{x.txn_type}</span> },
-        { key: "channel", label: t("channel"), render: (x) => <span className="text-xs">{x.channel}</span> },
+        { key: "txn_type", label: t("type"), render: (x) => <span className="text-xs font-semibold">{x.txn_type_name ?? x.txn_type}</span> },
+        { key: "channel", label: t("channel"), render: (x) => <span className="text-xs">{x.channel_name ?? x.channel}</span> },
         {
           key: "direction",
           label: t("inOut"),
@@ -552,10 +562,10 @@ function Setup() {
   const setRule = (patch) => setForm((f) => ({ ...f, rules: f.rules.map((r, i) => (i === selected ? { ...r, ...patch } : r)) }));
   const setCtr = (patch) => setForm((f) => ({ ...f, ctr: { ...f.ctr, ...patch } }));
   const needs = NEEDS[rule?.kind] ?? [];
-  const typeOptions = (options.txn_types ?? []).map((v) => ({ value: v, label: v }));
+  const typeOptions = (options.txn_types ?? []).map((v) => ({ value: v, label: names.txn_types?.[v] ?? v }));
   const summary = (r) =>
     (NEEDS[r.kind] ?? [])
-      .map((k) => (k === "window_minutes" ? t("minutesN", { count: Number(r[k]) }) : k === "near_percent" ? `${r[k]}%` : k === "count" ? `×${r[k]}` : r[k]))
+      .map((k) => (k === "window_minutes" ? windowText(t, r[k]) : k === "near_percent" ? `${r[k]}%` : k === "count" ? `×${r[k]}` : money(r[k])))
       .join(" · ");
 
   return (
@@ -644,14 +654,17 @@ function Setup() {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={labelClass}>
                 {t("ruleCode")}
+                <RequiredMark />
                 <Field field={{ type: "code" }} disabled={!editing} value={rule.code} onChange={(v) => setRule({ code: v })} />
               </label>
               <label className={labelClass}>
                 {t("ruleName")}
+                <RequiredMark />
                 <Field field={{}} disabled={!editing} value={rule.name} onChange={(v) => setRule({ name: v })} />
               </label>
               <label className={labelClass}>
                 {t("kind")}
+                <RequiredMark />
                 <Field
                   field={{ type: "select", options: (options.kinds ?? Object.keys(NEEDS)).map((k) => ({ value: k, label: names.kinds?.[k] ?? t(`kind_${k}`, { defaultValue: k }) })) }}
                   disabled={!editing}
@@ -661,6 +674,7 @@ function Setup() {
               </label>
               <label className={labelClass}>
                 {t("severity")}
+                <RequiredMark />
                 <Field
                   field={{ type: "select", options: (options.severities ?? ["LOW", "MEDIUM", "HIGH"]).map((k) => ({ value: k, label: names.severities?.[k] ?? t(`severity_${k}`) })) }}
                   disabled={!editing}
@@ -672,7 +686,7 @@ function Setup() {
                 <label className={labelClass}>
                   {t("direction")}
                   <Field
-                    field={{ type: "select", options: (options.directions ?? ["ANY", "IN", "OUT"]).map((k) => ({ value: k, label: t(`dir_${k}`) })) }}
+                    field={{ type: "select", options: (options.directions ?? ["ANY", "IN", "OUT"]).map((k) => ({ value: k, label: names.directions?.[k] ?? t(`dir_${k}`) })) }}
                     disabled={!editing}
                     value={rule.direction}
                     onChange={(v) => setRule({ direction: v })}
@@ -692,6 +706,7 @@ function Setup() {
                     value={String(rule[key] ?? "")}
                     onChange={(v) => setRule({ [key]: v })}
                   />
+                  {key === "window_minutes" && Number(rule[key]) >= 60 && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{windowText(t, rule[key])}</span>}
                 </label>
               ))}
             </div>
@@ -754,7 +769,7 @@ function Setup() {
               <label className={labelClass}>
                 {t("channels")} <span className="font-normal text-muted-foreground">{t("emptyMeansAll")}</span>
                 <Field
-                  field={{ type: "multi", options: (options.channels ?? []).map((v) => ({ value: v, label: v })) }}
+                  field={{ type: "multi", options: (options.channels ?? []).map((v) => ({ value: v, label: names.channels?.[v] ?? v })) }}
                   disabled={!editing}
                   value={rule.channels ?? []}
                   onChange={(v) => setRule({ channels: v })}
@@ -804,7 +819,7 @@ function Setup() {
             empty={t("noHistory")}
             columns={[
               { key: "at", label: t("date"), render: (h) => <span className="text-xs">{accountDate(h.at)}</span> },
-              { key: "action", label: t("action"), render: (h) => <span className="text-xs font-semibold">{h.action}</span> },
+              { key: "action", label: t("action"), render: (h) => <span className="text-xs font-semibold">{h.action_name ?? h.action}</span> },
               { key: "actor", label: t("by"), render: (h) => <span className="text-xs">{h.actor}</span> },
               { key: "narration", label: t("note"), wrap: true, render: (h) => <span className="text-xs">{h.narration || "—"}</span> },
             ]}

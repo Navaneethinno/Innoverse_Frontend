@@ -19,7 +19,9 @@ import { SetBuilder } from "./SetBuilder";
 import { GroupCard, SetAging, SetGroups, SetRuns, SetUnmatched } from "./SetResults";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { DefinitionCompare, EventsSection, FactGrid, Field, JsonView, MakerChecker, ReconRowActions, ReconStatus, RecordStatus, label, reconDate, recordColumns, useDecision, useMe, useRecord } from "./reconShared";
+import { formatDay } from "@/Utils/Lib/dateFormat";
+import { money } from "../Finance/Accounts/accountShared";
+import { DefinitionCompare, EventsSection, FactGrid, Field, MakerChecker, SetDefinition, ReconRowActions, ReconStatus, RecordStatus, label, reconDate, recordColumns, useDecision, useMe, useRecord } from "./reconShared";
 
 // Recon Sets (menu 191): what is reconciled with what (the rules), their
 // runs and results, and the approvals queue for changes to results.
@@ -54,7 +56,7 @@ function SetList() {
       render: (r) =>
         r.last_run ? (
           <span className="flex flex-col items-start gap-0.5 text-xs leading-tight">
-            <span className="whitespace-nowrap tabular-nums">{r.last_run.business_date}</span>
+            <span className="whitespace-nowrap tabular-nums">{formatDay(r.last_run.business_date)}</span>
             <ReconStatus value={r.last_run.status} />
           </span>
         ) : (
@@ -209,12 +211,12 @@ function SetDetail({ set, onClose, onEdit, onChanged }) {
                 ["windowDays", s.definition?.window_days],
                 ["schedule", s.definition?.schedule ? t("scheduleText", { time: s.definition.schedule.run_time, days: s.definition.schedule.lag_days }) : t("noSchedule")],
                 ["glAccounts", s.definition?.gl ? t("glOn") : t("noGl")],
-                ["lastRun", s.last_run ? `${s.last_run.business_date} · ${label(t, "status", s.last_run.status)}` : null],
+                ["lastRun", s.last_run ? `${formatDay(s.last_run.business_date)} · ${label(t, "status", s.last_run.status)}` : null],
                 ["description", s.description],
                 ["decision", s.decided_at ? `${s.decided_by} · ${reconDate(s.decided_at)}${s.decision_note ? ` · ${s.decision_note}` : ""}` : null],
               ]}
             />
-            <Section title={t("definition")}>{s.has_pending && s.pending_definition ? <DefinitionCompare current={s.definition} pending={s.pending_definition} /> : <JsonView value={s.definition} />}</Section>
+            <Section title={t("definition")}>{s.has_pending && s.pending_definition ? <DefinitionCompare current={s.definition} pending={s.pending_definition} /> : <SetDefinition definition={s.definition} names={s.names} />}</Section>
             <EventsSection api={reconSetsApi} id={s.id} />
           </>
         )}
@@ -265,7 +267,7 @@ function Approvals() {
 }
 
 // "Group #44", "3 records", "Business date 2026-10-22".
-const touches = (t, a) => [a.group_id && t("groupNo", { id: a.group_id }), a.record_ids?.length && t("recordCount", { count: a.record_ids.length }), a.business_date && t("businessDateIs", { date: a.business_date })].filter(Boolean).join(" · ") || "—";
+const touches = (t, a) => [a.group_id && t("groupNo", { id: a.group_id }), a.record_ids?.length && t("recordCount", { count: a.record_ids.length }), a.business_date && t("businessDateIs", { date: formatDay(a.business_date) })].filter(Boolean).join(" · ") || "—";
 
 function ActionDetail({ action, onClose, onChanged }) {
   const { t } = useTranslation("recon");
@@ -310,7 +312,7 @@ function ActionDetail({ action, onClose, onChanged }) {
             a.record_ids?.length > 0 && ["recordIds", a.record_ids.join(", ")],
             ["reason", a.reason ? label(t, "reason", a.reason) : null],
             ["note", a.note],
-            a.amount_diff != null && ["difference", a.amount_diff],
+            a.amount_diff != null && ["difference", money(a.amount_diff)],
             a.gl_direction && ["glDirection", t(`gl_${a.gl_direction.toLowerCase()}`)],
             a.journal_ids?.length > 0 && ["journals", a.journal_ids.join(", ")],
             ["requested", `${a.requested_by} · ${reconDate(a.requested_at)}`],
@@ -320,7 +322,7 @@ function ActionDetail({ action, onClose, onChanged }) {
         />
         {a.group && (
           <Section title={t("groupNow")}>
-            <GroupCard group={a.group} columns={a.group.source_ids?.length ? a.group.source_ids : [...new Set(a.group.records.map((r) => r.source_id))]} labelOf={(id) => a.group.records.find((r) => r.source_id === id)?.source_code ?? `#${id}`} />
+            <GroupCard group={a.group} columns={a.group.source_ids?.length ? a.group.source_ids : [...new Set(a.group.records.map((r) => r.source_id))]} labelOf={(id) => { const r = a.group.records.find((x) => x.source_id === id); return r?.source_name ?? r?.source_code ?? `#${id}`; }} />
           </Section>
         )}
         {a.records?.length > 0 && (
@@ -329,7 +331,7 @@ function ActionDetail({ action, onClose, onChanged }) {
               rows={a.records}
               rowKey={(r) => r.record_id}
               columns={[
-                { key: "source_code", label: t("source") },
+                { key: "source_code", label: t("source"), render: (r) => r.source_name ?? r.source_code },
                 ...recordColumns(t),
                 { key: "item_status", label: t("state"), render: (r) => <ReconStatus value={r.item_status} /> },
               ]}

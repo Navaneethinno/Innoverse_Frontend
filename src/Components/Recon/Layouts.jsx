@@ -31,8 +31,8 @@ export function ReconLayouts() {
   const columns = [
     { key: "code", label: t("code"), render: (r) => <span className="font-mono text-xs font-bold">{r.code}</span> },
     { key: "name", label: t("name"), render: (r) => <span className="text-xs font-semibold">{r.name}</span> },
-    { key: "reader", label: t("reader"), render: (r) => <span className="text-xs">{r.reader}</span> },
-    { key: "seed_code", label: t("startedFrom"), render: (r) => <span className="font-mono text-[11px]">{r.seed_code ?? "—"}</span> },
+    { key: "reader", label: t("reader"), render: (r) => <span className="text-xs">{r.reader_name ?? r.reader}</span> },
+    { key: "seed_code", label: t("startedFrom"), render: (r) => <span className="text-xs">{r.seed_name ?? r.seed_code ?? "—"}</span> },
     { key: "version", label: t("version"), render: (r) => <span className="text-xs tabular-nums">{r.version}</span> },
     { key: "status", label: t("status"), render: (r) => <RecordStatus record={r} /> },
     { key: "actions", label: t("actions"), sortable: false, render: (r) => <ReconRowActions api={reconLayoutsApi} row={r} onView={() => setViewing(r)} onEdit={() => setViewing({ ...r, startEdit: true })} onChanged={list.reload} /> },
@@ -149,7 +149,7 @@ function LayoutAdd({ onClose, onSaved }) {
                 className={cn("rounded-xl border p-3 text-left transition-colors", form.seed_code === s.code ? "border-primary bg-[var(--primary-light)]" : "border-border hover:bg-muted/50")}
               >
                 <p className="text-sm font-bold">
-                  {s.name} <span className="font-mono text-[11px] font-normal text-muted-foreground">{s.code} · {s.reader}</span>
+                  {s.name} <span className="font-mono text-[11px] font-normal text-muted-foreground">{s.code} · {s.reader_name ?? s.reader}</span>
                 </p>
                 <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{s.description}</p>
               </button>
@@ -194,8 +194,8 @@ function LayoutDetail({ layout, onClose, onChanged }) {
         </div>
         <FactGrid
           rows={[
-            ["reader", l.reader],
-            ["startedFrom", l.seed_code],
+            ["reader", l.reader_name ?? l.reader],
+            ["startedFrom", l.seed_name ?? l.seed_code],
             ["version", l.version],
             ["sources", l.sources ?? 0],
             ["description", l.description],

@@ -4,7 +4,7 @@ import { useServerList } from "@/Hooks/useServerList";
 import { useTranslation } from "react-i18next";
 import { UserSearch } from "lucide-react";
 import { RowActions } from "@/Components/Common/RowActions";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { EffectiveResult, partyLabel, when } from "../Shared/amlShared";
@@ -25,7 +25,7 @@ export function ScreeningsList({ initial = {} }) {
   const columns = [
     { key: "screened_at", label: t("aml:screenedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.screened_at)}</span> },
     { key: "name", label: t("aml:party"), align: "left", render: (row) => <span dir="auto" className="font-semibold">{partyLabel(row)}</span> },
-    { key: "customer_kind", label: t("aml:customerKind"), render: (row) => (row.customer_kind ? t(`aml:kind_${row.customer_kind}`) : "-") },
+    { key: "customer_kind", label: t("aml:customerKind"), render: (row) => row.customer_kind_name || "-" },
     { key: "inst_profile_name", label: t("aml:institution"), render: (row) => row.inst_profile_name ?? "-" },
     { key: "trigger", label: t("aml:trigger"), render: (row) => (row.trigger ? t(`aml:trigger_${row.trigger}`) : "-") },
     { key: "effective_score", label: t("aml:result"), render: (row) => <EffectiveResult row={row} /> },
@@ -39,11 +39,7 @@ export function ScreeningsList({ initial = {} }) {
         <span className="flex items-center gap-1">
           <RowActions buttons={{ view: true }} onView={() => setOpenId(row.id)} />
           {row.reference_id && (
-            <UiTooltip label={t("aml:customerResult")}>
-              <button type="button" onClick={() => setCustomer(row)} className="rounded-lg p-1.5 text-primary hover:bg-muted">
-                <UserSearch size={15} />
-              </button>
-            </UiTooltip>
+            <ActionIconButton label={t("aml:customerResult")} intent="view" icon={UserSearch} onClick={() => setCustomer(row)} />
           )}
         </span>
       ),

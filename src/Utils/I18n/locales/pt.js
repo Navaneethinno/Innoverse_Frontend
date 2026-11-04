@@ -2,6 +2,11 @@
 // language. appName is left as the brand name (not translated), matching
 // how "Innoverse" isn't translated in the confirmed backend example either.
 export const common = {
+  actorProposedBy: "Proposto por",
+  actorApprovedBy: "Aprovado por",
+  actorRejectedBy: "Rejeitado por",
+  actorAddedBy: "Adicionado por",
+  actorChangedBy: "Alterado por",
   atLeastOne: "(pelo menos um)",
   approvalAction_add: "Adicionar",
   approvalAction_edit: "Editar",
@@ -1536,7 +1541,7 @@ export const notification = {
   selectAll: "Selecionar todos",
   selectAllAction: "Selecionar {{action}} em todos os menus",
   selectAllMenu: "Selecionar todas as ações de {{menu}}",
-  groupTitle: "Grupo de Notificação",
+  groupTitle: "Grupos de notificação",
   groupSubtitle: "Listas nomeadas de pessoas que recebem alertas de notificação.",
   alertTitle: "Alertas de Notificação",
   alertSubtitle: "Que mensagem enviar, a quais grupos, quando uma ação de menu acontece.",
@@ -1690,6 +1695,7 @@ export const risk = {
 
 // InnoAML (AML handoffs 03–07).
 export const aml = {
+  actionIs: "Ação: {{action}}",
   searchReviews: "Pesquisar nome, referência, entidade, proponente, decisor ou comentário",
   searchScreenings: "Pesquisar nome, referência, verificado por ou instituição",
   institution: "Instituição",
@@ -5166,7 +5172,7 @@ export const limits = {
   usageMin: "Mínimo de {{min}} por transação",
   usageNoLimits: "Nenhum limite se aplica.",
   usageAnother: "← Consultar outra pessoa",
-  title: "Limite",
+  title: "Limites",
   subtitle: "Os grupos de limites decidem o que clientes e comerciantes podem transacionar. Cada um está num grupo; as regras do grupo Predefinido aplicam-se a todos como teto.",
   addGroup: "Adicionar grupo de limites",
   createAndAddRules: "Criar e adicionar regras",
@@ -6776,6 +6782,13 @@ export const bulkReg = {
 };
 
 export const recon = {
+  pickLayoutLater: "Escolha um layout (pode ser definido depois)",
+  sourceLabelIs: "Etiqueta: {{label}}",
+  reversalLinkIs: "Ligação de estorno: {{from}} = {{to}}",
+  passNamed: "Passagem {{name}}:",
+  passAgainst: "{{left}} contra {{right}}",
+  passKeys: "Chaves: {{keys}}",
+  passTolerance: "Tolerância de {{field}}: {{value}}",
   "setting": "Configuração",
   "noDefinitionChanges": "Nenhuma configuração difere da versão em vigor.",
   "chooseSourceFirst": "Escolha primeiro a fonte",
@@ -8149,6 +8162,10 @@ export const expiry = {
 };
 
 export const monitoring = {
+  hoursN_one: "{{count}} hora",
+  hoursN_other: "{{count}} horas",
+  daysN_one: "{{count}} dia",
+  daysN_other: "{{count}} dias",
   "held": "Retida",
   "heldRef": "Tentativa parada {{rrn}}",
   "case": "Caso",

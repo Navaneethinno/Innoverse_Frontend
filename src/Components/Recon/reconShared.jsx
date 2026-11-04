@@ -11,7 +11,8 @@ import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { listPage } from "@/Hooks/useServerList";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { formatDateTime } from "@/Utils/Lib/dateFormat";
+import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
+import { money } from "../Finance/Accounts/accountShared";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../Finance/Deposits/depositShared";
@@ -26,7 +27,7 @@ export const label = (t, prefix, code) => (code == null || code === "" ? "—" :
 // Amounts per currency ({ INR: "480.00" }), never added across currencies.
 export const perCurrency = (amounts) =>
   Object.entries(amounts ?? {})
-    .map(([code, amount]) => `${amount} ${code}`)
+    .map(([code, amount]) => money(amount, code))
     .join(" · ") || "—";
 
 const TONES = {
@@ -606,10 +607,54 @@ export function DefinitionCompare({ current, pending }) {
 }
 
 // The canonical columns every record has (amount with its currency).
+// A record's date (from its file) and time.
+export const recordWhen = (r) => [r.txn_date && formatDay(r.txn_date), r.txn_time].filter(Boolean).join(" ");
+
+// A set's definition in words: each source, then each pass. `names` (set/get)
+// has the sources' and the choices' names. What it doesn't cover stays as data.
+export function SetDefinition({ definition, names }) {
+  const { t } = useTranslation("recon");
+  const { sources = [], passes = [], window_days: _window, schedule: _schedule, ...rest } = definition ?? {};
+  const sourceName = (id) => names?.sources?.[id] ?? `#${id}`;
+  return (
+    <div className="grid gap-3 text-sm">
+      <ul className="grid gap-1.5">
+        {sources.map((s) => (
+          <li key={s.source_id} className="rounded-xl bg-muted/40 px-3 py-2">
+            <b>{sourceName(s.source_id)}</b>
+            <span className="text-muted-foreground">
+              {[s.label && t("sourceLabelIs", { label: s.label }), s.reversal && t("reversalLinkIs", { from: s.reversal.link, to: s.reversal.to })].filter(Boolean).map((x) => ` · ${x}`).join("")}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <ol className="grid gap-1.5">
+        {passes.map((p, i) => {
+          const { name, left, right, cardinality, action, keys = [], tolerances = [], ...other } = p;
+          const parts = [
+            t("passAgainst", { left: sourceName(left), right: sourceName(right) }),
+            names?.cardinalities?.[cardinality] ?? cardinality,
+            names?.pass_actions?.[action] ?? humanize(action),
+            keys.length > 0 && t("passKeys", { keys: keys.map((k) => `${k.left} = ${k.right}`).join(", ") }),
+            ...tolerances.map(({ left: field, right: _right, ...value }) => t("passTolerance", { field, value: Object.values(value).join(" ") })),
+            ...Object.entries(other).map(([k, v]) => `${humanize(k)}: ${typeof v === "object" ? JSON.stringify(v) : v}`),
+          ];
+          return (
+            <li key={name ?? i} className="rounded-xl bg-muted/40 px-3 py-2">
+              <b>{t("passNamed", { name: name ?? i + 1 })}</b> {parts.filter(Boolean).join(" · ")}
+            </li>
+          );
+        })}
+      </ol>
+      {Object.keys(rest).length > 0 && <JsonView value={rest} />}
+    </div>
+  );
+}
+
 export const recordColumns = (t) => [
-  { key: "business_date", label: t("businessDate") },
-  { key: "txn_date", label: t("txnDate"), render: (r) => [r.txn_date, r.txn_time].filter(Boolean).join(" ") || "—" },
-  { key: "amount", label: t("amount"), align: "right", render: (r) => <b className="tabular-nums">{r.amount != null ? `${r.amount} ${r.currency ?? ""}` : "—"}</b> },
+  { key: "business_date", label: t("businessDate"), render: (r) => formatDay(r.business_date) },
+  { key: "txn_date", label: t("txnDate"), render: (r) => recordWhen(r) || "—" },
+  { key: "amount", label: t("amount"), align: "right", render: (r) => <b className="tabular-nums">{money(r.amount, r.currency)}</b> },
   { key: "rrn", label: "RRN", render: (r) => <span className="font-mono">{r.rrn ?? "—"}</span> },
   { key: "stan", label: "STAN", render: (r) => <span className="font-mono">{r.stan ?? "—"}</span> },
   { key: "card_number", label: t("card"), render: (r) => <span className="font-mono">{r.card_number ?? "—"}</span> },

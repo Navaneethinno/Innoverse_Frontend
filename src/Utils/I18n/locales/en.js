@@ -4,6 +4,11 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  actorProposedBy: "Proposed by",
+  actorApprovedBy: "Approved by",
+  actorRejectedBy: "Rejected by",
+  actorAddedBy: "Added by",
+  actorChangedBy: "Changed by",
   atLeastOne: "(at least one)",
   approvalAction_add: "Add",
   approvalAction_edit: "Edit",
@@ -1712,7 +1717,7 @@ export const notification = {
   selectAll: "Select all",
   selectAllAction: "Select {{action}} on every menu",
   selectAllMenu: "Select every action on {{menu}}",
-  groupTitle: "Notification Group",
+  groupTitle: "Notification Groups",
   groupSubtitle: "Named lists of people who receive notification alerts.",
   alertTitle: "Notification Alerts",
   alertSubtitle: "Which message to send, to which groups, when a menu action happens.",
@@ -1866,6 +1871,7 @@ export const risk = {
 
 // InnoAML (AML handoffs 03–07).
 export const aml = {
+  actionIs: "Action: {{action}}",
   searchReviews: "Search name, reference, matched entity, proposer, decider or comment",
   searchScreenings: "Search name, reference, screened by or institution",
   institution: "Institution",
@@ -5659,7 +5665,7 @@ export const limits = {
   usageMin: "Minimum {{min}} per transaction",
   usageNoLimits: "No limits apply.",
   usageAnother: "← Look up someone else",
-  title: "Limit",
+  title: "Limits",
   subtitle: "Limit groups decide what customers and merchants may transact. Everyone is in one group; the Default group's rules also apply to everybody as a ceiling.",
   addGroup: "Add limit group",
   createAndAddRules: "Create and add rules",
@@ -7294,6 +7300,13 @@ export const bulkReg = {
 };
 
 export const recon = {
+  pickLayoutLater: "Pick a layout (can be set later)",
+  sourceLabelIs: "Label: {{label}}",
+  reversalLinkIs: "Reversal link: {{from}} = {{to}}",
+  passNamed: "Pass {{name}}:",
+  passAgainst: "{{left}} against {{right}}",
+  passKeys: "Keys: {{keys}}",
+  passTolerance: "{{field}} tolerance: {{value}}",
   "setting": "Setting",
   "noDefinitionChanges": "No setting differs from the version in force.",
   "chooseSourceFirst": "Choose the source first",
@@ -8693,6 +8706,10 @@ export const expiry = {
 };
 
 export const monitoring = {
+  hoursN_one: "{{count}} hour",
+  hoursN_other: "{{count}} hours",
+  daysN_one: "{{count}} day",
+  daysN_other: "{{count}} days",
   "held": "Held",
   "heldRef": "Stopped attempt {{rrn}}",
   "case": "Case",

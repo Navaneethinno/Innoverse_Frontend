@@ -317,7 +317,7 @@ export function ScreeningDetail({ screening, onChange }) {
         <div className="min-w-0">
           <NameText name={screening.name ?? subject.name} latin={screening.subject_name_latin} className="text-lg font-black text-slate-800" />
           <p className="text-[11px] text-muted-foreground">
-            {[screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), actorText(screening, "screened_by", ""), when(screening.screened_at)].filter(Boolean).join(" · ")}
+            {[screening.party_role_name ?? screening.party_role, screening.trigger && t(`trigger_${screening.trigger}`, { defaultValue: screening.trigger }), actorText(screening, "screened_by", ""), when(screening.screened_at)].filter(Boolean).join(" · ")}
           </p>
           {/* A customer's screening (not a Name Lookup) can open an AML case. */}
           {canRaise && screening.reference_id && screening.customer_kind && screening.customer_kind !== "NONE" && (
@@ -335,7 +335,7 @@ export function ScreeningDetail({ screening, onChange }) {
                 {band?.name ?? t("noSetup")}
               </p>
               <p className="text-[11px] font-semibold text-muted-foreground">
-                {[band?.risk_action_name, t("matchCount", { count: matches.length })].filter(Boolean).join(" · ")}
+                {[band?.risk_action_name && t("actionIs", { action: band.risk_action_name }), t("matchCount", { count: matches.length })].filter(Boolean).join(" · ")}
               </p>
               {screening.effective_score != null && screening.score !== screening.effective_score && <p className="text-[10px] text-muted-foreground">{t("rawScore", { score: screening.score })}</p>}
             </div>

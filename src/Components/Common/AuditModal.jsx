@@ -110,6 +110,7 @@ const META_KEYS = new Set([
   "changes",
   "payload",
   "pending_payload",
+  "is_event",
 ]);
 
 // Every audit entry already carries its own `changes` array (field/current/
@@ -126,6 +127,18 @@ function deriveEntryChangeAction(entry) {
   if (String(entry.audit_action ?? "").toUpperCase().includes("DELETE")) return "DELETE";
   if (changes.every((c) => c.current == null)) return "ADD";
   return "EDIT";
+}
+
+// Who an entry names: a record-style row's creator, or for an event what that
+// person did ("APPROVED" -> "Approved by").
+function actorLabelKey(entry) {
+  if (!entry.is_event) return "common:createdBy";
+  const action = String(entry.audit_action).toUpperCase();
+  if (/DEAUTH|REJECT/.test(action)) return "common:actorRejectedBy";
+  if (/AUTH|APPROV/.test(action)) return "common:actorApprovedBy";
+  if (/PROPOS|SUBMIT/.test(action)) return "common:actorProposedBy";
+  if (/ADD|CREAT/.test(action)) return "common:actorAddedBy";
+  return "common:actorChangedBy";
 }
 
 function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
@@ -205,7 +218,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
       <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6">
         <span className="flex items-center gap-1.5">
           <User size={11} className="shrink-0" />
-          {t("common:createdBy")}{" "}
+          {t(actorLabelKey(entry))}{" "}
           <span className="font-semibold text-foreground">
             {actorText(entry, "created_by", "") ?? entry.created_username ?? "—"}
           </span>
@@ -264,6 +277,7 @@ const asRecord = (entry) =>
         audit_action: entry.action,
         created_by: actorText(entry, "created_by", "") || entry.actor,
         created_time: entry.created_time ?? entry.at,
+        is_event: true,
         auth_status: entry.auth_status ?? entry.process_status_name ?? entry.status_name,
       }
     : entry;

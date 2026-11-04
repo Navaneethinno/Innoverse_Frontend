@@ -167,7 +167,7 @@ function SourceForm({ source, onClose, onSaved }) {
           <FilterSelect
             value={String(form.layout_id ?? 0)}
             onChange={(v) => set("layout_id")(Number(v))}
-            options={[{ value: "0", label: t("noLayoutYet") }, ...layouts.filter((l) => ["ACTIVE", "PENDING"].includes(l.status)).map((l) => ({ value: String(l.id), label: `${l.name} (${l.code})` }))]}
+            options={[{ value: "0", label: t("pickLayoutLater") }, ...layouts.filter((l) => ["ACTIVE", "PENDING"].includes(l.status)).map((l) => ({ value: String(l.id), label: `${l.name} (${l.code})` }))]}
           />
         </Field>
         <Field label={t("description")} className="sm:col-span-2">

@@ -96,7 +96,7 @@ export function ModuleDashboard({ moduleName }) {
           <div className="mb-4 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(200px,1fr))]">
             {(data?.tiles ?? []).map((tile, i) => (
               <motion.div key={tile.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 * i }} className="min-w-0 rounded-2xl border p-5" style={glass}>
-                <p className="truncate text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{tile.label}</p>
+                <p className="truncate text-xs font-bold text-muted-foreground" title={tile.label}>{tile.label}</p>
                 <p className="amount-fit mt-2 text-3xl font-black leading-none tracking-tight text-slate-800">
                   <AnimatedNumber value={Number(tile.value) || 0} format={(n) => plain.format(n)} />
                 </p>

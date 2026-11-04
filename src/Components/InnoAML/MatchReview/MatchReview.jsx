@@ -10,7 +10,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { amlReviewApi } from "@/Services/InnoAML/aml.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
+import { AlsoOnChips, NameText, PartyCell, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, when } from "../Shared/amlShared";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { MediaReviews } from "../AdverseMedia/AdverseMedia";
@@ -80,11 +80,9 @@ export function MatchReview() {
       label: t("aml:party"),
       align: "left",
       render: (row) => (
-        <span>
-          <NameText name={row.party_name} latin={row.party_name_latin} className="font-semibold" />
-          {row.party_role && <span className="block text-[11px] text-muted-foreground">{row.party_role}</span>}
+        <PartyCell row={row}>
           {row.batch && <span className="mt-0.5 block w-fit rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-bold text-primary">{t("aml:batchCleared", { count: row.batch_size ?? row.batch.length })}</span>}
-        </span>
+        </PartyCell>
       ),
     },
     {
@@ -98,7 +96,7 @@ export function MatchReview() {
         <span>
           <NameText name={row.listed_name ?? row.matched_name} latin={row.listed_name ? row.listed_name_latin : row.matched_name_latin} />
           <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-            {row.list} <ViaTag via={row.matched_via} />
+            {row.list_name ?? row.list} <ViaTag via={row.matched_via} />
           </span>
           <AlsoOnChips alsoOn={row.also_on} />
         </span>

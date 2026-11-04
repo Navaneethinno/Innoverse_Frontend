@@ -20,7 +20,7 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { amlWhitelistApi } from "@/Services/InnoAML/aml.api";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
-import { AlsoOnChips, NameText, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, useInstitutionScope, when } from "../Shared/amlShared";
+import { AlsoOnChips, NameText, PartyCell, ReviewStateBadge, ViaTag, WeightNote, matchScore, scoreTone, useInstitutionScope, when } from "../Shared/amlShared";
 import { ReviewHistory, ScreeningDetailModal } from "../Shared/ScreeningDetail";
 import { usePagedList } from "../Shared/usePagedList";
 import { BatchBar, BatchChip } from "../Shared/BatchBar";
@@ -197,17 +197,12 @@ export function Whitelist() {
   // A Name Lookup's subject key starts "L:"; customers' are screenings.
   const openScreening = (row) => setScreening({ id: row.screening_id, lookup: String(row.subject_key ?? "").startsWith("L:") || row.customer_kind === "NONE" });
 
-  const partyCell = (row) => (
-    <span className="grid gap-0.5">
-      <NameText name={row.party_name} latin={row.party_name_latin} className="font-semibold" />
-      <span className="text-[11px] text-muted-foreground">{[row.party_role, row.reference_id, row.customer_kind !== "NONE" && row.customer_kind].filter(Boolean).join(" · ") || t("aml:nameLookup")}</span>
-    </span>
-  );
+  const partyCell = (row) => <PartyCell row={row} />;
   const listedCell = (row) => (
     <span className="grid gap-0.5">
       <NameText name={row.listed_name ?? row.matched_name} latin={row.listed_name ? row.listed_name_latin : row.matched_name_latin} />
       <span className="flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground">
-        <span className="font-mono font-bold">{row.list}</span>
+        <span className="font-semibold">{row.list_name ?? row.list}</span>
         <ViaTag via={row.matched_via} />
       </span>
       <AlsoOnChips alsoOn={row.also_on} />

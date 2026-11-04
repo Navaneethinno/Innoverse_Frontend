@@ -13,6 +13,8 @@ export const CONFIGS = {
   product: {
     title: "Digital Product",
     menuName: "Digital Products",
+    addLabel: "Add digital product",
+    description: "The products customers sign up for in the app and on the web: who may join, the KYC level, the accounts opened and the PIN rules.",
     readOnlyOnEdit: ["inst_profile_id"],
     fields: [
       ["inst_profile_id", "Institution profile", "number"],

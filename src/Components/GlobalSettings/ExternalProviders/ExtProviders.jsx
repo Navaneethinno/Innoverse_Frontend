@@ -172,7 +172,7 @@ const Prefixes = ({ list }) => (
 const yesNo = (t, on) => <span className={on ? "font-bold text-emerald-700" : "text-muted-foreground"}>{t(on ? "yes" : "no")}</span>;
 
 // Providers and groups as tables; with `other`, rows new or changed are marked.
-function SetupTables({ config, other }) {
+function SetupTables({ config, other, names }) {
   const { t } = useTranslation("providers");
   const changed = (key) => {
     if (!other) return () => undefined;
@@ -186,7 +186,7 @@ function SetupTables({ config, other }) {
   return (
     <div className="grid gap-4">
       <div>
-      {tabs.length > 1 && <Tabs tabs={tabs} value={tab} onChange={setTab} labelOf={(k) => t(`kind_${k}`, { defaultValue: k })} />}
+      {tabs.length > 1 && <Tabs tabs={tabs} value={tab} onChange={setTab} labelOf={(k) => names?.kinds?.[k] ?? t(`kind_${k}`, { defaultValue: k })} />}
       <MiniTable
         rows={providers.filter((p) => p.kind === tab)}
         rowKey={(p) => p.code}
@@ -203,7 +203,7 @@ function SetupTables({ config, other }) {
           tab === "MOBILE_WALLET" && { key: "allow_pull", label: t("topUp"), render: (p) => yesNo(t, p.allow_pull) },
           canLookUp({ kind: tab }) && { key: "name_lookup", label: t("nameLookup"), render: (p) => yesNo(t, p.name_lookup) },
           { key: "connection_only", label: t("connectionOnly"), render: (p) => yesNo(t, p.connection_only) },
-          { key: "how", label: t("adapter"), render: (p) => p.adapter },
+          { key: "how", label: t("adapter"), render: (p) => names?.adapters?.[p.adapter] ?? p.adapter },
           { key: "active", label: t("active"), render: (p) => yesNo(t, p.active) },
         ].filter(Boolean)}
       />
@@ -231,6 +231,7 @@ function SetupView({ id, onBack, onEdit }) {
   const [audit, setAudit] = useState([]);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  const names = useProviderOptions(s?.inst_profile_id)?.names;
 
   const reload = useCallback(async () => {
     try {
@@ -304,15 +305,15 @@ function SetupView({ id, onBack, onEdit }) {
       {s.pending ? (
         <div className="mb-4 grid gap-4">
           <Section title={t("fees:inEffect")}>
-            <SetupTables config={s.config} />
+            <SetupTables config={s.config} names={names} />
           </Section>
           <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {s.pending.config ? <SetupTables config={s.pending.config} other={s.config} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
+            {s.pending.config ? <SetupTables config={s.pending.config} other={s.config} names={names} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
           </Section>
         </div>
       ) : (
         <Section title={s.draft ? t("fees:draft") : t("fees:inEffect")} className="mb-4">
-          <SetupTables config={s.draft ?? s.config} />
+          <SetupTables config={s.draft ?? s.config} names={names} />
         </Section>
       )}
 
@@ -405,7 +406,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
   };
 
   if (!config || !options) return <PageSkeleton />;
-  const codes = (list) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: t(`kind_${v}`, { defaultValue: v }) })) });
+  const codes = (list) => ({ type: "select", options: (list ?? []).map((v) => ({ value: v, label: options.names?.kinds?.[v] ?? options.names?.adapters?.[v] ?? t(`kind_${v}`, { defaultValue: v }) })) });
   const dial = (options.phone_codes ?? []).join(" / ");
   const countries = (options.countries ?? []).map((c) => ({ value: String(c.id), label: c.fatf_list ? `${c.name} · ${options.names?.fatf_lists?.[c.fatf_list] ?? c.fatf_list}` : c.name }));
 
@@ -419,7 +420,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
 
       <Section title={t("providers")} className="mb-4">
         <p className="mb-3 text-xs text-muted-foreground">{t("providersHint")}</p>
-        <Tabs tabs={kindTabs} value={kind} onChange={setKind} labelOf={(k) => t(`kind_${k}`, { defaultValue: k })} />
+        <Tabs tabs={kindTabs} value={kind} onChange={setKind} labelOf={(k) => options.names?.kinds?.[k] ?? t(`kind_${k}`, { defaultValue: k })} />
         <RowsEditor
           rows={(config.providers ?? []).filter((p) => p.kind === kind)}
           onChange={(rows) => setConfig((c) => ({ ...c, providers: [...c.providers.filter((p) => p.kind !== kind), ...rows] }))}

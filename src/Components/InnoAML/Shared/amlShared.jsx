@@ -43,7 +43,7 @@ export function BandBadge({ band, score, showAction = false }) {
       <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: colour || "var(--muted-foreground)" }} />
       {band.name ?? band.code}
       {score != null && <span className="tabular-nums">· {score}</span>}
-      {showAction && band.risk_action_name && <span className="font-semibold text-muted-foreground">· {band.risk_action_name}</span>}
+      {showAction && band.risk_action_name && <span className="font-semibold text-muted-foreground">· {t("actionIs", { action: band.risk_action_name })}</span>}
     </span>
   );
 }
@@ -215,8 +215,25 @@ export function EntityRecord({ entity }) {
   );
 }
 
+// A reviewed party: "Name · Merchant", and under it "Merchant, individual"
+// (a Name Lookup has no customer behind it).
+export function PartyCell({ row, children }) {
+  const { t } = useTranslation("aml");
+  const role = row.party_role_name ?? row.party_role;
+  return (
+    <span className="grid gap-0.5">
+      <span className="flex flex-wrap items-baseline gap-x-1">
+        <NameText name={row.party_name} latin={row.party_name_latin} className="font-semibold" />
+        {role && <span className="text-xs text-muted-foreground">· {role}</span>}
+      </span>
+      <span className="text-[11px] text-muted-foreground">{row.customer_kind === "NONE" ? t("nameLookup") : row.customer_kind_name}</span>
+      {children}
+    </span>
+  );
+}
+
 // "Director · Vladimir Putin" style party label for a screening row.
-export const partyLabel = (row) => [row?.name, row?.party_role].filter(Boolean).join(" · ") || "-";
+export const partyLabel = (row) => [row?.name, row?.party_role_name ?? row?.party_role].filter(Boolean).join(" · ") || "-";
 
 // Customers and merchants are screened by the same AML (merchant APIs handoff).
 export const CUSTOMER_KINDS = ["INDIVIDUAL", "CORPORATE", "MERCHANT_INDIVIDUAL", "MERCHANT_CORPORATE"];

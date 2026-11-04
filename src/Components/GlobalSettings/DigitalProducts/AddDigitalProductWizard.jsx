@@ -146,7 +146,7 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
     <Modal
       open
       onClose={guard(onClose)}
-      title={tr("Add Digital Product")}
+      title={tr("Add digital product")}
       size="xl"
       growWithContent
       footer={

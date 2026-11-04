@@ -2395,6 +2395,11 @@ export const myProfile = {
 };
 
 export const common = {
+  actorProposedBy: "اقترحه",
+  actorApprovedBy: "وافق عليه",
+  actorRejectedBy: "رفضه",
+  actorAddedBy: "أضافه",
+  actorChangedBy: "غيّره",
   atLeastOne: "(واحد على الأقل)",
   approvalAction_add: "إضافة",
   approvalAction_edit: "تعديل",
@@ -3817,7 +3822,7 @@ export const notification = {
   selectAll: "تحديد الكل",
   selectAllAction: "تحديد {{action}} في كل القوائم",
   selectAllMenu: "تحديد كل الإجراءات في {{menu}}",
-  groupTitle: "مجموعة الإشعارات",
+  groupTitle: "مجموعات الإشعارات",
   groupSubtitle: "قوائم مسماة بالأشخاص الذين يتلقون تنبيهات الإشعارات.",
   alertTitle: "تنبيهات الإشعارات",
   alertSubtitle: "أي رسالة تُرسل، ولأي مجموعات، عند حدوث إجراء في قائمة.",
@@ -3954,6 +3959,7 @@ export const risk = {
 };
 
 export const aml = {
+  actionIs: "الإجراء: {{action}}",
   searchReviews: "ابحث بالاسم أو المرجع أو الكيان المطابق أو المقترِح أو صاحب القرار أو التعليق",
   searchScreenings: "ابحث بالاسم أو المرجع أو من أجرى الفحص أو المؤسسة",
   institution: "المؤسسة",
@@ -4941,6 +4947,13 @@ export const tour = {
 };
 
 export const recon = {
+  pickLayoutLater: "اختر تخطيطًا (يمكن تحديده لاحقًا)",
+  sourceLabelIs: "التسمية: {{label}}",
+  reversalLinkIs: "رابط العكس: {{from}} = {{to}}",
+  passNamed: "المرور {{name}}:",
+  passAgainst: "{{left}} مقابل {{right}}",
+  passKeys: "المفاتيح: {{keys}}",
+  passTolerance: "هامش {{field}}: {{value}}",
   "setting": "الإعداد",
   "noDefinitionChanges": "لا يختلف أي إعداد عن النسخة السارية.",
   "chooseSourceFirst": "اختر المصدر أولًا",
@@ -6446,6 +6459,8 @@ export const expiry = {
 };
 
 export const monitoring = {
+  hoursN_other: "{{count}} ساعة",
+  daysN_other: "{{count}} يوم",
   "heldRef": "محاولة موقوفة {{rrn}}",
   "case": "حالة",
   "risk": "المخاطر",

@@ -90,8 +90,8 @@ export function HealthBoard({ scope }) {
               <p className="mt-1 text-xs text-muted-foreground">
                 {[
                   t(`kind_${h.kind}`, { defaultValue: h.kind }),
-                  h.provider,
-                  h.groups?.length && t("inGroups", { groups: h.groups.join(", ") }),
+                  h.provider_name ?? h.provider,
+                  h.groups?.length && t("inGroups", { groups: (h.group_names ?? h.groups).join(", ") }),
                   h.failures ? t("failuresInRow", { count: h.failures }) : null,
                   h.state === "DOWN" && h.retry_at && t("retryAt", { at: accountDate(h.retry_at) }),
                   h.down_since && t("downSince", { at: accountDate(h.down_since) }),
@@ -108,7 +108,7 @@ export function HealthBoard({ scope }) {
                 busy={busy}
                 buttons={[
                   h.override !== "DOWN" && { key: "down", label: t("stopSending"), icon: Ban, variant: "danger", run: () => setDialog({ row: h, override: "DOWN" }) },
-                  h.override !== "UP" && { key: "up", label: t("forceUp"), icon: CheckCircle2, run: () => setDialog({ row: h, override: "UP" }) },
+                  h.override !== "UP" && h.state !== "UP" && { key: "up", label: t("forceUp"), icon: CheckCircle2, run: () => setDialog({ row: h, override: "UP" }) },
                   h.override && { key: "clear", label: t("clearOverride"), icon: Undo2, run: () => void set(h, "") },
                 ]}
               />

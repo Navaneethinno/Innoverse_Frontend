@@ -89,7 +89,7 @@ export function ScheduledJobs() {
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">{job.description}</p>
                 </div>
-                <Toggle checked={job.enabled} disabled={!edit || busy === job.code} label={t("jobEnabled")} onChange={(enabled) => void call("edit", { code: job.code, enabled })} />
+                {edit ? <Toggle checked={job.enabled} disabled={busy === job.code} label={t("jobEnabled")} onChange={(enabled) => void call("edit", { code: job.code, enabled })} /> : <span className="shrink-0 whitespace-nowrap"><StatusBadge status={job.enabled ? t("jobEnabled") : t("switchedOff")} variant="subtle" /></span>}
               </div>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -103,7 +103,7 @@ export function ScheduledJobs() {
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                   {t("runTime")}
-                  <input type="time" className={cn(inputClass, "w-28 py-1.5")} disabled={!edit} value={times[job.code] ?? ""} onChange={(e) => setTimes((x) => ({ ...x, [job.code]: e.target.value }))} />
+                  {edit ? <input type="time" className={cn(inputClass, "w-28 py-1.5")} value={times[job.code] ?? ""} onChange={(e) => setTimes((x) => ({ ...x, [job.code]: e.target.value }))} /> : <span className="tabular-nums text-foreground">{job.run_time}</span>}
                 </label>
                 {timeChanged && (
                   <Button size="sm" icon={Save} loading={busy === job.code} onClick={() => void call("edit", { code: job.code, run_time: times[job.code] })}>

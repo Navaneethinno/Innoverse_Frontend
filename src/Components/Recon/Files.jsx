@@ -1,3 +1,4 @@
+import { formatDay } from "@/Utils/Lib/dateFormat";
 import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Download, FileUp, ShieldCheck, Trash2, Wand2 } from "lucide-react";
@@ -34,11 +35,11 @@ export function ReconFiles() {
       render: (r) => (
         <div>
           <p className="break-all font-mono text-xs font-bold">{r.file_name}</p>
-          <p className="text-[10px] text-muted-foreground">{`${r.source_code} · ${label(t, "via", r.received_via)}`}</p>
+          <p className="text-[10px] text-muted-foreground">{`${r.source_name ?? r.source_code} · ${label(t, "via", r.received_via)}`}</p>
         </div>
       ),
     },
-    { key: "business_date", label: t("businessDate"), render: (r) => <span className="whitespace-nowrap text-xs">{r.business_date ?? "—"}</span> },
+    { key: "business_date", label: t("businessDate"), render: (r) => <span className="whitespace-nowrap text-xs">{formatDay(r.business_date)}</span> },
     { key: "status", label: t("status"), render: (r) => <ReconStatus value={r.status} /> },
     {
       key: "read_status",
@@ -264,7 +265,7 @@ function FileDetail({ file, onClose, onChanged }) {
         <FactGrid
           rows={[
             ["source", `${f.source_name} (${f.source_code})`],
-            ["businessDate", f.business_date ? `${f.business_date} · ${label(t, "dateFrom", f.business_date_from)}` : null],
+            ["businessDate", f.business_date ? `${formatDay(f.business_date)} · ${label(t, "dateFrom", f.business_date_from)}` : null],
             ["sequence", f.sequence_no],
             ["received", `${label(t, "via", f.received_via)} · ${f.received_by ?? ""} · ${reconDate(f.received_at)}`],
             ["size", f.size_bytes],

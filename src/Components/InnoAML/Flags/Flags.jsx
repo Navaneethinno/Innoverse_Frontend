@@ -59,9 +59,7 @@ export function Flags() {
       render: (f) => (
         <span className="grid gap-0.5">
           <span dir="auto" className="font-semibold">{f.customer_name || "-"}</span>
-          <span className="break-all text-[10px] text-muted-foreground">
-            {t(`aml:kind_${f.customer_kind}`, { defaultValue: f.customer_kind })} · {f.reference_id}
-          </span>
+          <span className="text-[11px] text-muted-foreground">{f.customer_kind_name}</span>
         </span>
       ),
     },
@@ -137,7 +135,7 @@ export function Flags() {
       {raising && (
         <RaiseCaseDialog
           target={{ flag_id: raising.id }}
-          subtitle={`${raising.customer_name} · ${raising.reference_id}`}
+          subtitle={`${raising.customer_name} · ${raising.customer_kind_name}`}
           onClose={() => setRaising(null)}
           onRaised={() => setRaising(null)}
         />
