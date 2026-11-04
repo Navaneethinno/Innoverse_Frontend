@@ -107,7 +107,7 @@ export function PreFiles() {
   const blocked = canMake || jobs ? "" : !groupId ? t("preFilePickGroup") : again ? t("preFileTickAgain") : t("preFileNoneWaiting");
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">

@@ -70,14 +70,14 @@ export function LimitGroups() {
       key: "code",
       label: t("limits:code"),
       render: (r) => (
-        <span className="inline-flex flex-wrap items-center gap-2 font-semibold">
+        <span className="inline-flex flex-col items-center gap-0.5 font-semibold">
           {r.code}{" "}
           {r.is_default && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700">{t("limits:default")}</span>}
         </span>
       ),
     },
     { key: "name", label: t("limits:name") },
-    { key: "description", label: t("limits:description"), render: (r) => r.description || "-" },
+    { key: "description", label: t("limits:description"), render: (r) => <span className="mx-auto block max-w-64 truncate" title={r.description || undefined}>{r.description || "-"}</span> },
   ];
 
 
@@ -97,7 +97,7 @@ export function LimitGroups() {
         canDeactivateRow={(row) => !row.is_default}
         toolbar={
           can("View") && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex shrink-0 gap-2">
               <button type="button" onClick={() => setUsage(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
                 <Gauge size={14} /> {t("limits:limitsAndUsage")}
               </button>

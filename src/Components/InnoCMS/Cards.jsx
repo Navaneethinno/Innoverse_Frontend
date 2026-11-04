@@ -89,7 +89,7 @@ export function Cards() {
   ];
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-black tracking-tight text-slate-800">
@@ -280,7 +280,7 @@ function CardView({ id, options, onBack, onOpen }) {
   };
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
         <ArrowLeft size={15} /> {t("backToCards")}
       </button>

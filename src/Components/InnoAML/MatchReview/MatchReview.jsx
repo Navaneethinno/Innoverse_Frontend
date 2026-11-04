@@ -74,7 +74,13 @@ export function MatchReview() {
   };
 
   const columns = [
-    { key: "proposed_at", label: t("aml:proposedAt"), render: (row) => <span className="whitespace-nowrap text-xs">{when(row.proposed_at)}</span> },
+    { key: "proposed_at", label: t("aml:proposedAt"), render: (row) => (
+        <span className="grid text-xs">
+          {when(row.proposed_at)}
+          <span className="text-[11px] text-muted-foreground">{actorText(row, "proposed_by", "-")}</span>
+        </span>
+      ),
+    },
     {
       key: "party_name",
       label: t("aml:party"),
@@ -115,6 +121,8 @@ export function MatchReview() {
       render: (row) => (
         <span className="grid justify-items-center gap-0.5">
           <ReviewStateBadge state={row.decision} />
+          <StatusBadge status={row.state} />
+          {actorText(row, "decided_by", "") && <span className="text-[11px] text-muted-foreground">{actorText(row, "decided_by", "")}</span>}
           {row.expires_on && <span className="whitespace-nowrap text-[10px] text-muted-foreground">{t("aml:expiresOn", { date: formatDay(row.expires_on) })}</span>}
         </span>
       ),
@@ -124,24 +132,13 @@ export function MatchReview() {
       label: t("aml:comment"),
       align: "left",
       render: (row) => (
-        <span className="grid max-w-64 gap-0.5 text-xs">
+        <span className="grid w-44 gap-0.5 whitespace-normal text-xs">
           <span className="line-clamp-2">{row.comment}</span>
           {row.evidence && (
             <span className="line-clamp-2 text-[11px] text-muted-foreground">
               {t("aml:evidence")}: {row.evidence}
             </span>
           )}
-        </span>
-      ),
-    },
-    { key: "proposed_by", label: t("aml:maker"), render: (row) => actorText(row, "proposed_by", "-") },
-    {
-      key: "state",
-      label: t("common:status"),
-      render: (row) => (
-        <span className="inline-grid justify-items-center gap-0.5">
-          <StatusBadge status={row.state} />
-          {actorText(row, "decided_by", "") && <span className="text-[11px] text-muted-foreground">{actorText(row, "decided_by", "")}</span>}
         </span>
       ),
     },

@@ -118,7 +118,7 @@ export function ExpiryRules() {
   const counts = data?.counts ?? {};
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <PageTitle icon={CalendarClock}>{t("rulesTitle")}</PageTitle>

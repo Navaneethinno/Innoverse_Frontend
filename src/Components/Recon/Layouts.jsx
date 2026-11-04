@@ -43,7 +43,7 @@ export function ReconLayouts() {
     </Button>
   );
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5">
         <PageTitle>{t("layoutsTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("layoutsSubtitle")}</p>

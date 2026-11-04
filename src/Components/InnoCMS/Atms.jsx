@@ -31,7 +31,7 @@ export function Atms() {
   const { t } = useTranslation("atm");
   const [tab, setTab] = useState("atms");
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5">
         <PageTitle>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>

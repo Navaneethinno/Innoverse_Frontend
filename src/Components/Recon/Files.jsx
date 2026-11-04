@@ -74,7 +74,7 @@ export function ReconFiles() {
     if (file?.id) setViewing(file);
   };
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5">
         <PageTitle>{t("filesTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("filesSubtitle")}</p>

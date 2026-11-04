@@ -26,7 +26,7 @@ export function ReconSources() {
   const { t } = useTranslation("recon");
   const [tab, setTab] = useState("sources");
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5">
         <PageTitle>{t("sourcesTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("sourcesSubtitle")}</p>

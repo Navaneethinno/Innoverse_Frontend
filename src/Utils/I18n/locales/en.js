@@ -8706,6 +8706,8 @@ export const expiry = {
 };
 
 export const monitoring = {
+  dateFrom: "From",
+  dateTo: "To",
   hoursN_one: "{{count}} hour",
   hoursN_other: "{{count}} hours",
   daysN_one: "{{count}} day",
@@ -8842,6 +8844,8 @@ export const monitoring = {
 };
 
 export const regReports = {
+  dateFrom: "From",
+  dateTo: "To",
   "latestOf": "Showing the latest {{shown}} of {{total}} transactions.",
   "title": "Regulatory Reports",
   "subtitle": "Suspicious transaction reports and currency transaction reports for the regulator.",

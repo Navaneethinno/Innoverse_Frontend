@@ -76,7 +76,7 @@ export function TransactionMonitoring() {
   const { t } = useTranslation("monitoring");
   const [tab, setTab] = useState("alerts");
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5" data-tour="page-title">
         <PageTitle icon={Radar}>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
@@ -149,7 +149,7 @@ function Alerts() {
           </button>
         </p>
       )}
-      <div className="flex flex-wrap items-end gap-2" data-tour="monitoring-filters">
+      <div className="flex flex-wrap items-center gap-2" data-tour="monitoring-filters">
         {[
           ["status", ["OPEN", "ESCALATED", "CLOSED"], "anyStatus", "alertStatus_"],
           ["severity", ["HIGH", "MEDIUM", "LOW"], "anySeverity", "severity_"],
@@ -164,8 +164,8 @@ function Alerts() {
         ))}
         <input className={cn(inputClass, "w-32")} placeholder={t("ruleCode")} value={filters.rule_code} onChange={(e) => set("rule_code")(e.target.value.toUpperCase())} />
         <input className={cn(inputClass, "w-44")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-36")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-36")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.from} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-36")} value={filters.to} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
         <div className="ml-auto flex gap-2">
           {can("Edit") && picked.length > 0 && (
             <Button size="sm" variant="danger" icon={ShieldAlert} onClick={() => setEscalating(true)}>
@@ -221,8 +221,13 @@ function Alerts() {
                 </button>
               ),
             },
-            { key: "amount", label: t("amount"), align: "right", render: (r) => <b className="tabular-nums">{money(r.amount, r.currency)}</b> },
-            { key: "txn_count", label: t("txns"), align: "right" },
+            { key: "amount", label: t("amount"), align: "right", render: (r) => (
+                <span className="grid text-right">
+                  <b className="tabular-nums">{money(r.amount, r.currency)}</b>
+                  <span className="text-[11px] text-muted-foreground">{t("txns")}: {r.txn_count}</span>
+                </span>
+              ),
+            },
             { key: "reason", label: t("reason"), wrap: true, render: (r) => <span className="text-xs">{r.reason}</span> },
             {
               key: "status",
@@ -235,7 +240,7 @@ function Alerts() {
                 </span>
               ),
             },
-            { key: "created_at", label: t("raised"), render: (r) => <span className="text-xs">{accountDate(r.created_at)}</span> },
+            { key: "created_at", label: t("raised"), render: (r) => <span className="whitespace-nowrap text-xs">{accountDate(r.created_at)}</span> },
           ].filter(Boolean)}
         />
       )}

@@ -137,7 +137,7 @@ export function AlsoOnChips({ alsoOn }) {
   const { t } = useTranslation("aml");
   if (!alsoOn?.length) return null;
   return (
-    <span className="inline-flex flex-wrap items-center gap-1">
+    <span className="flex max-w-80 flex-wrap items-center gap-1 whitespace-normal">
       <span className="text-[10px] font-semibold text-muted-foreground">{t("alsoOn")}</span>
       {alsoOn.map((o) => (
         <span key={o.entity_id ?? o.list} title={`${o.entity_id} · ${t(`category_${o.category}`, { defaultValue: o.category })} · ${o.score}`} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">

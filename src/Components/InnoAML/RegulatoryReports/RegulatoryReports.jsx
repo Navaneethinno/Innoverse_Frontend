@@ -37,7 +37,7 @@ export function RegulatoryReports() {
   const location = useLocation();
   const [tab, setTab] = useState("str");
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5" data-tour="page-title">
         <PageTitle icon={FileWarning}>{t("title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
@@ -74,7 +74,7 @@ function StrList({ openId }) {
   }, [load]);
   return (
     <Section className="grid gap-3">
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="w-48">
           <Field
             field={{ type: "select", blank: t("anyStatus"), options: ["DRAFT", "PENDING_APPROVAL", "REJECTED", "APPROVED", "FILED"].map((v) => ({ value: v, label: t(`str_${v}`) })) }}
@@ -429,9 +429,9 @@ function CtrList() {
   return (
     <Section className="grid gap-3">
       <p className="text-xs text-muted-foreground">{t("ctrHint")}</p>
-      <div className="flex flex-wrap items-end gap-2">
-        <DateInput className={cn(inputClass, "w-40")} value={filters.from} onChange={(e) => set("from")(e.target.value)} />
-        <DateInput className={cn(inputClass, "w-40")} value={filters.to} onChange={(e) => set("to")(e.target.value)} />
+      <div className="flex flex-wrap items-center gap-2">
+        <DateInput className={cn(inputClass, "w-40")} value={filters.from} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-40")} value={filters.to} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
         <div className="w-40">
           <Field field={{ type: "select", blank: t("anyStatus"), options: ["GENERATED", "FILED"].map((v) => ({ value: v, label: t(`ctr_${v}`) })) }} value={filters.status} onChange={set("status")} />
         </div>

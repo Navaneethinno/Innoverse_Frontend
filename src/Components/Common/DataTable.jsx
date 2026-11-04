@@ -57,6 +57,8 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
             className={cn(
               "whitespace-nowrap px-4 py-3 text-xs font-semibold text-slate-600",
               col.align === "left" ? "text-left" : "text-center",
+              // Actions stay in view however wide the table scrolls.
+              col.key === "actions" && "sticky right-0 z-[1] bg-card shadow-[-8px_0_8px_-8px_rgba(15,23,42,0.18)]",
             )}
           >
             {!sortable || col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
@@ -166,6 +168,7 @@ function TableBody({ columns, rows, isLoading, emptyTitle, emptyDescription, row
               className={cn(
                 "whitespace-nowrap px-3 py-2.5 text-xs text-slate-700",
                 col.align === "left" ? "text-left" : "text-center",
+                col.key === "actions" && "sticky right-0 z-[1] bg-card shadow-[-8px_0_8px_-8px_rgba(15,23,42,0.18)]",
               )}
             >
               {col.render ? col.render(row) : (row[col.key] ?? "—")}

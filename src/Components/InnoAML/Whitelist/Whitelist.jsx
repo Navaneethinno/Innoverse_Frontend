@@ -226,7 +226,7 @@ export function Whitelist() {
     );
   };
   const commentCell = (row) => (
-    <span className="grid max-w-64 gap-0.5 text-xs">
+    <span className="grid w-44 gap-0.5 whitespace-normal text-xs">
       <span className="line-clamp-2">{row.comment}</span>
       {row.evidence && (
         <span className="line-clamp-2 text-[11px] text-muted-foreground">

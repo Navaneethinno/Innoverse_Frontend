@@ -6459,6 +6459,8 @@ export const expiry = {
 };
 
 export const monitoring = {
+  dateFrom: "من",
+  dateTo: "إلى",
   hoursN_other: "{{count}} ساعة",
   daysN_other: "{{count}} يوم",
   "heldRef": "محاولة موقوفة {{rrn}}",
@@ -6593,6 +6595,8 @@ export const monitoring = {
 };
 
 export const regReports = {
+  dateFrom: "من",
+  dateTo: "إلى",
   "latestOf": "عرض أحدث {{shown}} من {{total}} معاملة.",
   "title": "التقارير التنظيمية",
   "subtitle": "تقارير المعاملات المشبوهة والمعاملات النقدية للجهة الرقابية.",

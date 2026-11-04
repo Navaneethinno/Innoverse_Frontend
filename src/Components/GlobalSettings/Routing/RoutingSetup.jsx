@@ -233,7 +233,7 @@ export function SetupView({ id, onBack, onEdit }) {
     a.auth && can("Authorise") && { key: "auth", label: t("fees:approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
   ];
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
         <ArrowLeft size={15} /> {t("backToSetups")}
       </button>
@@ -392,7 +392,7 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
   const sectionMessages = (s) => (error?.problemKeys ?? []).map((k, i) => k.section === s && String(error.message).split("\n")[i + 1]).filter(Boolean);
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
         <ArrowLeft size={15} /> {t("backToSetups")}
       </button>
