@@ -5294,6 +5294,10 @@ export const limits = {
 };
 
 export const cards = {
+  holdersTitle: "Titulares",
+  orderRequestsTitle: "Pedidos a encomendar",
+  deliveryDefaultShort: "Predefinida",
+  orderNeedsCards: "Procure um titular ou escolha um pedido primeiro.",
   "takenBy": "Ocupado por {{code}}",
   "binCodeHint": "6 ou 8 dígitos. Não pode ser alterado depois de adicionado.",
   "serialCapacity": "{{count}} dígitos de série: até {{capacity}} cartões por produto",

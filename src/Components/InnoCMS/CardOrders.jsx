@@ -215,8 +215,8 @@ function NewOrder({ groups, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!ready} onClick={send}>
-            {personalised ? t("fileOrderN", { count }) : t("fileOrder")}
+          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={personalised && !count ? t("orderNeedsCards") : undefined} onClick={send}>
+            {personalised && count > 0 ? t("fileOrderN", { count }) : t("fileOrder")}
           </Button>
         </>
       }
@@ -234,26 +234,37 @@ function NewOrder({ groups, onClose, onDone }) {
         {personalised && (
           <>
             <div>
-              <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("holdersN", { count: holders.length })}</p>
+              <p className="mb-1.5 text-sm font-semibold text-slate-700">
+                {t("holdersTitle")}
+                {holders.length > 0 && <span className="ml-1.5 font-normal text-muted-foreground">({holders.length})</span>}
+              </p>
               <HolderSearch customerType={group.customer_type} onPick={addHolder} />
               {holders.length > 0 && (
-                <ul className="mt-2 grid max-h-80 gap-1.5 overflow-y-auto">
+                <ul className="mt-2 grid gap-2">
                   {holders.map((h, i) => (
-                    <li key={`${h.entity_type}:${h.entity_id}`} className="grid gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-                      <span className="min-w-0">
-                        <span className="block truncate font-bold">{h.name}</span>
-                        <span className="block truncate text-[10px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
-                      </span>
-                      <Labelled required={Boolean(group.emboss_name_required)} label={t("nameOnCard")} hint={!group.emboss_name_required ? t("nameOnCardBlankHint") : undefined}>
-                        <input className={inputClass} value={h.name_on_card} onChange={(e) => setHolder(i, { name_on_card: e.target.value.slice(0, 26) })} />
-                      </Labelled>
-                      <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => setHolders((list) => list.filter((_, j) => j !== i))} />
-                      <div className="grid gap-2 sm:col-span-3 sm:grid-cols-2">
-                        <FilterSelect size="sm" value={h.delivery_mode} onChange={(v) => setHolder(i, { delivery_mode: v })} options={[{ value: "", label: t("deliveryDefault") }, ...["BRANCH_PICKUP", "COURIER", "AGENT"].map((m) => ({ value: m, label: cardWord(t, "opt", m) }))]} />
-                        {h.delivery_mode && h.delivery_mode !== "BRANCH_PICKUP" && <input className={inputClass} placeholder={t("deliveryRef")} value={h.delivery_ref} onChange={(e) => setHolder(i, { delivery_ref: e.target.value })} />}
+                    <li key={`${h.entity_type}:${h.entity_id}`} className="rounded-xl border border-border bg-card p-3 text-xs">
+                      <div className="mb-3 flex items-start justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-bold">{h.name}</span>
+                          <span className="block truncate text-[11px] text-muted-foreground">{[t(`holder_${h.entity_type}`, { defaultValue: h.entity_type }), h.phone_number, h.email].filter(Boolean).join(" · ")}</span>
+                        </span>
+                        <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => setHolders((list) => list.filter((_, j) => j !== i))} />
                       </div>
-                      <div className="sm:col-span-3">
-                        <HolderWallet holder={h} onChange={(funding_acct_id) => setHolder(i, { funding_acct_id })} />
+                      <div className="grid items-start gap-3 sm:grid-cols-2">
+                        <Labelled required={Boolean(group.emboss_name_required)} label={t("nameOnCard")} hint={!group.emboss_name_required ? t("nameOnCardBlankHint") : undefined}>
+                          <input className={inputClass} value={h.name_on_card} onChange={(e) => setHolder(i, { name_on_card: e.target.value.slice(0, 26) })} />
+                        </Labelled>
+                        <Labelled label={t("deliveryMode")}>
+                          <FilterSelect value={h.delivery_mode} onChange={(v) => setHolder(i, { delivery_mode: v })} options={[{ value: "", label: t("deliveryDefaultShort") }, ...["BRANCH_PICKUP", "COURIER", "AGENT"].map((m) => ({ value: m, label: cardWord(t, "opt", m) }))]} />
+                        </Labelled>
+                        {h.delivery_mode && h.delivery_mode !== "BRANCH_PICKUP" && (
+                          <Labelled className="sm:col-span-2" label={t("deliveryRef")}>
+                            <input className={inputClass} value={h.delivery_ref} onChange={(e) => setHolder(i, { delivery_ref: e.target.value })} />
+                          </Labelled>
+                        )}
+                        <div className="sm:col-span-2">
+                          <HolderWallet holder={h} onChange={(funding_acct_id) => setHolder(i, { funding_acct_id })} />
+                        </div>
                       </div>
                     </li>
                   ))}
@@ -261,7 +272,10 @@ function NewOrder({ groups, onClose, onDone }) {
               )}
             </div>
             <div>
-              <p className="mb-1.5 text-sm font-semibold text-slate-700">{t("requestsToOrder", { count: picked.length })}</p>
+              <p className="mb-1.5 text-sm font-semibold text-slate-700">
+                {t("orderRequestsTitle")}
+                {picked.length > 0 && <span className="ml-1.5 font-normal text-muted-foreground">({picked.length})</span>}
+              </p>
               {requests === null ? (
                 <Spinner size={16} />
               ) : requests.length ? (
@@ -319,7 +333,7 @@ function HolderWallet({ holder, onChange }) {
     );
   return (
     <Labelled label={t("feeWallet")}>
-      <FilterSelect size="sm" value={picked} onChange={onChange} options={wallets.map((w) => ({ value: String(w.acct_id), label: `${label(w)}${w.is_default ? ` · ${t("defaultWallet")}` : ""}` }))} />
+      <FilterSelect value={picked} onChange={onChange} options={wallets.map((w) => ({ value: String(w.acct_id), label: `${label(w)}${w.is_default ? ` · ${t("defaultWallet")}` : ""}` }))} />
       {fee}
     </Labelled>
   );

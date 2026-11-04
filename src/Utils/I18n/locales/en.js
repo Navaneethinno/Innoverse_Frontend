@@ -5787,6 +5787,10 @@ export const limits = {
 };
 
 export const cards = {
+  holdersTitle: "Holders",
+  orderRequestsTitle: "Requests to order",
+  deliveryDefaultShort: "Default",
+  orderNeedsCards: "Search for a holder or pick a request first.",
   "takenBy": "Taken by {{code}}",
   "binCodeHint": "6 or 8 digits. Cannot be changed once added.",
   "serialCapacity": "{{count}} serial digits: up to {{capacity}} cards per product",

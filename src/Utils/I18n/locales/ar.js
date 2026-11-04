@@ -6816,6 +6816,10 @@ export const statements = {
 };
 
 export const cards = {
+  holdersTitle: "أصحاب البطاقات",
+  orderRequestsTitle: "الطلبات المطلوب إصدارها",
+  deliveryDefaultShort: "الافتراضي",
+  orderNeedsCards: "ابحث عن صاحب بطاقة أو اختر طلبًا أولاً.",
   "takenBy": "يستخدمه {{code}}",
   "binCodeHint": "6 أو 8 أرقام. لا يمكن تغييره بعد الإضافة.",
   "serialCapacity": "{{count}} أرقام تسلسلية: حتى {{capacity}} بطاقة لكل منتج",
