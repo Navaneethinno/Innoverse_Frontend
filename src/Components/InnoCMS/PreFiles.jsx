@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -33,6 +34,7 @@ export function PreFiles() {
   const [view, setView] = useState("cards");
   const [ticked, setTicked] = useState(() => new Map());
   const [asking, setAsking] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const jobs = view === "jobs";
   const cards = useServerList({ api: "/config/card/prefile/list", call: preFilesApi.list });
@@ -119,7 +121,7 @@ export function PreFiles() {
         <div className="flex items-center gap-2">
           {!jobs && can("Add") && blocked && <span className="text-xs font-semibold text-amber-700">{blocked}</span>}
           {!jobs && can("Add") && (
-            <Button size="sm" icon={FileDown} loading={busy && !asking} disabled={!canMake || busy} disabledReason={blocked} onClick={() => (again ? setAsking(true) : void generate())}>
+            <Button size="sm" icon={FileDown} loading={busy && !asking} disabled={!canMake || busy} disabledReason={blocked} onClick={() => (again ? setAsking(true) : setConfirming(true))}>
               {ticked.size ? t("makePreFileN", { count: ticked.size }) : t("makePreFileAll")}
             </Button>
           )}
@@ -140,6 +142,18 @@ export function PreFiles() {
         emptyDescription={jobs ? "" : t(again ? "noPreFileCardsAgainHint" : "noPreFileCardsHint")}
       />
 
+      <ConfirmDialog
+        open={confirming}
+        title={t("confirmPreFileTitle")}
+        description={ticked.size ? t("confirmPreFileN", { count: ticked.size }) : t("confirmPreFileAll")}
+        confirmLabel={ticked.size ? t("makePreFileN", { count: ticked.size }) : t("makePreFileAll")}
+        pending={busy}
+        onClose={() => setConfirming(false)}
+        onConfirm={() => {
+          setConfirming(false);
+          void generate();
+        }}
+      />
       {asking && (
         <NarrationDialog
           title={t("makeAgainTitle")}

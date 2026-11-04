@@ -5790,6 +5790,9 @@ export const limits = {
 };
 
 export const cards = {
+  confirmPreFileTitle: "Make the PRE file?",
+  confirmPreFileN: "The file goes to the card bureau for embossing. Make it for the {{count}} selected card(s)?",
+  confirmPreFileAll: "The file goes to the card bureau for embossing. Make it for every waiting card in this group?",
   layoutTotalDigits: "Total digits",
   holdersTitle: "Holders",
   orderRequestsTitle: "Requests to order",

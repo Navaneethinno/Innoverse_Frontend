@@ -6819,6 +6819,9 @@ export const statements = {
 };
 
 export const cards = {
+  confirmPreFileTitle: "إنشاء ملف PRE؟",
+  confirmPreFileN: "يذهب الملف إلى مكتب البطاقات للطباعة. إنشاؤه للبطاقات المحددة وعددها {{count}}؟",
+  confirmPreFileAll: "يذهب الملف إلى مكتب البطاقات للطباعة. إنشاؤه لكل البطاقات المنتظرة في هذه المجموعة؟",
   layoutTotalDigits: "إجمالي الأرقام",
   holdersTitle: "أصحاب البطاقات",
   orderRequestsTitle: "الطلبات المطلوب إصدارها",

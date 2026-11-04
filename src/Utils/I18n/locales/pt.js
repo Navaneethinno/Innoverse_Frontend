@@ -5297,6 +5297,9 @@ export const limits = {
 };
 
 export const cards = {
+  confirmPreFileTitle: "Criar o ficheiro PRE?",
+  confirmPreFileN: "O ficheiro segue para a gráfica de cartões. Criar para o(s) {{count}} cartão(ões) selecionado(s)?",
+  confirmPreFileAll: "O ficheiro segue para a gráfica de cartões. Criar para todos os cartões em espera deste grupo?",
   layoutTotalDigits: "Total de dígitos",
   holdersTitle: "Titulares",
   orderRequestsTitle: "Pedidos a encomendar",
