@@ -99,8 +99,6 @@ function Alerts() {
   const party = useLocation().state?.party;
   const [filters, setFilters] = useState(() => (party ? { ...EMPTY_FILTERS, status: "", entity_type: party.entity_type, entity_id: party.entity_id } : EMPTY_FILTERS));
   const [picked, setPicked] = useState([]);
-  // The rules' names: alerts carry only the rule's code.
-  const [ruleNames, setRuleNames] = useState({});
   const [open, setOpen] = useState(null);
   const [escalating, setEscalating] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -111,12 +109,6 @@ function Alerts() {
   useEffect(() => {
     setPicked([]);
   }, [body]);
-  useEffect(() => {
-    amlMonitoringApi.setup
-      .get({})
-      .then((r) => setRuleNames(Object.fromEntries((recordOf(r)?.setup?.rules ?? []).map((x) => [x.code, x.name]))))
-      .catch(() => setRuleNames({}));
-  }, []);
   const set = (key) => (value) => setFilters((f) => ({ ...f, [key]: value }));
   // Escalation is for one party only: once a row is picked, only that
   // party's open alerts can join it.
@@ -215,7 +207,7 @@ function Alerts() {
               label: t("rule"),
               render: (r) => (
                 <span className="text-xs leading-tight">
-                  <b className="block">{ruleNames[r.rule_code] ?? r.rule_code}</b>
+                  <b className="block">{r.rule_name}</b>
                   <span className="text-muted-foreground">{t(`kind_${r.rule_kind}`, { defaultValue: r.rule_kind })}</span>
                 </span>
               ),
@@ -248,7 +240,7 @@ function Alerts() {
         />
       )}
       {paging.totalRecords > 0 && <Pager page={paging.page} pageSize={paging.limit} total={paging.totalRecords} onPageChange={paging.onPageChange} onPageSizeChange={paging.onLimitChange} className="rounded-xl" />}
-      {open && <AlertDetail id={open} ruleNames={ruleNames} onClose={() => setOpen(null)} onChanged={load} />}
+      {open && <AlertDetail id={open} onClose={() => setOpen(null)} onChanged={load} />}
       {escalating && (
         <NarrationDialog
           title={t("escalateTitle", { name: picked[0]?.party_name, count: picked.length })}
@@ -267,7 +259,7 @@ function Alerts() {
 }
 
 // One alert: why, the transactions behind it, the notes, and what to do.
-function AlertDetail({ id, ruleNames, onClose, onChanged }) {
+function AlertDetail({ id, onClose, onChanged }) {
   const { t } = useTranslation("monitoring");
   const can = usePagePermission();
   const navigate = useNavigate();
@@ -305,7 +297,7 @@ function AlertDetail({ id, ruleNames, onClose, onChanged }) {
   };
   const editable = alert?.status === "OPEN" && can("Edit");
   return (
-    <Modal open size="xl" onClose={onClose} title={alert ? `${ruleNames[alert.rule_code] ?? alert.rule_code} · ${alert.party_name}` : t("alert")}>
+    <Modal open size="xl" onClose={onClose} title={alert ? `${alert.rule_name} · ${alert.party_name}` : t("alert")}>
       {!alert ? (
         <PageSkeleton />
       ) : (

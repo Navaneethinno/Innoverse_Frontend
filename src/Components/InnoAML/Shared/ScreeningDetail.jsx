@@ -143,7 +143,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
             </p>
           )}
           <p className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
-            <span className="rounded-full bg-slate-800 px-2 py-0.5 font-mono font-bold text-white">{match.list}</span>
+            <span className="rounded-full bg-slate-800 px-2 py-0.5 font-bold text-white">{match.list_name ?? match.list}</span>
             {match.category && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`category_${match.category}`, { defaultValue: match.category })}</span>}
             {match.entity_type && <span className="rounded-full bg-muted px-2 py-0.5 font-bold">{t(`entity_${match.entity_type}`, { defaultValue: match.entity_type })}</span>}
             <ViaTag via={match.matched_via} />

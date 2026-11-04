@@ -111,6 +111,8 @@ const META_KEYS = new Set([
   "payload",
   "pending_payload",
   "is_event",
+  "action_name",
+  "actor_label",
 ]);
 
 // Every audit entry already carries its own `changes` array (field/current/
@@ -218,7 +220,7 @@ function AuditEntry({ entry, fields, getActionLabel, renderExtra, t }) {
       <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3 text-[11px] text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-6">
         <span className="flex items-center gap-1.5">
           <User size={11} className="shrink-0" />
-          {t(actorLabelKey(entry))}{" "}
+          {entry.actor_label ?? t(actorLabelKey(entry))}{" "}
           <span className="font-semibold text-foreground">
             {actorText(entry, "created_by", "") ?? entry.created_username ?? "—"}
           </span>
@@ -311,7 +313,7 @@ export function AuditHistory({
   auditLimit = 10,
 }) {
   const { t } = useTranslation();
-  const actionLabel = getActionLabel ?? ((entry) => auditActionLabel(t, entry.audit_action));
+  const actionLabel = getActionLabel ?? ((entry) => entry.action_name ?? auditActionLabel(t, entry.audit_action));
   // A bank / fintech user only ever sees its own institution: no
   // institution line in the history.
   const canChoose = useCanChooseInstitution();

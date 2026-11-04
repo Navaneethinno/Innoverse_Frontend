@@ -140,8 +140,8 @@ export function AlsoOnChips({ alsoOn }) {
     <span className="inline-flex flex-wrap items-center gap-1">
       <span className="text-[10px] font-semibold text-muted-foreground">{t("alsoOn")}</span>
       {alsoOn.map((o) => (
-        <span key={o.entity_id ?? o.list} title={`${o.entity_id} · ${t(`category_${o.category}`, { defaultValue: o.category })} · ${o.score}`} className="rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">
-          {o.list} <span className="font-sans font-semibold">· {t(`category_${o.category}`, { defaultValue: o.category })} {o.score}</span>
+        <span key={o.entity_id ?? o.list} title={`${o.entity_id} · ${t(`category_${o.category}`, { defaultValue: o.category })} · ${o.score}`} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+          {o.list_name ?? o.list} <span className="font-semibold">· {t(`category_${o.category}`, { defaultValue: o.category })} {o.score}</span>
         </span>
       ))}
     </span>
