@@ -219,7 +219,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
         </Section>
       )}
 
-      <Section title={t("history")}>
+      <Section title={t("history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
 

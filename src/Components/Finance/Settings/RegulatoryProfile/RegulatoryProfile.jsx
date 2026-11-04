@@ -229,7 +229,7 @@ export function RegulatoryProfile() {
               <ProfileSummary profile={data.profile} names={data.option_names} />
             </Section>
           )}
-          <Section title={t("history")}>
+          <Section title={t("history")} collapsible>
             <AuditTimeline audit={data.history ?? []} getActionLabel={(h) => [h.action_name ?? h.action, h.profile?.policy_version].filter(Boolean).join(" · ")} />
           </Section>
         </div>

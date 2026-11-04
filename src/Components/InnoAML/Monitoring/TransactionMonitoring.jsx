@@ -810,7 +810,7 @@ function Setup() {
           </div>
         </>
       ) : (
-        <Section title={t("history")}>
+        <Section title={t("history")} collapsible>
           <MiniTable
             rows={data.history ?? []}
             empty={t("noHistory")}

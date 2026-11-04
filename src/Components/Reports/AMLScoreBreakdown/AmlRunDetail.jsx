@@ -10,11 +10,21 @@ import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, sc
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 
-function Section({ title, children }) {
+// `collapsible` (history): closed until clicked.
+function Section({ title, children, collapsible = false }) {
+  const [open, setOpen] = useState(!collapsible);
+  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
   return (
     <section className="space-y-2">
-      <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>
-      {children}
+      {collapsible ? (
+        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
+          {heading}
+          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      ) : (
+        heading
+      )}
+      {open && children}
     </section>
   );
 }
@@ -334,7 +344,7 @@ export function AmlRunDetail({ runId, onClose }) {
           )}
 
           {item.history?.length > 1 && (
-            <Section title={t("screeningHistory")}>
+            <Section title={t("screeningHistory")} collapsible>
               <ol className="relative space-y-2 border-l pl-4">
                 {item.history.map((h) => (
                   <li key={h.run_id} className="relative text-xs">

@@ -264,7 +264,7 @@ export function SetupView({ id, onBack, onEdit }) {
           <ConfigTables config={s.draft ?? s.config} options={options} />
         </Section>
       )}
-      <Section title={t("fees:history")}>
+      <Section title={t("fees:history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
       {dialog && (

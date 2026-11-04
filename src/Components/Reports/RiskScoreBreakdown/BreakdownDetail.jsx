@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, ChevronDown, Info } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { riskBreakdownApi } from "@/Services/Reports/riskBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -9,11 +9,21 @@ import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 
-function Section({ title, children }) {
+// `collapsible` (history): closed until clicked.
+function Section({ title, children, collapsible = false }) {
+  const [open, setOpen] = useState(!collapsible);
+  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
   return (
     <section className="space-y-2">
-      <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>
-      {children}
+      {collapsible ? (
+        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
+          {heading}
+          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      ) : (
+        heading
+      )}
+      {open && children}
     </section>
   );
 }
@@ -196,7 +206,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
           )}
 
           {item.history?.length > 1 && (
-            <Section title={t("assessmentHistory")}>
+            <Section title={t("assessmentHistory")} collapsible>
               <ol className="relative space-y-2 border-l pl-4">
                 {item.history.map((h) => (
                   <li key={h.assessment_id} className="relative text-xs">

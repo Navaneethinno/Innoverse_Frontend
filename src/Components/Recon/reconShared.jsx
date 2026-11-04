@@ -279,7 +279,7 @@ export function EventsSection({ api, id }) {
     };
   }, [api, id]);
   return (
-    <Section title={t("history")}>
+    <Section title={t("history")} collapsible>
       {events ? <AuditHistory entries={events} renderExtra={(entry) => entry.detail && <p className="text-xs text-muted-foreground">{entry.detail}</p>} /> : <Spinner size={14} />}
     </Section>
   );

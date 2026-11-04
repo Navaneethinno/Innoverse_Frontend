@@ -1,5 +1,6 @@
 import { AuditHistory } from "@/Components/Common/AuditModal";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
@@ -34,16 +35,26 @@ export function Facts({ rows, className }) {
   );
 }
 
-export function Section({ title, action, children, className }) {
+// `collapsible` (history): closed until clicked, and what's inside isn't drawn
+// until then.
+export function Section({ title, action, children, className, collapsible = false }) {
+  const [open, setOpen] = useState(!collapsible);
   return (
     <section className={cn("min-w-0 rounded-2xl border border-border bg-card p-4", className)}>
-      {(title || action) && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      {collapsible ? (
+        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className={cn("flex w-full items-center justify-between gap-2 text-left", open && "mb-3")}>
           <h3 className="text-sm font-bold text-foreground">{title}</h3>
-          {action}
-        </div>
+          <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+        </button>
+      ) : (
+        (title || action) && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-bold text-foreground">{title}</h3>
+            {action}
+          </div>
+        )
       )}
-      {children}
+      {open && children}
     </section>
   );
 }

@@ -240,7 +240,7 @@ function ScheduleView({ id, onBack, onEdit }) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {s.config && options && <FeeQuote schedule={s} options={options} />}
-        <Section title={t("history")}>
+        <Section title={t("history")} collapsible>
           <AuditTimeline audit={audit} />
         </Section>
       </div>

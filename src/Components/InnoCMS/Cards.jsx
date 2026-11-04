@@ -335,7 +335,7 @@ function CardView({ id, options, onBack, onOpen }) {
         />
       </Section>
 
-      <Section title={t("history")}>
+      <Section title={t("history")} collapsible>
         <AuditTimeline
           audit={(card.history ?? []).map((h) => ({
             id: h.id,

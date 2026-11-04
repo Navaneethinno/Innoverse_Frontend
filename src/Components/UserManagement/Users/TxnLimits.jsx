@@ -210,7 +210,7 @@ function LimitDetail({ userId, onClose, onChanged }) {
               <CurrencyCard key={entry.currency_id} userId={userId} entry={entry} onEdit={() => setEditing({ entry })} onChanged={changed} />
             ))}
           </div>
-          <Section title={t("history")}>
+          <Section title={t("history")} collapsible>
             <AuditTimeline
               audit={audit.map((e) => ({ ...e, action: t(`limitAudit_${e.action}`, { defaultValue: e.action }), actor: e.actor_userid_name || e.actor, at: e.created_time, status_name: e.currency_code }))}
               renderExtra={(e) => (

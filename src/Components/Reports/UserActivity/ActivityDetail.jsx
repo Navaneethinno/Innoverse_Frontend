@@ -1,5 +1,6 @@
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/Components/Common/Spinner";
 import { userActivityApi } from "@/Services/Reports/userActivity.api";
@@ -10,11 +11,21 @@ import { fieldLabel, useIdNames } from "../Shared/idNames";
 import { Fields, Value } from "../Shared/RecordValues";
 import { RoleBadge, recordText } from "./activityFormat";
 
-function Section({ title, children }) {
+// `collapsible` (history): closed until clicked.
+function Section({ title, children, collapsible = false }) {
+  const [open, setOpen] = useState(!collapsible);
+  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
   return (
     <section className="space-y-2">
-      <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>
-      {children}
+      {collapsible ? (
+        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
+          {heading}
+          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      ) : (
+        heading
+      )}
+      {open && children}
     </section>
   );
 }
@@ -106,7 +117,7 @@ export function ActivityDetail({ activityId, onClose }) {
           )}
 
           {item.history?.length > 0 && (
-            <Section title={t("history")}>
+            <Section title={t("history")} collapsible>
               <ol className="relative space-y-3 border-l pl-4">
                 {item.history.map((h, i) => (
                   <li key={i} className="relative text-xs">

@@ -219,7 +219,7 @@ export function ExpiryRules() {
               </div>
             </>
           ) : (
-            <Section title={t("loans:history")}>
+            <Section title={t("loans:history")} collapsible>
               <AuditTimeline audit={data.history ?? []} />
             </Section>
           )}

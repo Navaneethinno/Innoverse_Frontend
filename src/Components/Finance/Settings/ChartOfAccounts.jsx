@@ -585,7 +585,7 @@ function GlDetail({ id, onClose, onEdit, onChanged }) {
               {gl.has_pl ? <p className="mt-2 text-[11px] text-muted-foreground">{t("controlBalanceHint")}</p> : !gl.is_account && <p className="mt-2 text-[11px] text-muted-foreground">{t("parentBalanceHint", { count: gl.children ?? 0 })}</p>}
             </Section>
           </div>
-          <Section title={t("history")}>
+          <Section title={t("history")} collapsible>
             <AuditTimeline audit={audit} />
           </Section>
         </div>
