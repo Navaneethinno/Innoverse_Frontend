@@ -14,7 +14,10 @@ describe("UI lock", () => {
     expect(isPrintShortcut({ ctrlKey: true, key: "c" })).toBe(false);
     expect(isPrintShortcut({ key: "p" })).toBe(false);
   });
-  it("production is always locked", () => expect(isLockedEnvironment("PRODUCTION")).toBe(true));
+  it("is on in UAT only for now", () => {
+    expect(isLockedEnvironment("UAT")).toBe(true);
+    expect(isLockedEnvironment("PRODUCTION")).toBe(false);
+  });
   it("an unknown environment is not", () => expect(isLockedEnvironment(null)).toBe(false));
   it("blocks right click, and copying page text", () => {
     expect(shouldBlock("contextmenu", text)).toBe(true);

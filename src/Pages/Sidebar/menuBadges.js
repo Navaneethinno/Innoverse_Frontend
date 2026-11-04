@@ -41,7 +41,7 @@ export function useMenuBadges(menus) {
   const readWaiting = () =>
     tellerApi
       .transfers({ awaits_me: true, limit: 1 })
-      .then((r) => setWaiting(Number(r?.total ?? r?.pagination?.totalRecords ?? rowsOf(r).length)))
+      .then((r) => setWaiting(Number(r?.pagination?.totalRecords ?? 0)))
       .catch(() => {});
   useEffect(() => {
     if (worksTill) void readWaiting();
