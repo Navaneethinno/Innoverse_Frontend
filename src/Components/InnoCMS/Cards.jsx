@@ -1,4 +1,4 @@
-import { Toggle } from "@/Components/Common/Toggle";
+import { RevealEye, useTimedReveal } from "@/Components/Common/RevealEye";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDownToLine, ArrowLeft, Hourglass, ArrowUpFromLine, CreditCard, KeyRound, Plus, Power, Repeat, ShieldAlert, Truck } from "lucide-react";
@@ -212,7 +212,16 @@ function CardView({ id, options, onBack, onOpen }) {
   // A load / unload sent from here and waiting for a checker.
   const [waiting, setWaiting] = useState(null);
   // UAT only: the full number, kept here only while the view is open.
-  const [pan, setPan] = useState(null);
+  const panReveal = useTimedReveal(async () => {
+    try {
+      return rowsOf(await cardsApi.get({ id, unmasked: true }))[0]?.pan ?? null;
+    } catch (error) {
+      notifications.error(error.message);
+      return null;
+    }
+  });
+  const pan = panReveal.value;
+  const hidePan = panReveal.hide;
 
   const reload = useCallback(async () => {
     try {
@@ -223,9 +232,9 @@ function CardView({ id, options, onBack, onOpen }) {
   }, [id]);
   useEffect(() => {
     setCard(null);
-    setPan(null);
+    hidePan();
     void reload();
-  }, [reload]);
+  }, [reload, hidePan]);
   useLiveChannel(cardsApi.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
   // The waiting request was decided: say how, and drop the note.
   useLiveChannel(transactionRequestsApi.listPath, (_action, records) => {
@@ -270,14 +279,6 @@ function CardView({ id, options, onBack, onOpen }) {
     issued && card.form_factor === "VIRTUAL" && product?.allow_virtual_to_physical && canRequest("Add") && { key: "plastic", label: t("orderPlastic"), icon: Truck, run: () => setDialog("plastic") },
   ];
   const yes = (v) => t(v ? "yes" : "no");
-  const togglePan = async (on) => {
-    if (!on) return setPan(null);
-    try {
-      setPan(rowsOf(await cardsApi.get({ id, unmasked: true }))[0]?.pan ?? null);
-    } catch (error) {
-      notifications.error(error.message);
-    }
-  };
 
   return (
     <div className="pt-1 pb-6">
@@ -295,11 +296,11 @@ function CardView({ id, options, onBack, onOpen }) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black text-foreground">{pan ?? card.pan_masked}</h1>
+              {card.can_unmask && <RevealEye reveal={panReveal} showLabel={t("showFullNumber")} hideLabel={t("hideFullNumber")} />}
               <CardPill prefix="ops" code={card.ops_status} />
               <CardPill prefix="iss" code={card.issuance_status} />
             </div>
             <StatusBy by={card.status_by} />
-            {card.can_unmask && <Toggle showLabel label={t("showFullNumber")} checked={Boolean(pan)} onChange={togglePan} />}
             {card.pin_change_required && <p className="mt-1 text-xs font-semibold text-amber-700">{t("oneTimePinPending")}</p>}
             <p className="mt-1 text-xs text-muted-foreground">{[card.holder_name || t("inStock"), card.name_on_card, `${card.product_code} · ${cardWord(t, "opt", card.product_class)}`, cardWord(t, "opt", card.form_factor), card.network_code, card.inst_profile_name].filter(Boolean).join(" · ")}</p>
             {card.replaced_by_card_id > 0 && (

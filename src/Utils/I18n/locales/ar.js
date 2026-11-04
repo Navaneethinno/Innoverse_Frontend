@@ -6821,7 +6821,8 @@ export const cards = {
   "oneTimeNeedsChange": "مطلوب للرقم السري لمرة واحدة.",
   "needAllowPinChange": "الرقم السري لمرة واحدة يتطلب السماح بتغيير الرقم السري.",
   "needFirstChangeChannels": "اختر قناة واحدة على الأقل لتغيير الرقم السري لمرة واحدة.",
-  "showFullNumber": "إظهار الرقم الكامل",
+  "showFullNumber": "إظهار الرقم الكامل لمدة 10 ثوانٍ",
+  "hideFullNumber": "إخفاء الرقم الكامل",
   "oneTimePinPending": "لم يتم تغيير الرقم السري لمرة واحدة بعد",
 };
 
