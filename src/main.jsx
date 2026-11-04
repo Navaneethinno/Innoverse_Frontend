@@ -4,6 +4,9 @@ import App from "./App";
 import { i18n, loadLanguage } from "./Utils/I18n/i18n";
 import { watchApprovals } from "./Utils/Lib/flourish";
 import { watchEnvironment } from "./Utils/Lib/environment";
+import { installSearchEnterGuard } from "@/Utils/Lib/searchEnter";
+
+installSearchEnterGuard();
 watchEnvironment();
 watchApprovals();
 // A field holding just 0 (a default) is selected when it gets focus, so the

@@ -174,7 +174,7 @@ export function MultiPick({ options, value, onChange, disabled }) {
   if (!many) return <div className="mt-1">{pills}</div>;
   return (
     <div className="mt-1 rounded-xl border border-border p-2">
-      <input
+      <input type="search"
         className="mb-2 w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs outline-none focus:border-primary"
         placeholder={t("searchOptions", { count: list.length })}
         value={q}

@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Gauge } from "lucide-react";
@@ -57,7 +58,7 @@ function LimitUsagePanel({ entity, compact = false }) {
         <div key={c.acct_num ?? c.currency_code} className="rounded-xl border border-border bg-card p-3">
           <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
             <p className="text-sm font-bold">
-              {c.currency_code} <span className="font-mono text-xs font-medium text-muted-foreground">{c.acct_num}</span>
+              {c.currency_code} <span className="font-mono text-xs font-medium text-muted-foreground">{c.acct_num} <CopyButton value={c.acct_num} /></span>
             </p>
             <p className="amount-fit text-xs text-muted-foreground">{t("usageBalance", { balance: money(c.balance, c.currency_code) })}</p>
           </div>

@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -704,7 +705,7 @@ function Movements({ session, currency }) {
           {
             key: "rrn",
             label: "RRN",
-            render: (m) => <span className="font-mono text-xs">{m.rrn}</span>,
+            render: (m) => <span className="font-mono text-xs">{m.rrn} <CopyButton value={m.rrn} /></span>,
           },
         ]}
       />
@@ -1650,7 +1651,7 @@ function TransferRows({ rows, empty, onChanged }) {
             wrap: true,
             render: (r) => (
               <span className="text-xs leading-tight">
-                <span className="block font-mono">{r.reference}</span>
+                <span className="block font-mono">{r.reference} <CopyButton value={r.reference} /></span>
                 {r.narration && <span className="text-muted-foreground">{r.narration}</span>}
               </span>
             ),
@@ -1677,7 +1678,7 @@ function TransferRows({ rows, empty, onChanged }) {
                 {r.decision_note && (
                   <span className="mt-0.5 block italic text-muted-foreground">{r.decision_note}</span>
                 )}
-                {r.rrn && <span className="mt-0.5 block font-mono text-[10px]">{r.rrn}</span>}
+                {r.rrn && <span className="mt-0.5 block font-mono text-[10px]">{r.rrn} <CopyButton value={r.rrn} /></span>}
               </span>
             ),
           },

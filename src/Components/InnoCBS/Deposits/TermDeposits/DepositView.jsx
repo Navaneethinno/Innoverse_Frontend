@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
@@ -410,7 +411,7 @@ function InterestTab({ deposit }) {
                     <td className="py-1.5 pr-3">{dayDate(p.period_start)} – {dayDate(p.period_end)}</td>
                     <td className="py-1.5 pr-3 text-right tabular-nums">{money(p.gross_interest, cur)}</td>
                     <td className="py-1.5 pr-3 text-right font-bold tabular-nums">{money(p.net_interest, cur)}</td>
-                    <td className="py-1.5 font-mono">{p.rrn}</td>
+                    <td className="py-1.5 font-mono">{p.rrn} <CopyButton value={p.rrn} /></td>
                   </tr>
                 ))}
               </tbody>

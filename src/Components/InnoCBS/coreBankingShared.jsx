@@ -199,7 +199,7 @@ export function GlMultiPick({ value, onChange, gls, disabled }) {
       </div>
       {!disabled && (
         <div className="relative">
-          <input
+          <input type="search"
             className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm font-normal"
             placeholder={gls ? t("searchGl") : "…"}
             value={term}

@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -240,7 +241,7 @@ export function TxnDetail({ txn }) {
           <tbody>
             {(txn.lines ?? []).map((l) => (
               <tr key={l.id} className="border-t border-border">
-                <td className="px-3 py-2 font-mono">{l.acct_num}</td>
+                <td className="px-3 py-2 font-mono">{l.acct_num} <CopyButton value={l.acct_num} /></td>
                 <td className="px-3 py-2"><DrCr type={l.operation_type} /></td>
                 <td className="px-3 py-2 text-right font-semibold tabular-nums">{money(l.txn_amount, l.currency_code)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{money(l.entry_amount, l.currency_code)}</td>

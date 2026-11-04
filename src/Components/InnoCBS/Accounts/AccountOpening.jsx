@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useRef, useState } from "react";
@@ -133,7 +134,7 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
               rowKey={(a) => a.id}
               empty={t("noAccounts")}
               columns={[
-                { key: "acct_num", label: t("accountNumber"), render: (a) => <span className="font-mono text-xs font-bold">{a.acct_num}</span> },
+                { key: "acct_num", label: t("accountNumber"), render: (a) => <span className="font-mono text-xs font-bold">{a.acct_num} <CopyButton value={a.acct_num} /></span> },
                 { key: "product", label: t("accountProduct"), render: (a) => <span className="text-xs">{productLabel(a.acct_product_code, a.acct_product_name)}</span> },
                 { key: "priority", label: t("priority"), render: (a) => <span className="text-xs tabular-nums">{a.acct_priority === 1 ? t("mainAccount") : a.acct_priority}</span> },
                 { key: "avail_bal", label: t("availBal"), render: (a) => <span className="whitespace-nowrap text-xs">{money(a.avail_bal, a.currency_code)}</span> },

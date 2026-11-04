@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DataTable } from "@/Components/Common/DataTable";
@@ -277,7 +278,7 @@ export function CustomerBalances({ currencies }) {
       <DataTable
         bare
         columns={[
-          { key: "acct_num", label: t("accountNumber"), render: (a) => <span className="font-mono text-xs font-bold">{a.acct_num}</span> },
+          { key: "acct_num", label: t("accountNumber"), render: (a) => <span className="font-mono text-xs font-bold">{a.acct_num} <CopyButton value={a.acct_num} /></span> },
           {
             key: "owner_name",
             label: t("owner"),
@@ -363,7 +364,7 @@ export function ProfitLossDetail({ body, currency }) {
         bare
         columns={[
           { key: "tran_date_time", label: t("date"), render: (e) => <span className="whitespace-nowrap text-xs">{accountDate(e.tran_date_time)}</span> },
-          { key: "rrn", label: "RRN", render: (e) => <span className="font-mono text-xs">{e.rrn}</span> },
+          { key: "rrn", label: "RRN", render: (e) => <span className="font-mono text-xs">{e.rrn} <CopyButton value={e.rrn} /></span> },
           { key: "txn_type", label: t("type"), render: (e) => <span className="text-xs">{e.txn_type}</span> },
           { key: "description", label: t("description"), align: "left", render: (e) => <span className="line-clamp-2 block max-w-72 text-xs">{e.description}</span> },
           { key: "gl_name", label: t("gl"), align: "left", render: (e) => <span className="text-xs">{[e.gl_code, e.gl_name].filter(Boolean).join(" · ")}</span> },

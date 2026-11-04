@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSquare, MinusCircle, Paperclip, RefreshCw, RotateCcw, Send, ShieldAlert, ShieldCheck, Unlock, UserPlus, X, XCircle } from "lucide-react";
@@ -122,7 +123,7 @@ export function CaseView({ id, config, onBack }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-black text-foreground">{kase.case_number}</h1>
+              <h1 className="font-mono text-xl font-black text-foreground">{kase.case_number} <CopyButton value={kase.case_number} /></h1>
               <CaseStatus status={kase.status} outcome={kase.outcome} />
               <PriorityFlag priority={kase.priority} />
               <OverdueFlag overdue={kase.overdue} />

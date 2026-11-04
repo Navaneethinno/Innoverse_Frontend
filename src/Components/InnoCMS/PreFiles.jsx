@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useState } from "react";
@@ -82,7 +83,7 @@ export function PreFiles() {
       sortable: false,
       render: (c) => <input type="checkbox" aria-label={c.pan_masked} checked={ticked.has(c.id)} onChange={() => tick(c)} className="accent-[var(--primary)]" />,
     },
-    { key: "order_ref", label: t("order"), render: (c) => <span className="font-mono text-xs">{c.order_ref}</span> },
+    { key: "order_ref", label: t("order"), render: (c) => <span className="font-mono text-xs">{c.order_ref} <CopyButton value={c.order_ref} /></span> },
     { key: "pan_masked", label: t("cardNumber"), render: (c) => <span className="whitespace-nowrap font-mono text-xs">{c.pan_masked}</span> },
     { key: "perso_mode", label: t("persoMode"), render: (c) => <span className="text-xs">{cardWord(t, "opt", c.perso_mode)}</span> },
     { key: "name_on_card", label: t("nameOnCard"), render: (c) => <span className="text-xs">{c.name_on_card || "—"}</span> },

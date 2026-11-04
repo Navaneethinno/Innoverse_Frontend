@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -49,10 +50,13 @@ export function CardRequests() {
       label: t("request"),
       align: "left",
       render: (r) => (
-        <button type="button" onClick={() => setOpenId(r.id)} className="text-left">
-          <p className="font-mono text-xs font-bold text-primary hover:underline">{r.request_ref}</p>
-          <p className="text-[10px] text-muted-foreground">{cardWord(t, "rtype", r.request_type)}</p>
-        </button>
+        <span className="inline-flex items-start gap-1">
+          <button type="button" onClick={() => setOpenId(r.id)} className="text-left">
+            <p className="font-mono text-xs font-bold text-primary hover:underline">{r.request_ref}</p>
+            <p className="text-[10px] text-muted-foreground">{cardWord(t, "rtype", r.request_type)}</p>
+          </button>
+          <CopyButton value={r.request_ref} className="mt-0.5" />
+        </span>
       ),
     },
     { key: "holder_name", label: t("holder"), render: (r) => <span className="text-xs font-semibold">{r.holder_name}<span className="block text-[10px] font-normal text-muted-foreground">{r.name_on_card}</span></span> },
@@ -245,7 +249,7 @@ function AcceptRequest({ request, busy, onClose, onSave }) {
         <p className="text-xs text-muted-foreground">{t(`acceptHint_${mode}`)}</p>
         {mode === "INSTANT" ? (
           <>
-            <input className={inputClass} placeholder={t("searchStockLast4")} value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input type="search" className={inputClass} placeholder={t("searchStockLast4")} value={search} onChange={(e) => setSearch(e.target.value)} />
             {stock === null ? (
               <Spinner size={16} />
             ) : stock.length ? (

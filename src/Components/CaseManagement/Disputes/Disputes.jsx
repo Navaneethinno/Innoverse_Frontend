@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Plus, Scale } from "lucide-react";
@@ -49,6 +50,7 @@ function RrnLink({ rrn }) {
       <button type="button" onClick={() => setOpen(true)} className="font-mono text-xs font-bold text-primary hover:underline">
         {rrn}
       </button>
+      <CopyButton value={rrn} className="ml-1" />
       {open && <TxnDialog rrn={rrn} onClose={() => setOpen(false)} />}
     </>
   );

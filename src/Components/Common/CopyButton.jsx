@@ -12,17 +12,28 @@ export function CopyButton({ value, className, size = 11 }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async (event) => {
+    event.preventDefault();
     event.stopPropagation();
+    const text = String(value ?? "");
     try {
-      await navigator.clipboard.writeText(String(value ?? ""));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      await navigator.clipboard.writeText(text);
     } catch {
-      // Clipboard API can be unavailable (insecure context, permission
-      // denied) — fail silently rather than showing an alarming error for
-      // what's a minor convenience action.
+      // No clipboard API (a plain http address) or permission denied: the
+      // older way, which works in both.
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.append(area);
+      area.select();
+      const done = document.execCommand("copy");
+      area.remove();
+      if (!done) return;
     }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
   };
+  if (value == null || value === "") return null;
 
   return (
     <UiTooltip label={copied ? t("common:copied") : t("common:copyToClipboard")}>
@@ -31,7 +42,7 @@ export function CopyButton({ value, className, size = 11 }) {
       onClick={handleCopy}
       aria-label={t("common:copyToClipboard")}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded p-0.5 text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600",
+        "inline-flex shrink-0 items-center justify-center rounded p-0.5 align-middle print:hidden text-muted-foreground transition-colors hover:bg-slate-100 hover:text-slate-600",
         className,
       )}
     >

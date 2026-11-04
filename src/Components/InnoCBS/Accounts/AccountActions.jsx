@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, Lock, LockOpen, Power, RotateCcw, Snowflake, Trash2, UserPlus, XCircle } from "lucide-react";
@@ -356,7 +357,7 @@ export function AccountStatements({ account }) {
             columns={[
               { key: "date", label: t("date"), render: (l) => <span className="whitespace-nowrap text-[11px]">{accountDate(l.date)}</span> },
               { key: "description", label: t("description"), render: (l) => <span className="text-xs">{l.description}</span> },
-              { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-[11px]">{l.rrn}</span> },
+              { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-[11px]">{l.rrn} <CopyButton value={l.rrn} /></span> },
               { key: "amount", label: t("amount"), align: "right", render: (l) => <span className={cn("text-xs tabular-nums", l.operation_type === "CREDIT" ? "text-emerald-700" : "text-red-700")}>{money(l.amount, cur)}</span> },
               { key: "balance", label: t("balance"), align: "right", render: (l) => <span className="text-xs tabular-nums">{money(l.balance, cur)}</span> },
             ]}

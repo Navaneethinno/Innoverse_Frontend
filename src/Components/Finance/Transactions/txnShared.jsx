@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Download, Printer, RotateCcw } from "lucide-react";
@@ -46,7 +47,7 @@ export function PlanCard({ plan }) {
       {p ? (
         <>
           <p className="truncate text-sm font-bold">{p.name}</p>
-          <p className="font-mono text-[11px] text-muted-foreground">{p.acct_num}</p>
+          <p className="font-mono text-[11px] text-muted-foreground">{p.acct_num} <CopyButton value={p.acct_num} /></p>
           {p.avail_bal != null && <p className="amount-fit text-[11px] text-muted-foreground">{t("available", { amount: m(p.avail_bal) })}</p>}
         </>
       ) : (

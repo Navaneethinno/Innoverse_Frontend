@@ -83,7 +83,7 @@ function EmployerPicker({ value, onChange, inst }) {
   }
   return (
     <div className="relative">
-      <input className={inputClass} placeholder={t("searchEmployers")} value={term} onChange={(e) => setTerm(e.target.value)} />
+      <input type="search" className={inputClass} placeholder={t("searchEmployers")} value={term} onChange={(e) => setTerm(e.target.value)} />
       {found && (
         <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
           {found.length ? (

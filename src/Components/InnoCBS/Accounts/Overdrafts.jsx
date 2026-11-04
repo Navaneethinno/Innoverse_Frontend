@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, PlusCircle, XCircle } from "lucide-react";
@@ -92,7 +93,7 @@ export function Overdrafts() {
             label: t("account"),
             render: (o) => (
               <span className="text-xs">
-                <b className="font-mono">{o.acct_num}</b>
+                <b className="font-mono">{o.acct_num} <CopyButton value={o.acct_num} /></b>
                 <span className="block text-[10px] text-muted-foreground">{o.owner_name}</span>
               </span>
             ),

@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -92,10 +93,13 @@ function Journal({ actions, onOpen }) {
       label: "RRN",
       align: "left",
       render: (x) => (
-        <button type="button" onClick={() => onOpen({ id: x.id })} className="text-left">
-          <span className="block font-mono text-xs font-bold text-primary hover:underline">{x.rrn}</span>
-          <span className="block text-[10px] text-muted-foreground">{atIst(x.tran_date_time)}</span>
-        </button>
+        <span className="inline-flex items-start gap-1">
+          <button type="button" onClick={() => onOpen({ id: x.id })} className="text-left">
+            <span className="block font-mono text-xs font-bold text-primary hover:underline">{x.rrn}</span>
+            <span className="block text-[10px] text-muted-foreground">{atIst(x.tran_date_time)}</span>
+          </button>
+          <CopyButton value={x.rrn} className="mt-0.5" />
+        </span>
       ),
     },
     // The channel sits under the type: one column less, no empty gap.
@@ -176,7 +180,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-black">{x.rrn}</h1>
+              <h1 className="font-mono text-xl font-black">{x.rrn} <CopyButton value={x.rrn} /></h1>
               <StatusBadge status={x.status} label={x.status_name} />
             </div>
             <p className="mt-1 text-sm font-semibold">{typeLabel(t, x.txn_type, x.txn_short_desc)}</p>
@@ -250,7 +254,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             rows={x.lines}
             empty={t("noLegs")}
             columns={[
-              { key: "acct_num", label: t("account"), render: (l) => <span className="font-mono">{l.acct_num}</span> },
+              { key: "acct_num", label: t("account"), render: (l) => <span className="font-mono">{l.acct_num} <CopyButton value={l.acct_num} /></span> },
               { key: "operation_type", label: t("drCr"), render: (l) => <DrCr type={l.operation_type} /> },
               { key: "txn_amount", label: t("amount"), align: "right", render: (l) => m(l.txn_amount) },
               { key: "leg_kind", label: t("leg"), render: (l) => `${t(`leg_${l.leg_kind}`, { defaultValue: l.leg_kind ?? "" })} · ${l.party_role ?? ""}` },
@@ -265,7 +269,7 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
             empty={t("noParties")}
             columns={[
               { key: "party_name", label: t("party"), render: (p) => <b>{p.party_name}</b> },
-              { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono">{p.acct_num}</span> },
+              { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono">{p.acct_num} <CopyButton value={p.acct_num} /></span> },
               { key: "direction", label: t("drCr"), render: (p) => <DrCr type={p.direction} /> },
               { key: "description", label: t("description") },
               { key: "amount", label: t("amount"), align: "right", render: (p) => m(p.amount) },
@@ -338,11 +342,12 @@ export function PartyHistory({ party, onClose, onOpen }) {
             ) : (
               <span className="ml-1 font-mono">{p.rrn}</span>
             )}
+            <CopyButton value={p.rrn} className="ml-1" />
           </p>
         </div>
       ),
     },
-    { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono text-[11px]">{p.acct_num}</span> },
+    { key: "acct_num", label: t("account"), render: (p) => <span className="font-mono text-[11px]">{p.acct_num} <CopyButton value={p.acct_num} /></span> },
     { key: "net_amount", label: t("net"), render: (p) => <span className={cn("whitespace-nowrap text-xs font-bold tabular-nums", Number(p.net_amount) < 0 ? "text-red-700" : "text-emerald-700")}>{money(p.net_amount, p.currency_code)}</span> },
     { key: "fee_amount", label: t("fee"), render: (p) => <span className="text-xs tabular-nums">{Number(p.fee_amount) ? money(p.fee_amount, p.currency_code) : "—"}</span> },
     { key: "total_amount", label: t("total"), render: (p) => <span className="whitespace-nowrap text-xs font-bold tabular-nums">{p.total_amount != null ? money(p.total_amount, p.currency_code) : "—"}</span> },
@@ -417,7 +422,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
         render: (r) => (
           <div className="text-[11px]">
             <p>
-              <b>{r.owner_name}</b> <span className="font-mono text-muted-foreground">{r.acct_num}</span>
+              <b>{r.owner_name}</b> <span className="font-mono text-muted-foreground">{r.acct_num} <CopyButton value={r.acct_num} /></span>
             </p>
             {r.counter_acct_num && (
               <p className="text-muted-foreground">

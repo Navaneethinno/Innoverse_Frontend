@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -82,7 +83,7 @@ function StrList({ openId }) {
             onChange={(status) => setFilters((f) => ({ ...f, status }))}
           />
         </div>
-        <input className={cn(inputClass, "w-56")} placeholder={t("searchStr")} value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
+        <input type="search" className={cn(inputClass, "w-56")} placeholder={t("searchStr")} value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
         {can("Add") && (
           <Button size="sm" icon={Plus} className="ml-auto" onClick={() => setAdding(true)} data-tour="add">
             {t("newStr")}
@@ -346,7 +347,7 @@ function StrForm({ str, onClose, onSaved }) {
                   { key: "tran_date_time", label: t("date"), render: (l) => <span className="text-xs">{accountDate(l.tran_date_time)}</span> },
                   { key: "txn_type", label: t("type"), render: (l) => <span className="text-xs font-semibold">{l.txn_short_desc ?? l.txn_type}</span> },
                   { key: "txn_amount", label: t("amount"), align: "right", render: (l) => <b className="tabular-nums">{money(l.txn_amount, l.currency_code)}</b> },
-                  { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-xs">{l.rrn}</span> },
+                  { key: "rrn", label: "RRN", render: (l) => <span className="font-mono text-xs">{l.rrn} <CopyButton value={l.rrn} /></span> },
                 ]}
               />
             )}
@@ -435,7 +436,7 @@ function CtrList() {
         <div className="w-40">
           <Field field={{ type: "select", blank: t("anyStatus"), options: ["GENERATED", "FILED"].map((v) => ({ value: v, label: t(`ctr_${v}`) })) }} value={filters.status} onChange={set("status")} />
         </div>
-        <input className={cn(inputClass, "w-48")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
+        <input type="search" className={cn(inputClass, "w-48")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
         <div className="ml-auto flex flex-wrap gap-2">
           {can("Edit") && (
             <Button size="sm" icon={FileCheck2} disabled={!picked.size} onClick={() => setDialog("file")}>

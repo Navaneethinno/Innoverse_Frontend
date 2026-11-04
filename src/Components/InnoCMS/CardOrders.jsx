@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -77,10 +78,13 @@ export function CardOrders({ receiving = false }) {
       label: t("order"),
       align: "left",
       render: (o) => (
-        <button type="button" onClick={() => setOpenId(o.id)} className="text-left">
-          <p className="font-mono text-xs font-bold text-primary hover:underline">{o.order_ref}</p>
-          <p className="text-[10px] text-muted-foreground">{o.issuance_group_code} · {o.issuance_group_name}</p>
-        </button>
+        <span className="inline-flex items-start gap-1">
+          <button type="button" onClick={() => setOpenId(o.id)} className="text-left">
+            <p className="font-mono text-xs font-bold text-primary hover:underline">{o.order_ref}</p>
+            <p className="text-[10px] text-muted-foreground">{o.issuance_group_code} · {o.issuance_group_name}</p>
+          </button>
+          <CopyButton value={o.order_ref} className="mt-0.5" />
+        </span>
       ),
     },
     { key: "product_code", label: t("product"), render: (o) => <span className="text-xs">{o.product_code}</span> },
@@ -365,7 +369,7 @@ function HolderSearch({ customerType, onPick }) {
   }, [term, customerType]);
   return (
     <div className="relative">
-      <input className={inputClass} placeholder={t("searchHolders")} value={term} onChange={(e) => setTerm(e.target.value)} />
+      <input type="search" className={inputClass} placeholder={t("searchHolders")} value={term} onChange={(e) => setTerm(e.target.value)} />
       {found && (
         <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-card shadow-lg">
           {found.length ? (
@@ -466,7 +470,7 @@ function OrderView({ id, onBack }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-black text-foreground">{order.order_ref}</h1>
+              <h1 className="font-mono text-xl font-black text-foreground">{order.order_ref} <CopyButton value={order.order_ref} /></h1>
               <CardPill prefix="ord" code={order.order_status} />
               {order.pending_batch_id > 0 && <CardPill prefix="ord" code="RECEIPT_WAITING" />}
             </div>

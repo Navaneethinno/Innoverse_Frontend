@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { ListTable } from "@/Components/Common/ListView";
@@ -106,13 +107,16 @@ export function CaseQueue({ config }) {
       key: "case_number",
       label: t("caseNumber"),
       render: (c) => (
-        <button type="button" onClick={() => setOpenId(c.id)} className="flex flex-col items-start gap-1 text-left">
-          <span className="font-mono text-xs font-bold text-primary hover:underline">{c.case_number}</span>
-          <span className="flex flex-wrap gap-1">
-            <PriorityFlag priority={c.priority} />
-            <OverdueFlag overdue={c.overdue} />
-          </span>
-        </button>
+        <span className="inline-flex items-start gap-1">
+          <button type="button" onClick={() => setOpenId(c.id)} className="flex flex-col items-start gap-1 text-left">
+            <span className="font-mono text-xs font-bold text-primary hover:underline">{c.case_number}</span>
+            <span className="flex flex-wrap gap-1">
+              <PriorityFlag priority={c.priority} />
+              <OverdueFlag overdue={c.overdue} />
+            </span>
+          </button>
+          <CopyButton value={c.case_number} className="mt-0.5" />
+        </span>
       ),
     },
     {

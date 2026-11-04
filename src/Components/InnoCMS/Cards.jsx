@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { RevealEye, useTimedReveal } from "@/Components/Common/RevealEye";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -296,6 +297,7 @@ function CardView({ id, options, onBack, onOpen }) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-mono text-xl font-black text-foreground">{pan ?? card.pan_masked}</h1>
+              {pan && <CopyButton value={pan} size={14} />}
               {card.can_unmask && <RevealEye reveal={panReveal} showLabel={t("showFullNumber")} hideLabel={t("hideFullNumber")} />}
               <CardPill prefix="ops" code={card.ops_status} />
               <CardPill prefix="iss" code={card.issuance_status} />

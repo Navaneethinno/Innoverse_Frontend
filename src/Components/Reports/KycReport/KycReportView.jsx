@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { createElement, useCallback, useEffect, useState, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -490,7 +491,7 @@ function ExpiryCard({ expiry }) {
           {docs.map((d) => (
             <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/40 px-3 py-2 text-sm">
               <span>
-                <b>{d.label}</b> <span className="font-mono text-xs text-muted-foreground">{d.reference}</span>
+                <b>{d.label}</b> <span className="font-mono text-xs text-muted-foreground">{d.reference} <CopyButton value={d.reference} /></span>
                 <span className="text-muted-foreground">, {t("expiresOnDate", { date: formatDay(d.expires_on) })}</span>
               </span>
               <ExpiryStateBadge state={d.state} />
@@ -920,7 +921,7 @@ function CasesCard({ cases }) {
         {list.map((c, i) => (
           <div key={c.case_number ?? i} className="rounded-xl border border-border p-3">
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="font-mono font-bold">{c.case_number}</span>
+              <span className="font-mono font-bold">{c.case_number} <CopyButton value={c.case_number} /></span>
               <span className="text-muted-foreground">{c.case_type}</span>
               <StatusBadge status={c.status} variant="subtle" />
               {c.priority && (
@@ -992,7 +993,7 @@ function AccountsCard({ accounts, joint }) {
           {
             key: "acct_num",
             label: t("account"),
-            render: (r) => <span className="font-mono font-semibold">{r.acct_num}</span>,
+            render: (r) => <span className="font-mono font-semibold">{r.acct_num} <CopyButton value={r.acct_num} /></span>,
           },
           { key: "acct_product_name", label: t("product") },
           {
@@ -1035,7 +1036,7 @@ function AccountsCard({ accounts, joint }) {
               {
                 key: "acct_num",
                 label: t("account"),
-                render: (r) => <span className="font-mono font-semibold">{r.acct_num}</span>,
+                render: (r) => <span className="font-mono font-semibold">{r.acct_num} <CopyButton value={r.acct_num} /></span>,
               },
               { key: "role", label: t("role") },
               {

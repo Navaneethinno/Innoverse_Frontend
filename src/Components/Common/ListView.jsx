@@ -172,7 +172,7 @@ function FilterControl({ f, value, onChange, t, wide = false }) {
 }
 
 function AmountBox({ value, onChange, placeholder, className }) {
-  return <input inputMode="decimal" className={cn(control, "font-normal tabular-nums", className)} placeholder={placeholder} value={value ?? ""} onChange={(e) => onChange(e.target.value.replace(/[^\d.]/g, ""))} />;
+  return <input type="search" inputMode="decimal" className={cn(control, "font-normal tabular-nums", className)} placeholder={placeholder} value={value ?? ""} onChange={(e) => onChange(e.target.value.replace(/[^\d.]/g, ""))} />;
 }
 
 // ListView with the shared table: rows, loading and paging from `list`;

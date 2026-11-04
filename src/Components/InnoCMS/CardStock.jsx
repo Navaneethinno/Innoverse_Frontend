@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CreditCard, Package, UserCheck } from "lucide-react";
@@ -58,7 +59,7 @@ export function CardStock() {
     },
     { key: "pan_masked", label: t("card"), align: "left", render: (s) => <span><CardNumber card={s} /><span className="block font-mono text-[10px] text-muted-foreground">{s.card_serial_number}</span></span> },
     { key: "product_code", label: t("product"), render: (s) => <span className="text-xs">{s.product_code}</span> },
-    { key: "order_ref", label: t("order"), render: (s) => <span className="font-mono text-xs">{s.order_ref}</span> },
+    { key: "order_ref", label: t("order"), render: (s) => <span className="font-mono text-xs">{s.order_ref} <CopyButton value={s.order_ref} /></span> },
     { key: "inventory_status", label: t("status"), render: (s) => <CardPill prefix="inv" code={s.inventory_status} /> },
     { key: "assignee", label: t("heldBy"), render: (s) => <span className="text-xs font-semibold">{s.assignee_type === VAULT ? t("vault") : s.assignee_name}</span> },
     { key: "assigned_at", label: t("since"), render: (s) => <span className="whitespace-nowrap text-xs">{s.assigned_at ? accountDate(s.assigned_at) : "—"}</span> },

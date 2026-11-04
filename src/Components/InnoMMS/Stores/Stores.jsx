@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -411,7 +412,7 @@ function StoreWalletsCard({ merchant, permission }) {
             rowKey={(w) => w.acct_num}
             columns={[
               { key: "store_id", label: t("store"), render: (w) => (w.store_name ? `${w.store_name} (${w.store_code})` : `#${w.store_id}`) },
-              { key: "acct_num", label: t("wallet"), render: (w) => <span className="font-mono">{w.acct_num}</span> },
+              { key: "acct_num", label: t("wallet"), render: (w) => <span className="font-mono">{w.acct_num} <CopyButton value={w.acct_num} /></span> },
               { key: "avail_bal", label: t("balance"), align: "right", render: (w) => `${w.avail_bal} ${w.currency_code}` },
             ]}
           />

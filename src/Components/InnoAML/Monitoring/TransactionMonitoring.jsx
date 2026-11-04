@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -163,7 +164,7 @@ function Alerts() {
           </div>
         ))}
         <input className={cn(inputClass, "w-32")} placeholder={t("ruleCode")} value={filters.rule_code} onChange={(e) => set("rule_code")(e.target.value.toUpperCase())} />
-        <input className={cn(inputClass, "w-44")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
+        <input type="search" className={cn(inputClass, "w-44")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
         <DateInput className={cn(inputClass, "w-36")} value={filters.from} placeholder={t("dateFrom")} onChange={(e) => set("from")(e.target.value)} />
         <DateInput className={cn(inputClass, "w-36")} value={filters.to} placeholder={t("dateTo")} onChange={(e) => set("to")(e.target.value)} />
         <div className="ml-auto flex gap-2">
@@ -458,8 +459,8 @@ export function TxnTable({ txns }) {
           render: (x) => <b className={cn("text-xs", x.direction === "OUT" ? "text-red-700" : "text-emerald-700")}>{t(`dir_${x.direction}`, { defaultValue: x.direction })}</b>,
         },
         { key: "amount", label: t("amount"), align: "right", render: (x) => <b className="tabular-nums">{money(x.amount, x.currency)}</b> },
-        { key: "acct_num", label: t("account"), render: (x) => <span className="font-mono text-xs">{x.acct_num}</span> },
-        { key: "rrn", label: "RRN", render: (x) => <span className="font-mono text-xs">{x.rrn}</span> },
+        { key: "acct_num", label: t("account"), render: (x) => <span className="font-mono text-xs">{x.acct_num} <CopyButton value={x.acct_num} /></span> },
+        { key: "rrn", label: "RRN", render: (x) => <span className="font-mono text-xs">{x.rrn} <CopyButton value={x.rrn} /></span> },
       ]}
     />
   );

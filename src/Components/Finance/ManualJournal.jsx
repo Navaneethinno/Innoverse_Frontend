@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -363,7 +364,7 @@ function JournalDetail({ id, onClose, onChanged, onOpen }) {
                 render: (l) =>
                   l.line_kind === "ACCOUNT" ? (
                     <span>
-                      <b>{l.owner_name}</b> <span className="font-mono text-muted-foreground">{l.account_number}</span>
+                      <b>{l.owner_name}</b> <span className="font-mono text-muted-foreground">{l.account_number} <CopyButton value={l.account_number} /></span>
                       <span className="block text-[10px] text-muted-foreground">{[t(OWNER_KINDS[l.owner_kind] ?? "", { defaultValue: l.owner_kind }), l.acct_product_name].filter(Boolean).join(" · ")}</span>
                     </span>
                   ) : (

@@ -46,6 +46,9 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   const containerRef = useRef(null);
   const panelRef = useRef(null);
   const searchInputRef = useRef(null);
+  // Only the keyboard (and opening) moves the list to the highlighted option;
+  // the mouse just highlights what it is over, or scrolling would fight back.
+  const followHighlight = useRef(true);
   // Matched as text: a saved 2 (number) is the option "2". A value no option
   // holds is shown as itself, never swapped for the first option.
   const same = (option) => String(option.value ?? "") === String(value ?? "");
@@ -72,16 +75,22 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
 
   // Opening starts on the chosen option; a new search on the first match.
   useEffect(() => {
-    if (isOpen) setHighlight(Math.max(0, options.findIndex(same)));
+    if (isOpen) {
+      followHighlight.current = true;
+      setHighlight(Math.max(0, options.findIndex(same)));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
   useEffect(() => {
-    if (query) setHighlight(0);
+    if (query) {
+      followHighlight.current = true;
+      setHighlight(0);
+    }
   }, [query]);
 
   useEffect(() => {
-    if (isOpen) panelRef.current?.querySelector(`[data-option="${highlight}"]`)?.scrollIntoView({ block: "nearest" });
-  }, [isOpen, highlight, placement]);
+    if (isOpen && followHighlight.current) panelRef.current?.querySelector(`[data-option="${highlight}"]`)?.scrollIntoView({ block: "nearest" });
+  }, [isOpen, highlight, Boolean(placement)]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Autofocus the search box the instant the panel (and its measured
   // placement) is ready, so typing can start immediately without an extra
@@ -117,10 +126,14 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       });
     }
     updatePosition();
-    window.addEventListener("scroll", updatePosition, true);
+    // The panel's own scrolling doesn't move the trigger.
+    const onScroll = (e) => {
+      if (!panelRef.current?.contains(e.target)) updatePosition();
+    };
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", updatePosition);
     return () => {
-      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", updatePosition);
     };
   }, [isOpen]);
@@ -142,10 +155,12 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
       const step = { ArrowDown: 1, ArrowUp: -1 }[e.key];
       if (step) {
         e.preventDefault();
+        followHighlight.current = true;
         setHighlight((at) => (at < 0 ? 0 : Math.min(last, Math.max(0, at + step))));
       } else if (e.key === "Home" || e.key === "End") {
         if (e.target === searchInputRef.current) return;
         e.preventDefault();
+        followHighlight.current = true;
         setHighlight(e.key === "Home" ? 0 : last);
       } else if (e.key === "Enter") {
         const option = visibleOptions[highlight];
@@ -248,13 +263,16 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                   tabIndex={-1}
                   disabled={option.disabled}
                   title={option.disabled ? option.disabledReason : undefined}
-                  onMouseEnter={() => setHighlight(index)}
+                  onMouseEnter={() => {
+                    followHighlight.current = false;
+                    setHighlight(index);
+                  }}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);
                   }}
                   className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                    "flex w-full scroll-mt-12 items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
                     isActive ? "bg-primary-light text-primary" : "text-muted-foreground hover:bg-primary-light hover:text-primary",
                     index === highlight && "bg-primary-light text-primary ring-1 ring-primary/40",
                     option.disabled && "cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground",

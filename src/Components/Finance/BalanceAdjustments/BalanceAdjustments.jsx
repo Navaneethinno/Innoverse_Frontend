@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useState } from "react";
@@ -69,7 +70,7 @@ export function BalanceAdjustments() {
       align: "left",
       render: (a) => (
         <div>
-          <p className="font-mono text-xs font-bold">{a.acct_num}</p>
+          <p className="font-mono text-xs font-bold">{a.acct_num} <CopyButton value={a.acct_num} /></p>
           <p className="text-[10px] text-muted-foreground">{a.owner_name || "—"}</p>
         </div>
       ),
@@ -413,7 +414,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
 export function TxnCard({ tx }) {
   const { t } = useTranslation(["deposits", "txn"]);
   const facts = [
-    [t("rrn"), <span className="font-mono">{tx.rrn}</span>],
+    [t("rrn"), <span className="font-mono">{tx.rrn} <CopyButton value={tx.rrn} /></span>],
     [t("txn:type"), tx.txn_type_name ?? tx.txn_type],
     [t("date"), atIst(tx.posted_at)],
     [t("amount"), <b>{money(tx.amount, tx.currency_code)}</b>],
@@ -450,7 +451,7 @@ function EarlierAdjustments({ rows, currency }) {
         <tbody>
           {rows.map((a) => (
             <tr key={a.rrn} className="border-t">
-              <td className="py-1 pr-2 font-mono">{a.rrn}</td>
+              <td className="py-1 pr-2 font-mono">{a.rrn} <CopyButton value={a.rrn} /></td>
               <td className="py-1 pr-2">{typeLabel(t, a.txn_type)}</td>
               <td className="py-1 pr-2 text-right tabular-nums">{money(a.amount, currency)}</td>
               <td className="py-1 pr-2">{atIst(a.posted_at)}</td>

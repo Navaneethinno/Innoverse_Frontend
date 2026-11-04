@@ -1,3 +1,4 @@
+import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useState } from "react";
@@ -83,7 +84,7 @@ function AccountsList() {
       label: t("accountNumber"),
       render: (r) => (
         <div className="flex flex-col items-start gap-1">
-          <span className="font-mono text-xs font-bold">{r.acct_num}</span>
+          <span className="font-mono text-xs font-bold">{r.acct_num} <CopyButton value={r.acct_num} /></span>
           <span className="flex flex-wrap gap-1">
             <AccountClass value={r.acct_class} />
             <WalletPurposeBadge value={r.wallet_purpose} />
