@@ -1,0 +1,41 @@
+import { getEnvironment, onEnvironmentChange } from "@/Utils/Lib/environment";
+
+// Where the lock is on, by the API's X-Environment. UAT is here for testing:
+// take it out before go-live, so that it runs in production only.
+const LOCKED_ENVIRONMENTS = ["UAT", "PRODUCTION"];
+
+// Sign-in fields and every password or PIN: nothing copied out, pasted or
+// dropped in.
+const SENSITIVE = 'input[type="password"], input[name^="signin-"]';
+const EDITABLE = 'input, textarea, [contenteditable="true"]';
+
+export const isLockedEnvironment = (environment) => LOCKED_ENVIRONMENTS.includes(environment);
+
+// What a blocked event would have acted on.
+const closest = (target, selector) => (target?.nodeType === 1 ? target : target?.parentElement)?.closest?.(selector) ?? null;
+
+export function shouldBlock(type, target) {
+  if (type === "contextmenu" || type === "dragstart") return true;
+  if (closest(target, SENSITIVE)) return true;
+  // Copying from the page: what is typed in a form stays usable, and the copy
+  // buttons work on their own (the clipboard API, or a hidden textarea).
+  return (type === "copy" || type === "cut") && !closest(target, EDITABLE);
+}
+
+// A deterrent for casual copying, not a protection: browser tools and
+// screenshots still reach what is on screen. Access stays the server's.
+export function installUiLock() {
+  const locked = () => isLockedEnvironment(getEnvironment());
+  const block = (event) => {
+    if (locked() && shouldBlock(event.type, event.target)) event.preventDefault();
+  };
+  ["contextmenu", "copy", "cut", "dragstart"].forEach((type) => document.addEventListener(type, block));
+  ["paste", "drop"].forEach((type) =>
+    document.addEventListener(type, (event) => {
+      if (locked() && closest(event.target, SENSITIVE)) event.preventDefault();
+    }),
+  );
+  const mark = () => document.documentElement.classList.toggle("ui-locked", locked());
+  mark();
+  onEnvironmentChange(mark);
+}

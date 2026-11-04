@@ -1,3 +1,7 @@
 @import "./fonts.css";
 @import "./tailwind.css";
 @import "./theme.css";
+
+/* Utils/Lib/uiLock.js: page text can't be selected; fields still can. */
+html.ui-locked body { user-select: none; -webkit-user-select: none; }
+html.ui-locked input, html.ui-locked textarea, html.ui-locked [contenteditable="true"] { user-select: text; -webkit-user-select: text; }

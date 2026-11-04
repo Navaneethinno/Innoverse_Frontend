@@ -44,3 +44,6 @@ export const useEnvironment = () =>
     },
     () => environment,
   );
+
+export const getEnvironment = () => environment;
+export const onEnvironmentChange = (listener) => listeners.add(listener);

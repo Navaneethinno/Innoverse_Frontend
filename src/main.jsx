@@ -5,12 +5,14 @@ import { i18n, loadLanguage } from "./Utils/I18n/i18n";
 import { watchApprovals } from "./Utils/Lib/flourish";
 import { watchEnvironment } from "./Utils/Lib/environment";
 import { installSearchEnterGuard } from "@/Utils/Lib/searchEnter";
+import { installUiLock } from "@/Utils/Lib/uiLock";
 import { installFileDrop } from "@/Utils/Lib/fileDrop";
 import { notifications } from "@/Utils/Lib/notifications";
 
 installSearchEnterGuard();
 installFileDrop((accept) => notifications.error(i18n.t("common:fileTypeRefused", { accept })));
 watchEnvironment();
+installUiLock();
 watchApprovals();
 // A field holding just 0 (a default) is selected when it gets focus, so the
 // first key typed replaces it instead of landing after it ("05").
