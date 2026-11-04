@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/Utils/Lib/environment", () => ({ getEnvironment: () => null, onEnvironmentChange: () => {} }));
-const { isLockedEnvironment, shouldBlock } = await import("./uiLock");
+const { isLockedEnvironment, isPrintShortcut, shouldBlock } = await import("./uiLock");
 
 const el = (matches) => ({ nodeType: 1, closest: (selector) => (matches.some((m) => selector.includes(m)) ? {} : null) });
 const text = el([]);
@@ -9,6 +9,11 @@ const field = el(["input,"]);
 const secret = el(['type="password"']);
 
 describe("UI lock", () => {
+  it("spots Ctrl+P only", () => {
+    expect(isPrintShortcut({ ctrlKey: true, key: "p" })).toBe(true);
+    expect(isPrintShortcut({ ctrlKey: true, key: "c" })).toBe(false);
+    expect(isPrintShortcut({ key: "p" })).toBe(false);
+  });
   it("production is always locked", () => expect(isLockedEnvironment("PRODUCTION")).toBe(true));
   it("an unknown environment is not", () => expect(isLockedEnvironment(null)).toBe(false));
   it("blocks right click, and copying page text", () => {

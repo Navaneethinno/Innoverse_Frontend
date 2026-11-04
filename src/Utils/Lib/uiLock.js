@@ -22,8 +22,10 @@ export function shouldBlock(type, target) {
   return (type === "copy" || type === "cut") && !closest(target, EDITABLE);
 }
 
+export const isPrintShortcut = (event) => (event.ctrlKey || event.metaKey) && String(event.key).toLowerCase() === "p";
+
 // A deterrent for casual copying, not a protection: browser tools and
-// screenshots still reach what is on screen. Access stays the server's.
+// screenshots (the system's, which no page can stop) still reach what is on screen. Access stays the server's.
 export function installUiLock() {
   const locked = () => isLockedEnvironment(getEnvironment());
   const block = (event) => {
@@ -35,6 +37,10 @@ export function installUiLock() {
       if (locked() && closest(event.target, SENSITIVE)) event.preventDefault();
     }),
   );
+  // The print shortcut only: the app's own print buttons (receipts, reports) still work.
+  document.addEventListener("keydown", (event) => {
+    if (locked() && isPrintShortcut(event)) event.preventDefault();
+  });
   const mark = () => document.documentElement.classList.toggle("ui-locked", locked());
   mark();
   onEnvironmentChange(mark);
