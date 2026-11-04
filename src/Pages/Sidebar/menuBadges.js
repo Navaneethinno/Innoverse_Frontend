@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { tellerApi } from "@/Services/Accounting/accounting.api";
 import { amlFlagApi } from "@/Services/InnoAML/aml.api";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 
-const TELLER_EVERY = 45000;
+const TELLER_EVERY = 60000;
 
 // Counts shown beside a menu in the sidebar, by menu name.
 export const MenuBadgeContext = createContext({});
@@ -16,7 +17,7 @@ export const useMenuBadge = (menuName) => useContext(MenuBadgeContext)[menuName]
 // dismiss settles all of a customer's flags), refreshed by the flag channel.
 // Teller shows the cash transfers waiting for this user (a custodian's
 // requisitions and returns, cash sent to their till); it isn't pushed, so
-// it is read every 45 seconds.
+// it is read once a minute, only while the tab is visible.
 export function useMenuBadges(menus) {
   const hasFlags = (menus ?? []).some((m) => m?.menu_name === "Flags" && m?.status === 1);
   const [flags, setFlags] = useState(0);
@@ -37,19 +38,15 @@ export function useMenuBadges(menus) {
     (m) => m?.menu_name === "Teller" && m?.status === 1 && (m.actions ?? []).some((a) => matchesAction(a?.action_name ?? a?.name, "Self")),
   );
   const [waiting, setWaiting] = useState(0);
+  const readWaiting = () =>
+    tellerApi
+      .transfers({ awaits_me: true, limit: 1 })
+      .then((r) => setWaiting(Number(r?.total ?? r?.pagination?.totalRecords ?? rowsOf(r).length)))
+      .catch(() => {});
   useEffect(() => {
-    if (!worksTill) {
-      setWaiting(0);
-      return undefined;
-    }
-    const read = () =>
-      tellerApi
-        .transfers({ awaits_me: true })
-        .then((r) => setWaiting(rowsOf(r).length))
-        .catch(() => {});
-    read();
-    const timer = window.setInterval(read, TELLER_EVERY);
-    return () => window.clearInterval(timer);
+    if (worksTill) void readWaiting();
+    else setWaiting(0);
   }, [worksTill]);
+  useVisiblePoll(readWaiting, TELLER_EVERY, worksTill);
   return { Flags: flags, Teller: waiting };
 }

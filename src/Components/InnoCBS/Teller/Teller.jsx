@@ -1,3 +1,4 @@
+import { sharedReader, useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -63,7 +64,8 @@ import {
 
 // The transfer queue isn't pushed: read again this often on the desk and
 // the queue (and after every action).
-const QUEUE_EVERY = 45000;
+const QUEUE_EVERY = 60000;
+const readTransfers = sharedReader((body) => tellerApi.transfers(body));
 
 // FINANCE › Teller (menu 196): tills and vaults per branch and currency, the
 // teller's desk and the cash transfers between them. Working a till is the
@@ -104,11 +106,10 @@ function useWaitingForMe(enabled) {
   const { scope } = useInstitutionScope();
   const [rows, setRows] = useState([]);
   const [closes, setCloses] = useState([]);
-  const reload = useCallback(async () => {
+  const reload = useCallback(async ({ force = true } = {}) => {
     if (!enabled) return;
     await Promise.all([
-      tellerApi
-        .transfers(scope({ awaits_me: true }))
+      readTransfers(scope({ awaits_me: true }), { force })
         .then((r) => setRows(Array.isArray(r?.data) ? r.data : []))
         .catch(() => {}),
       tellerApi
@@ -118,10 +119,9 @@ function useWaitingForMe(enabled) {
     ]);
   }, [enabled, scope]);
   useEffect(() => {
-    void reload();
-    const timer = window.setInterval(() => void reload(), QUEUE_EVERY);
-    return () => window.clearInterval(timer);
+    void reload({ force: false });
   }, [reload]);
+  useVisiblePoll(reload, QUEUE_EVERY, enabled);
   return { rows, closes, reload };
 }
 
@@ -1556,9 +1556,8 @@ function TransferTable({ query, keep, onChanged }) {
   // Read again on a timer, so a refusal shows here rather than as a toast
   // every time.
   const load = useCallback(
-    () =>
-      tellerApi
-        .transfers(scope(JSON.parse(key)))
+    ({ force = true } = {}) =>
+      readTransfers(scope(JSON.parse(key)), { force })
         .then((r) => {
           setRows(Array.isArray(r?.data) ? r.data : []);
           setError("");
@@ -1570,10 +1569,9 @@ function TransferTable({ query, keep, onChanged }) {
     [key, scope],
   );
   useEffect(() => {
-    void load();
-    const timer = window.setInterval(() => void load(), QUEUE_EVERY);
-    return () => window.clearInterval(timer);
+    void load({ force: false });
   }, [load]);
+  useVisiblePoll(load, QUEUE_EVERY);
   if (!rows) return <PageSkeleton />;
   return (
     <TransferRows
