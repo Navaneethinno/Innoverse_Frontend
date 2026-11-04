@@ -3,7 +3,7 @@ import { Plus, X } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { codeOf } from "../../../GlobalSettings/Notifications/notificationShared";
-import { percentInput } from "@/Components/Finance/Deposits/depositShared";
+import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { LevelBar } from "./riskShared";
 
 // Levels must cover 0–100 with no gaps or overlaps, so only each level's

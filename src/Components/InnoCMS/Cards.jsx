@@ -9,7 +9,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useServerList } from "@/Hooks/useServerList";
@@ -18,7 +18,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { NewRequest } from "@/Components/Finance/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../Finance/Deposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../InnoCBS/Deposits/depositShared";
 import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord } from "./cardOpsShared";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);

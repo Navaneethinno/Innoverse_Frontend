@@ -12,7 +12,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
-import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
+import { NarrationDialog } from "@/Components/InnoCBS/Deposits/depositShared";
 import { InstitutionField, inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { useCountries } from "@/Hooks/Master/masterHooks";
 import { useAuth } from "@/Hooks/useAuth";

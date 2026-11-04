@@ -1,3 +1,4 @@
+import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { StatusCell } from "@/Components/MakerChecker/StatusCell";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -150,7 +151,7 @@ export function CustomerOnboardingResource() {
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
   // The KYC Report of a row, opened over the list (kept mounted, hidden).
   const [reportRow, setReportRow] = useState(null);
-  const audience = useMenuContext()?.module === "MMS" ? "merchant" : "customer";
+  const audience = isMerchantModule(useMenuContext()?.module) ? "merchant" : "customer";
 
   const list = useServerList({ api: customerOnboardingApi.listPath, call: customerOnboardingApi.list });
 

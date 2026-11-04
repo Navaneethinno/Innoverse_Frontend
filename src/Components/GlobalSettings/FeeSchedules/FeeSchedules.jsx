@@ -8,10 +8,10 @@ import { AlertTriangle, ArrowLeft, Calculator, CheckCircle2, Eye, Pencil, Plus, 
 import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass, ratePct } from "@/Components/Finance/Deposits/depositShared";
-import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
-import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
+import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
+import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass, ratePct } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
+import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { PlanCard } from "@/Components/Finance/Transactions/txnShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";

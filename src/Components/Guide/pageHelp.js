@@ -373,7 +373,7 @@ export const PAGE_HELP = {
     "unmapped": "Postings that found no rule and went to the fallback GL.",
     "search by provider, type, gl or note": "Search the rules."
   },
-  "corebankingsetup": {
+  "branches": {
     "about": "Branches, staff, withholding tax, expected credit loss, the credit bureau and the fiscal year: the core banking settings.",
     "accounting": "The fiscal year and the cash GLs used by the cash flow statement.",
     "head office": "The head office branch."
@@ -1079,7 +1079,7 @@ export const PAGE_HELP_TEXT = {
    "unmapped": "Lançamentos sem regra que foram para a GL de recurso.",
    "search by provider, type, gl or note": "Pesquise nas regras."
   },
-  "corebankingsetup": {
+  "branches": {
    "about": "Agências, funcionários, retenção na fonte, perda de crédito esperada, central de crédito e ano fiscal: as definições bancárias centrais.",
    "accounting": "O ano fiscal e as GL de caixa usadas na demonstração de fluxos de caixa.",
    "head office": "A agência sede."
@@ -1650,7 +1650,7 @@ export const PAGE_HELP_TEXT = {
    "unmapped": "قيود لم تجد قاعدة فذهبت إلى الحساب الاحتياطي.",
    "search by provider, type, gl or note": "ابحث في القواعد."
   },
-  "corebankingsetup": {
+  "branches": {
    "about": "الفروع والموظفون وضريبة الاستقطاع والخسارة الائتمانية المتوقعة ومكتب الائتمان والسنة المالية: إعدادات الصيرفة الأساسية.",
    "accounting": "السنة المالية وحسابات النقد المستخدمة في قائمة التدفقات النقدية.",
    "head office": "فرع المقر الرئيسي."

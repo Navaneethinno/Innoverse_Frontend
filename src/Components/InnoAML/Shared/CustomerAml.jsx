@@ -1,3 +1,4 @@
+import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, RefreshCw, ShieldAlert } from "lucide-react";
@@ -137,7 +138,7 @@ export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, refere
   const { t } = useTranslation("aml");
   // The onboarding screens are shared with MMS, where the record is a
   // merchant: AML knows it as MERCHANT_INDIVIDUAL / MERCHANT_CORPORATE.
-  const merchant = useMenuContext()?.module === "MMS";
+  const merchant = isMerchantModule(useMenuContext()?.module);
   const customerKind = merchant && !String(kind).startsWith("MERCHANT_") ? `MERCHANT_${kind}` : kind;
   // The news summary changes while the dialog is open (a search finishing,
   // a review decided): the customer's own list channel pushes it.

@@ -7,7 +7,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SearchBox } from "@/Components/Common/SearchBox";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { TabButton } from "@/Components/Common/ListView";
-import { Section } from "@/Components/Finance/Deposits/depositShared";
+import { Section } from "@/Components/InnoCBS/Deposits/depositShared";
 import { corpOnboardingDefinitionApi, onboardingDefinitionApi, rowsOf, translationApi } from "@/Services/Epurse/onboarding.api";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";

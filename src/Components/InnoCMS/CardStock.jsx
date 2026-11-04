@@ -5,7 +5,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { useAuth } from "@/Hooks/useAuth";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -15,7 +15,7 @@ import { cardStockApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cardsHandedTo } from "@/Utils/Lib/flourish";
-import { Problems } from "../Finance/Deposits/depositShared";
+import { Problems } from "../InnoCBS/Deposits/depositShared";
 import { CardFace, CardNumber, CardPill, HolderPicker, Labelled, WithCard } from "./cardOpsShared";
 
 const VAULT = "VAULT";

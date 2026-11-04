@@ -1,4 +1,4 @@
-import { money } from "@/Components/Finance/Accounts/accountShared";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { atIst } from "@/Components/Reports/Shared/reportShared";
 
 // What the printed slip says, from a receipt as the API returns it (rrn,

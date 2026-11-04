@@ -1,3 +1,4 @@
+import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -78,10 +79,10 @@ export function useMenuPermission(menuName) {
 // The customers / merchants menus behind the onboarding wizard: Individual
 // and Corporate are separate menus, named for the module.
 const PARTY_MENUS = {
-  individual: { EPURSE: "Individual Customers", MMS: "Individual Merchants" },
-  corporate: { EPURSE: "Corporate Customers", MMS: "Corporate Merchants" },
+  individual: { customer: "Individual Customers", merchant: "Individual Merchants" },
+  corporate: { customer: "Corporate Customers", merchant: "Corporate Merchants" },
 };
 export function usePartyMenuPermission(type) {
   const module = useMenuContext()?.module;
-  return useMenuPermission(PARTY_MENUS[type][module === "MMS" ? "MMS" : "EPURSE"]);
+  return useMenuPermission(PARTY_MENUS[type][isMerchantModule(module) ? "merchant" : "customer"]);
 }

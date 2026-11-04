@@ -7977,6 +7977,16 @@ export const routing = {
 };
 
 export const atm = {
+  subtitleDevices: "The bank's ATMs: each listens on its own switch port. Their keys, commands and events.",
+  batchesSubtitle: "One download, such as keys or configuration, sent to every ATM at once.",
+  profilesTitle: "ATM Profiles",
+  profilesSubtitle: "What a download sends to an ATM: its states, screens and settings.",
+  protocol: "Protocol",
+  profileRecords: "Records",
+  updated: "Updated",
+  pageSize: "Page size",
+  loadedFrom: "Loaded from",
+  code: "Code",
   count_QUEUED: "waiting",
   count_RUNNING: "loading",
   count_DONE: "done",
@@ -9055,7 +9065,7 @@ export const statements = {
   "hint_profit_loss": "Income less expenses for the period, by line (default: the fiscal year so far).",
   "hint_cash_flow": "How your cash changed: profit, then what changed in the rest of the balance sheet. A positive amount brought cash in; a negative one used cash.",
   "cashNotConfigured": "Choose your cash GLs in Core Banking Setup › Accounting to complete this statement.",
-  "openCoreBanking": "Open Core Banking Setup",
+  "openCoreBanking": "Open Accounting Settings",
   "section_assets": "Assets",
   "section_liabilities": "Liabilities",
   "section_equity": "Equity",

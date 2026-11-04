@@ -8,7 +8,7 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useServerList } from "@/Hooks/useServerList";
@@ -16,7 +16,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { cardOrdersApi, cardRequestsApi, cardStockApi, cardsApi, idempotencyKey } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../Finance/Deposits/depositShared";
+import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../InnoCBS/Deposits/depositShared";
 import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord } from "./cardOpsShared";
 import { actorText } from "@/Utils/Lib/actor";
 

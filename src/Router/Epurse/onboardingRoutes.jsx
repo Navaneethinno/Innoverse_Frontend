@@ -55,7 +55,7 @@ onboardingRoutes.push(
 );
 
 // EPURSE > Accounts (menu 178): customers' and merchants' accounts, read only.
-const Accounts = lazy(() => import("@/Components/Finance/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
+const Accounts = lazy(() => import("@/Components/InnoCBS/Accounts/Accounts.jsx").then((m) => ({ default: m.Accounts })));
 onboardingRoutes.push({ path: "accounts", element: pageElement(Accounts) }, { path: "accounts/:id", element: pageElement(Accounts) });
 
 // CASE MANAGEMENT > Onboarding Cases (menu 179).
@@ -74,8 +74,8 @@ onboardingRoutes.push({ path: "disputes", element: pageElement(Disputes) }, { pa
 // Term Deposits (Admin Portal: Term Deposits handoff): TERM DEPOSITS >
 // Deposit Products (180) and Deposits (181), EPURSE > Balance Adjustments
 // (182), GLOBAL SETTINGS > Scheduled Jobs (183).
-const DepositProducts = lazy(() => import("@/Components/Finance/Settings/DepositProducts/DepositProducts.jsx").then((m) => ({ default: m.DepositProducts })));
-const Deposits = lazy(() => import("@/Components/Finance/Deposits/TermDeposits/Deposits.jsx").then((m) => ({ default: m.Deposits })));
+const DepositProducts = lazy(() => import("@/Components/InnoCBS/Settings/DepositProducts/DepositProducts.jsx").then((m) => ({ default: m.DepositProducts })));
+const Deposits = lazy(() => import("@/Components/InnoCBS/Deposits/TermDeposits/Deposits.jsx").then((m) => ({ default: m.Deposits })));
 const BalanceAdjustments = lazy(() => import("@/Components/Finance/BalanceAdjustments/BalanceAdjustments.jsx").then((m) => ({ default: m.BalanceAdjustments })));
 const ScheduledJobs = lazy(() => import("@/Components/GlobalSettings/ScheduledJobs/ScheduledJobs.jsx").then((m) => ({ default: m.ScheduledJobs })));
 onboardingRoutes.push(
@@ -88,11 +88,11 @@ onboardingRoutes.push(
 // Loans (Admin Portal: Loans handoff), module LOANS: Loan Products (184),
 // Lending Regulatory Profile (185), Loan Applications (186), Loan
 // Facilities (187), Regulatory Submissions (188).
-const LoanProducts = lazy(() => import("@/Components/Finance/Settings/LoanProducts/LoanProducts.jsx").then((m) => ({ default: m.LoanProducts })));
-const RegulatoryProfile = lazy(() => import("@/Components/Finance/Settings/RegulatoryProfile/RegulatoryProfile.jsx").then((m) => ({ default: m.RegulatoryProfile })));
-const LoanApplications = lazy(() => import("@/Components/Finance/Loans/Applications/LoanApplications.jsx").then((m) => ({ default: m.LoanApplications })));
-const LoanFacilities = lazy(() => import("@/Components/Finance/Loans/Facilities/LoanFacilities.jsx").then((m) => ({ default: m.LoanFacilities })));
-const RegulatorySubmissions = lazy(() => import("@/Components/Finance/Loans/Submissions/RegulatorySubmissions.jsx").then((m) => ({ default: m.RegulatorySubmissions })));
+const LoanProducts = lazy(() => import("@/Components/InnoCBS/Settings/LoanProducts/LoanProducts.jsx").then((m) => ({ default: m.LoanProducts })));
+const RegulatoryProfile = lazy(() => import("@/Components/InnoCBS/Settings/RegulatoryProfile/RegulatoryProfile.jsx").then((m) => ({ default: m.RegulatoryProfile })));
+const LoanApplications = lazy(() => import("@/Components/InnoCBS/Loans/Applications/LoanApplications.jsx").then((m) => ({ default: m.LoanApplications })));
+const LoanFacilities = lazy(() => import("@/Components/InnoCBS/Loans/Facilities/LoanFacilities.jsx").then((m) => ({ default: m.LoanFacilities })));
+const RegulatorySubmissions = lazy(() => import("@/Components/InnoCBS/Loans/Submissions/RegulatorySubmissions.jsx").then((m) => ({ default: m.RegulatorySubmissions })));
 onboardingRoutes.push(
   ...Object.entries({ loanproducts: LoanProducts, lendingregulatoryprofile: RegulatoryProfile, loanapplications: LoanApplications, loanfacilities: LoanFacilities, regulatorysubmissions: RegulatorySubmissions }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
@@ -118,8 +118,6 @@ onboardingRoutes.push(
     receivecards: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.ReceiveCards }))),
     cardstock: lazy(() => import("@/Components/InnoCMS/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
     prefiles: lazy(() => import("@/Components/InnoCMS/PreFiles.jsx").then((m) => ({ default: m.PreFiles }))),
-    // InnoCMS › ATMs (menu 187).
-    atms: lazy(() => import("@/Components/InnoCMS/Atms.jsx").then((m) => ({ default: m.Atms }))),
   }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
     { path: `${path}/:id`, element: pageElement(Page) },

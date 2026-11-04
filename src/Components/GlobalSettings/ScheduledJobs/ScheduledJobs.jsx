@@ -6,14 +6,14 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { Modal } from "@/Components/Common/Modal";
 import { Toggle } from "@/Components/Common/Toggle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useIsTenant } from "@/Hooks/useInstitutionScope";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { scheduledJobsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { dayDate, inputClass } from "../../Finance/Deposits/depositShared";
+import { dayDate, inputClass } from "../../InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 // GLOBAL SETTINGS > Scheduled Jobs (menu 183): the platform's daily jobs

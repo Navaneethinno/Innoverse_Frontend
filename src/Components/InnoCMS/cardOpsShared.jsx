@@ -6,9 +6,9 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cardProductsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
-import { money } from "@/Components/Finance/Accounts/accountShared";
-import { OwnerFinder } from "../Finance/Deposits/TermDeposits/OpenDeposit";
-import { inputClass, labelClass } from "../Finance/Deposits/depositShared";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
+import { OwnerFinder } from "../InnoCBS/Deposits/TermDeposits/OpenDeposit";
+import { inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 
 // Pieces shared by the Card Operations screens (Cards, Card Requests, Card
 // Orders, Card Stock).

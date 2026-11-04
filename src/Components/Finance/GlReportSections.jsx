@@ -7,7 +7,7 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { SearchBox } from "@/Components/Common/SearchBox";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { glReportsApi } from "@/Services/Accounting/accounting.api";
 import { request } from "@/Services/Epurse/onboarding.api";
 
@@ -18,9 +18,9 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ExportButtons } from "../Reports/Shared/reportShared";
 import { glAmount } from "./accountingShared";
-import { branchOptions, useCoreBanking } from "./coreBankingShared";
-import { inputClass } from "./Deposits/depositShared";
-import { useInstitutionScope } from "./Loans/loanShared";
+import { branchOptions, useCoreBanking } from "../InnoCBS/coreBankingShared";
+import { inputClass } from "../InnoCBS/Deposits/depositShared";
+import { useInstitutionScope } from "../InnoCBS/Loans/loanShared";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const monthStart = () => `${today().slice(0, 8)}01`;

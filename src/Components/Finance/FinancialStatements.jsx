@@ -12,11 +12,11 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ExportButtons } from "../Reports/Shared/reportShared";
 import { glAmount } from "./accountingShared";
-import { branchOptions, useCoreBanking } from "./coreBankingShared";
-import { inputClass } from "./Deposits/depositShared";
+import { branchOptions, useCoreBanking } from "../InnoCBS/coreBankingShared";
+import { inputClass } from "../InnoCBS/Deposits/depositShared";
 import { DirectCashFlow, ProfitLossByDay, ProfitLossDetail, ResultRow } from "./GlReportSections";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { useInstitutionScope } from "./Loans/loanShared";
+import { useInstitutionScope } from "../InnoCBS/Loans/loanShared";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -135,7 +135,7 @@ export function FinancialStatement({ kind, currencies }) {
           </p>
           {kind === "cash_flow" && data.cash_configured === false && (
             <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-              {t("cashNotConfigured")} <MenuLink slug="corebankingsetup" label={t("openCoreBanking")} />
+              {t("cashNotConfigured")} <MenuLink slug="accountingsettings" label={t("openCoreBanking")} />
             </p>
           )}
           {kind === "profit_loss" && view === "detail" ? (

@@ -16,7 +16,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { transactionRequestsApi, transactionsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { Problems, amountInput, inputClass, labelClass } from "../Deposits/depositShared";
+import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Deposits/depositShared";
 import { PlanCard } from "./txnShared";
 
 // What a type asks for, from its option: the wallets on the non-cash

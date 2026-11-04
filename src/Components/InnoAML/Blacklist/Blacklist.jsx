@@ -8,7 +8,7 @@ import { ListPanel } from "@/Components/Common/ListPanel";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
+import { NarrationDialog } from "@/Components/InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { amlBlacklistApi } from "@/Services/InnoAML/aml.api";

@@ -5,13 +5,13 @@ import { useTranslation } from "react-i18next";
 import { FileDown, FileStack } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { preFilesApi } from "@/Services/Cards/cards.api";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { NarrationDialog } from "../Finance/Deposits/depositShared";
+import { NarrationDialog } from "../InnoCBS/Deposits/depositShared";
 import { CardPill, cardWord } from "./cardOpsShared";
 
 // The PRE file holds full card numbers and CVVs: it goes from the reply

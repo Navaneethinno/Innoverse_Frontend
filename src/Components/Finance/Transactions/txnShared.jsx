@@ -5,7 +5,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
-import { money } from "@/Components/Finance/Accounts/accountShared";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { transactionsApi } from "@/Services/Transactions/transactions.api";

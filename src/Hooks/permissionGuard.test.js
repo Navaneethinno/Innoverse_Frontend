@@ -22,9 +22,9 @@ const ASKS = /usePagePermission|useMenuPermission|usePartyMenuPermission|Lifecyc
 const OPENED_BY_A_CHECKED_SCREEN = [
   "Epurse/Customers/StaffOnboardingWizard.jsx",
   "Epurse/Settings/FormBuilder/DefinitionFormWizard.jsx",
-  "Finance/Loans/Applications/ApplicationForm.jsx",
-  "Finance/Settings/DepositProducts/DepositProductWizard.jsx",
-  "Finance/Settings/LoanProducts/LoanProductWizard.jsx",
+  "InnoCBS/Loans/Applications/ApplicationForm.jsx",
+  "InnoCBS/Settings/DepositProducts/DepositProductWizard.jsx",
+  "InnoCBS/Settings/LoanProducts/LoanProductWizard.jsx",
   "GlobalSettings/DigitalProducts/AddDigitalProductWizard.jsx",
   "GlobalSettings/Limits/LimitRulesEditor.jsx",
   "GlobalSettings/Notifications/NotificationAlerts/NotificationAlertForm.jsx",

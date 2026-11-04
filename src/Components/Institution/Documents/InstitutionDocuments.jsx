@@ -13,11 +13,11 @@ import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibili
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Modal } from "@/Components/Common/Modal";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
-import { ProductStatus } from "@/Components/Finance/Settings/DepositProducts/productShared";
-import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
+import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
+import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";

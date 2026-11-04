@@ -1,3 +1,4 @@
+import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
@@ -8,7 +9,7 @@ import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 // customer-worded key.
 export function useAudienceTranslation(ns) {
   const translation = useTranslation(ns);
-  const merchant = String(useMenuContext()?.module ?? "").toUpperCase() === "MMS";
+  const merchant = isMerchantModule(useMenuContext()?.module);
   const { t } = translation;
   const audienceT = useCallback((key, options) => (merchant ? t(key, { ...options, context: "merchant" }) : t(key, options)), [t, merchant]);
   return { ...translation, t: audienceT, merchant };

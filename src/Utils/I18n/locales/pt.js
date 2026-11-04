@@ -7459,6 +7459,16 @@ export const routing = {
 };
 
 export const atm = {
+  subtitleDevices: "Os ATMs do banco: cada um escuta na sua própria porta do switch. As suas chaves, comandos e eventos.",
+  batchesSubtitle: "Um envio, como chaves ou configuração, para todos os ATMs de uma só vez.",
+  profilesTitle: "Perfis de ATM",
+  profilesSubtitle: "O que um envio manda para um ATM: estados, ecrãs e definições.",
+  protocol: "Protocolo",
+  profileRecords: "Registos",
+  updated: "Atualizado",
+  pageSize: "Tamanho da página",
+  loadedFrom: "Carregado de",
+  code: "Código",
   count_QUEUED: "em espera",
   count_RUNNING: "a carregar",
   count_DONE: "concluídos",
@@ -8483,7 +8493,7 @@ export const statements = {
   "hint_profit_loss": "Proveitos menos custos do período, por linha (por defeito: o ano fiscal até hoje).",
   "hint_cash_flow": "Como o numerário mudou: o resultado e depois o que mudou no resto do balanço. Um valor positivo trouxe numerário; um negativo consumiu-o.",
   "cashNotConfigured": "Escolha as contas de caixa em Configuração bancária › Contabilidade para completar esta demonstração.",
-  "openCoreBanking": "Abrir Configuração bancária",
+  "openCoreBanking": "Abrir Definições contabilísticas",
   "section_assets": "Ativo",
   "section_liabilities": "Passivo",
   "section_equity": "Capital próprio",

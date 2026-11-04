@@ -32,7 +32,7 @@ import { KycPdfButton } from "./KycReportPdf";
 import { scoredRisk, screenedAml } from "./kycShared";
 import { CustomerStateBadges } from "@/Components/Epurse/Customers/customerPortal";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { MiniTable } from "@/Components/Finance/Loans/loanShared";
+import { MiniTable } from "@/Components/InnoCBS/Loans/loanShared";
 import { cn } from "@/Utils/Lib/utils";
 import { ExpiryStateBadge, MoneyHeldTag } from "../ExpiringDocuments/expiryShared";
 import { glassCard } from "../Shared/reportShared";

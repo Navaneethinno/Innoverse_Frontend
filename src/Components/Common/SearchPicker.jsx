@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { inputClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { notifications } from "@/Utils/Lib/notifications";
 
 // Pick one record by typing part of it: `search(term)` resolves to the

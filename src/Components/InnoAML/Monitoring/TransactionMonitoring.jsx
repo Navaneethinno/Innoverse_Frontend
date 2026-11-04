@@ -12,7 +12,7 @@ import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { SearchPicker } from "@/Components/Common/SearchPicker";
 import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate, money } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
 import {
   ActionButtons,
   Facts,
@@ -21,8 +21,8 @@ import {
   Section,
   inputClass,
   labelClass,
-} from "@/Components/Finance/Deposits/depositShared";
-import { Field, MiniTable, Tabs } from "@/Components/Finance/Loans/loanShared";
+} from "@/Components/InnoCBS/Deposits/depositShared";
+import { Field, MiniTable, Tabs } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { amlMonitoringApi } from "@/Services/InnoAML/aml.api";
 import { recordOf } from "@/Services/Loans/loans.api";

@@ -5,7 +5,7 @@ import { Button } from "@/Components/Common/Button";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import {
   ActionButtons,
   AuditTimeline,
@@ -13,8 +13,8 @@ import {
   Problems,
   Section,
   labelClass,
-} from "@/Components/Finance/Deposits/depositShared";
-import { Field, RowsEditor, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
+} from "@/Components/InnoCBS/Deposits/depositShared";
+import { Field, RowsEditor, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { expiryRulesApi } from "@/Services/Expiry/expiry.api";
 import { recordOf } from "@/Services/Loans/loans.api";

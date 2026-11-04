@@ -4,7 +4,7 @@
 import { userRoutes } from "./UserManagement/userRoutes";
 import { profileRoutes } from "./UserManagement/profileRoutes";
 import { masterRoutes } from "./Epurse/masterRoutes";
-import { accountRoutes } from "./Finance/accountRoutes";
+import { accountRoutes } from "./InnoCBS/accountRoutes";
 import { kycSchemesRoutes } from "./Epurse/kycSchemesRoutes";
 import { digitalProductRoutes } from "./GlobalSettings/digitalProductRoutes";
 import { onboardingRoutes } from "./Epurse/onboardingRoutes";
@@ -12,12 +12,14 @@ import { onboardingMasterRoutes } from "./Epurse/onboardingMasterRoutes";
 import { onboardingAliasRoutes } from "./Epurse/onboardingAliasRoutes";
 import { notificationRoutes } from "./GlobalSettings/notificationRoutes";
 import { riskRoutes } from "./Epurse/riskRoutes";
-import { mmsRoutes } from "./MMS/mmsRoutes";
+import { mmsRoutes } from "./InnoMMS/mmsRoutes";
 import { amlRoutes } from "./InnoAML/amlRoutes";
 import { reportRoutes } from "./Reports/reportRoutes";
 import { globalSettingsRoutes } from "./GlobalSettings/globalSettingsRoutes";
-import { accountingRoutes } from "./Finance/accountingRoutes";
-import { reconRoutes } from "./Recon/reconRoutes";
+import { accountingRoutes as financeRoutes } from "./Finance/accountingRoutes";
+import { cbsRoutes } from "./InnoCBS/cbsRoutes";
+import { eftRoutes } from "./InnoEFT/eftRoutes";
+import { reconRoutes } from "./InnoRecon/reconRoutes";
 
 export { publicRoutes } from "./publicRoutes";
 export { dashboardRoutes } from "./dashboardRoutes";
@@ -52,4 +54,5 @@ export const reportsRoutes = [...reportRoutes];
 export { globalSettingsRoutes };
 
 // Accounting: Chart of Accounts, GL Mapping, Manual Journal, GL Reports.
-export { accountingRoutes };
+// Finance, InnoCBS and InnoEFT (the last two split from Finance and InnoCMS).
+export const accountingRoutes = [...financeRoutes, ...cbsRoutes, ...eftRoutes];

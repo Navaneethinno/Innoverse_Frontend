@@ -8,8 +8,8 @@ import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { cardBinsApi, cardNumberLayoutsApi, cardProductsApi, issuanceGroupsApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
-import { Section, dayDate, labelClass } from "../../Finance/Deposits/depositShared";
-import { Field, loanLabel } from "../../Finance/Loans/loanShared";
+import { Section, dayDate, labelClass } from "../../InnoCBS/Deposits/depositShared";
+import { Field, loanLabel } from "../../InnoCBS/Loans/loanShared";
 import { freeOptions, pickOptions } from "./CardSetup";
 import { CardFace } from "../cardOpsShared";
 

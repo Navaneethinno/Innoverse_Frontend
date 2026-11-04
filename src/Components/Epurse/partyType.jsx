@@ -1,3 +1,4 @@
+import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { useMenuContext } from "@/Pages/Sidebar/menuContext";
@@ -7,7 +8,7 @@ import { useMenuContext } from "@/Pages/Sidebar/menuContext";
 const MERCHANT_PARTY_TYPE = 2;
 const AGENT_PARTY_TYPE = 3;
 
-export const useIsMerchantModule = () => String(useMenuContext()?.module ?? "").toUpperCase() === "MMS";
+export const useIsMerchantModule = () => isMerchantModule(useMenuContext()?.module);
 
 export const isAgentType = (row) => Number(row?.party_type_id) === AGENT_PARTY_TYPE || String(row?.party_type_name ?? "").toUpperCase() === "AGENT";
 

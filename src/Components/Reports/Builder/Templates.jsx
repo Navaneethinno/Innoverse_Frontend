@@ -10,7 +10,7 @@ import { SearchBox } from "@/Components/Common/SearchBox";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { Spinner } from "@/Components/Common/Spinner";
 import { profileId } from "@/Components/UserManagement/Profiles/ProfileForm";
-import { inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { useListSearch } from "@/Hooks/useListSearch";
 import { mapProfileListResponse } from "@/Hooks/UserManagement/profileHooks";
 import { reportBuilderApi } from "@/Services/Reports/reportBuilder.api";

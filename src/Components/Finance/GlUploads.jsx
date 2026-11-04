@@ -10,13 +10,13 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate } from "@/Components/Finance/Accounts/accountShared";
+import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { glUploadsApi } from "@/Services/Accounting/accounting.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, Problems, inputClass, labelClass } from "./Deposits/depositShared";
-import { ProductStatus } from "./Settings/DepositProducts/productShared";
+import { ActionButtons, Problems, inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
+import { ProductStatus } from "../InnoCBS/Settings/DepositProducts/productShared";
 import { GlType, useRecordActions } from "./accountingShared";
 
 const ACTIONS = ["NEW", "CHANGED", "UNCHANGED", "ERROR"];

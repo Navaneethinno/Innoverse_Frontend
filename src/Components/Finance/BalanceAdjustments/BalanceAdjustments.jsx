@@ -8,8 +8,8 @@ import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Spinner } from "@/Components/Common/Spinner";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { DrCr, TxnDialog } from "@/Components/Finance/Accounts/AccountStatement";
-import { money } from "@/Components/Finance/Accounts/accountShared";
+import { DrCr, TxnDialog } from "@/Components/InnoCBS/Accounts/AccountStatement";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { atIst } from "@/Components/Reports/Shared/reportShared";
 import { RequestDialog } from "@/Components/Finance/Transactions/Transactions";
 import { PlanCard, TotalCell, typeLabel } from "@/Components/Finance/Transactions/txnShared";
@@ -19,7 +19,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { balanceAdjustmentsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { Problems, amountInput, inputClass, labelClass } from "../Deposits/depositShared";
+import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 
 // EPURSE > Balance Adjustments (menu 182): credit / debit corrections of a

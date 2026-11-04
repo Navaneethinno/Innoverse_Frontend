@@ -8,7 +8,10 @@
 const SCOPED = /^\/customer\/(master_config|risk|admin)\//;
 
 // Module name (menu_array's module_name) -> API prefix.
-const PREFIX_BY_MODULE = { MMS: "merchant" };
+const PREFIX_BY_MODULE = { INNOMMS: "merchant" };
+
+// The merchant module (menu_array's module_name), whose pages speak of merchants.
+export const isMerchantModule = (moduleName) => String(moduleName ?? "").trim().toUpperCase() === "INNOMMS";
 
 let prefix = "customer";
 

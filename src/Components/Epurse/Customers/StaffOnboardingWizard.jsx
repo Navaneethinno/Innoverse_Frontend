@@ -17,10 +17,10 @@ import { FieldPreview } from "../Settings/FormBuilder/FieldPreview";
 import { PORTAL_DRAFT_REASON, PortalDraftBanner, SponsorLine, isPortalDraft } from "./customerPortal";
 
 import { Button } from "@/Components/Common/Button";
-import { CustomerAccounts, useAccountsOwner } from "@/Components/Finance/Accounts/accountShared";
+import { CustomerAccounts, useAccountsOwner } from "@/Components/InnoCBS/Accounts/accountShared";
 import { OwnerLimitUsage } from "@/Components/GlobalSettings/Limits/LimitUsage";
 import { OwnerHistoryButton } from "@/Components/Finance/Transactions/OwnerHistory";
-import { OwnerDeposits } from "@/Components/Finance/Deposits/TermDeposits/Deposits";
+import { OwnerDeposits } from "@/Components/InnoCBS/Deposits/TermDeposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
 // The staff onboarding wizard on the institution's own form (Admin portal

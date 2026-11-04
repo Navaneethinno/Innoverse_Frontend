@@ -2,12 +2,12 @@ import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Pencil, Power, RotateCcw, Send, Trash2, XCircle } from "lucide-react";
-import { money } from "@/Components/Finance/Accounts/accountShared";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { glAccountsApi } from "@/Services/Accounting/accounting.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { NarrationDialog } from "./Deposits/depositShared";
+import { NarrationDialog } from "../InnoCBS/Deposits/depositShared";
 
 export const GL_TYPES = ["ASSET", "LIABILITY", "EQUITY", "INCOME", "EXPENSE"];
 

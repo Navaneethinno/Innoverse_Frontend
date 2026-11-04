@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, Ban, BriefcaseBusiness, CheckCircle2 } from "lucide-react";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { NarrationDialog } from "@/Components/Finance/Deposits/depositShared";
+import { NarrationDialog } from "@/Components/InnoCBS/Deposits/depositShared";
 import { RaiseCaseDialog } from "@/Components/CaseManagement/AmlCases";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";

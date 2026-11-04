@@ -6,7 +6,7 @@ import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";

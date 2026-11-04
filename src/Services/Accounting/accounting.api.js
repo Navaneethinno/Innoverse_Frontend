@@ -56,6 +56,18 @@ export const treasuryApi = {
 // withholding tax, IFRS 9 ECL, credit bureau and the fiscal year; one
 // document per institution under maker-checker. edit replaces only the
 // sections sent (a list sent replaces the whole list).
+// The setup's sections as their own menus (menu tree v2): each has its own
+// maker-checker and history.
+const SECTION = ["get", "edit", "auth", "deauth"];
+export const cbsBranchesApi = calls("/config/cbs/branches", SECTION);
+export const cbsBranchStaffApi = calls("/config/cbs/branch_staff", SECTION);
+export const cbsWithholdingTaxApi = calls("/config/cbs/withholding_tax", SECTION);
+export const cbsEclApi = calls("/config/cbs/ecl", SECTION);
+export const cbsCreditBureauApi = calls("/config/cbs/credit_bureau", SECTION);
+export const cbsTreasuryApi = calls("/config/cbs/treasury", SECTION);
+export const cbsTellerApi = calls("/config/cbs/teller", SECTION);
+export const accountingSettingsApi = calls("/config/accounting/settings", SECTION);
+
 export const coreBankingApi = calls("/config/accounting/core_banking", ["get", "edit", "auth", "deauth"]);
 
 // Accounting Periods (menu 195): close a month (the fiscal year's last also

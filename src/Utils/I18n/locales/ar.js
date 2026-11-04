@@ -5623,6 +5623,16 @@ export const routing = {
 };
 
 export const atm = {
+  subtitleDevices: "أجهزة الصراف الآلي للبنك: يستمع كل منها على منفذه الخاص. مفاتيحها وأوامرها وأحداثها.",
+  batchesSubtitle: "تنزيل واحد، مثل المفاتيح أو الإعدادات، يُرسل إلى كل الأجهزة دفعة واحدة.",
+  profilesTitle: "ملفات الصراف الآلي",
+  profilesSubtitle: "ما يرسله التنزيل إلى الجهاز: الحالات والشاشات والإعدادات.",
+  protocol: "البروتوكول",
+  profileRecords: "السجلات",
+  updated: "آخر تحديث",
+  pageSize: "حجم الصفحة",
+  loadedFrom: "مصدر التحميل",
+  code: "الرمز",
   count_QUEUED: "بالانتظار",
   count_RUNNING: "قيد التحميل",
   count_DONE: "مكتملة",
@@ -6777,7 +6787,7 @@ export const statements = {
   "hint_profit_loss": "الإيرادات ناقص المصروفات للفترة، حسب البند (افتراضيًا: السنة المالية حتى الآن).",
   "hint_cash_flow": "كيف تغيّر نقدك: الربح ثم ما تغيّر في بقية الميزانية. المبلغ الموجب أدخل نقدًا؛ والسالب استخدمه.",
   "cashNotConfigured": "اختر حسابات النقد في إعداد الخدمات المصرفية › المحاسبة لإكمال هذا البيان.",
-  "openCoreBanking": "فتح إعداد الخدمات المصرفية",
+  "openCoreBanking": "فتح إعدادات المحاسبة",
   "section_assets": "الأصول",
   "section_liabilities": "الخصوم",
   "section_equity": "حقوق الملكية",

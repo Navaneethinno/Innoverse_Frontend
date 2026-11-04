@@ -4,7 +4,7 @@ import { ArrowLeft, CheckCircle2, Eye, ListChecks, MessageSquarePlus, MessageSqu
 import { Button } from "@/Components/Common/Button";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
-import { CustomerAccounts } from "@/Components/Finance/Accounts/accountShared";
+import { CustomerAccounts } from "@/Components/InnoCBS/Accounts/accountShared";
 import { StaffOnboardingWizard } from "@/Components/Epurse/Customers/StaffOnboardingWizard";
 import { ClearAllDialog, ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
 import { AdverseMediaBadge } from "@/Components/InnoAML/AdverseMedia/AdverseMedia";

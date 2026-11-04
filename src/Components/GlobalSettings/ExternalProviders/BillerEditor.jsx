@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { RowsEditor } from "@/Components/Finance/Loans/loanShared";
-import { labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { RowsEditor } from "@/Components/InnoCBS/Loans/loanShared";
+import { labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { cn } from "@/Utils/Lib/utils";
 
 const BILLER_CATEGORIES = ["TV", "WATER", "INSURANCE", "INSS", "TAX", "UNIVERSITY", "LAM", "GAS", "BETTING", "OTHER"];

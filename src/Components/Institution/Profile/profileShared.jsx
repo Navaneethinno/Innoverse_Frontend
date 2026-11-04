@@ -5,7 +5,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { DigitChips } from "@/Components/Common/DigitChips";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Toggle } from "@/Components/Common/Toggle";
-import { inputClass, labelClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { institutionsApi } from "@/Services/Institution/institutions.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";

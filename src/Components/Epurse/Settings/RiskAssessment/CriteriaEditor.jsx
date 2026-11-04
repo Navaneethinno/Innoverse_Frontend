@@ -8,7 +8,7 @@ import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { percentInput } from "@/Components/Finance/Deposits/depositShared";
+import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { round2 } from "./riskShared";
 
 const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";

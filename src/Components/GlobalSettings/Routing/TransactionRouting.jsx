@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { Tabs, useInstitutionScope } from "@/Components/Finance/Loans/loanShared";
+import { Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { Decisions, HealthBoard, Simulator } from "./RoutingLive";
 import { SetupEditor, SetupList, SetupView } from "./RoutingSetup";
 

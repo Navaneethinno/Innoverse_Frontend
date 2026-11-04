@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
-import { inputClass } from "@/Components/Finance/Deposits/depositShared";
+import { inputClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { cn } from "@/Utils/Lib/utils";
 
 // A key component typed by a custodian: masked (with a show/hide eye), only

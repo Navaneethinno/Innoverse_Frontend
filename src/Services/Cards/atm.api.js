@@ -21,6 +21,11 @@ export const atmsApi = {
 };
 // One download to every ACTIVE ATM: { part?, parallel? (1-8) }; poll get
 // for { status (RUNNING | DONE | INTERRUPTED), counts, items }.
+export const atmProfilesApi = {
+  listPath: "/config/atm/profile/list",
+  list: (body) => request("/config/atm/profile/list", body ?? {}),
+  get: (body) => request("/config/atm/profile/get", body),
+};
 export const atmBatchesApi = {
   listPath: "/config/atm/batch/list",
   list: (body) => request("/config/atm/batch/list", body ?? {}),
