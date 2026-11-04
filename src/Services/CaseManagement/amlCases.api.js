@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
@@ -6,7 +7,7 @@ import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 // { flag_id } | { screening_id } | { customer_kind, reference_id } with a
 // reason (and optional priority, title, first message); one open case per
 // customer, so raising again adds to it. Every action replies with the case.
-const BASE = "/config/case/aml";
+const BASE = API_ENDPOINTS.CASE_API.AML;
 const call = (verb) => (body) => request(`${BASE}/${verb}`, body);
 
 export const amlCasesApi = {

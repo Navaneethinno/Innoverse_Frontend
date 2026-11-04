@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 
 // EPURSE > Accounts (menu 178, view only). An account opens by itself when
@@ -11,13 +12,13 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //   txn:  { txn_id or rrn } -> one transaction with all its lines
 // acct_class: CUSTOMER is a wallet, DEPOSIT a term deposit's own account.
 export const accountsApi = {
-  listPath: "/config/account/list",
-  list: (body) => request("/config/account/list", body),
-  get: (body) => request("/config/account/get", body),
-  ledger: (body) => request("/config/account/ledger", body),
-  txn: (body) => request("/config/account/txn", body),
+  listPath: API_ENDPOINTS.ACCOUNT_API.LIST,
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.LIST, body),
+  get: (body) => request(API_ENDPOINTS.ACCOUNT_API.GET, body),
+  ledger: (body) => request(API_ENDPOINTS.ACCOUNT_API.LEDGER, body),
+  txn: (body) => request(API_ENDPOINTS.ACCOUNT_API.TXN, body),
   // Money sent to phone numbers with no account: { status, phone_number, sender_name, inst_profile_id, search, page, limit }
-  phoneTransfers: (body) => request("/config/account/phone_transfer/list", body),
+  phoneTransfers: (body) => request(API_ENDPOINTS.ACCOUNT_API.PHONE_TRANSFER_LIST, body),
 };
 
 // Opening a further account (maker-checker; Self opens at once).
@@ -26,14 +27,14 @@ export const accountsApi = {
 //            acct_product_id, reason } · auth / deauth: { id, narration? }
 //   cancel / get: { id } · list: { entity_type?, entity_id?, status?, page, limit }
 export const accountOpeningApi = {
-  listPath: "/config/account/open/list",
-  options: (body) => request("/config/account/open/options", body),
-  add: (body) => request("/config/account/open/add", body),
-  auth: (body) => request("/config/account/open/auth", body),
-  deauth: (body) => request("/config/account/open/deauth", body),
-  cancel: (body) => request("/config/account/open/cancel", body),
-  get: (body) => request("/config/account/open/get", body),
-  list: (body) => request("/config/account/open/list", body),
+  listPath: API_ENDPOINTS.ACCOUNT_API.OPEN_LIST,
+  options: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_OPTIONS, body),
+  add: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_ADD, body),
+  auth: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_AUTH, body),
+  deauth: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_DEAUTH, body),
+  cancel: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_CANCEL, body),
+  get: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_GET, body),
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.OPEN_LIST, body),
 };
 
 // Account actions (maker-checker): FREEZE, UNFREEZE, BLOCK, UNBLOCK, CLOSE,
@@ -43,35 +44,35 @@ export const accountOpeningApi = {
 //   add: { acct_id, action, reason, party? } · auth / deauth: { id, narration }
 //   cancel: { id } (the requester, while pending) · list: { acct_id, status, page, limit }
 export const accountActionsApi = {
-  listPath: "/config/account/action/list",
-  add: (body) => request("/config/account/action/add", body),
-  auth: (body) => request("/config/account/action/auth", body),
-  deauth: (body) => request("/config/account/action/deauth", body),
-  cancel: (body) => request("/config/account/action/cancel", body),
-  get: (body) => request("/config/account/action/get", body),
-  list: (body) => request("/config/account/action/list", body),
+  listPath: API_ENDPOINTS.ACCOUNT_API.ACTION_LIST,
+  add: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_ADD, body),
+  auth: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_AUTH, body),
+  deauth: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_DEAUTH, body),
+  cancel: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_CANCEL, body),
+  get: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_GET, body),
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.ACTION_LIST, body),
 };
 
 // The account's other parties (joint holders, guardian, group members,
 // nominees) and its statements.
-export const accountPartiesApi = { list: (body) => request("/config/account/party/list", body) };
+export const accountPartiesApi = { list: (body) => request(API_ENDPOINTS.ACCOUNT_API.PARTY_LIST, body) };
 export const accountStatementsApi = {
-  list: (body) => request("/config/account/statement/list", body),
-  get: (body) => request("/config/account/statement/get", body),
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.STATEMENT_LIST, body),
+  get: (body) => request(API_ENDPOINTS.ACCOUNT_API.STATEMENT_GET, body),
 };
 
 // Liens (Accounts menu): money held that no debit may touch. list { acct_id | acct_num }
 // (active first) · add { acct_id, amount, reason COURT_ORDER | OTHER, narration } · release { id, narration }.
 export const accountLiensApi = {
-  list: (body) => request("/config/account/lien/list", body),
-  add: (body) => request("/config/account/lien/add", body),
-  release: (body) => request("/config/account/lien/release", body),
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.LIEN_LIST, body),
+  add: (body) => request(API_ENDPOINTS.ACCOUNT_API.LIEN_ADD, body),
+  release: (body) => request(API_ENDPOINTS.ACCOUNT_API.LIEN_RELEASE, body),
 };
 
 // Accounts > Institution wallets: the head office's and each branch's own wallet.
 export const institutionWalletsApi = {
-  list: (body) => request("/config/account/institution_wallet/list", body),
-  add: (body) => request("/config/account/institution_wallet/add", body),
-  products: () => request("/config/acct/product/get_active", { view: "dropdown" }),
+  list: (body) => request(API_ENDPOINTS.ACCOUNT_API.INSTITUTION_WALLET_LIST, body),
+  add: (body) => request(API_ENDPOINTS.ACCOUNT_API.INSTITUTION_WALLET_ADD, body),
+  products: () => request(API_ENDPOINTS.CONFIG_ACCT.ACCT_PRODUCT.GET_ACTIVE, { view: "dropdown" }),
 };
-export const activeAccountProducts = (body) => request("/config/acct/product/get_active", body);
+export const activeAccountProducts = (body) => request(API_ENDPOINTS.CONFIG_ACCT.ACCT_PRODUCT.GET_ACTIVE, body);

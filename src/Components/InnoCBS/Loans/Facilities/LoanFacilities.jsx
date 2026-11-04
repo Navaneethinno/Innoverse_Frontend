@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
@@ -89,7 +90,7 @@ export function LoanFacilities() {
   const list = useServerList({ api: loanFacilitiesApi.listPath, call: loanFacilitiesApi.list });
 
   const load = list.reload;
-  useLiveChannel("/config/loan/facility/list", () => load());
+  useLiveChannel(API_ENDPOINTS.LOAN_API.FACILITY_LIST, () => load());
 
   if (openId) {
     return (
@@ -288,7 +289,7 @@ function FacilityView({ id, onBack }) {
   }, [reload]);
   // The open record: reload when the push names it, or names nothing.
   useLiveChannel(
-    "/config/loan/facility/list",
+    API_ENDPOINTS.LOAN_API.FACILITY_LIST,
     (_action, records) =>
       (!records.length || records.some((r) => String(r.id) === String(id))) && void reload(),
   );

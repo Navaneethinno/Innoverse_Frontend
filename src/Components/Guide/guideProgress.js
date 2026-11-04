@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { request } from "@/Services/Epurse/onboarding.api";
 
@@ -14,8 +15,8 @@ const SAVE_DELAY = 1000;
 const MAX_SEEN = 300;
 
 const preferenceApi = {
-  get: () => request("/config/user/preference/get", { key: PREF_KEY }),
-  save: (value) => request("/config/user/preference/save", { key: PREF_KEY, value }),
+  get: () => request(API_ENDPOINTS.USER_API.PREFERENCE_GET, { key: PREF_KEY }),
+  save: (value) => request(API_ENDPOINTS.USER_API.PREFERENCE_SAVE, { key: PREF_KEY, value }),
 };
 
 function readLocal(key) {

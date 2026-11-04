@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 import { downloadAttachment, postForm } from "@/Services/api/fileTransfer";
 
@@ -6,7 +7,7 @@ import { downloadAttachment, postForm } from "@/Services/api/fileTransfer";
 // by a different user; deactivate / reactivate need a narration; delete
 // removes a record never used, at once. events:
 // { id } -> [{ id, action, detail, actor, at }].
-const base = "/config/recon";
+const base = API_ENDPOINTS.RECON_API.BASE;
 const calls = (group, names) => ({
   listPath: `${base}/${group}/list`,
   ...Object.fromEntries(names.map((name) => [name, (body) => request(`${base}/${group}/${name}`, body ?? {})])),

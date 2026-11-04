@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { masterApi } from "@/Services/Master/master.api";
 import { extProvidersApi } from "@/Services/Transactions/transactions.api";
@@ -14,16 +15,16 @@ function loadLists(instProfileId) {
   const activeRows = (path) =>
     safe(request(path, { view: "dropdown", ...(instProfileId ? { inst_profile_id: Number(instProfileId) } : {}) }).then(rowsOf));
   return Promise.all([
-    safe(masterRows("/master/limit_category")),
-    safe(masterRows("/master/limit_dimension")),
-    safe(masterRows("/master/limit_type")),
+    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_CATEGORY_API.BASE)),
+    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_DIMENSION_API.BASE)),
+    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_TYPE_API.BASE)),
     safe(masterApi.currencyList()),
     safe(masterApi.transactionList()),
     safe(masterApi.channelList()),
     safe(masterApi.partyTypeList()),
     safe(masterApi.ownershipList()),
-    activeRows("/config/kyc/group/get_active"),
-    activeRows("/config/digital_product/product/get_active"),
+    activeRows(API_ENDPOINTS.CONFIG_KYC.KYC_GROUP.GET_ACTIVE),
+    activeRows(API_ENDPOINTS.DIGITAL_PRODUCT.PRODUCT.GET_ACTIVE),
   ]).then(([categories, dimensions, limitTypes, currencies, transactions, channels, partyTypes, ownerships, kycSchemes, products]) => {
     const pick = (rows, label = (r) => r.name ?? r.code ?? r.short_desc ?? String(r.id)) => rows.map((r) => ({ value: String(r.id), label: label(r) }));
     return {

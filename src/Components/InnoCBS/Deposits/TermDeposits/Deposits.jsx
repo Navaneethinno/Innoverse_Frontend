@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -61,7 +62,7 @@ export function Deposits() {
   const list = useServerList({ api: depositsApi.listPath, call: depositsApi.list });
 
   const load = list.reload;
-  useLiveChannel("/config/deposit/contract/list", () => load());
+  useLiveChannel(API_ENDPOINTS.DEPOSIT_API.CONTRACT_LIST, () => load());
 
   const columns = depositColumns(t, can, setOpenId, false);
 

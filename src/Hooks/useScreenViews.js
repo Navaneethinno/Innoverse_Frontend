@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
@@ -32,7 +33,7 @@ export function useScreenViews() {
     };
     const screen = parts.length === 2 && parts[1].toLowerCase() === "dashboard" ? `${moduleName()} Dashboard` : named ? i18n.getFixedT("en", "routes")(crumbs[crumbs.length - 1]) : `/${parts.join("/")}`;
     const body = menu ? { screen: menu.menu_name, menu_id: Number(menu.menu_id) } : { screen };
-    request("/config/user/activity/view", body).catch(() => {});
+    request(API_ENDPOINTS.USER_API.ACTIVITY_VIEW, body).catch(() => {});
     // Only a new page counts, not a menu reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, ready]);

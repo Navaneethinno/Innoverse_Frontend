@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
@@ -5,7 +6,7 @@ import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 // transaction (its RRN), raised by the customer or by staff. Closed with an
 // outcome (RESOLVED / REJECTED), or settled by a Balance Adjustment, which
 // closes it as ADJUSTED. Every action replies with the case, as get does.
-const BASE = "/config/case/dispute";
+const BASE = API_ENDPOINTS.CASE_API.DISPUTE;
 const call = (verb) => (body) => request(`${BASE}/${verb}`, body);
 
 export const disputeCasesApi = {

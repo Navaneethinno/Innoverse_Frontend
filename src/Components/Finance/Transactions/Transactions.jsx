@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { ListTable } from "@/Components/Common/ListView";
@@ -85,7 +86,7 @@ function Journal({ actions, onOpen }) {
   const list = useServerList({ api: transactionsApi.listPath, call: transactionsApi.list });
 
   const load = list.reload;
-  useLiveChannel("/config/transaction/list", () => load());
+  useLiveChannel(API_ENDPOINTS.TRANSACTION_API.LIST, () => load());
 
   const columns = [
     {
@@ -399,7 +400,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
   // Its own URL keys (r_...): the journal's list shares the page.
   const list = useServerList({ api: transactionRequestsApi.listPath, call: transactionRequestsApi.list, prefix: "r_" });
   const load = list.reload;
-  useLiveChannel("/config/transaction/request/list", () => load());
+  useLiveChannel(API_ENDPOINTS.TRANSACTION_API.REQUEST_LIST, () => load());
 
   const columns = useMemo(
     () => [

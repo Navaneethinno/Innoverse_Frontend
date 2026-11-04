@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useMemo, useState } from "react";
 import { masterApi } from "@/Services/Master/master.api";
 import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -24,10 +25,10 @@ const PLATFORM = {
   ownership: () => masterApi.ownershipList(),
   residency_type: () => masterApi.residencyTypeList(),
   inst_profile: () => institutionsApi.getActive().then((r) => mapInstitutionListResponse(r).institutions.map((i) => ({ ...i, id: i.id ?? i.inst_profile_id }))),
-  risk_action: () => masterList("/customer/master_config/risk_action/list"),
-  province: () => masterList("/customer/master_config/province/list"),
-  district: () => masterList("/customer/master_config/district/list"),
-  village: () => masterList("/customer/master_config/village/list"),
+  risk_action: () => masterList(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.RISK_ACTION_LIST),
+  province: () => masterList(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.PROVINCE_LIST),
+  district: () => masterList(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.DISTRICT_LIST),
+  village: () => masterList(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.VILLAGE_LIST),
 };
 // Field bases that mean another master.
 const ALIASES = { nationality: "country", citizenship: "country", address_proof_type: "document_type" };
@@ -61,7 +62,7 @@ function loadNames(base, entity) {
     const promise = PLATFORM[base]
       ? PLATFORM[base]().then(toMap).catch(() => new Map())
       : prefixes.reduce(
-          (prev, prefix) => prev.then((found) => (found.size ? found : masterList(`/customer/master_config/${prefix}${base}/list`).then(toMap).catch(() => new Map()))),
+          (prev, prefix) => prev.then((found) => (found.size ? found : masterList(`${API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BASE}/${prefix}${base}/list`).then(toMap).catch(() => new Map()))),
           Promise.resolve(new Map()),
         );
     cache.set(key, promise);

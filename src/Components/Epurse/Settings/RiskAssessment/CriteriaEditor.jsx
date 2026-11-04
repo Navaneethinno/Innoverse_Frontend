@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,7 +25,7 @@ function FatfList({ onClose }) {
   const { t } = useTranslation("risk");
   const [rows, setRows] = useState(null);
   useEffect(() => {
-    request("/master/fatf_country/list", { page: 1, limit: 500 })
+    request(API_ENDPOINTS.MASTER_FATF_COUNTRY_API.LIST, { page: 1, limit: 500 })
       .then((r) => setRows(rowsOf(r)))
       .catch((error) => {
         setRows([]);

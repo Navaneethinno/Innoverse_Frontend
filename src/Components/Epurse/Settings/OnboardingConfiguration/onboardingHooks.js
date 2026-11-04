@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
 import { activeMasterOptions, kycSchemeApi, request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { masterApi } from "@/Services/Master/master.api";
@@ -16,10 +17,10 @@ export function useOnboardingCatalog() {
     catalogPromise ??= Promise.all([
       masterApi.kycProcessList().catch(() => []),
       masterApi.transactionList().catch(() => []),
-      masterList("/master/limit_type"),
-      masterList("/master/kyc_upgrade_trigger"),
-      masterList("/master/document_purpose"),
-      masterList("/master/validation_type"),
+      masterList(API_ENDPOINTS.MASTER_LIMIT_TYPE_API.BASE),
+      masterList(API_ENDPOINTS.MASTER_KYC_UPGRADE_TRIGGER_API.BASE),
+      masterList(API_ENDPOINTS.MASTER_DOCUMENT_PURPOSE_API.BASE),
+      masterList(API_ENDPOINTS.MASTER_VALIDATION_TYPE_API.BASE),
     ]).then(([kycProcesses, transactions, limitTypes, upgradeTriggers, documentPurposes, validationTypes]) => ({
       kyc_processes: kycProcesses,
       transactions,

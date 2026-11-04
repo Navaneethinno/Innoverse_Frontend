@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 
 // REPORTS > the report builder. No menu of its own: each report ("source")
@@ -9,7 +10,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //   run:     { source, columns | group_by + aggregates, filters, sort, page, page_size | all }
 //            -> { columns: [{ key, label, type, currency_field }], rows: [[...]], warnings }
 // Templates: saved definitions, private or shared; only the owner edits them.
-const base = "/config/report/builder";
+const base = API_ENDPOINTS.REPORT_API.BUILDER;
 const call =
   (path) =>
   (body = {}) =>

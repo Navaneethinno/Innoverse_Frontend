@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -76,7 +77,7 @@ function AccountsList() {
   const list = useServerList({ api: accountsApi.listPath, call: accountsApi.list });
 
   const load = list.reload;
-  useLiveChannel("/config/account/list", () => load());
+  useLiveChannel(API_ENDPOINTS.ACCOUNT_API.LIST, () => load());
 
   const columns = [
     {

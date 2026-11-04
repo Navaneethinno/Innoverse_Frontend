@@ -1,8 +1,9 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 
 // EPURSE > Bulk Registration (menu 71): a maker uploads people, a checker
 // authorises the batch and each is onboarded as a customer.
-const BASE = "/customer/admin/bulk_registration";
+const BASE = API_ENDPOINTS.CUSTOMER_ADMIN_API.BULK_REGISTRATION;
 const call = (verb) => (body = {}) => request(`${BASE}/${verb}`, body);
 
 export const bulkRegistrationApi = {

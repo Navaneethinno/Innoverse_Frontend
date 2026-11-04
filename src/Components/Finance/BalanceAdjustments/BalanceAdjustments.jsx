@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -39,7 +40,7 @@ export function BalanceAdjustments() {
   const list = useServerList({ api: balanceAdjustmentsApi.listPath, call: balanceAdjustmentsApi.list });
 
   const load = list.reload;
-  useLiveChannel("/config/ledger/adjustment/list", () => load());
+  useLiveChannel(API_ENDPOINTS.LEDGER_API.ADJUSTMENT_LIST, () => load());
 
   const columns = [
     {

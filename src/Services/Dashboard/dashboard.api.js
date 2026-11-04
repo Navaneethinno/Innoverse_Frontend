@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { LAYOUT_VERSION } from "@/Pages/Dashboard/layout/gridLayout";
 
@@ -11,7 +12,7 @@ export const dashboardApi = {
   // `layout: null` resets to the default.
   saveLayout: async (user, layout) =>
     first(
-      await request("/config/user/dashboard_layout/save", {
+      await request(API_ENDPOINTS.USER_API.DASHBOARD_LAYOUT_SAVE, {
         dashboard_key: DASHBOARD_KEY,
         user_id: user.id,
         user_name: user.username,
@@ -20,7 +21,7 @@ export const dashboardApi = {
       }),
     ),
   // One module's own dashboard; a module without one answers config.dashboard_module_unknown.
-  module: async (module) => first(await request("/config/dashboard/module", { module })),
+  module: async (module) => first(await request(API_ENDPOINTS.DASHBOARD_API.MODULE, { module })),
   // widgets: ids to refresh (all when left out).
-  summary: async (body = {}) => first(await request("/config/dashboard/summary", { dashboard_key: DASHBOARD_KEY, ...body })),
+  summary: async (body = {}) => first(await request(API_ENDPOINTS.DASHBOARD_API.SUMMARY, { dashboard_key: DASHBOARD_KEY, ...body })),
 };

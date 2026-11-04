@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, Plus, X } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -219,7 +220,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   // Every role, with its label and help, in the user's language.
   const [roles, setRoles] = useState([]);
   useEffect(() => {
-    request("/master/form_use_roles", {})
+    request(API_ENDPOINTS.MASTER_FORM_USE_ROLES_API.BASE, {})
       .then((r) => setRoles(rowsOf(r)))
       .catch(() => setRoles([]));
   }, []);

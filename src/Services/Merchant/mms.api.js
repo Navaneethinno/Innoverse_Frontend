@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { request } from "@/Services/Epurse/onboarding.api";
 
 // MMS › Agents (menu 207): every merchant-side party's role (MERCHANT,
@@ -7,7 +8,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //   add:     { entity_type, entity_id, tier, parent?, reason } (the role as it should be afterwards)
 //   auth / deauth: { id, narration } · cancel: { id } (the requester)
 //   pending: { status (PENDING | ALL), entity_type?, entity_id?, page, limit } -> { items, total }
-const agent = "/merchant/admin/agent";
+const agent = API_ENDPOINTS.MERCHANT_ADMIN_API.AGENT;
 export const agentsApi = {
   listPath: `${agent}/list`,
   list: (body) => request(`${agent}/list`, body),
@@ -25,7 +26,7 @@ export const agentsApi = {
 // reactivate: { id, narration }. wallets / set_wallets: a merchant's own
 // store wallet setting ("" = the institution's). pos_users: { merchant } ->
 // its terminal users, their profiles and shifts, and its idle setting.
-const store = "/merchant/admin/store";
+const store = API_ENDPOINTS.MERCHANT_ADMIN_API.STORE;
 export const storesApi = {
   listPath: `${store}/list`,
   list: (body) => request(`${store}/list`, body),
@@ -47,7 +48,7 @@ export const storesApi = {
 // digits, ISO 18245; a merchant needs one before it is given terminals).
 // pos_policy: { inst_profile_id } -> { idle_seconds, default_seconds, ... };
 // set_pos_policy: { inst_profile_id, idle_seconds } (60 to 86400).
-const terminal = "/merchant/admin/terminal";
+const terminal = API_ENDPOINTS.MERCHANT_ADMIN_API.TERMINAL;
 export const terminalsApi = {
   listPath: `${terminal}/list`,
   ...Object.fromEntries(

@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/Utils/Constant";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -48,7 +49,7 @@ export function ScheduledJobs() {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel("/config/scheduler/job/list", () => void load({ silent: true }));
+  useLiveChannel(API_ENDPOINTS.SCHEDULER_API.JOB_LIST, () => void load({ silent: true }));
 
   const call = async (verb, body) => {
     setBusy(body.code);

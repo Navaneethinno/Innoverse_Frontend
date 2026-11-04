@@ -7,7 +7,7 @@ import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useCoreBanking } from "../coreBankingShared";
 import { useInstitutionScope } from "../Loans/loanShared";
