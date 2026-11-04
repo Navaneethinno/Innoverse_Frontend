@@ -1,3 +1,4 @@
+import { ScreenWatermark } from "./ScreenWatermark";
 import { Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -59,6 +60,7 @@ function Layout() {
           </WorkspaceContainer>
         </div>
       </div>
+      <ScreenWatermark />
     </KeyCustodyProvider>
   );
 }

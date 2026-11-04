@@ -159,12 +159,13 @@ export function DynamicSidebar() {
   const selectedModule = useMemo(() => {
     if (selectedModuleId == null) return null;
     return (
-      filteredModules.find((module) => Number(module.module_id) === selectedModuleId) ?? {
+      filteredModules.find((module) => Number(module.module_id) === selectedModuleId) ??
+      activeMenuArray.find((item) => Number(item.module_id) === selectedModuleId) ?? {
         module_id: selectedModuleId,
         module_name: t("moduleFallbackName", { id: selectedModuleId }),
       }
     );
-  }, [filteredModules, selectedModuleId, t]);
+  }, [filteredModules, activeMenuArray, selectedModuleId, t]);
 
   const menuItemsForModule = useMemo(
     () =>
