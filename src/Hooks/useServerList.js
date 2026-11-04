@@ -18,13 +18,14 @@ import { notifications } from "@/Utils/Lib/notifications";
 // on one page apart in the URL. `extra` is sent as is (a parent's id).
 // `select(reply)`: the rows, when a page shapes them itself (default: data).
 // The list reloads on its live channel (another user's change) and on the
-// window event `reloadOn` (this tab's own saves).
+// window event `reloadOn` (this tab's own saves). `enabled: false` (a tab not
+// on screen) loads nothing until it is true.
 const SEARCH_DELAY = 400;
 const optionsCache = new Map();
 
 const isSet = (v) => v !== undefined && v !== null && v !== "" && v !== false;
 
-export function useServerList({ api, call, prefix = "", extra = null, select = null, reloadOn = null }) {
+export function useServerList({ api, call, prefix = "", extra = null, select = null, reloadOn = null, enabled = true }) {
   const [params, setParams] = useSearchParams();
   const institution = useInstitutionFilter();
   const [options, setOptions] = useState(null);
@@ -37,6 +38,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   // since filter choices are limited to it.
   const inst = canChooseInstitution() ? institution : "";
   useEffect(() => {
+    if (!enabled) return undefined;
     if (!api) {
       // A page wired without its list path: nothing can load.
       console.error("useServerList: no list path given");
@@ -62,7 +64,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
     return () => {
       cancelled = true;
     };
-  }, [api, inst]);
+  }, [api, inst, enabled]);
 
   // The search box shows what is typed at once; the list follows 400 ms
   // after typing stops.

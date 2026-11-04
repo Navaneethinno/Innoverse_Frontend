@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { AlertTriangle, CalendarClock, X } from "lucide-react";
@@ -38,18 +39,20 @@ export function ExpiryBanner() {
   const canDocuments = useMenuPermission("Expiring Documents")("View");
   const [data, setData] = useState(null);
   const [closed, setClosed] = useState([]);
-  useEffect(() => {
-    const read = () =>
+  const read = useCallback(
+    () =>
       expiryNoticesApi()
         .then((r) => {
           setData(recordOf(r));
           setClosed([]);
         })
-        .catch(() => setData(null));
+        .catch(() => setData(null)),
+    [],
+  );
+  useEffect(() => {
     void read();
-    const timer = window.setInterval(read, EVERY);
-    return () => window.clearInterval(timer);
-  }, []);
+  }, [read]);
+  useVisiblePoll(read, EVERY);
 
   const docs = data?.documents ?? {};
   const lines = [

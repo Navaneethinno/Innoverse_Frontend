@@ -1,3 +1,4 @@
+import { activeAccountProducts } from "@/Services/Epurse/accounts.api";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,10 +11,8 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { glReportsApi } from "@/Services/Accounting/accounting.api";
-import { request } from "@/Services/Epurse/onboarding.api";
 
 // F3: the active account products for the filter.
-const acctProductsApi = { getActive: (body) => request("/config/acct/product/get_active", body) };
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -229,8 +228,7 @@ export function CustomerBalances({ currencies }) {
   const [q, setQ] = useState({ as_of: today(), from: "", party: "ALL", currency_id: "", acct_product_id: "", search: "", include_zero: false });
   const [products, setProducts] = useState([]);
   useEffect(() => {
-    acctProductsApi
-      .getActive({ view: "dropdown" })
+    activeAccountProducts({ view: "dropdown" })
       .then((r) => setProducts(Array.isArray(r?.data) ? r.data : []))
       .catch(() => setProducts([]));
   }, []);

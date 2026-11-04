@@ -38,7 +38,7 @@ export function PreFiles() {
   const [busy, setBusy] = useState(false);
   const jobs = view === "jobs";
   const cards = useServerList({ api: "/config/card/prefile/list", call: preFilesApi.list });
-  const made = useServerList({ api: "/config/card/prefile/jobs", call: preFilesApi.jobs, prefix: "j_" });
+  const made = useServerList({ api: "/config/card/prefile/jobs", call: preFilesApi.jobs, prefix: "j_", enabled: jobs });
   const list = jobs ? made : cards;
   const data = { items: cards.rows, total: cards.pagination.totalRecords };
   const groupId = cards.toolbar.filters.issuance_group_id ?? "";

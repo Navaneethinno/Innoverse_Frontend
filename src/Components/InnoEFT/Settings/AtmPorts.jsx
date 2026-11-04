@@ -1,3 +1,4 @@
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshCw } from "lucide-react";
@@ -20,16 +21,15 @@ function PortBoard() {
   const { t } = useTranslation("atm");
   const [rows, setRows] = useState(null);
   const load = useCallback(() => {
-    atmsApi
+    return atmsApi
       .ports()
       .then((r) => setRows(rowsOf(r)))
       .catch((error) => notifications.error(error.message));
   }, []);
   useEffect(() => {
-    load();
-    const timer = window.setInterval(load, 15000);
-    return () => window.clearInterval(timer);
+    void load();
   }, [load]);
+  useVisiblePoll(load, 15000);
   if (!rows) return <Spinner size={16} />;
   return (
     <div className="grid gap-2">

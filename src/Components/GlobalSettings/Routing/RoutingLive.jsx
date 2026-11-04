@@ -1,3 +1,4 @@
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -46,17 +47,16 @@ export function HealthBoard({ scope }) {
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
   const load = useCallback(() => {
-    routingApi
+    return routingApi
       .health(scope())
       .then((r) => setRows(rowsOf(r)))
       .catch((error) => notifications.error(error.message));
   }, [scope]);
   // Refreshed every 20 s while the board is open.
   useEffect(() => {
-    load();
-    const timer = window.setInterval(load, REFRESH_MS);
-    return () => window.clearInterval(timer);
+    void load();
   }, [load]);
+  useVisiblePoll(load, REFRESH_MS);
   const set = async (row, override, reason) => {
     setBusy(true);
     try {

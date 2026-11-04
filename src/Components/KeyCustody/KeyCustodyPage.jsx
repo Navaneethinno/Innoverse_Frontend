@@ -1,3 +1,4 @@
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,9 +36,8 @@ export function KeyCustodyPage() {
   // The other custodian enters their part from their own session.
   useEffect(() => {
     void refresh().finally(() => setLoaded(true));
-    const timer = window.setInterval(() => void refresh(), 10000);
-    return () => window.clearInterval(timer);
   }, [refresh]);
+  useVisiblePoll(refresh, 10000);
 
   if (!loaded) return <PageSkeleton />;
   if (!status)

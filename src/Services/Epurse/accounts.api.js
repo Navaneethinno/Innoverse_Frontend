@@ -67,3 +67,11 @@ export const accountLiensApi = {
   add: (body) => request("/config/account/lien/add", body),
   release: (body) => request("/config/account/lien/release", body),
 };
+
+// Accounts > Institution wallets: the head office's and each branch's own wallet.
+export const institutionWalletsApi = {
+  list: (body) => request("/config/account/institution_wallet/list", body),
+  add: (body) => request("/config/account/institution_wallet/add", body),
+  products: () => request("/config/acct/product/get_active", { view: "dropdown" }),
+};
+export const activeAccountProducts = (body) => request("/config/acct/product/get_active", body);

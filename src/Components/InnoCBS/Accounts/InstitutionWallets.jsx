@@ -1,3 +1,4 @@
+import { institutionWalletsApi } from "@/Services/Epurse/accounts.api";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlusCircle } from "lucide-react";
@@ -15,11 +16,6 @@ import { money } from "./accountShared";
 // Accounts › Institution wallets: the head office's and each branch's own
 // wallet, one per currency. Staff transactions take money only from these.
 // Opening one is immediate (no checker). branch_id 0 is the head office.
-const walletsApi = {
-  list: (body) => request("/config/account/institution_wallet/list", body),
-  add: (body) => request("/config/account/institution_wallet/add", body),
-  products: () => request("/config/acct/product/get_active", { view: "dropdown" }),
-};
 
 export function InstitutionWallets({ onOpenAccount }) {
   const { t } = useTranslation(["accounts", "common"]);
@@ -30,7 +26,7 @@ export function InstitutionWallets({ onOpenAccount }) {
   const setup = useCoreBanking(useInstitutionScope().scope);
   const headOffices = new Set((setup?.branches ?? []).filter((b) => b.head_office_type || b.head_office).map((b) => b.id));
   const load = useCallback(() => {
-    walletsApi
+    institutionWalletsApi
       .list({})
       .then((r) => setRows(rowsOf(r)))
       .catch((e) => {
@@ -102,7 +98,7 @@ function OpenWallet({ onClose, onDone }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    walletsApi
+    institutionWalletsApi
       .products()
       .then((r) => setProducts(Array.isArray(r?.data) ? r.data : []))
       .catch(() => setProducts([]));
@@ -113,7 +109,7 @@ function OpenWallet({ onClose, onDone }) {
     setBusy(true);
     setError("");
     try {
-      const r = await walletsApi.add({ branch_id: Number(form.branch_id), acct_product_id: Number(form.acct_product_id) });
+      const r = await institutionWalletsApi.add({ branch_id: Number(form.branch_id), acct_product_id: Number(form.acct_product_id) });
       notifications.success(r?.message ?? t("walletOpened"));
       onDone();
     } catch (e) {

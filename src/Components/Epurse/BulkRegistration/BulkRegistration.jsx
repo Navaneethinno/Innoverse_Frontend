@@ -1,3 +1,4 @@
+import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, CheckCircle2, FileDown, FileUp, ListChecks, Plus, Send, Users, XCircle } from "lucide-react";
@@ -401,11 +402,7 @@ function BatchView({ id, onBack }) {
   // While the rows register, ask again every few seconds (the live channel's
   // `done` also refreshes it).
   const processing = batch?.batch_status === "PROCESSING";
-  useEffect(() => {
-    if (!processing) return undefined;
-    const timer = setInterval(() => void reload(), 4000);
-    return () => clearInterval(timer);
-  }, [processing, reload]);
+  useVisiblePoll(reload, 4000, processing);
 
   const decide = async (verb, narration) => {
     setBusy(verb);
