@@ -44,6 +44,7 @@ export const SUPPORT_QUEUE = {
   outcomes: ["RESOLVED", "WITHDRAWN"],
   titleKey: "supportTitle",
   subtitleKey: "supportSubtitle",
+  emptyHintKey: "noSupportCasesHint",
 };
 
 // CASE MANAGEMENT > Onboarding Cases (menu 179): the queue of new customers

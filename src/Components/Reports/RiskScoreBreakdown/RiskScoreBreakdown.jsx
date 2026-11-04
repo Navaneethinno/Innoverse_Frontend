@@ -184,7 +184,7 @@ export function RiskScoreBreakdown() {
     {
       key: "customer_kind",
       label: t("type"),
-      render: (row) => <span className="text-xs">{t(`kind_${row.customer_kind}`)}</span>,
+      render: (row) => <span className="text-xs">{row.customer_kind_name}</span>,
     },
     {
       key: "risk_score",

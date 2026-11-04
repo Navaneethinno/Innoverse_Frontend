@@ -105,7 +105,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
             <BandChip name={item.level_name} color={item.level_color} />
             <span className="text-xs font-semibold">{item.risk_action_name ?? "—"}</span>
             <span className="text-xs text-muted-foreground">
-              {t(`kind_${item.customer_kind}`)} · {b.setup?.name ?? item.risk_setup_name} · {atIst(item.assessed_at)} · {actorText(item, "assessed_by", "")} · {item.source_name}
+              {item.customer_kind_name ?? t(`kind_${item.customer_kind}`)} · {b.setup?.name ?? item.risk_setup_name} · {atIst(item.assessed_at)} · {actorText(item, "assessed_by", "")} · {item.source_name}
             </span>
             {!item.is_latest && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold">{t("earlier")}</span>}
           </div>

@@ -152,7 +152,7 @@ export function CaseView({ id, config, onBack }) {
 
       {config?.TopPanel && <config.TopPanel kase={kase} onChanged={reload} />}
 
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
+      <div className="mb-4 flex flex-wrap gap-1 border-b border-border">
         {(conversational ? AML_TABS : TABS).map((key) => (
           <button
             key={key}
@@ -258,7 +258,7 @@ function SnapshotRow({ title, snap }) {
         <Tile label={t("kycLevel")}>{snap.kyc_level != null ? t("levelN", { n: snap.kyc_level }) : "—"}</Tile>
         <Tile label={t("risk")}>
           <RiskPill risk={snap.risk} />
-          {snap.risk?.action?.risk_action_name && <p className="mt-1 text-[11px] text-muted-foreground">{t("actionIs", { name: snap.risk.action.risk_action_name, outcome: snap.risk.action.onboarding_outcome ?? "—" })}</p>}
+          {snap.risk?.action?.risk_action_name && <p className="mt-1 text-[11px] text-muted-foreground">{t("actionIs", { name: snap.risk.action.risk_action_name, outcome: snap.risk.action.onboarding_outcome_name ?? "—" })}</p>}
         </Tile>
         <Tile label={t("aml")}>
           <AmlPill aml={snap.aml} />
@@ -268,7 +268,7 @@ function SnapshotRow({ title, snap }) {
               {snap.aml.blacklist_action && ` · ${t(`blacklistAction_${snap.aml.blacklist_action}`, { defaultValue: snap.aml.blacklist_action })}`}
             </p>
           )}
-          {snap.aml?.action?.risk_action_code && <p className="mt-1 text-[11px] text-muted-foreground">{t("actionIs", { name: snap.aml.action.risk_action_name ?? snap.aml.action.risk_action_code, outcome: snap.aml.action.onboarding_outcome ?? "—" })}</p>}
+          {snap.aml?.action?.risk_action_code && <p className="mt-1 text-[11px] text-muted-foreground">{t("actionIs", { name: snap.aml.action.risk_action_name ?? snap.aml.action.risk_action_code, outcome: snap.aml.action.onboarding_outcome_name ?? "—" })}</p>}
         </Tile>
       </div>
       {snap.reasons?.length > 0 && <ReasonChips reasons={snap.reasons} className="mt-3" />}
@@ -304,11 +304,7 @@ function OverviewTab({ kase }) {
       <SnapshotRow title={t("whatOpenedCase")} snap={kase.decision_snapshot} />
       <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3">
         <Tile label={t("contact")}>
-          <p>{kase.subject?.email || "—"}</p>
-          <p className="text-xs text-muted-foreground">{kase.subject?.phone_number || "—"}</p>
-        </Tile>
-        <Tile label={t("onboardingReference")}>
-          <p className="break-all font-mono text-xs">{kase.subject?.reference_id ?? "—"}</p>
+          <ContactLines subject={kase.subject} />
         </Tile>
         <Tile label={t("closed")}>
           {kase.closed_at ? (
@@ -333,7 +329,7 @@ function RiskTab({ assessment }) {
     <div className="rounded-2xl border border-border bg-card p-4">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <RiskPill risk={assessment} />
-        {assessment.risk_action_code && <span className="text-xs text-muted-foreground">{t("riskAction")}: <span className="font-semibold text-foreground">{assessment.risk_action_code}</span></span>}
+        {assessment.risk_action_code && <span className="text-xs text-muted-foreground">{t("riskAction")}: <span className="font-semibold text-foreground">{assessment.risk_action_name ?? assessment.risk_action_code}{assessment.onboarding_outcome_name ? ` → ${assessment.onboarding_outcome_name}` : ""}</span></span>}
         <span className="text-xs text-muted-foreground">{t("assessedAt", { date: caseDate(assessment.assessed_at) })}</span>
       </div>
       {points.length ? (
@@ -462,6 +458,18 @@ function TimelineTab({ events, canNote, onNote, busy, fileOf }) {
   );
 }
 
+// The subject's email and phone, each labelled; a line with no value is left out.
+function ContactLines({ subject }) {
+  const { t } = useTranslation("cases");
+  const lines = [["contactEmail", subject?.email], ["contactPhone", subject?.phone_number]].filter(([, value]) => value);
+  if (!lines.length) return "—";
+  return lines.map(([key, value]) => (
+    <p key={key} className="break-all">
+      <span className="text-xs font-normal text-muted-foreground">{t(key)}:</span> {value}
+    </p>
+  ));
+}
+
 // An AML case's overview: who, why the case opened, and when each side
 // last wrote.
 function AmlOverviewTab({ kase }) {
@@ -469,8 +477,7 @@ function AmlOverviewTab({ kase }) {
   return (
     <div className="grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-3">
       <Tile label={t("contact")}>
-        <p>{kase.subject?.email || "—"}</p>
-        <p className="text-xs text-muted-foreground">{kase.subject?.phone_number || "—"}</p>
+        <ContactLines subject={kase.subject} />
       </Tile>
       <Tile label={t("customerReference")}>
         <p className="break-all font-mono text-xs">{kase.subject?.reference_id ?? "—"}</p>
