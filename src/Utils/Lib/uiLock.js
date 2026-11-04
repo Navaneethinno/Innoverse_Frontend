@@ -1,8 +1,7 @@
 import { getEnvironment, onEnvironmentChange } from "@/Utils/Lib/environment";
 
-// Where the lock is on, by the API's X-Environment: UAT only while it is
-// tested. Before go-live this becomes ["PRODUCTION"].
-const LOCKED_ENVIRONMENTS = ["UAT"];
+// Where the lock is on, by the API's X-Environment: production only.
+const LOCKED_ENVIRONMENTS = ["PRODUCTION"];
 
 // Sign-in fields and every password or PIN: nothing copied out, pasted or
 // dropped in.
