@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ListChecks } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { menuPathForItem } from "@/Pages/Sidebar/menuRouteMap";
+import { menuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
 import { Modal } from "@/Components/Common/Modal";
 import { Button } from "@/Components/Common/Button";
 import { UiTooltip } from "@/Components/Common/UiTooltip";

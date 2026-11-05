@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/Pages/Sidebar/menuRouteMap", () => ({ menuPage: () => ({ slugs: [] }) }));
-vi.mock("@/Pages/Sidebar/menuContext", () => ({ useMenuContext: () => null }));
+vi.mock("@/Components/Layout/Menu/menuRouteMap", () => ({ menuPage: () => ({ slugs: [] }) }));
+vi.mock("@/Components/Layout/Menu/menuContext", () => ({ useMenuContext: () => null }));
 
 const { buildCan, findMenuByName } = await import("./usePermission");
 

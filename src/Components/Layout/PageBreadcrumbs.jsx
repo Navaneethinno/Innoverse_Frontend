@@ -2,10 +2,10 @@ import { ChevronRight } from "lucide-react";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { findMenuByPath, menuChain, moduleDashboardPath } from "@/Pages/Sidebar/menuRouteMap";
+import { findMenuByPath, menuChain, moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
-import { menuLabel, moduleLabel } from "@/Pages/Sidebar/menuLabels";
+import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Each crumb links to a real registered route via getPathForCrumb

@@ -3,7 +3,7 @@ import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { DateInput } from "@/Components/Common/DateInput";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { useState } from "react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { useAuth } from "@/Hooks/useAuth";

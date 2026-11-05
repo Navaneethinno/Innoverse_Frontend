@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Check, Minus } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { useTranslation } from "react-i18next";
-import { menuLabel } from "@/Pages/Sidebar/menuLabels";
+import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 import { triggerKey } from "./useAlertOptions";
 
 // Tri-state checkbox in the theme's colours: ticked, empty, or partly (dash).

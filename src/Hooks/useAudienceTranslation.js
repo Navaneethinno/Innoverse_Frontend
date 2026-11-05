@@ -1,7 +1,7 @@
 import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 
 // The onboarding screens are shared by EPURSE (customers) and MMS
 // (merchants). On an MMS page every text is looked up with the "merchant"

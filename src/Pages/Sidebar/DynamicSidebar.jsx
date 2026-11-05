@@ -16,8 +16,8 @@ import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";
 import { MenuBadgeContext, useMenuBadges } from "./menuBadges";
-import { moduleLabel } from "./menuLabels";
-import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "./menuRouteMap";
+import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
+import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
 
 const SIDEBAR_EXPANDED_W = 256;

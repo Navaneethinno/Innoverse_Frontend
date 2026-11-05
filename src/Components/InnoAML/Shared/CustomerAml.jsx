@@ -6,7 +6,7 @@ import { Eye, RefreshCw, ShieldAlert } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { amlScreeningApi } from "@/Services/InnoAML/aml.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";

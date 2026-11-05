@@ -9,7 +9,7 @@ import { NarrationDialog } from "@/Components/InnoCBS/Deposits/depositShared";
 import { RaiseCaseDialog } from "@/Components/CaseManagement/AmlCases";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useMenuPermission, usePagePermission } from "@/Hooks/usePermission";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { amlFlagApi } from "@/Services/InnoAML/aml.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, when } from "../Shared/amlShared";

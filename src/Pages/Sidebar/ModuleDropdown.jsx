@@ -4,7 +4,7 @@ import { ChevronRight, LayoutGrid } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
 import { getModuleIcon } from "./moduleIcons";
-import { moduleLabel } from "./menuLabels";
+import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 
 // Ported from payseFrontend src/Pages/Sidebar/ModuleDropdown.jsx: renders

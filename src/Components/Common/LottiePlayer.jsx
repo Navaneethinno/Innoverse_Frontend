@@ -1,7 +1,12 @@
 import { Suspense, lazy } from "react";
+import wasmUrl from "../../../node_modules/@lottiefiles/dotlottie-web/dist/dotlottie-player.wasm?url";
 
+// The player's engine comes from our own server, not its default public CDN.
 const DotLottieReact = lazy(() =>
-  import("@lottiefiles/dotlottie-react").then((module) => ({ default: module.DotLottieReact })),
+  import("@lottiefiles/dotlottie-react").then((module) => {
+    module.setWasmUrl(wasmUrl);
+    return { default: module.DotLottieReact };
+  }),
 );
 
 // The animation player, downloaded the first time one is shown. Its box keeps

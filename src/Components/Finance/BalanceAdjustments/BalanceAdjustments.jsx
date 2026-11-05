@@ -16,7 +16,7 @@ import { atIst } from "@/Components/Reports/Shared/reportShared";
 import { RequestDialog } from "@/Components/Finance/Transactions/Transactions";
 import { PlanCard, TotalCell, typeLabel } from "@/Components/Finance/Transactions/txnShared";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { balanceAdjustmentsApi } from "@/Services/TermDeposits/termDeposits.api";
 import { notifications } from "@/Utils/Lib/notifications";

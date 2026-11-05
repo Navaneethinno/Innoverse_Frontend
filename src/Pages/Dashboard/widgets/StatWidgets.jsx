@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Briefcase, Building2, CheckCircle, Clock, FileText, UserCheck, UserPlus } from "lucide-react";
 import { AnimatedNumber } from "@/Components/Common/AnimatedNumber";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 import { useWidgetData } from "../layout/dashboardData";
 import { glass } from "./WidgetCard";

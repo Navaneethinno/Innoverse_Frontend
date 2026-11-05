@@ -3,7 +3,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useTranslation } from "react-i18next";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { usePartyMenuPermission } from "@/Hooks/usePermission";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { CustomerOnboardingResource } from "./CustomerOnboardingResource";
 import { CorporateCustomerOnboardingResource } from "./CorporateCustomerOnboardingResource";
 

@@ -3,7 +3,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { OnboardingConfigurationPage } from "./OnboardingConfigurationPage";
 import { CorporateOnboardingConfigurationPage } from "./CorporateOnboardingConfigurationPage";
 

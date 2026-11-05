@@ -1,3 +1,4 @@
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
@@ -34,7 +35,6 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 import { Button } from "@/Components/Common/Button";
 const idOf = (r) => r?.id;
-const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 // Same key -> lookup-list mapping DigitalProductFieldInput uses for its
 // dropdown options, reused here to resolve a row's raw lookup id (e.g.
 // product_id, kyc_group_id) to a readable name — for the table columns and

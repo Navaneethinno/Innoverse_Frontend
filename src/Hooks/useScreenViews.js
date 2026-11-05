@@ -2,7 +2,7 @@ import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { findMenuByPath } from "@/Pages/Sidebar/menuRouteMap";
+import { findMenuByPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { SEGMENT_LABELS, getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { i18n } from "@/Utils/I18n/i18n";
 import { request } from "@/Services/Epurse/onboarding.api";

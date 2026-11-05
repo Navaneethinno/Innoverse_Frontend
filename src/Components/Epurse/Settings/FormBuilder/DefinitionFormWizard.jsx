@@ -1,10 +1,11 @@
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { isAgentType } from "../../partyType";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { Modal } from "@/Components/Common/Modal";
 import { HorizontalStepper } from "@/Components/Common/HorizontalStepper";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
@@ -501,9 +502,10 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       submitted();
     });
 
+  const [confirmingClose, setConfirmingClose] = useState(false);
   const attemptClose = () => {
-    if (dirty && !readOnly && !window.confirm(t("onboarding:unsavedChangesConfirm"))) return;
-    onClose();
+    if (dirty && !readOnly) setConfirmingClose(true);
+    else onClose();
   };
 
   const steps = STEPS.map((id) => ({ id, label: t(`formBuilder:step_${id}`) }));
@@ -728,6 +730,14 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
         </>
       )}
       {untranslated && <UntranslatedConfirm refusal={untranslated} busy={busy === "submit"} onCancel={() => setUntranslated(null)} onConfirm={() => void submitAnyway()} />}
+      <ConfirmDialog
+        open={confirmingClose}
+        title={t("common:unsavedChangesTitle")}
+        description={t("onboarding:unsavedChangesConfirm")}
+        destructive
+        onConfirm={onClose}
+        onClose={() => setConfirmingClose(false)}
+      />
     </Modal>
   );
 }

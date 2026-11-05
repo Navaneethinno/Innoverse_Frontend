@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -422,9 +423,10 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
       onClose();
     });
 
+  const [confirmingClose, setConfirmingClose] = useState(false);
   const attemptClose = () => {
-    if (dirty && !readOnly && !window.confirm(t("unsavedChanges"))) return;
-    onClose();
+    if (dirty && !readOnly) setConfirmingClose(true);
+    else onClose();
   };
 
   const change = (next) => {
@@ -502,6 +504,14 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={confirmingClose}
+        title={t("common:unsavedChangesTitle")}
+        description={t("unsavedChanges")}
+        destructive
+        onConfirm={onClose}
+        onClose={() => setConfirmingClose(false)}
+      />
     </Modal>
   );
 }

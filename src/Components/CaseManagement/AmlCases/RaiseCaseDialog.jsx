@@ -4,7 +4,7 @@ import { Button } from "@/Components/Common/Button";
 import { Modal } from "@/Components/Common/Modal";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { inputClass, labelClass } from "@/Components/GlobalSettings/Notifications/notificationShared";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { amlCasesApi } from "@/Services/CaseManagement/amlCases.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";

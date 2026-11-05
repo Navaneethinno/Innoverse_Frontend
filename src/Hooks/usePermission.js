@@ -2,8 +2,8 @@ import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import { menuPage } from "@/Pages/Sidebar/menuRouteMap";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { menuPage } from "@/Components/Layout/Menu/menuRouteMap";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { matchesAction } from "@/Utils/Lib/actionAliases";
 
 // The one permission source for every screen. Everything comes from the

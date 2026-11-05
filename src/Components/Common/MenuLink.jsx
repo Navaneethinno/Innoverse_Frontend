@@ -1,5 +1,5 @@
 import { ArrowRight } from "lucide-react";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 
 // A link-style button to the master where a missing value is created, for a
 // hint that has no dropdown to carry FilterSelect's `addAction` row. Opens

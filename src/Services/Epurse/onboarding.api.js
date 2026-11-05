@@ -100,6 +100,12 @@ export async function request(path, body = {}) {
   }
 }
 
+// The verbs of one API base as functions, plus its list path.
+export const calls = (base, verbs) => ({
+  ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])),
+  listPath: `${base}/list`,
+});
+
 export const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 
 // The maker-checker verbs shared by every master, KYC scheme and onboarding

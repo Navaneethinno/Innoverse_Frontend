@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/Utils/Lib/cn";
 import { masterApi } from "@/Services/Master/master.api";
-import { menuLabel, moduleLabel } from "@/Pages/Sidebar/menuLabels";
+import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { useTranslation } from "react-i18next";
 
 // Actions always in the same order (unknown ones last, by name), so the

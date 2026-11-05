@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { menuPathForItem } from "@/Pages/Sidebar/menuRouteMap";
+import { menuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
 
 // Finds a message's screen in the sidebar's menus, as the sidebar builds it.
 export function useNotificationTarget() {

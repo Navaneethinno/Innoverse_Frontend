@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, Plus, X } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
-import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
+import { useOpenMenu } from "@/Components/Layout/Menu/menuContext";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { UiTooltip } from "@/Components/Common/UiTooltip";

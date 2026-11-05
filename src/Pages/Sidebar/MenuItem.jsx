@@ -2,12 +2,12 @@ import { createElement, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
-import { buildMenuPathForItem } from "./menuRouteMap";
+import { buildMenuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { getMenuIcon } from "./moduleIcons";
 import { useMenuBadge } from "./menuBadges";
-import { menuLabel } from "./menuLabels";
+import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 
 // Structure/behavior ported from payseFrontend src/Pages/Sidebar/MenuItem.jsx:
 // arbitrary-depth parent/child/sub-child hierarchy (root: parent_menu_id===0,

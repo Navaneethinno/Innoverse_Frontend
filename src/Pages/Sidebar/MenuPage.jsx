@@ -7,8 +7,8 @@ import { RouteError } from "@/Components/Common/RouteError";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { setApiScope } from "@/Utils/Lib/apiScope";
 import { pageElement } from "@/Router/routeSupport";
-import { findMenuByPath, findModuleByDashboardPath, menuPage } from "./menuRouteMap";
-import { MenuContext } from "./menuContext";
+import { findMenuByPath, findModuleByDashboardPath, menuPage } from "@/Components/Layout/Menu/menuRouteMap";
+import { MenuContext } from "@/Components/Layout/Menu/menuContext";
 
 // Charts are heavy: downloaded only when a module dashboard opens.
 const ModuleDashboard = lazy(() => import("@/Pages/Dashboard/Module/ModuleDashboard").then((m) => ({ default: m.ModuleDashboard })));

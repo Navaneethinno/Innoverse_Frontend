@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { notificationAlertApi } from "@/Services/Epurse/notification.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
-import { menuLabel } from "@/Pages/Sidebar/menuLabels";
+import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 import { notifications } from "@/Utils/Lib/notifications";
 
 const EMPTY = { menus: [], placeholders: [], groups: [], events: [] };

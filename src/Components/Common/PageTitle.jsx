@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { getMenuIcon } from "@/Pages/Sidebar/moduleIcons";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 
 // A page's title, as every screen shows it: large and bold, after the

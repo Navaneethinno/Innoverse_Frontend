@@ -1,7 +1,7 @@
 import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { useTranslation } from "react-i18next";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 
 // Merchant-side customer types and risk set-ups are for merchants (party
 // type 2) or agents (3). Customer-side ones have no choice: the module sets it.

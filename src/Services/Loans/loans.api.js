@@ -1,12 +1,11 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
-import { request } from "@/Services/Epurse/onboarding.api";
+import { calls, request } from "@/Services/Epurse/onboarding.api";
 import { downloadAttachment, downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 
 // Loans (Admin Portal: Loans handoff, module LOANS). Every call is a POST
 // with a JSON body; records carry `actions` saying which buttons apply to
 // this user now. Amounts and rates go as strings; rates are percent a year.
 // `listPath`: the list call's path (list/options, live channel).
-const calls = (base, verbs) => ({ ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])), listPath: `${base}/list` });
 
 // The record a reply carries: data[0], or data itself when it is an object.
 export const recordOf = (response) => (Array.isArray(response?.data) ? response.data[0] : response?.data) ?? null;

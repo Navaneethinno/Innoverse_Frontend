@@ -1,3 +1,4 @@
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { requiredFor } from "@/Utils/Lib/requiredFields";
 import { listPage } from "@/Hooks/useServerList";
@@ -348,7 +349,6 @@ scopeInstitutionFields(CONFIGS);
 
 
 const idOf = (row) => row?.id;
-const rowsOf = (response) => (Array.isArray(response?.data) ? response.data : (response?.data?.data ?? []));
 // Permissions: usePagePermission() — the current page's own menu (Account
 // Product, Product Ownership, ...) from menu_array, fail-closed. The parent
 // "Account" menu's grants no longer stand in for its children.

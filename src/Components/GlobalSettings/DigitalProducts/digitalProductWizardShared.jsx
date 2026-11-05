@@ -1,3 +1,4 @@
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
@@ -29,7 +30,6 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 // and buildSectionEditPayload below).
 
 const productApi = () => digitalProductApi("product");
-const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 const firstOf = (r) => (Array.isArray(r) ? r[0] : r);
 
 export function emptyValuesFor(entity) {

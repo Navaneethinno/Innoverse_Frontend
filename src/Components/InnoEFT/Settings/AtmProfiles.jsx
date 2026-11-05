@@ -7,8 +7,8 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { usePagedList } from "@/Components/InnoAML/Shared/usePagedList";
 import { Facts } from "@/Components/InnoCBS/Deposits/depositShared";
 import { mmsDate } from "@/Components/InnoMMS/mmsShared";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
-import { menuLabel } from "@/Pages/Sidebar/menuLabels";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
+import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 import { atmProfilesApi } from "@/Services/Cards/atm.api";
 import { actorText } from "@/Utils/Lib/actor";
 

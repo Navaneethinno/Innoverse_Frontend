@@ -11,8 +11,8 @@ import { FieldInput, cleanConfig } from "../OnboardingConfiguration/ListEditor";
 import { useOnboardingCatalog } from "../OnboardingConfiguration/onboardingHooks";
 
 import { Button } from "@/Components/Common/Button";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
-import { menuLabel } from "@/Pages/Sidebar/menuLabels";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
+import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 // One schema-driven page for the institution masters that carry extra fields
 // beyond name/description (guide §5): validation rules, income / net-worth /
 // turnover ranges, document types, plus the plain

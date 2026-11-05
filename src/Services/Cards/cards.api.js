@@ -1,13 +1,9 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { uuid } from "@/Utils/Lib/uuid";
-import { request } from "@/Services/Epurse/onboarding.api";
+import { calls } from "@/Services/Epurse/onboarding.api";
 
 // The CARDS module (Web admin: cards, 3 Oct 2026). Every api carries
 // `listPath`, its live channel's list path.
-const calls = (base, verbs) => ({
-  ...Object.fromEntries(verbs.map((verb) => [verb, (body = {}) => request(`${base}/${verb}`, body)])),
-  listPath: `${base}/list`,
-});
 
 // Setup: Card BINs (195), Card Products (196) and Issuance Groups (197) share
 // one set of maker-checker routes.

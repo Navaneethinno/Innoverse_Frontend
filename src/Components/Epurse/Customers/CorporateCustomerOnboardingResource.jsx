@@ -3,7 +3,7 @@ import { StatusCell } from "@/Components/MakerChecker/StatusCell";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { PageTitle } from "@/Components/Common/PageTitle";
-import { useMenuContext } from "@/Pages/Sidebar/menuContext";
+import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { ViewReportButton, reportBody } from "@/Components/Reports/KycReport/KycReport";
 import { KycReportView } from "@/Components/Reports/KycReport/KycReportView";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";

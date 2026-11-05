@@ -12,7 +12,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { EVENT_COMMON_PLACEHOLDERS, triggerKey, useAlertOptions } from "./useAlertOptions";
 import { GroupPicker } from "./GroupPicker";
-import { menuLabel, parentMenuLabel } from "@/Pages/Sidebar/menuLabels";
+import { menuLabel, parentMenuLabel } from "@/Components/Layout/Menu/menuLabels";
 import { TriggerGrid } from "./TriggerGrid";
 
 const SMS_MAX = 640;

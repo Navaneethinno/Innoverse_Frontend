@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
 import { RouteError } from "@/Components/Common/RouteError";
-import { slugDenied } from "@/Pages/Sidebar/menuRouteMap";
+import { slugDenied } from "@/Components/Layout/Menu/menuRouteMap";
 
 // A direct link to a menu's page the user's profile does not have: not found,
 // the same as a menu they cannot see. The server refuses the data anyway.

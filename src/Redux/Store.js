@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authTokenReducer from "./AuthToken";
 import menuReducer from "./MenuSlice";
 import { loadState, saveState } from "./Middleware";
+import { getAccessToken, getRefreshToken } from "@/Services/api/authStorage";
 function throttle(fn, waitMs) {
   let timeoutId;
   let lastRun = 0;
@@ -26,7 +27,14 @@ function throttle(fn, waitMs) {
 const rawPersistedState = loadState();
 // (A snapshot from an older build may still hold a "theme" slice; it is dropped.)
 const { theme: _retiredTheme, ...keptState } = rawPersistedState ?? {};
-const persistedState = rawPersistedState ? { ...keptState, menu: { ...keptState.menu, masterModules: [] } } : rawPersistedState;
+// The tokens live only in authStorage; the snapshot never holds a copy.
+const persistedState = rawPersistedState
+  ? {
+      ...keptState,
+      token: { ...keptState.token, token: getAccessToken(), refreshToken: getRefreshToken() },
+      menu: { ...keptState.menu, masterModules: [] },
+    }
+  : rawPersistedState;
 const reducers = {
   token: authTokenReducer,
   menu: menuReducer,
@@ -48,6 +56,7 @@ const reducers = {
 function selectPersistedState(state) {
   return {
     ...state,
+    token: { ...state.token, token: null, refreshToken: null },
     menu: { ...state.menu, masterModules: [] },
   };
 }
