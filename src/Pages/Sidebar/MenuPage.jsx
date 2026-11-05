@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { matchRoutes, useLocation, useSearchParams } from "react-router-dom";
@@ -6,9 +6,12 @@ import { ComingSoon } from "@/Components/Common/ComingSoon";
 import { RouteError } from "@/Components/Common/RouteError";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { setApiScope } from "@/Utils/Lib/apiScope";
-import { ModuleDashboard } from "@/Pages/Dashboard/Module/ModuleDashboard";
+import { pageElement } from "@/Router/routeSupport";
 import { findMenuByPath, findModuleByDashboardPath, menuPage } from "./menuRouteMap";
 import { MenuContext } from "./menuContext";
+
+// Charts are heavy: downloaded only when a module dashboard opens.
+const ModuleDashboard = lazy(() => import("@/Pages/Dashboard/Module/ModuleDashboard").then((m) => ({ default: m.ModuleDashboard })));
 
 // The page registered under a slug (some only as "<slug>/:id", the old
 // per-click id).
@@ -69,7 +72,7 @@ export function MenuPage({ routes }) {
   if (!menus?.length) return null;
   if (!menu) {
     const dashboardOf = findModuleByDashboardPath(active, location.pathname);
-    if (dashboardOf) return <ModuleDashboard key={dashboardOf} moduleName={dashboardOf} />;
+    if (dashboardOf) return <div key={dashboardOf}>{pageElement(ModuleDashboard, { moduleName: dashboardOf })}</div>;
   }
   if (!menu || (!element && !page.views && !page.soon)) return <RouteError />;
   return (

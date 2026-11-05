@@ -1,4 +1,4 @@
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { LottiePlayer } from "@/Components/Common/LottiePlayer";
 import loadingAnimation from "@/assets/animations/loading.lottie";
 import { useTranslation } from "react-i18next";
 
@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 export function LoadingAnimation({ className = "h-16 w-64" }) {
   const { t } = useTranslation();
   return (
-    <DotLottieReact
+    <LottiePlayer
       className={className}
       src={loadingAnimation}
       loop

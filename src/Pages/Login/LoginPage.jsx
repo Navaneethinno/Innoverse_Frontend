@@ -22,8 +22,8 @@ import { useColorMode } from "@/Hooks/Providers/ColorModeProvider";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { LanguageDropdown } from "@/Components/Common/LanguageDropdown";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import loginIllustrationLight from "@/assets/login-illustration.png";
-import loginIllustrationDark from "@/assets/login-illustration-dark.png";
+import loginIllustrationLight from "@/assets/login-illustration.webp";
+import loginIllustrationDark from "@/assets/login-illustration-dark.webp";
 import { SIGNIN_NOTICE_KEY } from "@/Services/api/authFetch";
 function GradientMesh() {
   return (

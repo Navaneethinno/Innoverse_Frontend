@@ -1,4 +1,4 @@
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { LottiePlayer } from "@/Components/Common/LottiePlayer";
 import noDataAnimation from "@/assets/animations/no-data.lottie";
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 export function NoDataAnimation({ className = "h-24 w-32" }) {
   const { t } = useTranslation();
   return (
-    <DotLottieReact
+    <LottiePlayer
       className={className}
       src={noDataAnimation}
       autoplay
