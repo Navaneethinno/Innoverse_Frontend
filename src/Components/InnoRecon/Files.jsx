@@ -20,6 +20,7 @@ import { ActionButtons, NarrationDialog, inputClass } from "../InnoCBS/Deposits/
 import { Tabs } from "../InnoCBS/Loans/loanShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { FactGrid, Field, PagedTable, ReadResult, ReconStatus, humanize, label, reconDate, recordColumns, useChoices, useDebounced, usePage, useRecord, LocalFileField } from "./reconShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Recon Files (menu 189): files received from each source (uploaded, picked
 // up by SFTP or generated from the ledger), read with the source's layout.
@@ -346,9 +347,9 @@ function FileRecords({ fileId }) {
                   {r.warnings?.length > 0 && <p className="mt-1 text-[10px] text-amber-700">{r.warnings.join(" · ")}</p>}
                 </div>
               ) : (
-                <button type="button" onClick={() => setOpen(r.id)} className="text-[11px] font-bold text-primary hover:underline">
+                <LinkButton onClick={() => setOpen(r.id)} className="text-[11px]">
                   {t("showRaw")}
-                </button>
+                </LinkButton>
               ),
           },
         ]}

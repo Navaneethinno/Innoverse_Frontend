@@ -210,9 +210,9 @@ export function WhitelistImport({ onClose, onImported }) {
           </label>
         </fieldset>
         <div className="space-y-3 md:col-span-2">
-          <button type="button" disabled={Boolean(busy) || !form.file_path} onClick={() => void run("validate")} className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-primary disabled:opacity-50">
+          <Button disabled={Boolean(busy) || !form.file_path} onClick={() => void run("validate")} variant="outline" className="flex">
             {busy === "validate" ? <Spinner size={13} /> : <ListChecks size={14} />} {t("aml:validate")}
-          </button>
+          </Button>
           <RowResults result={check} />
         </div>
         <label className={`${labelClass} md:col-span-2`}>

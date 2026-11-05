@@ -22,6 +22,7 @@ import { inputClass } from "../InnoCBS/Deposits/depositShared";
 import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingShared";
 import { FinancialStatement } from "./FinancialStatements";
 import { BalanceCheck, CustomerBalances, GlMovement, SectionsTable } from "./GlReportSections";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 
 // ACCOUNTING > GL Reports (menu 216): one GL account's statement for a
@@ -283,16 +284,7 @@ function TrialBalance({ currencies }) {
         />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2.5">{t("gl")}</th>
-                <th className="px-3 py-2.5">{t("glCode")}</th>
-                <th className="px-3 py-2.5">{t("glType")}</th>
-                <th className="px-3 py-2.5 text-right">{t("debit")}</th>
-                <th className="px-3 py-2.5 text-right">{t("credit")}</th>
-              </tr>
-            </thead>
+          <SimpleTable className="text-sm" columns={[{ label: t("gl"), className: "px-4 py-2.5" }, { label: t("glCode"), className: "py-2.5" }, { label: t("glType"), className: "py-2.5" }, { label: t("debit"), align: "right", className: "py-2.5" }, { label: t("credit"), align: "right", className: "py-2.5" }]}>
             <tbody>
               {rows.map(({ n, depth }) => (
                 <tr key={n.id} className={cn("border-b border-border/60", !n.is_account && "bg-muted/30")}>
@@ -357,7 +349,7 @@ function TrialBalance({ currencies }) {
                 </td>
               </tr>
             </tfoot>
-          </table>
+          </SimpleTable>
         </div>
       )}
     </ListPanel>

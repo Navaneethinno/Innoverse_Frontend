@@ -16,6 +16,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { accountDate, dayDate, money } from "./accountShared";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const TXN_TYPES = ["ADJUST_CREDIT", "ADJUST_DEBIT", "TD_FUNDING", "TD_INTEREST_PAYOUT", "TD_SETTLEMENT", "REVERSAL", "P2P_TO_PHONE", "PHONE_TRANSFER_CLAIM", "PHONE_TRANSFER_RETURN"];
 const inputClass = "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
@@ -228,15 +229,7 @@ export function TxnDetail({ txn }) {
       </dl>
       <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("lines")}</p>
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-xs">
-          <thead className="bg-muted/50 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("accountNumber")}</th>
-              <th className="px-3 py-2">{t("drCr")}</th>
-              <th className="px-3 py-2 text-right">{t("amount")}</th>
-              <th className="px-3 py-2 text-right">{t("balanceAfter")}</th>
-            </tr>
-          </thead>
+        <SimpleTable columns={[t("accountNumber"), t("drCr"), { label: t("amount"), align: "right" }, { label: t("balanceAfter"), align: "right" }]}>
           <tbody>
             {(txn.lines ?? []).map((l) => (
               <tr key={l.id} className="border-t border-border">
@@ -247,7 +240,7 @@ export function TxnDetail({ txn }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </SimpleTable>
       </div>
     </div>
   );

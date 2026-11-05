@@ -13,6 +13,7 @@ import { usersApi } from "@/Services/UserManagement/users.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { Section, labelClass } from "../../Deposits/depositShared";
 import { Field } from "../../Loans/loanShared";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // Lending Regulatory Profile › Approval limits: who may approve how much.
 // A user's own limit wins over their profile's; above it they forward the
@@ -87,15 +88,7 @@ export function ApprovalLimits({ scope }) {
       ) : (
         <div className="grid gap-4">
           <div className="overflow-x-auto rounded-xl border border-border">
-            <table className="w-full text-xs">
-              <thead className="border-b border-border text-left text-[10px] font-bold uppercase text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2">{t("whoApproves")}</th>
-                  <th className="px-3 py-2 text-right">{t("upToAmount")}</th>
-                  <th className="px-3 py-2">{t("updated")}</th>
-                  <th className="px-3 py-2" />
-                </tr>
-              </thead>
+            <SimpleTable columns={[t("whoApproves"), { label: t("upToAmount"), align: "right" }, t("updated"), ""]}>
               <tbody>
                 {!people.length && (
                   <tr>
@@ -122,7 +115,7 @@ export function ApprovalLimits({ scope }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </SimpleTable>
           </div>
 
           {editing ? (

@@ -9,6 +9,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { currencyCode, useLimitLists } from "./useLimitLists";
 
 import { Button } from "@/Components/Common/Button";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 // "Test a customer" (handoff: Try it, evaluate): what limits would apply to
 // a customer / merchant, or to a group with the values typed in, and
 // whether an amount would pass given what's already used this period.
@@ -163,14 +164,7 @@ export function LimitEvaluate({ group, onClose }) {
               ))}
               <p className="text-xs text-muted-foreground">{t("matchedRules", { list: (result.matched_rules ?? []).join(", ") || "-" })}</p>
               <div className="overflow-hidden rounded-xl border">
-                <table className="w-full text-xs">
-                  <thead className="bg-muted/60 text-left text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2">{t("limitType")}</th>
-                      <th className="px-3 py-2">{t("limit")}</th>
-                      <th className="px-3 py-2">{t("rule")}</th>
-                    </tr>
-                  </thead>
+                <SimpleTable columns={[t("limitType"), t("limit"), t("rule")]}>
                   <tbody className="divide-y">
                     {(result.limits ?? []).map((l, i) => (
                       <tr key={i}>
@@ -193,7 +187,7 @@ export function LimitEvaluate({ group, onClose }) {
                       </tr>
                     )}
                   </tbody>
-                </table>
+                </SimpleTable>
               </div>
             </>
           )}

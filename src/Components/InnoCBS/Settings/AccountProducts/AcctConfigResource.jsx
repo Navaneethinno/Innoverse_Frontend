@@ -703,9 +703,9 @@ export function AcctConfigResource({ entity }) {
           }}
           footer={
             <>
-              <button onClick={() => void save(true)} disabled={saving} className="rounded-xl border px-4 py-2 text-sm font-bold disabled:opacity-50">
+              <Button onClick={() => void save(true)} disabled={saving} variant="secondary">
                 {tr("Save draft")}
-              </button>
+              </Button>
               <Button onClick={() => void save(false)} disabled={saving}>
                 {tr("Save")}
               </Button>

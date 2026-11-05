@@ -12,6 +12,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Values the backend sends as literal placeholder strings for "no value" —
 // treated the same as null/empty everywhere below.
@@ -522,9 +523,9 @@ export function AuditHistory({
             ) : loadingMore ? (
               t("common:loadingMore")
             ) : hasMore ? (
-              <button type="button" onClick={() => void loadMore()} className="font-semibold text-[var(--primary)] hover:underline">
+              <LinkButton onClick={() => void loadMore()} className="text-sm font-semibold">
                 {t("common:loadOlder")}
-              </button>
+              </LinkButton>
             ) : (
               t("common:allHistoryLoaded")
             )}

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useDropdownRows } from "@/Hooks/Master/masterHooks";
 import { corpMasterApis, masterApis } from "@/Services/Epurse/onboarding.api";
 import { corporateRiskApi, individualRiskApi } from "@/Services/Epurse/risk.api";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // What differs between Individual Risk (menu 97) and Corporate Risk (98):
 // the API, the menu name and the customer-type fields. Everything else —
@@ -90,15 +91,7 @@ export function LevelBar({ levels }) {
 export function RiskPointsTable({ points, risk }) {
   const { t } = useTranslation("risk");
   return (
-    <table className="mt-2 w-full text-xs">
-      <thead>
-        <tr className="text-left text-muted-foreground">
-          <th className="font-semibold">{t("criterion")}</th>
-          <th className="text-right font-semibold">{t("scoreCol")}</th>
-          <th className="text-right font-semibold">{t("weight")}</th>
-          <th className="text-right font-semibold">{t("points")}</th>
-        </tr>
-      </thead>
+    <SimpleTable className="mt-2" columns={[t("criterion"), { label: t("scoreCol"), align: "right" }, { label: t("weight"), align: "right" }, { label: t("points"), align: "right" }]}>
       <tbody className="tabular-nums">
         {(points ?? []).map((p) => (
           <tr key={p.field_code}>
@@ -112,7 +105,7 @@ export function RiskPointsTable({ points, risk }) {
           </tr>
         ))}
       </tbody>
-    </table>
+    </SimpleTable>
   );
 }
 

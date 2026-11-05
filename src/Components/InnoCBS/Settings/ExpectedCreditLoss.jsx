@@ -6,6 +6,7 @@ import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { labelClass } from "../Deposits/depositShared";
 import { Field, RowsEditor, useInstitutionScope } from "../Loans/loanShared";
 import { SectionScreen } from "./SectionScreen";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const STAGES = [1, 2, 3];
 const blankStages = () => STAGES.map(() => ({ pd: "", lgd: "" }));
@@ -84,14 +85,7 @@ function StageGrid({ stages, disabled, onChange }) {
   const set = (i, patch) => onChange(stages.map((s, j) => (j === i ? { ...s, ...patch } : s)));
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-xs text-muted-foreground">
-          <tr>
-            <th className="px-3 py-2 text-left">{t("stage")}</th>
-            <th className="px-3 py-2 text-left">{t("pd")}</th>
-            <th className="px-3 py-2 text-left">{t("lgd")}</th>
-          </tr>
-        </thead>
+      <SimpleTable className="text-sm" columns={[t("stage"), t("pd"), t("lgd")]}>
         <tbody>
           {stages.map((s, i) => (
             <tr key={i} className="border-t border-border">
@@ -104,7 +98,7 @@ function StageGrid({ stages, disabled, onChange }) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </SimpleTable>
     </div>
   );
 }

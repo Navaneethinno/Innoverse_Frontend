@@ -25,6 +25,7 @@ import { base64Blob, readPeopleFile } from "./readPeopleFile";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
 import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const ROW_TONES = { APPROVED: "bg-emerald-50 text-emerald-800", IN_REVIEW: "bg-amber-50 text-amber-800", REJECTED: "bg-red-50 text-red-700", FAILED: "bg-red-50 text-red-700", PENDING: "bg-muted text-muted-foreground" };
 const BATCH_TONES = { DONE: "bg-emerald-50 text-emerald-800", PROCESSING: "bg-sky-50 text-sky-800", REJECTED: "bg-red-50 text-red-700", PENDING: "bg-amber-50 text-amber-800" };
@@ -77,9 +78,9 @@ function EmployerPicker({ value, onChange, inst }) {
           <b>{value.name || t("unnamed")}</b>
           <span className="block truncate text-[10px] text-muted-foreground">{describe(value)}</span>
         </span>
-        <button type="button" onClick={() => onChange(null)} className="shrink-0 text-[11px] font-bold text-primary hover:underline">
+        <LinkButton onClick={() => onChange(null)} className="shrink-0 text-[11px]">
           {t("change")}
-        </button>
+        </LinkButton>
       </div>
     );
   }

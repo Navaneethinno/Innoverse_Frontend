@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
+import { Button } from "@/Components/Common/Button";
 
 const SIZES = {
   sm: "max-w-md",
@@ -244,25 +245,23 @@ export function Modal({
               </span>
               <p className="text-sm font-bold text-slate-800">{t("confirmSubmitQuestion")}</p>
               <div className="flex w-full gap-2 pt-1">
-                <button
-                  type="button"
+                <Button
                   onClick={() => setPendingSubmit(null)}
-                  className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted"
+                  variant="secondary" size="sm" className="flex-1"
                 >
                   {t("cancel")}
-                </button>
-                <button
+                </Button>
+                <Button
                   ref={confirmButtonRef}
-                  type="button"
                   onClick={() => {
                     const button = pendingSubmit;
                     setPendingSubmit(null);
                     button.click();
                   }}
-                  className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground"
+                  size="sm" className="flex-1"
                 >
                   {t("submit")}
-                </button>
+                </Button>
               </div>
             </div>
           </div>

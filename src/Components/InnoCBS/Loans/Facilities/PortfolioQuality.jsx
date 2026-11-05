@@ -11,6 +11,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { Section, ratePct } from "../../Deposits/depositShared";
 import { branchOptions, officerOptions, useCoreBanking } from "../../coreBankingShared";
 import { useInstitutionScope } from "../loanShared";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const GROUP_BY = ["PRODUCT", "BRANCH", "OFFICER", "GROUP", "INSTITUTION"];
 // Ageing buckets, current (green) to oldest (dark red).
@@ -117,20 +118,7 @@ export function PortfolioQuality() {
               <EmptyNote>{t("noLoans")}</EmptyNote>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <tr>
-                      <th className="px-3 py-2">{t(`parBy_${groupBy}`)}</th>
-                      <th className="px-3 py-2 text-right">{t("par_loans")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_outstanding")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_par1")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_par30")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_par90")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_provision")}</th>
-                      <th className="px-3 py-2 text-right">{t("par_suspendedInterest")}</th>
-                      <th className="min-w-48 px-3 py-2">{t("par_ageing")}</th>
-                    </tr>
-                  </thead>
+                <SimpleTable className="text-sm" columns={[t(`parBy_${groupBy}`), { label: t("par_loans"), align: "right" }, { label: t("par_outstanding"), align: "right" }, { label: t("par_par1"), align: "right" }, { label: t("par_par30"), align: "right" }, { label: t("par_par90"), align: "right" }, { label: t("par_provision"), align: "right" }, { label: t("par_suspendedInterest"), align: "right" }, { label: t("par_ageing"), className: "min-w-48" }]}>
                   <tbody>
                     {data.rows.map((r) => (
                       <tr key={`${r.key}-${r.currency}`} className="border-b border-border/60">
@@ -175,7 +163,7 @@ export function PortfolioQuality() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </SimpleTable>
               </div>
             )}
           </Section>

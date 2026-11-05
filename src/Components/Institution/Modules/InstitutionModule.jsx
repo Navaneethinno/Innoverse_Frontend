@@ -29,6 +29,7 @@ import {
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const displayValue = (value) => value ?? "—";
 
@@ -494,13 +495,12 @@ function ModuleForm({
               </div>
             </div>
           ))}
-          <button
-            type="button"
+          <LinkButton
             onClick={addModuleRow}
-            className="text-sm font-semibold text-primary hover:underline"
+            className="text-sm font-semibold"
           >
             + Add another module
-          </button>
+          </LinkButton>
         </div>
       )}
       <label className="block text-sm font-medium">
@@ -523,12 +523,12 @@ function ModuleForm({
         >
           {editing ? "Save as draft" : form.is_draft ? "Draft selected" : "Save as draft"}
         </button>
-        <button
+        <Button
+          type="submit"
           disabled={pending}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
           {pending ? "Saving..." : editing ? "Save changes" : "Assign Module"}
-        </button>
+        </Button>
       </div>
     </form>
   );

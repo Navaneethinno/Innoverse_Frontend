@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { ProfileForm } from "./ProfileForm";
+import { Button } from "@/Components/Common/Button";
 
 // Edit-profile modal — split out of the old monolithic ProfilesPage.jsx.
 export function EditProfile({ open, onClose, form, setForm, institutions, onSubmit, submitting }) {
@@ -21,24 +22,25 @@ export function EditProfile({ open, onClose, form, setForm, institutions, onSubm
           >
             {t("common:cancel")}
           </button>
-          <button
+          <Button
             type="submit"
             form="profile-form"
             data-mode="draft"
             disabled={submitting}
-            className="rounded-lg border border-border px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
+            variant="secondary"
+            size="sm"
           >
             {t("saveAsDraft", "Save as draft")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="profile-form"
             data-mode="submit"
             disabled={submitting}
-            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+            size="sm"
           >
             {submitting ? t("saving") : t("saveChanges")}
-          </button>
+          </Button>
         </>
       }
     >

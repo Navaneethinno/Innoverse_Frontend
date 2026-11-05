@@ -28,6 +28,7 @@ import { MiniTable, Tabs } from "../InnoCBS/Loans/loanShared";
 import { ActionButtons, Problems, inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "../InnoCBS/Settings/DepositProducts/productShared";
 import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 
 // Finance > Finance Transaction (the manual journal API): moving money
@@ -256,9 +257,9 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
                   ),
                 )}
               </ul>
-              <button type="button" onClick={() => setLines((ls) => [...ls, blankLine(op)])} className="mt-2 flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+              <LinkButton onClick={() => setLines((ls) => [...ls, blankLine(op)])} className="mt-2 flex items-center gap-1">
                 <Plus size={13} /> {t(op === "DR" ? "addDebit" : "addCredit")}
-              </button>
+              </LinkButton>
             </section>
           ))}
           {balanced && <TxnLimitWarning currencyCode={code} amount={dr / 10 ** decimals} />}
@@ -342,14 +343,14 @@ function JournalDetail({ id, onClose, onChanged, onOpen }) {
                 </p>
               )}
               {j.reverses_journal_id > 0 && (
-                <button type="button" className="w-fit text-left font-bold text-primary hover:underline" onClick={() => onOpen(j.reverses_journal_id)}>
+                <LinkButton className="w-fit text-left text-sm" onClick={() => onOpen(j.reverses_journal_id)}>
                   {t("reversesX", { id: j.reverses_journal_id })}
-                </button>
+                </LinkButton>
               )}
               {j.reversed_by_journal_id > 0 && (
-                <button type="button" className="w-fit text-left font-bold text-primary hover:underline" onClick={() => onOpen(j.reversed_by_journal_id)}>
+                <LinkButton className="w-fit text-left text-sm" onClick={() => onOpen(j.reversed_by_journal_id)}>
                   {t("reversedByX", { id: j.reversed_by_journal_id })}
-                </button>
+                </LinkButton>
               )}
             </div>
             <ActionButtons buttons={buttons} busy={busy} />

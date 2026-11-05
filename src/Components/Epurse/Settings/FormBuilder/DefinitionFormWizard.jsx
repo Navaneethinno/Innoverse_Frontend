@@ -25,6 +25,7 @@ import { CheckpointsStep, FlowsStep } from "./FlowsCheckpoints";
 import { UntranslatedConfirm, untranslatedOf } from "./Translations";
 
 import { Button } from "@/Components/Common/Button";
+import { LinkButton } from "@/Components/Common/TextButtons";
 // The form on a definition (Admin portal handoff: onboarding form builder,
 // §5), shared by individual and corporate: Basics (the definition's own
 // columns), the ordered sections, the rules, the uses (which fields serve
@@ -114,9 +115,9 @@ function SectionCard({ placed, index, count, section, fields, typeName, readOnly
       </div>
       {choices.length > 0 && !(placed.includes ?? []).length && !readOnly && !includesOpen && (
         <div className="border-t px-3 py-1.5">
-          <button type="button" onClick={() => setIncludesOpen(true)} className="text-[11px] font-bold text-primary hover:underline">
+          <LinkButton onClick={() => setIncludesOpen(true)} className="text-[11px]">
             + {t("formBuilder:showEarlierScreens")}
-          </button>
+          </LinkButton>
         </div>
       )}
       {choices.length > 0 && ((placed.includes ?? []).length > 0 || (!readOnly && includesOpen)) && (

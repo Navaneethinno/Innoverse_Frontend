@@ -8,6 +8,7 @@ import { Modal } from "@/Components/Common/Modal";
 import { Pager } from "@/Components/Common/Pager";
 import { cn } from "@/Utils/Lib/cn";
 import { useSessionState } from "@/Hooks/useSessionState";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Shared sort-arrow: stacked/dim ChevronUp+ChevronDown when a column isn't
 // the active sort, a single solid colored arrow (direction-matched) when it
@@ -484,9 +485,9 @@ export function DataTable({
           {isServer && modalRows.length > 0 && (
             <div className="py-3 text-center text-xs text-muted-foreground">
               {modalLoading ? t("loadingMore") : own.error ? <span className="text-red-600">{own.error}</span> : hasMore ? (
-                <button type="button" onClick={loadNext} className="font-semibold text-[var(--primary)] hover:underline">
+                <LinkButton onClick={loadNext} className="text-sm font-semibold">
                   {t("scrollForMore")}
-                </button>
+                </LinkButton>
               ) : t("allRecordsLoaded")}
             </div>
           )}

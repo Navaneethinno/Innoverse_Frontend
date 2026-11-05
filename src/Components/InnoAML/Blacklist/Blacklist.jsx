@@ -190,9 +190,9 @@ export function Blacklist() {
         <ListTable list={entries} actions={
           can("Add") && (
             <span className="flex gap-2">
-              <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-primary">
+              <Button onClick={() => setImporting(true)} variant="outline" size="xs" className="flex whitespace-nowrap">
                 <FileUp size={14} /> {t("aml:importBlacklist")}
-              </button>
+              </Button>
               <Button size="xs" className="whitespace-nowrap" onClick={() => setForm({ editing: null })}>
                 <Plus size={14} /> {t("aml:addBlacklistEntry")}
               </Button>

@@ -40,6 +40,8 @@ import { glassCard } from "../Shared/reportShared";
 import { formatDateTime, formatDay } from "@/Utils/Lib/dateFormat";
 import { AlsoOnChips, WeightNote, matchScore } from "@/Components/InnoAML/Shared/amlShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
+import { Button } from "@/Components/Common/Button";
 
 // KYC Report: everything about one customer or merchant on one read-only
 // page (Admin portal handoff "KYC Report"). `api` is the onboarding API of
@@ -139,13 +141,12 @@ function Details({ value }) {
   if (value === null || value === undefined) return null;
   return (
     <div className="mt-1">
-      <button
-        type="button"
+      <LinkButton
         onClick={() => setOpen((v) => !v)}
-        className="text-[11px] font-bold text-[var(--primary)] hover:underline"
+        className="text-[11px]"
       >
         {open ? t("hideDetails") : t("details")}
-      </button>
+      </LinkButton>
       {open && (
         <dl className="thin-scrollbar mt-1 grid max-h-56 grid-cols-[auto_1fr] gap-x-4 gap-y-1 overflow-auto rounded-lg bg-muted/60 p-2 text-[11px]">
           {detailRows(value).map(([k, v], i) => (
@@ -1394,28 +1395,28 @@ export function KycReportView({ api, body, onBack, title }) {
   return (
     <div className="pt-1 pb-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <button
-          type="button"
+        <Button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+          variant="secondary"
+          size="xs"
         >
           <ArrowLeft size={14} /> {t("back")}
-        </button>
+        </Button>
         {data && (
           <div className="flex flex-wrap items-center gap-2">
             {/* The party's transaction monitoring alerts. */}
             {canAlerts && data.summary?.party && report.profile_record?.id && (
-              <button
-                type="button"
+              <Button
                 onClick={() =>
                   navigate("/transactionmonitoring", {
                     state: { party: { entity_type: data.summary.party, entity_id: report.profile_record.id, name: report.profile_record.display_name } },
                   })
                 }
-                className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+                variant="secondary"
+                size="xs"
               >
                 <ShieldAlert size={14} /> {t("monitoringAlerts")}
-              </button>
+              </Button>
             )}
             <KycPdfButton data={data} download={download} title={title} />
           </div>

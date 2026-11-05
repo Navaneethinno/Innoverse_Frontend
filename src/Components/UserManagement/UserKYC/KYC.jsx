@@ -137,22 +137,21 @@ function KycForm({
           >
             Cancel
           </button>
-          <button
-            type="button"
+          <Button
             disabled={pending || !isValid}
             onClick={() => onSave(true)}
-            className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
+            variant="secondary"
+            size="sm"
           >
             Save as draft
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             disabled={pending || !isValid}
             onClick={() => onSave(false)}
-            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+            size="sm"
           >
             {editing ? "Submit changes" : "Submit"}
-          </button>
+          </Button>
         </>
       }
     >

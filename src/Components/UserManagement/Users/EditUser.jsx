@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { UserForm } from "./UserForm";
+import { Button } from "@/Components/Common/Button";
 
 // Edit/View-user modal — split out of the old monolithic UsersPage.jsx.
 // `viewingOnly` renders the same form read-only (this covers the "View"
@@ -37,24 +38,25 @@ export function EditUser({
             >
               {t("common:cancel")}
             </button>
-            <button
+            <Button
               type="submit"
               form="user-form"
               data-mode="draft"
               disabled={submitting}
-              className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50"
+              variant="secondary"
+              size="sm"
             >
               {t("saveAsDraft", "Save as draft")}
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               form="user-form"
               data-mode="submit"
               disabled={submitting}
-              className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50"
+              size="sm"
             >
               {submitting ? t("saving") : t("saveChanges")}
-            </button>
+            </Button>
           </>
         )
       }

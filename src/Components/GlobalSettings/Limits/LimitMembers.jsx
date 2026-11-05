@@ -152,9 +152,9 @@ export function LimitMembers({ group, canMove, onClose }) {
             <div className="border-t pt-3">
               <p className="mb-1.5 text-xs text-muted-foreground">{t("moveInHint", { name: group.name ?? group.code })}</p>
               <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder={t("referenceIdsPlaceholder")} className="min-h-20 w-full rounded-lg border bg-white/70 p-2 font-mono text-xs" />
-              <button type="button" disabled={busy || !pastedIds.length || Number(group.status) !== 1} onClick={() => void move(pastedIds, group.id)} className="mt-2 flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-primary disabled:opacity-50">
+              <Button disabled={busy || !pastedIds.length || Number(group.status) !== 1} onClick={() => void move(pastedIds, group.id)} variant="outline" size="xs" className="mt-2 flex">
                 <ArrowRightLeft size={13} /> {t("moveInN", { count: pastedIds.length })}
-              </button>
+              </Button>
             </div>
           </div>
         )}

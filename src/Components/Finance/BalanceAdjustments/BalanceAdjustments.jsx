@@ -24,6 +24,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // EPURSE > Balance Adjustments (menu 182): credit / debit corrections of a
 // transaction that happened, found by its RRN (or opened from a dispute).
@@ -440,16 +441,7 @@ function EarlierAdjustments({ rows, currency }) {
   return (
     <div>
       <p className="mb-1 text-xs font-bold">{t("earlierAdjustments")}</p>
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="text-left text-[10px] uppercase text-muted-foreground">
-            <th className="py-1 pr-2">{t("rrn")}</th>
-            <th className="py-1 pr-2">{t("txn:type")}</th>
-            <th className="py-1 pr-2 text-right">{t("amount")}</th>
-            <th className="py-1 pr-2">{t("date")}</th>
-            <th className="py-1">{t("reason")}</th>
-          </tr>
-        </thead>
+      <SimpleTable columns={[{ label: t("rrn"), className: "py-1 pr-2" }, { label: t("txn:type"), className: "py-1 pr-2" }, { label: t("amount"), align: "right", className: "py-1 pr-2" }, { label: t("date"), className: "py-1 pr-2" }, { label: t("reason"), className: "py-1" }]}>
         <tbody>
           {rows.map((a) => (
             <tr key={a.rrn} className="border-t">
@@ -461,7 +453,7 @@ function EarlierAdjustments({ rows, currency }) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </SimpleTable>
     </div>
   );
 }

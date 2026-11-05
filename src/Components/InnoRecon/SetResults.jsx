@@ -346,9 +346,9 @@ export function SetUnmatched({ set }) {
             key: "notes",
             label: t("notes"),
             render: (r) => (
-              <button type="button" onClick={() => setDialog({ kind: "notes", record: r })} className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+              <LinkButton onClick={() => setDialog({ kind: "notes", record: r })} className="flex items-center gap-1 text-[11px]">
                 <MessageSquare size={12} /> {r.notes ?? 0}
-              </button>
+              </LinkButton>
             ),
           },
           { key: "pending", label: "", render: (r) => r.pending_action_id && <PendingTag>{t("actionPending")}</PendingTag> },

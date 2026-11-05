@@ -342,15 +342,14 @@ export function OnboardingConfigurationPage() {
             <Button variant="ghost" onClick={() => setOpen(false)}>
               {t("common:cancel")}
             </Button>
-            <button
-              type="button"
+            <Button
               disabled={saving}
               onClick={() => void create()}
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="flex"
             >
               {saving && <Spinner size={13} />}
               {t("onboarding:create")}
-            </button>
+            </Button>
           </>
         }
       >

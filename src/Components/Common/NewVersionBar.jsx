@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshCw } from "lucide-react";
+import { Button } from "@/Components/Common/Button";
 
 const CHECK_MS = 5 * 60 * 1000;
 
@@ -38,9 +39,9 @@ export function NewVersionBar() {
     <div role="status" className="fixed inset-x-0 bottom-4 z-[11000] mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl border bg-[var(--card)] px-4 py-2.5 text-sm shadow-2xl">
       <RefreshCw size={16} className="shrink-0 text-primary" />
       <span className="font-semibold">{t("newVersion")}</span>
-      <button type="button" onClick={() => window.location.reload()} className="rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+      <Button onClick={() => window.location.reload()} size="xs">
         {t("reloadNow")}
-      </button>
+      </Button>
     </div>
   );
 }

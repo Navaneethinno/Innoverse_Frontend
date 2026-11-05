@@ -389,8 +389,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
           Cancel
         </button>
-        <button
-          type="button"
+        <Button
           disabled={pending}
           onClick={() =>
             void onSubmit({
@@ -400,16 +399,16 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
               is_draft: true,
             })
           }
-          className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-slate-600"
+          variant="secondary"
         >
           Save as draft
-        </button>
-        <button
+        </Button>
+        <Button
+          type="submit"
           disabled={pending}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
         >
           {pending ? "Saving..." : editing ? "Save changes" : "Add channel"}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-right text-xs font-semibold text-red-600">{error}</p>}
     </form>

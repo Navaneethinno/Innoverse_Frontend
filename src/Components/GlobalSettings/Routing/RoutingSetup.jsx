@@ -22,6 +22,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { CARD_DIRECTIONS, SECTIONS, code, groupFits, onUsIn, rangeProblem, specificity, toBody, toForm } from "./routingShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // The routing setups (one per institution, maker-checker as a whole, like
 // External Providers): list, view (in effect, waiting, history) and editor.
@@ -66,9 +67,9 @@ export function SetupList({ scope, chooser, institution, onOpen }) {
       label: t("fees:institution"),
       align: "left",
       render: (s) => (
-        <button type="button" onClick={() => onOpen({ kind: "view", id: s.id })} className="text-left text-xs font-bold text-primary hover:underline">
+        <LinkButton onClick={() => onOpen({ kind: "view", id: s.id })} className="text-left">
           {s.inst_profile_name}
-        </button>
+        </LinkButton>
       ),
     },
     { key: "status", label: t("fees:status"), render: (s) => <ProductStatus product={s} /> },

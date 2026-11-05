@@ -128,32 +128,29 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
             {tr("Cancel")}
           </Button>
           {stepIndex > 0 && (
-            <button
-              type="button"
+            <Button
               onClick={() => goToStep(stepIndex - 1)}
-              className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600"
+              variant="secondary"
             >
               {tr("Back")}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
             disabled={savingDraft || saving || initialLoading}
             onClick={() => void handleSaveDraft()}
-            className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
+            variant="secondary" className="flex"
           >
             {savingDraft && <Spinner size={13} />}
             {tr("Save as draft")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             disabled={saving || savingDraft || initialLoading}
             onClick={() => void handleSave()}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="flex"
           >
             {saving && <Spinner size={13} />}
             {tr("Save Changes")}
-          </button>
+          </Button>
         </>
       }
     >

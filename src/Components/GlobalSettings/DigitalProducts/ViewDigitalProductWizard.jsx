@@ -39,22 +39,19 @@ export function ViewDigitalProductWizard({ product, onClose }) {
             {tr("Close")}
           </Button>
           {stepIndex > 0 && (
-            <button
-              type="button"
+            <Button
               onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-              className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600"
+              variant="secondary"
             >
               {tr("Back")}
-            </button>
+            </Button>
           )}
           {stepIndex < steps.length - 1 && (
-            <button
-              type="button"
+            <Button
               onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
             >
               {tr("Next")}
-            </button>
+            </Button>
           )}
         </>
       }

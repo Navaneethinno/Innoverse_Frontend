@@ -302,26 +302,26 @@ export function CustomerMasterConfigResource({ entity }) {
               <Button variant="ghost" onClick={() => setOpen(false)}>
                 {t("common:cancel")}
               </Button>
-              <button
+              <Button
                 type="submit"
                 form="customer-master-config-form"
                 data-mode="draft"
                 disabled={saving}
-                className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold"
+                variant="secondary" className="flex"
               >
                 {saving && <Spinner size={13} />}
                 {t("onboarding:saveAsDraft")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 form="customer-master-config-form"
                 data-mode="submit"
                 disabled={saving}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+                className="flex"
               >
                 {saving && <Spinner size={13} />}
                 {editing ? t("onboarding:saveChanges") : t("onboarding:addTitle", { title: displayTitle })}
-              </button>
+              </Button>
             </>
           }
         >

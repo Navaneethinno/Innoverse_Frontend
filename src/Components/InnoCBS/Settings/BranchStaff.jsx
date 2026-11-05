@@ -3,6 +3,7 @@ import { cbsBranchStaffApi } from "@/Services/Accounting/accounting.api";
 import { accountDate } from "../Accounts/accountShared";
 import { RowsEditor } from "../Loans/loanShared";
 import { SectionScreen } from "./SectionScreen";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const administrative = (data) => (data?.branches ?? []).find((b) => b.head_office_type === "ADMINISTRATIVE")?.code;
 const toValue = (rows) =>
@@ -79,16 +80,7 @@ function StaffTransfers({ rows }) {
     <div className="mt-5">
       <p className="mb-2 text-xs font-black uppercase tracking-wider text-muted-foreground">{t("transfers")}</p>
       <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full text-xs">
-          <thead className="border-b border-border text-left text-[10px] font-bold uppercase text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">{t("user")}</th>
-              <th className="px-3 py-2">{t("fromBranch")}</th>
-              <th className="px-3 py-2">{t("toBranch")}</th>
-              <th className="px-3 py-2">{t("effectiveFrom")}</th>
-              <th className="px-3 py-2">{t("changedBy")}</th>
-            </tr>
-          </thead>
+        <SimpleTable columns={[t("user"), t("fromBranch"), t("toBranch"), t("effectiveFrom"), t("changedBy")]}>
           <tbody>
             {sorted.map((r, i) => (
               <tr key={i} className="border-b border-border/50 last:border-0">
@@ -100,7 +92,7 @@ function StaffTransfers({ rows }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </SimpleTable>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
+import { Button } from "@/Components/Common/Button";
 
 // Spec-driven editor for one array of a customer-type / KYC-scheme
 // configuration (sections, fields, documents, rules, levels, ...). Each item
@@ -222,17 +223,16 @@ export function ListEditor({ items, onChange, spec, addLabel, itemTitle, readOnl
       ))}
       {!readOnly && (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
+          <Button
             onClick={add}
-            className="flex items-center gap-1.5 self-start rounded-xl border px-4 py-2 text-sm font-bold text-primary"
+            variant="outline" className="flex self-start"
           >
             <Plus size={14} /> {addLabel ?? t("common:add")}
-          </button>
+          </Button>
           {seed && (
-            <button type="button" onClick={seed.onClick} className="self-start rounded-xl border px-4 py-2 text-sm font-bold text-slate-600">
+            <Button onClick={seed.onClick} variant="secondary" className="self-start">
               {seed.label}
-            </button>
+            </Button>
           )}
         </div>
       )}

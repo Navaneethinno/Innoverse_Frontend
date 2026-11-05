@@ -122,9 +122,9 @@ export function InstitutionDocuments() {
         list={list}
         actions={
           can("Add") && (
-            <button type="button" disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
+            <Button disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} size="xs" className="flex">
               <Plus size={14} /> {t("newDocument")}
-            </button>
+            </Button>
           )
         }
         columns={columns}

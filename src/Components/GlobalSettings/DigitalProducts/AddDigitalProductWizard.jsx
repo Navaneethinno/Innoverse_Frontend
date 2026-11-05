@@ -155,43 +155,39 @@ export function AddDigitalProductWizard({ onClose, onSuccess }) {
             {tr("Cancel")}
           </Button>
           {stepIndex > 0 && (
-            <button
-              type="button"
+            <Button
               onClick={goBack}
-              className="rounded-xl border px-4 py-2 text-sm font-bold text-slate-600"
+              variant="secondary"
             >
               {tr("Back")}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
+          <Button
             disabled={savingDraft}
             onClick={() => void handleSaveDraft()}
-            className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-slate-600 disabled:opacity-50"
+            variant="secondary" className="flex"
           >
             {savingDraft && <Spinner size={13} />}
             {tr("Save as draft")}
-          </button>
+          </Button>
           {!isLastStep ? (
-            <button
-              type="button"
+            <Button
               disabled={savingStep}
               onClick={() => void goNext()}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="flex"
             >
               {savingStep && <Spinner size={13} />}
               {tr("Next")}
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
+            <Button
               disabled={submitting}
               onClick={() => void handleSubmit()}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="flex"
             >
               {submitting && <Spinner size={13} />}
               {tr("Submit")}
-            </button>
+            </Button>
           )}
         </>
       }

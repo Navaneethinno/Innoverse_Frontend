@@ -195,14 +195,13 @@ export function BlacklistImport({ onClose, onImported }) {
         </div>
         <ColumnSetup columns={columns} format={form.file_format} onChange={setColumn} />
         <div className="space-y-3 md:col-span-2">
-          <button
-            type="button"
+          <Button
             disabled={Boolean(busy) || !form.file_path}
             onClick={() => void validate()}
-            className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-primary disabled:opacity-50"
+            variant="outline" className="flex"
           >
             {busy === "validate" ? <Spinner size={13} /> : <ListChecks size={14} />} {t("aml:validate")}
-          </button>
+          </Button>
           <ValidationResult result={check} />
           {tooMany && <p className="text-xs font-semibold text-red-600">{t("aml:importTooMany", { max: MAX_ROWS })}</p>}
         </div>

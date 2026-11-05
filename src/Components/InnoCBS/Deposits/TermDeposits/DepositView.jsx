@@ -23,6 +23,7 @@ import { ActionButtons, Facts, NarrationDialog, Section, dayDate, inputClass, la
 import { earlyText, optionLabel } from "../../Settings/DepositProducts/productShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const TABS = ["summary", "interest", "history", "transactions"];
 const INSTRUCTIONS = ["PAYOUT", "RENEW_PRINCIPAL", "RENEW_PRINCIPAL_AND_INTEREST", "HOLD"];
@@ -399,15 +400,7 @@ function InterestTab({ deposit }) {
       {interest.payouts?.length > 0 && (
         <Section title={t("payouts")}>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="py-1 pr-3">{t("period")}</th>
-                  <th className="py-1 pr-3 text-right">{t("grossInterest")}</th>
-                  <th className="py-1 pr-3 text-right">{t("netInterest")}</th>
-                  <th className="py-1">RRN</th>
-                </tr>
-              </thead>
+            <SimpleTable columns={[{ label: t("period"), className: "py-1 pr-3" }, { label: t("grossInterest"), align: "right", className: "py-1 pr-3" }, { label: t("netInterest"), align: "right", className: "py-1 pr-3" }, { label: "RRN", className: "py-1" }]}>
               <tbody>
                 {interest.payouts.map((p) => (
                   <tr key={`${p.period_start}-${p.rrn}`} className="border-t border-border">
@@ -418,7 +411,7 @@ function InterestTab({ deposit }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </SimpleTable>
           </div>
         </Section>
       )}

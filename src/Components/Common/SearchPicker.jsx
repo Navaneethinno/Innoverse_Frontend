@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { inputClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { notifications } from "@/Utils/Lib/notifications";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Pick one record by typing part of it: `search(term)` resolves to the
 // matching rows (300 ms after typing stops), `renderItem(row)` draws a row
@@ -34,16 +35,15 @@ export function SearchPicker({ value, onChange, search, renderItem, rowKey = (r)
     return (
       <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs">
         <span className="min-w-0">{renderItem(value)}</span>
-        <button
-          type="button"
+        <LinkButton
           onClick={() => {
             setTerm("");
             onChange(null);
           }}
-          className="shrink-0 text-[11px] font-bold text-primary hover:underline"
+          className="shrink-0 text-[11px]"
         >
           {t("change")}
-        </button>
+        </LinkButton>
       </div>
     );
   }

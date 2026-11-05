@@ -9,6 +9,7 @@ import { OwnerFinder } from "@/Components/InnoCBS/Deposits/TermDeposits/OpenDepo
 import { useMenuPermission } from "@/Hooks/usePermission";
 import { limitGroupOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // A code (DAILY_AMOUNT) read as words (Daily amount).
 const words = (code) => {
@@ -114,9 +115,9 @@ export function LimitUsageDialog({ onClose }) {
     <Modal open onClose={onClose} size="lg" title={t("limitsAndUsage")}>
       {entity ? (
         <>
-          <button type="button" onClick={() => setEntity(null)} className="mb-3 text-xs font-bold text-primary hover:underline">
+          <LinkButton onClick={() => setEntity(null)} className="mb-3">
             {t("usageAnother")}
-          </button>
+          </LinkButton>
           <LimitUsagePanel entity={entity} />
         </>
       ) : (

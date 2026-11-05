@@ -7,6 +7,7 @@ import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { formatDay } from "@/Utils/Lib/dateFormat";
+import { Button } from "@/Components/Common/Button";
 
 // Shared by every Reports screen (read-only; handoffs 08–09).
 
@@ -120,15 +121,14 @@ export function ExportButtons({ exportFile, disabled = false, formats = ["XLSX",
     <div className="flex flex-wrap items-center gap-1.5">
       {children}
       {formats.map((format) => (
-        <button
+        <Button
           key={format}
-          type="button"
           disabled={disabled || Boolean(busy)}
           onClick={() => void run(format)}
-          className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary disabled:opacity-50"
+          variant="secondary" size="xs" className="flex"
         >
           {busy === format ? <Spinner size={12} /> : <Download size={13} />} {t({ XLSX: "excel", CSV: "csv", PDF: "pdf" }[format])}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -161,13 +161,13 @@ export function ReportDetailPage({ title, onBack, children }) {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
+        <Button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-primary hover:text-primary"
+          variant="secondary"
+          size="xs"
         >
           <ArrowLeft size={14} /> {t("back")}
-        </button>
+        </Button>
         <h1 className="min-w-0 truncate text-xl font-black text-slate-800">{title}</h1>
       </div>
       <div className="rounded-2xl p-5" style={glassCard}>

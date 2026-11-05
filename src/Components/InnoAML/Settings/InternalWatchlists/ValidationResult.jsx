@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // The reply of internal_list/validate: how many rows can be screened, the
 // first 200 row problems (row numbers as the file shows them, header
@@ -29,17 +30,7 @@ export function ValidationResult({ result }) {
       {result.preview?.length > 0 && (
         <div className="overflow-x-auto">
           <p className="mb-1 text-[11px] font-bold uppercase text-muted-foreground">{t("preview")}</p>
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="py-1 pr-3 font-semibold">{t("name")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("aliases")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("entityType")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("birthDates")}</th>
-                <th className="py-1 pr-3 font-semibold">{t("countries")}</th>
-                <th className="py-1 font-semibold">{t("identifiers")}</th>
-              </tr>
-            </thead>
+          <SimpleTable columns={[{ label: t("name"), className: "py-1 pr-3" }, { label: t("aliases"), className: "py-1 pr-3" }, { label: t("entityType"), className: "py-1 pr-3" }, { label: t("birthDates"), className: "py-1 pr-3" }, { label: t("countries"), className: "py-1 pr-3" }, { label: t("identifiers"), className: "py-1" }]}>
             <tbody>
               {result.preview.map((p) => (
                 <tr key={p.id} className="border-t align-top">
@@ -52,7 +43,7 @@ export function ValidationResult({ result }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </SimpleTable>
         </div>
       )}
     </div>

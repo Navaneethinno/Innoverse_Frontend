@@ -23,6 +23,7 @@ import { AmlProposeDialog, AssignDialog, CloseCaseDialog, DecideDialog, NoteDial
 import { RequestDialog, RequestsTab } from "./CaseRequests";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { actorText } from "@/Utils/Lib/actor";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 const TABS = ["overview", "customer", "requests", "risk", "aml", "timeline", "account"];
 // An AML case is about an active customer: the conversation with them
@@ -346,14 +347,7 @@ function RiskTab({ assessment }) {
       </div>
       {points.length ? (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                <th className="pb-2 pr-3">{t("criterion")}</th>
-                <th className="pb-2 pr-3">{t("answer")}</th>
-                <th className="pb-2 text-right">{t("points")}</th>
-              </tr>
-            </thead>
+          <SimpleTable className="text-left" columns={[{ label: t("criterion"), className: "pb-2 pr-3" }, { label: t("answer"), className: "pb-2 pr-3" }, { label: t("points"), align: "right", className: "pb-2" }]}>
             <tbody>
               {points.map((p, i) => (
                 <tr key={p.criterion_id ?? p.id ?? i} className="border-t border-border">
@@ -363,7 +357,7 @@ function RiskTab({ assessment }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </SimpleTable>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">{t("noPoints")}</p>

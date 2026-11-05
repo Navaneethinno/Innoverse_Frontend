@@ -15,6 +15,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, NameText, ReviewStateBadge, ViaTag, WeightNote, blacklistByIdentifier, matchScore, when } from "./amlShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { Button } from "@/Components/Common/Button";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
@@ -407,14 +408,13 @@ export function ScreeningDetail({ screening, onChange }) {
             </button>
           )}
           <span className="text-[11px] text-muted-foreground">{t("decisionsSelected", { count: decisions.length })}</span>
-          <button
-            type="button"
+          <Button
             disabled={saving || decisions.length === 0}
             onClick={() => void propose()}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="flex"
           >
             {saving ? <Spinner size={13} /> : <Send size={14} />} {t("submitReview")}
-          </button>
+          </Button>
         </div>
       )}
     </div>

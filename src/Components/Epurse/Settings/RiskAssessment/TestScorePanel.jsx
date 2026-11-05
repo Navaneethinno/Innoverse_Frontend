@@ -6,6 +6,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LevelChip, RiskPointsTable } from "./riskShared";
+import { Button } from "@/Components/Common/Button";
 
 // "Test score": one dropdown per criterion, POST <base>/score. Scores the
 // setup as saved (a pending edit isn't used until approved); nothing is saved.
@@ -77,9 +78,9 @@ export function TestScorePanel({ api, row, risk, kind }) {
           </label>
         ))}
       </div>
-      <button type="button" disabled={scoring} onClick={() => void run()} className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50">
+      <Button disabled={scoring} onClick={() => void run()} className="mt-3 flex w-full">
         {scoring ? <Spinner size={13} /> : <Calculator size={14} />} {t("calculate")}
-      </button>
+      </Button>
 
       {result && (
         <div className="mt-3 rounded-xl bg-muted/50 p-3">

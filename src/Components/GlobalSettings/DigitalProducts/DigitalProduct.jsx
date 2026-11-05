@@ -72,26 +72,26 @@ function Editor({ open, config, value, setValue, editing, saving, onClose, onSav
           <Button variant="ghost" onClick={onClose}>
             {tr("Cancel")}
           </Button>
-          <button
+          <Button
             type="submit"
             form="digital-product-form"
             data-mode="draft"
             disabled={saving}
-            className="flex items-center justify-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold"
+            variant="secondary" className="flex"
           >
             {saving && <Spinner size={13} />}
             {tr("Save as draft")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="digital-product-form"
             data-mode="submit"
             disabled={saving}
-            className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+            className="flex"
           >
             {saving && <Spinner size={13} />}
             {editing ? tr("Save changes") : `${tr("Add")} ${tr(config.title)}`}
-          </button>
+          </Button>
         </>
       }
     >

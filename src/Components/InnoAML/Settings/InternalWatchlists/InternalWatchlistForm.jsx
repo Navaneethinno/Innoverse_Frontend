@@ -15,6 +15,7 @@ import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecor
 import { useInstitutionScope } from "../../Shared/amlShared";
 import { ValidationResult } from "./ValidationResult";
 import { ColumnSetup, LIST_FILE_ACCEPT, LIST_FILE_MAX_BYTES, columnsFromForm, columnsToForm, formatOf, splitList } from "./ColumnSetup";
+import { Button } from "@/Components/Common/Button";
 
 const ENTITY_TYPES = ["ANY", "PERSON", "ORGANIZATION"];
 
@@ -152,14 +153,13 @@ export function InternalWatchlistForm({ editing, onClose, onSaved }) {
         <ColumnSetup columns={columns} format={form.file_format} onChange={setColumn} />
 
         <div className="space-y-3 md:col-span-2">
-          <button
-            type="button"
+          <Button
             disabled={validating || !form.file_path}
             onClick={() => void validate()}
-            className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-bold text-primary disabled:opacity-50"
+            variant="outline" className="flex"
           >
             {validating ? <Spinner size={13} /> : <ListChecks size={14} />} {t("aml:validate")}
-          </button>
+          </Button>
           <ValidationResult result={result} />
           {(invalidRows > 0 || form.skip_invalid_rows) && (
             <div>

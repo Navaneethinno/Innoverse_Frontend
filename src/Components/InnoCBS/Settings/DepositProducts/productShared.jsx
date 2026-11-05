@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { cn } from "@/Utils/Lib/utils";
 import { dayDate, ratePct } from "../../Deposits/depositShared";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // A code from the options lists (ACT_365, HALF YEARLY, RENEW_PRINCIPAL...)
 // as a label; an unknown code shows as itself.
@@ -84,15 +85,7 @@ function TenorTable({ tenors, other, currency }) {
             <p className="text-[11px] text-muted-foreground">{periodText(t, tenor)}</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-xs">
-              <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="py-1 pr-3">{t("amountFrom")}</th>
-                  <th className="py-1 pr-3">{t("amountUpTo")}</th>
-                  <th className="py-1 pr-3">{t("annualRate")}</th>
-                  <th className="py-1">{t("effective")}</th>
-                </tr>
-              </thead>
+            <SimpleTable className="table-fixed" columns={[{ label: t("amountFrom"), className: "py-1 pr-3" }, { label: t("amountUpTo"), className: "py-1 pr-3" }, { label: t("annualRate"), className: "py-1 pr-3" }, { label: t("effective"), className: "py-1" }]}>
               <tbody>
                 {(tenor.rates ?? []).map((b, j) => (
                   <tr key={b.id ?? `b${j}`} className={cn("border-t border-border", otherBands && !otherBands.has(bandKey(b)) && "bg-amber-50")}>
@@ -103,7 +96,7 @@ function TenorTable({ tenors, other, currency }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </SimpleTable>
           </div>
         </div>
       ))}

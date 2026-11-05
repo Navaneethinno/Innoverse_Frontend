@@ -22,6 +22,7 @@ import { glAmount } from "./accountingShared";
 import { branchOptions, useCoreBanking } from "../InnoCBS/coreBankingShared";
 import { inputClass } from "../InnoCBS/Deposits/depositShared";
 import { useInstitutionScope } from "../InnoCBS/Loans/loanShared";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 
 // Loads one GL report call whenever `body` changes.
@@ -402,15 +403,7 @@ export function ProfitLossByDay({ body, currency }) {
   return (
     <div className="grid gap-3">
       <div className="overflow-x-auto rounded-2xl border border-border">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-4 py-2.5">{t("date")}</th>
-              <th className="px-3 py-2.5 text-right">{t("income")}</th>
-              <th className="px-3 py-2.5 text-right">{t("expenses")}</th>
-              <th className="px-3 py-2.5 text-right">{t("net")}</th>
-            </tr>
-          </thead>
+        <SimpleTable className="text-sm" columns={[{ label: t("date"), className: "px-4 py-2.5" }, { label: t("income"), align: "right", className: "py-2.5" }, { label: t("expenses"), align: "right", className: "py-2.5" }, { label: t("net"), align: "right", className: "py-2.5" }]}>
           <tbody>
             {!days.length && (
               <tr>
@@ -436,7 +429,7 @@ export function ProfitLossByDay({ body, currency }) {
               <td className="px-3 py-2 text-right text-xs tabular-nums">{glAmount(days.reduce((s, d) => s + Number(d.net || 0), 0), cur)}</td>
             </tr>
           </tfoot>
-        </table>
+        </SimpleTable>
       </div>
       <ResultRow result={data.result} currency={cur} />
     </div>

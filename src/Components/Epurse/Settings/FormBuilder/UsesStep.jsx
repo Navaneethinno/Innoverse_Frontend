@@ -7,6 +7,7 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { formUseRolesApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/cn";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Step 4 of the definition wizard ("Admin portal: simpler Uses step"): the
 // same form.uses as before, built from a few plain questions instead of one
@@ -239,9 +240,9 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   const emails = ofType(["EMAIL"]);
   const comparable = ofType(COMPARABLE);
   const addFieldFirst = (type) => (
-    <button type="button" onClick={() => openMenu("formfields")} className="text-left text-xs font-semibold text-[var(--primary)] hover:underline">
+    <LinkButton onClick={() => openMenu("formfields")} className="text-left font-semibold">
       {t("addTypeFieldFirst", { type })}
-    </button>
+    </LinkButton>
   );
 
   // 1. Name, plus the pre-fill line.

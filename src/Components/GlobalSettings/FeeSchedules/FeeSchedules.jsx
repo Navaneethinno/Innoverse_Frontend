@@ -20,6 +20,7 @@ import { feeSchedulesApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
@@ -422,9 +423,9 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             <RequiredMark />
             <Field field={{ type: "select", blank: t("choose"), options: (options.currencies ?? []).map((c) => ({ value: String(c.id), label: `${c.alpha_code} · ${c.name}${c.fee_schedule_id ? ` (${t("hasSchedule")})` : ""}` })) }} disabled={Boolean(schedule)} value={String(schedule?.currency_code ?? head.currency_code)} onChange={(v) => setHead((h) => ({ ...h, currency_code: v }))} />
             {!schedule && currency?.fee_schedule_id && (
-              <button type="button" onClick={() => onOpen(currency.fee_schedule_id)} className="mt-1 flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+              <LinkButton onClick={() => onOpen(currency.fee_schedule_id)} className="mt-1 flex items-center gap-1 text-[11px]">
                 <Eye size={12} /> {t("openExisting", { name: currency.fee_schedule_name })}
-              </button>
+              </LinkButton>
             )}
           </label>
           <label className={labelClass}>

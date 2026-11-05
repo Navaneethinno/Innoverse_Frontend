@@ -22,6 +22,7 @@ import { transactionRequestsApi } from "@/Services/Transactions/transactions.api
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../InnoCBS/Deposits/depositShared";
 import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord } from "./cardOpsShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
@@ -307,9 +308,9 @@ function CardView({ id, options, onBack, onOpen }) {
             {card.pin_change_required && <p className="mt-1 text-xs font-semibold text-amber-700">{t("oneTimePinPending")}</p>}
             <p className="mt-1 text-xs text-muted-foreground">{[card.holder_name || t("inStock"), card.name_on_card, `${card.product_code} · ${cardWord(t, "opt", card.product_class)}`, cardWord(t, "opt", card.form_factor), card.network_code, card.inst_profile_name].filter(Boolean).join(" · ")}</p>
             {card.replaced_by_card_id > 0 && (
-              <button type="button" onClick={() => onOpen(card.replaced_by_card_id)} className="mt-1 text-xs font-bold text-primary hover:underline">
+              <LinkButton onClick={() => onOpen(card.replaced_by_card_id)} className="mt-1">
                 {t("replacedByCard")}
-              </button>
+              </LinkButton>
             )}
           </div>
           <ActionButtons buttons={buttons} busy={busy} />

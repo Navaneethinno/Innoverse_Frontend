@@ -14,6 +14,7 @@ import { amlFlagApi } from "@/Services/InnoAML/aml.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { BandBadge, when } from "../Shared/amlShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const STATE_TONE = { OPEN: "bg-amber-50 text-amber-700", CASE_RAISED: "bg-sky-50 text-sky-700", DISMISSED: "bg-muted text-muted-foreground" };
 
@@ -96,9 +97,9 @@ export function Flags() {
         <span className="inline-grid justify-items-center gap-0.5">
           <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATE_TONE[f.state] ?? STATE_TONE.DISMISSED}`}>{t(`aml:flagState_${f.state}`, { defaultValue: f.state })}</span>
           {f.case_number && (
-            <button type="button" onClick={() => openMenu("amlcases", { caseId: f.case_id })} className="font-mono text-[10px] font-bold text-primary hover:underline">
+            <LinkButton onClick={() => openMenu("amlcases", { caseId: f.case_id })} mono className="text-[10px]">
               {f.case_number}
-            </button>
+            </LinkButton>
           )}
           {f.state === "DISMISSED" && f.settle_comment && (
             <span className="line-clamp-2 max-w-48 text-[10px] text-muted-foreground" title={f.settle_comment}>

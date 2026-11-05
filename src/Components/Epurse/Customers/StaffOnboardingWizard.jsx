@@ -665,9 +665,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             {t("customer:saveSection")}
           </Button>
         )}
-        <button type="button" disabled={activeIndex >= sections.length - 1} onClick={guard(() => setActiveKey(sections[activeIndex + 1]?.key))} className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-bold text-primary disabled:opacity-40">
+        <Button disabled={activeIndex >= sections.length - 1} onClick={guard(() => setActiveKey(sections[activeIndex + 1]?.key))} variant="outline" className="flex">
           {t("common:next")} <ArrowRight size={14} />
-        </button>
+        </Button>
       </>
     );
   };

@@ -7,6 +7,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { NotificationRow, useNotificationTarget } from "@/Components/Notifications/NotificationRow";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { inboxApi, INBOX_CHANGED } from "@/Services/Notifications/inbox.api";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // The rest are on the full page.
 const LIMIT = 5;
@@ -116,9 +117,9 @@ export function NotificationsButton() {
           <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <p className="text-sm font-bold text-foreground">{t("notificationsTitle")}</p>
             {unread > 0 && (
-              <button type="button" onClick={() => void markRead({ all: true }, null)} className="text-xs font-semibold text-primary hover:underline">
+              <LinkButton onClick={() => void markRead({ all: true }, null)} className="font-semibold">
                 {t("markAllRead")}
-              </button>
+              </LinkButton>
             )}
           </div>
           <div className="max-h-[60vh] overflow-y-auto">

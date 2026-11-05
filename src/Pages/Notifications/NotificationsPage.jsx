@@ -8,6 +8,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { NotificationRow, useNotificationTarget } from "@/Components/Notifications/NotificationRow";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { inboxApi, INBOX_CHANGED } from "@/Services/Notifications/inbox.api";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Every message in the signed-in user's inbox, a page at a time; the top bar's
 // bell shows only the latest few and links here.
@@ -62,9 +63,9 @@ export function NotificationsPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <PageTitle icon={Bell}>{t("notificationsTitle")}</PageTitle>
         {unread > 0 && (
-          <button type="button" onClick={() => void markRead({ all: true }, null)} className="text-xs font-semibold text-primary hover:underline">
+          <LinkButton onClick={() => void markRead({ all: true }, null)} className="font-semibold">
             {t("markAllRead")}
-          </button>
+          </LinkButton>
         )}
       </div>
       <div className="mb-3 flex items-center gap-1.5">

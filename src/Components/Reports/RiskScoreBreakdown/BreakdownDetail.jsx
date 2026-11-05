@@ -8,6 +8,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -132,16 +133,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
           </Section>
 
           <Section title={t("criteria")}>
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="py-1 pr-2 font-semibold">{t("criterion")}</th>
-                  <th className="py-1 pr-2 text-right font-semibold">{t("weight")}</th>
-                  <th className="py-1 pr-2 font-semibold">{t("customerValue")}</th>
-                  <th className="py-1 pr-2 text-right font-semibold">{t("valueScore")}</th>
-                  <th className="py-1 text-right font-semibold">{t("points")}</th>
-                </tr>
-              </thead>
+            <SimpleTable columns={[{ label: t("criterion"), className: "py-1 pr-2" }, { label: t("weight"), align: "right", className: "py-1 pr-2" }, { label: t("customerValue"), className: "py-1 pr-2" }, { label: t("valueScore"), align: "right", className: "py-1 pr-2" }, { label: t("points"), align: "right", className: "py-1" }]}>
               <tbody className="tabular-nums">
                 {criteria.map((c) => (
                   <tr key={c.field_code} className="border-b align-top">
@@ -165,20 +157,13 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
                   </td>
                 </tr>
               </tbody>
-            </table>
+            </SimpleTable>
           </Section>
 
           {item.previous && (
             <Section title={t("sincePrevious", { score: item.previous.risk_score, band: item.previous.level_name })}>
               {item.changes?.length ? (
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="py-1 pr-2 font-semibold">{t("criterion")}</th>
-                      <th className="py-1 pr-2 font-semibold">{t("customerValue")}</th>
-                      <th className="py-1 text-right font-semibold">{t("points")}</th>
-                    </tr>
-                  </thead>
+                <SimpleTable columns={[{ label: t("criterion"), className: "py-1 pr-2" }, { label: t("customerValue"), className: "py-1 pr-2" }, { label: t("points"), align: "right", className: "py-1" }]}>
                   <tbody>
                     {item.changes.map((c) => (
                       <tr key={c.field_code} className="border-b align-top last:border-0">
@@ -198,7 +183,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </SimpleTable>
               ) : (
                 <p className="text-xs text-muted-foreground">{bandChanged ? t("bandsChanged") : t("noCriterionChanges")}</p>
               )}

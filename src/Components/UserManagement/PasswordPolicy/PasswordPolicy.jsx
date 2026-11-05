@@ -260,12 +260,12 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending, pr
           <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100">
             Cancel
           </button>
-          <button type="button" disabled={pending} onClick={() => onSave(true)} className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-slate-600 disabled:opacity-50">
+          <Button disabled={pending} onClick={() => onSave(true)} variant="secondary" size="sm">
             Save as draft
-          </button>
-          <button type="button" disabled={pending} onClick={() => onSave(false)} className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground disabled:opacity-50">
+          </Button>
+          <Button disabled={pending} onClick={() => onSave(false)} size="sm">
             {editing ? "Submit changes" : "Add policy"}
-          </button>
+          </Button>
         </>
       }
     >

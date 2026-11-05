@@ -8,6 +8,7 @@ import { notificationGroupApi } from "@/Services/Epurse/notification.api";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
+import { Button } from "@/Components/Common/Button";
 
 const emptyMember = () => ({ type: "EMAIL", value: "" });
 
@@ -78,14 +79,13 @@ export function NotificationGroupForm({ editing, onClose, onSaved }) {
               </p>
               <p className="text-[11px] text-muted-foreground">{t("notification:recipientsHint")}</p>
             </div>
-            <button
-              type="button"
+            <Button
               disabled={form.members.length >= 100}
               onClick={() => setForm({ ...form, members: [...form.members, emptyMember()] })}
-              className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary disabled:opacity-50"
+              variant="outline" size="xs" className="flex"
             >
               <Plus size={13} /> {t("notification:addRecipient")}
-            </button>
+            </Button>
           </div>
           <div className="mt-2 space-y-2">
             {form.members.map((member, index) => (

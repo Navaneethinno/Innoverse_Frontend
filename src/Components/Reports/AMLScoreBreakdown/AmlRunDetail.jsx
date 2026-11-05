@@ -9,6 +9,7 @@ import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared
 import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -182,24 +183,13 @@ function PartyCard({ party }) {
         </p>
       ) : party.matches?.length ? (
         <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-muted-foreground">
-                <th className="py-1 pr-2 font-semibold">{t("list")}</th>
-                <th className="py-1 pr-2 font-semibold">{t("listedName")}</th>
-                <th className="py-1 pr-2 font-semibold">{t("matchedOn")}</th>
-                <th className="py-1 pr-2 text-right font-semibold">{t("nameScore")}</th>
-                <th className="py-1 pr-2 font-semibold">{t("adjustments")}</th>
-                <th className="py-1 pr-2 text-right font-semibold">{t("score")}</th>
-                <th className="py-1 font-semibold">{t("review")}</th>
-              </tr>
-            </thead>
+          <SimpleTable columns={[{ label: t("list"), className: "py-1 pr-2" }, { label: t("listedName"), className: "py-1 pr-2" }, { label: t("matchedOn"), className: "py-1 pr-2" }, { label: t("nameScore"), align: "right", className: "py-1 pr-2" }, { label: t("adjustments"), className: "py-1 pr-2" }, { label: t("score"), align: "right", className: "py-1 pr-2" }, { label: t("review"), className: "py-1" }]}>
             <tbody>
               {party.matches.map((m) => (
                 <MatchRow key={m.match_id ?? m.entity_id} m={m} />
               ))}
             </tbody>
-          </table>
+          </SimpleTable>
         </div>
       ) : (
         <p className="mt-2 text-xs text-muted-foreground">{t("noMatch")}</p>

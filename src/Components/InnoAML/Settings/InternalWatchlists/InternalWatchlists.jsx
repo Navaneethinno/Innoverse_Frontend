@@ -44,9 +44,9 @@ function CheckFile({ row }) {
   };
   return (
     <div className="space-y-2">
-      <button type="button" disabled={busy || !row.file_path} onClick={() => void run()} className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold text-primary disabled:opacity-50">
+      <Button disabled={busy || !row.file_path} onClick={() => void run()} variant="outline" size="xs" className="flex">
         {busy ? <Spinner size={12} /> : <ListChecks size={13} />} {t("checkFile")}
-      </button>
+      </Button>
       <ValidationResult result={result} />
     </div>
   );

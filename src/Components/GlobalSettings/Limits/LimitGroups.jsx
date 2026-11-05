@@ -98,12 +98,12 @@ export function LimitGroups() {
         toolbar={
           can("View") && (
             <div className="flex shrink-0 gap-2">
-              <button type="button" onClick={() => setUsage(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
+              <Button onClick={() => setUsage(true)} variant="secondary" size="xs" className="flex whitespace-nowrap">
                 <Gauge size={14} /> {t("limits:limitsAndUsage")}
-              </button>
-              <button type="button" onClick={() => setEvaluate({ group: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-slate-600">
+              </Button>
+              <Button onClick={() => setEvaluate({ group: null })} variant="secondary" size="xs" className="flex whitespace-nowrap">
                 <FlaskConical size={14} /> {t("limits:testACustomer")}
-              </button>
+              </Button>
             </div>
           )
         }

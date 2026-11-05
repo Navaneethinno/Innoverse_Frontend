@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, Check, Hand, X } from "lucide-react";
 import { ICONS } from "./guideTopics";
 import { ApprovalFlow } from "./ApprovalFlow";
+import { Button } from "@/Components/Common/Button";
 
 // The guide's spotlight and card, drawn by hand (not Joyride) so they glide
 // from one step to the next, follow a target that scrolls or resizes, and
@@ -163,14 +164,14 @@ export function GuideOverlay({ step, index, total, topicLabel, waiting, practice
           <span className="hidden text-[10px] text-muted-foreground sm:inline">{t("keysHint")}</span>
           <div className="ml-auto flex gap-2">
             {index > 0 && !step.hideBack && (
-              <button type="button" onClick={onBack} disabled={waiting} className="flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-bold hover:bg-muted disabled:opacity-50">
+              <Button onClick={onBack} disabled={waiting} variant="secondary" size="xs" className="flex">
                 <ArrowLeft size={13} /> {t("back")}
-              </button>
+              </Button>
             )}
-            <button type="button" onClick={onNext} disabled={waiting} className="flex items-center gap-1 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:bg-[var(--primary-hover)] disabled:opacity-50">
+            <Button onClick={onNext} disabled={waiting} size="xs" className="flex">
               {last ? t("done") : step.click ? t("nextOpens") : step.practice && !practiced ? t("skipPractice") : t("next")}
               {!last && <ArrowRight size={13} />}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

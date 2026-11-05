@@ -19,6 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
@@ -125,9 +126,9 @@ export function ExtProviders() {
       label: t("fees:institution"),
       align: "left",
       render: (s) => (
-        <button type="button" onClick={() => setScreen({ kind: "view", id: s.id })} className="text-left text-xs font-bold text-primary hover:underline">
+        <LinkButton onClick={() => setScreen({ kind: "view", id: s.id })} className="text-left">
           {s.inst_profile_name}
-        </button>
+        </LinkButton>
       ),
     },
     { key: "provider_count", label: t("providerCount"), render: (s) => <span className="text-xs tabular-nums">{s.provider_count ?? "—"}</span> },

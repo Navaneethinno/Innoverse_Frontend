@@ -10,6 +10,7 @@ import { usersApi } from "@/Services/UserManagement/users.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { caseDate, isApproval, outcomeWord } from "./caseShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
 
@@ -48,9 +49,9 @@ export function AssignDialog({ kase, busy, onClose, onSave }) {
         <FilterSelect className="mt-1.5" value={userId} onChange={setUserId} options={[{ value: "", label: t("chooseUser") }, ...users.filter((u) => u.value !== String(me?.id) || u.value === userId)]} />
       </label>
       {me?.id && String(me.id) !== userId && (
-        <button type="button" onClick={() => setUserId(String(me.id))} className="mt-2 text-xs font-bold text-primary hover:underline">
+        <LinkButton onClick={() => setUserId(String(me.id))} className="mt-2">
           {t("assignToMe")}
-        </button>
+        </LinkButton>
       )}
     </Modal>
   );

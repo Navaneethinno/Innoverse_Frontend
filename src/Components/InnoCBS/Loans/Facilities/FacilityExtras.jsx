@@ -14,6 +14,8 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
 import { Field, RowsEditor } from "../loanShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // A loan facility's newer parts: paying out (in cash at the user's open till
 // when the borrower has no wallet), repricing a variable-rate loan, paying
@@ -168,14 +170,7 @@ export function Repricing({ loan, onChanged }) {
             <p className="text-sm text-amber-800">{t(`repriceSkipped_${String(quote.skipped).replace("loan.", "")}`, { defaultValue: quote.skipped })}</p>
           ) : (
             <>
-              <table className="w-full text-xs">
-                <thead className="text-left text-[10px] uppercase text-muted-foreground">
-                  <tr>
-                    <th className="py-1" />
-                    <th className="py-1">{t("before")}</th>
-                    <th className="py-1">{t("after")}</th>
-                  </tr>
-                </thead>
+              <SimpleTable columns={[{ label: "", className: "py-1" }, { label: t("before"), className: "py-1" }, { label: t("after"), className: "py-1" }]}>
                 <tbody>
                   {[
                     [t("rate"), ratePct(quote.from_rate), ratePct(quote.to_rate)],
@@ -190,7 +185,7 @@ export function Repricing({ loan, onChanged }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </SimpleTable>
               <p className="mt-2 text-[11px] text-muted-foreground">{t("repriceFrom", { date: quote.effective_date })}</p>
               <div className="mt-2 flex justify-end">
                 <Button size="sm" loading={busy} onClick={() => void run("reprice", { annual_rate: rate, mode: "" })}>
@@ -511,9 +506,9 @@ export function RecoveryAfterDeath({ loan, onChanged }) {
                 <td className="px-3 py-1.5 whitespace-nowrap">{accountDate(c.updated_at ?? c.created_at)}</td>
                 <td className="px-3 py-1.5">
                   {a.deceased_claim && (
-                    <button type="button" className="font-bold text-primary hover:underline" onClick={() => setOutcome(c)}>
+                    <LinkButton className="text-sm" onClick={() => setOutcome(c)}>
                       {t("recordOutcome")}
-                    </button>
+                    </LinkButton>
                   )}
                 </td>
               </tr>

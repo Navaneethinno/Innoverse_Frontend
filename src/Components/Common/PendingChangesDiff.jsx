@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Fetches and renders the /{entity}/pending {id} diff inside an Auth/Deauth
 // confirm dialog, so the checker sees exactly what a maker is asking to
@@ -299,13 +300,12 @@ export function PendingChangesPanel({ data, isLoading, error, currentRecord }) {
             {t("dataChanges")}
           </span>
           {canShowAll && (
-            <button
-              type="button"
+            <LinkButton
               onClick={() => setShowAll((v) => !v)}
-              className="text-[11px] font-bold text-[var(--primary)] hover:underline"
+              className="text-[11px]"
             >
               {showAll ? t("showChangedOnly") : t("showAllFields", { count: totalFieldCount })}
-            </button>
+            </LinkButton>
           )}
         </div>
 

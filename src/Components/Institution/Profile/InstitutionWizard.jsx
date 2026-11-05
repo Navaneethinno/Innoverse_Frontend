@@ -12,6 +12,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { SECTION_ICONS, SectionFacts, SectionForm, bodyOf, defaultsOf, problemsOf, useProfileOptions } from "./profileShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const REVIEW = "review";
 
@@ -211,9 +212,9 @@ export function InstitutionWizard() {
                   <div key={s.key} className={cn("rounded-xl border p-4", badSections.has(s.key) ? "border-red-300" : "border-border")}>
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-sm font-bold">{s.title}</p>
-                      <button type="button" onClick={() => goTo(i)} className="flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+                      <LinkButton onClick={() => goTo(i)} className="flex items-center gap-1">
                         <Pencil size={12} /> {t("common:edit")}
-                      </button>
+                      </LinkButton>
                     </div>
                     <SectionFacts section={s} values={values} />
                   </div>

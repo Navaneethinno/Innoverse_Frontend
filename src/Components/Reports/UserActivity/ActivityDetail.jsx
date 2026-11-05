@@ -10,6 +10,7 @@ import { ReportDetailPage, atIst } from "../Shared/reportShared";
 import { fieldLabel, useIdNames } from "../Shared/idNames";
 import { Fields, Value } from "../Shared/RecordValues";
 import { RoleBadge, recordText } from "./activityFormat";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -83,14 +84,7 @@ export function ActivityDetail({ activityId, onClose }) {
             {item.is_new ? (
               <p className="rounded-lg bg-muted p-2.5 text-xs font-semibold">{t("newRecord")}</p>
             ) : item.changes?.length ? (
-              <table className="w-full table-fixed text-xs">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="w-1/4 py-1 pr-2 font-semibold">{t("field")}</th>
-                    <th className="py-1 pr-2 font-semibold">{t("before")}</th>
-                    <th className="py-1 font-semibold">{t("after")}</th>
-                  </tr>
-                </thead>
+              <SimpleTable className="table-fixed" columns={[{ label: t("field"), className: "w-1/4 py-1 pr-2" }, { label: t("before"), className: "py-1 pr-2" }, { label: t("after"), className: "py-1" }]}>
                 <tbody>
                   {item.changes.map((c) => (
                     <tr key={c.field} className="border-b align-top last:border-0">
@@ -104,7 +98,7 @@ export function ActivityDetail({ activityId, onClose }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </SimpleTable>
             ) : (
               <p className="text-xs text-muted-foreground">{t("noFieldChanges")}</p>
             )}

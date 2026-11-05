@@ -13,6 +13,7 @@ import { useOnboardingCatalog, useOnboardingMasters } from "../OnboardingConfigu
 import { useFieldLibrary } from "../FormBuilder/formBuilderHooks";
 
 import { Button } from "@/Components/Common/Button";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
 // replaces ALL levels atomically, validate is a dry run of the submit checks.
 // An approved scheme's levels are edited like any maker-checker record
@@ -62,14 +63,7 @@ function PendingLevels({ inForce, proposed, holders, fieldName }) {
       </button>
       {open && (
         <div className="overflow-x-auto border-t border-amber-200 p-3">
-          <table className="w-full min-w-[36rem] text-xs">
-            <thead className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="w-28 px-2 py-1.5">{t("onboarding:level")}</th>
-                <th className="px-2 py-1.5">{t("onboarding:inForce")}</th>
-                <th className="px-2 py-1.5">{t("onboarding:proposed")}</th>
-              </tr>
-            </thead>
+          <SimpleTable className="min-w-[36rem]" columns={[{ label: t("onboarding:level"), className: "w-28 px-2 py-1.5" }, { label: t("onboarding:inForce"), className: "px-2 py-1.5" }, { label: t("onboarding:proposed"), className: "px-2 py-1.5" }]}>
             <tbody>
               {numbers.map((n) => {
                 const before = levelSummary(byNo(inForce, n), fieldName, t);
@@ -98,7 +92,7 @@ function PendingLevels({ inForce, proposed, holders, fieldName }) {
                 );
               })}
             </tbody>
-          </table>
+          </SimpleTable>
         </div>
       )}
     </div>

@@ -11,6 +11,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { round2 } from "./riskShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
 
@@ -133,9 +134,9 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
             {t("weightTotal", { total })}
           </span>
           {criteria.length > 1 && (
-            <button type="button" onClick={spreadEvenly} className="rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary">
+            <Button onClick={spreadEvenly} variant="outline" size="xs">
               {t("spreadEvenly")}
-            </button>
+            </Button>
           )}
           <div data-tour="risk-add-criterion">
           <FilterSelect
@@ -179,9 +180,9 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
                   <span className="shrink-0 text-[11px] text-muted-foreground">{banded ? t("bandsCount", { count: c.bands?.length ?? 0 }) : t("scoredCount", { count: scored, total: values?.length ?? "…" })}</span>
                 </button>
                 {c.field_code === "@fatf" && (
-                  <button type="button" onClick={() => setShowFatf(true)} className="shrink-0 text-xs font-bold text-primary hover:underline">
+                  <LinkButton onClick={() => setShowFatf(true)} className="shrink-0">
                     {t("viewList")}
-                  </button>
+                  </LinkButton>
                 )}
                 <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                   {t("weight")}

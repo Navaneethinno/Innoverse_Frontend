@@ -21,6 +21,7 @@ import {
 } from "../Shared/reportShared";
 import { ROLES, RoleBadge, recordText } from "./activityFormat";
 import { ActivityDetail } from "./ActivityDetail";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Reports > User Activity (menu 106, View only): everything one admin user
 // did in the maker-checker flow over a period — as maker, checker, or
@@ -171,13 +172,12 @@ export function UserActivity() {
       label: t("record"),
       align: "left",
       render: (row) => (
-        <button
-          type="button"
+        <LinkButton
           onClick={() => detail.show(row.activity_id)}
-          className="text-left text-xs font-semibold text-primary hover:underline"
+          className="text-left font-semibold"
         >
           {recordText(row)}
-        </button>
+        </LinkButton>
       ),
     },
     {

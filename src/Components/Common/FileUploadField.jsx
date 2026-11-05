@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FileText, Upload, X } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
+import { Button } from "@/Components/Common/Button";
 
 // One reusable file/image upload control — every upload surface in the app
 // renders through here so they look and behave identically.
@@ -171,13 +172,13 @@ export function FileUploadField({
             </a>
           )}
           {!disabled && (
-            <button
-              type="button"
+            <Button
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-muted"
+              variant="secondary"
+              size="xs"
             >
               {tr("Replace")}
-            </button>
+            </Button>
           )}
           {!disabled && (
             <button

@@ -12,6 +12,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { inputClass } from "../InnoCBS/Deposits/depositShared";
 import { Field, JsonEditor } from "./reconShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // A set's definition: which sources, the passes that match them (in order),
 // the window, an optional daily schedule and optional GL accounts for
@@ -334,16 +335,15 @@ function GlPicker({ value, onChange }) {
     return (
       <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs">
         <span className="min-w-0 truncate">{chosen ? `${chosen.gl_code} · ${chosen.name}` : t("glAccountId", { id: value })}</span>
-        <button
-          type="button"
-          className="shrink-0 font-bold text-primary hover:underline"
+        <LinkButton
+          className="shrink-0 text-sm"
           onClick={() => {
             setChosen(null);
             onChange(0);
           }}
         >
           {t("change")}
-        </button>
+        </LinkButton>
       </div>
     );
   }

@@ -17,6 +17,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 import { MiniTable } from "../InnoCBS/Loans/loanShared";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // Pieces every InnoRecon screen shares.
 
@@ -485,9 +486,9 @@ function RecordRows({ rows }) {
             open === r ? (
               <pre className="max-w-md whitespace-pre-wrap break-all font-mono text-[10px]">{r.raw}</pre>
             ) : (
-              <button type="button" onClick={() => setOpen(r)} className="text-[11px] font-bold text-primary hover:underline">
+              <LinkButton onClick={() => setOpen(r)} className="text-[11px]">
                 {t("showRaw")}
-              </button>
+              </LinkButton>
             ),
         },
       ]}

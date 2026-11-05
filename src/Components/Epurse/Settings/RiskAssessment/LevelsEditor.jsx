@@ -5,6 +5,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { codeOf } from "../../../GlobalSettings/Notifications/notificationShared";
 import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { LevelBar } from "./riskShared";
+import { Button } from "@/Components/Common/Button";
 
 // Levels must cover 0–100 with no gaps or overlaps, so only each level's
 // maximum is edited: the first starts at 0 and every other starts where the
@@ -41,9 +42,9 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
           </p>
           <p className="text-[11px] text-muted-foreground">{hint ?? t("levelsHint")}</p>
         </div>
-        <button type="button" onClick={add} className="flex shrink-0 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-bold text-primary">
+        <Button onClick={add} variant="outline" size="xs" className="flex shrink-0">
           <Plus size={13} /> {t("addLevel")}
-        </button>
+        </Button>
       </div>
 
       <div data-tour="risk-level-bar" className="mt-3">

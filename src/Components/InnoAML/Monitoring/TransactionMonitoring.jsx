@@ -32,6 +32,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
 import { usePagedList } from "../Shared/usePagedList";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // A rule's window as people say it: 60 -> "1 hour", 1440 -> "24 hours",
 // 2880 -> "2 days"; anything else stays in minutes.
@@ -217,9 +218,9 @@ function Alerts() {
               key: "party_name",
               label: t("party"),
               render: (r) => (
-                <button type="button" className="text-left text-xs font-bold text-primary hover:underline" onClick={() => setOpen(r.id)}>
+                <LinkButton className="text-left" onClick={() => setOpen(r.id)}>
                   {r.party_name}
-                </button>
+                </LinkButton>
               ),
             },
             { key: "amount", label: t("amount"), align: "right", render: (r) => (
@@ -322,9 +323,9 @@ function AlertDetail({ id, onClose, onChanged }) {
               alert.held && [t("held"), t("heldRef", { rrn: alert.held_rrn ?? "—" })],
               alert.case_id && [
                 t("case"),
-                <button key="c" type="button" className="font-bold text-primary hover:underline" onClick={() => openMenu("amlcases", { caseId: alert.case_id })}>
+                <LinkButton key="c" className="text-sm" onClick={() => openMenu("amlcases", { caseId: alert.case_id })}>
                   {alert.case_number ?? alert.case_id}
-                </button>,
+                </LinkButton>,
               ],
               alert.risk_raised_to && [t("risk"), t("riskRaisedTo", { level: alert.risk_raised_to })],
               alert.released_at && [t("released"), t("releasedBy", { name: actorText(alert, "released_by", "—"), date: accountDate(alert.released_at) })],

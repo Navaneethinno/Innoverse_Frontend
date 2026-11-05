@@ -8,6 +8,8 @@ import { menuPathForItem, moduleDashboardPath } from "@/Components/Layout/Menu/m
 import { useWidgetData } from "../layout/dashboardData";
 import { sourceLabel } from "./ChartWidgets";
 import { WidgetBody, WidgetCard } from "./WidgetCard";
+import { LinkButton } from "@/Components/Common/TextButtons";
+import { SimpleTable } from "@/Components/Common/SimpleTable";
 
 export function RequestBreakdownWidget() {
   const { t } = useTranslation("dashboard");
@@ -47,22 +49,14 @@ export function RecentOnboardingWidget() {
       title={t("recentOnboarding")}
       icon={Activity}
       action={
-        <button type="button" onClick={() => openMenu("onboardingwizard")} className="flex shrink-0 items-center gap-1 text-xs font-bold text-primary hover:underline">
+        <LinkButton onClick={() => openMenu("onboardingwizard")} className="flex shrink-0 items-center gap-1">
           {t("viewAll")} <ArrowRight size={12} />
-        </button>
+        </LinkButton>
       }
     >
       <WidgetBody loading={loading} failed={failed} empty={!items.length}>
         <div>
-          <table className="w-full min-w-[520px] text-left text-xs">
-            <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                <th className="px-1 pb-2">{t("customer")}</th>
-                <th className="px-1 pb-2">{t("customerType")}</th>
-                <th className="px-1 pb-2">{t("source")}</th>
-                <th className="px-1 pb-2">{t("status")}</th>
-              </tr>
-            </thead>
+          <SimpleTable className="min-w-[520px] text-left" columns={[{ label: t("customer"), className: "px-1 pb-2" }, { label: t("customerType"), className: "px-1 pb-2" }, { label: t("source"), className: "px-1 pb-2" }, { label: t("status"), className: "px-1 pb-2" }]}>
             <tbody>
               {items.map((row) => {
                 const Icon = SOURCE_ICON[row.source] ?? Globe;
@@ -92,7 +86,7 @@ export function RecentOnboardingWidget() {
                 );
               })}
             </tbody>
-          </table>
+          </SimpleTable>
         </div>
       </WidgetBody>
     </WidgetCard>
