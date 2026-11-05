@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { ListTable } from "@/Components/Common/ListView";
@@ -58,9 +59,9 @@ export function BalanceAdjustments() {
       label: t("originalRrn"),
       render: (a) =>
         a.org_rrn ? (
-          <button type="button" onClick={() => setTxn(a.org_rrn)} className="font-mono text-xs font-bold text-primary hover:underline">
+          <LinkButton mono onClick={() => setTxn(a.org_rrn)}>
             {a.org_rrn}
-          </button>
+          </LinkButton>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         ),
@@ -92,9 +93,9 @@ export function BalanceAdjustments() {
       label: t("dispute"),
       render: (a) =>
         a.dispute_case_number ? (
-          <button type="button" onClick={() => openMenu("disputes", { caseId: a.dispute_case_id })} className="font-mono text-xs font-bold text-primary hover:underline">
+          <LinkButton mono onClick={() => openMenu("disputes", { caseId: a.dispute_case_id })}>
             {a.dispute_case_number}
-          </button>
+          </LinkButton>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         ),

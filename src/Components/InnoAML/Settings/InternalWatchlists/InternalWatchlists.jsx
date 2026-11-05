@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -88,9 +89,9 @@ export function InternalWatchlists() {
         ]}
         emptyTitle={t("aml:noLists")}
         addButton={
-          <button type="button" onClick={() => setForm({ editing: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+          <Button size="xs" className="whitespace-nowrap" onClick={() => setForm({ editing: null })}>
             <Plus size={14} /> {t("aml:addList")}
-          </button>
+          </Button>
         }
         renderView={(row) => (
           <dl className="grid gap-3">

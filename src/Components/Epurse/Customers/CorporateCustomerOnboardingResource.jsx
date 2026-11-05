@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { isMerchantModule } from "@/Utils/Lib/apiScope";
 import { StatusCell } from "@/Components/MakerChecker/StatusCell";
 import { ListTable } from "@/Components/Common/ListView";
@@ -212,13 +213,12 @@ export function CorporateCustomerOnboardingResource() {
   ];
 
   const addAction = can("Add") ? (
-    <button
-      type="button"
-      onClick={() => setWizard({ referenceId: null })}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-    >
+    <Button
+      size="xs"
+      className="whitespace-nowrap"
+      onClick={() => setWizard({ referenceId: null })}>
       <Plus size={14} /> {t("customer:newOnboarding")}
-    </button>
+    </Button>
   ) : null;
 
   return (

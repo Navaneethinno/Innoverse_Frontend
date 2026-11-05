@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -138,9 +139,9 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
             <div className="flex items-center gap-3">
               <StatusBadge status={options.owner?.status_name ?? ""} variant="subtle" />
               {!given && (
-                <button type="button" onClick={() => setEntity(null)} className="text-xs font-bold text-primary hover:underline">
+                <LinkButton onClick={() => setEntity(null)}>
                   {t("change")}
-                </button>
+                </LinkButton>
               )}
             </div>
           </div>

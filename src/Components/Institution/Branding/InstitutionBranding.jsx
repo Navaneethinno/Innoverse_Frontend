@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { API_ENDPOINTS } from "@/Utils/Constant";
@@ -356,16 +357,14 @@ export function InstitutionBranding() {
         </div>
       )}
       <ListTable list={list} actions={canAdd && (
-          <button
-            type="button"
+          <Button
+            size="xs"
             onClick={() => {
               setEditing(null);
               setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-          >
+            }}>
             <Plus size={14} /> {tr("Add")} {tr("branding")}
-          </button>
+          </Button>
         )} columns={columns} rowKey={(r) => r.id} title={tr("Institution Branding")} emptyTitle={tr("No branding profiles found")} emptyDescription={tr("Branding profiles will appear here when available.")} /><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}

@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,9 +53,9 @@ export function RiskSetupList({ kind }) {
         auditFields={[["code", t("risk:code")], ["name", t("risk:name")], ["description", t("common:description")]]}
         emptyTitle={t("risk:noSetupsFound")}
         addButton={
-          <button type="button" onClick={() => setForm({ editing: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+          <Button size="xs" className="whitespace-nowrap" onClick={() => setForm({ editing: null })}>
             <Plus size={14} /> {t("risk:addSetup")}
-          </button>
+          </Button>
         }
         renderView={(row) => <SetupView kind={kind} row={row} />}
       />

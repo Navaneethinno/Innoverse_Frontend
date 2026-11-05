@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { todayDate } from "@/Utils/Lib/dateFormat";
 import { sharedReader, useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
@@ -622,9 +623,9 @@ function SessionTable({ sessions, currency, onProof }) {
           key: "proof",
           label: "",
           render: (s) => (
-            <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => onProof(s.id)}>
+            <LinkButton onClick={() => onProof(s.id)}>
               {t("proofSheet")}
-            </button>
+            </LinkButton>
           ),
         },
       ].filter(Boolean)}
@@ -2149,9 +2150,9 @@ function EndOfDay() {
                   key: "proof",
                   label: "",
                   render: (x) => (
-                    <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setProof({ till: { id: x.till_id, code: x.till_code }, sessionId: x.session_id })}>
+                    <LinkButton onClick={() => setProof({ till: { id: x.till_id, code: x.till_code }, sessionId: x.session_id })}>
                       {t("proofSheet")}
-                    </button>
+                    </LinkButton>
                   ),
                 },
               ]}

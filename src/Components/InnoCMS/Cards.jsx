@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { RevealEye, useTimedReveal } from "@/Components/Common/RevealEye";
 import { useCallback, useEffect, useState } from "react";
@@ -283,9 +284,9 @@ function CardView({ id, options, onBack, onOpen }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToCards")}
-      </button>
+      </BackButton>
       {waiting && (
         <p className="mb-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           <Hourglass size={15} className="shrink-0" /> {t("requestWaiting", { ref: waiting.request_reference })}

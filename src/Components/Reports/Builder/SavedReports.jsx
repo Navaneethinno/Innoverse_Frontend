@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -95,9 +96,9 @@ function RunSaved({ report, onBack }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToSaved")}
-      </button>
+      </BackButton>
       <div className="mb-4 grid gap-3 rounded-2xl p-4" style={glassCard}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

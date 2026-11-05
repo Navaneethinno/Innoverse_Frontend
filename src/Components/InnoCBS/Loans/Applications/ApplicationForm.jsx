@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -298,13 +299,10 @@ export function ApplicationForm({ application, onClose, onSaved }) {
             <div className="flex items-center gap-3">
               <StatusBadge status={options.owner?.status_name ?? ""} variant="subtle" />
               {!application && (
-                <button
-                  type="button"
-                  onClick={() => setEntity(null)}
-                  className="text-xs font-bold text-primary hover:underline"
-                >
+                <LinkButton
+                  onClick={() => setEntity(null)}>
                   {t("deposits:change")}
-                </button>
+                </LinkButton>
               )}
             </div>
           </div>

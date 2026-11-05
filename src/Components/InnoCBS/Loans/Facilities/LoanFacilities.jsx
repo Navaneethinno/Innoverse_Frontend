@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -446,13 +447,10 @@ function FacilityView({ id, onBack }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary"
-      >
+      <BackButton
+        onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToLoans")}
-      </button>
+      </BackButton>
 
       <div
         className={cn(

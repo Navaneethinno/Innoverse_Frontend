@@ -1,3 +1,4 @@
+import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Circle, Clock, X } from "lucide-react";
@@ -63,7 +64,7 @@ export function ApprovalSteps({ steps }) {
   );
 }
 
-const when = (at) => (at ? new Date(at).toLocaleString() : "");
+const when = (at) => (at ? formatDateTime(at) : "");
 
 // One submission's events, newest last, as a vertical timeline.
 function Events({ events }) {

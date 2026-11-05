@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { todayDate } from "@/Utils/Lib/dateFormat";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useRef, useState } from "react";
@@ -260,9 +261,9 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={leave} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={leave}>
         <ArrowLeft size={15} /> {t("backToProducts")}
-      </button>
+      </BackButton>
       <ConfirmDialog open={leaving} title={t("leaveUnsavedTitle")} confirmLabel={t("leaveWithoutSaving")} destructive onClose={() => setLeaving(false)} onConfirm={onClose}>
         <p className="text-sm text-muted-foreground">{t("leaveUnsavedHint")}</p>
       </ConfirmDialog>

@@ -323,9 +323,9 @@ export function Whitelist() {
               <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-primary px-3 py-1.5 text-xs font-bold text-primary">
                 <Plus size={14} /> {t("aml:wlAddTitle")}
               </button>
-              <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+              <Button size="xs" className="whitespace-nowrap" onClick={() => setImporting(true)}>
                 <FileUp size={14} /> {t("aml:wlImportTitle")}
-              </button>
+              </Button>
             </span>
           )
         }

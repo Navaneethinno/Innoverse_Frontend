@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -77,9 +78,9 @@ export function DepositProductView({ id, onBack, onEdit }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToProducts")}
-      </button>
+      </BackButton>
 
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">

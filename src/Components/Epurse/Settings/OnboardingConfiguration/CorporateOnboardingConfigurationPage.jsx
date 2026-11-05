@@ -278,16 +278,15 @@ export function CorporateOnboardingConfigurationPage() {
   ];
 
   const addAction = can("Add") ? (
-    <button
-      type="button"
+    <Button
+      size="xs"
+      className="whitespace-nowrap"
       onClick={() => {
         setForm(emptyForm);
         setOpen(true);
-      }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-    >
+      }}>
       <Plus size={14} /> {t("onboarding:addCorporateCustomerType")}
-    </button>
+    </Button>
   ) : null;
 
   return (

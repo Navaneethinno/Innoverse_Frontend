@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { institutionWalletsApi } from "@/Services/Epurse/accounts.api";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -59,9 +60,9 @@ export function InstitutionWallets({ onOpenAccount }) {
             key: "acct_num",
             label: t("accountNumber"),
             render: (w) => (
-              <button type="button" onClick={() => onOpenAccount?.(w)} className="font-mono text-xs font-bold text-primary hover:underline">
+              <LinkButton mono onClick={() => onOpenAccount?.(w)}>
                 {w.acct_num}
-              </button>
+              </LinkButton>
             ),
           },
           { key: "acct_product_name", label: t("accountProduct"), render: (w) => <span className="text-xs">{w.acct_product_name}</span> },

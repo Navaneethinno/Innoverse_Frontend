@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -234,9 +235,9 @@ export function SetupView({ id, onBack, onEdit }) {
   ];
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToSetups")}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -393,9 +394,9 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToSetups")}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{setup ? t("setupOf", { name: setup.inst_profile_name }) : t("setUp")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{t(drafting ? "draftHint" : "proposeHint")}</p>
       <Tabs tabs={tabs} value={tab} onChange={setTab} labelOf={(k) => (k === "review" ? t("review") : t(`section_${k}`))} />

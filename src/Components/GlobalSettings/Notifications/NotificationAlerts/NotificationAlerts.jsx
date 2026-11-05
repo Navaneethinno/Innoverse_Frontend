@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { useState } from "react";
@@ -102,9 +103,9 @@ function AlertsList({ onShowMessages }) {
         ]}
         emptyTitle={t("notification:noAlertsFound")}
         addButton={
-          <button type="button" onClick={() => setForm({ editing: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+          <Button size="xs" className="whitespace-nowrap" onClick={() => setForm({ editing: null })}>
             <Plus size={14} /> {t("notification:addAlert")}
-          </button>
+          </Button>
         }
         renderView={(row) => (
           <dl className="grid gap-3">

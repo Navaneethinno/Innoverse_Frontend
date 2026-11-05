@@ -1,3 +1,4 @@
+import { labelClass } from "./caseShared";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, Check, FileText, Plus, RotateCcw, Trash2, X } from "lucide-react";
@@ -18,7 +19,6 @@ const REQUEST_TONE = {
   CANCELLED: "bg-muted text-muted-foreground",
 };
 const areaClass = "mt-1.5 min-h-20 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
-const labelClass = "text-sm font-semibold text-slate-700";
 
 const show = (v) => (v == null || v === "" ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
 

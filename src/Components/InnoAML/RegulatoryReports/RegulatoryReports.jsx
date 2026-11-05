@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -102,9 +103,9 @@ function StrList({ openId }) {
               key: "reference",
               label: t("reference"),
               render: (r) => (
-                <button type="button" className="font-mono text-xs font-bold text-primary hover:underline" onClick={() => setOpen(r.id)}>
+                <LinkButton mono onClick={() => setOpen(r.id)}>
                   {r.reference}
-                </button>
+                </LinkButton>
               ),
             },
             { key: "subject_name", label: t("subject"), render: (r) => <span className="text-xs font-semibold">{r.subject_name}</span> },

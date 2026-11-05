@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useState } from "react";
@@ -463,9 +464,9 @@ function OrderView({ id, onBack }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToOrders")}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

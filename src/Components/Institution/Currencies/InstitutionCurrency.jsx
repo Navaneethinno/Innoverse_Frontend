@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
@@ -283,16 +284,14 @@ function AssignmentPage({ kind }) {
         </div>
       )}
       <ListTable list={list} actions={canAdd && (
-          <button
-            type="button"
+          <Button
+            size="xs"
             onClick={() => {
               setEditing(null);
               setFormOpen(true);
-            }}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-          >
+            }}>
             <Plus size={14} /> {tr("Add")} {tr(kind.noun)}
-          </button>
+          </Button>
         )} columns={columns} rowKey={(r) => r.id} title={tr(kind.title)} emptyTitle={tr(kind.emptyTitle)} emptyDescription={tr(kind.emptyDescription)} /><Modal
         open={formOpen}
         onClose={() => setFormOpen(false)}

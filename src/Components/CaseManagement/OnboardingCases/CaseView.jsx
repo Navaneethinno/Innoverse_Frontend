@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -119,9 +120,9 @@ export function CaseView({ id, config, onBack }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToQueue")}
-      </button>
+      </BackButton>
 
       <div className={cn("mb-4 rounded-2xl border bg-card p-4", kase.priority === "HIGH" ? "border-red-300" : "border-border")}>
         <div className="flex flex-wrap items-start justify-between gap-3">

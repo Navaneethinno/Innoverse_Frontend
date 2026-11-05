@@ -116,3 +116,5 @@ export function AmlPill({ aml }) {
 export function subjectKind(t, subject) {
   return `${t(subject?.party === "MERCHANT" ? "merchant" : "customer")} · ${t(subject?.ownership === "CORPORATE" ? "corporate" : "individual")}`;
 }
+
+export const labelClass = "text-sm font-semibold text-slate-700";

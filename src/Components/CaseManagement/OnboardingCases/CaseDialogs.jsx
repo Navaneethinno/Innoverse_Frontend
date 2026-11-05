@@ -1,3 +1,4 @@
+import { labelClass } from "./caseShared";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
@@ -11,7 +12,6 @@ import { caseDate, isApproval, outcomeWord } from "./caseShared";
 import { actorText } from "@/Utils/Lib/actor";
 
 const areaClass = "mt-1.5 min-h-24 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary";
-const labelClass = "text-sm font-semibold text-slate-700";
 
 // Assign the case to a user (or unassign). The server checks the user is
 // active and in the case's institution or yours. You aren't listed among the

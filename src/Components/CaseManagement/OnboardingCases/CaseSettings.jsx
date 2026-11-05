@@ -1,3 +1,5 @@
+import { labelClass } from "./caseShared";
+import { BackButton } from "@/Components/Common/TextButtons";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCallback, useEffect, useState } from "react";
@@ -22,7 +24,6 @@ const PARTS = [
   ["sms_body", 480, true],
 ];
 const inputClass = "mt-1.5 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary";
-const labelClass = "text-sm font-semibold text-slate-700";
 
 // The templates as the edit call takes them: only the parts that have text,
 // only the events that have any (an empty part uses the default).
@@ -114,9 +115,9 @@ export function CaseSettings({ onBack }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToQueue")}
-      </button>
+      </BackButton>
       <PageTitle>{t("settingsTitle")}</PageTitle>
       <p className="mb-5 mt-1 text-sm text-muted-foreground">{t("settingsSubtitle")}</p>
       {chooser && !institution ? null : !form ? (

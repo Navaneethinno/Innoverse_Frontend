@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -222,9 +223,9 @@ function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToDocuments")}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -490,9 +491,9 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToDocuments")}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{doc ? t("editX", { name: doc.name || doc.code }) : t("newDocument")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("draftHint") : t("proposeHint")}</p>
 

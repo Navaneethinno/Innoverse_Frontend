@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -108,9 +109,9 @@ function Movements() {
               key: "reference",
               label: t("reference"),
               render: (m) => (
-                <button type="button" className="font-mono text-xs font-bold text-primary hover:underline" onClick={() => setOpen(m.id)}>
+                <LinkButton mono onClick={() => setOpen(m.id)}>
                   {m.reference}
-                </button>
+                </LinkButton>
               ),
             },
             { key: "kind", label: t("kind"), render: (m) => <span className="text-xs font-semibold">{t(`kind_${m.kind}`)}</span> },

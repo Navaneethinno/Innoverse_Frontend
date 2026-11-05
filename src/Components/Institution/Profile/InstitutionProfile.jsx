@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { ListTable } from "@/Components/Common/ListView";
@@ -151,13 +152,12 @@ export function InstitutionProfile() {
 
       <ListTable list={list} actions={
           actions.can.canAdd && canCreate && (
-            <button
-              type="button"
-              onClick={() => navigate("/institutions/create")}
-              className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-            >
+            <Button
+              size="xs"
+              className="whitespace-nowrap"
+              onClick={() => navigate("/institutions/create")}>
               <Plus size={14} /> {t("institutions:newInstitution")}
-            </button>
+            </Button>
           )
         } columns={columns} rowKey={(inst) => institutionId(inst)} title={t("institutions:listTitle")} emptyTitle={t("institutions:emptyTitle")} emptyDescription={t("institutions:emptyDescription")} />
 

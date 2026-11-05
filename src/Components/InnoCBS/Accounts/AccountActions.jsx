@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -338,7 +339,7 @@ export function AccountStatements({ account }) {
           rowKey={(r) => r.id}
           empty={t("noStatements")}
           columns={[
-            { key: "period", label: t("period"), render: (r) => <button type="button" onClick={() => void view(r.id)} className="text-xs font-bold text-primary hover:underline">{`${r.period_from} → ${r.period_to}`}</button> },
+            { key: "period", label: t("period"), render: (r) => <LinkButton onClick={() => void view(r.id)}>{`${r.period_from} → ${r.period_to}`}</LinkButton> },
             { key: "opening", label: t("openingBalance"), align: "right", render: (r) => <span className="text-xs tabular-nums">{money(r.opening_balance, cur)}</span> },
             { key: "in", label: t("totalCredits"), align: "right", render: (r) => <span className="text-xs tabular-nums text-emerald-700">{money(r.total_credits, cur)}</span> },
             { key: "out", label: t("totalDebits"), align: "right", render: (r) => <span className="text-xs tabular-nums text-red-700">{money(r.total_debits, cur)}</span> },

@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useRef, useState } from "react";
@@ -332,9 +333,9 @@ function MerchantPicker({ value, onChange, instProfileId, optional = false }) {
         <>
           <div className="mt-1.5 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm">
             <span className="font-semibold">{value.name}</span>
-            <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => onChange(null)}>
+            <LinkButton onClick={() => onChange(null)}>
               {t("change")}
-            </button>
+            </LinkButton>
           </div>
           <MerchantAcceptor merchant={value} instProfileId={instProfileId} />
         </>

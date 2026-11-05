@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, ChevronDown, FlaskConical, Plus, Save, Send, ShieldCheck } from "lucide-react";
@@ -388,9 +389,9 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToMapping")}
-      </button>
+      </BackButton>
       <PageTitle>{t(setup ? "editMapping" : "setUpMapping")}</PageTitle>
       <p className="mb-4 mt-1 text-sm text-muted-foreground">{t("editMappingHint")}</p>
       <Section title={t("fallbackGl")} className="mb-4">

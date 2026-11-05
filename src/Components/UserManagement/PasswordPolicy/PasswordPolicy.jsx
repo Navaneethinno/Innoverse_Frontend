@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { ListTable } from "@/Components/Common/ListView";
@@ -473,17 +474,15 @@ export function PasswordPolicy() {
       </div>
 
       <ListTable list={list} actions={canAdd && (
-          <button
-            type="button"
+          <Button
+            size="xs"
             onClick={() => {
               setForm(empty());
               setEditing(null);
               setShowForm(true);
-            }}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-          >
+            }}>
             <Plus size={14} /> {tr("Add")} {tr("policy")}
-          </button>
+          </Button>
         )} columns={columns} rowKey={(row) => idOf(row)} />
 
       <PolicyForm

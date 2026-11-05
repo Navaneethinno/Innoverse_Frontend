@@ -1,3 +1,5 @@
+import { PendingTag } from "@/Components/MakerChecker/PendingTag";
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -318,9 +320,9 @@ export function SetUnmatched({ set }) {
             </Button>
           )}
           {picked.length > 0 && (
-            <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setPicked([])}>
+            <LinkButton onClick={() => setPicked([])}>
               {t("clear")}
-            </button>
+            </LinkButton>
           )}
         </div>
       )}
@@ -349,7 +351,7 @@ export function SetUnmatched({ set }) {
               </button>
             ),
           },
-          { key: "pending", label: "", render: (r) => r.pending_action_id && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">{t("actionPending")}</span> },
+          { key: "pending", label: "", render: (r) => r.pending_action_id && <PendingTag>{t("actionPending")}</PendingTag> },
         ]}
       />
       {dialog && ["MANUAL_MATCH", "WRITE_OFF", "EXCLUDE"].includes(dialog.kind) && <RequestDialog set={set} kind={dialog.kind} target={{ record_ids: picked }} records={list.items.filter((r) => picked.includes(r.record_id))} onClose={() => setDialog(null)} onDone={done} />}

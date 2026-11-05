@@ -271,16 +271,16 @@ export function CustomerMasterConfigResource({ entity }) {
   ];
 
   const addAction = can("Add") ? (
-    <button
+    <Button
+      size="xs"
+      className="whitespace-nowrap"
       onClick={() => {
         setForm({ code: "", name: "", description: "", ownership_id: "", category: "" });
         setEditing(null);
         setOpen(true);
-      }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-    >
+      }}>
       <Plus size={14} /> {t("onboarding:addTitle", { title: displayTitle })}
-    </button>
+    </Button>
   ) : null;
 
   return (

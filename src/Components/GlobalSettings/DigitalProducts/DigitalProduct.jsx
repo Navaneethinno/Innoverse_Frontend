@@ -402,7 +402,9 @@ export function DigitalProduct({ entity }) {
   // directly) keeps the original single Editor modal + individual API,
   // completely unchanged.
   const addAction = can("Add") ? (
-    <button
+    <Button
+      size="xs"
+      className="whitespace-nowrap"
       onClick={() => {
         if (entity === "product") {
           setWizardOpen(true);
@@ -411,11 +413,9 @@ export function DigitalProduct({ entity }) {
         setForm(Object.fromEntries(config.fields.map(([k, , type]) => [k, type === "boolean" ? false : ""])));
         setEditing(null);
         setOpen(true);
-      }}
-      className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
-    >
+      }}>
       <Plus size={14} /> {config.addLabel ? tr(config.addLabel) : `${tr("Add")} ${tr(config.title)}`}
-    </button>
+    </Button>
   ) : null;
 
   return (

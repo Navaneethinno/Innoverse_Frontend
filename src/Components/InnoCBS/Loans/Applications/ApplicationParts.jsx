@@ -1,3 +1,4 @@
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Circle, Download, Forward, Trash2, Upload, UserPlus } from "lucide-react";
@@ -140,9 +141,9 @@ export function Documents({ app, parts, onParts, editable }) {
                 <Icon size={14} /> {d.name || d.code}
                 {!d.mandatory && <span className="text-[10px]">({t("optional")})</span>}
                 {editable && !ok && (
-                  <button type="button" className="text-xs font-bold text-primary hover:underline" onClick={() => setUploading({ code: d.code, name: d.name })}>
+                  <LinkButton onClick={() => setUploading({ code: d.code, name: d.name })}>
                     {t("upload")}
-                  </button>
+                  </LinkButton>
                 )}
               </li>
             );

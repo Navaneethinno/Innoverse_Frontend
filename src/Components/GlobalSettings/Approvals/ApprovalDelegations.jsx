@@ -1,3 +1,4 @@
+import { formatDay } from "@/Utils/Lib/dateFormat";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, PowerOff, Trash2, UserCog } from "lucide-react";
@@ -37,7 +38,7 @@ function useUserOptions() {
   return users;
 }
 
-const day = (at) => (at ? new Date(at).toLocaleDateString() : "—");
+const day = formatDay;
 
 // Hand one user's approvals to another for a period (from the start of the
 // first day to the end of the last). A checker approves it.

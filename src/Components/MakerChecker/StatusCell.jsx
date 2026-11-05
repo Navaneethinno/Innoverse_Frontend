@@ -1,3 +1,4 @@
+import { PendingTag } from "@/Components/MakerChecker/PendingTag";
 import { useTranslation } from "react-i18next";
 import { StatusBadge } from "./StatusBadge";
 import { deriveStatusFlags } from "./statusFlags";
@@ -11,7 +12,7 @@ export function StatusCell({ row }) {
   return (
     <span className="inline-flex flex-wrap items-center justify-center gap-1">
       <StatusBadge status={String(row?.status_name ?? "-")} />
-      {waiting && <span className="whitespace-nowrap rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">{t("pendingApproval")}</span>}
+      {waiting && <PendingTag>{t("pendingApproval")}</PendingTag>}
     </span>
   );
 }

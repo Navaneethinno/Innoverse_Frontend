@@ -1,3 +1,4 @@
+import { Button } from "@/Components/Common/Button";
 import { useState } from "react";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -192,9 +193,9 @@ export function Blacklist() {
               <button type="button" onClick={() => setImporting(true)} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-bold text-primary">
                 <FileUp size={14} /> {t("aml:importBlacklist")}
               </button>
-              <button type="button" onClick={() => setForm({ editing: null })} className="flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
+              <Button size="xs" className="whitespace-nowrap" onClick={() => setForm({ editing: null })}>
                 <Plus size={14} /> {t("aml:addBlacklistEntry")}
-              </button>
+              </Button>
             </span>
           )
         }

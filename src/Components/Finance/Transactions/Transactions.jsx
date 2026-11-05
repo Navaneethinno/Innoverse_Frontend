@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { listPage } from "@/Hooks/useServerList";
@@ -174,9 +175,9 @@ function TxnView({ query, onBack, onOpenRequest, onStart }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToJournal")}
-      </button>
+      </BackButton>
       <div className={cn("mb-4 rounded-2xl border bg-card p-4", x.status === "FAILED" ? "border-red-300" : "border-border")}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

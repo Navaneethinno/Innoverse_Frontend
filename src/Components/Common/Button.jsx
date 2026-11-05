@@ -16,6 +16,7 @@ const VARIANTS = {
   danger: "bg-[var(--destructive)] text-white shadow-sm hover:opacity-90 hover:shadow-md",
 };
 const SIZES = {
+  xs: "gap-1.5 rounded-lg px-3 py-1.5 text-xs",
   sm: "gap-1.5 rounded-xl px-3 py-2 text-xs",
   md: "gap-1.5 rounded-xl px-4 py-2 text-sm",
   icon: "h-8 w-8 rounded-lg",

@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { str, toBody } from "./feeBody";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
@@ -195,9 +196,9 @@ function ScheduleView({ id, onBack, onEdit }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToSchedules")}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -403,9 +404,9 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToSchedules")}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{schedule ? t("editX", { name: schedule.schedule_name || schedule.schedule_code }) : t("newSchedule")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("draftHint") : t("proposeHint")}</p>
 

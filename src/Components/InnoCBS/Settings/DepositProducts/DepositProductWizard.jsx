@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { todayDate } from "@/Utils/Lib/dateFormat";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
@@ -178,9 +179,9 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToProducts")}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{product ? t("editProductX", { name: product.product_name ?? product.acct_product?.product_name }) : t("newDepositProduct")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("wizardDraftHint") : t("wizardProposeHint")}</p>
 

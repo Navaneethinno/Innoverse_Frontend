@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { todayDate } from "@/Utils/Lib/dateFormat";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -108,9 +109,9 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
   return (
     <div className={embedded ? "" : "pb-8 pt-4"}>
       {!embedded && (
-        <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-primary">
+        <BackButton onClick={onBack}>
           <ArrowLeft size={15} /> {t("backToDeposits")}
-        </button>
+        </BackButton>
       )}
 
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">

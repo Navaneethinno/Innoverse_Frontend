@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -187,9 +188,9 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t(kind.backLabel)}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -364,9 +365,9 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
   if (needsInstitution && !chosen) {
     return (
       <div className="pt-1 pb-6">
-        <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+        <BackButton onClick={onClose}>
           <ArrowLeft size={15} /> {t(kind.backLabel)}
-        </button>
+        </BackButton>
         <h1 className="mb-4 text-2xl font-black tracking-tight text-slate-800">{t(kind.newLabel)}</h1>
         {institutionField}
       </div>
@@ -387,9 +388,9 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
 
   return (
     <div className="pt-1 pb-6">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t(kind.backLabel)}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{record ? t("editX", { name: record.name || record.code }) : t(kind.newLabel)}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("formDraftHint") : t("formProposeHint")}</p>
 

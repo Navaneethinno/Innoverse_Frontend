@@ -1,3 +1,4 @@
+import { BackButton } from "@/Components/Common/TextButtons";
 import { useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -277,9 +278,9 @@ function NewBatch({ onClose, onSaved }) {
   if (chooser && !institution)
     return (
       <div className="pb-8 pt-4">
-        <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+        <BackButton onClick={onClose}>
           <ArrowLeft size={15} /> {t("backToBatches")}
-        </button>
+        </BackButton>
         <h1 className="mb-4 text-2xl font-black tracking-tight text-slate-800">{t("newBatch")}</h1>
         <Section title={t("stepBatch")}>
           <div className="grid gap-2 md:w-1/2">
@@ -294,9 +295,9 @@ function NewBatch({ onClose, onSaved }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onClose} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onClose}>
         <ArrowLeft size={15} /> {t("backToBatches")}
-      </button>
+      </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{t("newBatch")}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{t("newBatchHint", { max })}</p>
 
@@ -452,9 +453,9 @@ function BatchView({ id, onBack }) {
 
   return (
     <div className="pb-8 pt-4">
-      <button type="button" onClick={onBack} className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
+      <BackButton onClick={onBack}>
         <ArrowLeft size={15} /> {t("backToBatches")}
-      </button>
+      </BackButton>
       <div className="mb-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

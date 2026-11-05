@@ -1,3 +1,5 @@
+import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { LinkButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,9 +49,9 @@ function RrnLink({ rrn }) {
   if (!rrn) return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="font-mono text-xs font-bold text-primary hover:underline">
+      <LinkButton mono onClick={() => setOpen(true)}>
         {rrn}
-      </button>
+      </LinkButton>
       <CopyButton value={rrn} className="ml-1" />
       {open && <TxnDialog rrn={rrn} onClose={() => setOpen(false)} />}
     </>
@@ -125,13 +127,12 @@ function RaiseDisputeDialog({ onClose, onSaved }) {
           </label>
           <label className={labelClass}>
             {t("priority")}
-            <select className={inputClass} value={form.priority} onChange={set("priority")}>
-              {PRIORITIES.map((p) => (
-                <option key={p} value={p}>
-                  {t(`priority_${p}`, { defaultValue: p })}
-                </option>
-              ))}
-            </select>
+            <FilterSelect
+              className="mt-1"
+              value={form.priority}
+              onChange={(priority) => setForm((f) => ({ ...f, priority }))}
+              options={PRIORITIES.map((p) => ({ value: p, label: t(`priority_${p}`, { defaultValue: p }) }))}
+            />
           </label>
         </div>
         <label className={labelClass}>

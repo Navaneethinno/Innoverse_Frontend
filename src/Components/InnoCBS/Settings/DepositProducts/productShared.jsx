@@ -1,3 +1,4 @@
+import { PendingTag } from "@/Components/MakerChecker/PendingTag";
 import { useAcctProdTypes } from "@/Hooks/Master/masterHooks";
 import { useTranslation } from "react-i18next";
 import { money } from "@/Components/InnoCBS/Accounts/accountShared";
@@ -119,7 +120,7 @@ export function ProductStatus({ product }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-bold", STATUS_TONE[product.status] ?? "bg-muted text-muted-foreground")}>{product.status_name ?? product.status}</span>
-      {pending && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase text-amber-900">{t("pendingX", { action: t(`pending_${pending}`, { defaultValue: pending }) })}</span>}
+      {pending && <PendingTag>{t("pendingX", { action: t(`pending_${pending}`, { defaultValue: pending }) })}</PendingTag>}
     </span>
   );
 }
