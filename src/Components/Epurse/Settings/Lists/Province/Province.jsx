@@ -1,3 +1,4 @@
+import { emptyMasterForm } from "@/Components/Epurse/Settings/Lists/emptyMasterForm";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useServerList } from "@/Hooks/useServerList";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -20,7 +21,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 
 import { Button } from "@/Components/Common/Button";
-const empty = () => ({ code: "", name: "", description: "" });
+const empty = emptyMasterForm;
 const idOf = (r) => r?.id ?? r?.province_id;
 
 function usePermission(action) { return usePagePermission("Province")(action); }

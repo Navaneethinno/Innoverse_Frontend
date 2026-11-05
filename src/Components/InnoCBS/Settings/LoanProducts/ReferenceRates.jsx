@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,7 +16,6 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Problems, inputClass, labelClass, ratePct } from "../../Deposits/depositShared";
 import { Field, MiniTable } from "../../Loans/loanShared";
 
-const today = () => new Date().toISOString().slice(0, 10);
 
 // Reference rates (Loan Products menu): a VARIABLE rate band is the latest
 // approved rate of its code on or before the day, plus the band's spread.
@@ -25,7 +25,7 @@ export function ReferenceRates({ scope, onClose }) {
   const can = usePagePermission();
   const own = useOwnIds();
   const [rows, setRows] = useState(null);
-  const [form, setForm] = useState({ code: "BASE", annual_rate: "", effective_from: today() });
+  const [form, setForm] = useState({ code: "BASE", annual_rate: "", effective_from: todayDate() });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 

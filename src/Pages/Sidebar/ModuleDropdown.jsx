@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, LayoutGrid } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/Utils/Lib/utils";
-import { getModuleIcon } from "./moduleIcons";
+import { getModuleIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 

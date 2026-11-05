@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,9 +19,8 @@ import { Field, RowsEditor, loanLabel } from "../../Loans/loanShared";
 const STEPS = ["product", "terms", "fees", "repayment", "eligibility", "approvals", "collateral"];
 // The step a refused problem starts with ("product: ...", "Term 12M: ...").
 const WORD_STEPS = { product: "product", term: "terms", terms: "terms", fee: "fees", fees: "fees", repayment: "repayment", eligibility: "eligibility", approval: "approvals", approvals: "approvals", collateral: "collateral" };
-const today = () => new Date().toISOString().slice(0, 10);
-const blankBand = (from = "0") => ({ minimum_amount: from, maximum_amount: "0", pricing_type: "FIXED", annual_rate: "", calculation_method: "REDUCING_BALANCE", day_count_convention: "ACT_365", effective_from: today() });
-const blankTerm = () => ({ term_code: "", term_value: "", term_unit: "MONTHS", minimum_amount: "", maximum_amount: "", effective_from: today(), pricing: [blankBand()] });
+const blankBand = (from = "0") => ({ minimum_amount: from, maximum_amount: "0", pricing_type: "FIXED", annual_rate: "", calculation_method: "REDUCING_BALANCE", day_count_convention: "ACT_365", effective_from: todayDate() });
+const blankTerm = () => ({ term_code: "", term_value: "", term_unit: "MONTHS", minimum_amount: "", maximum_amount: "", effective_from: todayDate(), pricing: [blankBand()] });
 const blankFee = () => ({ fee_code: "", fee_name: "", calculation_type: "FIXED", fee_value: "", maximum_fee: "0", collection_point: "DISBURSEMENT", refundable: false });
 const blankApproval = () => ({ minimum_amount: "0", maximum_amount: "0", required_approvals: "1", profile_ids: [] });
 

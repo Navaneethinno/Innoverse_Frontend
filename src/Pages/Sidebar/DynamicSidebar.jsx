@@ -11,7 +11,7 @@ import { useAuth } from "@/Hooks/useAuth";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
 import { ModuleDropdown } from "./ModuleDropdown";
-import { getModuleIcon } from "./moduleIcons";
+import { getModuleIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { SidebarSearch } from "./SidebarSearch";
 import { SidebarBrand } from "./SidebarBrand";
 import { MenuList } from "./MenuList";

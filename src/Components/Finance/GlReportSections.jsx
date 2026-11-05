@@ -1,3 +1,4 @@
+import { monthStartDate, todayDate } from "@/Utils/Lib/dateFormat";
 import { activeAccountProducts } from "@/Services/Epurse/accounts.api";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useMemo, useState } from "react";
@@ -22,8 +23,6 @@ import { branchOptions, useCoreBanking } from "../InnoCBS/coreBankingShared";
 import { inputClass } from "../InnoCBS/Deposits/depositShared";
 import { useInstitutionScope } from "../InnoCBS/Loans/loanShared";
 
-const today = () => new Date().toISOString().slice(0, 10);
-const monthStart = () => `${today().slice(0, 8)}01`;
 
 // Loads one GL report call whenever `body` changes.
 function useReport(call, body) {
@@ -160,7 +159,7 @@ function SectionRows({ section: s, amounts, amt, cols }) {
 export function GlMovement({ currencies }) {
   const { t } = useTranslation("accounting");
   const branches = branchOptions(useCoreBanking(useInstitutionScope().scope));
-  const [q, setQ] = useState({ from: monthStart(), to: today(), currency_id: "", branch_id: "", include_zero: false });
+  const [q, setQ] = useState({ from: monthStartDate(), to: todayDate(), currency_id: "", branch_id: "", include_zero: false });
   const body = useMemo(
     () => ({ from: q.from, to: q.to, currency_id: Number(q.currency_id || 0), branch_id: Number(q.branch_id || 0), include_zero: q.include_zero }),
     [q],
@@ -173,8 +172,8 @@ export function GlMovement({ currencies }) {
       tabs={[]}
       filters={
         <>
-          <DateField label={t("from")} value={q.from} max={q.to || today()} onChange={set("from")} />
-          <DateField label={t("to")} value={q.to} min={q.from} max={today()} onChange={set("to")} />
+          <DateField label={t("from")} value={q.from} max={q.to || todayDate()} onChange={set("from")} />
+          <DateField label={t("to")} value={q.to} min={q.from} max={todayDate()} onChange={set("to")} />
           <FilterSelect value={q.currency_id} onChange={set("currency_id")} options={[{ value: "", label: t("baseCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: c.alpha_code }))]} />
           {branches.length > 0 && <FilterSelect value={q.branch_id} onChange={set("branch_id")} options={[{ value: "", label: t("allBranches") }, ...branches]} />}
           <Toggle showLabel label={t("showNoMovement")} checked={q.include_zero} onChange={set("include_zero")} />
@@ -225,7 +224,7 @@ const PARTIES = ["ALL", "CUSTOMER", "MERCHANT"];
 // on a date; with a start date also opening, credits and debits.
 export function CustomerBalances({ currencies }) {
   const { t } = useTranslation("accounting");
-  const [q, setQ] = useState({ as_of: today(), from: "", party: "ALL", currency_id: "", acct_product_id: "", search: "", include_zero: false });
+  const [q, setQ] = useState({ as_of: todayDate(), from: "", party: "ALL", currency_id: "", acct_product_id: "", search: "", include_zero: false });
   const [products, setProducts] = useState([]);
   useEffect(() => {
     activeAccountProducts({ view: "dropdown" })
@@ -263,7 +262,7 @@ export function CustomerBalances({ currencies }) {
       filters={
         <>
           <SearchBox search={q.search} onSearch={set("search")} placeholder={t("cbSearch")} />
-          <DateField label={t("asOf")} value={q.as_of} max={today()} onChange={set("as_of")} />
+          <DateField label={t("asOf")} value={q.as_of} max={todayDate()} onChange={set("as_of")} />
           <DateField label={t("fromOptional")} value={q.from} max={q.as_of} onChange={set("from")} />
           <FilterSelect value={q.party} onChange={set("party")} options={PARTIES.map((p) => ({ value: p, label: t(`cbParty_${p}`) }))} />
           {products.length > 0 && <FilterSelect value={q.acct_product_id} onChange={set("acct_product_id")} options={[{ value: "", label: t("anyAccountProduct") }, ...products.map((p) => ({ value: String(p.id), label: p.name }))]} />}

@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { ListTable } from "@/Components/Common/ListView";
@@ -28,7 +29,6 @@ import { ActionButtons, Problems, inputClass, labelClass } from "../InnoCBS/Depo
 import { ProductStatus } from "../InnoCBS/Settings/DepositProducts/productShared";
 import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingShared";
 
-const today = () => new Date().toISOString().slice(0, 10);
 
 // Finance > Finance Transaction (the manual journal API): moving money
 // between GLs and customers' / merchants' accounts, in any mix, e.g. to
@@ -388,7 +388,7 @@ function JournalDetail({ id, onClose, onChanged, onOpen }) {
 // with Settle opening a journal: DR the GL for its closing, CR a bank GL.
 function Settlement({ currencies, onSettle }) {
   const { t } = useTranslation("accounting");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(todayDate());
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -438,7 +438,7 @@ function Settlement({ currencies, onSettle }) {
       sortable: false,
       render: (r) =>
         onSettle && r.gl_account_id ? (
-          <Button size="sm" variant="secondary" icon={Scale} disabled={!Number(date === today() ? r.current : r.closing)} onClick={() => settle(r, date === today() ? r.current : r.closing)}>
+          <Button size="sm" variant="secondary" icon={Scale} disabled={!Number(date === todayDate() ? r.current : r.closing)} onClick={() => settle(r, date === todayDate() ? r.current : r.closing)}>
             {t("settle")}
           </Button>
         ) : null,
@@ -451,7 +451,7 @@ function Settlement({ currencies, onSettle }) {
       filters={
         <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
           {t("day")}
-          <DateInput className={cn(inputClass, "w-auto")} value={date} max={today()} onChange={(e) => setDate(e.target.value || today())} />
+          <DateInput className={cn(inputClass, "w-auto")} value={date} max={todayDate()} onChange={(e) => setDate(e.target.value || todayDate())} />
         </label>
       }
     >

@@ -43,3 +43,14 @@ export function formatDateTime(value) {
   if (Number.isNaN(d.getTime())) return String(value);
   return `${ymd(d.getFullYear(), d.getMonth(), d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+// Calendar dates (YYYY-MM-DD) as the user sees them: their own day, not UTC's.
+const localDay = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+export const todayDate = () => localDay(new Date());
+export const tomorrowDate = () => {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return localDay(date);
+};
+export const monthStartDate = () => `${todayDate().slice(0, 8)}01`;

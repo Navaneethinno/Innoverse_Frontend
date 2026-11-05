@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, BarChart3, Plus, Trash2 } from "lucide-react";
@@ -352,7 +353,7 @@ function PolicyForm({ record, options, readOnly, onClose, onSaved }) {
 // How long approvals take, by menu, level and user, for a period.
 function ReportModal({ onClose }) {
   const { t } = useTranslation(["approvals", "common"]);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDate();
   const [range, setRange] = useState({ date_from: `${today.slice(0, 8)}01`, date_to: today });
   const [report, setReport] = useState(null);
   useEffect(() => {

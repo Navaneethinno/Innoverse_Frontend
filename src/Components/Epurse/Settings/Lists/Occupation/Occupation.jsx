@@ -1,3 +1,4 @@
+import { emptyMasterForm } from "@/Components/Epurse/Settings/Lists/emptyMasterForm";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { useServerList } from "@/Hooks/useServerList";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
@@ -20,7 +21,7 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 
 import { Button } from "@/Components/Common/Button";
-const empty = () => ({ code: "", name: "", description: "" });
+const empty = emptyMasterForm;
 const idOf = (r) => r?.id ?? r?.Occupation_id;
 function OccupationForm({ open, value, setValue, editing, saving, onClose, onSave }) { return <Modal open={open} onClose={onClose} title={editing ? "Edit Occupation" : "Add Occupation"} size="md" footer={<><Button variant="ghost" disabled={saving} onClick={onClose}>Cancel</Button><Button variant="secondary" type="submit" form="Occupation-form" data-mode="draft" disabled={saving}>Save as draft</Button><Button type="submit" form="Occupation-form" data-mode="submit" disabled={saving} loading={saving}>{saving ? "Saving..." : editing ? "Save changes" : "Add Occupation"}</Button></>}><form id="Occupation-form" onSubmit={(e) => { e.preventDefault(); onSave(e.nativeEvent.submitter?.dataset?.mode === "draft"); }} className="grid gap-4"><label className="text-sm font-semibold text-slate-700">Code <span className="text-red-500">*</span><input required={!editing} disabled={Boolean(editing)} title={editing ? "The code can't be changed" : undefined} value={value.code ?? ""} onChange={(e) => setValue({ ...value, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 font-mono uppercase outline-none focus:border-primary disabled:bg-muted" /><span className="mt-1 block text-[11px] font-normal text-muted-foreground">A-Z, 0-9 and _ only. Unique in the institution; it can't be changed later.</span></label><label className="text-sm font-semibold text-slate-700">Occupation name <span className="text-red-500">*</span><input required value={value.name} onChange={(e) => setValue({ ...value, name: e.target.value })} className="mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary" /></label><label className="text-sm font-semibold text-slate-700">Description<textarea value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} className="mt-1.5 min-h-24 w-full rounded-xl border border-border p-3 outline-none focus:border-primary" /></label></form></Modal>; }
 export function Occupation() {

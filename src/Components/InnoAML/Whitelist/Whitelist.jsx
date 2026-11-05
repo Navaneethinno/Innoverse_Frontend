@@ -1,3 +1,4 @@
+import { tomorrowDate } from "@/Utils/Lib/dateFormat";
 import { useState } from "react";
 import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
@@ -26,7 +27,6 @@ import { usePagedList } from "../Shared/usePagedList";
 import { BatchBar, BatchChip } from "../Shared/BatchBar";
 import { WhitelistImport } from "./WhitelistImport";
 import { actorText } from "@/Utils/Lib/actor";
-const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 const daysLeft = (date) => Math.ceil((new Date(`${date}T00:00:00`) - new Date(new Date().toDateString())) / 864e5);
 
 // Renew: the same false positive again with a new expiry (and evidence;
@@ -58,7 +58,7 @@ function RenewDialog({ row, busy, onClose, onSave }) {
         </p>
         <label className={labelClass}>
           {t("aml:newExpiry")} <span className="text-red-500">*</span>
-          <DateInput className={inputClass} value={form.expires_on} min={tomorrow()} onChange={set("expires_on")} />
+          <DateInput className={inputClass} value={form.expires_on} min={tomorrowDate()} onChange={set("expires_on")} />
         </label>
         <label className={labelClass}>
           {t("aml:evidence")}
@@ -134,7 +134,7 @@ function AddEntryDialog({ busy, onClose, onSave }) {
         </label>
         <label className={labelClass}>
           {t("aml:validUntil")}
-          <DateInput className={inputClass} value={form.expires_on} min={tomorrow()} onChange={set("expires_on")} placeholder={t("aml:expiryDefault")} />
+          <DateInput className={inputClass} value={form.expires_on} min={tomorrowDate()} onChange={set("expires_on")} placeholder={t("aml:expiryDefault")} />
         </label>
         <label className={labelClass}>
           {t("aml:commentRequiredLabel")} <span className="text-red-500">*</span>

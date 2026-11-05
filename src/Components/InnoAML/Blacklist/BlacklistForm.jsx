@@ -1,3 +1,4 @@
+import { tomorrowDate } from "@/Utils/Lib/dateFormat";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2 } from "lucide-react";
@@ -16,7 +17,6 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { countryNameOf } from "../Shared/amlShared";
 import { BIRTH_DATE, ENTITY_TYPES, IDENTIFIER_TYPES, MAX_ALIASES, MAX_IDENTIFIERS, REASONS, identifierProblem } from "./blacklistShared";
 
-const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 const lines = (text) =>
   String(text ?? "")
     .split("\n")
@@ -139,7 +139,7 @@ export function BlacklistForm({ editing, onClose, onSaved }) {
           )}
           <label className={labelClass}>
             {t("aml:blExpiresOn")}
-            <DateInput className={inputClass} value={form.expires_on} min={tomorrow()} onChange={(e) => set("expires_on")(e.target.value)} placeholder={t("aml:neverExpires")} />
+            <DateInput className={inputClass} value={form.expires_on} min={tomorrowDate()} onChange={(e) => set("expires_on")(e.target.value)} placeholder={t("aml:neverExpires")} />
           </label>
         </div>
         <label className={`${labelClass} md:col-span-2`}>

@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronRight } from "lucide-react";
@@ -18,7 +19,6 @@ import { DirectCashFlow, ProfitLossByDay, ProfitLossDetail, ResultRow } from "./
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useInstitutionScope } from "../InnoCBS/Loans/loanShared";
 
-const today = () => new Date().toISOString().slice(0, 10);
 
 // The statement calls, their sections and footer figures.
 const KINDS = {
@@ -58,7 +58,7 @@ export function FinancialStatement({ kind, currencies }) {
   const { t } = useTranslation("statements");
   const spec = KINDS[kind];
   const branches = branchOptions(useCoreBanking(useInstitutionScope().scope));
-  const [q, setQ] = useState({ as_of: today(), from: "", to: "", currency_id: "", branch_id: "" });
+  const [q, setQ] = useState({ as_of: todayDate(), from: "", to: "", currency_id: "", branch_id: "" });
   // Profit and loss: Summary | Detailed | By day. Cash flow: Direct | Indirect.
   const [view, setView] = useState(kind === "cash_flow" ? "DIRECT" : "summary");
   // Only the cash flow method changes the summary call; the P&L views load their own.
@@ -100,17 +100,17 @@ export function FinancialStatement({ kind, currencies }) {
           {spec.dated ? (
             <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               {t("asOf")}
-              <DateInput className={cn(inputClass, "w-auto")} value={q.as_of} max={today()} onChange={(e) => set("as_of")(e.target.value)} />
+              <DateInput className={cn(inputClass, "w-auto")} value={q.as_of} max={todayDate()} onChange={(e) => set("as_of")(e.target.value)} />
             </label>
           ) : (
             <>
               <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 {t("from")}
-                <DateInput className={cn(inputClass, "w-auto")} value={q.from} max={q.to || today()} onChange={(e) => set("from")(e.target.value)} />
+                <DateInput className={cn(inputClass, "w-auto")} value={q.from} max={q.to || todayDate()} onChange={(e) => set("from")(e.target.value)} />
               </label>
               <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 {t("to")}
-                <DateInput className={cn(inputClass, "w-auto")} value={q.to} min={q.from || undefined} max={today()} onChange={(e) => set("to")(e.target.value)} />
+                <DateInput className={cn(inputClass, "w-auto")} value={q.to} min={q.from || undefined} max={todayDate()} onChange={(e) => set("to")(e.target.value)} />
               </label>
             </>
           )}

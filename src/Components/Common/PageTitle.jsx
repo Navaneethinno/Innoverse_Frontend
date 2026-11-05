@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import { getMenuIcon } from "@/Pages/Sidebar/moduleIcons";
+import { getMenuIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { cn } from "@/Utils/Lib/utils";
 

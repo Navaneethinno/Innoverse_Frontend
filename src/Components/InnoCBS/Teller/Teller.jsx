@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { sharedReader, useVisiblePoll } from "@/Hooks/useVisiblePoll";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { CopyButton } from "@/Components/Common/CopyButton";
@@ -1948,7 +1949,6 @@ function PendingCloses({ tills, onChanged }) {
   );
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
 const ReadyLine = ({ ok, children }) => (
   <li className={cn("flex items-start gap-2 rounded-xl px-3 py-2 text-sm", ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800")}>
     {ok ? <CheckCircle2 size={16} className="mt-0.5 shrink-0" /> : <XCircle size={16} className="mt-0.5 shrink-0" />}
@@ -1971,7 +1971,7 @@ function EndOfDay() {
   // The user's own branch first (from the sign-in), else the first open one.
   const home = useAuth((x) => x.user?.branch?.branch_id);
   const [branch, setBranch] = useState(home ? String(home) : "");
-  const [date, setDate] = useState(today());
+  const [date, setDate] = useState(todayDate());
   const [report, setReport] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -2008,7 +2008,7 @@ function EndOfDay() {
   };
   const ready = report?.readiness ?? {};
   const closed = report?.status === "CLOSED";
-  const isToday = !date || date === today();
+  const isToday = !date || date === todayDate();
   const cashOf = (code) => (report?.cash ?? []).find((c) => c.code === code);
   return (
     <div className="grid gap-4">
@@ -2016,7 +2016,7 @@ function EndOfDay() {
         <div className="w-64">
           <Field field={{ type: "select", options: branches.length ? branches : [{ value: "", label: t("noBranches") }] }} value={branchId} onChange={setBranch} />
         </div>
-        <DateInput className={cn(inputClass, "w-44")} value={date} max={today()} onChange={(e) => setDate(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-44")} value={date} max={todayDate()} onChange={(e) => setDate(e.target.value)} />
         {branchId && (
           <span className="ml-auto flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             {t("branchTrialBalance")}

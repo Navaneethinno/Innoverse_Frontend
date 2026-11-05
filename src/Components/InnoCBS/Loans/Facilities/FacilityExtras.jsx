@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, CheckCircle2, Circle, Download, HandCoins, Paperclip, Plus, Trash2 } from "lucide-react";
@@ -401,7 +402,7 @@ export function DeceasedDialog({ facility, onClose, onDone }) {
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDate();
   const save = async () => {
     setBusy(true);
     setError("");

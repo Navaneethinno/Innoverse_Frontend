@@ -1,3 +1,4 @@
+import { tomorrowDate } from "@/Utils/Lib/dateFormat";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +18,6 @@ import { actorText } from "@/Utils/Lib/actor";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
-const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 
 // "innoverse_aml_list_os_peps_v35" -> "OS_PEPS": the list, not its index.
 const listCode = (index) => String(index).replace(/^innoverse_aml_list_/, "").replace(/_v\d+$/, "").toUpperCase();
@@ -216,7 +216,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
                 />
                 <DateInput
                   value={draft?.expires_on ?? ""}
-                  min={tomorrow()}
+                  min={tomorrowDate()}
                   onChange={(e) => onDraft({ ...draft, expires_on: e.target.value })}
                   placeholder={t("expiryDefault")}
                   title={t("expiryDefaultHint")}
@@ -261,7 +261,7 @@ export function ClearAllDialog({ screeningId, name, onClose, onDone }) {
       <div className="mt-3 grid gap-2">
         <textarea value={form.comment} maxLength={MAX_COMMENT} onChange={(e) => setForm({ ...form, comment: e.target.value })} placeholder={t("commentRequiredPlaceholder")} className="min-h-20 w-full rounded-xl border p-3 text-sm" />
         <input value={form.evidence} maxLength={MAX_COMMENT} onChange={(e) => setForm({ ...form, evidence: e.target.value })} placeholder={t("evidenceOptional")} className="w-full rounded-xl border p-2.5 text-sm" />
-        <DateInput value={form.expires_on} min={tomorrow()} onChange={(e) => setForm({ ...form, expires_on: e.target.value })} placeholder={t("expiryDefault")} />
+        <DateInput value={form.expires_on} min={tomorrowDate()} onChange={(e) => setForm({ ...form, expires_on: e.target.value })} placeholder={t("expiryDefault")} />
       </div>
     </ConfirmDialog>
   );

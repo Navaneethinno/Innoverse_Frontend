@@ -1,3 +1,4 @@
+import { monthStartDate, todayDate } from "@/Utils/Lib/dateFormat";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -33,8 +34,6 @@ export function DrCr({ type }) {
 
 const txnTypeLabel = (t, type) => t(`txnType_${type}`, { defaultValue: type ?? "—" });
 
-const today = () => new Date().toISOString().slice(0, 10);
-const monthStart = () => `${today().slice(0, 8)}01`;
 
 // The account's statement (/config/account/ledger) for any dates, oldest
 // first: the opening balance on the first day, every credit and debit with
@@ -42,7 +41,7 @@ const monthStart = () => `${today().slice(0, 8)}01`;
 // Type filter too. A line opens its whole transaction.
 export function AccountStatement({ account, onClose }) {
   const { t } = useTranslation(["accounts", "common"]);
-  const [filters, setFilters] = useState({ from: monthStart(), to: today(), txn_type: "" });
+  const [filters, setFilters] = useState({ from: monthStartDate(), to: todayDate(), txn_type: "" });
   const [applied, setApplied] = useState(filters);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);

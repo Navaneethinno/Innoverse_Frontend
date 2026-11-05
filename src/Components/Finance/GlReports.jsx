@@ -1,3 +1,4 @@
+import { monthStartDate, todayDate } from "@/Utils/Lib/dateFormat";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,8 +23,6 @@ import { ControlGlBadge, GlType, glAmount, useGlAccounts } from "./accountingSha
 import { FinancialStatement } from "./FinancialStatements";
 import { BalanceCheck, CustomerBalances, GlMovement, SectionsTable } from "./GlReportSections";
 
-const today = () => new Date().toISOString().slice(0, 10);
-const monthStart = () => `${today().slice(0, 8)}01`;
 
 // ACCOUNTING > GL Reports (menu 216): one GL account's statement for a
 // period, the trial balance at a date, and the financial statements
@@ -70,7 +69,7 @@ const Figure = ({ label, value, currency, strong }) => (
 function Statement({ currencies }) {
   const { t } = useTranslation("accounting");
   const accounts = useGlAccounts();
-  const [q, setQ] = useState({ gl_account_id: "", currency_id: "", from: monthStart(), to: today() });
+  const [q, setQ] = useState({ gl_account_id: "", currency_id: "", from: monthStartDate(), to: todayDate() });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [data, setData] = useState(null);
@@ -184,7 +183,7 @@ function Statement({ currencies }) {
 
 function TrialBalance({ currencies }) {
   const { t } = useTranslation("accounting");
-  const [q, setQ] = useState({ as_of: today(), currency_id: "", branch_id: "", include_zero: false });
+  const [q, setQ] = useState({ as_of: todayDate(), currency_id: "", branch_id: "", include_zero: false });
   // A branch's trial balance: only its postings; the difference is then the
   // branch's inter-branch position, not an error.
   const branches = branchOptions(useCoreBanking(useInstitutionScope().scope));
@@ -239,7 +238,7 @@ function TrialBalance({ currencies }) {
         <>
           <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
             {t("asOf")}
-            <DateInput className={cn(inputClass, "w-auto")} value={q.as_of} max={today()} onChange={(e) => setQ((x) => ({ ...x, as_of: e.target.value }))} />
+            <DateInput className={cn(inputClass, "w-auto")} value={q.as_of} max={todayDate()} onChange={(e) => setQ((x) => ({ ...x, as_of: e.target.value }))} />
           </label>
           <FilterSelect value={q.currency_id} onChange={(v) => setQ((x) => ({ ...x, currency_id: v }))} options={[{ value: "", label: t("baseCurrency") }, ...currencies.map((c) => ({ value: String(c.id), label: c.alpha_code }))]} />
           {branches.length > 0 && <FilterSelect value={q.branch_id} onChange={(v) => setQ((x) => ({ ...x, branch_id: v }))} options={[{ value: "", label: t("allBranches") }, ...branches]} />}

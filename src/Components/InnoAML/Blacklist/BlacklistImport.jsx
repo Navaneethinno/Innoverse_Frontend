@@ -1,3 +1,4 @@
+import { tomorrowDate } from "@/Utils/Lib/dateFormat";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, ListChecks } from "lucide-react";
@@ -21,7 +22,6 @@ import { REASONS } from "./blacklistShared";
 
 const ENTITY_TYPES = ["ANY", "PERSON", "ORGANIZATION"];
 const MAX_ROWS = 5000;
-const tomorrow = () => new Date(Date.now() + 864e5).toISOString().slice(0, 10);
 
 // Bulk import, as Internal Watchlists: upload the CSV/XLSX, describe its
 // columns, validate (nothing stored), then import. Every row becomes an
@@ -212,7 +212,7 @@ export function BlacklistImport({ onClose, onImported }) {
         </label>
         <label className={labelClass}>
           {t("aml:blExpiresOn")}
-          <DateInput className={inputClass} value={form.expires_on} min={tomorrow()} onChange={(e) => set({ expires_on: e.target.value })} placeholder={t("aml:neverExpires")} />
+          <DateInput className={inputClass} value={form.expires_on} min={tomorrowDate()} onChange={(e) => set({ expires_on: e.target.value })} placeholder={t("aml:neverExpires")} />
         </label>
         <label className={`${labelClass} md:col-span-2`}>
           {t("aml:commentForChecker")}

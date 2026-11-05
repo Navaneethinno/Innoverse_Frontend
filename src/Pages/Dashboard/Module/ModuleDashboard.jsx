@@ -6,7 +6,7 @@ import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContaine
 import { AnimatedNumber } from "@/Components/Common/AnimatedNumber";
 import { Button } from "@/Components/Common/Button";
 import { dashboardApi } from "@/Services/Dashboard/dashboard.api";
-import { getModuleIcon } from "@/Pages/Sidebar/moduleIcons";
+import { getModuleIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { cn } from "@/Utils/Lib/utils";
 import { WidgetBody, WidgetCard, glass } from "../widgets/WidgetCard";
 

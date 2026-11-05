@@ -5,7 +5,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { buildMenuPathForItem } from "@/Components/Layout/Menu/menuRouteMap";
 import { getChildMenuItems } from "./menuSearchUtils";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { getMenuIcon } from "./moduleIcons";
+import { getMenuIcon } from "@/Components/Layout/Menu/moduleIcons";
 import { useMenuBadge } from "./menuBadges";
 import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
 

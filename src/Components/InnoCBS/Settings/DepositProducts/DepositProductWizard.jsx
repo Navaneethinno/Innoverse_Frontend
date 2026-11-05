@@ -1,3 +1,4 @@
+import { todayDate } from "@/Utils/Lib/dateFormat";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { DateInput } from "@/Components/Common/DateInput";
@@ -21,9 +22,8 @@ import { PERIOD_DAYS, optionLabel, useTermDepositTypeName } from "./productShare
 const STEPS = ["policy", "tenors", "rates"];
 // The step a refused problem starts with ("tenor 90D: ...").
 const WORD_STEPS = { policy: "policy", product: "policy", tenors: "tenors", tenor: "tenors", rates: "rates", rate: "rates", band: "rates" };
-const today = () => new Date().toISOString().slice(0, 10);
-const emptyBand = (from = "0") => ({ minimum_principal: from, maximum_principal: "0", annual_rate: "", effective_from: today(), effective_to: "" });
-const emptyTenor = () => ({ label: "", tenor_days: "", effective_from: today(), effective_to: "", rates: [emptyBand()] });
+const emptyBand = (from = "0") => ({ minimum_principal: from, maximum_principal: "0", annual_rate: "", effective_from: todayDate(), effective_to: "" });
+const emptyTenor = () => ({ label: "", tenor_days: "", effective_from: todayDate(), effective_to: "", rates: [emptyBand()] });
 
 // The configuration as the server takes it: amounts and rates as strings,
 // days as numbers, ids kept on tenors and bands that already exist.
