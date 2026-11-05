@@ -253,3 +253,10 @@ export const limitGroupOps = {
 
 // Platform lists the limit screens pick from (no menu permission needed).
 export const masterRows = (path) => request(path, {}).then(rowsOf);
+
+export const formUseRolesApi = () => request(API_ENDPOINTS.MASTER_FORM_USE_ROLES_API.BASE, {});
+export const fatfCountriesApi = () => request(API_ENDPOINTS.MASTER_FATF_COUNTRY_API.LIST, { page: 1, limit: 500 });
+export const userPreferenceApi = {
+  get: (key) => request(API_ENDPOINTS.USER_API.PREFERENCE_GET, { key }),
+  save: (key, value) => request(API_ENDPOINTS.USER_API.PREFERENCE_SAVE, { key, value }),
+};

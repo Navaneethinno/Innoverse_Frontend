@@ -101,7 +101,7 @@ export const usersApi = {
   // with a large limit instead (same tradeoff as profilesApi.getAll()).
   getAllProfiles: () =>
     request(API_ENDPOINTS.USER_MANAGEMENT.PROFILE.LIST, { page: 1, limit: 500 }),
-  getPasswordPolicies: (payload = {}) => request(USER.PASSWORD_POLICY_LIST, payload),
+  getPasswordPolicies: (payload = {}) => request(PASSWORD_POLICY.LIST, payload),
   passwordPolicyList: (payload = { page: 1, limit: 10 }) => request(PASSWORD_POLICY.LIST, payload),
   passwordPolicyGet: (payload) => request(PASSWORD_POLICY.GET, payload),
   passwordPolicyGetActive: (payload = {}) => request(PASSWORD_POLICY.GET_ACTIVE, payload),

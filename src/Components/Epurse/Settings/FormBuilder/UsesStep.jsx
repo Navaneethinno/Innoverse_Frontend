@@ -1,4 +1,3 @@
-import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, Plus, X } from "lucide-react";
 import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
@@ -6,7 +5,7 @@ import { useOpenMenu } from "@/Pages/Sidebar/menuContext";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
-import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { formUseRolesApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/cn";
 
 // Step 4 of the definition wizard ("Admin portal: simpler Uses step"): the
@@ -220,7 +219,7 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
   // Every role, with its label and help, in the user's language.
   const [roles, setRoles] = useState([]);
   useEffect(() => {
-    request(API_ENDPOINTS.MASTER_FORM_USE_ROLES_API.BASE, {})
+    formUseRolesApi()
       .then((r) => setRoles(rowsOf(r)))
       .catch(() => setRoles([]));
   }, []);

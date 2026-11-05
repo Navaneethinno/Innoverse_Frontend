@@ -1,4 +1,3 @@
-import { API_ENDPOINTS } from "@/Utils/Constant";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,7 +5,7 @@ import { ChevronDown, Plus, X } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
-import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { fatfCountriesApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { Spinner } from "@/Components/Common/Spinner";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
@@ -25,7 +24,7 @@ function FatfList({ onClose }) {
   const { t } = useTranslation("risk");
   const [rows, setRows] = useState(null);
   useEffect(() => {
-    request(API_ENDPOINTS.MASTER_FATF_COUNTRY_API.LIST, { page: 1, limit: 500 })
+    fatfCountriesApi()
       .then((r) => setRows(rowsOf(r)))
       .catch((error) => {
         setRows([]);

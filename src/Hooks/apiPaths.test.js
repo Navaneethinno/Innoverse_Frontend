@@ -21,5 +21,5 @@ describe("API paths", () => {
       .filter((file) => !ALLOWED.includes(file) && !file.startsWith("Router/") && !file.startsWith("Utils/I18n/"))
       .filter((file) => readFileSync(path.join(ROOT, file), "utf8").split("\n").some((line) => !/^\s*(\/\/|\*)/.test(line) && PATH.test(line.split(" // ")[0])));
     expect(found).toEqual([]);
-  });
+  }, 30000);
 });

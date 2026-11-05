@@ -53,7 +53,6 @@ export const API_ENDPOINTS = {
     LOGOUT: "/config/user/logout",
   },
 
-  HEALTH: "/health",
 
   // --- Institutions (top-level sidebar item) -------------------------------
   // Sub-menu order: Institution Profile, Institution Module, Institution
@@ -161,7 +160,6 @@ export const API_ENDPOINTS = {
       DELETE_AUTH: "/config/user/delete_auth",
       DEACTIVATE: "/config/user/deactivate",
       REACTIVATE: "/config/user/reactivate",
-      PASSWORD_POLICY_LIST: "/config/user/password_policy/list",
     },
     // KYC (#1 of the three KYCs — see note at top of file): a user's own KYC
     // record, under /user/kyc/*. Confirmed live but not consumed by any page

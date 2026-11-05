@@ -1,6 +1,5 @@
-import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { request } from "@/Services/Epurse/onboarding.api";
+import { userPreferenceApi } from "@/Services/Epurse/onboarding.api";
 
 // What the guide remembers for the user: topics finished (per page), pages
 // seen, modules visited, whether a practice step was done, and where an
@@ -15,8 +14,8 @@ const SAVE_DELAY = 1000;
 const MAX_SEEN = 300;
 
 const preferenceApi = {
-  get: () => request(API_ENDPOINTS.USER_API.PREFERENCE_GET, { key: PREF_KEY }),
-  save: (value) => request(API_ENDPOINTS.USER_API.PREFERENCE_SAVE, { key: PREF_KEY, value }),
+  get: () => userPreferenceApi.get(PREF_KEY),
+  save: (value) => userPreferenceApi.save(PREF_KEY, value),
 };
 
 function readLocal(key) {
