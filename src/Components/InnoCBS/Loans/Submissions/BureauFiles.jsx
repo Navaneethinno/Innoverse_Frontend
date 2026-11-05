@@ -1,3 +1,4 @@
+import { localDay } from "@/Utils/Lib/dateFormat";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Download, Plus, Send } from "lucide-react";
@@ -18,7 +19,7 @@ import { useInstitutionScope } from "../loanShared";
 const lastMonth = () => {
   const d = new Date();
   d.setDate(0);
-  return d.toISOString().slice(0, 7);
+  return localDay(d).slice(0, 7);
 };
 
 // Regulatory Submissions › Credit bureau file: a month's loan book as the

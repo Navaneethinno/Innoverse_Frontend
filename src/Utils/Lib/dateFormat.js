@@ -45,7 +45,7 @@ export function formatDateTime(value) {
 }
 
 // Calendar dates (YYYY-MM-DD) as the user sees them: their own day, not UTC's.
-const localDay = (date) =>
+export const localDay = (date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 export const todayDate = () => localDay(new Date());
 export const tomorrowDate = () => {
