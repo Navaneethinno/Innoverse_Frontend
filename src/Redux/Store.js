@@ -65,12 +65,14 @@ const store = configureStore({
   preloadedState: persistedState,
 });
 let lastPersistedSerialized = "";
-const persist = throttle(() => {
+const savePersisted = () => {
   const next = selectPersistedState(store.getState());
   const serialized = JSON.stringify(next);
   if (serialized === lastPersistedSerialized) return;
   lastPersistedSerialized = serialized;
   saveState(next);
-}, 1000);
-store.subscribe(persist);
+};
+store.subscribe(throttle(savePersisted, 1000));
+// A refresh right after sign-in must not lose the menus the throttle hasn't saved.
+globalThis.addEventListener?.("pagehide", savePersisted);
 export default store;

@@ -4,7 +4,7 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", ".codex-js/**"],
+    ignores: ["dist/**", "node_modules/**", ".codex-js/**", "test-results/**"],
   },
   eslint.configs.recommended,
   {
@@ -29,5 +29,9 @@ export default [
       "preserve-caught-error": "off",
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
     },
+  },
+  {
+    files: ["e2e/**", "playwright.config.js"],
+    languageOptions: { globals: globals.node },
   },
 ];
