@@ -12,7 +12,7 @@ export const dashboardApi = {
   // `layout: null` resets to the default.
   saveLayout: async (user, layout) =>
     first(
-      await request(API_ENDPOINTS.USER_API.DASHBOARD_LAYOUT_SAVE, {
+      await request(API_ENDPOINTS.USER_MANAGEMENT.DASHBOARD_LAYOUT_SAVE, {
         dashboard_key: DASHBOARD_KEY,
         user_id: user.id,
         user_name: user.username,
@@ -21,7 +21,7 @@ export const dashboardApi = {
       }),
     ),
   // One module's own dashboard; a module without one answers config.dashboard_module_unknown.
-  module: async (module) => first(await request(API_ENDPOINTS.DASHBOARD_API.MODULE, { module })),
+  module: async (module) => first(await request(API_ENDPOINTS.DASHBOARD.MODULE, { module })),
   // widgets: ids to refresh (all when left out).
-  summary: async (body = {}) => first(await request(API_ENDPOINTS.DASHBOARD_API.SUMMARY, { dashboard_key: DASHBOARD_KEY, ...body })),
+  summary: async (body = {}) => first(await request(API_ENDPOINTS.DASHBOARD.SUMMARY, { dashboard_key: DASHBOARD_KEY, ...body })),
 };

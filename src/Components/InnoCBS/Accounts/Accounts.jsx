@@ -77,7 +77,7 @@ function AccountsList() {
   const list = useServerList({ api: accountsApi.listPath, call: accountsApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.ACCOUNT_API.LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.ACCOUNT.LIST, () => load());
 
   const columns = [
     {

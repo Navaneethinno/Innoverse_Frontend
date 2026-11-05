@@ -14,19 +14,19 @@ const calls = (base, verbs) => ({
 const SETUP = ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "delete", "deactivate", "reactivate", "auth", "deauth"];
 const cardSetup = (base) => calls(base, SETUP);
 
-export const cardBinsApi = cardSetup(API_ENDPOINTS.CARD_API.BIN);
-export const cardProductsApi = cardSetup(API_ENDPOINTS.CARD_API.PRODUCT);
-export const issuanceGroupsApi = cardSetup(API_ENDPOINTS.CARD_API.ISSUANCE_GROUP);
+export const cardBinsApi = cardSetup(API_ENDPOINTS.CARD.BIN);
+export const cardProductsApi = cardSetup(API_ENDPOINTS.CARD.PRODUCT);
+export const issuanceGroupsApi = cardSetup(API_ENDPOINTS.CARD.ISSUANCE_GROUP);
 // Card Number Layout (154): the same routes, plus `preview` (saves nothing).
-export const cardNumberLayoutsApi = calls(API_ENDPOINTS.CARD_API.NUMBER_LAYOUT, [...SETUP, "preview"]);
+export const cardNumberLayoutsApi = calls(API_ENDPOINTS.CARD.NUMBER_LAYOUT, [...SETUP, "preview"]);
 
 // Operations: Cards (198), Card Requests (199), Card Orders (200), Card Stock (201).
-export const cardsApi = calls(API_ENDPOINTS.CARD_API.INSTANCE, ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue"]);
-export const cardRequestsApi = calls(API_ENDPOINTS.CARD_API.REQUEST, ["list", "get", "add", "accept", "reject", "deliver"]);
-export const cardOrdersApi = calls(API_ENDPOINTS.CARD_API.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
-export const cardStockApi = calls(API_ENDPOINTS.CARD_API.STOCK, ["options", "list", "assign", "issue"]);
+export const cardsApi = calls(API_ENDPOINTS.CARD.INSTANCE, ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue"]);
+export const cardRequestsApi = calls(API_ENDPOINTS.CARD.REQUEST, ["list", "get", "add", "accept", "reject", "deliver"]);
+export const cardOrdersApi = calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
+export const cardStockApi = calls(API_ENDPOINTS.CARD.STOCK, ["options", "list", "assign", "issue"]);
 // PRE Files (158): one emboss file from cards across an issuance group's orders.
-export const preFilesApi = calls(API_ENDPOINTS.CARD_API.PREFILE, ["list", "generate", "jobs"]);
+export const preFilesApi = calls(API_ENDPOINTS.CARD.PREFILE, ["list", "generate", "jobs"]);
 
 // A fresh idempotency key per click (issue, request, reissue): sent again,
 // the server answers what it already did and charges nothing twice.

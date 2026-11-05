@@ -213,13 +213,13 @@ export function DigitalProduct({ entity }) {
     action ? idOf(action.row) : null,
     Boolean(action) && ["auth", "deauth", "deleteAuth"].includes(action?.type),
   );
-  const list = useServerList({ api: `${API_ENDPOINTS.DIGITAL_PRODUCT_API.BASE}/${entity}/list`, call: api.list });
+  const list = useServerList({ api: `${API_ENDPOINTS.DIGITAL_PRODUCT.ROOT}/${entity}/list`, call: api.list });
   const load = list.reload;
   // Refetch on every live push — see AcctConfigResource.jsx's identical
   // comment for why the in-place reconcile this replaced silently dropped
   // brand-new records pushed by another user/tab.
   useLiveChannel(
-    `${API_ENDPOINTS.DIGITAL_PRODUCT_API.BASE}/${entity}/list`,
+    `${API_ENDPOINTS.DIGITAL_PRODUCT.ROOT}/${entity}/list`,
     () => load(),
   );
   const save = async (is_draft) => {

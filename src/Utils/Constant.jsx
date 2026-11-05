@@ -121,6 +121,7 @@ export const API_ENDPOINTS = {
     INSTITUTION_PHONE_COUNTRY: {
       ADD: "/config/institution/phone_country/add", SUBMIT: "/config/institution/phone_country/submit", EDIT: "/config/institution/phone_country/edit", AUTH: "/config/institution/phone_country/auth", DEAUTH: "/config/institution/phone_country/deauth", DELETE: "/config/institution/phone_country/delete", DELETE_AUTH: "/config/institution/phone_country/delete_auth", DEACTIVATE: "/config/institution/phone_country/deactivate", REACTIVATE: "/config/institution/phone_country/reactivate", LIST: "/config/institution/phone_country/list", GET_ACTIVE: "/config/institution/phone_country/get_active", AUDIT: "/config/institution/phone_country/audit", PENDING: "/config/institution/phone_country/pending",
     },
+    DOCUMENT: "/config/institution/document",
   },
 
   // --- User Management (top-level sidebar item) ----------------------------
@@ -197,6 +198,12 @@ export const API_ENDPOINTS = {
       AUDIT: "/config/user/password_policy/audit",
       PENDING: "/config/user/password_policy/pending",
     },
+    ACTIVITY_VIEW: "/config/user/activity/view",
+    DASHBOARD_LAYOUT_SAVE: "/config/user/dashboard_layout/save",
+    NOTIFICATION: "/config/user/notification",
+    PREFERENCE_GET: "/config/user/preference/get",
+    PREFERENCE_SAVE: "/config/user/preference/save",
+    TXN_LIMIT: "/config/user/txn_limit",
   },
 
   // --- Reference-data lookups (no sidebar page of their own) ---------------
@@ -236,6 +243,14 @@ export const API_ENDPOINTS = {
     // same as every other Master endpoint above), paginated — {page, limit}
     // in the body, {id, name, status, status_name} per record.
     TIMEZONE_LIST: "/master/timezone",
+    DOCUMENT_PURPOSE_LIST: "/master/document_purpose",
+    FATF_COUNTRY_LIST: "/master/fatf_country/list",
+    FORM_USE_ROLES_LIST: "/master/form_use_roles",
+    KYC_UPGRADE_TRIGGER_LIST: "/master/kyc_upgrade_trigger",
+    LIMIT_CATEGORY_LIST: "/master/limit_category",
+    LIMIT_DIMENSION_LIST: "/master/limit_dimension",
+    LIMIT_TYPE_LIST: "/master/limit_type",
+    VALIDATION_TYPE_LIST: "/master/validation_type",
   },
 
   // Settings > Master pages above (District, Province, ...) are full
@@ -763,6 +778,7 @@ export const API_ENDPOINTS = {
     // via /config/kyc/group (KYC_GROUP above, used by kycSchemeApi in
     // onboarding.api.js) — and nothing in this codebase actually called
     // configKycApi() with any of these four entity names.
+    GROUP: "/config/kyc/group",
   },
 
   // --- EPURSE > Digital Product ---------------------------------------------
@@ -779,6 +795,7 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/config/digital_product/product/deactivate", REACTIVATE: "/config/digital_product/product/reactivate",
       PENDING: "/config/digital_product/product/pending",
     },
+    ROOT: "/config/digital_product",
   },
   // Customer onboarding (admin wizard), individual and corporate — the
   // same 15 routes each (Customer_Onboarding_API.md /
@@ -831,6 +848,7 @@ export const API_ENDPOINTS = {
       DEACTIVATE: "/customer/admin/corporate/deactivate",
       REACTIVATE: "/customer/admin/corporate/reactivate",
     },
+    BULK_REGISTRATION: "/customer/admin/bulk_registration",
   },
   // EPURSE > Notification Center (Notification Center handoff, 2026-09):
   // both are standard maker-checker entities — the 13 verbs under each base
@@ -859,6 +877,9 @@ export const API_ENDPOINTS = {
     RISK_BREAKDOWN: "/config/report/risk_breakdown",
     // AML Score Breakdown (menu 108): list, get, export.
     AML_BREAKDOWN: "/config/report/aml_breakdown",
+    BUILDER: "/config/report/builder",
+    BUILDER_TEMPLATE_LIST: "/config/report/builder/template/list",
+    EXPIRING_DOCUMENT_LIST: "/config/report/expiring_document/list",
   },
   AML: {
     SETUP: "/config/aml/setup",
@@ -871,21 +892,14 @@ export const API_ENDPOINTS = {
     BLACKLIST: "/config/aml/blacklist",
     WHITELIST: "/config/aml/whitelist",
     FLAG: "/config/aml/flag",
+    MONITORING: "/config/aml/monitoring",
+    REPORT: "/config/aml/report",
   },
-  ACCOUNTING_API: {
-    CORE_BANKING: "/config/accounting/core_banking",
-    GL_ACCOUNT: "/config/accounting/gl_account",
-    GL_JOURNAL: "/config/accounting/gl_journal",
-    GL_MAPPING: "/config/accounting/gl_mapping",
-    GL_REPORT: "/config/accounting/gl_report",
-    GL_UPLOAD: "/config/accounting/gl_upload",
-    GL_UPLOAD_ADD: "/config/accounting/gl_upload/add",
-    GL_UPLOAD_TEMPLATE: "/config/accounting/gl_upload/template",
-    GL_UPLOAD_VALIDATE: "/config/accounting/gl_upload/validate",
-    PERIOD: "/config/accounting/period",
-    SETTINGS: "/config/accounting/settings",
-  },
-  ACCOUNT_API: {
+  APPROVAL: "/config/approval",
+  EXPIRY_NOTICES: "/config/expiry/notices",
+  LIST_OPTIONS: "/config/list/options",
+  RECON: "/config/recon",
+  ACCOUNT: {
     ACTION_ADD: "/config/account/action/add",
     ACTION_AUTH: "/config/account/action/auth",
     ACTION_CANCEL: "/config/account/action/cancel",
@@ -914,14 +928,20 @@ export const API_ENDPOINTS = {
     STATEMENT_LIST: "/config/account/statement/list",
     TXN: "/config/account/txn",
   },
-  AML_API: {
-    MONITORING: "/config/aml/monitoring",
-    REPORT: "/config/aml/report",
+  ACCOUNTING: {
+    CORE_BANKING: "/config/accounting/core_banking",
+    GL_ACCOUNT: "/config/accounting/gl_account",
+    GL_JOURNAL: "/config/accounting/gl_journal",
+    GL_MAPPING: "/config/accounting/gl_mapping",
+    GL_REPORT: "/config/accounting/gl_report",
+    GL_UPLOAD: "/config/accounting/gl_upload",
+    GL_UPLOAD_ADD: "/config/accounting/gl_upload/add",
+    GL_UPLOAD_TEMPLATE: "/config/accounting/gl_upload/template",
+    GL_UPLOAD_VALIDATE: "/config/accounting/gl_upload/validate",
+    PERIOD: "/config/accounting/period",
+    SETTINGS: "/config/accounting/settings",
   },
-  APPROVAL_API: {
-    BASE: "/config/approval",
-  },
-  ATM_API: {
+  ATM: {
     BATCH_DOWNLOAD: "/config/atm/batch/download",
     BATCH_GET: "/config/atm/batch/get",
     BATCH_LIST: "/config/atm/batch/list",
@@ -930,7 +950,7 @@ export const API_ENDPOINTS = {
     PROFILE_GET: "/config/atm/profile/get",
     PROFILE_LIST: "/config/atm/profile/list",
   },
-  CARD_API: {
+  CARD: {
     BIN: "/config/card/bin",
     INSTANCE: "/config/card/instance",
     ISSUANCE_GROUP: "/config/card/issuance_group",
@@ -943,7 +963,7 @@ export const API_ENDPOINTS = {
     REQUEST: "/config/card/request",
     STOCK: "/config/card/stock",
   },
-  CASE_API: {
+  CASE: {
     AML: "/config/case/aml",
     DISPUTE: "/config/case/dispute",
     ONBOARDING: "/config/case/onboarding",
@@ -953,7 +973,7 @@ export const API_ENDPOINTS = {
     SETTING_GET: "/config/case/setting/get",
     SUPPORT: "/config/case/support",
   },
-  CBS_API: {
+  CBS: {
     BRANCHES: "/config/cbs/branches",
     BRANCH_STAFF: "/config/cbs/branch_staff",
     CREDIT_BUREAU: "/config/cbs/credit_bureau",
@@ -962,66 +982,16 @@ export const API_ENDPOINTS = {
     TREASURY: "/config/cbs/treasury",
     WITHHOLDING_TAX: "/config/cbs/withholding_tax",
   },
-  CUSTOMER_ADMIN_API: {
-    BULK_REGISTRATION: "/customer/admin/bulk_registration",
-  },
-  CUSTOMER_MASTER_CONFIG_API: {
-    BANK: "/customer/master_config/bank",
-    BANK_BRANCH: "/customer/master_config/bank_branch",
-    BASE: "/customer/master_config",
-    CORP_ADDRESS_TYPE: "/customer/master_config/corp_address_type",
-    CORP_BUSINESS_NATURE: "/customer/master_config/corp_business_nature",
-    CORP_COMPANY_TYPE: "/customer/master_config/corp_company_type",
-    CORP_DOCUMENT_TYPE: "/customer/master_config/corp_document_type",
-    CORP_GST_REGISTRATION_STATUS: "/customer/master_config/corp_gst_registration_status",
-    CORP_IDENTIFICATION_TYPE: "/customer/master_config/corp_identification_type",
-    CORP_INDUSTRY_SECTOR: "/customer/master_config/corp_industry_sector",
-    CORP_MERCHANT_CATEGORY: "/customer/master_config/corp_merchant_category",
-    CORP_MERCHANT_GROUP: "/customer/master_config/corp_merchant_group",
-    CORP_ONBOARDING_DEFINITION: "/customer/master_config/corp_onboarding_definition",
-    CORP_RELATIONSHIP_TYPE: "/customer/master_config/corp_relationship_type",
-    CORP_SCREENING_TYPE: "/customer/master_config/corp_screening_type",
-    CORP_TAX_EXEMPTION_STATUS: "/customer/master_config/corp_tax_exemption_status",
-    CORP_TAX_TYPE: "/customer/master_config/corp_tax_type",
-    DISTRICT_LIST: "/customer/master_config/district/list",
-    FORM_FIELD: "/customer/master_config/form_field",
-    FORM_SECTION: "/customer/master_config/form_section",
-    INDV_ADDRESS_TYPE: "/customer/master_config/indv_address_type",
-    INDV_ANNUAL_INCOME_RANGE: "/customer/master_config/indv_annual_income_range",
-    INDV_BUSINESS_NATURE: "/customer/master_config/indv_business_nature",
-    INDV_DOCUMENT_TYPE: "/customer/master_config/indv_document_type",
-    INDV_EMPLOYMENT: "/customer/master_config/indv_employment",
-    INDV_KINSHIP: "/customer/master_config/indv_kinship",
-    INDV_MONTHLY_INCOME_RANGE: "/customer/master_config/indv_monthly_income_range",
-    INDV_NET_WORTH_RANGE: "/customer/master_config/indv_net_worth_range",
-    INDV_ONBOARDING_DEFINITION: "/customer/master_config/indv_onboarding_definition",
-    INDV_RELATIONSHIP_TYPE: "/customer/master_config/indv_relationship_type",
-    INDV_SOURCE_OF_FUND: "/customer/master_config/indv_source_of_fund",
-    INDV_TITLE: "/customer/master_config/indv_title",
-    INDV_TURNOVER_RANGE: "/customer/master_config/indv_turnover_range",
-    OWNERSHIP_SUB_TYPE: "/customer/master_config/ownership_sub_type",
-    PROVINCE_LIST: "/customer/master_config/province/list",
-    RISK_ACTION_LIST: "/customer/master_config/risk_action/list",
-    VALIDATION_RULE: "/customer/master_config/validation_rule",
-    VERIFICATION_METHOD: "/customer/master_config/verification_method",
-    VILLAGE_LIST: "/customer/master_config/village/list",
-  },
-  DASHBOARD_API: {
+  DASHBOARD: {
     MODULE: "/config/dashboard/module",
     SUMMARY: "/config/dashboard/summary",
   },
-  DEPOSIT_API: {
+  DEPOSIT: {
     CONTRACT: "/config/deposit/contract",
     CONTRACT_LIST: "/config/deposit/contract/list",
     PRODUCT: "/config/deposit/product",
   },
-  DIGITAL_PRODUCT_API: {
-    BASE: "/config/digital_product",
-  },
-  EXPIRY_API: {
-    NOTICES: "/config/expiry/notices",
-  },
-  GLOBAL_API: {
+  GLOBAL: {
     EXPIRY_RULE_AUTH: "/config/global/expiry_rule/auth",
     EXPIRY_RULE_DEAUTH: "/config/global/expiry_rule/deauth",
     EXPIRY_RULE_EDIT: "/config/global/expiry_rule/edit",
@@ -1032,26 +1002,17 @@ export const API_ENDPOINTS = {
     ROUTING: "/config/global/routing",
     ROUTING_DECISIONS: "/config/global/routing/decisions",
   },
-  INSTITUTION_API: {
-    DOCUMENT: "/config/institution/document",
-  },
-  KEY_CUSTODY_API: {
+  KEY_CUSTODY: {
     COMPONENT: "/config/key_custody/component",
     LOCK: "/config/key_custody/lock",
     STATUS: "/config/key_custody/status",
     UNLOCK: "/config/key_custody/unlock",
   },
-  KYC_API: {
-    GROUP: "/config/kyc/group",
-  },
-  LEDGER_API: {
+  LEDGER: {
     ADJUSTMENT: "/config/ledger/adjustment",
     ADJUSTMENT_LIST: "/config/ledger/adjustment/list",
   },
-  LIST_API: {
-    OPTIONS: "/config/list/options",
-  },
-  LOAN_API: {
+  LOAN: {
     APPLICATION: "/config/loan/application",
     APPLICATION_DOCUMENT_FILE: "/config/loan/application/document_file",
     APPLICATION_DOCUMENT_UPLOAD: "/config/loan/application/document_upload",
@@ -1070,68 +1031,66 @@ export const API_ENDPOINTS = {
     REGULATORY_PROFILE: "/config/loan/regulatory_profile",
     REGULATORY_SUBMISSION: "/config/loan/regulatory_submission",
   },
-  MASTER_DOCUMENT_PURPOSE_API: {
-    BASE: "/master/document_purpose",
+  MASTER_CONFIG_BASE: {
+    BANK: "/customer/master_config/bank",
+    BANK_BRANCH: "/customer/master_config/bank_branch",
+    ROOT: "/customer/master_config",
+    CORP_ADDRESS_TYPE: "/customer/master_config/corp_address_type",
+    CORP_BUSINESS_NATURE: "/customer/master_config/corp_business_nature",
+    CORP_COMPANY_TYPE: "/customer/master_config/corp_company_type",
+    CORP_DOCUMENT_TYPE: "/customer/master_config/corp_document_type",
+    CORP_GST_REGISTRATION_STATUS: "/customer/master_config/corp_gst_registration_status",
+    CORP_IDENTIFICATION_TYPE: "/customer/master_config/corp_identification_type",
+    CORP_INDUSTRY_SECTOR: "/customer/master_config/corp_industry_sector",
+    CORP_MERCHANT_CATEGORY: "/customer/master_config/corp_merchant_category",
+    CORP_MERCHANT_GROUP: "/customer/master_config/corp_merchant_group",
+    CORP_ONBOARDING_DEFINITION: "/customer/master_config/corp_onboarding_definition",
+    CORP_RELATIONSHIP_TYPE: "/customer/master_config/corp_relationship_type",
+    CORP_SCREENING_TYPE: "/customer/master_config/corp_screening_type",
+    CORP_TAX_EXEMPTION_STATUS: "/customer/master_config/corp_tax_exemption_status",
+    CORP_TAX_TYPE: "/customer/master_config/corp_tax_type",
+    FORM_FIELD: "/customer/master_config/form_field",
+    FORM_SECTION: "/customer/master_config/form_section",
+    INDV_ADDRESS_TYPE: "/customer/master_config/indv_address_type",
+    INDV_ANNUAL_INCOME_RANGE: "/customer/master_config/indv_annual_income_range",
+    INDV_BUSINESS_NATURE: "/customer/master_config/indv_business_nature",
+    INDV_DOCUMENT_TYPE: "/customer/master_config/indv_document_type",
+    INDV_EMPLOYMENT: "/customer/master_config/indv_employment",
+    INDV_KINSHIP: "/customer/master_config/indv_kinship",
+    INDV_MONTHLY_INCOME_RANGE: "/customer/master_config/indv_monthly_income_range",
+    INDV_NET_WORTH_RANGE: "/customer/master_config/indv_net_worth_range",
+    INDV_ONBOARDING_DEFINITION: "/customer/master_config/indv_onboarding_definition",
+    INDV_RELATIONSHIP_TYPE: "/customer/master_config/indv_relationship_type",
+    INDV_SOURCE_OF_FUND: "/customer/master_config/indv_source_of_fund",
+    INDV_TITLE: "/customer/master_config/indv_title",
+    INDV_TURNOVER_RANGE: "/customer/master_config/indv_turnover_range",
+    OWNERSHIP_SUB_TYPE: "/customer/master_config/ownership_sub_type",
+    RISK_ACTION_LIST: "/customer/master_config/risk_action/list",
+    VALIDATION_RULE: "/customer/master_config/validation_rule",
+    VERIFICATION_METHOD: "/customer/master_config/verification_method",
   },
-  MASTER_FATF_COUNTRY_API: {
-    LIST: "/master/fatf_country/list",
-  },
-  MASTER_FORM_USE_ROLES_API: {
-    BASE: "/master/form_use_roles",
-  },
-  MASTER_KYC_UPGRADE_TRIGGER_API: {
-    BASE: "/master/kyc_upgrade_trigger",
-  },
-  MASTER_LIMIT_CATEGORY_API: {
-    BASE: "/master/limit_category",
-  },
-  MASTER_LIMIT_DIMENSION_API: {
-    BASE: "/master/limit_dimension",
-  },
-  MASTER_LIMIT_TYPE_API: {
-    BASE: "/master/limit_type",
-  },
-  MASTER_VALIDATION_TYPE_API: {
-    BASE: "/master/validation_type",
-  },
-  MERCHANT_ADMIN_API: {
+  MERCHANT_ADMIN: {
     AGENT: "/merchant/admin/agent",
     STORE: "/merchant/admin/store",
     TERMINAL: "/merchant/admin/terminal",
   },
-  RECON_API: {
-    BASE: "/config/recon",
-  },
-  REPORT_API: {
-    BUILDER: "/config/report/builder",
-    BUILDER_TEMPLATE_LIST: "/config/report/builder/template/list",
-    EXPIRING_DOCUMENT_LIST: "/config/report/expiring_document/list",
-  },
-  SCHEDULER_API: {
+  SCHEDULER: {
     JOB: "/config/scheduler/job",
     JOB_LIST: "/config/scheduler/job/list",
   },
-  TELLER_API: {
-    BASE: "/config/teller",
+  TELLER: {
+    ROOT: "/config/teller",
     PROOF_EXPORT: "/config/teller/proof_export",
   },
-  TRANSACTION_API: {
-    BASE: "/config/transaction",
+  TRANSACTION: {
+    ROOT: "/config/transaction",
     EXPORT: "/config/transaction/export",
     LIST: "/config/transaction/list",
     REQUEST: "/config/transaction/request",
     REQUEST_LIST: "/config/transaction/request/list",
   },
-  TREASURY_API: {
-    BASE: "/config/treasury",
+  TREASURY: {
+    ROOT: "/config/treasury",
     CASH_MOVEMENT: "/config/treasury/cash_movement",
-  },
-  USER_API: {
-    ACTIVITY_VIEW: "/config/user/activity/view",
-    DASHBOARD_LAYOUT_SAVE: "/config/user/dashboard_layout/save",
-    NOTIFICATION: "/config/user/notification",
-    PREFERENCE_GET: "/config/user/preference/get",
-    PREFERENCE_SAVE: "/config/user/preference/save",
-    TXN_LIMIT: "/config/user/txn_limit",
   },
 };

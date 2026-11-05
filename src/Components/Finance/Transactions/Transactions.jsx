@@ -86,7 +86,7 @@ function Journal({ actions, onOpen }) {
   const list = useServerList({ api: transactionsApi.listPath, call: transactionsApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.TRANSACTION_API.LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.TRANSACTION.LIST, () => load());
 
   const columns = [
     {
@@ -400,7 +400,7 @@ function Requests({ openId, onOpenTxn, onClose }) {
   // Its own URL keys (r_...): the journal's list shares the page.
   const list = useServerList({ api: transactionRequestsApi.listPath, call: transactionRequestsApi.list, prefix: "r_" });
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.TRANSACTION_API.REQUEST_LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.TRANSACTION.REQUEST_LIST, () => load());
 
   const columns = useMemo(
     () => [

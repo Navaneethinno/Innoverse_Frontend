@@ -136,13 +136,13 @@ function createBuilderApi(base) {
   const call = (verb) => (payload = {}) => request(`${base}/${verb}`, payload);
   return { listPath: `${base}/list`, add: call("add"), edit: call("edit"), get: call("get"), list: call("list"), delete: call("delete"), types: call("types"), sourceValues: call("source_values") };
 }
-export const formFieldApi = createBuilderApi(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.FORM_FIELD);
-export const formSectionApi = createBuilderApi(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.FORM_SECTION);
+export const formFieldApi = createBuilderApi(API_ENDPOINTS.MASTER_CONFIG_BASE.FORM_FIELD);
+export const formSectionApi = createBuilderApi(API_ENDPOINTS.MASTER_CONFIG_BASE.FORM_SECTION);
 
 // Onboarding texts in the institution's other languages (Form Builder's
 // View / Edit). English is the base text; no maker-checker: a change
 // applies at once. /customer becomes /merchant on MMS pages.
-const translationCall = (path) => (payload = {}) => request(`${API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BASE}/${path}`, payload);
+const translationCall = (path) => (payload = {}) => request(`${API_ENDPOINTS.MASTER_CONFIG_BASE.ROOT}/${path}`, payload);
 export const translationApi = {
   languages: translationCall("translations/languages"),
   missing: translationCall("translations/missing"),
@@ -153,8 +153,8 @@ export const translationApi = {
   listEdit: translationCall("list_translation/edit"),
 };
 
-export const onboardingDefinitionApi = { ...createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_ONBOARDING_DEFINITION) };
-export const kycSchemeApi = createLifecycle(API_ENDPOINTS.KYC_API.GROUP);
+export const onboardingDefinitionApi = { ...createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_ONBOARDING_DEFINITION) };
+export const kycSchemeApi = createLifecycle(API_ENDPOINTS.CONFIG_KYC.GROUP);
 
 // The definition holds a `form` (ordered sections, rules, uses) saved by
 // save_form while it is Draft or Rejected; `get` returns the form and the
@@ -178,14 +178,14 @@ export const kycSchemeOps = {
 // that kept their old routes; the rest moved under indv_ (2026-09 route
 // change — see onboardingCatalog/onboardingDefinitionApi above).
 export const masterApis = {
-  ownership_sub_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.OWNERSHIP_SUB_TYPE),
-  document_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_DOCUMENT_TYPE),
-  address_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_ADDRESS_TYPE),
-  employment: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_EMPLOYMENT),
-  relationship_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_RELATIONSHIP_TYPE),
-  source_of_fund: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_SOURCE_OF_FUND),
-  validation_rule: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.VALIDATION_RULE),
-  verification_method: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.VERIFICATION_METHOD),
+  ownership_sub_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.OWNERSHIP_SUB_TYPE),
+  document_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_DOCUMENT_TYPE),
+  address_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_ADDRESS_TYPE),
+  employment: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_EMPLOYMENT),
+  relationship_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_RELATIONSHIP_TYPE),
+  source_of_fund: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_SOURCE_OF_FUND),
+  validation_rule: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.VALIDATION_RULE),
+  verification_method: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.VERIFICATION_METHOD),
 };
 
 export async function activeMasterOptions(name) {
@@ -202,7 +202,7 @@ export async function activeMasterOptions(name) {
 // corp_-prefixed masters. province/district/gender/validation_rule/
 // verification_method/verification_status keep their existing (individual/
 // shared) routes — not duplicated here.
-export const corpOnboardingDefinitionApi = { ...createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_ONBOARDING_DEFINITION) };
+export const corpOnboardingDefinitionApi = { ...createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_ONBOARDING_DEFINITION) };
 export const corpOnboardingDefinitionOps = {
   get: (payload) => corpOnboardingDefinitionApi.call("get", payload),
   saveForm: (payload) => corpOnboardingDefinitionApi.call("save_form", payload),
@@ -210,21 +210,21 @@ export const corpOnboardingDefinitionOps = {
 };
 
 export const corpMasterApis = {
-  corp_company_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_COMPANY_TYPE),
-  corp_address_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_ADDRESS_TYPE),
-  corp_relationship_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_RELATIONSHIP_TYPE),
-  corp_document_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_DOCUMENT_TYPE),
-  corp_identification_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_IDENTIFICATION_TYPE),
-  corp_tax_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_TAX_TYPE),
-  corp_screening_type: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_SCREENING_TYPE),
-  corp_business_nature: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_BUSINESS_NATURE),
-  corp_industry_sector: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_INDUSTRY_SECTOR),
-  corp_merchant_category: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_MERCHANT_CATEGORY),
-  corp_merchant_group: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_MERCHANT_GROUP),
-  corp_gst_registration_status: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_GST_REGISTRATION_STATUS),
-  corp_tax_exemption_status: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_TAX_EXEMPTION_STATUS),
-  bank: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BANK),
-  bank_branch: createLifecycle(API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BANK_BRANCH),
+  corp_company_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_COMPANY_TYPE),
+  corp_address_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_ADDRESS_TYPE),
+  corp_relationship_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_RELATIONSHIP_TYPE),
+  corp_document_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_DOCUMENT_TYPE),
+  corp_identification_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_IDENTIFICATION_TYPE),
+  corp_tax_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_TAX_TYPE),
+  corp_screening_type: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_SCREENING_TYPE),
+  corp_business_nature: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_BUSINESS_NATURE),
+  corp_industry_sector: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_INDUSTRY_SECTOR),
+  corp_merchant_category: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_MERCHANT_CATEGORY),
+  corp_merchant_group: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_MERCHANT_GROUP),
+  corp_gst_registration_status: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_GST_REGISTRATION_STATUS),
+  corp_tax_exemption_status: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_TAX_EXEMPTION_STATUS),
+  bank: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.BANK),
+  bank_branch: createLifecycle(API_ENDPOINTS.MASTER_CONFIG_BASE.BANK_BRANCH),
 };
 
 export async function activeCorpMasterOptions(name) {
@@ -237,7 +237,7 @@ export async function activeCorpMasterOptions(name) {
 // Global Settings > Limit (limit groups): the usual maker-checker verbs plus
 // the rules (`config`, replaced whole by save_config), clone, moving
 // customers / merchants between groups, and a dry-run `evaluate`.
-export const limitGroupApi = createLifecycle(API_ENDPOINTS.GLOBAL_API.LIMIT);
+export const limitGroupApi = createLifecycle(API_ENDPOINTS.GLOBAL.LIMIT);
 export const limitGroupOps = {
   get: (payload) => limitGroupApi.call("get", payload),
   saveConfig: (payload) => limitGroupApi.call("save_config", payload),
@@ -254,9 +254,9 @@ export const limitGroupOps = {
 // Platform lists the limit screens pick from (no menu permission needed).
 export const masterRows = (path) => request(path, {}).then(rowsOf);
 
-export const formUseRolesApi = () => request(API_ENDPOINTS.MASTER_FORM_USE_ROLES_API.BASE, {});
-export const fatfCountriesApi = () => request(API_ENDPOINTS.MASTER_FATF_COUNTRY_API.LIST, { page: 1, limit: 500 });
+export const formUseRolesApi = () => request(API_ENDPOINTS.MASTER.FORM_USE_ROLES_LIST, {});
+export const fatfCountriesApi = () => request(API_ENDPOINTS.MASTER.FATF_COUNTRY_LIST, { page: 1, limit: 500 });
 export const userPreferenceApi = {
-  get: (key) => request(API_ENDPOINTS.USER_API.PREFERENCE_GET, { key }),
-  save: (key, value) => request(API_ENDPOINTS.USER_API.PREFERENCE_SAVE, { key, value }),
+  get: (key) => request(API_ENDPOINTS.USER_MANAGEMENT.PREFERENCE_GET, { key }),
+  save: (key, value) => request(API_ENDPOINTS.USER_MANAGEMENT.PREFERENCE_SAVE, { key, value }),
 };

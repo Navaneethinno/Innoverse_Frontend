@@ -62,7 +62,7 @@ export function DepositView({ id: initialId, onBack, embedded = false }) {
     void reload();
   }, [reload]);
   // The open deposit: reload when the push names it, or names nothing.
-  useLiveChannel(API_ENDPOINTS.DEPOSIT_API.CONTRACT_LIST, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
+  useLiveChannel(API_ENDPOINTS.DEPOSIT.CONTRACT_LIST, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
 
   // Every action replies with the deposit; it replaces what is shown.
   const act = async (verb, body = {}) => {

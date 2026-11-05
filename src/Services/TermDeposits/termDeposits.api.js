@@ -9,7 +9,7 @@ const calls = (base, verbs) => ({ ...Object.fromEntries(verbs.map((verb) => [ver
 
 // TERM DEPOSITS > Deposit Products (menu 180): the policy, tenors and rate
 // bands of a TERM_DEPOSIT account product, one maker-checker record.
-export const depositProductsApi = calls(API_ENDPOINTS.DEPOSIT_API.PRODUCT, [
+export const depositProductsApi = calls(API_ENDPOINTS.DEPOSIT.PRODUCT, [
   "options",
   "list",
   "pending",
@@ -28,7 +28,7 @@ export const depositProductsApi = calls(API_ENDPOINTS.DEPOSIT_API.PRODUCT, [
 
 // TERM DEPOSITS > Deposits (menu 181): deposits opened for customers and
 // merchants, their interest, maturity instruction and early closure.
-export const depositsApi = calls(API_ENDPOINTS.DEPOSIT_API.CONTRACT, [
+export const depositsApi = calls(API_ENDPOINTS.DEPOSIT.CONTRACT, [
   "options",
   "quote",
   "open",
@@ -50,7 +50,7 @@ export const depositsApi = calls(API_ENDPOINTS.DEPOSIT_API.CONTRACT, [
 // corrections, posted through the transaction engine when a checker
 // approves. options lists the four types; quote is the plan (fee, balance
 // after) for the same body as add.
-export const balanceAdjustmentsApi = calls(API_ENDPOINTS.LEDGER_API.ADJUSTMENT, ["options", "lookup", "quote", "add", "auth", "deauth", "cancel", "list", "get"]);
+export const balanceAdjustmentsApi = calls(API_ENDPOINTS.LEDGER.ADJUSTMENT, ["options", "lookup", "quote", "add", "auth", "deauth", "cancel", "list", "get"]);
 
 // GLOBAL SETTINGS > Scheduled Jobs (menu 183): the platform's daily jobs.
-export const scheduledJobsApi = calls(API_ENDPOINTS.SCHEDULER_API.JOB, ["list", "runs", "edit", "run"]);
+export const scheduledJobsApi = calls(API_ENDPOINTS.SCHEDULER.JOB, ["list", "runs", "edit", "run"]);

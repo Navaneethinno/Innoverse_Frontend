@@ -15,9 +15,9 @@ function loadLists(instProfileId) {
   const activeRows = (path) =>
     safe(request(path, { view: "dropdown", ...(instProfileId ? { inst_profile_id: Number(instProfileId) } : {}) }).then(rowsOf));
   return Promise.all([
-    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_CATEGORY_API.BASE)),
-    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_DIMENSION_API.BASE)),
-    safe(masterRows(API_ENDPOINTS.MASTER_LIMIT_TYPE_API.BASE)),
+    safe(masterRows(API_ENDPOINTS.MASTER.LIMIT_CATEGORY_LIST)),
+    safe(masterRows(API_ENDPOINTS.MASTER.LIMIT_DIMENSION_LIST)),
+    safe(masterRows(API_ENDPOINTS.MASTER.LIMIT_TYPE_LIST)),
     safe(masterApi.currencyList()),
     safe(masterApi.transactionList()),
     safe(masterApi.channelList()),

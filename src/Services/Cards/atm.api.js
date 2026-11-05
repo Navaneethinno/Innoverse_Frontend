@@ -10,26 +10,26 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //     FULL | KEY | MISC | STATES | SCREENS | FIT | EMV) }
 //   events: { id, event?, page, limit } newest first
 //   port_stop: { id, mode? (DRAIN | FORCE) }
-const device = API_ENDPOINTS.ATM_API.DEVICE;
+const device = API_ENDPOINTS.ATM.DEVICE;
 export const atmsApi = {
   listPath: `${device}/list`,
   ...Object.fromEntries(
     ["list", "get", "add", "edit", "auth", "deauth", "block", "unblock", "retire", "command", "events", "port_start", "port_stop"].map((verb) => [verb, (body) => request(`${device}/${verb}`, body ?? {})]),
   ),
   tmkComponent: (body) => request(`${device}/tmk_component`, body),
-  profiles: (body) => request(API_ENDPOINTS.ATM_API.PROFILE_LIST, body ?? {}),
-  ports: (body) => request(API_ENDPOINTS.ATM_API.PORT_LIST, body ?? {}),
+  profiles: (body) => request(API_ENDPOINTS.ATM.PROFILE_LIST, body ?? {}),
+  ports: (body) => request(API_ENDPOINTS.ATM.PORT_LIST, body ?? {}),
 };
 // One download to every ACTIVE ATM: { part?, parallel? (1-8) }; poll get
 // for { status (RUNNING | DONE | INTERRUPTED), counts, items }.
 export const atmProfilesApi = {
-  listPath: API_ENDPOINTS.ATM_API.PROFILE_LIST,
-  list: (body) => request(API_ENDPOINTS.ATM_API.PROFILE_LIST, body ?? {}),
-  get: (body) => request(API_ENDPOINTS.ATM_API.PROFILE_GET, body),
+  listPath: API_ENDPOINTS.ATM.PROFILE_LIST,
+  list: (body) => request(API_ENDPOINTS.ATM.PROFILE_LIST, body ?? {}),
+  get: (body) => request(API_ENDPOINTS.ATM.PROFILE_GET, body),
 };
 export const atmBatchesApi = {
-  listPath: API_ENDPOINTS.ATM_API.BATCH_LIST,
-  list: (body) => request(API_ENDPOINTS.ATM_API.BATCH_LIST, body ?? {}),
-  get: (body) => request(API_ENDPOINTS.ATM_API.BATCH_GET, body),
-  download: (body) => request(API_ENDPOINTS.ATM_API.BATCH_DOWNLOAD, body ?? {}),
+  listPath: API_ENDPOINTS.ATM.BATCH_LIST,
+  list: (body) => request(API_ENDPOINTS.ATM.BATCH_LIST, body ?? {}),
+  get: (body) => request(API_ENDPOINTS.ATM.BATCH_GET, body),
+  download: (body) => request(API_ENDPOINTS.ATM.BATCH_DOWNLOAD, body ?? {}),
 };

@@ -23,7 +23,7 @@ import { RunResults, optionLabelsOf, runExporter } from "./RunResults";
 export function SavedReports() {
   const { t } = useTranslation("builder");
   const [open, setOpen] = useState(null);
-  const list = useServerList({ api: API_ENDPOINTS.REPORT_API.BUILDER_TEMPLATE_LIST, call: reportBuilderApi.template.list });
+  const list = useServerList({ api: API_ENDPOINTS.REPORT.BUILDER_TEMPLATE_LIST, call: reportBuilderApi.template.list });
 
   if (open) return <RunSaved report={open} onBack={() => setOpen(null)} />;
 

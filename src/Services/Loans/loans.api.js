@@ -13,14 +13,14 @@ export const recordOf = (response) => (Array.isArray(response?.data) ? response.
 
 // Reference rates (Loan Products menu) for VARIABLE rate bands:
 //   list { code?, status? } · add { code, annual_rate, effective_from } · auth / deauth { id }
-export const loanReferenceRatesApi = calls(API_ENDPOINTS.LOAN_API.REFERENCE_RATE, ["list", "add", "auth", "deauth"]);
+export const loanReferenceRatesApi = calls(API_ENDPOINTS.LOAN.REFERENCE_RATE, ["list", "add", "auth", "deauth"]);
 
 // Lending Regulatory Profile (menu 185): one per institution, maker-checker.
-export const regulatoryProfileApi = calls(API_ENDPOINTS.LOAN_API.REGULATORY_PROFILE, ["get", "edit", "auth", "deauth"]);
+export const regulatoryProfileApi = calls(API_ENDPOINTS.LOAN.REGULATORY_PROFILE, ["get", "edit", "auth", "deauth"]);
 
 // Loan Products (menu 184): product, terms with rate bands, fees and the
 // repayment, eligibility, approval and collateral policies, one record.
-export const loanProductsApi = calls(API_ENDPOINTS.LOAN_API.PRODUCT, [
+export const loanProductsApi = calls(API_ENDPOINTS.LOAN.PRODUCT, [
   "options",
   "list",
   "pending",
@@ -39,7 +39,7 @@ export const loanProductsApi = calls(API_ENDPOINTS.LOAN_API.PRODUCT, [
 
 // Loan Applications (menu 186): staff apply for the borrower; offer
 // acceptance, credit checks, collateral and approvals.
-export const loanApplicationsApi = calls(API_ENDPOINTS.LOAN_API.APPLICATION, [
+export const loanApplicationsApi = calls(API_ENDPOINTS.LOAN.APPLICATION, [
   "options",
   "quote",
   "add",
@@ -69,7 +69,7 @@ export const loanApplicationsApi = calls(API_ENDPOINTS.LOAN_API.APPLICATION, [
 
 // Loan Facilities (menu 187): the loan, its payout, repayments, early
 // settlement, restructure, write-off, recovery, reversal and collections.
-export const loanFacilitiesApi = calls(API_ENDPOINTS.LOAN_API.FACILITY, [
+export const loanFacilitiesApi = calls(API_ENDPOINTS.LOAN.FACILITY, [
   "create",
   "disburse",
   "cancel",
@@ -110,33 +110,33 @@ export const loanFacilitiesApi = calls(API_ENDPOINTS.LOAN_API.FACILITY, [
 
 // Portfolio quality (Loan Facilities View): PAR 1/30/90, ageing buckets,
 // provisions and interest in suspense by product, branch, officer or group.
-export const loanPortfolioApi = { par: (body) => request(API_ENDPOINTS.LOAN_API.PORTFOLIO_PAR, body) };
+export const loanPortfolioApi = { par: (body) => request(API_ENDPOINTS.LOAN.PORTFOLIO_PAR, body) };
 
 // Regulatory Submissions (menu 188): reports of the loan book.
-export const regulatorySubmissionsApi = calls(API_ENDPOINTS.LOAN_API.REGULATORY_SUBMISSION, ["generate", "record", "get", "list"]);
+export const regulatorySubmissionsApi = calls(API_ENDPOINTS.LOAN.REGULATORY_SUBMISSION, ["generate", "record", "get", "list"]);
 
 // Borrower Groups (menu 194): solidarity groups with an officer, meetings
 // and joint liability; members, the collection sheet and one collection
 // (Loan Facilities Add) for all the group's loans at once.
-export const borrowerGroupsApi = calls(API_ENDPOINTS.LOAN_API.GROUP, ["list", "get", "add", "edit", "deactivate", "member_add", "member_role", "member_remove", "collection_sheet", "collect"]);
+export const borrowerGroupsApi = calls(API_ENDPOINTS.LOAN.GROUP, ["list", "get", "add", "edit", "deactivate", "member_add", "member_role", "member_remove", "collection_sheet", "collect"]);
 
 // Credit bureau file (Regulatory Submissions menu): a month's loan book as
 // the bureau's CSV. generate { period: YYYY-MM } · list · file { id } (the
 // CSV) · submit { id, submission_reference }.
 export const bureauSubmissionsApi = {
-  ...calls(API_ENDPOINTS.LOAN_API.BUREAU_SUBMISSION, ["generate", "list", "submit"]),
-  file: (body, fallbackName) => downloadAttachment(API_ENDPOINTS.LOAN_API.BUREAU_SUBMISSION_FILE, body, fallbackName),
+  ...calls(API_ENDPOINTS.LOAN.BUREAU_SUBMISSION, ["generate", "list", "submit"]),
+  file: (body, fallbackName) => downloadAttachment(API_ENDPOINTS.LOAN.BUREAU_SUBMISSION_FILE, body, fallbackName),
 };
 
 // Loan product groups and purposes (Loan Products menu): small lists saved at
 // once (no checker). Each row carries `actions` { edit, delete }.
-export const loanProductGroupsApi = calls(API_ENDPOINTS.LOAN_API.PRODUCT_GROUP, ["list", "add", "edit", "delete"]);
-export const loanPurposesApi = calls(API_ENDPOINTS.LOAN_API.PURPOSE, ["list", "add", "edit", "delete"]);
+export const loanProductGroupsApi = calls(API_ENDPOINTS.LOAN.PRODUCT_GROUP, ["list", "add", "edit", "delete"]);
+export const loanPurposesApi = calls(API_ENDPOINTS.LOAN.PURPOSE, ["list", "add", "edit", "delete"]);
 
 // Who may approve how much (Lending Regulatory Profile › Approval limits).
-export const lendingAuthorityApi = calls(API_ENDPOINTS.LOAN_API.LENDING_AUTHORITY, ["list", "save", "delete"]);
+export const lendingAuthorityApi = calls(API_ENDPOINTS.LOAN.LENDING_AUTHORITY, ["list", "save", "delete"]);
 
 // A loan document's file: uploaded first (multipart, `id` = application or
 // `facility_id`), then attached with document_add / tranche_proof / deceased.
-export const uploadLoanDocument = (fields) => uploadFile(API_ENDPOINTS.LOAN_API.APPLICATION_DOCUMENT_UPLOAD, fields);
-export const downloadLoanDocument = (body) => downloadFile(API_ENDPOINTS.LOAN_API.APPLICATION_DOCUMENT_FILE, body);
+export const uploadLoanDocument = (fields) => uploadFile(API_ENDPOINTS.LOAN.APPLICATION_DOCUMENT_UPLOAD, fields);
+export const downloadLoanDocument = (body) => downloadFile(API_ENDPOINTS.LOAN.APPLICATION_DOCUMENT_FILE, body);

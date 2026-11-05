@@ -7,7 +7,7 @@ import { downloadFile, uploadFile } from "@/Services/api/fileTransfer";
 // Staff answer as a conversation and close in one step (no checker), with
 // outcome RESOLVED; a customer's withdrawal closes it as WITHDRAWN. Every
 // action replies with the case, as get does.
-const BASE = API_ENDPOINTS.CASE_API.SUPPORT;
+const BASE = API_ENDPOINTS.CASE.SUPPORT;
 const call = (verb) => (body) => request(`${BASE}/${verb}`, body);
 
 export const supportCasesApi = {

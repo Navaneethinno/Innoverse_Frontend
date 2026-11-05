@@ -38,8 +38,8 @@ export function PreFiles() {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const jobs = view === "jobs";
-  const cards = useServerList({ api: API_ENDPOINTS.CARD_API.PREFILE_LIST, call: preFilesApi.list });
-  const made = useServerList({ api: API_ENDPOINTS.CARD_API.PREFILE_JOBS, call: preFilesApi.jobs, prefix: "j_", enabled: jobs });
+  const cards = useServerList({ api: API_ENDPOINTS.CARD.PREFILE_LIST, call: preFilesApi.list });
+  const made = useServerList({ api: API_ENDPOINTS.CARD.PREFILE_JOBS, call: preFilesApi.jobs, prefix: "j_", enabled: jobs });
   const list = jobs ? made : cards;
   const data = { items: cards.rows, total: cards.pagination.totalRecords };
   const groupId = cards.toolbar.filters.issuance_group_id ?? "";

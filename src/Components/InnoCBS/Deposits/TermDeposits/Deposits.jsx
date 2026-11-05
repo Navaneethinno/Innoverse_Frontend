@@ -62,7 +62,7 @@ export function Deposits() {
   const list = useServerList({ api: depositsApi.listPath, call: depositsApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.DEPOSIT_API.CONTRACT_LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.DEPOSIT.CONTRACT_LIST, () => load());
 
   const columns = depositColumns(t, can, setOpenId, false);
 

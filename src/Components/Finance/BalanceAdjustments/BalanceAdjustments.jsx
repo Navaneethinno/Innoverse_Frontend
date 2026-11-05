@@ -40,7 +40,7 @@ export function BalanceAdjustments() {
   const list = useServerList({ api: balanceAdjustmentsApi.listPath, call: balanceAdjustmentsApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.LEDGER_API.ADJUSTMENT_LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.LEDGER.ADJUSTMENT_LIST, () => load());
 
   const columns = [
     {

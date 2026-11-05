@@ -5,7 +5,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 // customer's or merchant's risk / AML outcome needs a person to decide.
 // Every action takes { id, expected_updated_time?, ... } and replies with the
 // whole case (as get does), so the screen redraws from the reply.
-const BASE = API_ENDPOINTS.CASE_API.ONBOARDING;
+const BASE = API_ENDPOINTS.CASE.ONBOARDING;
 const call = (verb) => (body) => request(`${BASE}/${verb}`, body);
 
 export const onboardingCasesApi = {
@@ -31,8 +31,8 @@ export const onboardingCasesApi = {
 // proposes (send only what changes), auth applies, deauth drops. A service
 // provider / System user adds inst_profile_id. Each replies like get.
 export const caseSettingsApi = {
-  get: (body = {}) => request(API_ENDPOINTS.CASE_API.SETTING_GET, body),
-  edit: (body) => request(API_ENDPOINTS.CASE_API.SETTING_EDIT, body),
-  auth: (body) => request(API_ENDPOINTS.CASE_API.SETTING_AUTH, body),
-  deauth: (body) => request(API_ENDPOINTS.CASE_API.SETTING_DEAUTH, body),
+  get: (body = {}) => request(API_ENDPOINTS.CASE.SETTING_GET, body),
+  edit: (body) => request(API_ENDPOINTS.CASE.SETTING_EDIT, body),
+  auth: (body) => request(API_ENDPOINTS.CASE.SETTING_AUTH, body),
+  deauth: (body) => request(API_ENDPOINTS.CASE.SETTING_DEAUTH, body),
 };

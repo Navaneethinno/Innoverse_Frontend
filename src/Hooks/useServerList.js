@@ -51,7 +51,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
       return undefined;
     }
     let cancelled = false;
-    request(API_ENDPOINTS.LIST_API.OPTIONS, { api, ...(inst ? { inst_profile_id: Number(inst) } : {}) })
+    request(API_ENDPOINTS.LIST_OPTIONS, { api, ...(inst ? { inst_profile_id: Number(inst) } : {}) })
       .then((r) => {
         const o = (Array.isArray(r?.data) ? r.data[0] : r?.data) ?? {};
         optionsCache.set(key, o);

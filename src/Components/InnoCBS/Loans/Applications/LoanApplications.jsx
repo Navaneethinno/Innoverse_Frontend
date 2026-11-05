@@ -35,7 +35,7 @@ export function LoanApplications() {
   const list = useServerList({ api: loanApplicationsApi.listPath, call: loanApplicationsApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.LOAN_API.APPLICATION_LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.LOAN.APPLICATION_LIST, () => load());
 
   if (openId) {
     return (
@@ -199,7 +199,7 @@ function ApplicationView({ id, onBack }) {
   }, [reload]);
   // The open record: reload when the push names it, or names nothing.
   useLiveChannel(
-    API_ENDPOINTS.LOAN_API.APPLICATION_LIST,
+    API_ENDPOINTS.LOAN.APPLICATION_LIST,
     (_action, records) =>
       (!records.length || records.some((r) => String(r.id) === String(id))) && void reload(),
   );

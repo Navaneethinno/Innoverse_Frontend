@@ -24,7 +24,7 @@ export function PhoneTransfers() {
   // Tabs (Waiting, Claimed...), search (number, sender, account, RRN),
   // paging: the shared list. summary.totals: per-currency totals of all
   // that match, not just this page.
-  const list = useServerList({ api: API_ENDPOINTS.ACCOUNT_API.PHONE_TRANSFER_LIST, call: accountsApi.phoneTransfers });
+  const list = useServerList({ api: API_ENDPOINTS.ACCOUNT.PHONE_TRANSFER_LIST, call: accountsApi.phoneTransfers });
   const totals = list.summary?.totals ?? [];
 
   const rrnLink = (value) =>

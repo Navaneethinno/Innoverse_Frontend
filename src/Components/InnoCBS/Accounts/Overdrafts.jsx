@@ -20,7 +20,7 @@ import { SearchBox } from "@/Components/Common/SearchBox";
 // limit; interest accrues daily on the negative balance and is charged on the
 // 1st of each month. Requested, then approved by another user (Self at once).
 // Buttons follow each row's `actions` (auth, deauth, cancel, close).
-const BASE = API_ENDPOINTS.ACCOUNT_API.OVERDRAFT;
+const BASE = API_ENDPOINTS.ACCOUNT.OVERDRAFT;
 const overdraftApi = Object.fromEntries(["list", "get", "add", "auth", "deauth", "cancel", "close"].map((v) => [v, (body) => request(`${BASE}/${v}`, body)]));
 
 const TABS = ["", "PENDING", "ACTIVE", "CLOSED"];

@@ -10,7 +10,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 //   run:     { source, columns | group_by + aggregates, filters, sort, page, page_size | all }
 //            -> { columns: [{ key, label, type, currency_field }], rows: [[...]], warnings }
 // Templates: saved definitions, private or shared; only the owner edits them.
-const base = API_ENDPOINTS.REPORT_API.BUILDER;
+const base = API_ENDPOINTS.REPORT.BUILDER;
 const call =
   (path) =>
   (body = {}) =>

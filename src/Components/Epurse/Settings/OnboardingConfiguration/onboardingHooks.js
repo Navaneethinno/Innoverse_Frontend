@@ -17,10 +17,10 @@ export function useOnboardingCatalog() {
     catalogPromise ??= Promise.all([
       masterApi.kycProcessList().catch(() => []),
       masterApi.transactionList().catch(() => []),
-      masterList(API_ENDPOINTS.MASTER_LIMIT_TYPE_API.BASE),
-      masterList(API_ENDPOINTS.MASTER_KYC_UPGRADE_TRIGGER_API.BASE),
-      masterList(API_ENDPOINTS.MASTER_DOCUMENT_PURPOSE_API.BASE),
-      masterList(API_ENDPOINTS.MASTER_VALIDATION_TYPE_API.BASE),
+      masterList(API_ENDPOINTS.MASTER.LIMIT_TYPE_LIST),
+      masterList(API_ENDPOINTS.MASTER.KYC_UPGRADE_TRIGGER_LIST),
+      masterList(API_ENDPOINTS.MASTER.DOCUMENT_PURPOSE_LIST),
+      masterList(API_ENDPOINTS.MASTER.VALIDATION_TYPE_LIST),
     ]).then(([kycProcesses, transactions, limitTypes, upgradeTriggers, documentPurposes, validationTypes]) => ({
       kyc_processes: kycProcesses,
       transactions,

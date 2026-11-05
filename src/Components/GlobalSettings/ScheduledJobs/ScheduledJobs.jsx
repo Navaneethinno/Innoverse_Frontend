@@ -49,7 +49,7 @@ export function ScheduledJobs() {
   useEffect(() => {
     void load();
   }, [load]);
-  useLiveChannel(API_ENDPOINTS.SCHEDULER_API.JOB_LIST, () => void load({ silent: true }));
+  useLiveChannel(API_ENDPOINTS.SCHEDULER.JOB_LIST, () => void load({ silent: true }));
 
   const call = async (verb, body) => {
     setBusy(body.code);

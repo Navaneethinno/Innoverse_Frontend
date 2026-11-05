@@ -56,16 +56,16 @@ const plain = (title, base) => ({ title, base, columns: (ctx) => [{ key: "code",
 // indv_ (2026-09 route change); validation_rule below is a shared master
 // that kept its old route. risk_category is gone (Risk Action replaced it).
 const CONFIGS = {
-  title: plain("Title", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_TITLE),
-  kinship: plain("Kinship", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_KINSHIP),
-  business_nature: plain("Business Nature", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_BUSINESS_NATURE),
-  annual_income_range: rangeConfig("Annual Income Range", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_ANNUAL_INCOME_RANGE),
-  monthly_income_range: rangeConfig("Monthly Income Range", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_MONTHLY_INCOME_RANGE),
-  net_worth_range: rangeConfig("Net Worth Range", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_NET_WORTH_RANGE),
-  turnover_range: rangeConfig("Turnover Range", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_TURNOVER_RANGE),
+  title: plain("Title", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_TITLE),
+  kinship: plain("Kinship", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_KINSHIP),
+  business_nature: plain("Business Nature", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_BUSINESS_NATURE),
+  annual_income_range: rangeConfig("Annual Income Range", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_ANNUAL_INCOME_RANGE),
+  monthly_income_range: rangeConfig("Monthly Income Range", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_MONTHLY_INCOME_RANGE),
+  net_worth_range: rangeConfig("Net Worth Range", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_NET_WORTH_RANGE),
+  turnover_range: rangeConfig("Turnover Range", API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_TURNOVER_RANGE),
   document_type: {
     title: "Document Type",
-    base: API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.INDV_DOCUMENT_TYPE,
+    base: API_ENDPOINTS.MASTER_CONFIG_BASE.INDV_DOCUMENT_TYPE,
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -77,7 +77,7 @@ const CONFIGS = {
   },
   validation_rule: {
     title: "Validation Rule",
-    base: API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.VALIDATION_RULE,
+    base: API_ENDPOINTS.MASTER_CONFIG_BASE.VALIDATION_RULE,
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -109,13 +109,13 @@ const CONFIGS = {
   // --- Corporate Onboarding Configuration masters (Corporate_Onboarding_
   // Configuration_API.md §2, 2026-09) — same maker-checker CRUD shape as
   // the individual masters above, under their own corp_ base paths.
-  corp_company_type: plain("Company Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_COMPANY_TYPE),
-  corp_address_type: plain("Corporate Address Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_ADDRESS_TYPE),
-  corp_relationship_type: plain("Corporate Relationship Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_RELATIONSHIP_TYPE),
-  corp_document_type: plain("Corporate Document Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_DOCUMENT_TYPE),
+  corp_company_type: plain("Company Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_COMPANY_TYPE),
+  corp_address_type: plain("Corporate Address Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_ADDRESS_TYPE),
+  corp_relationship_type: plain("Corporate Relationship Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_RELATIONSHIP_TYPE),
+  corp_document_type: plain("Corporate Document Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_DOCUMENT_TYPE),
   corp_identification_type: {
     title: "Identification Type",
-    base: API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_IDENTIFICATION_TYPE,
+    base: API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_IDENTIFICATION_TYPE,
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
@@ -139,29 +139,29 @@ const CONFIGS = {
       },
     ],
   },
-  corp_tax_type: plain("Tax Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_TAX_TYPE),
-  corp_screening_type: plain("Screening Type", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_SCREENING_TYPE),
-  corp_business_nature: plain("Corporate Business Nature", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_BUSINESS_NATURE),
-  corp_industry_sector: plain("Industry Sector", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_INDUSTRY_SECTOR),
-  corp_merchant_category: plain("Merchant Category", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_MERCHANT_CATEGORY),
+  corp_tax_type: plain("Tax Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_TAX_TYPE),
+  corp_screening_type: plain("Screening Type", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_SCREENING_TYPE),
+  corp_business_nature: plain("Corporate Business Nature", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_BUSINESS_NATURE),
+  corp_industry_sector: plain("Industry Sector", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_INDUSTRY_SECTOR),
+  corp_merchant_category: plain("Merchant Category", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_MERCHANT_CATEGORY),
   // MMS only (handoff 17): a merchant group is always MERCHANT, set by the
   // server, so there's no party type to ask. The list can still show it.
   corp_merchant_group: {
-    ...plain("Merchant Group", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_MERCHANT_GROUP),
+    ...plain("Merchant Group", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_MERCHANT_GROUP),
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },
       { key: "party_type_name", label: ctx.t("onboarding:partyType"), render: (r) => r.party_type_name ?? "-" },
     ],
   },
-  corp_gst_registration_status: plain("GST Registration Status", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_GST_REGISTRATION_STATUS),
-  corp_tax_exemption_status: plain("Tax Exemption Status", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.CORP_TAX_EXEMPTION_STATUS),
+  corp_gst_registration_status: plain("GST Registration Status", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_GST_REGISTRATION_STATUS),
+  corp_tax_exemption_status: plain("Tax Exemption Status", API_ENDPOINTS.MASTER_CONFIG_BASE.CORP_TAX_EXEMPTION_STATUS),
   // Shared by every customer type (not corp_-prefixed) — the settlement
   // account bank/branch masters (guide §2).
-  bank: plain("Bank", API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BANK),
+  bank: plain("Bank", API_ENDPOINTS.MASTER_CONFIG_BASE.BANK),
   bank_branch: {
     title: "Bank Branch",
-    base: API_ENDPOINTS.CUSTOMER_MASTER_CONFIG_API.BANK_BRANCH,
+    base: API_ENDPOINTS.MASTER_CONFIG_BASE.BANK_BRANCH,
     columns: (ctx) => [
       { key: "code", label: ctx.t("onboarding:code") },
       { key: "name", label: ctx.t("onboarding:name") },

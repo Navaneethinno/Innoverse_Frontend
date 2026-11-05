@@ -158,7 +158,7 @@ export const amlFlagApi = {
 // under maker-checker) watch posted transactions and raise alerts; an alert
 // is noted, assigned, closed or escalated into a suspicious transaction
 // report. scan runs the monitor at once (it runs every minute anyway).
-const MONITORING = API_ENDPOINTS.AML_API.MONITORING;
+const MONITORING = API_ENDPOINTS.AML.MONITORING;
 export const amlMonitoringApi = {
   setup: { get: call(`${MONITORING}/setup`, "get"), edit: call(`${MONITORING}/setup`, "edit"), auth: call(`${MONITORING}/setup`, "auth"), deauth: call(`${MONITORING}/setup`, "deauth") },
   alerts: Object.fromEntries(["list", "get", "note", "assign", "close", "escalate", "release"].map((v) => [v, call(`${MONITORING}/alert`, v)])),
@@ -168,7 +168,7 @@ export const amlMonitoringApi = {
 // Regulatory Reports (menu 200): suspicious transaction reports (drafted,
 // submitted, approved by another user, recorded as filed) and the nightly
 // currency transaction reports. Each downloads as Excel or CSV.
-const REPORTS = API_ENDPOINTS.AML_API.REPORT;
+const REPORTS = API_ENDPOINTS.AML.REPORT;
 const reportFile = (path, name) => (body) => downloadAttachment(`${REPORTS}/${path}`, body, `${name}.${body.format === "CSV" ? "csv" : "xlsx"}`);
 export const amlReportsApi = {
   str: { ...Object.fromEntries(["list", "get", "add", "edit", "submit", "auth", "deauth", "record_filing"].map((v) => [v, call(`${REPORTS}/str`, v)])), export: (body) => reportFile("str/export", `str_${body.reference ?? body.id}`)(body) },

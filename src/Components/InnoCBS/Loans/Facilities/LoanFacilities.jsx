@@ -90,7 +90,7 @@ export function LoanFacilities() {
   const list = useServerList({ api: loanFacilitiesApi.listPath, call: loanFacilitiesApi.list });
 
   const load = list.reload;
-  useLiveChannel(API_ENDPOINTS.LOAN_API.FACILITY_LIST, () => load());
+  useLiveChannel(API_ENDPOINTS.LOAN.FACILITY_LIST, () => load());
 
   if (openId) {
     return (
@@ -289,7 +289,7 @@ function FacilityView({ id, onBack }) {
   }, [reload]);
   // The open record: reload when the push names it, or names nothing.
   useLiveChannel(
-    API_ENDPOINTS.LOAN_API.FACILITY_LIST,
+    API_ENDPOINTS.LOAN.FACILITY_LIST,
     (_action, records) =>
       (!records.length || records.some((r) => String(r.id) === String(id))) && void reload(),
   );
