@@ -5,7 +5,6 @@ import { NoAccess } from "@/Components/Common/NoAccess";
 import { usePartyMenuPermission } from "@/Hooks/usePermission";
 import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { CustomerOnboardingResource } from "./CustomerOnboardingResource";
-import { CorporateCustomerOnboardingResource } from "./CorporateCustomerOnboardingResource";
 
 // "Frontend fixes — onboarding menus and corporate masters", 2026-09, fix 2:
 // same idea as OnboardingConfiguration.jsx — ONE "Onboarding Wizard"
@@ -42,7 +41,7 @@ export function OnboardingWizard() {
       {allowed.length > 1 && <SegmentedSwitch className="mb-3" options={allowed.map((o) => ({ value: o.value, label: t(o.labelKey) }))} value={type} onChange={setType} />}
       {/* key re-mounts the wrapper so each switch replays the fade-in. */}
       <div key={type} className="segmented-view-enter">
-        {type === "corporate" ? <CorporateCustomerOnboardingResource /> : <CustomerOnboardingResource />}
+        <CustomerOnboardingResource key={type} kind={type === "corporate" ? "corporate" : "individual"} />
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/Pendi
 import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { customerOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
+import { corpCustomerOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { CustomerStateBadges, PortalSourceBadge, isKycUpgradeWithCustomer, isPortalDraft, usePortalAuditLabel } from "./customerPortal";
@@ -27,6 +28,7 @@ import { AmlCell, CustomerAmlBadge } from "@/Components/InnoAML/Shared/CustomerA
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
 import { isStoredCustomerFile } from "./customerFiles";
 import { CustomerOnboardingWizard } from "./CustomerOnboardingWizard";
+import { CorporateCustomerOnboardingWizard } from "./CorporateCustomerOnboardingWizard";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 
 // Customer onboarding — now the same 13-call maker-checker lifecycle as
@@ -34,9 +36,36 @@ import { formatDateTime } from "@/Utils/Lib/dateFormat";
 // status/process_status/auth_status decide the buttons, exactly like
 // Institution/User Management/Master Config, via the shared
 // getMakerCheckerButtons() engine instead of a hand-rolled state table.
-const pendingApi = ({ id }) => customerOnboardingApi.pending({ reference_id: id });
+// Individual and corporate onboarding are one screen; what differs is here.
+// Corporate has no KYC levels, and its name may be the company's.
+const KINDS = {
+  individual: {
+    api: customerOnboardingApi,
+    Wizard: CustomerOnboardingWizard,
+    livePath: API_ENDPOINTS.CUSTOMER.INDIVIDUAL.LIST,
+    nameLabel: "customer:customer",
+    title: "customer:customerOnboarding",
+    subtitle: () => "customer:takeAnIndividualCustomerThroughTheInstitution",
+    amlKind: "INDIVIDUAL",
+    withKyc: true,
+  },
+  corporate: {
+    api: corpCustomerOnboardingApi,
+    Wizard: CorporateCustomerOnboardingWizard,
+    livePath: API_ENDPOINTS.CUSTOMER.CORPORATE.LIST,
+    nameLabel: "customer:company",
+    title: "customer:corporateCustomerOnboarding",
+    subtitle: (audience) => (audience === "merchant" ? "customer:registerCompanyAsMerchant" : "customer:registerCompanyAsCustomer"),
+    amlKind: "CORPORATE",
+    withKyc: false,
+  },
+};
+const nameOf = (r) => r.customer_name || r.company_name;
 
-function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
+function OnboardingActions({ kind, row, canAdd, canEdit, canAuthorize, canChangeStatus, canDelete, onRefresh, onOpen }) {
+  const k = KINDS[kind];
+  const pendingApi = ({ id }) => k.api.pending({ reference_id: id });
+  const partyCan = usePartyMenuPermission(kind);
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
@@ -55,7 +84,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   // the customer portal — view only here until they complete it.
   // The customer's own (portal sign-up, or a KYC upgrade in progress or
   // rejected back to them): view only.
-  if (isPortalDraft(row) || isKycUpgradeWithCustomer(row)) {
+  if (isPortalDraft(row) || (k.withKyc && isKycUpgradeWithCustomer(row))) {
     buttons.edit = false;
     buttons.submitDraft = false;
     buttons.delete = false;
@@ -75,7 +104,7 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
     setWorking(true);
     try {
       const payload = { reference_id: row.reference_id, ...(narration.trim() ? { narration: narration.trim() } : {}) };
-      const response = await customerOnboardingApi[action.method](payload);
+      const response = await k.api[action.method](payload);
       notifications.success(apiMessage(response, t("onboarding:actionSuccessful", { action: action.label })));
       await onRefresh();
       setAction(null);
@@ -90,10 +119,11 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   const pendingMethod = buttons.isPendingDelete ? "deleteAuth" : "auth";
   // Uploaded files in the requested changes open through /file (blob).
   const showFile = (value) =>
-    isStoredCustomerFile(value) ? <StoredFilePreview value={value} download={(path) => customerOnboardingApi.file({ reference_id: row.reference_id, path })} /> : undefined;
+    isStoredCustomerFile(value) ? <StoredFilePreview value={value} download={(path) => k.api.file({ reference_id: row.reference_id, path })} /> : undefined;
   return (
     <>
       <RowActions
+        permission={kind === "corporate" ? partyCan : undefined}
         buttons={buttons}
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
@@ -115,8 +145,8 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
         onConfirm={() => void execute()}
       >
         {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} renderValue={showFile} />}
-        {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind="individual" instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
-        {["auth", "deauth"].includes(action?.method) && <CustomerAmlBadge className="mt-3" aml={pendingInfo.data?.aml} adverseMedia={pendingInfo.data?.adverse_media} customerKind="INDIVIDUAL" referenceId={row.reference_id} />}
+        {["auth", "deauth"].includes(action?.method) && <PendingRiskCompare kind={kind} instProfileId={row.inst_profile_id} pending={pendingInfo.data} />}
+        {["auth", "deauth"].includes(action?.method) && <CustomerAmlBadge className="mt-3" aml={pendingInfo.data?.aml} adverseMedia={pendingInfo.data?.adverse_media} customerKind={k.amlKind} referenceId={row.reference_id} />}
         <textarea
           value={narration}
           onChange={(e) => setNarration(e.target.value)}
@@ -127,15 +157,15 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
       {audit && (
         <AuditModal
           getActionLabel={portalAuditLabel}
-          title={row.customer_name || row.email || row.phone_number}
+          title={nameOf(row) || row.email || row.phone_number}
           fields={[
-            ["customer_name", t("customer:customer")],
+            ["customer_name", t(k.nameLabel)],
             ["onboarding_definition_name", t("onboarding:customerType")],
             ["current_step", t("customer:step")],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
-            customerOnboardingApi.audit({ reference_id: row.reference_id, page, limit }).then((r) => ({
+            k.api.audit({ reference_id: row.reference_id, page, limit }).then((r) => ({
               entries: Array.isArray(r?.data) ? r.data : [],
               totalPages: r?.pagination?.totalPages ?? 1,
             }))
@@ -146,34 +176,35 @@ function OnboardingActions({ row, canAdd, canEdit, canAuthorize, canChangeStatus
   );
 }
 
-export function CustomerOnboardingResource() {
+export function CustomerOnboardingResource({ kind = "individual" }) {
+  const k = KINDS[kind];
   const { t } = useAudienceTranslation(["customer", "onboarding", "common"]);
-  const can = usePartyMenuPermission("individual");
+  const can = usePartyMenuPermission(kind);
   const [wizard, setWizard] = useState(null); // { referenceId } | { referenceId: null } for "new"
   // The KYC Report of a row, opened over the list (kept mounted, hidden).
   const [reportRow, setReportRow] = useState(null);
   const audience = isMerchantModule(useMenuContext()?.module) ? "merchant" : "customer";
 
-  const list = useServerList({ api: customerOnboardingApi.listPath, call: customerOnboardingApi.list });
+  const list = useServerList({ api: k.api.listPath, call: k.api.list });
 
   const load = list.reload;
   // Live pushes now include customer-portal activity (one `edit` per
   // section the customer saves) — coalesce bursts into one quiet refetch.
-  useLiveChannel(API_ENDPOINTS.CUSTOMER.INDIVIDUAL.LIST, () => load());
+  useLiveChannel(k.livePath, () => load());
 
 
   const columns = [
     {
       key: "customer_name",
-      label: t("customer:customer"),
+      label: t(k.nameLabel),
       align: "left",
       render: (r) => (
         <div className="text-left">
-          <div className="font-semibold">{r.customer_name || "-"}</div>
+          <div className="font-semibold">{nameOf(r) || "-"}</div>
           <div className="text-[11px] text-muted-foreground">{r.email || r.phone_number}</div>
           <InstitutionOnly>{r.inst_profile_name && <div className="text-[11px] text-muted-foreground">{r.inst_profile_name}</div>}</InstitutionOnly>
           <PortalSourceBadge record={r} />
-          <CustomerStateBadges record={r} />
+          {k.withKyc && <CustomerStateBadges record={r} />}
         </div>
       ),
     },
@@ -185,7 +216,7 @@ export function CustomerOnboardingResource() {
         <div className="text-left">
           <div>{r.onboarding_definition_name ?? "-"}</div>
           <div className="text-[11px] text-muted-foreground">{t("customer:stepValue", { step: r.current_step_label || r.current_step || "-" })}</div>
-          {r.kyc_level_name && (
+          {k.withKyc && r.kyc_level_name && (
             <div className="text-[11px] text-muted-foreground">
               {t("customer:kycValue", { level: r.kyc_level_name })}
               {r.kyc_status && <span className={r.kyc_status === "VERIFIED" ? "ml-1 text-emerald-600" : "ml-1 text-amber-600"}>· {r.kyc_status === "VERIFIED" ? t("customer:verified") : t("customer:pendingReview")}</span>}
@@ -208,6 +239,7 @@ export function CustomerOnboardingResource() {
       render: (r) => (
         <div className="flex items-center justify-center gap-1">
         <OnboardingActions
+          kind={kind}
           row={r}
           canAdd={can("Add")}
           canEdit={can("Edit")}
@@ -234,18 +266,18 @@ export function CustomerOnboardingResource() {
 
   return (
     <>
-    {reportRow && <KycReportView api={customerOnboardingApi} body={reportBody(reportRow)} onBack={() => setReportRow(null)} title={t(`kycReport:${audience}Title`)} />}
+    {reportRow && <KycReportView api={k.api} body={reportBody(reportRow)} onBack={() => setReportRow(null)} title={t(`kycReport:${audience}Title`)} />}
     <div className={reportRow ? "hidden" : "pt-1 pb-6"}>
       <div className="mb-3">
-        <PageTitle>{t("customer:customerOnboarding")}</PageTitle>
+        <PageTitle>{t(k.title)}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t("customer:takeAnIndividualCustomerThroughTheInstitution")}
+          {t(k.subtitle(audience))}
         </p>
       </div>
-      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.reference_id} title={t("customer:customerOnboarding")} emptyTitle={t("customer:noOnboardingInProgress")} />
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.reference_id} title={t(k.title)} emptyTitle={t("customer:noOnboardingInProgress")} />
 
       {wizard && (
-        <CustomerOnboardingWizard
+        <k.Wizard
           referenceId={wizard.referenceId}
           forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
