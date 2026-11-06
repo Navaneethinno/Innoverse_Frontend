@@ -119,7 +119,7 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
             <Button variant="ghost" onClick={onClose}>
               {t("cancel")}
             </Button>
-            <Button icon={Send} loading={busy} disabled={!quote} onClick={open}>
+            <Button icon={Send} loading={busy} disabled={!quote} disabledReason={t("common:blockedWaitCalculation")} onClick={open}>
               {t("requestDeposit")}
             </Button>
           </>
@@ -273,7 +273,7 @@ export function OwnerFinder({ onPick }) {
           }}
           placeholder={t("findOwnerPlaceholder")}
         />
-        <Button type="submit" icon={Search} loading={busy} disabled={!query.trim()}>
+        <Button type="submit" icon={Search} loading={busy} disabled={!query.trim()} disabledReason={t("common:blockedFillRequired")}>
           {t("find")}
         </Button>
       </form>

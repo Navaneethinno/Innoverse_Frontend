@@ -142,7 +142,7 @@ function SourceForm({ source, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -421,7 +421,7 @@ function SftpForm({ profile, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -519,7 +519,7 @@ function SftpDetail({ profile, onClose, onEdit, onChanged }) {
               <Field label={t("folder")} className="w-64">
                 <input className={`${inputClass} font-mono`} value={dir} onChange={(e) => setDir(e.target.value)} />
               </Field>
-              <Button size="sm" variant="secondary" icon={Plug} loading={testing} disabled={!dir.startsWith("/")} onClick={() => void runTest()}>
+              <Button size="sm" variant="secondary" icon={Plug} loading={testing} disabled={!dir.startsWith("/")} disabledReason={t("common:blockedFolderPath")} onClick={() => void runTest()}>
                 {t("test")}
               </Button>
             </div>
@@ -624,7 +624,7 @@ function DecimalsDialog({ currency, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={value === "" || Number(value) > 6} onClick={() => void save()}>
+          <Button loading={saving} disabled={value === "" || Number(value) > 6} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>

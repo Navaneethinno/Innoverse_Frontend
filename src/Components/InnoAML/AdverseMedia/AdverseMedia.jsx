@@ -909,7 +909,7 @@ function RelationReview({ r, search, onChange }) {
             {decision && (
               <div className="flex gap-1.5">
                 <input autoFocus className="min-w-0 flex-1 rounded-lg border border-border px-2 py-1 text-xs" maxLength={2000} placeholder={t("mediaComment")} value={comment} onChange={(e) => setComment(e.target.value)} />
-                <Button size="sm" loading={busy} disabled={!comment.trim()} onClick={async () => (await run(() => amlMediaReviewApi.propose({ search_id: search.id, decisions: [{ relation_id: r.id, decision, comment: comment.trim() }] }))) && (setDecision(""), setComment(""))}>
+                <Button size="sm" loading={busy} disabled={!comment.trim()} disabledReason={t("common:blockedFillRequired")} onClick={async () => (await run(() => amlMediaReviewApi.propose({ search_id: search.id, decisions: [{ relation_id: r.id, decision, comment: comment.trim() }] }))) && (setDecision(""), setComment(""))}>
                   {t("mediaPropose")}
                 </Button>
               </div>
@@ -1281,7 +1281,7 @@ function ResultView({ search, onChange }) {
           <span className="text-xs font-bold">{t("mediaPickedN", { count: picked.length })}</span>
           <FilterSelect className="w-44" size="sm" value={decision} onChange={setDecision} options={["NOT_RELEVANT", "RELEVANT"].map((d) => ({ value: d, label: t(`mediaReview_${d}`) }))} />
           <input className="min-w-[12rem] flex-1 rounded-lg border border-border px-2.5 py-1.5 text-xs" placeholder={t("mediaComment")} maxLength={2000} value={comment} onChange={(e) => setComment(e.target.value)} />
-          <Button size="sm" loading={busy} disabled={!comment.trim()} onClick={() => void propose()}>
+          <Button size="sm" loading={busy} disabled={!comment.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => void propose()}>
             {t("mediaPropose")}
           </Button>
         </div>

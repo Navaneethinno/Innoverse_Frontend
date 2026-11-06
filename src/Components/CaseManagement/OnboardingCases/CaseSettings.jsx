@@ -134,8 +134,8 @@ export function CaseSettings({ onBack }) {
                 {can("Authorize") && !ownPending && (
                   <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-end">
                     <input value={narration} onChange={(e) => setNarration(e.target.value)} placeholder={t("narration")} className={inputClass} />
-                    <Button variant="secondary" size="sm" icon={X} disabled={!narration.trim()} loading={busy} onClick={() => void run("deauth", { narration: narration.trim() })}>{t("rejectChange")}</Button>
-                    <Button size="sm" icon={Check} disabled={!narration.trim()} loading={busy} onClick={() => void run("auth", { narration: narration.trim() })}>{t("authoriseChange")}</Button>
+                    <Button variant="secondary" size="sm" icon={X} disabled={!narration.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => void run("deauth", { narration: narration.trim() })}>{t("rejectChange")}</Button>
+                    <Button size="sm" icon={Check} disabled={!narration.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => void run("auth", { narration: narration.trim() })}>{t("authoriseChange")}</Button>
                   </div>
                 )}
                 {ownPending && <p className="mt-2 text-xs text-amber-800">{t("ownChangePending")}</p>}
@@ -195,7 +195,7 @@ export function CaseSettings({ onBack }) {
                   {t("narration")}
                   <input value={narration} onChange={(e) => setNarration(e.target.value)} className={inputClass} placeholder={t("narrationPlaceholder")} />
                 </label>
-                <Button icon={Send} disabled={!changed} loading={busy} onClick={propose}>{t("proposeChange")}</Button>
+                <Button icon={Send} disabled={!changed} disabledReason={t("common:blockedNoChanges")} loading={busy} onClick={propose}>{t("proposeChange")}</Button>
               </div>
             )}
           </div>

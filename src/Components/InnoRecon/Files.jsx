@@ -146,7 +146,7 @@ function UploadDialog({ onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || (source && !source.name_gives_date && !businessDate)} onClick={() => void upload()}>
+          <Button icon={FileUp} loading={busy} disabled={!sourceId || !file || (source && !source.name_gives_date && !businessDate)} disabledReason={t("common:blockedFillRequired")} onClick={() => void upload()}>
             {t("upload")}
           </Button>
         </>
@@ -202,7 +202,7 @@ function GenerateDialog({ onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Wand2} loading={busy} disabled={!sourceId || !date} onClick={() => void generate()}>
+          <Button icon={Wand2} loading={busy} disabled={!sourceId || !date} disabledReason={t("common:blockedFillRequired")} onClick={() => void generate()}>
             {t("generate")}
           </Button>
         </>

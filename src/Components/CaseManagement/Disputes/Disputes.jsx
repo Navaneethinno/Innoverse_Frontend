@@ -113,7 +113,7 @@ function RaiseDisputeDialog({ onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button disabled={!ready} loading={busy} onClick={save}>
+          <Button disabled={!ready} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={save}>
             {t("raiseDispute")}
           </Button>
         </>

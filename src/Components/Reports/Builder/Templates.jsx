@@ -236,14 +236,14 @@ export function SaveTemplateDialog({ open, onClose, definition, current, onSaved
             {t("cancel")}
           </Button>
           {canAdd && (
-            <Button variant={owner ? "secondary" : "primary"} size="sm" disabled={invalid} loading={busy === "add"} onClick={() => save(true)}>
+            <Button variant={owner ? "secondary" : "primary"} size="sm" disabled={invalid} disabledReason={t("common:blockedFillRequired")} loading={busy === "add"} onClick={() => save(true)}>
               {t(owner ? "saveAsNew" : "save")}
             </Button>
           )}
           {owner && (
             <Button
               size="sm"
-              disabled={invalid}
+              disabled={invalid} disabledReason={t("common:blockedFillRequired")}
               loading={busy === "edit"}
               onClick={() => save(false)}
             >

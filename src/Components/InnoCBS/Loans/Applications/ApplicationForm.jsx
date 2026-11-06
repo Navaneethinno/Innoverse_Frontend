@@ -274,7 +274,7 @@ export function ApplicationForm({ application, onClose, onSaved }) {
             <Button variant="ghost" onClick={onClose}>
               {t("cancel")}
             </Button>
-            <Button icon={Send} loading={busy} disabled={!quote} onClick={save}>
+            <Button icon={Send} loading={busy} disabled={!quote} disabledReason={t("common:blockedWaitCalculation")} onClick={save}>
               {application ? t("saveApplication") : t("submitApplication")}
             </Button>
           </>

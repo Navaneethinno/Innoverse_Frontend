@@ -187,7 +187,7 @@ function SectionFormModal({ record, library, vocabulary, readOnly, onClose, onSa
             {readOnly ? t("common:close") : t("common:cancel")}
           </Button>
           {!readOnly && (
-            <Button disabled={!canSave || busy} onClick={() => void save()} loading={busy}>
+            <Button disabled={!canSave || busy} disabledReason={!canSave ? t("common:blockedFillRequired") : undefined} onClick={() => void save()} loading={busy}>
               {t("common:save")}
             </Button>
           )}

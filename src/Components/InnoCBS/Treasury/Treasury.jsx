@@ -280,7 +280,7 @@ function MovementDetail({ id, onClose, onChanged }) {
               <Button variant="ghost" onClick={() => setDialog(null)}>
                 {t("cancel")}
               </Button>
-              <Button loading={busy} disabled={counted === ""} onClick={() => void act("receive", { received_amount: counted })}>
+              <Button loading={busy} disabled={counted === ""} disabledReason={t("common:blockedFillRequired")} onClick={() => void act("receive", { received_amount: counted })}>
                 {t("receive")}
               </Button>
             </>
@@ -377,7 +377,7 @@ function MovementForm({ onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("request")}
           </Button>
         </>

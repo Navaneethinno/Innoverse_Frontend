@@ -117,7 +117,7 @@ export function ScheduledJobs() {
                     {t("runs")}
                   </Button>
                   {edit && (
-                    <Button variant="outline" size="sm" icon={Play} disabled={!job.enabled || job.running || Boolean(job.run_requested_at)} loading={busy === job.code} title={job.enabled ? undefined : t("switchOnFirst")} onClick={() => void call("run", { code: job.code })}>
+                    <Button variant="outline" size="sm" icon={Play} disabled={!job.enabled || job.running || Boolean(job.run_requested_at)} disabledReason={t("common:blockedJobUnavailable")} loading={busy === job.code} title={job.enabled ? undefined : t("switchOnFirst")} onClick={() => void call("run", { code: job.code })}>
                       {t("runNow")}
                     </Button>
                   )}

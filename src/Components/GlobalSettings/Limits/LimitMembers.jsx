@@ -145,14 +145,14 @@ export function LimitMembers({ group, canMove, onClose }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm">{t("moveSelected", { count: selected.size })}</span>
               <FilterSelect className="min-w-[200px] flex-1" value={target} onChange={setTarget} options={[{ value: "", label: t("pickGroup") }, ...otherGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})${g.is_default ? ` · ${t("default")}` : ""}` }))]} />
-              <Button size="sm" disabled={busy || !selected.size || !target} onClick={() => void move([...selected], target)}>
+              <Button size="sm" disabled={busy || !selected.size || !target} disabledReason={(!selected.size || !target) ? t("common:blockedSelectRows") : undefined} onClick={() => void move([...selected], target)}>
                 {busy ? <Spinner size={12} /> : <ArrowRightLeft size={13} />} {t("move")}
               </Button>
             </div>
             <div className="border-t pt-3">
               <p className="mb-1.5 text-xs text-muted-foreground">{t("moveInHint", { name: group.name ?? group.code })}</p>
               <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder={t("referenceIdsPlaceholder")} className="min-h-20 w-full rounded-lg border bg-white/70 p-2 font-mono text-xs" />
-              <Button disabled={busy || !pastedIds.length || Number(group.status) !== 1} onClick={() => void move(pastedIds, group.id)} variant="outline" size="xs" className="mt-2 flex">
+              <Button disabled={busy || !pastedIds.length || Number(group.status) !== 1} disabledReason={(!pastedIds.length || Number(group.status) !== 1) ? t("common:blockedFillRequired") : undefined} onClick={() => void move(pastedIds, group.id)} variant="outline" size="xs" className="mt-2 flex">
                 <ArrowRightLeft size={13} /> {t("moveInN", { count: pastedIds.length })}
               </Button>
             </div>

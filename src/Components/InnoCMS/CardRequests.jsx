@@ -238,7 +238,7 @@ function AcceptRequest({ request, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!ready} onClick={save}>
+          <Button icon={CheckCircle2} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={save}>
             {t("accept")}
           </Button>
         </>
@@ -332,7 +332,7 @@ function NewCardRequest({ options, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim())} onClick={send}>
+          <Button icon={CheckCircle2} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim())} disabledReason={t("common:blockedFillRequired")} onClick={send}>
             {t("requestCard")}
           </Button>
         </>

@@ -219,7 +219,7 @@ export function ReportBuilder() {
               variant="secondary"
               size="sm"
               icon={Save}
-              disabled={!definition || Boolean(problem && problem !== "incomplete")}
+              disabled={!definition || Boolean(problem && problem !== "incomplete")} disabledReason={t("common:blockedFillRequired")}
               onClick={() => setDialog("save")}
             >
               {t("saveReport")}
@@ -436,7 +436,7 @@ export function ReportBuilder() {
                     size="sm"
                     variant="secondary"
                     icon={Plus}
-                    disabled={!sortOptions.length}
+                    disabled={!sortOptions.length} disabledReason={t("common:blockedNothingToSort")}
                     onClick={() => set({ sort: [...state.sort, newSort(sortOptions[0].value)] })}
                   >
                     {t("addSort")}
@@ -446,7 +446,7 @@ export function ReportBuilder() {
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
                 <div className="flex items-center gap-3">
-                  <Button icon={Play} disabled={Boolean(problem)} loading={running} onClick={run}>
+                  <Button icon={Play} disabled={Boolean(problem)} disabledReason={t("common:blockedFillRequired")} loading={running} onClick={run}>
                     {t("run")}
                   </Button>
                   {problem && (

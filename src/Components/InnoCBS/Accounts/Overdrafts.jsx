@@ -222,7 +222,7 @@ function DecideOverdraft({ verb, od, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button variant={verb === "auth" ? "primary" : "danger"} loading={busy} disabled={needsNote && !narration.trim()} onClick={() => void run()}>
+          <Button variant={verb === "auth" ? "primary" : "danger"} loading={busy} disabled={needsNote && !narration.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => void run()}>
             {t(`odVerb_${verb}`)}
           </Button>
         </>
@@ -272,7 +272,7 @@ function RequestOverdraft({ acctNum, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("requestOverdraft")}
           </Button>
         </>

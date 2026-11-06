@@ -97,7 +97,7 @@ export function OpenAccount({ entity: given, onClose, onDone }) {
             <Button variant="ghost" onClick={onClose}>
               {t("common:cancel")}
             </Button>
-            <Button type="submit" form="open-account-form" icon={PlusCircle} loading={busy} disabled={!productId || !reason.trim()}>
+            <Button type="submit" form="open-account-form" icon={PlusCircle} loading={busy} disabled={!productId || !reason.trim()} disabledReason={t("common:blockedFillRequired")}>
               {t("openAccount")}
             </Button>
           </div>

@@ -4,6 +4,22 @@
 // (Services/Translation/EnglishTranslation.json etc.) rather than the
 // original single inline `resources` object holding every language.
 export const common = {
+  // Why a button is blocked, for the hover hint.
+  blockedNeedsInstitution: "Choose an institution first.",
+  blockedFillRequired: "Fill in the required fields first.",
+  blockedNoChanges: "Nothing has changed yet.",
+  blockedSelectRows: "Select at least one row first.",
+  blockedWaitCalculation: "Waiting for the calculation.",
+  blockedLimitReached: "The limit is reached.",
+  blockedLastOne: "The last one can't be removed.",
+  blockedJobUnavailable: "The job is switched off or already running.",
+  blockedFixFileErrors: "Fix the errors in the file first.",
+  blockedNothingToDownload: "There are no records to download.",
+  blockedNothingToSettle: "There is nothing to settle.",
+  blockedTillClose: "Enter an amount. A till with pending transfers can't be closed.",
+  blockedFolderPath: "The folder must start with /.",
+  blockedParallelRange: "Choose a number from 1 to 8.",
+  blockedNothingToSort: "There is nothing to sort by yet.",
   orDropHere: "or drop it here",
   fileTypeRefused: "This file type isn't accepted here ({{accept}}).",
   actorProposedBy: "Proposed by",

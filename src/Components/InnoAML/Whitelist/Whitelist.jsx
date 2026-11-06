@@ -46,7 +46,7 @@ function RenewDialog({ row, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy} disabled={!form.comment.trim() || !form.expires_on} onClick={() => onSave({ id: row.id, comment: form.comment.trim(), evidence: form.evidence.trim(), expires_on: form.expires_on })}>
+          <Button loading={busy} disabled={!form.comment.trim() || !form.expires_on} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave({ id: row.id, comment: form.comment.trim(), evidence: form.evidence.trim(), expires_on: form.expires_on })}>
             {t("aml:submitForApproval")}
           </Button>
         </>
@@ -105,7 +105,7 @@ function AddEntryDialog({ busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button type="submit" form="wl-add-form" loading={busy} disabled={!valid}>
+          <Button type="submit" form="wl-add-form" loading={busy} disabled={!valid} disabledReason={t("common:blockedFillRequired")}>
             {t("aml:submitForApproval")}
           </Button>
         </>

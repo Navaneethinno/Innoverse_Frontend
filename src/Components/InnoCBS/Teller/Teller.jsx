@@ -371,7 +371,7 @@ function TillForm({ till, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!ready} onClick={() => void save()}>
+          <Button loading={saving} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -1072,7 +1072,7 @@ function CountDialog({ verb, till, onClose, onDone }) {
           </Button>
           <Button
             loading={busy}
-            disabled={amount === "" || (verb === "close" && pending > 0)}
+            disabled={amount === "" || (verb === "close" && pending > 0)} disabledReason={t("common:blockedTillClose")}
             variant={verb === "close" ? "danger" : "primary"}
             onClick={() => void save()}
           >
@@ -1283,7 +1283,7 @@ function CounterDialog({ kind, till, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t(`money_${kind}`)}
           </Button>
         </>
@@ -1393,7 +1393,7 @@ function TransferDialog({ initialKind, till, vault, openTills, onClose, onDone }
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t(`request_${kind}`)}
           </Button>
         </>
@@ -2249,7 +2249,7 @@ function IssueDialog({ vault, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("giveCash")}
           </Button>
         </>

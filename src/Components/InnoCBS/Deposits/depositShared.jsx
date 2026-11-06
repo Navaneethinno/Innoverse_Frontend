@@ -92,7 +92,7 @@ export function NarrationDialog({ title, hint, confirmLabel, variant = "primary"
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant={variant} loading={busy} disabled={required && !narration.trim()} onClick={() => onSave(narration.trim())}>
+          <Button variant={variant} loading={busy} disabled={required && !narration.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave(narration.trim())}>
             {confirmLabel}
           </Button>
         </>

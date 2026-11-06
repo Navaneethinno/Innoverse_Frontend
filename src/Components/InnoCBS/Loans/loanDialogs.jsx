@@ -119,7 +119,7 @@ export function OneFieldDialog({
           <Button
             variant={danger ? "danger" : "primary"}
             loading={busy}
-            disabled={!value.trim()}
+            disabled={!value.trim()} disabledReason={t("common:blockedFillRequired")}
             onClick={() => onSave(value.trim())}
           >
             {title}
@@ -183,7 +183,7 @@ export function FormDialog({
           <Button
             variant={danger ? "danger" : "primary"}
             loading={busy}
-            disabled={missing || Boolean(extra)}
+            disabled={missing || Boolean(extra)} disabledReason={extra || t("common:blockedFillRequired")}
             onClick={() => onSave(toBody(form))}
           >
             {confirmLabel ?? title}

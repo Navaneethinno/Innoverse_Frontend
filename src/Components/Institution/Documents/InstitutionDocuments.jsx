@@ -122,7 +122,7 @@ export function InstitutionDocuments() {
         list={list}
         actions={
           can("Add") && (
-            <Button disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", doc: null })} size="xs" className="flex">
+            <Button disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setScreen({ kind: "edit", doc: null })} size="xs" className="flex">
               <Plus size={14} /> {t("newDocument")}
             </Button>
           )
@@ -613,11 +613,11 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
           {t("cancel")}
         </Button>
         {drafting && (
-          <Button variant="secondary" icon={Save} loading={busy} disabled={!draftReady} onClick={() => save(false)}>
+          <Button variant="secondary" icon={Save} loading={busy} disabled={!draftReady} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t("deposits:saveDraft")}
           </Button>
         )}
-        <Button icon={Send} loading={busy} disabled={!submitReady} onClick={() => save(true)}>
+        <Button icon={Send} loading={busy} disabled={!submitReady} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
           {drafting ? t("deposits:submitForApproval") : t("proposeChanges")}
         </Button>
       </div>

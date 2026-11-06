@@ -166,7 +166,7 @@ export function BlacklistImport({ onClose, onImported }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy === "import"} disabled={!ready || Boolean(busy)} onClick={() => void runImport()}>
+          <Button loading={busy === "import"} disabled={!ready || Boolean(busy)} disabledReason={!ready ? t("common:blockedFillRequired") : undefined} onClick={() => void runImport()}>
             {t("aml:importRows", { count: check?.valid ?? 0 })}
           </Button>
         </>
@@ -196,7 +196,7 @@ export function BlacklistImport({ onClose, onImported }) {
         <ColumnSetup columns={columns} format={form.file_format} onChange={setColumn} />
         <div className="space-y-3 md:col-span-2">
           <Button
-            disabled={Boolean(busy) || !form.file_path}
+            disabled={Boolean(busy) || !form.file_path} disabledReason={!form.file_path ? t("common:blockedFillRequired") : undefined}
             onClick={() => void validate()}
             variant="outline" className="flex"
           >

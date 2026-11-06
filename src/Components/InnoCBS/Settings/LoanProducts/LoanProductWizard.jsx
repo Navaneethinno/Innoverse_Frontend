@@ -484,16 +484,16 @@ export function LoanProductWizard({ product, scope, onClose, onSaved }) {
         </Button>
         <div className="flex gap-2">
           {drafting && (
-            <Button variant="secondary" icon={Save} loading={busy} disabled={STEPS[step] === "product" && Boolean(stepProblem)} onClick={async () => (await saveDraft()) && notifications.success(t("draftSaved"))}>
+            <Button variant="secondary" icon={Save} loading={busy} disabled={STEPS[step] === "product" && Boolean(stepProblem)} disabledReason={stepProblem} onClick={async () => (await saveDraft()) && notifications.success(t("draftSaved"))}>
               {t("saveDraft")}
             </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} onClick={() => (setError(""), setStep((s) => s + 1))}>
+            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} disabledReason={stepProblem} onClick={() => (setError(""), setStep((s) => s + 1))}>
               {t("next")}
             </Button>
           ) : (
-            <Button icon={Send} loading={busy} disabled={Boolean(stepProblem)} onClick={finish}>
+            <Button icon={Send} loading={busy} disabled={Boolean(stepProblem)} disabledReason={stepProblem} onClick={finish}>
               {drafting ? t("submitForApproval") : t("proposeChanges")}
             </Button>
           )}
@@ -565,7 +565,7 @@ export function RateCheck({ product, decimals = 2 }) {
           {t("amount")}
           <Field field={{ type: "amount" }} decimals={decimals} value={amount} onChange={setAmount} />
         </label>
-        <Button icon={Calculator} loading={busy} disabled={!termId || !(Number(amount) > 0)} onClick={run}>
+        <Button icon={Calculator} loading={busy} disabled={!termId || !(Number(amount) > 0)} disabledReason={t("common:blockedFillRequired")} onClick={run}>
           {t("getRate")}
         </Button>
       </div>

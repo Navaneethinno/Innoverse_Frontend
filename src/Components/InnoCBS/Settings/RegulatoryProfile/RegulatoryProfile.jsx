@@ -208,7 +208,7 @@ export function RegulatoryProfile() {
             <Button variant="ghost" onClick={() => setForm(null)}>
               {t("cancel")}
             </Button>
-            <Button icon={Send} disabled={Boolean(classProblem)} onClick={() => setDialog("edit")}>
+            <Button icon={Send} disabled={Boolean(classProblem)} disabledReason={classProblem} onClick={() => setDialog("edit")}>
               {t("proposeChanges")}
             </Button>
           </div>

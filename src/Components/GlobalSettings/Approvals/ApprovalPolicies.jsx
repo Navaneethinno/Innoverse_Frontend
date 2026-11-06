@@ -142,7 +142,7 @@ function StepEditor({ step, index, count, options, userSearch, readOnly, onChang
             <Button size="icon" variant="ghost" disabled={index === count - 1} onClick={() => onMove(1)} aria-label={t("moveDown")}>
               <ArrowDown size={14} />
             </Button>
-            <Button size="icon" variant="ghost" disabled={count === 1} onClick={onRemove} aria-label={t("removeLevel")}>
+            <Button size="icon" variant="ghost" disabled={count === 1} disabledReason={t("common:blockedLastOne")} onClick={onRemove} aria-label={t("removeLevel")}>
               <Trash2 size={14} className="text-red-600" />
             </Button>
           </div>
@@ -275,7 +275,7 @@ function PolicyForm({ record, options, readOnly, onClose, onSaved }) {
             {readOnly ? t("common:close") : t("common:cancel")}
           </Button>
           {!readOnly && (
-            <Button disabled={!canSave || busy} loading={busy} onClick={() => void save()}>
+            <Button disabled={!canSave || busy} disabledReason={!canSave ? t("common:blockedFillRequired") : undefined} loading={busy} onClick={() => void save()}>
               {t("submitPolicy")}
             </Button>
           )}

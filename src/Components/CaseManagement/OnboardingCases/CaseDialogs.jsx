@@ -40,7 +40,7 @@ export function AssignDialog({ kase, busy, onClose, onSave }) {
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
           {kase.assigned_to && <Button variant="secondary" loading={busy} onClick={() => onSave(0)}>{t("unassign")}</Button>}
-          <Button disabled={!userId} loading={busy} onClick={() => onSave(Number(userId))}>{t("assign")}</Button>
+          <Button disabled={!userId} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => onSave(Number(userId))}>{t("assign")}</Button>
         </>
       }
     >
@@ -69,7 +69,7 @@ export function NoteDialog({ title, hint, label, busy, onClose, onSave }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          <Button disabled={!body.trim()} loading={busy} onClick={() => onSave(body.trim())}>{t("save")}</Button>
+          <Button disabled={!body.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => onSave(body.trim())}>{t("save")}</Button>
         </>
       }
     >
@@ -99,7 +99,7 @@ export function ProposeDialog({ outcome, openMatches, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
           <Button
             variant={reject ? "danger" : "primary"}
-            disabled={!reason.trim() || (reject && !message.trim())}
+            disabled={!reason.trim() || (reject && !message.trim())} disabledReason={t("common:blockedFillRequired")}
             loading={busy}
             onClick={() => onSave({ outcome, reason: reason.trim(), ...(reject ? { customer_message: message.trim() } : {}) })}
           >
@@ -144,7 +144,7 @@ export function DecideDialog({ proposal, canConfirm, canReturn, busy, onClose, o
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          {canReturn && <Button variant="secondary" loading={busy} disabled={!note.trim()} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
+          {canReturn && <Button variant="secondary" loading={busy} disabled={!note.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave({ confirm: false, note: note.trim() })}>{t("returnProposal")}</Button>}
           {canConfirm && (
             <Button variant={approve ? "primary" : "danger"} loading={busy} onClick={() => onSave({ confirm: true, note: note.trim() })}>
               {amlOutcome ? t("confirmOutcome", { outcome: outcomeWord(t, proposal.outcome) }) : t(approve ? "confirmApprove" : "confirmReject")}
@@ -193,7 +193,7 @@ export function AmlProposeDialog({ allowCleared, allowClose, openMatches, busy, 
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
           <Button
             variant={outcome === "CONFIRMED" ? "danger" : "primary"}
-            disabled={!outcome || !reason.trim()}
+            disabled={!outcome || !reason.trim()} disabledReason={t("common:blockedFillRequired")}
             loading={busy}
             onClick={() =>
               onSave({
@@ -272,7 +272,7 @@ export function CloseCaseDialog({ outcomes, busy, onClose, onSave }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          <Button disabled={!reason.trim()} loading={busy} onClick={() => onSave({ ...(outcome ? { outcome } : {}), reason: reason.trim(), ...(message.trim() ? { customer_message: message.trim() } : {}) })}>
+          <Button disabled={!reason.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => onSave({ ...(outcome ? { outcome } : {}), reason: reason.trim(), ...(message.trim() ? { customer_message: message.trim() } : {}) })}>
             {t("action_closeCase")}
           </Button>
         </>

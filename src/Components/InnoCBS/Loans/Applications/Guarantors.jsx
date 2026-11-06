@@ -141,7 +141,7 @@ export function GuarantorDialog({ currency, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={save}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={save}>
             {t("addGuarantor")}
           </Button>
         </>
@@ -228,7 +228,7 @@ export function BureauCheckDialog({ corporate, busy, onClose, onSave }) {
           </Button>
           <Button
             loading={busy}
-            disabled={!ready}
+            disabled={!ready} disabledReason={t("common:blockedFillRequired")}
             onClick={() =>
               onSave({
                 consent_reference: consent.trim(),

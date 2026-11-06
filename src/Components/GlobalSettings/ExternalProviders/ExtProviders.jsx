@@ -140,7 +140,7 @@ export function ExtProviders() {
   const listActions = (
     <>
       {can("Add") && (
-        <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} onClick={add}>
+        <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={add}>
           {t("setUp")}
         </Button>
       )}
@@ -489,11 +489,11 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
           {t("fees:cancel")}
         </Button>
         {drafting && (
-          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} onClick={() => save(false)}>
+          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t("deposits:saveDraft")}
           </Button>
         )}
-        <Button icon={Send} loading={busy} disabled={!ready} onClick={() => save(true)}>
+        <Button icon={Send} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
           {drafting ? t("deposits:submitForApproval") : t("fees:proposeChanges")}
         </Button>
       </div>

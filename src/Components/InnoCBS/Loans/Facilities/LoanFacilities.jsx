@@ -1267,7 +1267,7 @@ function SettleDialog({ loan, busy, onClose, onSettle }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!quote} onClick={settle}>
+          <Button loading={busy} disabled={!quote} disabledReason={t("common:blockedWaitCalculation")} onClick={settle}>
             {quote ? t("settleFor", { amount: m(quote.total) }) : t("settle")}
           </Button>
         </>

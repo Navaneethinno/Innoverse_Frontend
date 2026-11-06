@@ -174,7 +174,7 @@ export function NewRequest({ preset, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Send} loading={busy} disabled={!plan || !form.reason.trim()} onClick={() => (self ? setConfirming(true) : void send())}>
+          <Button icon={Send} loading={busy} disabled={!plan || !form.reason.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => (self ? setConfirming(true) : void send())}>
             {t(self ? "postNow" : "sendForApproval")}
           </Button>
         </>
@@ -325,7 +325,7 @@ function CardPicker({ value, locked, onChange }) {
     <div className="mt-1.5 grid gap-2">
       <div className="flex gap-2">
         <input type="search" className={inputClass} value={query} placeholder={t("findCardPlaceholder")} onChange={(e) => (setQuery(e.target.value), setRows(null))} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), query.trim() && void find())} />
-        <Button type="button" icon={Search} loading={busy} disabled={!query.trim()} onClick={find}>
+        <Button type="button" icon={Search} loading={busy} disabled={!query.trim()} disabledReason={t("common:blockedFillRequired")} onClick={find}>
           {t("find")}
         </Button>
       </div>

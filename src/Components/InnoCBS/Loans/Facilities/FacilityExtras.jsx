@@ -72,7 +72,7 @@ export function PayoutDialog({ verb, facility, amount, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={cash && !till} onClick={() => void save()}>
+          <Button loading={busy} disabled={cash && !till} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t(verb === "disburse" ? "disburse" : "payNextPart")}
           </Button>
         </>
@@ -286,7 +286,7 @@ export function Tranches({ loan, onChanged }) {
             <Button size="sm" variant="ghost" onClick={() => setPlan(null)}>
               {t("cancel")}
             </Button>
-            <Button size="sm" loading={busy} disabled={plan.length < 2 || plan.length > 24 || Math.abs(total - approved) >= 0.005} onClick={() => void savePlan(plan.map((x) => ({ amount: String(x.amount), condition: String(x.condition ?? "").trim(), proof_required: Boolean(x.proof_required) })))}>
+            <Button size="sm" loading={busy} disabled={plan.length < 2 || plan.length > 24 || Math.abs(total - approved) >= 0.005} disabledReason={t("common:blockedFillRequired")} onClick={() => void savePlan(plan.map((x) => ({ amount: String(x.amount), condition: String(x.condition ?? "").trim(), proof_required: Boolean(x.proof_required) })))}>
               {t("savePlan")}
             </Button>
           </div>
@@ -422,7 +422,7 @@ export function DeceasedDialog({ facility, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant="danger" loading={busy} disabled={!form.deceased_on || form.deceased_on > today || !file} onClick={() => void save()}>
+          <Button variant="danger" loading={busy} disabled={!form.deceased_on || form.deceased_on > today || !file} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("borrowerDeceased")}
           </Button>
         </>
@@ -593,7 +593,7 @@ function ClaimDialog({ loan, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!Number(form.amount) || !(picked || form.party_name.trim())} onClick={() => void save()}>
+          <Button loading={busy} disabled={!Number(form.amount) || !(picked || form.party_name.trim())} disabledReason={t("common:blockedSelectRows")} onClick={() => void save()}>
             {t("addClaim")}
           </Button>
         </>

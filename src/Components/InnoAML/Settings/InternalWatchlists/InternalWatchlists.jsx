@@ -44,7 +44,7 @@ function CheckFile({ row }) {
   };
   return (
     <div className="space-y-2">
-      <Button disabled={busy || !row.file_path} onClick={() => void run()} variant="outline" size="xs" className="flex">
+      <Button disabled={busy || !row.file_path} disabledReason={!row.file_path ? t("common:blockedFillRequired") : undefined} onClick={() => void run()} variant="outline" size="xs" className="flex">
         {busy ? <Spinner size={12} /> : <ListChecks size={13} />} {t("checkFile")}
       </Button>
       <ValidationResult result={result} />

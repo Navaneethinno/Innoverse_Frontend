@@ -269,7 +269,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Send} disabled={!plan || !form.reason.trim()} loading={busy} onClick={save}>
+          <Button icon={Send} disabled={!plan || !form.reason.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={save}>
             {t("submitAdjustment")}
           </Button>
         </>
@@ -287,7 +287,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
             <span className={labelClass}>{t("transactionRrn")}</span>
             <div className="flex gap-2">
               <input className={cn(inputClass, "flex-1 font-mono")} value={rrn} autoFocus onChange={(e) => setRrn(e.target.value.replace(/\s/g, ""))} placeholder="629214001846" />
-              <Button type="submit" variant="secondary" icon={Search} loading={finding} disabled={!rrn.trim()}>
+              <Button type="submit" variant="secondary" icon={Search} loading={finding} disabled={!rrn.trim()} disabledReason={t("common:blockedFillRequired")}>
                 {t("find")}
               </Button>
             </div>

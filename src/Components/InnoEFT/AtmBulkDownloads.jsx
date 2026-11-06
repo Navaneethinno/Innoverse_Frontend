@@ -101,7 +101,7 @@ function StartBatch({ onClose, onStarted }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Power} loading={busy} disabled={!(Number(parallel) >= 1 && Number(parallel) <= 8)} onClick={() => void start()}>
+          <Button icon={Power} loading={busy} disabled={!(Number(parallel) >= 1 && Number(parallel) <= 8)} disabledReason={t("common:blockedParallelRange")} onClick={() => void start()}>
             {t("start")}
           </Button>
         </>

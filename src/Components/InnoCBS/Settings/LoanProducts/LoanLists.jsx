@@ -163,7 +163,7 @@ export function LoanLists({ kind, scope, onClose }) {
               <Button
                 size="sm"
                 loading={busy}
-                disabled={!String(editing.code ?? "").trim() || !String(editing.name ?? "").trim()}
+                disabled={!String(editing.code ?? "").trim() || !String(editing.name ?? "").trim()} disabledReason={t("common:blockedFillRequired")}
                 onClick={() => void run(editing.id ? "edit" : "add", { ...(editing.id ? { id: editing.id, status: Number(editing.status ?? 1) } : {}), ...bodyOf(spec.fields, editing) })}
               >
                 {t("save")}

@@ -258,7 +258,7 @@ function ComponentForm({ verb, onDone }) {
           onChange={setComponent}
           length={LENGTH}
         />
-        <Button loading={busy} disabled={component.length !== LENGTH} onClick={() => void submit()}>
+        <Button loading={busy} disabled={component.length !== LENGTH} disabledReason={t("common:blockedFillRequired")} onClick={() => void submit()}>
           {t(verb === "unlock" ? "enterToUnlock" : "enterComponent")}
         </Button>
       </div>

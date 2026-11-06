@@ -209,7 +209,7 @@ function JournalForm({ prefill, currencies, onClose, onSaved }) {
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button size="sm" icon={Send} loading={busy} disabled={!ready} onClick={save}>
+          <Button size="sm" icon={Send} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={save}>
             {t("submitForApproval")}
           </Button>
         </>
@@ -439,7 +439,7 @@ function Settlement({ currencies, onSettle }) {
       sortable: false,
       render: (r) =>
         onSettle && r.gl_account_id ? (
-          <Button size="sm" variant="secondary" icon={Scale} disabled={!Number(date === todayDate() ? r.current : r.closing)} onClick={() => settle(r, date === todayDate() ? r.current : r.closing)}>
+          <Button size="sm" variant="secondary" icon={Scale} disabled={!Number(date === todayDate() ? r.current : r.closing)} disabledReason={t("common:blockedNothingToSettle")} onClick={() => settle(r, date === todayDate() ? r.current : r.closing)}>
             {t("settle")}
           </Button>
         ) : null,

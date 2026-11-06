@@ -410,7 +410,7 @@ export function ScreeningDetail({ screening, onChange }) {
           )}
           <span className="text-[11px] text-muted-foreground">{t("decisionsSelected", { count: decisions.length })}</span>
           <Button
-            disabled={saving || decisions.length === 0}
+            disabled={saving || decisions.length === 0} disabledReason={decisions.length === 0 ? t("common:blockedFillRequired") : undefined}
             onClick={() => void propose()}
             className="flex"
           >

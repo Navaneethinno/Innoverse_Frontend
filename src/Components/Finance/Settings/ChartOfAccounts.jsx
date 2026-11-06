@@ -396,11 +396,11 @@ function GlForm({ options, gl, parent, onClose, onSaved }) {
             {t("cancel")}
           </Button>
           {!gl && draftable && (
-            <Button variant="secondary" size="sm" icon={Save} loading={busy === "draft"} disabled={!values.name.trim()} onClick={() => save(true)}>
+            <Button variant="secondary" size="sm" icon={Save} loading={busy === "draft"} disabled={!values.name.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
               {t("saveDraft")}
             </Button>
           )}
-          <Button size="sm" icon={Send} loading={busy === "submit"} disabled={!values.name.trim()} onClick={() => save(false)}>
+          <Button size="sm" icon={Send} loading={busy === "submit"} disabled={!values.name.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t(gl && !draftable ? "proposeChange" : "submitForApproval")}
           </Button>
         </>

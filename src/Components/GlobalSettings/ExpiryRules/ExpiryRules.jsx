@@ -213,7 +213,7 @@ export function ExpiryRules() {
                 <Button variant="ghost" onClick={() => setForm(null)}>
                   {t("loans:cancel")}
                 </Button>
-                <Button icon={Send} disabled={Boolean(problem)} onClick={() => setDialog("edit")}>
+                <Button icon={Send} disabled={Boolean(problem)} disabledReason={t("common:blockedFillRequired")} onClick={() => setDialog("edit")}>
                   {t("loans:proposeChanges")}
                 </Button>
               </div>

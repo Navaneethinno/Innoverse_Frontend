@@ -124,10 +124,10 @@ export function UploadDialog({ options, onClose, onSubmitted }) {
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant="secondary" size="sm" icon={ShieldCheck} loading={busy === "validate"} disabled={!file} onClick={validate}>
+          <Button variant="secondary" size="sm" icon={ShieldCheck} loading={busy === "validate"} disabled={!file} disabledReason={t("common:blockedFillRequired")} onClick={validate}>
             {t("validate")}
           </Button>
-          <Button size="sm" icon={Send} loading={busy === "submit"} disabled={!result || result.summary?.errors > 0} onClick={submit}>
+          <Button size="sm" icon={Send} loading={busy === "submit"} disabled={!result || result.summary?.errors > 0} disabledReason={result ? t("common:blockedFixFileErrors") : t("common:blockedFillRequired")} onClick={submit}>
             {t("submitForApproval")}
           </Button>
         </>

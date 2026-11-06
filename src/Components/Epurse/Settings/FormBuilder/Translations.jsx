@@ -456,7 +456,7 @@ function ListEntries({ source, language, scope, canEdit, onClose, onSaved }) {
             {canEdit ? t("common:cancel") : t("common:close")}
           </Button>
           {canEdit && (
-            <Button disabled={!changed.length || saving} loading={saving} onClick={() => void save()}>
+            <Button disabled={!changed.length || saving} disabledReason={!changed.length ? t("common:blockedNoChanges") : undefined} loading={saving} onClick={() => void save()}>
               {changed.length ? t("formBuilder:saveCount", { count: changed.length }) : t("common:save")}
             </Button>
           )}

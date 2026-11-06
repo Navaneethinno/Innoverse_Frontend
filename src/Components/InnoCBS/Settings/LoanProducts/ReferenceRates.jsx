@@ -81,7 +81,7 @@ export function ReferenceRates({ scope, onClose }) {
             <RequiredMark />
             <Field field={{ type: "date" }} value={form.effective_from} onChange={(v) => setForm((f) => ({ ...f, effective_from: v }))} />
           </label>
-          <Button icon={Plus} loading={busy} disabled={!form.code || form.annual_rate === "" || !form.effective_from} onClick={add}>
+          <Button icon={Plus} loading={busy} disabled={!form.code || form.annual_rate === "" || !form.effective_from} disabledReason={t("common:blockedFillRequired")} onClick={add}>
             {t("addRate")}
           </Button>
         </div>

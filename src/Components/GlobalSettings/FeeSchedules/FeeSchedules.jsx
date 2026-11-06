@@ -65,7 +65,7 @@ export function FeeSchedules() {
   const listActions = (
     <>
       {can("Add") && (
-        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "edit", schedule: null })}>
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setScreen({ kind: "edit", schedule: null })}>
           {t("newSchedule")}
         </Button>
       )}
@@ -330,7 +330,7 @@ function FeeQuote({ schedule, options }) {
           </label>
         )}
       </div>
-      <Button icon={Calculator} className="mt-3" loading={busy} disabled={!q.txn_type_id || !(Number(q.amount) > 0)} onClick={run}>
+      <Button icon={Calculator} className="mt-3" loading={busy} disabled={!q.txn_type_id || !(Number(q.amount) > 0)} disabledReason={t("common:blockedFillRequired")} onClick={run}>
         {t("getFee")}
       </Button>
       {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}
@@ -503,11 +503,11 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
           {t("cancel")}
         </Button>
         {drafting && (
-          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} onClick={() => save(false)}>
+          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t("deposits:saveDraft")}
           </Button>
         )}
-        <Button icon={Send} loading={busy} disabled={!ready} onClick={() => save(true)}>
+        <Button icon={Send} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
           {drafting ? t("deposits:submitForApproval") : t("proposeChanges")}
         </Button>
       </div>

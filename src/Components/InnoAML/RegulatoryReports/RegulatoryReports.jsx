@@ -317,7 +317,7 @@ function StrForm({ str, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!ready} onClick={() => void save()}>
+          <Button loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("saveDraft")}
           </Button>
         </>
@@ -440,7 +440,7 @@ function CtrList() {
         <input type="search" className={cn(inputClass, "w-48")} placeholder={t("searchParty")} value={filters.search} onChange={(e) => set("search")(e.target.value)} />
         <div className="ml-auto flex flex-wrap gap-2">
           {can("Edit") && (
-            <Button size="sm" icon={FileCheck2} disabled={!picked.size} onClick={() => setDialog("file")}>
+            <Button size="sm" icon={FileCheck2} disabled={!picked.size} disabledReason={t("common:blockedSelectRows")} onClick={() => setDialog("file")}>
               {t("recordFilingN", { count: picked.size })}
             </Button>
           )}

@@ -158,7 +158,7 @@ function TextDialog({ title, label, hint, busy, onClose, onSave }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          <Button disabled={!text.trim()} loading={busy} onClick={() => onSave(text.trim())}>{t("save")}</Button>
+          <Button disabled={!text.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => onSave(text.trim())}>{t("save")}</Button>
         </>
       }
     >
@@ -230,7 +230,7 @@ export function RequestDialog({ api, referenceId, busy, onClose, onSave }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>{t("cancel")}</Button>
-          <Button disabled={!ready} loading={busy} onClick={() => onSave(body())}>{t("sendRequests", { count: items.length })}</Button>
+          <Button disabled={!ready} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={() => onSave(body())}>{t("sendRequests", { count: items.length })}</Button>
         </>
       }
     >

@@ -115,7 +115,7 @@ function RunSaved({ report, onBack }) {
               <p className="text-xs font-semibold text-muted-foreground">{t("needsFilters")}</p>
               <FilterGroup source={report.source} meta={meta} group={extra} total={extra.rules.length} onChange={setExtra} />
               <div>
-                <Button icon={Play} disabled={!ready} loading={running} onClick={run}>
+                <Button icon={Play} disabled={!ready} disabledReason={t("common:blockedFillRequired")} loading={running} onClick={run}>
                   {t("run")}
                 </Button>
               </div>

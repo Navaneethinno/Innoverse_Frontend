@@ -177,7 +177,7 @@ function IssueCardDialog({ products, onClose, onIssued }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CreditCard} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim())} onClick={issue}>
+          <Button icon={CreditCard} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim())} disabledReason={t("common:blockedFillRequired")} onClick={issue}>
             {t("issue")}
           </Button>
         </>
@@ -413,7 +413,7 @@ function StatusDialog({ card, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant={["ACTIVE"].includes(to) ? "primary" : "danger"} loading={busy} disabled={!reason.trim()} onClick={() => onSave(to, reason.trim())}>
+          <Button variant={["ACTIVE"].includes(to) ? "primary" : "danger"} loading={busy} disabled={!reason.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave(to, reason.trim())}>
             {t("changeTo", { status: cardWord(t, "ops", to) })}
           </Button>
         </>
@@ -478,7 +478,7 @@ function ReissueDialog({ card, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Repeat} loading={busy} disabled={!reason} onClick={send}>
+          <Button icon={Repeat} loading={busy} disabled={!reason} disabledReason={t("common:blockedFillRequired")} onClick={send}>
             {t("reissue")}
           </Button>
         </>

@@ -448,11 +448,11 @@ function MappingEditor({ setup, options, onClose, onSaved }) {
           {t("cancel")}
         </Button>
         {drafting && (
-          <Button variant="secondary" icon={Save} loading={busy === "draft"} disabled={!ready} onClick={() => save(false)}>
+          <Button variant="secondary" icon={Save} loading={busy === "draft"} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t("saveDraft")}
           </Button>
         )}
-        <Button icon={Send} loading={busy === "submit"} disabled={!ready} onClick={() => save(true)}>
+        <Button icon={Send} loading={busy === "submit"} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
           {t(drafting ? "submitForApproval" : "proposeChange")}
         </Button>
       </div>
@@ -498,7 +498,7 @@ function ResolvePanel({ options }) {
         {pick("channel_id", options.channels, "id", (x) => x.name)}
         {PRODUCT_KEYS.filter((k) => showProduct(k)(q)).map((k) => pick(k, options[PRODUCT_LISTS[k]], "id", (x) => x.name))}
       </div>
-      <Button className="mt-3" icon={FlaskConical} loading={busy} disabled={!q.leg || !q.currency_id} onClick={run}>
+      <Button className="mt-3" icon={FlaskConical} loading={busy} disabled={!q.leg || !q.currency_id} disabledReason={t("common:blockedFillRequired")} onClick={run}>
         {t("test")}
       </Button>
       {error && <p className="mt-2 text-xs font-semibold text-red-700">{error}</p>}

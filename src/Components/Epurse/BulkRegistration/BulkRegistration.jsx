@@ -331,7 +331,7 @@ function NewBatch({ onClose, onSaved }) {
 
         <Section title={t("stepFile")}>
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="secondary" size="sm" icon={FileDown} loading={busy === "template"} disabled={!typeId || Boolean(busy)} onClick={downloadTemplate}>
+            <Button variant="secondary" size="sm" icon={FileDown} loading={busy === "template"} disabled={!typeId || Boolean(busy)} disabledReason={!typeId ? t("common:blockedFillRequired") : undefined} onClick={downloadTemplate}>
               {t("downloadTemplate")}
             </Button>
             <label className={cn("flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-1.5 text-xs font-bold text-primary hover:border-primary", !typeId && "pointer-events-none opacity-50")}>
@@ -372,10 +372,10 @@ function NewBatch({ onClose, onSaved }) {
         <Button variant="ghost" onClick={onClose} disabled={Boolean(busy)}>
           {t("cancel")}
         </Button>
-        <Button variant="secondary" icon={ListChecks} loading={busy === "check"} disabled={!typeId || !rows.length || Boolean(busy)} onClick={check}>
+        <Button variant="secondary" icon={ListChecks} loading={busy === "check"} disabled={!typeId || !rows.length || Boolean(busy)} disabledReason={(!typeId || !rows.length) ? t("common:blockedFillRequired") : undefined} onClick={check}>
           {checked ? t("checkAgain") : t("checkRows")}
         </Button>
-        <Button icon={Send} loading={busy === "add"} disabled={!clean || !cardReady || Boolean(busy)} onClick={submit}>
+        <Button icon={Send} loading={busy === "add"} disabled={!clean || !cardReady || Boolean(busy)} disabledReason={(!clean || !cardReady) ? t("common:blockedFillRequired") : undefined} onClick={submit}>
           {t("submitBatch", { count: rows.length })}
         </Button>
       </div>

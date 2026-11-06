@@ -244,7 +244,7 @@ function GroupForm({ group, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!ready} onClick={() => void save()}>
+          <Button loading={saving} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -524,7 +524,7 @@ function AddMember({ onClose, onSave }) {
           </Button>
           <Button
             loading={busy}
-            disabled={!account}
+            disabled={!account} disabledReason={t("common:blockedFillRequired")}
             onClick={async () => {
               setBusy(true);
               await onSave({ entity_type: account.owner.kind, entity_id: account.owner.id, role });
@@ -741,7 +741,7 @@ function CollectionSheet({ group, onCollected }) {
               <Button
                 icon={HandCoins}
                 loading={busy}
-                disabled={!payments.length || (source === "TILL" && !tillId)}
+                disabled={!payments.length || (source === "TILL" && !tillId)} disabledReason={t("common:blockedFillRequired")}
                 onClick={() => void collect()}
               >
                 {t("collectAll")}

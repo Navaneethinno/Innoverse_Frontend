@@ -82,7 +82,7 @@ export function CardStock() {
         </div>
         <div className="flex gap-2">
           {can("Edit") && (
-            <Button size="sm" icon={UserCheck} disabled={!picked.length} onClick={() => setAssigning(true)}>
+            <Button size="sm" icon={UserCheck} disabled={!picked.length} disabledReason={t("common:blockedSelectRows")} onClick={() => setAssigning(true)}>
               {t("handOverN", { count: picked.length })}
             </Button>
           )}
@@ -199,7 +199,7 @@ function IssueFromStock({ stock, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CreditCard} loading={busy} disabled={!holder} onClick={send}>
+          <Button icon={CreditCard} loading={busy} disabled={!holder} disabledReason={t("common:blockedFillRequired")} onClick={send}>
             {t("issue")}
           </Button>
         </>

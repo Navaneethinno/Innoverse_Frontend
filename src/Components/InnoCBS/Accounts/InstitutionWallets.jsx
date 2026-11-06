@@ -129,7 +129,7 @@ function OpenWallet({ onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy} disabled={!form.acct_product_id} onClick={save}>
+          <Button loading={busy} disabled={!form.acct_product_id} disabledReason={t("common:blockedFillRequired")} onClick={save}>
             {t("openWallet")}
           </Button>
         </>

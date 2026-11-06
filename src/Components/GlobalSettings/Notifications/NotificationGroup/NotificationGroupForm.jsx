@@ -80,7 +80,7 @@ export function NotificationGroupForm({ editing, onClose, onSaved }) {
               <p className="text-[11px] text-muted-foreground">{t("notification:recipientsHint")}</p>
             </div>
             <Button
-              disabled={form.members.length >= 100}
+              disabled={form.members.length >= 100} disabledReason={t("common:blockedLimitReached")}
               onClick={() => setForm({ ...form, members: [...form.members, emptyMember()] })}
               variant="outline" size="xs" className="flex"
             >

@@ -52,7 +52,7 @@ export function RaiseCaseDialog({ target, subtitle, onClose, onRaised }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy} disabled={!form.reason.trim()} onClick={() => void raise()}>
+          <Button loading={busy} disabled={!form.reason.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => void raise()}>
             {t("cases:raiseCase")}
           </Button>
         </>

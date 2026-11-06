@@ -192,7 +192,7 @@ function RateQuote({ product }) {
           <DateInput className={cn(inputClass, "mt-1")} value={onDate} onChange={(e) => setOnDate(e.target.value)} />
         </label>
         <div className="flex items-end">
-          <Button type="submit" icon={Calculator} loading={busy} disabled={!tenorId || !(Number(principal) > 0)} className="w-full">
+          <Button type="submit" icon={Calculator} loading={busy} disabled={!tenorId || !(Number(principal) > 0)} disabledReason={t("common:blockedFillRequired")} className="w-full">
             {t("getRate")}
           </Button>
         </div>

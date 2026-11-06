@@ -536,12 +536,12 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
             </Button>
           )}
           {!readOnly && (
-            <Button variant="secondary" disabled={Boolean(busy) || !ready} onClick={() => void saveDraft()} loading={Boolean(busy === "draft")}>
+            <Button variant="secondary" disabled={Boolean(busy) || !ready} disabledReason={!ready ? t("common:blockedFillRequired") : undefined} onClick={() => void saveDraft()} loading={Boolean(busy === "draft")}>
               {t("onboarding:saveDraft")}
             </Button>
           )}
           {!isLast ? (
-            <Button disabled={!ready} onClick={() => setStepIndex((i) => i + 1)}>
+            <Button disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => setStepIndex((i) => i + 1)}>
               {t("common:next")}
             </Button>
           ) : (

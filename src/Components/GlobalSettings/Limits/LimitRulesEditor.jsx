@@ -449,13 +449,13 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
           </Button>
           {!readOnly && (
             <>
-              <Button variant="secondary" disabled={Boolean(busy) || !lists} onClick={() => void save()} loading={Boolean(busy === "save")}>
+              <Button variant="secondary" disabled={Boolean(busy) || !lists} disabledReason={!lists ? t("common:blockedFillRequired") : undefined} onClick={() => void save()} loading={Boolean(busy === "save")}>
                 {t("saveDraft")}
               </Button>
-              <Button variant="secondary" disabled={Boolean(busy) || !lists} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
+              <Button variant="secondary" disabled={Boolean(busy) || !lists} disabledReason={!lists ? t("common:blockedFillRequired") : undefined} onClick={() => void validate()} loading={Boolean(busy === "validate")}>
                 {t("validate")}
               </Button>
-              <Button disabled={Boolean(busy) || !lists} onClick={() => void submit()} loading={Boolean(busy === "submit")}>
+              <Button disabled={Boolean(busy) || !lists} disabledReason={!lists ? t("common:blockedFillRequired") : undefined} onClick={() => void submit()} loading={Boolean(busy === "submit")}>
                 {status === REJECTED ? t("resubmit") : t("submit")}
               </Button>
             </>

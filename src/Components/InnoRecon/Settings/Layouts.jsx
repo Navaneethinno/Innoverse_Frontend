@@ -108,7 +108,7 @@ function LayoutAdd({ onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -247,10 +247,10 @@ function LayoutEdit({ layout, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button variant="secondary" icon={Eye} disabled={Boolean(parsed.error)} onClick={() => setPreviewing((v) => !v)}>
+          <Button variant="secondary" icon={Eye} disabled={Boolean(parsed.error)} disabledReason={parsed.error} onClick={() => setPreviewing((v) => !v)}>
             {previewing ? t("hidePreview") : t("preview")}
           </Button>
-          <Button loading={saving} disabled={Boolean(parsed.error) || !form.name.trim()} onClick={() => void save()}>
+          <Button loading={saving} disabled={Boolean(parsed.error) || !form.name.trim()} disabledReason={parsed.error || t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -331,7 +331,7 @@ function Preview({ with: using }) {
         <Field label={t("businessDateOptional")}>
           <DateInput className={inputClass} value={businessDate} onChange={(e) => setBusinessDate(e.target.value)} />
         </Field>
-        <Button icon={Eye} loading={busy} disabled={from === "received" ? !fileId : !local} onClick={() => void run()}>
+        <Button icon={Eye} loading={busy} disabled={from === "received" ? !fileId : !local} disabledReason={t("common:blockedFillRequired")} onClick={() => void run()}>
           {t("readIt")}
         </Button>
       </div>

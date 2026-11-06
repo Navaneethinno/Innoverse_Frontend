@@ -189,7 +189,7 @@ export function Simulator({ scope, instProfileId }) {
           </label>
           {select("currency", t("currency"), (options.currencies ?? []).map((c) => ({ value: c.code, label: `${c.code} · ${c.name}` })), t("any"))}
         </div>
-        <Button className="mt-3" icon={Play} loading={busy} disabled={form.direction === "SERVICE" && !form.service} onClick={() => void run()}>
+        <Button className="mt-3" icon={Play} loading={busy} disabled={form.direction === "SERVICE" && !form.service} disabledReason={t("common:blockedFillRequired")} onClick={() => void run()}>
           {t("whereWouldItGo")}
         </Button>
       </Section>

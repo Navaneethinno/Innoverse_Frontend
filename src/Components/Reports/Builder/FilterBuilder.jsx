@@ -377,7 +377,7 @@ export function FilterGroup({ source, meta, group, onChange, onRemove, depth = 1
           size="sm"
           variant="secondary"
           icon={Plus}
-          disabled={full || !firstField}
+          disabled={full || !firstField} disabledReason={t("common:blockedFillRequired")}
           onClick={() =>
             onChange({ ...group, rules: [...group.rules, newCondition(firstField, meta.periods)] })
           }
@@ -389,7 +389,7 @@ export function FilterGroup({ source, meta, group, onChange, onRemove, depth = 1
             size="sm"
             variant="ghost"
             icon={Plus}
-            disabled={full || !firstField}
+            disabled={full || !firstField} disabledReason={t("common:blockedFillRequired")}
             onClick={() =>
               onChange({
                 ...group,

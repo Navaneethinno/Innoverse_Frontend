@@ -172,7 +172,7 @@ function PosPolicyDialog({ canEdit, onClose }) {
             {t("common:cancel")}
           </Button>
           {canEdit && (
-            <Button loading={busy} disabled={!policy || bad} onClick={() => void save()}>
+            <Button loading={busy} disabled={!policy || bad} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
               {t("save")}
             </Button>
           )}
@@ -251,7 +251,7 @@ function TerminalForm({ terminal, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {terminal ? t("save") : t("addTerminal")}
           </Button>
         </>
@@ -412,7 +412,7 @@ function MerchantAcceptor({ merchant, instProfileId }) {
         <input className={`${inputClass} mt-1 w-24 font-mono`} inputMode="numeric" maxLength={4} disabled={!can("Edit")} value={mcc} onChange={(e) => setMcc(e.target.value.replace(/\D/g, ""))} placeholder="5499" />
       </label>
       {can("Edit") && mcc !== (acceptor.mcc ?? "") && (
-        <Button size="sm" variant="secondary" loading={busy} disabled={mcc.length !== 4} onClick={() => void save()}>
+        <Button size="sm" variant="secondary" loading={busy} disabled={mcc.length !== 4} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
           {t("setMcc")}
         </Button>
       )}
@@ -570,7 +570,7 @@ function AssignDialog({ terminal, busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!merchant} onClick={() => onSave(merchant)}>
+          <Button loading={busy} disabled={!merchant} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave(merchant)}>
             {t("terminal_assign")}
           </Button>
         </>

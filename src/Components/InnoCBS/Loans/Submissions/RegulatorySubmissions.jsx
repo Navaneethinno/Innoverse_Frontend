@@ -177,7 +177,7 @@ export function RegulatorySubmissions() {
         <Button
           size="sm"
           icon={Plus}
-          disabled={chooser && !institution}
+          disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")}
           onClick={() => setGenerating(true)}
         >
           {t("generateReport")}
@@ -314,7 +314,7 @@ function SubmissionView({ id, onBack }) {
               variant="outline"
               size="sm"
               icon={Download}
-              disabled={!report.records?.length}
+              disabled={!report.records?.length} disabledReason={t("common:blockedNothingToDownload")}
               onClick={() => downloadCsv(report)}
             >
               {t("exportCsv")}

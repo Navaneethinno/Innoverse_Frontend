@@ -418,7 +418,7 @@ function AlertDetail({ id, onClose, onChanged }) {
               <Button variant="ghost" onClick={() => act("assign", { user_id: 0 })}>
                 {t("unassign")}
               </Button>
-              <Button disabled={!assignee} onClick={() => act("assign", { user_id: assignee.user_id })}>
+              <Button disabled={!assignee} disabledReason={t("common:blockedFillRequired")} onClick={() => act("assign", { user_id: assignee.user_id })}>
                 {t("assign")}
               </Button>
             </>

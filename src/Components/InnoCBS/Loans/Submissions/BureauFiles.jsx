@@ -140,7 +140,7 @@ export function BureauFiles() {
             <Button
               size="sm"
               icon={Plus}
-              disabled={chooser && !institution}
+              disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")}
               onClick={() => setDialog({ kind: "generate" })}
             >
               {t("generateBureauFile")}

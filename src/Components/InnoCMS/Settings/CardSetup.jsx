@@ -75,7 +75,7 @@ export function CardSetupPage({ kind }) {
   const listActions = (
     <>
       {can("Add") && (
-        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "form", record: null })}>
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setScreen({ kind: "form", record: null })}>
           {t(kind.newLabel)}
         </Button>
       )}
@@ -407,11 +407,11 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
             {t("cancel")}
           </Button>
           {drafting && (
-            <Button variant="secondary" icon={Save} loading={busy === "draft"} disabled={Boolean(busy) || Boolean(kind.missing(values, { added, draft: true }))} onClick={run("draft")}>
+            <Button variant="secondary" icon={Save} loading={busy === "draft"} disabled={Boolean(busy) || Boolean(kind.missing(values, { added, draft: true }))} disabledReason={kind.missing(values, { added, draft: true }) ? t("common:blockedFillRequired") : undefined} onClick={run("draft")}>
               {t("saveDraft")}
             </Button>
           )}
-          <Button icon={Send} loading={busy === "save"} disabled={Boolean(busy) || Boolean(missing)} onClick={run("save")}>
+          <Button icon={Send} loading={busy === "save"} disabled={Boolean(busy) || Boolean(missing)} disabledReason={missing ? t("common:blockedFillRequired") : undefined} onClick={run("save")}>
             {drafting ? t("submitForApproval") : t("proposeChanges")}
           </Button>
         </div>

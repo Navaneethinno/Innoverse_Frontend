@@ -395,16 +395,16 @@ export function DepositProductWizard({ product, onClose, onSaved }) {
         </Button>
         <div className="flex gap-2">
           {drafting && (
-            <Button variant="secondary" icon={Save} loading={busy} disabled={!product && !productId} onClick={async () => (await saveDraft()) && notifications.success(t("draftSaved"))}>
+            <Button variant="secondary" icon={Save} loading={busy} disabled={!product && !productId} disabledReason={t("common:blockedFillRequired")} onClick={async () => (await saveDraft()) && notifications.success(t("draftSaved"))}>
               {t("saveDraft")}
             </Button>
           )}
           {step < STEPS.length - 1 ? (
-            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} onClick={next}>
+            <Button icon={ArrowRight} loading={busy} disabled={Boolean(stepProblem)} disabledReason={stepProblem} onClick={next}>
               {t("next")}
             </Button>
           ) : (
-            <Button icon={Send} loading={busy} disabled={Boolean(stepProblem)} onClick={finish}>
+            <Button icon={Send} loading={busy} disabled={Boolean(stepProblem)} disabledReason={stepProblem} onClick={finish}>
               {drafting ? t("submitForApproval") : t("proposeChanges")}
             </Button>
           )}

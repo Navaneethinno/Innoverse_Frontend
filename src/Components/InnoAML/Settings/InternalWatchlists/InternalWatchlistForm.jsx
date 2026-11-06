@@ -154,7 +154,7 @@ export function InternalWatchlistForm({ editing, onClose, onSaved }) {
 
         <div className="space-y-3 md:col-span-2">
           <Button
-            disabled={validating || !form.file_path}
+            disabled={validating || !form.file_path} disabledReason={!form.file_path ? t("common:blockedFillRequired") : undefined}
             onClick={() => void validate()}
             variant="outline" className="flex"
           >

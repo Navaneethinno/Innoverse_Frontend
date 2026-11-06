@@ -79,7 +79,7 @@ export function SetupList({ scope, chooser, institution, onOpen }) {
     { key: "actions", label: t("common:actions"), sortable: false, render: (s) => <RowActions buttons={{ view: true }} onView={() => onOpen({ kind: "view", id: s.id })} /> },
   ];
   const actions = can("Add") && (
-    <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} onClick={add}>
+    <Button size="sm" icon={Plus} loading={opening} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={add}>
       {t("setUp")}
     </Button>
   );
@@ -574,11 +574,11 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           {t("fees:cancel")}
         </Button>
         {drafting && (
-          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} onClick={() => save(false)}>
+          <Button variant="secondary" icon={Save} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(false)}>
             {t("deposits:saveDraft")}
           </Button>
         )}
-        <Button icon={Send} loading={busy} disabled={!ready} onClick={() => save(true)}>
+        <Button icon={Send} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => save(true)}>
           {drafting ? t("deposits:submitForApproval") : t("fees:proposeChanges")}
         </Button>
       </div>

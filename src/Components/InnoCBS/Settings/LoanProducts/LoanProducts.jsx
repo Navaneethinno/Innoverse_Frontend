@@ -79,7 +79,7 @@ export function LoanProducts() {
         {t("loanPurposes")}
       </Button>
       {can("Add") && (
-        <Button size="sm" icon={Plus} disabled={chooser && !institution} onClick={() => setScreen({ kind: "wizard", product: null })}>
+        <Button size="sm" icon={Plus} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setScreen({ kind: "wizard", product: null })}>
           {t("newLoanProduct")}
         </Button>
       )}

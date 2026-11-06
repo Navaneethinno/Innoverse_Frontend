@@ -59,7 +59,7 @@ export function LoadMasterKey({ device, load, onLoaded }) {
           {t("keyComponent")}
           <HexComponentInput className="mt-1" value={component} onChange={setComponent} length={32} />
         </label>
-        <Button size="sm" loading={busy} disabled={component.length !== 32} onClick={() => void submit()}>
+        <Button size="sm" loading={busy} disabled={component.length !== 32} disabledReason={t("common:blockedFillRequired")} onClick={() => void submit()}>
           {t("enterComponent")}
         </Button>
       </div>

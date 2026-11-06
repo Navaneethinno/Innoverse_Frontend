@@ -435,7 +435,7 @@ function TimelineTab({ events, canNote, onNote, busy, fileOf }) {
           <textarea value={note} maxLength={4000} onChange={(e) => setNote(e.target.value)} placeholder={t("notePlaceholder")} className="min-h-20 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary" />
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground">{note.length}/4000</span>
-            <Button size="sm" icon={MessageSquare} disabled={!note.trim()} loading={busy} onClick={async () => (await onNote(note.trim())) && setNote("")}>
+            <Button size="sm" icon={MessageSquare} disabled={!note.trim()} disabledReason={t("common:blockedFillRequired")} loading={busy} onClick={async () => (await onNote(note.trim())) && setNote("")}>
               {t("addNote")}
             </Button>
           </div>
@@ -617,7 +617,7 @@ function ConversationTab({ caseId, api, events, canMessage, busy, onSend }) {
           <textarea dir="auto" value={body} maxLength={4000} onChange={(e) => setBody(e.target.value)} placeholder={t("messagePlaceholder")} className="min-h-20 w-full rounded-xl border border-border bg-card p-3 text-sm outline-none focus:border-primary" />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <span className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" icon={Paperclip} disabled={files.length >= MAX_FILES} onClick={() => picker.current?.click()}>
+              <Button variant="secondary" size="sm" icon={Paperclip} disabled={files.length >= MAX_FILES} disabledReason={t("common:blockedLimitReached")} onClick={() => picker.current?.click()}>
                 {t("attach")}
               </Button>
               <input
@@ -633,7 +633,7 @@ function ConversationTab({ caseId, api, events, canMessage, busy, onSend }) {
               />
               <span className="text-[11px] text-muted-foreground">{t("messageHint")}</span>
             </span>
-            <Button size="sm" icon={Send} disabled={uploading || (!body.trim() && !ready.length)} loading={busy} onClick={() => void send()}>
+            <Button size="sm" icon={Send} disabled={uploading || (!body.trim() && !ready.length)} disabledReason={(!body.trim() && !ready.length) ? t("common:blockedFillRequired") : undefined} loading={busy} onClick={() => void send()}>
               {t("send")}
             </Button>
           </div>

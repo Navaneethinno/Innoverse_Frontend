@@ -367,7 +367,7 @@ function LimitForm({ record, entry, options, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button icon={Send} loading={busy} disabled={invalid || !form.currency_id} onClick={save}>
+          <Button icon={Send} loading={busy} disabled={invalid || !form.currency_id} disabledReason={t("common:blockedFillRequired")} onClick={save}>
             {t("proposeChange")}
           </Button>
         </>

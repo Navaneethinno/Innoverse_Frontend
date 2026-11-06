@@ -165,7 +165,7 @@ export function WhitelistImport({ onClose, onImported }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button loading={busy === "import"} disabled={!check || !(check.ok > 0) || !form.comment.trim() || Boolean(busy)} onClick={() => void run("import")}>
+          <Button loading={busy === "import"} disabled={!check || !(check.ok > 0) || !form.comment.trim() || Boolean(busy)} disabledReason={(!check || !(check.ok > 0) || !form.comment.trim()) ? t("common:blockedFillRequired") : undefined} onClick={() => void run("import")}>
             {t("aml:importRows", { count: check?.ok ?? 0 })}
           </Button>
         </>
@@ -210,7 +210,7 @@ export function WhitelistImport({ onClose, onImported }) {
           </label>
         </fieldset>
         <div className="space-y-3 md:col-span-2">
-          <Button disabled={Boolean(busy) || !form.file_path} onClick={() => void run("validate")} variant="outline" className="flex">
+          <Button disabled={Boolean(busy) || !form.file_path} disabledReason={!form.file_path ? t("common:blockedFillRequired") : undefined} onClick={() => void run("validate")} variant="outline" className="flex">
             {busy === "validate" ? <Spinner size={13} /> : <ListChecks size={14} />} {t("aml:validate")}
           </Button>
           <RowResults result={check} />

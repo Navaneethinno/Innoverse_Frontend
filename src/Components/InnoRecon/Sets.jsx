@@ -137,7 +137,7 @@ function SetForm({ set, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>

@@ -140,7 +140,7 @@ export function ApprovalLimits({ scope }) {
                 <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
                   {t("cancel")}
                 </Button>
-                <Button size="sm" loading={busy} disabled={!Number(editing.maximum_amount) || !(editing.kind === "USER" ? editing.user_id : editing.profile_id)} onClick={() => void saveEditing()}>
+                <Button size="sm" loading={busy} disabled={!Number(editing.maximum_amount) || !(editing.kind === "USER" ? editing.user_id : editing.profile_id)} disabledReason={t("common:blockedFillRequired")} onClick={() => void saveEditing()}>
                   {t("save")}
                 </Button>
               </span>
@@ -162,7 +162,7 @@ export function ApprovalLimits({ scope }) {
               <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("boardFromHint")}</span>
             </label>
             {can("Edit") && (
-              <Button size="sm" className="justify-self-start" loading={busy} disabled={!Number(board) || board === boardRow?.maximum_amount} onClick={() => void run("save", { kind: "BOARD", maximum_amount: String(board) })}>
+              <Button size="sm" className="justify-self-start" loading={busy} disabled={!Number(board) || board === boardRow?.maximum_amount} disabledReason={t("common:blockedFillRequired")} onClick={() => void run("save", { kind: "BOARD", maximum_amount: String(board) })}>
                 {t("save")}
               </Button>
             )}

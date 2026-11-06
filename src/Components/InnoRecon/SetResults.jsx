@@ -87,10 +87,10 @@ export function SetRuns({ set, onChanged }) {
             <Field label={t("businessDate")} required>
               <DateInput className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
-            <Button icon={Play} loading={busy} disabled={!date || busy} onClick={() => void start()}>
+            <Button icon={Play} loading={busy} disabled={!date || busy} disabledReason={!date ? t("common:blockedFillRequired") : undefined} onClick={() => void start()}>
               {busy ? t("running") : t("run")}
             </Button>
-            <Button variant="secondary" icon={Stamp} disabled={!date} onClick={() => setSigningOff(true)}>
+            <Button variant="secondary" icon={Stamp} disabled={!date} disabledReason={t("common:blockedFillRequired")} onClick={() => setSigningOff(true)}>
               {t("signOff")}
             </Button>
           </div>
@@ -310,12 +310,12 @@ export function SetUnmatched({ set }) {
         <div className={cn("flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2", picked.length ? "border-primary bg-[var(--primary-light)]" : "border-border")}>
           <span className="text-xs font-bold">{t("pickedCount", { count: picked.length })}</span>
           {can("Add") && bulk.map(([kind, Icon, ok]) => (
-            <Button key={kind} size="sm" variant="secondary" icon={Icon} disabled={!ok} onClick={() => setDialog({ kind })}>
+            <Button key={kind} size="sm" variant="secondary" icon={Icon} disabled={!ok} disabledReason={t("common:blockedFillRequired")} onClick={() => setDialog({ kind })}>
               {t(`kind_${kind}`)}
             </Button>
           ))}
           {can("Edit") && (
-            <Button size="sm" variant="secondary" icon={UserPlus} disabled={!picked.length} onClick={() => setDialog({ kind: "assign" })}>
+            <Button size="sm" variant="secondary" icon={UserPlus} disabled={!picked.length} disabledReason={t("common:blockedSelectRows")} onClick={() => setDialog({ kind: "assign" })}>
               {t("assign")}
             </Button>
           )}
@@ -477,7 +477,7 @@ function RequestDialog({ set, kind, target, group, records, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!valid} onClick={() => void send()}>
+          <Button loading={busy} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void send()}>
             {t("sendForApproval")}
           </Button>
         </>
@@ -555,7 +555,7 @@ function AssignDialog({ set, recordIds, onClose, onDone }) {
           <Button variant="secondary" loading={busy} onClick={() => void save("")}>
             {t("takeBack")}
           </Button>
-          <Button loading={busy} disabled={!assignee} onClick={() => void save(assignee)}>
+          <Button loading={busy} disabled={!assignee} disabledReason={t("common:blockedFillRequired")} onClick={() => void save(assignee)}>
             {t("assign")}
           </Button>
         </>
@@ -616,7 +616,7 @@ function NotesDialog({ set, record, onClose, onChanged }) {
         <Field label={t("addNote")}>
           <textarea className={`${inputClass} min-h-16`} maxLength={500} value={text} onChange={(e) => setText(e.target.value)} />
         </Field>
-        <Button className="justify-self-end" loading={busy} disabled={!text.trim()} onClick={() => void add()}>
+        <Button className="justify-self-end" loading={busy} disabled={!text.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => void add()}>
           {t("addNote")}
         </Button>
       </div>

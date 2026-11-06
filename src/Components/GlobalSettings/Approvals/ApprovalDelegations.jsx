@@ -78,7 +78,7 @@ function DelegationForm({ users, canDelegateOthers, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button disabled={!ok || busy} loading={busy} onClick={() => void save()}>
+          <Button disabled={!ok || busy} disabledReason={!ok ? t("common:blockedFillRequired") : undefined} loading={busy} onClick={() => void save()}>
             {t("submitPolicy")}
           </Button>
         </>
@@ -263,7 +263,7 @@ function SupervisorsTab({ can, users }) {
                 {t("common:cancel")}
               </Button>
               <Button
-                disabled={!editing.userid || !editing.supervisor_userid || editing.userid === editing.supervisor_userid || busy}
+                disabled={!editing.userid || !editing.supervisor_userid || editing.userid === editing.supervisor_userid || busy} disabledReason={(!editing.userid || !editing.supervisor_userid || editing.userid === editing.supervisor_userid) ? t("common:blockedFillRequired") : undefined}
                 loading={busy}
                 onClick={() => void act(() => supervisorApi.set({ userid: Number(editing.userid), supervisor_userid: Number(editing.supervisor_userid) }), () => setEditing(null))}
               >

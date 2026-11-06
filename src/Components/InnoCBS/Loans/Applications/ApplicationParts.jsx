@@ -230,7 +230,7 @@ function UploadDocument({ app, preset, required, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={busy} disabled={!file || !code || (!known && !name.trim())} onClick={() => void save()}>
+          <Button loading={busy} disabled={!file || !code || (!known && !name.trim())} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("upload")}
           </Button>
         </>
@@ -317,7 +317,7 @@ export function ForwardDialog({ app, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Forward} loading={busy} disabled={!to || !note.trim()} onClick={() => void save()}>
+          <Button icon={Forward} loading={busy} disabled={!to || !note.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("forward")}
           </Button>
         </>

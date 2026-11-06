@@ -601,7 +601,7 @@ function EmbossDialog({ again, busy, onClose, onMake }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={FileDown} loading={busy} disabled={again && !reason.trim()} onClick={() => onMake(again ? reason.trim() : "")}>
+          <Button icon={FileDown} loading={busy} disabled={again && !reason.trim()} disabledReason={t("common:blockedFillRequired")} onClick={() => onMake(again ? reason.trim() : "")}>
             {t("makeFile")}
           </Button>
         </>

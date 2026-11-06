@@ -254,7 +254,7 @@ function AddPartyDialog({ busy, onClose, onSave }) {
           <Button variant="ghost" onClick={onClose}>
             {t("common:cancel")}
           </Button>
-          <Button icon={UserPlus} loading={busy} disabled={!ready} onClick={() => onSave(party, form.reason.trim())}>
+          <Button icon={UserPlus} loading={busy} disabled={!ready} disabledReason={t("common:blockedFillRequired")} onClick={() => onSave(party, form.reason.trim())}>
             {t("addParty")}
           </Button>
         </>
