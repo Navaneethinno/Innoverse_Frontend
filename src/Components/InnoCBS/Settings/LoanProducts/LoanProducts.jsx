@@ -12,17 +12,14 @@ import { usePagePermission } from "@/Hooks/usePermission";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { loanProductsApi } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ActionButtons, NarrationDialog, Section, AuditTimeline } from "../../Deposits/depositShared";
-import { cn } from "@/Utils/Lib/utils";
+import { ActionButtons, Section, AuditTimeline } from "../../Deposits/depositShared";
 import { ProductStatus } from "../DepositProducts/productShared";
 import { loanLabel, useInstitutionScope } from "../../Loans/loanShared";
 import { LoanConfigSummary } from "./loanProductShared";
 import { LoanProductWizard, RateCheck } from "./LoanProductWizard";
 import { ReferenceRates } from "./ReferenceRates";
 import { LoanLists } from "./LoanLists";
-import { actorText } from "@/Utils/Lib/actor";
-
-
+import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 // LOANS > Loan Products (menu 184): each product with its terms, rate
 // bands, fees and policies, one maker-checker record. All / Pending tabs,
 // a view with the checker's comparison, and the add / edit wizard.
@@ -34,11 +31,8 @@ export function LoanProducts() {
   // Groups or purposes window.
   const [listOpen, setListOpen] = useState(null);
   const [screen, setScreen] = useState(null);
-
   const list = useServerList({ api: loanProductsApi.listPath, call: loanProductsApi.list });
-
   const load = list.reload;
-
   const back = () => {
     setScreen(null);
     load();
@@ -66,7 +60,6 @@ export function LoanProducts() {
     { key: "updated_time", label: t("updated"), render: (p) => <span className="whitespace-nowrap text-xs">{accountDate(p.updated_time ?? p.created_time)}</span> },
     { key: "actions", label: t("common:actions"), sortable: false, render: (p) => <RowActions buttons={{ view: true }} onView={() => setScreen({ kind: "view", id: p.id })} /> },
   ];
-
   const listActions = (
     <>
       <Button variant="secondary" size="sm" icon={Percent} onClick={() => setRatesOpen(true)}>
@@ -85,7 +78,6 @@ export function LoanProducts() {
       )}
     </>
   );
-
   return (
     <div className="pb-8 pt-4">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -98,12 +90,10 @@ export function LoanProducts() {
       </div>
       {ratesOpen && <ReferenceRates scope={scope} onClose={() => setRatesOpen(false)} />}
       {listOpen && <LoanLists kind={listOpen} scope={scope} onClose={() => setListOpen(null)} />}
-
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(p) => p.id} title={t("productsTitle")} emptyTitle={t("noProducts")} emptyDescription={t("noProductsHint")} />
     </div>
   );
 }
-
 // One loan product: in effect, what waits for a checker (side by side,
 // changes marked), warnings, history and a rate check.
 function LoanProductView({ id, onBack, onEdit }) {
@@ -113,7 +103,6 @@ function LoanProductView({ id, onBack, onEdit }) {
   const [audit, setAudit] = useState([]);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
-
   const reload = useCallback(async () => {
     try {
       const [got, history] = await Promise.all([loanProductsApi.get({ id }), loanProductsApi.audit({ id }).catch(() => null)]);
@@ -126,7 +115,6 @@ function LoanProductView({ id, onBack, onEdit }) {
   useEffect(() => {
     void reload();
   }, [reload]);
-
   const act = async (verb, narration) => {
     setBusy(true);
     try {
@@ -141,13 +129,11 @@ function LoanProductView({ id, onBack, onEdit }) {
       setBusy(false);
     }
   };
-
   if (!product) {
     return (
       <PageSkeleton />
     );
   }
-
   const a = product.actions ?? {};
   const cur = product.currency_alpha_code;
   const ask = (verb) => () => setDialog(verb);
@@ -161,7 +147,6 @@ function LoanProductView({ id, onBack, onEdit }) {
     a.auth && can("Authorize") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
   ];
   const pending = product.pending;
-
   return (
     <div className="pb-8 pt-4">
       <BackButton onClick={onBack}>
@@ -192,41 +177,16 @@ function LoanProductView({ id, onBack, onEdit }) {
           </ul>
         )}
       </div>
-
-      {pending ? (
-        <div className={cn("mb-4 grid gap-4", product.config && "xl:grid-cols-2")}>
-          {product.config && (
-            <Section title={t("inEffect")} className="min-w-0">
-              <LoanConfigSummary config={product.config} currency={cur} compact />
-            </Section>
-          )}
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })} className="min-w-0 border-amber-300 ring-1 ring-amber-200">
-            {pending.config ? <LoanConfigSummary config={pending.config} other={product.config} currency={cur} compact={Boolean(product.config)} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
-          </Section>
-        </div>
-      ) : (
-        <Section title={product.draft ? t("draft") : t("inEffect")} className="mb-4">
-          <LoanConfigSummary config={product.draft ?? product.config} currency={cur} />
-          {product.config && <RateCheck product={product} decimals={product.rules?.amount_decimals} />}
-        </Section>
-      )}
-
+      <VersionSections
+        record={product}
+        side
+        render={(config, other) => <LoanConfigSummary config={config} other={other} currency={cur} compact={Boolean(pending && product.config)} />}
+        below={product.config && <RateCheck product={product} decimals={product.rules?.amount_decimals} />}
+      />
       <Section title={t("history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
-
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }

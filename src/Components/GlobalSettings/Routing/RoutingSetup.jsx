@@ -12,7 +12,7 @@ import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { RowActions } from "@/Components/Common/RowActions";
 import { Toggle } from "@/Components/Common/Toggle";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
 import { Field, MiniTable, RowsEditor, Tabs } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -21,13 +21,11 @@ import { routingApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { CARD_DIRECTIONS, SECTIONS, code, groupFits, onUsIn, rangeProblem, specificity, toBody, toForm } from "./routingShared";
-import { actorText } from "@/Utils/Lib/actor";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
-
+import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 // The routing setups (one per institution, maker-checker as a whole, like
 // External Providers): list, view (in effect, waiting, history) and editor.
-
 export function useRoutingOptions(instProfileId) {
   const [options, setOptions] = useState(null);
   useEffect(() => {
@@ -41,10 +39,8 @@ export function useRoutingOptions(instProfileId) {
   }, [instProfileId]);
   return options;
 }
-
 const yesNo = (t, on) => <span className={on ? "font-bold text-emerald-700" : "text-muted-foreground"}>{t(on ? "yes" : "no")}</span>;
 const named = (list, value) => (list ?? []).find((x) => (x.code ?? x) === value)?.name ?? value;
-
 export function SetupList({ scope, chooser, institution, onOpen }) {
   const { t } = useTranslation(["routing", "fees", "common"]);
   const can = usePagePermission();
@@ -86,7 +82,6 @@ export function SetupList({ scope, chooser, institution, onOpen }) {
   );
   return <ListTable list={list} actions={actions} columns={columns} rowKey={(s) => s.id} title={t("setups")} emptyTitle={t("noSetups")} emptyDescription={t("noSetupsHint")} />;
 }
-
 // The five lists as tables; with `other`, rows new or changed are marked.
 function ConfigTables({ config, other, options }) {
   const { t } = useTranslation("routing");
@@ -153,7 +148,6 @@ function ConfigTables({ config, other, options }) {
     </div>
   );
 }
-
 // What a rule matches, in words: "Vodacom · APP · up to 500.00"; "anything" when nothing is set.
 function matchText(t, r, options, c) {
   const card = CARD_DIRECTIONS.includes(r.direction);
@@ -171,9 +165,7 @@ function matchText(t, r, options, c) {
   ].filter(Boolean);
   return parts.join(" · ") || t("anything");
 }
-
 const Badge = ({ children, tone = "bg-primary/10 text-primary" }) => <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-black tabular-nums", tone)}>{children}</span>;
-
 function OurBins({ bins }) {
   const { t } = useTranslation("routing");
   return (
@@ -185,7 +177,6 @@ function OurBins({ bins }) {
     </div>
   );
 }
-
 export function SetupView({ id, onBack, onEdit }) {
   const { t } = useTranslation(["routing", "fees", "deposits"]);
   const can = usePagePermission();
@@ -194,7 +185,6 @@ export function SetupView({ id, onBack, onEdit }) {
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
   const options = useRoutingOptions(s?.inst_profile_id);
-
   const reload = useCallback(async () => {
     try {
       const [got, history] = await Promise.all([routingApi.get({ id }), routingApi.audit({ id }).catch(() => null)]);
@@ -207,7 +197,6 @@ export function SetupView({ id, onBack, onEdit }) {
   useEffect(() => {
     void reload();
   }, [reload]);
-
   const act = async (verb, narration) => {
     setBusy(true);
     try {
@@ -222,7 +211,6 @@ export function SetupView({ id, onBack, onEdit }) {
       setBusy(false);
     }
   };
-
   if (!s) return <PageSkeleton />;
   const a = s.actions ?? {};
   const ask = (verb) => () => setDialog(verb);
@@ -253,39 +241,14 @@ export function SetupView({ id, onBack, onEdit }) {
         </div>
         <Warnings list={s.warnings} />
       </div>
-      {s.pending ? (
-        <div className="mb-4 grid gap-4">
-          <Section title={t("fees:inEffect")}>
-            <ConfigTables config={s.config} options={options} />
-          </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {s.pending.config ? <ConfigTables config={s.pending.config} other={s.config} options={options} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
-          </Section>
-        </div>
-      ) : (
-        <Section title={s.draft ? t("fees:draft") : t("fees:inEffect")} className="mb-4">
-          <ConfigTables config={s.draft ?? s.config} options={options} />
-        </Section>
-      )}
+      <VersionSections record={s} render={(config, other) => <ConfigTables config={config} other={other} options={options} />} />
       <Section title={t("fees:history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "fees:approve" : dialog === "deauth" ? "fees:reject" : `fees:${dialog}`)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} labels={{ approve: "fees:approve", reject: "fees:reject", prefix: "fees:" }} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }
-
 // What submitting would be refused for, checked by the server without saving
 // (each time the Review tab opens).
 function ValidateResult({ id, body, scope }) {
@@ -308,7 +271,6 @@ function ValidateResult({ id, body, scope }) {
   if (answer.valid && !answer.warnings?.length) return <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">{t("validOk")}</p>;
   return <Warnings list={answer.warnings} />;
 }
-
 function Warnings({ list }) {
   if (!list?.length) return null;
   return (
@@ -321,7 +283,6 @@ function Warnings({ list }) {
     </ul>
   );
 }
-
 const EDIT_TABS = [...SECTIONS, "review"];
 const blank = {
   interfaces: () => ({ code: "", name: "", kind: "PROVIDER", provider: "", network: "", txn_types: [], failover_codes: [], failure_threshold: "3", cooldown_seconds: "60", cost_note: "", active: true }),
@@ -329,7 +290,6 @@ const blank = {
   bin_ranges: () => ({ issuer: "", low: "", high: "", product_class: "", active: true }),
   rules: () => ({ code: "", name: "", direction: "SERVICE", txn_type: "", channel: "", service: "", on_us: "", network: "", issuer: "", product_class: "", currency: "", min_amount: "", max_amount: "", group: "", priority: "100", active: true }),
 };
-
 // Add or edit the setup, one tab per list, then Review. A new one, a Draft
 // or a Rejected Add saves drafts and is submitted; an approved one proposes
 // its changes in one edit. The server's problems are shown on their tab.
@@ -343,13 +303,11 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
   const [busy, setBusy] = useState(false);
   const drafting = !setup || [9, 5].includes(Number(setup.status));
   const started = useRef(false);
-
   useEffect(() => {
     if (!options || started.current) return;
     started.current = true;
     setForm(toForm(setup ? (setup.draft ?? setup.pending?.config ?? setup.config) : null));
   }, [options, setup]);
-
   const save = async (submit) => {
     setBusy(true);
     setError(null);
@@ -377,7 +335,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
       setBusy(false);
     }
   };
-
   if (!form || !options) return <PageSkeleton />;
   const set = (key) => (rows) => setForm((f) => ({ ...f, [key]: rows }));
   // Problems per tab: the server's (by section) and what is plainly unfinished here.
@@ -393,7 +350,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
   const ready = SECTIONS.every((s) => !local[s]);
   const ifaceChoices = form.interfaces.filter((x) => code(x.code)).map((x) => ({ value: code(x.code), label: `${x.name || x.code} (${code(x.code)})` }));
   const sectionMessages = (s) => (error?.problemKeys ?? []).map((k, i) => k.section === s && String(error.message).split("\n")[i + 1]).filter(Boolean);
-
   return (
     <div className="pt-1 pb-6">
       <BackButton onClick={onClose}>
@@ -409,7 +365,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           ))}
         </ul>
       )}
-
       {tab === "interfaces" && (
         <Section title={t("section_interfaces")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("interfacesHint")}</p>
@@ -441,7 +396,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           />
         </Section>
       )}
-
       {tab === "issuers" && (
         <div className="grid gap-4">
           <OurBins bins={options.our_bins} />
@@ -483,7 +437,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           </Section>
         </div>
       )}
-
       {tab === "route_groups" && (
         <Section title={t("section_route_groups")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("groupsHint")}</p>
@@ -502,7 +455,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           />
         </Section>
       )}
-
       {tab === "rules" && (
         <Section title={t("section_rules")}>
           <p className="mb-3 text-xs text-muted-foreground">{t("rulesHint")}</p>
@@ -548,7 +500,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           <p className="mt-3 text-[11px] text-muted-foreground">{t("specificityHint")}</p>
         </Section>
       )}
-
       {tab === "review" && (
         <div className="grid gap-4">
           <Section title={t("review")}>
@@ -563,7 +514,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
           </Section>
         </div>
       )}
-
       {!ready && <p className="mt-4 text-xs font-semibold text-amber-800">{t("unfinished")}</p>}
       {error && (
         <div className="mt-4">
@@ -586,7 +536,6 @@ export function SetupEditor({ setup, scope, onClose, onSaved, onSimulate }) {
     </div>
   );
 }
-
 // A group's interfaces in rank order: drag (or the arrows) to reorder.
 function MembersEditor({ members, choices, onChange }) {
   const { t } = useTranslation("routing");

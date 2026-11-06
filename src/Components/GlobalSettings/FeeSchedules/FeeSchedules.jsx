@@ -10,7 +10,7 @@ import { Button } from "@/Components/Common/Button";
 import { RowActions } from "@/Components/Common/RowActions";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass, ratePct } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ActionButtons, AuditTimeline, Problems, Section, labelClass, ratePct } from "@/Components/InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
 import { Field, MiniTable, RowsEditor, loanLabel, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { PlanCard } from "@/Components/Finance/Transactions/txnShared";
@@ -19,8 +19,9 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { feeSchedulesApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { actorText } from "@/Utils/Lib/actor";
+
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 
 const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
@@ -225,20 +226,7 @@ function ScheduleView({ id, onBack, onEdit }) {
         )}
       </div>
 
-      {s.pending ? (
-        <div className="mb-4 grid gap-4">
-          <Section title={t("inEffect")}>
-            <RulesTable rules={s.config?.rules} options={options} currency={cur} />
-          </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {s.pending.config ? <RulesTable rules={s.pending.config.rules} options={options} currency={cur} other={s.config?.rules} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
-          </Section>
-        </div>
-      ) : (
-        <Section title={s.draft ? t("draft") : t("inEffect")} className="mb-4">
-          <RulesTable rules={shown?.rules} options={options} currency={cur} />
-        </Section>
-      )}
+      <VersionSections record={s} render={(config, other) => <RulesTable rules={config?.rules} other={other?.rules} options={options} currency={cur} />} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         {s.config && options && <FeeQuote schedule={s} options={options} />}
@@ -247,18 +235,7 @@ function ScheduleView({ id, onBack, onEdit }) {
         </Section>
       </div>
 
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }

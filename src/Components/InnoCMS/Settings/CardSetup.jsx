@@ -14,34 +14,28 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { ActionButtons, NarrationDialog, Problems, Section, AuditTimeline } from "../../InnoCBS/Deposits/depositShared";
+import { ActionButtons, Problems, Section, AuditTimeline } from "../../InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "../../InnoCBS/Settings/DepositProducts/productShared";
 import { useInstitutionScope } from "../../InnoCBS/Loans/loanShared";
-import { actorText } from "@/Utils/Lib/actor";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { InstitutionField } from "@/Components/GlobalSettings/Notifications/notificationShared";
-
+import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 // The CARDS setup screens (BINs, Card Number Layout, Card Products, Issuance
 // Groups) are one
 // maker-checker pattern: All / Pending list, a view with what is in effect
 // next to what waits for a checker, the history, and one form that saves a
 // draft, submits, or proposes a change. Each screen passes a `kind` (see
 // cardKinds.jsx) with its api, columns, facts and form.
-
 const DRAFTING = [9, 5]; // Draft, Deauthorized add: the form keeps saving drafts
-
 export function CardSetupPage({ kind }) {
   const { t } = useTranslation(["cards", "deposits", "common"]);
   const can = usePagePermission();
   const { chooser, institution, scope } = useInstitutionScope();
   const [screen, setScreen] = useState(null);
-
   const list = useServerList({ api: kind.api.listPath, call: kind.api.list });
-
   const load = list.reload;
   useLiveChannel(kind.api.listPath, () => load());
-
   const back = () => {
     setScreen(null);
     load();
@@ -50,7 +44,6 @@ export function CardSetupPage({ kind }) {
     return <CardForm kind={kind} record={screen.record} scope={scope} onClose={() => (screen.record ? setScreen({ kind: "view", id: screen.record.id }) : back())} onSaved={(id) => setScreen({ kind: "view", id })} />;
   }
   if (screen?.kind === "view") return <CardRecordView kind={kind} id={screen.id} onBack={back} onEdit={(record) => setScreen({ kind: "form", record })} />;
-
   const open = (r) => setScreen({ kind: "view", id: r.id });
   const columns = [
     {
@@ -71,7 +64,6 @@ export function CardSetupPage({ kind }) {
     { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => open(r)} /> },
   ];
   const Icon = kind.icon;
-
   const listActions = (
     <>
       {can("Add") && (
@@ -81,7 +73,6 @@ export function CardSetupPage({ kind }) {
       )}
     </>
   );
-
   return (
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -92,12 +83,10 @@ export function CardSetupPage({ kind }) {
           <p className="mt-1 text-sm text-muted-foreground">{t(kind.subtitle)}</p>
         </div>
       </div>
-
       <ListTable list={list} actions={listActions} columns={columns} rowKey={(r) => r.id} title={t(kind.title)} emptyTitle={t(kind.noneTitle)} emptyDescription={t(kind.noneHint)} />
     </div>
   );
 }
-
 // A list of records from options ({ id, code, name, status, status_name })
 // as select options; one that is not active says so.
 export function pickOptions(list, extra) {
@@ -106,7 +95,6 @@ export function pickOptions(list, extra) {
     label: [[o.code, o.name].filter(Boolean).join(" · "), extra?.(o), Number(o.status) !== 1 && o.status_name].filter(Boolean).join(" · "),
   }));
 }
-
 // The same, for a list where another record may hold an option (`taken_by`):
 // that one is off and says who holds it; the form's own choice stays open.
 export function freeOptions(list, current, takenLabel) {
@@ -116,7 +104,6 @@ export function freeOptions(list, current, takenLabel) {
     return taken ? { ...option, disabled: true, disabledReason: takenLabel(o.taken_by) } : option;
   });
 }
-
 // One record: status and actions, what is in effect next to what waits for
 // a checker (changes marked), and the history.
 function CardRecordView({ kind, id, onBack, onEdit }) {
@@ -136,7 +123,6 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
       .then((r) => setNames(rowsOf(r)[0] ?? null))
       .catch(() => {});
   }, [kind, instId]);
-
   const reload = useCallback(async () => {
     try {
       const [got, history] = await Promise.all([kind.api.get({ id }), kind.api.audit({ id }).catch(() => null)]);
@@ -150,7 +136,6 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
     void reload();
   }, [reload]);
   useLiveChannel(kind.api.listPath, (_action, records) => (!records.length || records.some((r) => String(r.id) === String(id))) && void reload());
-
   const act = async (verb, narration) => {
     setBusy(true);
     try {
@@ -165,13 +150,11 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
       setBusy(false);
     }
   };
-
   if (!record) {
     return (
       <PageSkeleton />
     );
   }
-
   const a = record.actions ?? {};
   const ask = (verb) => () => setDialog(verb);
   const buttons = [
@@ -183,9 +166,7 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
     a.deauth && can("Authorize") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: ask("deauth") },
     a.auth && can("Authorize") && { key: "auth", label: t("approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
   ];
-  const pending = record.pending;
   const refs = { ...record.refs, names };
-
   return (
     <div className="pt-1 pb-6">
       <BackButton onClick={onBack}>
@@ -204,42 +185,18 @@ function CardRecordView({ kind, id, onBack, onEdit }) {
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
       </div>
-
-      {pending ? (
-        <div className="mb-4 grid gap-4 xl:grid-cols-2">
-          <Section title={t("inEffect")}>
-            <CompareFacts groups={record.config && kind.facts(t, record.config, refs)} />
-          </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${pending.action}`, { defaultValue: pending.action }), name: actorText(pending, "proposed_by", "—"), date: accountDate(pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {pending.config ? <CompareFacts groups={kind.facts(t, pending.config, refs)} before={record.config && kind.facts(t, record.config, refs)} /> : <p className="text-sm text-muted-foreground">{t(`pendingHint_${pending.action}`, { defaultValue: "" })}</p>}
-          </Section>
-        </div>
-      ) : (
-        <Section title={record.draft ? t("draft") : t("inEffect")} className="mb-4">
-          <CompareFacts groups={(record.draft ?? record.config) && kind.facts(t, record.draft ?? record.config, refs)} />
-        </Section>
-      )}
-
+      <VersionSections
+        record={record}
+        side
+        render={(config, other) => <CompareFacts groups={config && kind.facts(t, config, refs)} before={other && kind.facts(t, other, refs)} />}
+      />
       <Section title={t("history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
-
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }
-
 // Groups of label / value facts. With `before` (what is in effect), a value
 // that changes is marked with the old one under it.
 function CompareFacts({ groups, before }) {
@@ -268,7 +225,6 @@ function CompareFacts({ groups, before }) {
     </div>
   );
 }
-
 // Add or edit, on one page. A new record or a Draft / Rejected add saves
 // drafts and is then submitted; an approved one proposes the fields that
 // changed (fixed fields are read-only once added).
@@ -287,7 +243,6 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
   const [busy, setBusy] = useState("");
   const drafting = !record || DRAFTING.includes(Number(record.status));
   const added = Boolean(id);
-
   useEffect(() => {
     if (needsInstitution && !chosen) return undefined;
     let cancelled = false;
@@ -309,7 +264,6 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
       cancelled = true;
     };
   }, [kind, record, scope, needsInstitution, chosen]);
-
   const body = () => kind.toBody(values, options);
   // Fixed fields go only with the add; an edit of an approved record sends
   // only what changed (lists whole).
@@ -318,7 +272,6 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
     const before = record?.config ? kind.toBody(record.config, options) : {};
     return Object.fromEntries(Object.entries(editable(all)).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(before[k])));
   };
-
   const saveDraft = async () => {
     const response = added ? await kind.api.edit({ id, ...editable(body()), is_draft: true }) : await kind.api.add(scope({ ...body(), is_draft: true }));
     const savedId = rowsOf(response)[0]?.id ?? id;
@@ -356,7 +309,6 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
       setBusy("");
     }
   };
-
   const institutionField = needsInstitution && (
     <div className="mb-4 max-w-md">
       <InstitutionField value={chosen} onChange={setChosen} />
@@ -381,11 +333,9 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
       </div>
     );
   }
-
   const Form = kind.Form;
   const set = (patch) => setValues((v) => ({ ...v, ...patch }));
   const missing = kind.missing(values, { added });
-
   return (
     <div className="pt-1 pb-6">
       <BackButton onClick={onClose}>
@@ -393,13 +343,11 @@ function CardForm({ kind, record, scope: pageScope, onClose, onSaved }) {
       </BackButton>
       <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-800">{record ? t("editX", { name: record.name || record.code }) : t(kind.newLabel)}</h1>
       <p className="mb-4 text-sm text-muted-foreground">{drafting ? t("formDraftHint") : t("formProposeHint")}</p>
-
       {institutionField}
       <div className="grid gap-4">
         <Form values={values} set={set} options={options} locked={added} record={record} />
         <Problems message={error} />
       </div>
-
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         {missing ? <p className="text-xs font-semibold text-amber-700">{t(missing)}</p> : <span />}
         <div className="flex flex-wrap gap-2">

@@ -16,7 +16,7 @@ import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { Modal } from "@/Components/Common/Modal";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ActionButtons, AuditTimeline, Problems, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
 import { Field, MiniTable, Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { useListSearch } from "@/Hooks/useListSearch";
@@ -27,6 +27,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { VerbDialog } from "@/Components/MakerChecker/SetupDocument";
 
 // The status tabs, as the list call filters them (Pending is its own call).
 const CODE = /^[A-Z0-9_]{1,64}$/;
@@ -284,18 +285,7 @@ function DocumentView({ id, initialTab = "texts", onBack, onEdit }) {
           <TextContent text={reading} />
         </Modal>
       )}
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "approve" : dialog === "deauth" ? "reject" : dialog)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }

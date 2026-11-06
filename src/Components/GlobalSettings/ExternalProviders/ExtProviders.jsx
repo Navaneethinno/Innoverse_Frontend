@@ -9,7 +9,7 @@ import { DigitChips } from "@/Components/Common/DigitChips";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { RowActions } from "@/Components/Common/RowActions";
 import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
-import { ActionButtons, AuditTimeline, NarrationDialog, Problems, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { ActionButtons, AuditTimeline, Problems, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
 import { MiniTable, RowsEditor, Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -18,8 +18,9 @@ import { extProvidersApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { BillerEditor, billerBody, billerReady } from "./BillerEditor";
-import { actorText } from "@/Utils/Lib/actor";
+
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 
 const str = (v, d = "0") => String(v ?? "").trim() || d;
 const code = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9_]/g, "");
@@ -304,37 +305,13 @@ function SetupView({ id, onBack, onEdit }) {
         )}
       </div>
 
-      {s.pending ? (
-        <div className="mb-4 grid gap-4">
-          <Section title={t("fees:inEffect")}>
-            <SetupTables config={s.config} names={names} />
-          </Section>
-          <Section title={t("deposits:proposedBy", { action: t(`deposits:pending_${s.pending.action}`, { defaultValue: s.pending.action }), name: actorText(s.pending, "proposed_by", "—"), date: accountDate(s.pending.proposed_at) })} className="border-amber-300 ring-1 ring-amber-200">
-            {s.pending.config ? <SetupTables config={s.pending.config} other={s.config} names={names} /> : <p className="text-sm text-muted-foreground">{t(`deposits:pendingHint_${s.pending.action}`, { defaultValue: "" })}</p>}
-          </Section>
-        </div>
-      ) : (
-        <Section title={s.draft ? t("fees:draft") : t("fees:inEffect")} className="mb-4">
-          <SetupTables config={s.draft ?? s.config} names={names} />
-        </Section>
-      )}
+      <VersionSections record={s} render={(config, other) => <SetupTables config={config} other={other} names={names} />} />
 
       <Section title={t("fees:history")} collapsible>
         <AuditTimeline audit={audit} />
       </Section>
 
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(dialog === "auth" ? "fees:approve" : dialog === "deauth" ? "fees:reject" : `fees:${dialog}`)}
-          variant={["delete", "deauth", "deactivate"].includes(dialog) ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, narration)}
-        />
-      )}
+      <VerbDialog dialog={dialog} t={t} labels={{ approve: "fees:approve", reject: "fees:reject", prefix: "fees:" }} busy={busy} onClose={() => setDialog(null)} onSave={(narration) => act(dialog, narration)} />
     </div>
   );
 }
