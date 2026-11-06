@@ -376,7 +376,7 @@ export function CountDialog({ verb, till, onClose, onDone }) {
           </Button>
           <Button
             loading={busy}
-            disabled={amount === "" || (verb === "close" && pending > 0)} disabledReason={t("common:blockedTillClose")}
+            disabled={amount === "" || (verb === "close" && pending > 0)} disabledReason={amount === "" ? t("common:blockedFillRequired") : t("common:blockedTillClose")}
             variant={verb === "close" ? "danger" : "primary"}
             onClick={() => void save()}
           >

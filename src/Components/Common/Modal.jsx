@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
@@ -58,6 +58,7 @@ export function Modal({
   // step to step rather than staying fixed.
   growWithContent = false,
 }) {
+  const titleId = useId();
   // No modal in this codebase locked background scroll before — added here
   // once, in the shared shell, rather than each caller (or the Digital
   // Product wizard specifically) rolling its own competing lock.
@@ -174,6 +175,9 @@ export function Modal({
           growWithContent ? "my-4" : "max-h-[85vh]",
           SIZES[size] ?? SIZES.md,
         )}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={handleKeyDown}
         // Belt and braces for browsers without overflow: clip: the box
@@ -196,7 +200,7 @@ export function Modal({
               </span>
             )}
             <div className="min-w-0">
-              <h2 className="truncate text-sm font-bold text-slate-800">{title}</h2>
+              <h2 id={titleId} className="truncate text-sm font-bold text-slate-800">{title}</h2>
               {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
             </div>
           </div>

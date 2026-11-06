@@ -16,7 +16,7 @@ export const common = {
   blockedFixFileErrors: "Fix the errors in the file first.",
   blockedNothingToDownload: "There are no records to download.",
   blockedNothingToSettle: "There is nothing to settle.",
-  blockedTillClose: "Enter an amount. A till with pending transfers can't be closed.",
+  blockedTillClose: "A till with pending transfers can't be closed.",
   blockedFolderPath: "The folder must start with /.",
   blockedParallelRange: "Choose a number from 1 to 8.",
   blockedNothingToSort: "There is nothing to sort by yet.",
