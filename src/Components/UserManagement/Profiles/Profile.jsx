@@ -32,8 +32,7 @@ import {
 import { useActiveInstitutionsQuery } from "@/Hooks/Institution/institutionHooks";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { EMPTY_FORM, profileId } from "./ProfileForm";
-import { AddProfile } from "./AddProfile";
-import { EditProfile } from "./EditProfile";
+import { ProfileFormModal } from "./ProfileFormModal";
 import { AuthProfile } from "./AuthProfile";
 import { DeauthProfile } from "./DeauthProfile";
 import { DeleteProfile } from "./DeleteProfile";
@@ -312,26 +311,17 @@ export function Profile() {
           )} columns={columns} rowKey={(p) => profileId(p)} title={t("profilesTitle")} emptyTitle={t("noProfilesFound")} emptyDescription={t("adjustSearchOrFilter")} />
 
       <AnimatePresence>
-        {showForm && !editing && (
-          <AddProfile
+        {showForm && (
+          <ProfileFormModal
+            key={editing ? "edit" : "add"}
+            editing={Boolean(editing)}
             open={showForm}
             onClose={() => setShowForm(false)}
             form={form}
             setForm={setForm}
             institutions={institutions}
             onSubmit={submitForm}
-            submitting={createMutation.isPending || submitMutation.isPending}
-          />
-        )}
-        {showForm && editing && (
-          <EditProfile
-            open={showForm}
-            onClose={() => setShowForm(false)}
-            form={form}
-            setForm={setForm}
-            institutions={institutions}
-            onSubmit={submitForm}
-            submitting={updateMutation.isPending || submitMutation.isPending}
+            submitting={(editing ? updateMutation : createMutation).isPending || submitMutation.isPending}
           />
         )}
       </AnimatePresence>

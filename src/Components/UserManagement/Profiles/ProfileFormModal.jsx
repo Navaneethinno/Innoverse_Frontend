@@ -3,15 +3,15 @@ import { Modal } from "@/Components/Common/Modal";
 import { ProfileForm } from "./ProfileForm";
 import { Button } from "@/Components/Common/Button";
 
-// Edit-profile modal — split out of the old monolithic ProfilesPage.jsx.
-export function EditProfile({ open, onClose, form, setForm, institutions, onSubmit, submitting }) {
+// The profile form in a modal: adding a profile, or editing one (`editing`).
+export function ProfileFormModal({ editing = false, open, onClose, form, setForm, institutions, onSubmit, submitting }) {
   const { t } = useTranslation("profiles");
   if (!open) return null;
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={t("editProfile")}
+      title={t(editing ? "editProfile" : "newProfile")}
       size="lg"
       footer={
         <>
@@ -38,7 +38,7 @@ export function EditProfile({ open, onClose, form, setForm, institutions, onSubm
             disabled={submitting}
             size="sm"
           >
-            {submitting ? t("saving") : t("saveChanges")}
+            {submitting ? t("saving") : t(editing ? "saveChanges" : "createProfile")}
           </Button>
         </>
       }
