@@ -221,6 +221,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
         createPortal(
           <div
             ref={panelRef}
+            role="listbox"
             className={cn(
               "fixed z-50 overflow-y-auto overflow-x-hidden rounded-xl border p-1.5",
               panelClassName,
@@ -263,6 +264,8 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
                   key={option.value}
                   type="button"
                   data-option={index}
+                  role="option"
+                  aria-selected={isActive}
                   tabIndex={-1}
                   disabled={option.disabled}
                   title={option.disabled ? option.disabledReason : undefined}
