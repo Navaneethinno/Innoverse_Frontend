@@ -48,6 +48,7 @@ import { AccountConfigurationCards } from "./AccountConfigurationCards";
 
 import { Button } from "@/Components/Common/Button";
 import { institutionCurrencyApi } from "@/Services/Institution/institutionCurrency.api";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 // "Account" (acct_product) plus its 16 sub-configs — every sub-config below
 // is scoped to a parent via acct_product_id (see fields), matching the
 // backend's config/acct reference (2026-09). Every field here maps 1:1 to
@@ -619,7 +620,7 @@ export function AcctConfigResource({ entity }) {
       setActionPending(false);
     }
   };
-  const columns = [
+  const columns = mergeStatusColumns([
     ...config.fields.slice(0, 4).map(([key, label, type, lookupKey]) => ({
       key,
       label: tr(label),
@@ -629,16 +630,6 @@ export function AcctConfigResource({ entity }) {
       key: "status",
       label: tr("Status"),
       render: (row) => <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />,
-    },
-    {
-      key: "process_status_name",
-      label: tr("Process Status"),
-      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" />,
-    },
-    {
-      key: "auth_status",
-      label: tr("Authorization Status"),
-      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" />,
     },
     {
       key: "actions",
@@ -671,7 +662,7 @@ export function AcctConfigResource({ entity }) {
         );
       },
     },
-  ];
+  ]);
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">

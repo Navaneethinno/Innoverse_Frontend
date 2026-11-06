@@ -17,6 +17,7 @@ import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 
 const rowsOf = (r) => (Array.isArray(r?.data) ? r.data : (r?.data?.data ?? []));
 const inputClass = "mt-1.5 w-full rounded-xl border border-border px-3 py-2.5 outline-none focus:border-primary disabled:bg-muted";
@@ -122,14 +123,12 @@ export function CodeNameMaster({ list: listKey, permission, idKey, api, endpoint
     ...fields.map((f) => [t(`field_${f.key}`, { defaultValue: t(`list_${f.parent}`) }), show(f, row)]),
     [t("common:description"), row.description],
   ];
-  const columns = [
+  const columns = mergeStatusColumns([
     { key: "code", label: t("code"), render: (r) => r.code ?? "-" },
     { key: "name", label: name, align: "left", render: (r) => r.name ?? "-" },
     ...fields.map((f) => ({ key: f.key, label: t(`field_${f.key}`, { defaultValue: t(`list_${f.parent}`) }), render: (r) => show(f, r) })),
     { key: "description", label: t("common:description"), render: (r) => r.description ?? "-" },
     { key: "status", label: t("common:status"), render: (r) => (r.status_name != null || r.status != null ? <StatusBadge status={String(r.status_name ?? (r.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") },
-    { key: "process_status_name", label: t("common:processStatus"), render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "—") },
-    { key: "auth_status", label: t("common:authorizationStatus"), render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—") },
     {
       key: "actions",
       label: t("common:actions"),
@@ -152,7 +151,7 @@ export function CodeNameMaster({ list: listKey, permission, idKey, api, endpoint
         );
       },
     },
-  ];
+  ]);
 
   const formId = `${listKey}-form`;
   return (

@@ -260,13 +260,6 @@ export function Profile() {
         ),
     },
     {
-      key: "process_status_name",
-      label: t("common:processStatus"),
-      sortValue: (p) => p.process_status_name ?? "",
-      render: (p) => renderProfileValue(p, "process_status_name"),
-    },
-    { key: "auth_status", label: t("authorizationStatus"), sortValue: statusOf, render: (p) => renderProfileValue(p, "auth_status") },
-    {
       key: "actions",
       label: t("common:actions"),
       sortable: false,

@@ -34,6 +34,7 @@ import { orderedFields } from "@/Utils/Lib/formFieldColumns";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 import { Button } from "@/Components/Common/Button";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 const idOf = (r) => r?.id;
 // Same key -> lookup-list mapping DigitalProductFieldInput uses for its
 // dropdown options, reused here to resolve a row's raw lookup id (e.g.
@@ -301,7 +302,7 @@ export function DigitalProduct({ entity }) {
       setActionPending(false);
     }
   };
-  const columns = [
+  const columns = mergeStatusColumns([
     ...config.fields
       .slice(0, 3)
       .map(([key, label, type]) => ({
@@ -318,22 +319,6 @@ export function DigitalProduct({ entity }) {
         ) : (
           "—"
         ),
-    },
-    {
-      key: "process_status_name",
-      label: tr("Process Status"),
-      render: (r) =>
-        r.process_status_name ? (
-          <StatusBadge status={String(r.process_status_name)} variant="subtle" />
-        ) : (
-          "—"
-        ),
-    },
-    {
-      key: "auth_status",
-      label: tr("Authorization Status"),
-      render: (r) =>
-        r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "—",
     },
     {
       key: "actions",
@@ -394,7 +379,7 @@ export function DigitalProduct({ entity }) {
         );
       },
     },
-  ];
+  ]);
   // Digital Product's own "+ Add Digital Product" launches the 9-step
   // AddDigitalProductWizard instead of this file's own single-entity Editor
   // — see AddDigitalProductWizard.jsx. Every other entity (reached only via

@@ -101,8 +101,6 @@ export function InstitutionDocuments() {
     { key: "requires_acceptance", label: t("acceptance"), render: (d) => (d.requires_acceptance ? t("mustAccept") : t("infoOnly")) },
     { key: "inst_profile_name", label: t("institution"), render: (d) => d.inst_profile_name ?? "—" },
     { key: "status", label: t("status"), sortValue: (d) => d.status_name ?? "", render: (d) => (d.status_name ? <StatusBadge status={String(d.status_name)} /> : "—") },
-    { key: "process_status_name", label: t("processStatus"), sortValue: (d) => d.process_status_name ?? "", render: (d) => (d.process_status_name ? <StatusBadge status={String(d.process_status_name)} variant="subtle" /> : "—") },
-    { key: "auth_status", label: t("authStatus"), sortValue: (d) => d.auth_status ?? "", render: (d) => (d.auth_status ? <StatusBadge status={String(d.auth_status)} variant="subtle" /> : "—") },
     {
       key: "actions",
       label: t("common:actions"),

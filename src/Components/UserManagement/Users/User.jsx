@@ -296,18 +296,6 @@ export function User() {
         ),
     },
     {
-      key: "process_status_name",
-      label: tr("Process Status"),
-      sortValue: (u) => String(u.process_status_name ?? ""),
-      render: (u) => (u.process_status_name ? <StatusBadge status={String(u.process_status_name)} variant="subtle" /> : "—"),
-    },
-    {
-      key: "auth_status",
-      label: tr("Authorization Status"),
-      sortValue: (u) => String(u.auth_status ?? ""),
-      render: (u) => (u.auth_status ? <StatusBadge status={String(u.auth_status)} variant="subtle" /> : "—"),
-    },
-    {
       key: "actions",
       label: tr("Actions"),
       sortable: false,

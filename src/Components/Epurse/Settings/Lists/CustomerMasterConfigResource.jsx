@@ -38,6 +38,7 @@ import {
 } from "@/Services/Epurse/district.api";
 
 import { Button } from "@/Components/Common/Button";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 // document_type's only real static enum, per Individual Customer Onboarding
 // Configuration reference (2026-09).
 const DOCUMENT_TYPE_CATEGORIES = ["TAX", "ADDRESS", "FINANCIAL"];
@@ -203,7 +204,7 @@ export function CustomerMasterConfigResource({ entity }) {
     }
   };
 
-  const columns = [
+  const columns = mergeStatusColumns([
     ...(config.hasCategory ? [{ key: "category", label: t("onboarding:category"), render: (row) => row.category ?? "-" }] : []),
     { key: "code", label: t("onboarding:code"), render: (row) => row.code ?? "-" },
     { key: "name", label: t("onboarding:name"), render: (row) => row.name ?? "-" },
@@ -221,16 +222,6 @@ export function CustomerMasterConfigResource({ entity }) {
       key: "status",
       label: t("common:status"),
       render: (row) => <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : row.status === 0 ? "INACTIVE" : "-"))} variant="solid" />,
-    },
-    {
-      key: "process_status_name",
-      label: t("common:processStatus"),
-      render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" />,
-    },
-    {
-      key: "auth_status",
-      label: t("common:authorizationStatus"),
-      render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" />,
     },
     {
       key: "actions",
@@ -268,7 +259,7 @@ export function CustomerMasterConfigResource({ entity }) {
         );
       },
     },
-  ];
+  ]);
 
   const addAction = can("Add") ? (
     <Button

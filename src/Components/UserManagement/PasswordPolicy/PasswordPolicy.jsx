@@ -445,8 +445,7 @@ export function PasswordPolicy() {
     { key: "min_length", label: tr("Min Length"), render: (row) => row.min_length ?? "-" },
     { key: "max_retry_count", label: tr("Max Retries"), render: (row) => row.max_retry_count ?? "-" },
 
-    { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") }, { key: "process_status_name", label: tr("Process Status"), render: (row) => (row.process_status_name ? <StatusBadge status={String(row.process_status_name)} variant="subtle" /> : "—") }, { key: "auth_status", label: tr("Authorization Status"), render: (row) => (row.auth_status ? <StatusBadge status={String(row.auth_status)} variant="subtle" /> : "—") },
-    {
+    { key: "status", label: tr("Status"), render: (row) => (row.status_name != null || row.status != null ? <StatusBadge status={String(row.status_name ?? (row.status === 1 ? "ACTIVE" : "INACTIVE"))} /> : "—") },   {
       key: "actions",
       label: tr("Actions"),
       sortable: false,

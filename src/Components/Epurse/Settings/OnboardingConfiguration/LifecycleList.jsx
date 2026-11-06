@@ -16,17 +16,16 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useAuth } from "@/Hooks/useAuth";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 
 
 // Status/Process Status/Authorization Status as three separate columns —
 // the same convention every other maker-checker list in the app uses
 // (Institution Branding/Channel, Onboarding Configuration, Customer
 // Onboarding, ...).
-const statusColumns = (t) => [
+const statusColumns = (t) => mergeStatusColumns([
   { key: "status_name", label: t("common:status"), render: (row) => <StatusBadge status={String(row.status_name ?? "-")} /> },
-  { key: "process_status_name", label: t("common:processStatus"), render: (row) => <StatusBadge status={String(row.process_status_name ?? "-")} variant="subtle" /> },
-  { key: "auth_status", label: t("common:authorizationStatus"), render: (row) => <StatusBadge status={String(row.auth_status ?? "-")} variant="subtle" /> },
-];
+]);
 
 // One reusable maker-checker list for every new onboarding-configuration
 // screen (definitions, versions, KYC schemes): loads `api.list`, live-updates,

@@ -29,6 +29,7 @@ import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefini
 import { Button } from "@/Components/Common/Button";
 import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../../partyType";
 import { UntranslatedConfirm, untranslatedOf } from "@/Components/Epurse/Settings/FormBuilder/Translations";
+import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
 const pendingApi = ({ id }) => corpOnboardingDefinitionApi.pending({ id });
 
 // Corporate mirror of OnboardingConfigurationPage.jsx (Corporate_Onboarding_
@@ -219,7 +220,7 @@ export function CorporateOnboardingConfigurationPage() {
   };
 
 
-  const columns = [
+  const columns = mergeStatusColumns([
     {
       key: "name",
       label: t("onboarding:customerType"),
@@ -251,18 +252,6 @@ export function CorporateOnboardingConfigurationPage() {
       render: (r) => <StatusBadge status={String(r.status_name ?? "-")} />,
     },
     {
-      key: "process_status_name",
-      label: t("common:processStatus"),
-      sortValue: (r) => r.process_status_name ?? "",
-      render: (r) => (r.process_status_name ? <StatusBadge status={String(r.process_status_name)} variant="subtle" /> : "-"),
-    },
-    {
-      key: "auth_status",
-      label: t("common:authorizationStatus"),
-      sortValue: (r) => r.auth_status ?? "",
-      render: (r) => (r.auth_status ? <StatusBadge status={String(r.auth_status)} variant="subtle" /> : "-"),
-    },
-    {
       key: "actions",
       label: t("common:actions"),
       sortable: false,
@@ -275,7 +264,7 @@ export function CorporateOnboardingConfigurationPage() {
         />
       ),
     },
-  ];
+  ]);
 
   const addAction = can("Add") ? (
     <Button
