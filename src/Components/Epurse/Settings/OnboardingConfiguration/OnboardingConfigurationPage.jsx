@@ -20,17 +20,29 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { useDropdownRows } from "@/Hooks/Master/masterHooks";
-import { masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
+import { corpMasterApis, corpOnboardingDefinitionApi, masterApis, onboardingDefinitionApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useOnboardingMasters } from "./onboardingHooks";
+import { useCorpOnboardingMasters } from "./corporateOnboardingHooks";
 import { countryOption } from "@/Components/Common/countryOption";
 import { OnboardingDefinitionWizard } from "./OnboardingDefinitionWizard";
+import { CorporateOnboardingDefinitionWizard } from "./CorporateOnboardingDefinitionWizard";
 
 import { Button } from "@/Components/Common/Button";
 import { PartyTypeSelect, partyTypeBody, useIsMerchantModule } from "../../partyType";
 import { UntranslatedConfirm, untranslatedOf } from "@/Components/Epurse/Settings/FormBuilder/Translations";
 import { mergeStatusColumns } from "@/Components/MakerChecker/statusColumns";
-const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
+// Individual and corporate customer types are one screen. Corporate has no
+// sub type, minor age or KYC scheme; it is set by its company type instead.
+const KINDS = {
+  individual: { api: onboardingDefinitionApi, Wizard: OnboardingDefinitionWizard, useMasters: useOnboardingMasters, typeApi: masterApis.ownership_sub_type },
+  corporate: { api: corpOnboardingDefinitionApi, Wizard: CorporateOnboardingDefinitionWizard, useMasters: useCorpOnboardingMasters, typeApi: corpMasterApis.corp_company_type },
+};
+// The page's texts that differ by kind (onboarding:<key>).
+const TEXTS = {
+  individual: { created: "customerTypeCreated", add: "addOnboardingConfiguration", title: "onboardingConfigurationTitle", subtitle: "onboardingConfigurationSubtitle", list: "customerTypes", empty: "noCustomerTypesYet", homeCountryHint: "homeCountryHint" },
+  corporate: { created: "corporateCustomerTypeCreated", add: "addCorporateCustomerType", title: "corporateOnboardingConfigurationTitle", subtitle: "corporateOnboardingConfigurationSubtitle", list: "corporateCustomerTypes", empty: "noCorporateCustomerTypesYet", homeCountryHint: "corpHomeCountryHint" },
+};
 
 // A customer type = the definition, full stop (Onboarding_Configuration_
 // API.md §8.1) — no separate "version" any more, so this is now an
@@ -41,7 +53,9 @@ const pendingApi = ({ id }) => onboardingDefinitionApi.pending({ id });
 // row is exactly that "reopen for reconfiguration" action (guide §8.4/§10),
 // so it needs no special-casing here — getMakerCheckerButtons already
 // grants Edit on Active, and the wizard itself does the reopen.
-function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
+function DefinitionRowActions({ kind, row, can, onOpen, onRefresh }) {
+  const k = KINDS[kind];
+  const pendingApi = ({ id }) => k.api.pending({ id });
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   const [action, setAction] = useState(null); // { method, label }
   const [audit, setAudit] = useState(false);
@@ -77,7 +91,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
       const payload = { id: row.id, ...(narration.trim() ? { narration: narration.trim() } : {}), ...(confirmMissing ? { confirm_missing_translations: true } : {}) };
       let response;
       try {
-        response = await onboardingDefinitionApi[action.method](payload);
+        response = await k.api[action.method](payload);
       } catch (error) {
         const refusal = action.method === "submit" && untranslatedOf(error);
         if (!refusal) throw error;
@@ -100,6 +114,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
   return (
     <div className="flex items-center justify-center gap-1">
       <RowActions
+        permission={kind === "corporate" ? can : undefined}
         buttons={buttons}
         onView={() => onOpen(row, { forceReadOnly: true })}
         onEdit={buttons.edit ? () => onOpen(row) : undefined}
@@ -126,7 +141,7 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         {action?.method === "submit" && (
           <dl className="mt-1 grid gap-2">
             <p className="text-xs font-semibold text-muted-foreground">{t("onboarding:submitPreview")}</p>
-            {[["name", t("onboarding:name")], ["code", t("onboarding:code")], ["party_type_name", t("onboarding:partyType")], ["ownership_name", t("onboarding:ownership")], ["ownership_sub_type_name", t("onboarding:subType")]].map(([key, label]) => (
+            {[["name", t("onboarding:name")], ["code", t("onboarding:code")], ["party_type_name", t("onboarding:partyType")], ...(kind === "corporate" ? [["company_type_name", t("onboarding:companyType")]] : [["ownership_name", t("onboarding:ownership")], ["ownership_sub_type_name", t("onboarding:subType")]])].map(([key, label]) => (
               <div key={key} className="rounded-xl border border-border p-2.5">
                 <dt className="text-[10px] font-bold uppercase text-muted-foreground">{label}</dt>
                 <dd className="mt-0.5 text-sm font-semibold text-slate-700">{row?.[key] ?? "-"}</dd>
@@ -145,14 +160,14 @@ function DefinitionRowActions({ row, can, onOpen, onRefresh }) {
         <AuditModal
           title={row.name}
           fields={[
-            ["minor_age_years", t("onboarding:minorAge")],
+            ...(kind === "corporate" ? [] : [["minor_age_years", t("onboarding:minorAge")]]),
             ["home_country_id", t("onboarding:homeCountry")],
-            ["kyc_group_id", t("onboarding:kycScheme")],
+            ...(kind === "corporate" ? [] : [["kyc_group_id", t("onboarding:kycScheme")]]),
             ["effective_from", t("onboarding:effectiveFrom")],
           ]}
           onClose={() => setAudit(false)}
           fetchAudit={(page, limit) =>
-            onboardingDefinitionApi.audit({ id: row.id, page, limit }).then((r) => ({
+            k.api.audit({ id: row.id, page, limit }).then((r) => ({
               entries: Array.isArray(r?.data) ? r.data : [],
               totalPages: r?.pagination?.totalPages ?? 1,
             }))
@@ -175,13 +190,17 @@ const emptyForm = {
   description: "",
   party_type_id: "",
   ownership_sub_type_id: "",
+  company_type_id: "",
   minor_age_years: 18,
   home_country_id: "",
   kyc_group_id: "",
   effective_from: "",
 };
 
-export function OnboardingConfigurationPage() {
+export function OnboardingConfigurationPage({ kind = "individual" }) {
+  const k = KINDS[kind];
+  const x = TEXTS[kind];
+  const corporate = kind === "corporate";
   const openMenu = useOpenMenu();
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   // "Onboarding Configuration" is the menu's real, current name (confirmed
@@ -195,29 +214,31 @@ export function OnboardingConfigurationPage() {
   const [open, setOpen] = useState(false);
   // Only loaded while the create dialog is actually open — same masters
   // the wizard's own Basics step uses.
-  const { countries, kycGroups } = useOnboardingMasters(open);
+  const { countries, kycGroups = [] } = k.useMasters(open);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [wizard, setWizard] = useState(null);
 
-  const list = useServerList({ api: onboardingDefinitionApi.listPath, call: onboardingDefinitionApi.list });
+  const list = useServerList({ api: k.api.listPath, call: k.api.list });
 
   const load = list.reload;
-  useLiveChannel(onboardingDefinitionApi.listPath, () => load());
+  useLiveChannel(k.api.listPath, () => load());
 
   // Party type comes from the module (the API prefix) and ownership from
   // the menu (Individual), handoff 17: the one choice is the sub type, with
   // "No sub type" (null) as the default definition.
-  const subTypes = useDropdownRows(masterApis.ownership_sub_type, open);
-
-  const subTypeOptions = subTypes.map((s) => ({ value: s.id, label: s.name }));
+  const typeOptions = useDropdownRows(k.typeApi, open).map((s) => ({ value: s.id, label: s.name }));
 
   const create = async () => {
+    if (corporate && (!form.code.trim() || !form.name.trim() || !form.company_type_id)) {
+      notifications.error("Code, name and company type are required");
+      return;
+    }
     if (!form.code.trim() || !form.name.trim()) {
       notifications.error("Code and name are required");
       return;
     }
-    if (!form.minor_age_years || Number(form.minor_age_years) <= 0) {
+    if (!corporate && (!form.minor_age_years || Number(form.minor_age_years) <= 0)) {
       notifications.error("Minor age (years) is required");
       return;
     }
@@ -228,19 +249,20 @@ export function OnboardingConfigurationPage() {
       // separate "create draft, then set basics" step (guide §8.3-8.4), so
       // they can't be deferred to the wizard's own Basics step the way the
       // rest of the configuration is.
-      const response = await onboardingDefinitionApi.add({
+      const response = await k.api.add({
         code: form.code.trim().toUpperCase(),
         name: form.name.trim(),
         description: form.description.trim().replace(/\n{3,}/g, "\n\n"),
         ...partyTypeBody(isMerchant, form.party_type_id),
-        ownership_sub_type_id: form.ownership_sub_type_id ? Number(form.ownership_sub_type_id) : null,
-        minor_age_years: Number(form.minor_age_years),
+        ...(corporate
+          ? { company_type_id: Number(form.company_type_id) }
+          : { ownership_sub_type_id: form.ownership_sub_type_id ? Number(form.ownership_sub_type_id) : null, minor_age_years: Number(form.minor_age_years) }),
         ...(form.home_country_id ? { home_country_id: Number(form.home_country_id) } : {}),
-        ...(form.kyc_group_id ? { kyc_group_id: Number(form.kyc_group_id) } : {}),
+        ...(!corporate && form.kyc_group_id ? { kyc_group_id: Number(form.kyc_group_id) } : {}),
         ...(form.effective_from ? { effective_from: form.effective_from } : {}),
         is_draft: true,
       });
-      notifications.success(apiMessage(response, t("onboarding:customerTypeCreated")));
+      notifications.success(apiMessage(response, t(`onboarding:${x.created}`)));
       setOpen(false);
       setForm(emptyForm);
       await load();
@@ -268,13 +290,13 @@ export function OnboardingConfigurationPage() {
       ),
     },
     {
-      key: "ownership_sub_type_name",
-      label: t("onboarding:subType"),
+      key: corporate ? "company_type_name" : "ownership_sub_type_name",
+      label: t(corporate ? "onboarding:partyCompanyType" : "onboarding:subType"),
       align: "left",
       render: (r) => (
         <div className="text-left">
-          <div>{r.ownership_sub_type_name ?? "-"}</div>
-          <div className="text-[11px] text-muted-foreground">{r.party_type_name ?? "-"} × {r.ownership_name ?? "-"}</div>
+          <div>{(corporate ? r.company_type_name : r.ownership_sub_type_name) ?? "-"}</div>
+          <div className="text-[11px] text-muted-foreground">{r.party_type_name ?? "-"}{corporate ? "" : ` × ${r.ownership_name ?? "-"}`}</div>
           <InstitutionOnly><div className="text-[11px] text-muted-foreground">{r.inst_profile_name ?? "-"}</div></InstitutionOnly>
         </div>
       ),
@@ -291,6 +313,7 @@ export function OnboardingConfigurationPage() {
       sortable: false,
       render: (r) => (
         <DefinitionRowActions
+          kind={kind}
           row={r}
           can={can}
           onOpen={(row, opts) => setWizard({ definition: row, forceReadOnly: Boolean(opts?.forceReadOnly) })}
@@ -308,24 +331,24 @@ export function OnboardingConfigurationPage() {
         setForm(emptyForm);
         setOpen(true);
       }}>
-      <Plus size={14} /> {t("onboarding:addOnboardingConfiguration")}
+      <Plus size={14} /> {t(`onboarding:${x.add}`)}
     </Button>
   ) : null;
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <PageTitle>{t("onboarding:onboardingConfigurationTitle")}</PageTitle>
+        <PageTitle>{t(`onboarding:${x.title}`)}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">
-          {t("onboarding:onboardingConfigurationSubtitle")}
+          {t(`onboarding:${x.subtitle}`)}
         </p>
       </div>
-      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.id} title={t("onboarding:customerTypes")} emptyTitle={t("onboarding:noCustomerTypesYet")} />
+      <ListTable list={list} actions={addAction} columns={columns} rowKey={(r) => r.id} title={t(`onboarding:${x.list}`)} emptyTitle={t(`onboarding:${x.empty}`)} />
 
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title={t("onboarding:addOnboardingConfiguration")}
+        title={t(`onboarding:${x.add}`)}
         footer={
           <>
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -345,7 +368,7 @@ export function OnboardingConfigurationPage() {
         <div className="grid gap-4">
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:code")} <span className="text-red-500">*</span>
-            <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder="CUSTOMER_INDIVIDUAL_STUDENT" />
+            <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 font-mono text-sm" placeholder={corporate ? "CUSTOMER_PRIVATE_LIMITED" : "CUSTOMER_INDIVIDUAL_STUDENT"} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:codeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
@@ -358,9 +381,16 @@ export function OnboardingConfigurationPage() {
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{form.description.length}/250</span>
           </label>
           {isMerchant && <PartyTypeSelect value={form.party_type_id} onChange={(v) => setForm({ ...form, party_type_id: v })} />}
+          {corporate ? (
+            <label className="text-sm font-semibold text-slate-700">
+              {t("onboarding:companyType")} <span className="text-red-500">*</span>
+              <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addCompanyType"), onClick: () => openMenu("companytype") }} value={form.company_type_id} onChange={(v) => setForm({ ...form, company_type_id: v })} options={[{ value: "", label: t("onboarding:selectCompanyType") }, ...typeOptions]} />
+            </label>
+          ) : (
+            <>
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:subType")}
-            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...subTypeOptions]} />
+            <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addOwnershipSubType"), onClick: () => openMenu("ownershipsubtype") }} value={form.ownership_sub_type_id} onChange={(v) => setForm({ ...form, ownership_sub_type_id: v })} options={[{ value: "", label: t("onboarding:noSubTypeDefault") }, ...typeOptions]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:subTypeHint")}</span>
           </label>
           <label className="text-sm font-semibold text-slate-700">
@@ -368,16 +398,20 @@ export function OnboardingConfigurationPage() {
             <input type="number" min={0} value={form.minor_age_years} onChange={(e) => setForm({ ...form, minor_age_years: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:minorAgeHint")}</span>
           </label>
+            </>
+          )}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:homeCountry")}
             <FilterSelect className="mt-1.5" value={form.home_country_id} onChange={(v) => setForm({ ...form, home_country_id: v })} options={[{ value: "", label: t("onboarding:selectCountry") }, ...countries.map(countryOption)]} />
-            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:homeCountryHint")}</span>
+            <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t(`onboarding:${x.homeCountryHint}`)}</span>
           </label>
+          {!corporate && (
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:kycScheme")}
             <FilterSelect className="mt-1.5" addAction={{ label: t("onboarding:addKycScheme"), onClick: () => openMenu("kycschemes") }} value={form.kyc_group_id} onChange={(v) => setForm({ ...form, kyc_group_id: v })} options={[{ value: "", label: t("onboarding:selectKycScheme") }, ...kycGroups.map((g) => ({ value: g.id, label: `${g.name} (${g.code})` }))]} />
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("onboarding:kycSchemeHint")}</span>
           </label>
+          )}
           <label className="text-sm font-semibold text-slate-700">
             {t("onboarding:effectiveFrom")}
             <DateInput value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })} className="mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm" />
@@ -386,7 +420,7 @@ export function OnboardingConfigurationPage() {
       </Modal>
 
       {wizard && (
-        <OnboardingDefinitionWizard
+        <k.Wizard
           definition={wizard.definition}
           forceReadOnly={wizard.forceReadOnly}
           onClose={() => setWizard(null)}
