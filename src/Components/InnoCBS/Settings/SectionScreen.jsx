@@ -19,9 +19,13 @@ import { useInstitutionScope } from "../Loans/loanShared";
 // pending change (each section has its own maker-checker) and its history.
 // `api` is the section's calls; `toForm` / `toValue` turn the value into the
 // form and back; `problemOf` is what stops proposing; `children` draws the
-// section, given { data, shown, editing, setForm }.
-export function SectionScreen({ api, fallbackTitle, toForm = structuredClone, toValue = (form) => form, problemOf = () => "", children }) {
-  const { t } = useTranslation(["corebank", "loans"]);
+// section, given { data, shown, editing, setForm }. Other single-document
+// settings (App Versions, Expiry Rules) use it too: `ns` holds their texts
+// (pendingBy, showProposed, confirm_*), `valueKey` where the document sits
+// in the reply, `bodyOf` how an edit sends it, `subtitle` and `before` what
+// shows above the document; `framed={false}` when the document draws its own cards.
+export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", subtitle, before, framed = true, children }) {
+  const { t } = useTranslation([ns, "loans"]);
   const can = usePagePermission();
   const menu = useMenuContext()?.menu;
   const { chooser, institution, scope } = useInstitutionScope();
@@ -67,18 +71,21 @@ export function SectionScreen({ api, fallbackTitle, toForm = structuredClone, to
 
   const a = data?.actions ?? {};
   const pending = data?.pending ?? null;
-  const shown = form ?? (pending && showPending ? pending.value : data?.value);
+  const shown = form ?? (pending && showPending ? pending[valueKey] : data?.[valueKey]);
   const problem = form ? problemOf(t, form, data) : "";
 
   return (
     <div className="pt-1 pb-6">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <PageTitle>{menu ? menuLabel(menu) : fallbackTitle}</PageTitle>
+        <div>
+          <PageTitle>{menu ? menuLabel(menu) : fallbackTitle}</PageTitle>
+          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
         {data && !data.missing && !form && (
           <ActionButtons
             busy={busy}
             buttons={[
-              a.edit && can("Edit") && { key: "edit", label: t("loans:edit"), icon: Pencil, run: () => (setForm(toForm(pending?.value ?? data.value)), setError("")) },
+              a.edit && can("Edit") && { key: "edit", label: t("loans:edit"), icon: Pencil, run: () => (setForm(toForm(pending?.[valueKey] ?? data[valueKey])), setError("")) },
               a.deauth && can("Authorize") && { key: "deauth", label: t("loans:reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
               a.auth && can("Authorize") && { key: "auth", label: t("loans:approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
             ]}
@@ -90,6 +97,7 @@ export function SectionScreen({ api, fallbackTitle, toForm = structuredClone, to
         <PageSkeleton />
       ) : data.missing ? null : (
         <div className="grid gap-4">
+          {before?.(data)}
           {pending && !form && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
               <span>
@@ -99,7 +107,7 @@ export function SectionScreen({ api, fallbackTitle, toForm = structuredClone, to
               <Toggle showLabel label={t("showProposed")} checked={showPending} onChange={setShowPending} />
             </div>
           )}
-          <Section>{children({ data, shown, editing: Boolean(form), setForm })}</Section>
+          {framed ? <Section>{children({ data, shown, editing: Boolean(form), setForm })}</Section> : children({ data, shown, editing: Boolean(form), setForm })}
           {form ? (
             <>
               {problem && <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">{problem}</p>}
@@ -130,7 +138,7 @@ export function SectionScreen({ api, fallbackTitle, toForm = structuredClone, to
           required={dialog === "deauth"}
           busy={busy}
           onClose={() => setDialog(null)}
-          onSave={(narration) => act(dialog, { ...(dialog === "edit" ? { value: toValue(form) } : {}), ...(narration ? { narration } : {}) })}
+          onSave={(narration) => act(dialog, { ...(dialog === "edit" ? (bodyOf ? bodyOf(form) : { value: toValue(form) }) : {}), ...(narration ? { narration } : {}) })}
         />
       )}
     </div>

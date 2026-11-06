@@ -1,30 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CalendarClock, CheckCircle2, Pencil, Send, XCircle } from "lucide-react";
-import { Button } from "@/Components/Common/Button";
-import { PageSkeleton } from "@/Components/Common/PageSkeleton";
-import { PageTitle } from "@/Components/Common/PageTitle";
-import { Toggle } from "@/Components/Common/Toggle";
-import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
-import {
-  ActionButtons,
-  AuditTimeline,
-  NarrationDialog,
-  Problems,
-  Section,
-  labelClass,
-} from "@/Components/InnoCBS/Deposits/depositShared";
-import { Field, RowsEditor, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
-import { usePagePermission } from "@/Hooks/usePermission";
+import { Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { Field, RowsEditor } from "@/Components/InnoCBS/Loans/loanShared";
 import { expiryRulesApi } from "@/Services/Expiry/expiry.api";
-import { recordOf } from "@/Services/Loans/loans.api";
-import { notifications } from "@/Utils/Lib/notifications";
+import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { cn } from "@/Utils/Lib/utils";
-import { actorText } from "@/Utils/Lib/actor";
-
 const DOCUMENT_KINDS = ["ID_DOCUMENT", "CORP_DOCUMENT"];
 const DAYS = ["warn_days", "remind_days", "grace_days"];
-
 // The rules as the server takes them: days as numbers. The whole list is
 // sent; a kind left out falls back to its default.
 const toBody = (rules) =>
@@ -36,7 +17,6 @@ const toBody = (rules) =>
     notify_party: Boolean(r.notify_party),
     notify_staff: Boolean(r.notify_staff),
   }));
-
 // Checked before proposing (the server checks the same).
 function rulesProblem(t, rules) {
   for (const r of rules) {
@@ -51,208 +31,66 @@ function rulesProblem(t, rules) {
     return t("typeOnce");
   return "";
 }
-
+// The form's rules with days as text, for the inputs.
+const asFormRules = (rules) =>
+  (rules ?? []).map((r) => ({
+    ...r,
+    ...Object.fromEntries(DAYS.map((k) => [k, String(r[k] ?? 0)])),
+    document_type_id: String(r.document_type_id ?? 0),
+    _typed: Boolean(r._typed || Number(r.document_type_id)),
+  }));
 // GLOBAL SETTINGS > Expiry Rules (menu 197): per kind of date (customers'
 // and companies' documents, module subscriptions, the licence, staff
 // passwords) when to warn, when to remind, the grace after the date and what
 // happens then. One document under maker-checker; Self applies at once.
 export function ExpiryRules() {
   const { t } = useTranslation(["expiry", "loans"]);
-  const can = usePagePermission();
-  const { chooser, institution, scope } = useInstitutionScope();
-  const [data, setData] = useState(null);
-  const [form, setForm] = useState(null);
-  const [showPending, setShowPending] = useState(true);
-  const [error, setError] = useState("");
-  const [dialog, setDialog] = useState(null);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    if (chooser && !institution) return;
-    try {
-      setData(recordOf(await expiryRulesApi.get(scope())));
-    } catch (e) {
-      setData({ missing: true });
-      notifications.error(e.message);
-    }
-  }, [chooser, institution, scope]);
-  useEffect(() => {
-    setData(null);
-    setForm(null);
-    void load();
-  }, [load]);
-
-  const act = async (verb, body = {}) => {
-    setBusy(true);
-    setError("");
-    try {
-      const response = await expiryRulesApi[verb](scope(body));
-      if (response?.message) notifications.success(response.message);
-      setDialog(null);
-      setForm(null);
-      await load();
-    } catch (e) {
-      setDialog(null);
-      if (verb === "edit") setError(e.message);
-      else notifications.error(e.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const a = data?.actions ?? {};
-  const pending = data?.pending?.setup ?? null;
-  const shown = form ?? (pending && showPending ? pending : data?.setup);
-  const rules = (shown?.rules ?? []).map((r) => ({
-    ...r,
-    ...Object.fromEntries(DAYS.map((k) => [k, String(r[k] ?? 0)])),
-    document_type_id: String(r.document_type_id ?? 0),
-    _typed: Boolean(r._typed || Number(r.document_type_id)),
-  }));
-  const problem = form ? rulesProblem(t, rules) : "";
-  const editing = Boolean(form);
-  const kinds = data?.options?.kinds ?? [...new Set(rules.map((r) => r.kind))];
-  // Replace one kind's rules (its general rule first, then per-type rules).
-  const setKind = (kind, next) =>
-    setForm((f) => ({ ...f, rules: [...f.rules.filter((r) => r.kind !== kind), ...next] }));
-  const counts = data?.counts ?? {};
-
   return (
-    <div className="pt-1 pb-6">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <PageTitle icon={CalendarClock}>{t("rulesTitle")}</PageTitle>
-          <p className="mt-1 text-sm text-muted-foreground">{t("rulesSubtitle")}</p>
-        </div>
-        {data && !data.missing && !form && (
-          <ActionButtons
-            busy={busy}
-            buttons={[
-              a.edit &&
-                can("Edit") && {
-                  key: "edit",
-                  label: t("loans:edit"),
-                  icon: Pencil,
-                  run: () => {
-                    setForm(structuredClone(pending ?? data.setup));
-                    setError("");
-                  },
-                },
-              a.deauth &&
-                can("Authorize") && {
-                  key: "deauth",
-                  label: t("loans:reject"),
-                  icon: XCircle,
-                  variant: "danger",
-                  run: () => setDialog("deauth"),
-                },
-              a.auth &&
-                can("Authorize") && {
-                  key: "auth",
-                  label: t("loans:approve"),
-                  icon: CheckCircle2,
-                  variant: "primary",
-                  run: () => setDialog("auth"),
-                },
-            ]}
-          />
-        )}
-      </div>
-
-      {chooser && !institution ? null : !data ? (
-        <PageSkeleton />
-      ) : data.missing ? null : (
-        <div className="grid gap-4">
-          {(counts.EXPIRING > 0 || counts.IN_GRACE > 0) && (
+    <SectionScreen
+      api={expiryRulesApi}
+      ns="expiry"
+      valueKey="setup"
+      framed={false}
+      fallbackTitle={t("rulesTitle")}
+      subtitle={t("rulesSubtitle")}
+      bodyOf={(form) => ({ rules: toBody(form.rules) })}
+      problemOf={(_, form) => rulesProblem(t, asFormRules(form.rules))}
+      before={(data) => (
+        <>
+          {(data.counts?.EXPIRING > 0 || data.counts?.IN_GRACE > 0) && (
             <p className="rounded-xl bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-900">
-              {t("documentCounts", { expiring: counts.EXPIRING ?? 0, grace: counts.IN_GRACE ?? 0 })}
+              {t("documentCounts", { expiring: data.counts.EXPIRING ?? 0, grace: data.counts.IN_GRACE ?? 0 })}
             </p>
           )}
-          {!data.id && !pending && (
-            <p className="text-xs text-muted-foreground">{t("onDefaults")}</p>
-          )}
-          {pending && !form && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
-              <span>
-                {t("pendingBy", {
-                  name: actorText(data.pending, "proposed_by", "—"),
-                  date: accountDate(data.pending.proposed_at),
-                })}
-              </span>
-              <Toggle
-                showLabel
-                label={t("showProposed")}
-                checked={showPending}
-                onChange={setShowPending}
+          {!data.id && !data.pending && <p className="text-xs text-muted-foreground">{t("onDefaults")}</p>}
+        </>
+      )}
+    >
+      {({ data, shown, editing, setForm }) => {
+        const rules = asFormRules(shown?.rules);
+        const kinds = data.options?.kinds ?? [...new Set(rules.map((r) => r.kind))];
+        // Replace one kind's rules (its general rule first, then per-type rules).
+        const setKind = (kind, next) => setForm((f) => ({ ...f, rules: [...f.rules.filter((r) => r.kind !== kind), ...next] }));
+        return (
+          <div className="grid gap-4">
+            {kinds.map((kind) => (
+              <KindCard
+                key={kind}
+                kind={kind}
+                rules={rules.filter((r) => r.kind === kind)}
+                actions={data.options?.actions?.[kind] ?? []}
+                documentTypes={data.document_types?.[kind] ?? []}
+                // Only the System user sets the module grace; its action is fixed.
+                disabled={!editing || (kind === "MODULE_SUBSCRIPTION" && !data.actions?.edit_module_grace)}
+                onChange={(next) => setKind(kind, next)}
               />
-            </div>
-          )}
-
-          {kinds.map((kind) => (
-            <KindCard
-              key={kind}
-              kind={kind}
-              rules={rules.filter((r) => r.kind === kind)}
-              actions={data.options?.actions?.[kind] ?? []}
-              documentTypes={data.document_types?.[kind] ?? []}
-              // Only the System user sets the module grace; its action is fixed.
-              disabled={!editing || (kind === "MODULE_SUBSCRIPTION" && !a.edit_module_grace)}
-              onChange={(next) => setKind(kind, next)}
-            />
-          ))}
-
-          {form ? (
-            <>
-              {problem && (
-                <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-                  {problem}
-                </p>
-              )}
-              {error && <Problems message={error} />}
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button variant="ghost" onClick={() => setForm(null)}>
-                  {t("loans:cancel")}
-                </Button>
-                <Button icon={Send} disabled={Boolean(problem)} disabledReason={t("common:blockedFillRequired")} onClick={() => setDialog("edit")}>
-                  {t("loans:proposeChanges")}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <Section title={t("loans:history")} collapsible>
-              <AuditTimeline audit={data.history ?? []} />
-            </Section>
-          )}
-        </div>
-      )}
-
-      {dialog && (
-        <NarrationDialog
-          title={t(`confirm_${dialog}`)}
-          hint={t(`confirmHint_${dialog}`)}
-          confirmLabel={t(
-            dialog === "auth"
-              ? "loans:approve"
-              : dialog === "deauth"
-                ? "loans:reject"
-                : "loans:proposeChanges",
-          )}
-          variant={dialog === "deauth" ? "danger" : "primary"}
-          required={dialog === "deauth"}
-          busy={busy}
-          onClose={() => setDialog(null)}
-          onSave={(narration) =>
-            act(dialog, {
-              ...(dialog === "edit" ? { rules: toBody(form.rules) } : {}),
-              ...(narration ? { narration } : {}),
-            })
-          }
-        />
-      )}
-    </div>
+            ))}
+          </div>
+        );
+      }}
+    </SectionScreen>
   );
 }
-
 // One kind: its general rule and, for documents, rules for single types.
 function KindCard({ kind, rules, actions, documentTypes, disabled, onChange }) {
   const { t } = useTranslation("expiry");
@@ -346,7 +184,6 @@ function KindCard({ kind, rules, actions, documentTypes, disabled, onChange }) {
     </Section>
   );
 }
-
 const ActionHelp = ({ action }) => {
   const { t } = useTranslation("expiry");
   const text = t(`actionHelp_${action}`, { defaultValue: "" });
