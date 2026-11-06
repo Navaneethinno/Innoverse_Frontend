@@ -16,11 +16,15 @@ const TransactionRouting = lazy(() => import("@/Components/GlobalSettings/Routin
 // GLOBAL SETTINGS > Expiry Rules (menu 197).
 const ExpiryRules = lazy(() => import("@/Components/GlobalSettings/ExpiryRules/ExpiryRules.jsx").then((m) => ({ default: m.ExpiryRules })));
 
+// GLOBAL SETTINGS > App Versions (menu 218).
+const AppVersions = lazy(() => import("@/Components/GlobalSettings/AppVersions/AppVersions.jsx").then((m) => ({ default: m.AppVersions })));
+
 // GLOBAL SETTINGS > Approval Policies (menu 202) and Approval Delegations (203).
 const ApprovalPolicies = lazy(() => import("@/Components/GlobalSettings/Approvals/ApprovalPolicies.jsx").then((m) => ({ default: m.ApprovalPolicies })));
 const ApprovalDelegations = lazy(() => import("@/Components/GlobalSettings/Approvals/ApprovalDelegations.jsx").then((m) => ({ default: m.ApprovalDelegations })));
 
 export const globalSettingsRoutes = [
+  { path: "appversions", element: pageElement(AppVersions) },
   { path: "approvalpolicies", element: pageElement(ApprovalPolicies) },
   { path: "approvalpolicies/:id", element: pageElement(ApprovalPolicies) },
   { path: "approvaldelegations", element: pageElement(ApprovalDelegations) },

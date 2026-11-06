@@ -14,6 +14,7 @@ export const SCREEN_MENUS = [
   "Address Type",
   "Agents",
   "Annual Income Range",
+  "App Versions",
   "Approval Delegations",
   "Approval Policies",
   "BINs",

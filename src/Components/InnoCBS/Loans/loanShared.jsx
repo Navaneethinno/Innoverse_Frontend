@@ -200,6 +200,8 @@ export function RowsEditor({
   columns = "lg:grid-cols-4",
   renderExtra,
   invalid = [],
+  // false hides Add (e.g. one row per platform, all present).
+  canAdd = true,
 }) {
   const { t } = useTranslation("loans");
   const set = (i, patch) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
@@ -249,7 +251,7 @@ export function RowsEditor({
       {!rows.length && (
         <p className="py-3 text-center text-xs text-muted-foreground">{t("noRows")}</p>
       )}
-      {!disabled && (
+      {!disabled && canAdd && (
         <Button
           variant="outline"
           size="sm"

@@ -532,6 +532,12 @@ export const PAGE_HELP = {
     "decisions": "Recent routing decisions and why.",
     "set up routing": "Chooses the connections for an institution."
   },
+  "appversions": {
+    "about": "The latest mobile app version and the lowest one still allowed, for Android and iOS.",
+    "latest version": "The newest version: an app below it is offered the update.",
+    "min supported version": "The lowest version still allowed: an app below it must update before it can be used.",
+    "release notes": "Shown to customers in the app's update prompt."
+  },
   "expiryrules": {
     "about": "When to warn before a document or licence runs out, when to remind, how long the grace lasts after, and what happens then.",
     "hold money going out": "After the grace period, block payments out until it's renewed.",

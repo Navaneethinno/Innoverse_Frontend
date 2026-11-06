@@ -992,6 +992,10 @@ export const API_ENDPOINTS = {
     PRODUCT: "/config/deposit/product",
   },
   GLOBAL: {
+    APP_VERSION_AUTH: "/config/global/app_version/auth",
+    APP_VERSION_DEAUTH: "/config/global/app_version/deauth",
+    APP_VERSION_EDIT: "/config/global/app_version/edit",
+    APP_VERSION_GET: "/config/global/app_version/get",
     EXPIRY_RULE_AUTH: "/config/global/expiry_rule/auth",
     EXPIRY_RULE_DEAUTH: "/config/global/expiry_rule/deauth",
     EXPIRY_RULE_EDIT: "/config/global/expiry_rule/edit",
