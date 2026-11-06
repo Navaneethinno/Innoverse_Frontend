@@ -71,6 +71,8 @@ void i18n
       "regReports",
       "monitoring",
       "expiry",
+      "toasts",
+      "labels",
       "masters",
       "appVersions",
       "keyCustody",
