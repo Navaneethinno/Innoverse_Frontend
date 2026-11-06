@@ -11,15 +11,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { InstitutionOnly } from "@/Components/Common/InstitutionOnly";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useMenuPermission } from "@/Hooks/usePermission";
-import {
-  customerOnboardingApi,
-  merchantOnboardingApi,
-  onboardingRowsOf,
-} from "@/Services/Epurse/customerOnboarding.api";
-import {
-  corpCustomerOnboardingApi,
-  corpMerchantOnboardingApi,
-} from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { customerOnboardingApi, merchantOnboardingApi, onboardingRowsOf, corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ExportButtons, glassCard, useReportDetail } from "../Shared/reportShared";
 import { KycReportView } from "./KycReportView";

@@ -4,14 +4,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { RowActions } from "@/Components/Common/RowActions";
 import { useServerList } from "@/Hooks/useServerList";
-import {
-  customerOnboardingApi,
-  merchantOnboardingApi,
-} from "@/Services/Epurse/customerOnboarding.api";
-import {
-  corpCustomerOnboardingApi,
-  corpMerchantOnboardingApi,
-} from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { customerOnboardingApi, merchantOnboardingApi, corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
 import { expiringDocumentsApi } from "@/Services/Expiry/expiry.api";
 import { KycReportView } from "../KycReport/KycReportView";
 import { useReportDetail } from "../Shared/reportShared";

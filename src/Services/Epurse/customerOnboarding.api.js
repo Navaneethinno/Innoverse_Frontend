@@ -104,3 +104,6 @@ export const customerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.INDIVIDUAL)
 // merchant, opened from an EPURSE page).
 export const merchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.INDIVIDUAL));
 
+// Corporate: the same calls under /customer/admin/corporate (no KYC levels).
+export const corpCustomerOnboardingApi = buildApi(API_ENDPOINTS.CUSTOMER.CORPORATE);
+export const corpMerchantOnboardingApi = buildApi(merchantRoutes(API_ENDPOINTS.CUSTOMER.CORPORATE));

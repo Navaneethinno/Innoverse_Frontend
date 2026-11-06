@@ -1,6 +1,5 @@
 import { StoredFilePreview } from "@/Components/Common/FileUploadField";
-import { customerOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
-import { corpCustomerOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { customerOnboardingApi, corpCustomerOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
 import { fieldLabel, isIdField } from "./idNames";
 
 // Renders a record's values as a person would read them: ids as names

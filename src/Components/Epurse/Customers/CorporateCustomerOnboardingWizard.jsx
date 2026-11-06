@@ -1,4 +1,4 @@
-import { corpCustomerOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
+import { corpCustomerOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
 import { StaffOnboardingWizard } from "./StaffOnboardingWizard";
 
 // Corporate customers onboarded by staff: same wizard, no KYC; add takes

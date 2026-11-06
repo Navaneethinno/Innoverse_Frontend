@@ -12,8 +12,7 @@ import { StaffOnboardingWizard } from "@/Components/Epurse/Customers/StaffOnboar
 import { ClearAllDialog, ScreeningDetailModal } from "@/Components/InnoAML/Shared/ScreeningDetail";
 import { AdverseMediaBadge } from "@/Components/InnoAML/AdverseMedia/AdverseMedia";
 import { onboardingCasesApi } from "@/Services/CaseManagement/onboardingCases.api";
-import { corpCustomerOnboardingApi, corpMerchantOnboardingApi } from "@/Services/Epurse/corporateCustomerOnboarding.api";
-import { customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
+import { corpCustomerOnboardingApi, corpMerchantOnboardingApi, customerOnboardingApi, merchantOnboardingApi } from "@/Services/Epurse/customerOnboarding.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
