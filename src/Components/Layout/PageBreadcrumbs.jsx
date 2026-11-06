@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { getPathForCrumb, getRouteMetadata } from "@/Utils/Config/routeConfig";
 import { menuLabel, moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { UiTooltip } from "@/Components/Common/UiTooltip";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Each crumb links to a real registered route via getPathForCrumb
 // (routeConfig.js) — a reverse lookup over the same SEGMENT_LABELS map this
@@ -22,6 +23,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 // the display value and the lookup key, which would have silently broken
 // crumb links the moment the label was translated to another language.
 export function PageBreadcrumbs() {
+  const tr = useConfigLabel();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { t } = useTranslation("routes");
@@ -37,7 +39,7 @@ export function PageBreadcrumbs() {
 
   if (menuCrumbs) {
     return (
-      <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
+      <nav className="mb-3 flex items-center gap-1 text-xs" aria-label={tr("Page breadcrumb")}>
         {menuCrumbs.names.map((name, index) => (
           <span key={`${name}-${index}`} className="flex min-w-0 items-center gap-1">
             {index > 0 && <ChevronRight size={12} className="shrink-0 text-[var(--muted-foreground-soft)]" />}
@@ -57,7 +59,7 @@ export function PageBreadcrumbs() {
   }
 
   return (
-    <nav className="mb-3 flex items-center gap-1 text-xs" aria-label="Page breadcrumb">
+    <nav className="mb-3 flex items-center gap-1 text-xs" aria-label={tr("Page breadcrumb")}>
       {crumbKeys.map((crumbKey, index) => (
         <span key={`${crumbKey}-${index}`} className="flex min-w-0 items-center gap-1">
           {index > 0 && (

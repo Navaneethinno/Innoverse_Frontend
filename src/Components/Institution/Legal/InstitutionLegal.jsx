@@ -205,7 +205,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
     >
       {!editing && canChoose && (
         <label className="text-sm font-medium sm:col-span-2">
-          Institution
+          {tr("Institution")}
           <FilterSelect
             className="mt-1.5"
             value={form.inst_profile_id}
@@ -234,7 +234,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
         </label>
       ))}
       <label className="text-sm font-medium sm:col-span-2">
-        Narration
+        {tr("Narration")}
         <textarea
           value={form.narration}
           onChange={set("narration")}
@@ -243,7 +243,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
       </label>
       <div className="flex items-center justify-end gap-2 sm:col-span-2">
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
-          Cancel
+          {tr("Cancel")}
         </button>
         <Button
           disabled={pending}
@@ -261,7 +261,7 @@ function LegalForm({ editing, institutions = [], pending, onCancel, onSubmit }) 
           }
           variant="secondary"
         >
-          Save as draft
+          {tr("Save as draft")}
         </Button>
         <Button
           type="submit"

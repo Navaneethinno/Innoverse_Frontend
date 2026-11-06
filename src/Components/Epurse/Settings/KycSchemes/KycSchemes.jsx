@@ -14,6 +14,7 @@ import { useFieldLibrary } from "../FormBuilder/formBuilderHooks";
 import { Button } from "@/Components/Common/Button";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
 // replaces ALL levels atomically, validate is a dry run of the submit checks.
 // An approved scheme's levels are edited like any maker-checker record
@@ -312,6 +313,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
 }
 
 export function KycSchemes() {
+  const tr = useConfigLabel();
   const { t } = useTranslation(["onboarding", "common"]);
   const [form, setForm] = useState(null);
   const [clone, setClone] = useState(null);
@@ -390,7 +392,7 @@ export function KycSchemes() {
         canDeleteRow={isDeletable}
         addButton={
           <Button size="sm" onClick={() => setForm({ code: "", name: "", description: "" })}>
-            <Plus size={14} /> Add KYC scheme
+            <Plus size={14} /> {tr("Add KYC scheme")}
           </Button>
         }
         renderExtra={(row) => (

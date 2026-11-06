@@ -9476,6 +9476,28 @@ export const labels = {
   "Eligibility and initial deposit rules at account opening.": "Eligibility and initial deposit rules at account opening.",
   "Statement frequency and delivery preferences.": "Statement frequency and delivery preferences.",
   "Retry": "Retry",
+  "Page not found": "Page not found",
+  "Add KYC scheme": "Add KYC scheme",
+  "Remove": "Remove",
+  "Viewing only — nothing here can be changed.": "Viewing only — nothing here can be changed.",
+  "Jane Doe": "Jane Doe",
+  "Can't be changed after creation.": "Can't be changed after creation.",
+  "Main branch lobby": "Main branch lobby",
+  "Live preview": "Live preview",
+  "Active menu": "Active menu",
+  "Dashboard": "Dashboard",
+  "Pending requests": "Pending requests",
+  "Primary": "Primary",
+  "Secondary": "Secondary",
+  "Outline": "Outline",
+  "Sign in": "Sign in",
+  "Preview only. Changes apply after you save and a checker authorizes them.": "Preview only. Changes apply after you save and a checker authorizes them.",
+  "+ Add another module": "+ Add another module",
+  "Page breadcrumb": "Page breadcrumb",
+  "Sign out": "Sign out",
+  "Menu / Action grants": "Menu / Action grants",
+  "Menu": "Menu",
+  "Action": "Action",
 };
 
 export const toasts = {
@@ -9517,6 +9539,9 @@ export const toasts = {
   "pattern_status": "Request failed with status {{status}}",
   "pattern_policy": "Password does not meet policy: {{rules}}",
   "pattern_hex": "{{field}} must be a valid hex color (e.g. {{example}})",
+  "Code, name and company type are required": "Code, name and company type are required",
+  "This institution already has a branding for every portal": "This institution already has a branding for every portal",
+  "Fix the marked fields": "Fix the marked fields",
 };
 
 export default {

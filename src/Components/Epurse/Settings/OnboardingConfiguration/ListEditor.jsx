@@ -5,6 +5,7 @@ import { useAudienceTranslation } from "@/Hooks/useAudienceTranslation";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill, CheckboxPillGroup } from "@/Components/Common/CheckboxPill";
 import { Button } from "@/Components/Common/Button";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Spec-driven editor for one array of a customer-type / KYC-scheme
 // configuration (sections, fields, documents, rules, levels, ...). Each item
@@ -161,6 +162,7 @@ function splitIntoColumns(fields) {
 }
 
 export function ListEditor({ items, onChange, spec, addLabel, itemTitle, readOnly = false, readOnlyReason, emptyText, seed, nested = false }) {
+  const tr = useConfigLabel();
   const { t } = useAudienceTranslation(["onboarding", "common"]);
   const update = (index, next) => onChange(items.map((item, i) => (i === index ? next : item)));
   const remove = (index) => onChange(items.filter((_, i) => i !== index));
@@ -182,7 +184,7 @@ export function ListEditor({ items, onChange, spec, addLabel, itemTitle, readOnl
                 className="flex items-center gap-1 text-xs font-bold text-red-600"
                 aria-label={t("onboarding:remove")}
               >
-                <Trash2 size={13} /> Remove
+                <Trash2 size={13} /> {tr("Remove")}
               </button>
             )}
           </div>

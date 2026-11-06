@@ -89,6 +89,7 @@ function KycForm({
   institution,
   setInstitution,
 }) {
+  const tr = useConfigLabel();
   const canChoose = useCanChooseInstitution();
   const { data: institutions = [] } = useInstitutionsQuery({ limit: 100 });
   // The users matching the dropdown's search (the server searches), and the
@@ -134,7 +135,7 @@ function KycForm({
             onClick={onClose}
             variant="ghost" size="sm"
           >
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button
             disabled={pending || !isValid}
@@ -142,7 +143,7 @@ function KycForm({
             variant="secondary"
             size="sm"
           >
-            Save as draft
+            {tr("Save as draft")}
           </Button>
           <Button
             disabled={pending || !isValid}
@@ -158,7 +159,7 @@ function KycForm({
         {canChoose && !editing && (
           <label className="text-sm font-medium text-slate-700 md:col-span-2">
             <span className="mb-1.5 block">
-              Institution<span className="text-destructive"> *</span>
+              {tr("Institution")}<span className="text-destructive"> *</span>
             </span>
             <FilterSelect
               className="w-full"
@@ -335,7 +336,7 @@ function KycActions({ row, onEdit, onView, onAudit, onRefresh }) {
           <PendingChangesDiff {...pendingInfo} />
         )}
         <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Narration{action?.method === "kycDeauth" ? " *" : ""}
+          {tr("Narration")}{action?.method === "kycDeauth" ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}

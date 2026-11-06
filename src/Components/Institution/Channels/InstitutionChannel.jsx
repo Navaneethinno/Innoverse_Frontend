@@ -230,7 +230,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
       <label className="block text-sm font-medium">
         {!editing && canChoose && (
           <>
-            Institution
+            {tr("Institution")}
             <FilterSelect
               className="mt-1.5"
               value={form.inst_profile_id}
@@ -247,7 +247,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
         )}
       </label>
       <label className="block text-sm font-medium">
-        Channel
+        {tr("Channel")}
         <RequiredMark />
         <FilterSelect
           className="mt-1.5"
@@ -271,7 +271,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
         />
       </label>
       <label className="block text-sm font-medium">
-        Narration
+        {tr("Narration")}
         <textarea
           value={form.narration}
           onChange={set("narration")}
@@ -280,7 +280,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
       </label>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
-          Cancel
+          {tr("Cancel")}
         </button>
         <Button
           disabled={pending}
@@ -294,7 +294,7 @@ function ChannelForm({ editing, institutions = [], channels = [], pending, error
           }
           variant="secondary"
         >
-          Save as draft
+          {tr("Save as draft")}
         </Button>
         <Button
           type="submit"

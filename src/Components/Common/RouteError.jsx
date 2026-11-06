@@ -2,8 +2,10 @@ import { Link, useRouteError } from "react-router-dom";
 import { LottiePlayer } from "@/Components/Common/LottiePlayer";
 import notFoundAnimation from "@/assets/animations/Lonely 404.lottie";
 import { useTranslation } from "react-i18next";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 export function RouteError() {
+  const tr = useConfigLabel();
   const { t } = useTranslation("common");
   const error = useRouteError();
   const isDev = import.meta.env.DEV;
@@ -25,7 +27,7 @@ export function RouteError() {
         src={notFoundAnimation}
         loop
         autoplay
-        aria-label="Page not found"
+        aria-label={tr("Page not found")}
       />
       <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("lostTitle")}</h1>
       <p className="mb-2 text-sm font-medium text-muted-foreground">

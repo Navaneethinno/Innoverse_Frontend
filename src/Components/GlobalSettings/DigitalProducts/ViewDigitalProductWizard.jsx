@@ -81,7 +81,7 @@ export function ViewDigitalProductWizard({ product, onClose }) {
           onFieldChange={() => {}}
           lookups={lookups}
           disabled
-          disabledReason="Viewing only — nothing here can be changed."
+          disabledReason={tr("Viewing only — nothing here can be changed.")}
         />
       )}
     </Modal>

@@ -28,16 +28,17 @@ import { cn } from "@/Utils/Lib/utils";
 import { glassCard, partyLabel, useInstitutionScope } from "../Shared/amlShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { useLatest } from "@/Hooks/useLatest";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // AML > Adverse Media (handoff 20): news searched for a person or company on
 // demand, judged article by article. Not part of the AML score. Search and
 // view: Name Lookup's permission; reviewing articles: Match Review's.
 
 const LEVEL_TONE = {
-  NONE: { text: "text-emerald-700", bg: "bg-emerald-50", ring: "#059669" },
-  LOW: { text: "text-sky-700", bg: "bg-sky-50", ring: "#0284c7" },
-  MEDIUM: { text: "text-amber-700", bg: "bg-amber-50", ring: "#d97706" },
-  HIGH: { text: "text-red-700", bg: "bg-red-50", ring: "#dc2626" },
+  NONE: { text: "text-emerald-700", bg: "bg-emerald-50", ring: "var(--tone-success)" },
+  LOW: { text: "text-sky-700", bg: "bg-sky-50", ring: "var(--tone-info)" },
+  MEDIUM: { text: "text-amber-700", bg: "bg-amber-50", ring: "var(--tone-warning)" },
+  HIGH: { text: "text-red-700", bg: "bg-red-50", ring: "var(--tone-danger)" },
 };
 const PHASES = ["planning", "searching", "reading", "analysing", "done"];
 const HIGHLIGHT = {
@@ -412,7 +413,7 @@ function radarPoint(card) {
   const weight = card.reading ? 0.9 : card.verdict === "ADVERSE" ? 0.25 + (1 - Math.min(100, card.score) / 100) * 0.45 : card.verdict === "MENTION" ? 0.7 : 0.88;
   return { x: 50 + Math.cos(angle) * 46 * weight, y: 50 + Math.sin(angle) * 46 * weight };
 }
-const dotTone = (c) => (c.reading ? "#94a3b8" : c.verdict === "ADVERSE" ? (c.score >= 50 ? "#dc2626" : "#d97706") : c.verdict === "MENTION" ? "#0284c7" : "#cbd5e1");
+const dotTone = (c) => (c.reading ? "var(--tone-muted)" : c.verdict === "ADVERSE" ? (c.score >= 50 ? "var(--tone-danger)" : "var(--tone-warning)") : c.verdict === "MENTION" ? "var(--tone-info)" : "var(--tone-faint)");
 
 // The search as a radar: a sweep while it works, one blip per article read,
 // red the more adverse, grey when it's about someone else.
@@ -494,7 +495,7 @@ function LiveView({ subject, live, error }) {
           <div className="grid content-start gap-3">
             <Radar live={live} />
             <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-              {[["ADVERSE", "#dc2626"], ["MENTION", "#0284c7"], ["READING", "#94a3b8"], ["NOT_SUBJECT", "#cbd5e1"]].map(([k, c]) => (
+              {[["ADVERSE", "var(--tone-danger)"], ["MENTION", "var(--tone-info)"], ["READING", "var(--tone-muted)"], ["NOT_SUBJECT", "var(--tone-faint)"]].map(([k, c]) => (
                 <li key={k} className="flex items-center gap-1">
                   <span className="h-2 w-2 rounded-full" style={{ background: c }} /> {t(`mediaDot_${k}`)}
                 </li>
@@ -549,10 +550,10 @@ function LiveView({ subject, live, error }) {
 
 // -------------------------------------------------------- relationships --
 
-const GROUP_COLOUR = { FAMILY: "#8b5cf6", AFFILIATION: "#0ea5e9", OWNERSHIP: "#10b981", ASSOCIATE: "#f97316", NEWS: "#64748b" };
+const GROUP_COLOUR = { FAMILY: "var(--tone-violet)", AFFILIATION: "var(--tone-sky)", OWNERSHIP: "var(--tone-emerald)", ASSOCIATE: "var(--tone-orange)", NEWS: "var(--tone-neutral)" };
 const GROUPS = Object.keys(GROUP_COLOUR);
 // A flagged related party: red for sanctions or crime, amber otherwise.
-const flagColour = (watch, review) => (!watch || review?.state === "NOT_RELEVANT" ? null : ["SANCTIONS", "CRIME"].includes(watch.category) ? "#dc2626" : "#d97706");
+const flagColour = (watch, review) => (!watch || review?.state === "NOT_RELEVANT" ? null : ["SANCTIONS", "CRIME"].includes(watch.category) ? "var(--tone-danger)" : "var(--tone-warning)");
 const years = (r) => (r.from || r.to ? `${r.from ?? "…"}–${r.to ?? ""}` : "");
 const shortName = (name, n = 16) => (String(name).length > n ? `${String(name).slice(0, n - 1)}…` : String(name));
 const nodeGlyph = (r) => (r.entity_type === "ORGANIZATION" ? "🏢" : r.entity_type === "POSITION" ? "🎖" : r.entity_type === "VESSEL" ? "⚓" : "");
@@ -641,7 +642,7 @@ function Network3D({ subject, profile, relations, picked, onPick, height = 420 }
     return (
       <g key={r.id} onClick={() => onPick(picked === r.id ? null : r.id)} onPointerEnter={() => setHover(r.id)} onPointerLeave={() => setHover(null)} className="cursor-pointer" opacity={dim ? 0.25 : Math.max(0.4, Math.min(1, 1.1 - p.z * 0.5))}>
         <title>{[r.name, r.label, years(r), r.watch && `${r.watch.list} · ${r.watch.category}`].filter(Boolean).join(" · ")}</title>
-        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "#94a3b8"} ring={flagged} selected={picked === r.id} />
+        <SvgFace id={`amNode${r.id}`} x={p.x} y={p.y} r={size} photo={r.photo} text={faceText(r)} fill={GROUP_COLOUR[r.group] ?? "var(--tone-muted)"} ring={flagged} selected={picked === r.id} />
         {label && (
           <g>
             <rect x={p.x - 52} y={p.y + size + 4} width="104" height="15" rx="7.5" fill="var(--card)" stroke="var(--border)" strokeWidth="0.6" />
@@ -654,7 +655,7 @@ function Network3D({ subject, profile, relations, picked, onPick, height = 420 }
     );
   };
   const edge = (p) => (
-    <line key={`e${p.r.id}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={GROUP_COLOUR[p.r.group] ?? "#94a3b8"} strokeOpacity={(picked ? (picked === p.r.id ? 0.9 : 0.05) : 0.22) * Math.max(0.4, 1 - p.z * 0.5)} strokeWidth={picked === p.r.id ? 2 : 0.8} strokeDasharray={p.r.source === "NEWS" ? "3 3" : undefined} />
+    <line key={`e${p.r.id}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={GROUP_COLOUR[p.r.group] ?? "var(--tone-muted)"} strokeOpacity={(picked ? (picked === p.r.id ? 0.9 : 0.05) : 0.22) * Math.max(0.4, 1 - p.z * 0.5)} strokeWidth={picked === p.r.id ? 2 : 0.8} strokeDasharray={p.r.source === "NEWS" ? "3 3" : undefined} />
   );
   return (
     <div className="relative">
@@ -1145,7 +1146,7 @@ function Timeline({ articles }) {
                   title={`${formatDay(a.published_at)} · ${a.title}`}
                   aria-label={a.title}
                   className={cn("rounded-full ring-2 ring-card transition-transform hover:scale-125", picked === a.id && "ring-primary")}
-                  style={{ width: size, height: size, background: a.score >= 50 ? "#dc2626" : a.score >= 20 ? "#f59e0b" : "#fcd34d" }}
+                  style={{ width: size, height: size, background: a.score >= 50 ? "var(--tone-danger)" : a.score >= 20 ? "var(--tone-amber)" : "var(--tone-amber-soft)" }}
                 />
               );
             })}
@@ -1418,6 +1419,7 @@ function FlaggedRelations({ row }) {
 const emptyForm = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "PERSON", birth_date: "", countries: [], aliases: "", languages: [], reason: "" });
 
 export function AdverseMediaLookup() {
+  const tr = useConfigLabel();
   const { t } = useTranslation(["aml", "common"]);
   const can = useMenuPermission("Name Lookup");
   const scope = useInstitutionScope();
@@ -1513,7 +1515,7 @@ export function AdverseMediaLookup() {
           <InstitutionField value={form.inst_profile_id} onChange={set("inst_profile_id")} />
           <label className={`${labelClass} md:col-span-2`}>
             {t("aml:name")} <span className="text-red-500">*</span>
-            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Manuel Chang" />
+            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder={tr("Jane Doe")} />
           </label>
           <label className={labelClass}>
             {t("aml:entityType")}

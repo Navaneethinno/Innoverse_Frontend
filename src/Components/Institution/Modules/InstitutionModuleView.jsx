@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useInstitutionModulesQuery } from "@/Hooks/Institution/institutionModuleHooks";
 import { useTranslation } from "react-i18next";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const fields = [
   ["module_name", "institutions:moduleField"],
@@ -14,6 +15,7 @@ const fields = [
 ];
 
 export function InstitutionModuleView() {
+  const tr = useConfigLabel();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
@@ -52,7 +54,7 @@ export function InstitutionModuleView() {
         onClick={() => navigate("/institutionmodule")}
         className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft size={15} /> Institution Module
+        <ArrowLeft size={15} /> {tr("Institution Module")}
       </button>
       <div>
         <h1 className="text-xl font-black tracking-tight text-foreground">

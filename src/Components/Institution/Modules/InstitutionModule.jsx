@@ -270,7 +270,7 @@ function ModuleForm({
     >
       {!editing && canChoose && (
         <label className="block text-sm font-medium">
-          Institution
+          {tr("Institution")}
           <FilterSelect
             className="mt-1.5"
             value={form.inst_profile_id}
@@ -288,7 +288,7 @@ function ModuleForm({
       {editing ? (
         <>
           <label className="block text-sm font-medium">
-            Module
+            {tr("Module")}
             <RequiredMark />
             <FilterSelect
               className="mt-1.5"
@@ -305,7 +305,7 @@ function ModuleForm({
           </label>
           <div className="grid grid-cols-2 gap-3">
             <label className="text-sm font-medium">
-              Effective from
+              {tr("Effective from")}
               <RequiredMark />
               <DateInput
                 required
@@ -315,7 +315,7 @@ function ModuleForm({
               />
             </label>
             <label className="text-sm font-medium">
-              Effective to
+              {tr("Effective to")}
               <DateInput
                 value={form.effective_to}
                 onChange={set("effective_to")}
@@ -330,7 +330,7 @@ function ModuleForm({
             <div key={index} className="relative rounded-xl border border-border p-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Module {index + 1}
+                  {tr("Module")} {index + 1}
                 </p>
                 {moduleRows.length > 1 && (
                   <button
@@ -343,7 +343,7 @@ function ModuleForm({
                 )}
               </div>
               <label className="block text-sm font-medium">
-                Module
+                {tr("Module")}
                 <RequiredMark />
                 <FilterSelect
                   className="mt-1.5"
@@ -363,7 +363,7 @@ function ModuleForm({
               </label>
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <label className="text-sm font-medium">
-                  Effective from
+                  {tr("Effective from")}
                   <DateInput
                     required
                     value={row.effective_from}
@@ -372,7 +372,7 @@ function ModuleForm({
                   />
                 </label>
                 <label className="text-sm font-medium">
-                  Effective to
+                  {tr("Effective to")}
                   <DateInput
                     value={row.effective_to}
                     onChange={setModuleRow(index, "effective_to")}
@@ -386,12 +386,12 @@ function ModuleForm({
             onClick={addModuleRow}
             className="text-sm font-semibold"
           >
-            + Add another module
+            {tr("+ Add another module")}
           </LinkButton>
         </div>
       )}
       <label className="block text-sm font-medium">
-        Narration
+        {tr("Narration")}
         <textarea
           value={form.narration}
           onChange={set("narration")}
@@ -400,7 +400,7 @@ function ModuleForm({
       </label>
       <div className="flex items-center justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
-          Cancel
+          {tr("Cancel")}
         </button>
         <button
           type="button"

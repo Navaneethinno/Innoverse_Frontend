@@ -19,6 +19,7 @@ import { MenuBadgeContext, useMenuBadges } from "./menuBadges";
 import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const SIDEBAR_EXPANDED_W = 256;
 const SIDEBAR_COLLAPSED_W = 56;
@@ -34,6 +35,7 @@ const SIDEBAR_COLLAPSED_W = 56;
 //     -> parent/child/sub-child hierarchy built from menu_id/parent_menu_id
 //        (MenuList/MenuItem), sorted by backend priority, status===1 only.
 export function DynamicSidebar() {
+  const tr = useConfigLabel();
   const { t } = useTranslation("sidebar");
   const navigate = useNavigate();
   const { collapsed, hovering, setHovering, toggle, mobileOpen, closeMobile } = useSidebar();
@@ -369,7 +371,7 @@ export function DynamicSidebar() {
           className="h-px mb-3"
           style={{ background: "linear-gradient(to right, transparent, var(--primary-light), transparent)" }}
         />
-        <UiTooltip label="Sign out" side="right">
+        <UiTooltip label={tr("Sign out")} side="right">
           <motion.button
             onClick={() => {
               void logout().then(() => navigate("/login", { replace: true }));

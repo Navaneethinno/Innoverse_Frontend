@@ -408,7 +408,7 @@ export function User() {
       >
         {["auth", "deauth"].includes(action?.type) && <PendingChangesDiff {...pendingInfo} />}
         <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Narration{["deauth", "delete"].includes(action?.type) ? " *" : ""}
+          {tr("Narration")}{["deauth", "delete"].includes(action?.type) ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}

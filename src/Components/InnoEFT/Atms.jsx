@@ -23,6 +23,7 @@ import { LoadMasterKey } from "../InnoMMS/LoadMasterKey";
 import { mmsDate } from "../InnoMMS/mmsShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // InnoEFT > ATMs (menu 187): the bank's ATMs, each listening on its own
 // switch port; their keys, commands and events.
@@ -110,6 +111,7 @@ function AtmList() {
 const blankAtm = { atm_id: "", name: "", location: "", luno: "", ip_address: "", listen_port: "", length_header: "binary2", download_profile_id: "", chip_enabled: true, supply_counters: false };
 
 function AtmForm({ atm, onClose, onSaved }) {
+  const tr = useConfigLabel();
   const { t } = useTranslation("atm");
   const isPlatform = useCanChooseInstitution();
   const [instId, setInstId] = useState("");
@@ -181,7 +183,7 @@ function AtmForm({ atm, onClose, onSaved }) {
           </div>
         )}
         {field("atm_id", t("atmId"), <input className={`${inputClass} font-mono`} maxLength={16} value={form.atm_id} onChange={(e) => set("atm_id")(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} placeholder="ATM0001" />, t("atmIdHint"))}
-        {field("name", t("name"), <input className={inputClass} maxLength={100} value={form.name} onChange={text("name")} placeholder="Main branch lobby" />)}
+        {field("name", t("name"), <input className={inputClass} maxLength={100} value={form.name} onChange={text("name")} placeholder={tr("Main branch lobby")} />)}
         <label className={`${labelClass} sm:col-span-2`}>
           {t("location")}
           <input className={`${inputClass} mt-1.5`} maxLength={200} value={form.location} onChange={text("location")} />

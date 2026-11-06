@@ -384,7 +384,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
             accept="image/png,image/jpeg,image/webp"
             maxBytes={MAX_IMAGE_BYTES}
             uploadLabel={form.inst_profile_id ? "Upload image" : "Select an institution first"}
-            hint="PNG, JPG or WebP, up to 2MB"
+            hint={tr("PNG, JPG or WebP, up to 2MB")}
           />
         </label>
       );
@@ -433,7 +433,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       <div className="grid content-start gap-4 sm:grid-cols-2">
       {!editing && canChoose && (
         <label className="text-sm font-medium sm:col-span-2">
-          Institution
+          {tr("Institution")}
           <FilterSelect
             className="mt-1.5"
             value={form.inst_profile_id}
@@ -480,7 +480,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
         );
       })}
       <label className="text-sm font-medium sm:col-span-2">
-        Narration
+        {tr("Narration")}
         <textarea
           value={form.narration}
           onChange={set("narration")}
@@ -489,7 +489,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
       </label>
       <div className="flex items-center justify-end gap-2 sm:col-span-2">
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
-          Cancel
+          {tr("Cancel")}
         </button>
         <Button
           disabled={pending}
@@ -508,7 +508,7 @@ function BrandingForm({ editing, institutions = [], pending, onCancel, onSubmit 
           }
           variant="secondary"
         >
-          Save as draft
+          {tr("Save as draft")}
         </Button>
         <Button
           type="submit"

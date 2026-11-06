@@ -9481,6 +9481,28 @@ export const labels = {
   "Eligibility and initial deposit rules at account opening.": "قواعد الأهلية والإيداع الأولي عند فتح الحساب.",
   "Statement frequency and delivery preferences.": "تكرار الكشوف وتفضيلات الإرسال.",
   "Retry": "إعادة المحاولة",
+  "Page not found": "الصفحة غير موجودة",
+  "Add KYC scheme": "إضافة مخطط KYC",
+  "Remove": "إزالة",
+  "Viewing only — nothing here can be changed.": "للعرض فقط — لا يمكن تغيير أي شيء هنا.",
+  "Jane Doe": "فاطمة علي",
+  "Can't be changed after creation.": "لا يمكن تغييره بعد الإنشاء.",
+  "Main branch lobby": "ردهة الفرع الرئيسي",
+  "Live preview": "معاينة مباشرة",
+  "Active menu": "القائمة النشطة",
+  "Dashboard": "لوحة المعلومات",
+  "Pending requests": "الطلبات المعلقة",
+  "Primary": "أساسي",
+  "Secondary": "ثانوي",
+  "Outline": "محدد",
+  "Sign in": "تسجيل الدخول",
+  "Preview only. Changes apply after you save and a checker authorizes them.": "معاينة فقط. تُطبَّق التغييرات بعد الحفظ واعتماد المدقق لها.",
+  "+ Add another module": "+ إضافة وحدة أخرى",
+  "Page breadcrumb": "مسار الصفحة",
+  "Sign out": "تسجيل الخروج",
+  "Menu / Action grants": "صلاحيات القوائم / الإجراءات",
+  "Menu": "القائمة",
+  "Action": "الإجراء",
 };
 
 export const toasts = {
@@ -9522,6 +9544,9 @@ export const toasts = {
   "pattern_status": "فشل الطلب بالحالة {{status}}",
   "pattern_policy": "كلمة المرور لا تستوفي السياسة: {{rules}}",
   "pattern_hex": "يجب أن يكون {{field}} لونًا سداسيًا صالحًا (مثل {{example}})",
+  "Code, name and company type are required": "الرمز والاسم ونوع الشركة مطلوبة",
+  "This institution already has a branding for every portal": "لدى هذه المؤسسة هوية تجارية لكل بوابة بالفعل",
+  "Fix the marked fields": "صحّح الحقول المحددة",
 };
 
 export default Object.fromEntries(

@@ -30,7 +30,7 @@ function ScoreRing({ score, size = 52, colour }) {
   const value = Math.max(0, Math.min(100, Number(score) || 0));
   const r = 20;
   const c = 2 * Math.PI * r;
-  const stroke = colour ?? (value >= 85 ? "#dc2626" : value >= 60 ? "#d97706" : "#059669");
+  const stroke = colour ?? (value >= 85 ? "var(--tone-danger)" : value >= 60 ? "var(--tone-warning)" : "var(--tone-success)");
   return (
     <span className="relative inline-flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
       <svg viewBox="0 0 48 48" width={size} height={size} className="-rotate-90">
@@ -136,7 +136,7 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
   // match can be recorded.
   const locked = blacklistByIdentifier(match);
   return (
-    <li className="overflow-hidden rounded-xl border bg-card p-3" style={{ boxShadow: `inset 4px 0 0 ${matchScore(match) >= 85 ? "#dc2626" : matchScore(match) >= 60 ? "#d97706" : "#059669"}` }}>
+    <li className="overflow-hidden rounded-xl border bg-card p-3" style={{ boxShadow: `inset 4px 0 0 ${matchScore(match) >= 85 ? "var(--tone-danger)" : matchScore(match) >= 60 ? "var(--tone-warning)" : "var(--tone-success)"}` }}>
       <div className="flex flex-wrap items-start gap-3 pl-1">
         <ScoreRing score={matchScore(match)} />
         <div className="min-w-0 flex-1">
@@ -313,7 +313,7 @@ export function ScreeningDetail({ screening, onChange }) {
 
   const subject = screening.subject ?? {};
   const band = screening.effective_band ?? screening.band;
-  const colour = band?.color_code || "#64748b";
+  const colour = band?.color_code || "var(--tone-neutral)";
   const score = screening.effective_score ?? screening.score;
   return (
     <div className="space-y-4">

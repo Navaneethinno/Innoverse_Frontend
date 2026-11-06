@@ -263,7 +263,7 @@ function AssignmentForm({
       <label className="block text-sm font-medium">
         {!editing && canChoose && (
           <>
-            Institution
+            {tr("Institution")}
             <FilterSelect
               className="mt-1.5"
               value={form.inst_profile_id}
@@ -294,7 +294,7 @@ function AssignmentForm({
         {kind.flagLabel}
       </label>
       <label className="block text-sm font-medium">
-        Narration
+        {tr("Narration")}
         <textarea
           value={form.narration}
           onChange={set("narration")}
@@ -303,7 +303,7 @@ function AssignmentForm({
       </label>
       <div className="flex justify-end gap-2">
         <button type="button" onClick={onCancel} className="rounded-lg px-3 py-2 text-sm">
-          Cancel
+          {tr("Cancel")}
         </button>
         <Button
           disabled={pending}
@@ -317,7 +317,7 @@ function AssignmentForm({
           }
           variant="secondary"
         >
-          Save as draft
+          {tr("Save as draft")}
         </Button>
         <Button
           type="submit"

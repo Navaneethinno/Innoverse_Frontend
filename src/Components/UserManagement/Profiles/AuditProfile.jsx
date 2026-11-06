@@ -2,6 +2,7 @@ import { AuditModal } from "@/Components/Common/AuditModal";
 import { mapAuditResponse } from "@/Components/Common/auditResponse";
 import { profilesApi } from "@/Services/UserManagement/profiles.api";
 import { profileId } from "./ProfileForm";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Audit-trail modal wrapper for a single profile — relocated from
 // Components/Profiles/ProfileAuditModal.jsx to live alongside the rest of
@@ -12,7 +13,8 @@ import { profileId } from "./ProfileForm";
 // than guess at a replacement field name without a real payload to check.
 const AUDIT_FIELDS = [["profile_name", "Profile Name"]];
 
-function renderMenuGrants(entry) {
+function MenuGrants({ entry }) {
+  const tr = useConfigLabel();
   const grants = Array.isArray(entry.menu_actions ?? entry.menu_info)
     ? entry.menu_actions ?? entry.menu_info
     : Array.isArray(entry.menu_audit_array)
@@ -22,7 +24,7 @@ function renderMenuGrants(entry) {
   return (
     <div className="mt-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
-        Menu / Action grants
+        {tr("Menu / Action grants")}
       </p>
       <div className="flex flex-wrap gap-1.5">
         {grants.map((grant, i) => (
@@ -30,7 +32,7 @@ function renderMenuGrants(entry) {
             key={i}
             className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold text-muted-foreground"
           >
-            menu #{grant.menu_id ?? grant.profile_menu_action_id} · action{" "}
+            {tr("Menu")} #{grant.menu_id ?? grant.profile_menu_action_id} · {tr("Action")}{" "}
             {Array.isArray(grant.actions) ? grant.actions.join(",") : (grant.action_id ?? "—")}
           </span>
         ))}
@@ -51,7 +53,7 @@ export function AuditProfile({ profile, onClose }) {
       onClose={onClose}
       getActionLabel={(entry) => entry.audit_action ?? entry.profile_name ?? null}
       getEntryKey={(entry, index) => entry.audit_id ?? entry.audit_key ?? index}
-      renderExtra={renderMenuGrants}
+      renderExtra={(entry) => <MenuGrants entry={entry} />}
       fetchAudit={(page, limit) =>
         profilesApi.audit({ profile_id: profileId(profile), page, limit }).then(mapAuditResponse)
       }

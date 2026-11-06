@@ -730,7 +730,7 @@ export function AcctConfigResource({ entity }) {
                         onChange={(next) => setForm({ ...form, [key]: next })}
                         label={tr(label)}
                         disabled={isReadOnly}
-                        disabledReason="Can't be changed after creation."
+                        disabledReason={tr("Can't be changed after creation.")}
                         className="self-start"
                       />
                     );
@@ -748,7 +748,7 @@ export function AcctConfigResource({ entity }) {
                             setForm(key === "inst_profile_id" ? { ...form, [key]: value, currency_code: "", control_gl_account_id: "" } : { ...form, [key]: value })
                           }
                           disabled={isReadOnly || (canChooseInstitution() && entity === "acct_product" && key !== "inst_profile_id" && lookupKey && lookupKey !== "acctProdTypes" && !form.inst_profile_id)}
-                          disabledReason="Can't be changed after creation."
+                          disabledReason={tr("Can't be changed after creation.")}
                           options={[{ value: "", label: `${tr("Select")} ${tr(label).toLowerCase()}` }, ...(lookupKey === "currencies" ? currencyOptions : optionsFor(lookupKey))]}
                         />
                       ) : type === "textarea" ? (

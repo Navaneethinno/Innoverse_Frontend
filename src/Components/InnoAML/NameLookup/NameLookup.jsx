@@ -23,12 +23,14 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
 import { actorText } from "@/Utils/Lib/actor";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 const empty = (inst) => ({ inst_profile_id: inst ?? "", name: "", entity_type: "", birth_date: "", countries: [], gender: "", reason: "" });
 
 // InnoAML > AML Screening > Name Lookup (menu 103): screen a name that isn't
 // a customer (e.g. a payment beneficiary) against the platform lists and
 // the institution's own. Each lookup is kept, with its reason.
 export function NameLookup() {
+  const tr = useConfigLabel();
   const { t } = useTranslation(["aml", "common"]);
   const can = usePagePermission("Name Lookup");
   const scope = useInstitutionScope();
@@ -103,7 +105,7 @@ export function NameLookup() {
           <InstitutionField value={form.inst_profile_id} onChange={set("inst_profile_id")} />
           <label className={`${labelClass} md:col-span-2`}>
             {t("aml:name")} <span className="text-red-500">*</span>
-            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Osama bin Laden" />
+            <input dir="auto" value={form.name} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder={tr("Jane Doe")} />
           </label>
           <label className={labelClass}>
             {t("aml:entityType")}

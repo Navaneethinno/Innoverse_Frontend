@@ -3,6 +3,7 @@ import { Bell, LayoutGrid, Search, Users } from "lucide-react";
 import { useStoredFileUrl } from "@/Components/Common/FileUploadField";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { deriveBrandThemeVars, isValidHexColor } from "@/Utils/Lib/colorTheme";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Surfaces for each mode; the brand only changes the accent colours, as in
 // the real app (theme.css keeps its own light/dark surfaces).
@@ -17,6 +18,7 @@ const hex = (value) => (isValidHexColor(value) ? value : null);
 // the branding being edited, in light or dark. It reads the form as it is,
 // so every change shows straight away; nothing is saved or applied.
 export function BrandingPreview({ form, download }) {
+  const tr = useConfigLabel();
   const [mode, setMode] = useState("light");
   const dark = mode === "dark";
   const light = { primary: hex(form.primary_color_light), secondary: hex(form.secondary_color_light) };
@@ -40,7 +42,7 @@ export function BrandingPreview({ form, download }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-3">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold">Live preview</p>
+        <p className="text-sm font-semibold">{tr("Live preview")}</p>
         <SegmentedSwitch
           value={mode}
           onChange={setMode}
@@ -59,34 +61,34 @@ export function BrandingPreview({ form, download }) {
               <span className="truncate font-bold">{name}</span>
             </div>
             <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5" style={{ border: `1px solid ${s.border}`, color: s.muted }}>
-              <Search size={11} /> Search
+              <Search size={11} /> {tr("Search")}
             </div>
             <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
-              <LayoutGrid size={11} /> Module
+              <LayoutGrid size={11} /> {tr("Module")}
             </div>
             <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5" style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}>
-              <Users size={11} /> Active menu
+              <Users size={11} /> {tr("Active menu")}
             </div>
           </aside>
           <div className="flex min-w-0 flex-1 flex-col gap-2 p-2">
             <div className="flex items-center justify-between rounded-lg px-2 py-1.5" style={{ background: s.panel, border: `1px solid ${s.border}` }}>
               <span className="flex items-center gap-1.5 font-bold sm:hidden">{mark}{name}</span>
-              <span className="hidden font-bold sm:inline">Dashboard</span>
+              <span className="hidden font-bold sm:inline">{tr("Dashboard")}</span>
               <span className="flex items-center gap-2" style={{ color: s.muted }}>
                 <Bell size={12} />
                 <span className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>A</span>
               </span>
             </div>
             <div className="flex-1 rounded-lg p-3" style={{ background: s.panel, border: `1px solid ${s.border}` }}>
-              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>Pending requests</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>{tr("Pending requests")}</p>
               <p className="mt-1 text-2xl font-black">12</p>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--primary-light)" }}>
                 <div className="h-full w-2/3 rounded-full" style={{ background: "var(--primary)" }} />
               </div>
               <div className="mt-3 flex flex-wrap gap-1">
-                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>Primary</span>
-                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>Secondary</span>
-                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary-ink, var(--primary))" }}>Outline</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>{tr("Primary")}</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>{tr("Secondary")}</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary-ink, var(--primary))" }}>{tr("Outline")}</span>
               </div>
             </div>
           </div>
@@ -102,7 +104,7 @@ export function BrandingPreview({ form, download }) {
               <div className="mb-1.5 flex items-center gap-1 font-bold">{mark}<span className="truncate">{name}</span></div>
               <div className="mb-1 h-3 rounded" style={{ border: `1px solid ${s.border}` }} />
               <div className="mb-1.5 h-3 rounded" style={{ border: `1px solid ${s.border}` }} />
-              <div className="rounded py-1 text-center font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>Sign in</div>
+              <div className="rounded py-1 text-center font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>{tr("Sign in")}</div>
             </div>
           </div>
           <div className="flex items-center gap-1.5 truncate rounded-t-lg border border-border bg-muted/60 px-2 py-1 text-[10px]">
@@ -111,7 +113,7 @@ export function BrandingPreview({ form, download }) {
           </div>
         </div>
       </div>
-      <p className="mt-2 text-[11px] text-muted-foreground">Preview only. Changes apply after you save and a checker authorizes them.</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">{tr("Preview only. Changes apply after you save and a checker authorizes them.")}</p>
     </div>
   );
 }

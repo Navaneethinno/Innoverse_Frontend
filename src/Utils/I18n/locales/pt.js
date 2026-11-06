@@ -9500,6 +9500,28 @@ export const labels = {
   "Eligibility and initial deposit rules at account opening.": "Regras de elegibilidade e depósito inicial na abertura da conta.",
   "Statement frequency and delivery preferences.": "Frequência do extrato e preferências de envio.",
   "Retry": "Tentar novamente",
+  "Page not found": "Página não encontrada",
+  "Add KYC scheme": "Adicionar esquema KYC",
+  "Remove": "Remover",
+  "Viewing only — nothing here can be changed.": "Apenas visualização — nada aqui pode ser alterado.",
+  "Jane Doe": "Joana Silva",
+  "Can't be changed after creation.": "Não pode ser alterado depois de criado.",
+  "Main branch lobby": "Átrio do balcão principal",
+  "Live preview": "Pré-visualização",
+  "Active menu": "Menu ativo",
+  "Dashboard": "Painel",
+  "Pending requests": "Pedidos pendentes",
+  "Primary": "Principal",
+  "Secondary": "Secundário",
+  "Outline": "Contorno",
+  "Sign in": "Entrar",
+  "Preview only. Changes apply after you save and a checker authorizes them.": "Apenas pré-visualização. As alterações aplicam-se depois de guardar e um verificador as autorizar.",
+  "+ Add another module": "+ Adicionar outro módulo",
+  "Page breadcrumb": "Caminho da página",
+  "Sign out": "Terminar sessão",
+  "Menu / Action grants": "Permissões de menu / ação",
+  "Menu": "Menu",
+  "Action": "Ação",
 };
 
 export const toasts = {
@@ -9541,6 +9563,9 @@ export const toasts = {
   "pattern_status": "A solicitação falhou com o status {{status}}",
   "pattern_policy": "A senha não atende à política: {{rules}}",
   "pattern_hex": "{{field}} deve ser uma cor hexadecimal válida (ex.: {{example}})",
+  "Code, name and company type are required": "Código, nome e tipo de empresa são obrigatórios",
+  "This institution already has a branding for every portal": "Esta instituição já tem uma identidade visual para cada portal",
+  "Fix the marked fields": "Corrija os campos assinalados",
 };
 
 export default {

@@ -37,6 +37,7 @@ import { AuthProfile } from "./AuthProfile";
 import { DeauthProfile } from "./DeauthProfile";
 import { DeleteProfile } from "./DeleteProfile";
 import { AuditProfile } from "./AuditProfile";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 // Fixed action ids for the checker's own Authorize/Deauthorize buttons, per
 // payse's AuthProfile.jsx (action_id: 5 for authorize, 4 for deauthorize) —
@@ -79,6 +80,7 @@ function renderProfileValue(profile, key) {
 }
 
 export function Profile() {
+  const tr = useConfigLabel();
   const { t } = useTranslation("profiles");
   const [action, setAction] = useState(null);
   const [narration, setNarration] = useState("");
@@ -353,7 +355,7 @@ export function Profile() {
       >
         {action?.type === "submit" && (
           <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Narration
+            {tr("Narration")}
             <textarea
               value={narration}
               onChange={(event) => setNarration(event.target.value)}

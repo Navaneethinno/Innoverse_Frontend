@@ -18,6 +18,7 @@ import { countryNameOf } from "../Shared/amlShared";
 import { BIRTH_DATE, ENTITY_TYPES, IDENTIFIER_TYPES, MAX_ALIASES, MAX_IDENTIFIERS, REASONS, identifierProblem } from "./blacklistShared";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const lines = (text) =>
   String(text ?? "")
@@ -29,6 +30,7 @@ const lines = (text) =>
 // approves it (with Self on the menu it applies at once). Names may be in
 // any script: an Arabic name is matched against Latin spellings too.
 export function BlacklistForm({ editing, onClose, onSaved }) {
+  const tr = useConfigLabel();
   const { t } = useTranslation(["aml", "common"]);
   const canChoose = useCanChooseInstitution();
   const myInstitution = useAuth((state) => state.user?.inst_profile_id);
@@ -119,7 +121,7 @@ export function BlacklistForm({ editing, onClose, onSaved }) {
         </div>
         <label className={labelClass}>
           {t("aml:name")} <span className="text-red-500">*</span>
-          <input dir="auto" value={form.name} maxLength={300} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder="Khalid Omar Al-Farouq" />
+          <input dir="auto" value={form.name} maxLength={300} onChange={(e) => set("name")(e.target.value)} className={inputClass} placeholder={tr("Jane Doe")} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("aml:anyScriptHint")}</span>
         </label>
         <label className={labelClass}>
@@ -128,7 +130,7 @@ export function BlacklistForm({ editing, onClose, onSaved }) {
         </label>
         <label className={labelClass}>
           {t("aml:aliases")}
-          <textarea dir="auto" value={form.aliases} onChange={(e) => set("aliases")(e.target.value)} className={`${inputClass} min-h-20`} placeholder={"Abu Omar\nKhaled Farouk"} />
+          <textarea dir="auto" value={form.aliases} onChange={(e) => set("aliases")(e.target.value)} className={`${inputClass} min-h-20`} placeholder={"J. Doe\nJane D."} />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("aml:aliasesHint", { max: MAX_ALIASES })}</span>
         </label>
         <div className="grid content-start gap-4">

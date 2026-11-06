@@ -61,6 +61,20 @@
   /* --success as text on light surfaces (4.5:1). */
   --success-ink: #0b7a5f;
   --warning: #f59e0b;
+  /* Tones for drawn graphs and score marks (SVG fills, rings), one place.  */
+  --tone-danger: #dc2626;
+  --tone-warning: #d97706;
+  --tone-amber: #f59e0b;
+  --tone-amber-soft: #fcd34d;
+  --tone-info: #0284c7;
+  --tone-success: #059669;
+  --tone-neutral: #64748b;
+  --tone-muted: #94a3b8;
+  --tone-faint: #cbd5e1;
+  --tone-violet: #8b5cf6;
+  --tone-sky: #0ea5e9;
+  --tone-emerald: #10b981;
+  --tone-orange: #f97316;
   --pending: #ff8a70;
 
   /* Soft/translucent tint backgrounds for the status + brand colors above.

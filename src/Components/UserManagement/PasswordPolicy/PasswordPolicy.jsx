@@ -249,6 +249,7 @@ function PolicyField({ field, form, setForm, problem }) {
 }
 
 function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending, problems = {} }) {
+  const tr = useConfigLabel();
   return (
     <Modal
       open={open}
@@ -258,10 +259,10 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending, pr
       footer={
         <>
           <Button onClick={onClose} variant="ghost" size="sm">
-            Cancel
+            {tr("Cancel")}
           </Button>
           <Button disabled={pending} onClick={() => onSave(true)} variant="secondary" size="sm">
-            Save as draft
+            {tr("Save as draft")}
           </Button>
           <Button disabled={pending} onClick={() => onSave(false)} size="sm">
             {editing ? "Submit changes" : "Add policy"}
@@ -387,7 +388,7 @@ function PolicyActions({ row, onEdit, onView, onAudit, onRefresh }) {
       >
         {["passwordPolicyAuth", "passwordPolicyDeauth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
         <label className="mt-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          Narration{action?.method === "passwordPolicyDeauth" ? " *" : ""}
+          {tr("Narration")}{action?.method === "passwordPolicyDeauth" ? " *" : ""}
           <textarea
             value={narration}
             onChange={(event) => setNarration(event.target.value)}
@@ -468,8 +469,8 @@ export function PasswordPolicy() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-3">
-        <PageTitle>Password Policy</PageTitle>
-        <p className="mt-1 text-sm text-muted-foreground">Manage staff password rules and lockout.</p>
+        <PageTitle>{tr("Password Policy")}</PageTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{tr("Manage staff password rules and lockout.")}</p>
       </div>
 
       <ListTable list={list} actions={canAdd && (
