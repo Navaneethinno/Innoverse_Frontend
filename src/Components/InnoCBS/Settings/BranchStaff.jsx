@@ -4,6 +4,8 @@ import { accountDate } from "../Accounts/accountShared";
 import { RowsEditor } from "../Loans/loanShared";
 import { SectionScreen } from "./SectionScreen";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { useClientPage } from "@/Hooks/useClientPage";
+import { Pager } from "@/Components/Common/Pager";
 
 const administrative = (data) => (data?.branches ?? []).find((b) => b.head_office_type === "ADMINISTRATIVE")?.code;
 const toValue = (rows) =>
@@ -74,15 +76,16 @@ export function BranchStaff() {
 // Staff moved between branches (newest first): from where, to where, from when.
 function StaffTransfers({ rows }) {
   const { t } = useTranslation("corebank");
-  if (!rows.length) return null;
   const sorted = [...rows].sort((x, y) => String(y.effective_from).localeCompare(String(x.effective_from)));
+  const { rows: page, pager } = useClientPage(sorted);
+  if (!rows.length) return null;
   return (
     <div className="mt-5">
       <p className="mb-2 text-xs font-black uppercase tracking-wider text-muted-foreground">{t("transfers")}</p>
       <div className="overflow-x-auto rounded-xl border border-border">
         <SimpleTable columns={[t("user"), t("fromBranch"), t("toBranch"), t("effectiveFrom"), t("changedBy")]}>
           <tbody>
-            {sorted.map((r, i) => (
+            {page.map((r, i) => (
               <tr key={i} className="border-b border-border/50 last:border-0">
                 <td className="px-3 py-1.5 font-semibold">{r.user_name}</td>
                 <td className="px-3 py-1.5">{r.from_branch || t("firstAttachment")}</td>
@@ -94,6 +97,7 @@ function StaffTransfers({ rows }) {
           </tbody>
         </SimpleTable>
       </div>
+      {pager && <Pager {...pager} className="mt-2" />}
     </div>
   );
 }

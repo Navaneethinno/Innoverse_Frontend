@@ -15,6 +15,8 @@ import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useInstitutionScope } from "../Shared/amlShared";
 import { LIST_FILE_ACCEPT, LIST_FILE_MAX_BYTES, formatOf } from "../Settings/InternalWatchlists/ColumnSetup";
+import { useClientPage } from "@/Hooks/useClientPage";
+import { Pager } from "@/Components/Common/Pager";
 
 const COLUMNS = ["customer", "listed_name", "entity_id", "evidence", "expires_on"];
 const TONE = { OK: "bg-emerald-50 text-emerald-700", SKIPPED: "bg-muted text-muted-foreground", PROBLEM: "bg-amber-50 text-amber-800" };
@@ -23,6 +25,7 @@ const TONE = { OK: "bg-emerald-50 text-emerald-700", SKIPPED: "bg-muted text-mut
 // SKIPPED (already whitelisted or a repeat) or PROBLEM, with the reason.
 function RowResults({ result }) {
   const { t } = useTranslation("aml");
+  const { rows: page, pager } = useClientPage(result?.results);
   if (!result) return null;
   return (
     <div className="space-y-2 rounded-xl border p-3">
@@ -43,7 +46,7 @@ function RowResults({ result }) {
             </tr>
           </thead>
           <tbody>
-            {(result.results ?? []).map((r) => (
+            {page.map((r) => (
               <tr key={r.row} className="border-t align-top">
                 <td className="py-1.5 pr-2 tabular-nums">{r.row}</td>
                 <td className="py-1.5 pr-2">
@@ -63,6 +66,7 @@ function RowResults({ result }) {
           </tbody>
         </table>
       </div>
+      {pager && <Pager {...pager} className="mt-2" />}
     </div>
   );
 }

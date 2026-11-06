@@ -14,6 +14,8 @@ import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { inputClass } from "./FieldOptionsEditor";
+import { useClientPage } from "@/Hooks/useClientPage";
+import { Pager } from "@/Components/Common/Pager";
 
 // Onboarding texts in the institution's other languages. English is the
 // base text (the fields already sent); each other language the institution
@@ -131,6 +133,7 @@ function MissingTexts({ items, languages }) {
   }, [items]);
   const kinds = KIND_ORDER.filter((k) => counts[k]);
   const rows = kind === "all" ? items : items.filter((i) => i.kind === kind);
+  const rowsPage = useClientPage(rows);
   const langName = (code) => languages?.find((l) => l.code === code)?.name ?? code;
   if (!items.length) return <p className="rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">{t("formBuilder:nothingMissing")}</p>;
   return (
@@ -156,7 +159,7 @@ function MissingTexts({ items, languages }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((i, n) => (
+            {rowsPage.rows.map((i, n) => (
               <tr key={n} className="border-t">
                 <td className="px-3 py-2 font-semibold">{t(`formBuilder:textKind_${i.kind}`, { defaultValue: i.kind })}</td>
                 <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
@@ -169,6 +172,7 @@ function MissingTexts({ items, languages }) {
           </tbody>
         </table>
       </div>
+      {rowsPage.pager && <Pager {...rowsPage.pager} className="mt-2" />}
     </div>
   );
 }
@@ -337,6 +341,7 @@ function ListsTab({ languages, scope, canEdit }) {
 
   const q = filter.trim().toLowerCase();
   const shown = (sources ?? []).filter((s) => !q || String(s.label ?? s.source).toLowerCase().includes(q));
+  const shownPage = useClientPage(shown);
   return (
     <div className="grid gap-4">
       <div className="grid gap-3 md:grid-cols-2">
@@ -367,7 +372,7 @@ function ListsTab({ languages, scope, canEdit }) {
                 </td>
               </tr>
             )}
-            {shown.map((s) => (
+            {shownPage.rows.map((s) => (
               <tr key={s.source} className="border-t">
                 <td className="px-3 py-2 font-semibold text-slate-800">{s.label ?? s.source}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{s.items}</td>
@@ -382,6 +387,7 @@ function ListsTab({ languages, scope, canEdit }) {
           </tbody>
         </table>
       </div>
+      {shownPage.pager && <Pager {...shownPage.pager} className="mt-2" />}
       {open && (
         <ListEntries
           source={open}
@@ -404,6 +410,7 @@ function ListsTab({ languages, scope, canEdit }) {
 function ListEntries({ source, language, scope, canEdit, onClose, onSaved }) {
   const { t } = useAudienceTranslation(["formBuilder", "common"]);
   const [items, setItems] = useState(null);
+  const itemsPage = useClientPage(items);
   const [edits, setEdits] = useState({});
   const [search, setSearch] = useState("");
   const [missingOnly, setMissingOnly] = useState(false);
@@ -491,7 +498,7 @@ function ListEntries({ source, language, scope, canEdit, onClose, onSaved }) {
                 </td>
               </tr>
             )}
-            {(items ?? []).map((i) => (
+            {itemsPage.rows.map((i) => (
               <tr key={i.id} className="border-t">
                 <td className="px-3 py-1.5">{i.english}</td>
                 <td className="px-3 py-1.5">
@@ -508,6 +515,7 @@ function ListEntries({ source, language, scope, canEdit, onClose, onSaved }) {
           </tbody>
         </table>
       </div>
+      {itemsPage.pager && <Pager {...itemsPage.pager} className="mt-2" />}
     </Modal>
   );
 }

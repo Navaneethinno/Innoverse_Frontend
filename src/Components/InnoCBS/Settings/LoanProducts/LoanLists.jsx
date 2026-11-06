@@ -13,6 +13,8 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { inputClass, labelClass } from "../../Deposits/depositShared";
 import { Field } from "../../Loans/loanShared";
+import { useClientPage } from "@/Hooks/useClientPage";
+import { Pager } from "@/Components/Common/Pager";
 
 // Loan Products › Groups and Purposes: small lists saved at once (no
 // checker). A product names one group (short, medium, long term: for
@@ -56,6 +58,7 @@ export function LoanLists({ kind, scope, onClose }) {
   const can = usePagePermission();
   const spec = KINDS[kind];
   const [rows, setRows] = useState(null);
+  const { rows: page, pager } = useClientPage(rows);
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -92,6 +95,7 @@ export function LoanLists({ kind, scope, onClose }) {
         {!rows ? (
           <Spinner size={18} />
         ) : (
+          <>
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-xs">
               <thead className="border-b border-border text-left text-[10px] font-bold uppercase text-muted-foreground">
@@ -113,7 +117,7 @@ export function LoanLists({ kind, scope, onClose }) {
                     </td>
                   </tr>
                 )}
-                {rows.map((r) => (
+                {page.map((r) => (
                   <tr key={r.id} className="border-b border-border/50 last:border-0">
                     {spec.fields.map(([key]) => (
                       <td key={key} className={cn("px-3 py-1.5", key === "code" && "font-mono font-bold")}>
@@ -135,6 +139,8 @@ export function LoanLists({ kind, scope, onClose }) {
               </tbody>
             </table>
           </div>
+          {pager && <Pager {...pager} className="mt-2" />}
+          </>
         )}
         {editing ? (
           <div className="grid gap-3 rounded-xl border border-border p-3">
