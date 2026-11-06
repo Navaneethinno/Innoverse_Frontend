@@ -1,1 +1,0 @@
-export { Disability } from "./Disability";

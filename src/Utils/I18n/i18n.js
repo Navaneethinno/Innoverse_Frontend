@@ -71,6 +71,7 @@ void i18n
       "regReports",
       "monitoring",
       "expiry",
+      "masters",
       "appVersions",
       "keyCustody",
       "corebank",

@@ -3,19 +3,19 @@ import { pageElement } from "../routeSupport";
 const CustomerMasterConfigPage = lazy(() =>
   import("@/Components/Epurse/Settings/Lists/CustomerMasterConfigResource.jsx").then((m) => ({ default: m.CustomerMasterConfigResource })),
 );
-const DistrictPage = lazy(() => import("@/Components/Epurse/Settings/Lists/District").then((m) => ({ default: m.District })));
-const ProvincePage = lazy(() => import("@/Components/Epurse/Settings/Lists/Province").then((m) => ({ default: m.Province })));
-const VillagePage = lazy(() => import("@/Components/Epurse/Settings/Lists/Village").then((m) => ({ default: m.Village })));
-const AccountPurposePage = lazy(() => import("@/Components/Epurse/Settings/Lists/AccountPurpose").then((m) => ({ default: m.AccountPurpose })));
-const DesignationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Designation").then((m) => ({ default: m.Designation })));
-const DisabilityPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Disability").then((m) => ({ default: m.Disability })));
-const EmploymentPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Employment").then((m) => ({ default: m.Employment })));
-const OccupationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Occupation").then((m) => ({ default: m.Occupation })));
-const QualificationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Qualification").then((m) => ({ default: m.Qualification })));
-const ReligionPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Religion").then((m) => ({ default: m.Religion })));
-const GenderPage = lazy(() => import("@/Components/Epurse/Settings/Lists/Gender").then((m) => ({ default: m.Gender })));
+const DistrictPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.District })));
+const ProvincePage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Province })));
+const VillagePage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Village })));
+const AccountPurposePage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.AccountPurpose })));
+const DesignationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Designation })));
+const DisabilityPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Disability })));
+const EmploymentPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Employment })));
+const OccupationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Occupation })));
+const QualificationPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Qualification })));
+const ReligionPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Religion })));
+const GenderPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.Gender })));
 const RiskActionPage = lazy(() => import("@/Components/Epurse/Settings/RiskActions").then((m) => ({ default: m.RiskAction })));
-const SourceOfFundPage = lazy(() => import("@/Components/Epurse/Settings/Lists/SourceOfFund").then((m) => ({ default: m.SourceOfFund })));
+const SourceOfFundPage = lazy(() => import("@/Components/Epurse/Settings/Lists/masterLists.jsx").then((m) => ({ default: m.SourceOfFund })));
 // category/citizenship/turnover pages removed (Frontend fixes — onboarding
 // menus and corporate masters, 2026-09, fix 4): /master_config/category/*,
 // /master_config/citizenship/* and the plain /master_config/turnover/* they

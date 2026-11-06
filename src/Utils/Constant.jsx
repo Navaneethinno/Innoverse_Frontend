@@ -1,5 +1,7 @@
-const configuredBaseUrl =
-  import.meta.env.VITE_API_BASE_URL || "https://etakuapi.innovitegrasuite.com";
+// From .env (VITE_API_BASE_URL) only: no fallback, so a build without it fails
+// loudly instead of quietly talking to another environment.
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL;
+if (!configuredBaseUrl) throw new Error("VITE_API_BASE_URL is not set: add it to .env");
 // Host only: every path below is the FULL route. Admin routes start with
 // /config/, masters with /master/ or /customer/master_config/ (never /config), health
 // is /health. A base ending in /config turns every master path into

@@ -1,1 +1,0 @@
-export { Village } from "./Village";

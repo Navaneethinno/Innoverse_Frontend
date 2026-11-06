@@ -31,8 +31,14 @@ function contentSecurityPolicy(api) {
   };
 }
 
+function apiOrigin(mode) {
+  const base = loadEnv(mode, rootDir, "VITE_").VITE_API_BASE_URL;
+  if (!base) throw new Error("VITE_API_BASE_URL is not set: add it to .env");
+  return new URL(base).origin;
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), contentSecurityPolicy(new URL(loadEnv(mode, rootDir, "VITE_").VITE_API_BASE_URL || "https://etakuapi.innovitegrasuite.com").origin)],
+  plugins: [react(), contentSecurityPolicy(apiOrigin(mode))],
   resolve: {
     alias: {
       "@": path.resolve(rootDir, "./src"),
