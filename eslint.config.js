@@ -22,6 +22,8 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // A missing dependency is a stale-value bug: useLatest covers the deliberate cases.
+      "react-hooks/exhaustive-deps": "error",
       "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/preserve-caught-error": "off",
       "react-hooks/set-state-in-effect": "off",

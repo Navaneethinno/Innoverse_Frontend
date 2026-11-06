@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/Utils/Lib/utils";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Below this many options, scanning the list by eye is faster than typing —
 // above it (currency/country-sized lists, ~150-250 entries), a search box
@@ -52,6 +53,9 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   // Matched as text: a saved 2 (number) is the option "2". A value no option
   // holds is shown as itself, never swapped for the first option.
   const same = (option) => String(option.value ?? "") === String(value ?? "");
+  const onSearchRef = useLatest(onSearch);
+  const openingRef = useLatest({ options, same });
+  const placed = Boolean(placement);
   const selected = options.find(same) ?? (value == null || value === "" ? options[0] : { value, label: String(value) });
   const showSearch = Boolean(onSearch) || options.length > SEARCH_THRESHOLD;
   const visibleOptions = useMemo(() => {
@@ -64,10 +68,9 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   }, [options, query, onSearch]);
 
   useEffect(() => {
-    if (isOpen) onSearch?.(query.trim());
+    if (isOpen) onSearchRef.current?.(query.trim());
     // `onSearch` may be a new function each render; the text drives it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, query]);
+  }, [isOpen, query, onSearchRef]);
 
   useEffect(() => {
     if (!isOpen) setQuery("");
@@ -77,10 +80,10 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
   useEffect(() => {
     if (isOpen) {
       followHighlight.current = true;
+      const { options, same } = openingRef.current;
       setHighlight(Math.max(0, options.findIndex(same)));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, openingRef]);
   useEffect(() => {
     if (query) {
       followHighlight.current = true;
@@ -90,7 +93,7 @@ export function FilterSelect({ value, onChange, options, className, panelClassNa
 
   useEffect(() => {
     if (isOpen && followHighlight.current) panelRef.current?.querySelector(`[data-option="${highlight}"]`)?.scrollIntoView({ block: "nearest" });
-  }, [isOpen, highlight, Boolean(placement)]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, highlight, placed]);
 
   // Autofocus the search box the instant the panel (and its measured
   // placement) is ready, so typing can start immediately without an extra

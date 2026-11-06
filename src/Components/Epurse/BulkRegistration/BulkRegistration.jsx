@@ -26,6 +26,7 @@ import { InstitutionField } from "@/Components/GlobalSettings/Notifications/noti
 import { getInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 const ROW_TONES = { APPROVED: "bg-emerald-50 text-emerald-800", IN_REVIEW: "bg-amber-50 text-amber-800", REJECTED: "bg-red-50 text-red-700", FAILED: "bg-red-50 text-red-700", PENDING: "bg-muted text-muted-foreground" };
 const BATCH_TONES = { DONE: "bg-emerald-50 text-emerald-800", PROCESSING: "bg-sky-50 text-sky-800", REJECTED: "bg-red-50 text-red-700", PENDING: "bg-amber-50 text-amber-800" };
@@ -51,7 +52,9 @@ function EmployerPicker({ value, onChange, inst }) {
   const { t } = useTranslation("bulkReg");
   const [term, setTerm] = useState("");
   const [found, setFound] = useState(null);
+  const latest = useLatest({ inst });
   useEffect(() => {
+    const { inst } = latest.current;
     const search = term.trim();
     if (search.length < 2) {
       setFound(null);
@@ -68,8 +71,7 @@ function EmployerPicker({ value, onChange, inst }) {
       current = false;
       clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `inst` is fixed while the picker shows
-  }, [term]);
+  }, [term, latest]);
   const describe = (e) => [e.phone_number, e.email, e.reference_id && `${e.reference_id.slice(0, 8)}…`].filter(Boolean).join(" · ");
   if (value) {
     return (

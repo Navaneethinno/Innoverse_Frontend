@@ -13,6 +13,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { formatNumber } from "@/Utils/Lib/numberFormat";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ApprovalTimeline, approvalText } from "./approvalShared";
+import { useLatest } from "@/Hooks/useLatest";
 
 // What the signed-in user can approve now, across the admin menus, oldest
 // first (/config/approval/queue). Open in the top bar; the count shows on
@@ -38,11 +39,12 @@ export function MyApprovalsButton() {
         setItems([]);
         if (open) notifications.error(e.message);
       });
+  const latest = useLatest({ load });
   useEffect(() => {
+    const { load } = latest.current;
     void load();
     // Loaded once at sign-in and again on every opening.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [latest]);
   const count = items?.length ?? 0;
   return (
     <>

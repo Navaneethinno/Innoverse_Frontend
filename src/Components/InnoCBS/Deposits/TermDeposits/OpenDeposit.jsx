@@ -16,6 +16,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Facts, Problems, amountInput, dayDate, inputClass, labelClass, ratePct } from "../depositShared";
 import { earlyText, optionLabel } from "../../Settings/DepositProducts/productShared";
+import { useLatest } from "@/Hooks/useLatest";
 
 // The owner of a wallet, as the deposit calls name it.
 export const ownerEntity = (owner) => (owner?.kind && owner?.id ? { entity_type: owner.kind, entity_id: owner.id } : null);
@@ -67,7 +68,9 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
   const bodyKey = JSON.stringify(body);
 
   // Live quote: every check, nothing written. Debounced while typing.
+  const latest = useLatest({ body });
   useEffect(() => {
+    const { body } = latest.current;
     setQuote(null);
     setQuoteError("");
     if (!body) return undefined;
@@ -85,8 +88,7 @@ export function OpenDeposit({ entity: given, onClose, onOpened }) {
       window.clearTimeout(timer);
     };
     // bodyKey stands for body.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyKey]);
+  }, [bodyKey, latest]);
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
 

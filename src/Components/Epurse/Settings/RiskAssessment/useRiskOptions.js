@@ -12,7 +12,6 @@ export function useRiskOptions(api, instProfileId) {
   const [values, setValues] = useState({});
   const [loading, setLoading] = useState(true);
   const requested = useRef(new Set());
-  const inst = instProfileId ? { inst_profile_id: instProfileId } : {};
 
   useEffect(() => {
     let cancelled = false;
@@ -34,7 +33,7 @@ export function useRiskOptions(api, instProfileId) {
       if (!fieldCode || requested.current.has(fieldCode)) return;
       requested.current.add(fieldCode);
       api
-        .options({ ...inst, field_code: fieldCode })
+        .options({ ...(instProfileId ? { inst_profile_id: instProfileId } : {}), field_code: fieldCode })
         .then((response) => {
           const field = (rowsOf(response)[0]?.fields ?? []).find((f) => f.field_code === fieldCode);
           setValues((v) => ({ ...v, [fieldCode]: field?.values ?? [] }));
@@ -44,7 +43,6 @@ export function useRiskOptions(api, instProfileId) {
           notifications.error(error.message);
         });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [api, instProfileId],
   );
 

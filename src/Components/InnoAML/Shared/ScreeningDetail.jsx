@@ -16,6 +16,7 @@ import { formatDay } from "@/Utils/Lib/dateFormat";
 import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, NameText, ReviewStateBadge, ViaTag, WeightNote, blacklistByIdentifier, matchScore, when } from "./amlShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { Button } from "@/Components/Common/Button";
+import { useLatest } from "@/Hooks/useLatest";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
@@ -425,7 +426,9 @@ export function ScreeningDetail({ screening, onChange }) {
 export function ScreeningDetailModal({ id, lookup = false, onClose, onChanged }) {
   const { t } = useTranslation("aml");
   const [screening, setScreening] = useState(null);
+  const latest = useLatest({ onClose });
   useEffect(() => {
+    const { onClose } = latest.current;
     let cancelled = false;
     (lookup ? amlLookupApi : amlScreeningApi)
       .get({ id })
@@ -437,8 +440,7 @@ export function ScreeningDetailModal({ id, lookup = false, onClose, onChanged })
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, lookup]);
+  }, [id, lookup, latest]);
   return (
     <Modal open onClose={onClose} size="xl" title={lookup ? t("lookupTitle") : t("screeningTitle")}>
       {!screening ? (

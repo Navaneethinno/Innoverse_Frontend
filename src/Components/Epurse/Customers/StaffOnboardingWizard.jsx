@@ -24,6 +24,7 @@ import { OwnerHistoryButton } from "@/Components/Finance/Transactions/OwnerHisto
 import { OwnerDeposits } from "@/Components/InnoCBS/Deposits/TermDeposits/Deposits";
 import { digitalProductApi } from "@/Services/Epurse/digitalProduct.api";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
+import { useLatest } from "@/Hooks/useLatest";
 // The staff onboarding wizard on the institution's own form (Admin portal
 // handoff: onboarding form builder, §8), for individual and corporate.
 // Every section the customer is asked comes at once (a section a rule
@@ -174,7 +175,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
   const [refusal, setRefusal] = useState(null);
   const [holder, setHolder] = useState(null);
 
+  const latest = useLatest({ inst });
   useEffect(() => {
+    const { inst } = latest.current;
     if (referenceId) return;
     setOptions(null);
     setProducts([]);
@@ -187,8 +190,7 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
       .getActive({ view: "dropdown", ...inst })
       .then((r) => setProducts((Array.isArray(r?.data) ? r.data : []).map((p) => ({ value: String(p.id ?? p.digital_product_id), label: p.name ?? p.product_name ?? p.code ?? String(p.id) }))))
       .catch(() => setProducts([]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `inst` follows `institution`
-  }, [referenceId, api, chooser, institution]);
+  }, [referenceId, api, chooser, institution, latest]);
 
   const applyWizard = (w) => {
     setWizard(w);

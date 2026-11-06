@@ -13,6 +13,7 @@ import { useChannels, useTransactions, useResidencyTypes } from "@/Hooks/Master/
 import { configKycApi } from "@/Services/Epurse/config.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Shared between AddDigitalProductWizard.jsx, EditDigitalProductWizard.jsx
 // and ViewDigitalProductWizard.jsx — everything here is pure step/field
@@ -114,7 +115,10 @@ export function useDigitalProductExistingData(product) {
   );
   const [loading, setLoading] = useState(true);
 
+  // The caller passes a new `product` object each render; its id says what to load.
+  const productRef = useLatest(product);
   const load = useCallback(async () => {
+    const product = productRef.current;
     const response = await productApi().get({ id: product.id });
     const data = rowsOf(response)[0] ?? {};
     const p = data.product ?? product;
@@ -154,8 +158,7 @@ export function useDigitalProductExistingData(product) {
         residency: residency?.id ?? null,
       },
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product.id]);
+  }, [productRef]);
 
   const reload = useCallback(async () => {
     const next = await load();
@@ -182,7 +185,8 @@ export function useDigitalProductExistingData(product) {
     return () => {
       cancelled = true;
     };
-  }, [load]);
+    // A different product loads again.
+  }, [load, product.id]);
 
   return { values, setValues, recordIds, setRecordIds, loading, reload };
 }

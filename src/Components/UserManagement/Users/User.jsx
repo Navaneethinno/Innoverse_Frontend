@@ -39,6 +39,7 @@ import { useOwnIds } from "@/Hooks/useInstitutionScope";
 import { AuditUser } from "./AuditUser";
 import { deriveButtonVisibility, getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useLatest } from "@/Hooks/useLatest";
 
 // The users list endpoint only supports status 0/1/2 (all/active/inactive)
 // server-side — there is no dedicated "pending" auth_status filter param
@@ -144,7 +145,9 @@ export function User() {
   const [searchParams, setSearchParams] = useSearchParams();
   const editParam = searchParams.get("edit");
   const handledEditParam = useRef(null);
+  const latest = useLatest({ own, setSearchParams, openEdit });
   useEffect(() => {
+    const { own, setSearchParams, openEdit } = latest.current;
     if (!editParam || handledEditParam.current === editParam) return;
     handledEditParam.current = editParam;
     setSearchParams((prev) => {
@@ -161,8 +164,7 @@ export function User() {
       })
       .catch((error) => notifications.error(error instanceof Error ? error.message : String(error)));
     // openEdit is recreated each render; running once per param is the intent.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editParam, canEdit]);
+  }, [editParam, canEdit, latest]);
 
   const submit = async (event) => {
     event.preventDefault();

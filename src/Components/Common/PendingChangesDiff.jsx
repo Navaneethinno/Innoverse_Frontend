@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 import { actorText } from "@/Utils/Lib/actor";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Fetches and renders the /{entity}/pending {id} diff inside an Auth/Deauth
 // confirm dialog, so the checker sees exactly what a maker is asking to
@@ -15,6 +16,7 @@ export function usePendingChanges(fetchPending, id, open) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const fetchRef = useLatest(fetchPending);
 
   useEffect(() => {
     if (!open || id == null) {
@@ -25,7 +27,7 @@ export function usePendingChanges(fetchPending, id, open) {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    fetchPending({ id })
+    fetchRef.current({ id })
       .then((result) => {
         // The real response wraps the pending object in a single-element
         // array (payload.data: [{ id, pending_action, changes, ... }]),
@@ -43,8 +45,7 @@ export function usePendingChanges(fetchPending, id, open) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, id]);
+  }, [open, id, fetchRef]);
 
   return { data, isLoading, error };
 }

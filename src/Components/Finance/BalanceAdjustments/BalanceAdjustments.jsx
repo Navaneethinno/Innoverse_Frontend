@@ -25,6 +25,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Deposits/depositShared";
 import { useLiveChannel } from "@/Hooks/useLiveChannel";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { useLatest } from "@/Hooks/useLatest";
 
 // EPURSE > Balance Adjustments (menu 182): credit / debit corrections of a
 // transaction that happened, found by its RRN (or opened from a dispute).
@@ -192,11 +193,12 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
     }
   };
 
+  const latest1 = useLatest({ lookup });
   useEffect(() => {
+    const { lookup } = latest1.current;
     if (disputeId) void lookup({ dispute_case_id: disputeId });
     // Opened from a dispute: looked up once.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [disputeId]);
+  }, [disputeId, latest1]);
 
   function pick(k, tx = found?.transaction) {
     setKind(k);
@@ -216,7 +218,9 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
   const walletAfter = recovery ? Number(tx?.debited_wallet?.avail_bal ?? 0) - Number(form.amount || 0) : null;
   const bodyKey = JSON.stringify(body);
 
+  const latest2 = useLatest({ body });
   useEffect(() => {
+    const { body } = latest2.current;
     setPlan(null);
     setQuoteError("");
     if (!body) return undefined;
@@ -234,8 +238,7 @@ export function AdjustmentForm({ disputeId, onClose, onSaved }) {
       window.clearTimeout(timer);
     };
     // bodyKey stands for body.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyKey]);
+  }, [bodyKey, latest2]);
 
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const save = async () => {

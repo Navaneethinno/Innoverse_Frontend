@@ -26,10 +26,11 @@ export function TestScorePanel({ api, row, risk, kind }) {
   };
   const pointsRisk = { ...risk, valueName: (code, id) => (criteria.find((c) => c.field_code === code)?.bands ? bandName(code, id) : risk.valueName(code, id)) };
 
+  const { loadValues } = risk;
+  const rowCriteria = row.criteria;
   useEffect(() => {
-    criteria.filter((c) => !c.bands).forEach((c) => risk.loadValues(c.field_code));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [row.id, risk.loadValues]);
+    (rowCriteria ?? []).filter((c) => !c.bands).forEach((c) => loadValues(c.field_code));
+  }, [rowCriteria, loadValues]);
 
   const run = async () => {
     setScoring(true);

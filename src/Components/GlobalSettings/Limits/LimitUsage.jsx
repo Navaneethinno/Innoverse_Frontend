@@ -27,23 +27,22 @@ function LimitUsagePanel({ entity, compact = false }) {
   const { t } = useTranslation("limits");
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
-  const key = `${entity?.entity_type}-${entity?.entity_id}`;
+  const entityType = entity?.entity_type;
+  const entityId = entity?.entity_id;
 
   useEffect(() => {
-    if (!entity?.entity_id) return undefined;
+    if (!entityId) return undefined;
     let cancelled = false;
     setData(null);
     setError("");
     limitGroupOps
-      .usage({ entity_type: entity.entity_type, entity_id: entity.entity_id })
+      .usage({ entity_type: entityType, entity_id: entityId })
       .then((r) => !cancelled && setData(rowsOf(r)[0] ?? {}))
       .catch((e) => !cancelled && setError(e.message));
     return () => {
       cancelled = true;
     };
-    // key stands for entity.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [entityType, entityId]);
 
   if (error) return <p className="text-xs font-semibold text-red-700">{error}</p>;
   if (!data) return <Spinner size={16} />;

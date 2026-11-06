@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { inputClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Pick one record by typing part of it: `search(term)` resolves to the
 // matching rows (300 ms after typing stops), `renderItem(row)` draws a row
@@ -11,6 +12,7 @@ export function SearchPicker({ value, onChange, search, renderItem, rowKey = (r)
   const { t } = useTranslation("common");
   const [term, setTerm] = useState("");
   const [found, setFound] = useState(null);
+  const searchRef = useLatest(search);
   useEffect(() => {
     const text = term.trim();
     if (!text) {
@@ -19,7 +21,7 @@ export function SearchPicker({ value, onChange, search, renderItem, rowKey = (r)
     }
     let current = true;
     const timer = setTimeout(() => {
-      search(text)
+      searchRef.current(text)
         .then((rows) => current && setFound(rows))
         .catch((e) => current && (setFound([]), notifications.error(e.message)));
     }, 300);
@@ -28,8 +30,7 @@ export function SearchPicker({ value, onChange, search, renderItem, rowKey = (r)
       clearTimeout(timer);
     };
     // `search` is a new function each render; the term drives the lookup.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [term]);
+  }, [term, searchRef]);
 
   if (value) {
     return (

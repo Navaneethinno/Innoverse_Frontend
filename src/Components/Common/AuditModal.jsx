@@ -13,6 +13,7 @@ import { PendingChangesPanel } from "@/Components/Common/PendingChangesDiff";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Values the backend sends as literal placeholder strings for "no value" —
 // treated the same as null/empty everywhere below.
@@ -343,6 +344,7 @@ export function AuditHistory({
   // per response from page 1's own record order instead of assumed.
   const pageStepRef = useRef(-1);
   const totalPagesRef = useRef(1);
+  const fetchAuditRef = useLatest(fetchAudit);
 
   useEffect(() => {
     let cancelled = false;
@@ -353,6 +355,7 @@ export function AuditHistory({
     setNextPage(null);
     (async () => {
       try {
+        const fetchAudit = fetchAuditRef.current;
         if (!fetchAudit) {
           if (!cancelled) setEntries((given ?? []).map(asRecord));
           return;
@@ -386,7 +389,7 @@ export function AuditHistory({
         // newest) to show up front, stepping backward toward page 1 on
         // scroll, same as before.
         pageStepRef.current = -1;
-        const last = await fetchAudit(totalPages, auditLimit);
+        const last = await fetchAuditRef.current(totalPages, auditLimit);
         if (!cancelled) {
           setEntries((last?.entries ?? []).map(asRecord));
           setNextPage(totalPages - 1);
@@ -403,15 +406,14 @@ export function AuditHistory({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadKey, retryToken, given]);
+  }, [reloadKey, retryToken, given, auditLimit, fetchAuditRef]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore || nextPage == null) return;
     setLoadingMore(true);
     setLoadMoreError(null);
     try {
-      const page = await fetchAudit(nextPage, auditLimit);
+      const page = await fetchAuditRef.current(nextPage, auditLimit);
       setEntries((current) => [...current, ...(page?.entries ?? []).map(asRecord)]);
       const step = pageStepRef.current;
       const following = nextPage + step;
@@ -422,8 +424,7 @@ export function AuditHistory({
     } finally {
       setLoadingMore(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingMore, hasMore, nextPage, auditLimit]);
+  }, [loadingMore, hasMore, nextPage, auditLimit, fetchAuditRef]);
 
   // Each fetched page is sorted newest-first within itself — pages arrive
   // newest-page-first already (see the fetch strategy above), so entries

@@ -21,6 +21,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { PARTS } from "./Atms";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Downloads to every ACTIVE ATM at once: start one, and follow it.
 function Batches() {
@@ -128,7 +129,9 @@ function StartBatch({ onClose, onStarted }) {
 function BatchDetail({ batch, onClose, onChanged }) {
   const { t } = useTranslation("atm");
   const [b, setB] = useState(batch);
+  const latest = useLatest({ batch, onChanged });
   useEffect(() => {
+    const { batch, onChanged } = latest.current;
     let cancelled = false;
     let timer = null;
     const poll = () =>
@@ -147,8 +150,7 @@ function BatchDetail({ batch, onClose, onChanged }) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batch.id]);
+  }, [batch.id, latest]);
   return (
     <Modal open onClose={onClose} size="xl" title={t("batchTitle", { id: b.id })}>
       <div className="grid gap-3">

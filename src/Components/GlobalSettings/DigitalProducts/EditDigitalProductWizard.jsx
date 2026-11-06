@@ -19,6 +19,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 import { Button } from "@/Components/Common/Button";
+import { useLatest } from "@/Hooks/useLatest";
 // Same 9-step horizontal stepper and field/dropdown plumbing as
 // AddDigitalProductWizard.jsx/ViewDigitalProductWizard.jsx (all three share
 // digitalProductWizardShared.jsx), but a fundamentally different mode: EDIT
@@ -41,7 +42,9 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
   } = useDigitalProductExistingData(product);
   const [values, setValues] = useState(loadedValues);
   const [savedValues, setSavedValues] = useState(loadedValues);
+  const latest = useLatest({ loadedValues });
   useEffect(() => {
+    const { loadedValues } = latest.current;
     if (!initialLoading) {
       setValues(loadedValues);
       setSavedValues(loadedValues);
@@ -49,8 +52,7 @@ export function EditDigitalProductWizard({ product, onClose, onSaved }) {
     // Only re-sync once loading finishes, not on every loadedValues object
     // identity change (there is none after that point) or `values` changing
     // as the user types — this must not clobber in-progress edits.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialLoading]);
+  }, [initialLoading, latest]);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [pendingNav, setPendingNav] = useState(null);

@@ -204,8 +204,7 @@ function LevelsEditor({ scheme, onClose, onSaved, forceReadOnly = false }) {
         ],
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [catalog, masters, library.rows],
+    [catalog, masters, library.rows, t],
   );
 
   const run = async (label, work) => {

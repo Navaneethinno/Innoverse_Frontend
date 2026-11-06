@@ -22,6 +22,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { formatDay } from "@/Utils/Lib/dateFormat";
 import { money } from "../InnoCBS/Accounts/accountShared";
 import { DefinitionCompare, EventsSection, FactGrid, Field, MakerChecker, SetDefinition, ReconRowActions, ReconStatus, RecordStatus, label, reconDate, recordColumns, useDecision, useMe, useRecord } from "./reconShared";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Recon Sets (menu 191): what is reconciled with what (the rules), their
 // runs and results, and the approvals queue for changes to results.
@@ -179,10 +180,11 @@ function SetDetail({ set, onClose, onEdit, onChanged }) {
   }, [reload, onChanged]);
   const ready = Boolean(s.definition);
   // Opened by a row's Edit: straight to the form once the definition is in.
+  const latest = useLatest({ onEdit, s });
   useEffect(() => {
+    const { onEdit, s } = latest.current;
     if (set.startEdit && s.definition) onEdit(s);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [set.startEdit, s.definition]);
+  }, [set.startEdit, s.definition, latest]);
   return (
     <Modal open onClose={onClose} size="full" title={`${s.name} (${s.code})`}>
       <div className="grid gap-4">

@@ -22,6 +22,7 @@ import {
 import { ROLES, RoleBadge, recordText } from "./activityFormat";
 import { ActivityDetail } from "./ActivityDetail";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Reports > User Activity (menu 106, View only): everything one admin user
 // did in the maker-checker flow over a period — as maker, checker, or
@@ -80,7 +81,9 @@ export function UserActivity() {
   }, [filters, searchTerm]);
   const bodyKey = JSON.stringify(body);
 
+  const latest = useLatest({ body });
   useEffect(() => {
+    const { body } = latest.current;
     if (!body) {
       setSummary(null);
       return;
@@ -93,8 +96,7 @@ export function UserActivity() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyKey]);
+  }, [bodyKey, latest]);
 
   const load = useCallback(async () => {
     const current = JSON.parse(bodyKey);

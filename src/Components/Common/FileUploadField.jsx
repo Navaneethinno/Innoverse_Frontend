@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FileText, Upload, X } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { Button } from "@/Components/Common/Button";
+import { useLatest } from "@/Hooks/useLatest";
 
 // One reusable file/image upload control — every upload surface in the app
 // renders through here so they look and behave identically.
@@ -33,6 +34,8 @@ const isPreviewableImage = (type) => type?.startsWith("image/") && type !== "ima
 // when the value changes or the component unmounts.
 export function useStoredFileUrl(value, download) {
   const [state, setState] = useState({ url: null, isImage: false, loading: false, error: "" });
+  const downloadRef = useLatest(download);
+  const canDownload = Boolean(download);
   useEffect(() => {
     if (!value) {
       setState({ url: null, isImage: false, loading: false, error: "" });
@@ -44,14 +47,14 @@ export function useStoredFileUrl(value, download) {
     }
     // A stored path with no way to download it (e.g. an AML list file):
     // nothing to link to, just the file icon.
-    if (!download) {
+    if (!canDownload) {
       setState({ url: null, isImage: false, loading: false, error: "" });
       return undefined;
     }
     let url = null;
     let cancelled = false;
     setState({ url: null, isImage: IMAGE_EXT.test(value), loading: true, error: "" });
-    download(value)
+    downloadRef.current(value)
       .then((blob) => {
         if (cancelled) return;
         url = URL.createObjectURL(blob);
@@ -63,8 +66,7 @@ export function useStoredFileUrl(value, download) {
       if (url) URL.revokeObjectURL(url);
     };
     // `download` is rebuilt by callers each render; the value decides.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, canDownload, downloadRef]);
   return state;
 }
 

@@ -11,6 +11,7 @@ import { fieldLabel, useIdNames } from "../Shared/idNames";
 import { Fields, Value } from "../Shared/RecordValues";
 import { RoleBadge, recordText } from "./activityFormat";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { useLatest } from "@/Hooks/useLatest";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -40,7 +41,9 @@ export function ActivityDetail({ activityId, onClose }) {
   // ids in the values/changes shown as their names.
   const name = useIdNames(item?.entity, item?.values, (item?.changes ?? []).flatMap((c) => [{ [c.field]: c.before }, { [c.field]: c.after }]));
 
+  const latest = useLatest({ onClose });
   useEffect(() => {
+    const { onClose } = latest.current;
     let cancelled = false;
     userActivityApi
       .get({ activity_id: activityId })
@@ -52,8 +55,7 @@ export function ActivityDetail({ activityId, onClose }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activityId]);
+  }, [activityId, latest]);
 
   return (
     <ReportDetailPage onBack={onClose} title={item ? `${item.action_name} · ${recordText(item)}` : t("activity")}>

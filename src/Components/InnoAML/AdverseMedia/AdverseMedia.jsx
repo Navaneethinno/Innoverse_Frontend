@@ -27,6 +27,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { glassCard, partyLabel, useInstitutionScope } from "../Shared/amlShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { useLatest } from "@/Hooks/useLatest";
 
 // AML > Adverse Media (handoff 20): news searched for a person or company on
 // demand, judged article by article. Not part of the AML score. Search and
@@ -104,7 +105,9 @@ function liveReducer(state, { kind, data }) {
 function useLiveSearch(searchId, onDone) {
   const [live, dispatch] = useReducer(liveReducer, startLive);
   const [error, setError] = useState("");
+  const latest = useLatest({ onDone });
   useEffect(() => {
+    const { onDone } = latest.current;
     if (!searchId) return undefined;
     const controller = new AbortController();
     dispatch({ kind: "reset" });
@@ -115,8 +118,7 @@ function useLiveSearch(searchId, onDone) {
       .catch((e) => !controller.signal.aborted && setError(e.message));
     return () => controller.abort();
     // onDone is the caller's "load the result"; a new search starts over.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchId]);
+  }, [searchId, latest]);
   return { live, error };
 }
 
@@ -386,9 +388,10 @@ const LIVE_CSS = `
 function CountUp({ value }) {
   const [shown, setShown] = useState(0);
   const target = Number(value) || 0;
+  const shownRef = useLatest(shown);
   useEffect(() => {
     let frame;
-    const from = shown;
+    const from = shownRef.current;
     const startedAt = performance.now();
     const step = (now) => {
       const p = Math.min(1, (now - startedAt) / 600);
@@ -398,8 +401,7 @@ function CountUp({ value }) {
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
     // Counts from wherever it is now.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
+  }, [target, shownRef]);
   return value == null ? "—" : shown;
 }
 

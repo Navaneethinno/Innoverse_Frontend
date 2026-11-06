@@ -18,6 +18,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { Problems, amountInput, inputClass, labelClass } from "../../InnoCBS/Deposits/depositShared";
 import { PlanCard } from "./txnShared";
+import { useLatest } from "@/Hooks/useLatest";
 
 // What a type asks for, from its option: the wallets on the non-cash
 // sides, the original transaction when needs_org_txn, and an amount unless
@@ -95,7 +96,9 @@ export function NewRequest({ preset, onClose, onDone }) {
   const bodyKey = JSON.stringify(body);
 
   // The quote as the form changes: every check, nothing posted.
+  const latest1 = useLatest({ body });
   useEffect(() => {
+    const { body } = latest1.current;
     setPlan(null);
     setQuoteError("");
     if (!body) return undefined;
@@ -113,8 +116,7 @@ export function NewRequest({ preset, onClose, onDone }) {
       window.clearTimeout(timer);
     };
     // bodyKey stands for body.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyKey]);
+  }, [bodyKey, latest1]);
 
   const set = (key) => (e) => {
     const value = e.target.value;
@@ -349,7 +351,9 @@ function HolderWallet({ card, value, onChange }) {
   const { t } = useTranslation("txn");
   const [wallets, setWallets] = useState(null);
 
+  const latest2 = useLatest({ onChange });
   useEffect(() => {
+    const { onChange } = latest2.current;
     let cancelled = false;
     cardsApi
       .get({ id: card.id })
@@ -364,8 +368,7 @@ function HolderWallet({ card, value, onChange }) {
       cancelled = true;
     };
     // Only a new card starts over on its default wallet.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card.id]);
+  }, [card.id, latest2]);
 
   return (
     <div className={cn(labelClass, "sm:col-span-2")}>

@@ -12,6 +12,7 @@ import { Section, dayDate, labelClass } from "../../InnoCBS/Deposits/depositShar
 import { Field, loanLabel } from "../../InnoCBS/Loans/loanShared";
 import { freeOptions, pickOptions } from "./CardSetup";
 import { CardFace } from "../cardOpsShared";
+import { useLatest } from "@/Hooks/useLatest";
 
 // What differs between the CARDS setup screens: the api, list columns, the
 // facts a view shows, the form, the body sent, the fields fixed once added
@@ -651,7 +652,9 @@ function codeProblems(v) {
 function useLayoutPreview(v) {
   const [answer, setAnswer] = useState(null);
   const key = JSON.stringify([v.bin_id, v.pan_length, ...PARTS.map((p) => v[widthKey(p)]), v.part_codes]);
+  const latest = useLatest({ v });
   useEffect(() => {
+    const { v } = latest.current;
     if (!v.bin_id) {
       setAnswer(null);
       return undefined;
@@ -667,8 +670,7 @@ function useLayoutPreview(v) {
       current = false;
       clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is the form's layout fields
-  }, [key]);
+  }, [key, latest]);
   return answer;
 }
 

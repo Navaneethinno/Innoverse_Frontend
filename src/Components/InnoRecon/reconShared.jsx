@@ -18,6 +18,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { ActionButtons, Facts, NarrationDialog, Section, inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 import { MiniTable } from "../InnoCBS/Loans/loanShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Pieces every InnoRecon screen shares.
 
@@ -83,7 +84,9 @@ export function usePage(call, body) {
     setLastKey(key);
     setPage(1);
   }
+  const latest = useLatest({ body });
   useEffect(() => {
+    const { body } = latest.current;
     if (body == null) return undefined;
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
@@ -101,8 +104,7 @@ export function usePage(call, body) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [call, key, page, limit, version]);
+  }, [call, key, page, limit, version, latest]);
   return { ...state, page, limit, setPage, setLimit: (n) => (setLimit(n), setPage(1)), reload: () => setVersion((n) => n + 1) };
 }
 

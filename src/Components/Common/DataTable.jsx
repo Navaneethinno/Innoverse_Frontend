@@ -352,16 +352,16 @@ export function DataTable({
       .catch((e) => id === ownSeq.current && setOwn((o) => ({ ...o, loading: false, error: e?.message ?? "" })));
   };
 
+  const borrowsPaging = Boolean(fetchPage);
+  const sizeFollowsServer = Boolean(serverPagination?.onLimitChange);
   useEffect(() => {
     // Borrowed paging: kept once the table shows the asked page at the View all size.
-    if (fetchPage) return;
-    const sized = !serverPagination?.onLimitChange || effectivePageSize === VIEW_ALL_LIMIT;
+    if (borrowsPaging) return;
+    const sized = !sizeFollowsServer || effectivePageSize === VIEW_ALL_LIMIT;
     if (!viewAllOpen || !isServer || isLoading || !sized) return;
     // Pages often pass a fresh array each render: store only real changes.
     setLoaded((current) => (current[serverPage] && JSON.stringify(current[serverPage]) === JSON.stringify(rows) ? current : { ...current, [serverPage]: rows }));
-    // `rows` arrives with the page it belongs to.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewAllOpen, isServer, isLoading, serverPage, rows, effectivePageSize]);
+  }, [viewAllOpen, isServer, isLoading, serverPage, rows, effectivePageSize, borrowsPaging, sizeFollowsServer]);
 
   const openViewAll = () => {
     setLoaded({});

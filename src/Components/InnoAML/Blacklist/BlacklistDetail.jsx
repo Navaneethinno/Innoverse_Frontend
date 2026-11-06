@@ -11,6 +11,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { NameText, when } from "../Shared/amlShared";
 import { CountryList, EntryStatus, identifierText } from "./blacklistShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { useLatest } from "@/Hooks/useLatest";
 
 const FIELDS = ["entity_type", "name", "aliases", "birth_date", "countries", "identifiers", "reason", "remarks", "expires_on"];
 const show = (value) => (Array.isArray(value) ? value.map((v) => (typeof v === "object" ? identifierText(v) : v)).join(", ") : (value ?? "")) || "-";
@@ -63,7 +64,9 @@ function Change({ change, entry }) {
 export function BlacklistDetail({ id, onClose }) {
   const { t } = useTranslation(["aml", "common"]);
   const [entry, setEntry] = useState(null);
+  const latest = useLatest({ onClose });
   useEffect(() => {
+    const { onClose } = latest.current;
     let cancelled = false;
     amlBlacklistApi
       .get({ id })
@@ -75,8 +78,7 @@ export function BlacklistDetail({ id, onClose }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, latest]);
   const history = [...(entry?.history ?? [])].reverse();
   return (
     <Modal open onClose={onClose} size="lg" title={t("aml:blacklistEntry")}>

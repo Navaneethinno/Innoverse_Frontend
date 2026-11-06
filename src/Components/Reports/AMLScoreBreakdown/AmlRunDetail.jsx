@@ -10,6 +10,7 @@ import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, sc
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { useLatest } from "@/Hooks/useLatest";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -258,7 +259,9 @@ export function AmlRunDetail({ runId, onClose }) {
   const [id, setId] = useState(runId);
   const [item, setItem] = useState(null);
 
+  const latest = useLatest({ onClose });
   useEffect(() => {
+    const { onClose } = latest.current;
     let cancelled = false;
     setItem(null);
     amlBreakdownApi
@@ -271,8 +274,7 @@ export function AmlRunDetail({ runId, onClose }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, latest]);
 
   return (
     <ReportDetailPage onBack={onClose} title={item ? item.customer_name : t("amlTitle")}>

@@ -6,6 +6,7 @@ import { request } from "@/Services/Epurse/onboarding.api";
 import { useInstitutionFilter } from "@/Utils/Lib/institutionFilter";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { notifications } from "@/Utils/Lib/notifications";
+import { useLatest } from "@/Hooks/useLatest";
 
 // One way to list, search and filter (handoff 62). `api` is the page's list
 // call; POST /config/list/options says which tabs, filters, date and amount
@@ -137,7 +138,10 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   // Only the newest request's answer counts.
   const seq = useRef(0);
   const bodyKey = JSON.stringify(body);
+  // The page rebuilds `call`, `select` and the body each render; bodyKey says when to load.
+  const latest = useLatest({ call, select, body });
   useEffect(() => {
+    const { call, select, body } = latest.current;
     if (!body) return;
     const id = ++seq.current;
     setState((s) => ({ ...s, loading: true }));
@@ -151,26 +155,18 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
         notifications.error(e.message);
         setState({ rows: [], pagination: null, summary: null, loading: false });
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bodyKey, version]);
+  }, [bodyKey, version, latest]);
 
   // "View all" loads its own pages with the same body, so the list on the
   // page keeps its own page and size.
-  const bodyRef = useRef(body);
-  useEffect(() => {
-    bodyRef.current = body;
-  });
-  const fetchPage = useCallback(
-    (pageNo, size) =>
-      Promise.resolve(call({ ...bodyRef.current, page: pageNo, limit: size })).then((r) => ({
-        rows: select ? select(r) : Array.isArray(r?.data) ? r.data : [],
-        totalRecords: r?.pagination?.totalRecords,
-        totalPages: r?.pagination?.totalPages,
-      })),
-    // `call` and `select` are the page's own and stable enough; the body comes from the ref.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const fetchPage = useCallback((pageNo, size) => {
+    const { call, select, body } = latest.current;
+    return Promise.resolve(call({ ...body, page: pageNo, limit: size })).then((r) => ({
+      rows: select ? select(r) : Array.isArray(r?.data) ? r.data : [],
+      totalRecords: r?.pagination?.totalRecords,
+      totalPages: r?.pagination?.totalPages,
+    }));
+  }, [latest]);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
   useLiveChannel(api, reload);

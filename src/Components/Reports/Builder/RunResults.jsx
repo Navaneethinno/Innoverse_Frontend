@@ -7,6 +7,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cellText, csvText, fileValue } from "./builderShared";
 import { xlsxBlob } from "./xlsx";
+import { useLatest } from "@/Hooks/useLatest";
 
 // Option labels by field, from a report's `fields`, for enum cells.
 export const optionLabelsOf = (fields) => Object.fromEntries((fields ?? []).filter((f) => f.options).map((f) => [f.key, Object.fromEntries(f.options.map((o) => [o.value, o.label]))]));
@@ -38,7 +39,9 @@ export function RunResults({ body, title, optionLabels, maxPageSize = 1000, onRu
     setResult(null);
   }, [key]);
 
+  const latest = useLatest({ body, onRunning });
   useEffect(() => {
+    const { body, onRunning } = latest.current;
     if (!body) return undefined;
     let cancelled = false;
     setRunning(true);
@@ -60,8 +63,7 @@ export function RunResults({ body, title, optionLabels, maxPageSize = 1000, onRu
       cancelled = true;
     };
     // key stands for body; onRunning is a setter.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, page, limit]);
+  }, [key, page, limit, latest]);
 
   const columns = useMemo(() => {
     const list = result?.columns ?? [];

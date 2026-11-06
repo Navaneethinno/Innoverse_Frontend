@@ -20,6 +20,7 @@ import { ActionButtons, NarrationDialog, inputClass, labelClass } from "../../In
 import { MmsStatus, mmsDate, pageOf, partyKey, partyRef } from "../mmsShared";
 import { LoadMasterKey } from "../LoadMasterKey";
 import { actorText } from "@/Utils/Lib/actor";
+import { useLatest } from "@/Hooks/useLatest";
 
 // "POS terminal · PAX A920" (no make or model: just the type).
 const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
@@ -371,7 +372,9 @@ function MerchantAcceptor({ merchant, instProfileId }) {
   const [busy, setBusy] = useState(false);
   const scope = instProfileId ? { inst_profile_id: instProfileId } : {};
   const key = partyKey(merchant);
+  const latest = useLatest({ merchant });
   useEffect(() => {
+    const { merchant } = latest.current;
     let cancelled = false;
     terminalsApi
       .acceptor({ merchant: partyRef(merchant), ...(instProfileId ? { inst_profile_id: instProfileId } : {}) })
@@ -385,8 +388,7 @@ function MerchantAcceptor({ merchant, instProfileId }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, instProfileId]);
+  }, [key, instProfileId, latest]);
   const save = async () => {
     setBusy(true);
     try {

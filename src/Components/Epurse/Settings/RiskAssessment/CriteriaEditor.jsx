@@ -101,11 +101,11 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
   const fieldOf = (code) => risk.options.fields.find((f) => f.field_code === code);
   const [showFatf, setShowFatf] = useState(false);
 
-  // Options of every criterion already on the record (editing a setup).
+  // Options of every criterion on the record, and of each one added (loaded once per field).
+  const { loadValues } = risk;
   useEffect(() => {
-    criteria.forEach((c) => risk.loadValues(c.field_code));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [risk.loadValues]);
+    criteria.forEach((c) => loadValues(c.field_code));
+  }, [criteria, loadValues]);
 
   const set = (index, patch) => onChange(criteria.map((c, i) => (i === index ? { ...c, ...patch } : c)));
   const add = (fieldCode) => {

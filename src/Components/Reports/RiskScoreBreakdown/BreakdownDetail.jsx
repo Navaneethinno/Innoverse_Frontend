@@ -9,6 +9,7 @@ import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared
 import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { useLatest } from "@/Hooks/useLatest";
 
 // `collapsible` (history): closed until clicked.
 function Section({ title, children, collapsible = false }) {
@@ -83,7 +84,9 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
   const [id, setId] = useState(assessmentId);
   const [item, setItem] = useState(null);
 
+  const latest = useLatest({ onClose });
   useEffect(() => {
+    const { onClose } = latest.current;
     let cancelled = false;
     setItem(null);
     riskBreakdownApi
@@ -96,8 +99,7 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customerKind, id]);
+  }, [customerKind, id, latest]);
 
   const b = item?.breakdown ?? {};
   const criteria = b.criteria ?? [];
