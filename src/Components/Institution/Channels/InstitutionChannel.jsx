@@ -10,132 +10,37 @@ import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
 import { useEffect, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
-import { RowActions } from "@/Components/Common/RowActions";
+
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { AuditModal } from "@/Components/Common/AuditModal";
-import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { institutionChannelApi } from "@/Services/Institution/institutionChannel.api";
-import {
-  useInstitutionChannelMutation,
-  useMasterChannels,
-} from "@/Hooks/Institution/institutionChannelHooks";
-import {
-  useActiveInstitutionsQuery,
-  useHasInstitutionAction,
-} from "@/Hooks/Institution/institutionHooks";
-import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useMasterChannels } from "@/Hooks/Institution/institutionChannelHooks";
+import { useActiveInstitutionsQuery, useHasInstitutionAction } from "@/Hooks/Institution/institutionHooks";
+
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { useApiMutation } from "@/Hooks/useApiMutation";
+import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
 
 const display = (row, key) => row?.[key] ?? "—";
 function ChannelActions({ row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
-  const canAdd = useHasInstitutionAction("Add");
-  const canEdit = useHasInstitutionAction("Edit");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDelete = useHasInstitutionAction("Delete");
-  const canChangeStatus = useHasInstitutionAction("Change Status");
-  const [action, setAction] = useState(null);
-  const [details, setDetails] = useState(null);
-  const [audit, setAudit] = useState(false);
-  const [narration, setNarration] = useState("");
-  const mutation = useInstitutionChannelMutation(action?.method ?? "submit");
-  const pendingInfo = usePendingChanges(
-    institutionChannelApi.pending,
-    row.id,
-    !!action && ["auth", "deauth", "deleteAuth"].includes(action.method),
-  );
-  // Single shared status-based visibility engine — see buttonVisibility.js
-  // for the full status_name/process_status_name matrix this is built from.
-  const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
-  const execute = async () => {
-    try {
-      await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
-      await onRefresh();
-      setAction(null);
-      setNarration("");
-    } catch {
-      /* mutation hook already shows the error toast */
-    }
-  };
-  const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
   return (
-    <>
-      <RowActions
-        buttons={buttons}
-        onView={() => setDetails(row)}
-        onEdit={onEdit}
-        onAudit={() => setAudit(true)}
-        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
-        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
-      />
-      <ConfirmDialog
-        open={!!action}
-        title={`${action?.label ?? "Action"} institution channel`}
-        confirmLabel={action?.label}
-        destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
-        pending={mutation.isPending}
-        confirmDisabled={action?.method === "deauth" && !narration.trim()}
-        onClose={() => setAction(null)}
-        onConfirm={() => void execute()}
-      >
-        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
-        {action?.method !== "pending" && (
-          <textarea
-            value={narration}
-            onChange={(e) => setNarration(e.target.value)}
-            placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
-          />
-        )}
-      </ConfirmDialog>
-      <Modal
-        open={!!details}
-        onClose={() => setDetails(null)}
-        title={tr("View institution channel")}
-        size="md"
-      >
-        <div className="space-y-3">
-          {[
-            ["Channel", row.channel_name ?? row.channel_id],
-            ...(canChooseInstitution() ? [["Institution", row.inst_profile_name ?? row.inst_profile_id]] : []),
-          ].map(([label, val]) => (
-            <div key={label}>
-              <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <div className="mt-1.5 rounded-xl border border-border bg-card p-3 text-sm font-semibold">
-                {val ?? "—"}
-              </div>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            <StatusBadge status={String(row.status_name ?? row.auth_status ?? row.status ?? "")} />
-          </div>
-        </div>
-      </Modal>
-      {audit && (
-        <AuditModal
-          title={row.channel_name ?? `Channel #${row.id}`}
-          fields={[
-            ["channel_name", "Channel"],
-            ["inst_profile_name", "Institution"],
-          ]}
-          onClose={() => setAudit(false)}
-          fetchAudit={(page, limit) =>
-            institutionChannelApi.audit({ id: row.id, page, limit }).then((r) => ({
-              entries: Array.isArray(r?.data) ? r.data : [],
-              totalPages: r?.pagination?.totalPages ?? 1,
-            }))
-          }
-        />
-      )}
-    </>
+    <InstitutionRowActions
+      row={row}
+      api={institutionChannelApi}
+      what={tr("Institution Channel")}
+      facts={[
+        [tr("Channel"), row.channel_name ?? row.channel_id],
+        ...(canChooseInstitution() ? [[tr("Institution"), row.inst_profile_name ?? row.inst_profile_id]] : []),
+      ]}
+      auditTitle={row.channel_name ?? `#${row.id}`}
+      auditFields={[["channel_name", tr("Channel")], ["inst_profile_name", tr("Institution")]]}
+      onEdit={onEdit}
+      onRefresh={onRefresh}
+    />
   );
 }
 
@@ -148,8 +53,8 @@ export function InstitutionChannel() {
   const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
   const { channels } = useMasterChannels();
-  const add = useInstitutionChannelMutation("add");
-  const edit = useInstitutionChannelMutation("edit");
+  const add = useApiMutation(institutionChannelApi, "add");
+  const edit = useApiMutation(institutionChannelApi, "edit");
   const columns = mergeStatusColumns([
     {
       key: "channel_name",

@@ -8,30 +8,23 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
+import { useApiMutation } from "@/Hooks/useApiMutation";
 import { useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
-import { RowActions } from "@/Components/Common/RowActions";
+
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { AuditModal } from "@/Components/Common/AuditModal";
-import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { institutionCurrencyApi, institutionPhoneCountryApi } from "@/Services/Institution/institutionCurrency.api";
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { countryName } from "@/Components/Common/countryOption";
-import {
-  useAssignmentMutation,
-  useDialCountries,
-  useMasterCurrencies,
-} from "@/Hooks/Institution/institutionCurrencyHooks";
-import {
-  useActiveInstitutionsQuery,
-  useHasInstitutionAction,
-} from "@/Hooks/Institution/institutionHooks";
-import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useDialCountries, useMasterCurrencies } from "@/Hooks/Institution/institutionCurrencyHooks";
+import { useActiveInstitutionsQuery, useHasInstitutionAction } from "@/Hooks/Institution/institutionHooks";
+
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
 const display = (row, key) => row?.[key] ?? "—";
 
 // Institution Currency and Institution Phone Code (menu 203) are the same
@@ -74,111 +67,21 @@ const KINDS = {
 };
 function AssignmentActions({ kind, row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
-  const canAdd = useHasInstitutionAction("Add");
-  const canEdit = useHasInstitutionAction("Edit");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDelete = useHasInstitutionAction("Delete");
-  const canChangeStatus = useHasInstitutionAction("Change Status");
-  const [action, setAction] = useState(null);
-  const [details, setDetails] = useState(null);
-  const [audit, setAudit] = useState(false);
-  const [narration, setNarration] = useState("");
-  const mutation = useAssignmentMutation(kind.api, action?.method ?? "submit");
-  const pendingInfo = usePendingChanges(
-    kind.api.pending,
-    row.id,
-    !!action && ["auth", "deauth", "deleteAuth"].includes(action.method),
-  );
-  // Single shared status-based visibility engine — see buttonVisibility.js
-  // for the full status_name/process_status_name matrix this is built from.
-  const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
-  const execute = async () => {
-    try {
-      await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
-      await onRefresh();
-      setAction(null);
-      setNarration("");
-    } catch {
-      /* mutation hook already shows the error toast */
-    }
-  };
-  const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
   return (
-    <>
-      <RowActions
-        buttons={buttons}
-        onView={() => setDetails(row)}
-        onEdit={onEdit}
-        onAudit={() => setAudit(true)}
-        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
-        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
-      />
-      <ConfirmDialog
-        open={!!action}
-        title={`${action?.label ?? "Action"} institution ${kind.noun}`}
-        confirmLabel={action?.label}
-        destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
-        pending={mutation.isPending}
-        confirmDisabled={action?.method === "deauth" && !narration.trim()}
-        onClose={() => setAction(null)}
-        onConfirm={() => void execute()}
-      >
-        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
-        {action?.method !== "pending" && (
-          <textarea
-            value={narration}
-            onChange={(e) => setNarration(e.target.value)}
-            placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
-          />
-        )}
-      </ConfirmDialog>
-      <Modal
-        open={!!details}
-        onClose={() => setDetails(null)}
-        title={tr(`View institution ${kind.noun}`)}
-        size="md"
-      >
-        <div className="space-y-3">
-          {[
-            [kind.itemLabel, row[kind.nameKey] ?? row[kind.valueKey]],
-            ...(canChooseInstitution() ? [["Institution", row.inst_profile_name ?? row.inst_profile_id]] : []),
-            [kind.flagLabel, row[kind.flagKey] ? "Yes" : "No"],
-          ].map(([label, val]) => (
-            <div key={label}>
-              <p className="text-xs font-semibold text-muted-foreground">{label}</p>
-              <div className="mt-1.5 rounded-xl border border-border bg-card p-3 text-sm font-semibold">
-                {val ?? "—"}
-              </div>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            <StatusBadge status={String(row.status_name ?? row.auth_status ?? row.status ?? "")} />
-          </div>
-        </div>
-      </Modal>
-      {audit && (
-        <AuditModal
-          title={row[kind.nameKey] ?? `${kind.itemLabel} #${row.id}`}
-          fields={[
-            [kind.nameKey, kind.itemLabel],
-            ["inst_profile_name", "Institution"],
-            [kind.flagKey, kind.flagLabel],
-          ]}
-          onClose={() => setAudit(false)}
-          fetchAudit={(page, limit) =>
-            kind.api.audit({ id: row.id, page, limit }).then((r) => ({
-              entries: Array.isArray(r?.data) ? r.data : [],
-              totalPages: r?.pagination?.totalPages ?? 1,
-            }))
-          }
-        />
-      )}
-    </>
+    <InstitutionRowActions
+      row={row}
+      api={kind.api}
+      what={tr(kind.itemLabel)}
+      facts={[
+        [tr(kind.itemLabel), row[kind.nameKey] ?? row[kind.valueKey]],
+        ...(canChooseInstitution() ? [[tr("Institution"), row.inst_profile_name ?? row.inst_profile_id]] : []),
+        [tr(kind.flagLabel), tr(row[kind.flagKey] ? "Yes" : "No")],
+      ]}
+      auditTitle={row[kind.nameKey] ?? `#${row.id}`}
+      auditFields={[[kind.nameKey, tr(kind.itemLabel)], ["inst_profile_name", tr("Institution")], [kind.flagKey, tr(kind.flagLabel)]]}
+      onEdit={onEdit}
+      onRefresh={onRefresh}
+    />
   );
 }
 function AssignmentPage({ kind }) {
@@ -190,8 +93,8 @@ function AssignmentPage({ kind }) {
   const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
   const options = kind.useOptions();
-  const add = useAssignmentMutation(kind.api, "add");
-  const edit = useAssignmentMutation(kind.api, "edit");
+  const add = useApiMutation(kind.api, "add");
+  const edit = useApiMutation(kind.api, "edit");
   const columns = mergeStatusColumns([
     {
       key: kind.nameKey,

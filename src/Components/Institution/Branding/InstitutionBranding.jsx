@@ -8,29 +8,23 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { Fragment, useEffect, useState } from "react";
 import { AlertCircle, Plus } from "lucide-react";
-import { RowActions } from "@/Components/Common/RowActions";
+
 import { FileUploadField, StoredFilePreview } from "@/Components/Common/FileUploadField";
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
-import { AuditModal } from "@/Components/Common/AuditModal";
-import { PendingChangesDiff, usePendingChanges } from "@/Components/Common/PendingChangesDiff";
+
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { institutionBrandingApi } from "@/Services/Institution/institutionBranding.api";
-import {
-  useInstitutionBrandingMutation,
-} from "@/Hooks/Institution/institutionBrandingHooks";
-import {
-  useActiveInstitutionsQuery,
-  useHasInstitutionAction,
-} from "@/Hooks/Institution/institutionHooks";
-import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+import { useActiveInstitutionsQuery, useHasInstitutionAction } from "@/Hooks/Institution/institutionHooks";
+
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { useAuth } from "@/Hooks/useAuth";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
 import { normalizeBranding } from "@/Utils/Lib/branding";
 import { BrandingPreview } from "./BrandingPreview";
+import { useApiMutation } from "@/Hooks/useApiMutation";
+import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
 
 const FIELDS = [
   ["display_name", "Display Name"],
@@ -97,115 +91,26 @@ function ColorValue({ color }) {
 }
 function BrandingActions({ row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
-  const canAdd = useHasInstitutionAction("Add");
-  const canEdit = useHasInstitutionAction("Edit");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDelete = useHasInstitutionAction("Delete");
-  const canChangeStatus = useHasInstitutionAction("Change Status");
-  const [action, setAction] = useState(null);
-  const [details, setDetails] = useState(null);
-  const [audit, setAudit] = useState(false);
-  const [narration, setNarration] = useState("");
-  const mutation = useInstitutionBrandingMutation(action?.method ?? "submit");
-  const pendingInfo = usePendingChanges(
-    institutionBrandingApi.pending,
-    row.id,
-    !!action && ["auth", "deauth", "deleteAuth"].includes(action.method),
-  );
-  // Single shared status-based visibility engine — see buttonVisibility.js
-  // for the full status_name/process_status_name matrix this is built from.
-  const buttons = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
-  const execute = async () => {
-    try {
-      await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
-      await onRefresh();
-      setAction(null);
-      setNarration("");
-    } catch {
-      /* mutation hook already shows the error toast */
-    }
-  };
-  const pendingType = buttons.isPendingDelete ? "deleteAuth" : "auth";
+  const show = (key) =>
+    key.includes("color") ? (
+      <ColorValue color={row[key]} />
+    ) : IMAGE_KEYS.has(key) ? (
+      <StoredFilePreview value={row[key]} download={brandingDownload(row.inst_profile_id)} />
+    ) : (
+      value(row, key)
+    );
   return (
-    <>
-      <RowActions
-        buttons={buttons}
-        onView={() => setDetails(row)}
-        onEdit={onEdit}
-        onAudit={() => setAudit(true)}
-        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
-        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
-      />
-      <ConfirmDialog
-        open={!!action}
-        title={`${action?.label ?? "Action"} institution branding`}
-        confirmLabel={action?.label}
-        destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
-        pending={mutation.isPending}
-        confirmDisabled={action?.method === "deauth" && !narration.trim()}
-        onClose={() => setAction(null)}
-        onConfirm={() => void execute()}
-      >
-        {["auth", "deauth", "deleteAuth"].includes(action?.method) && <PendingChangesDiff {...pendingInfo} />}
-        {action?.method !== "pending" && (
-          <textarea
-            value={narration}
-            onChange={(e) => setNarration(e.target.value)}
-            placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm"
-          />
-        )}
-      </ConfirmDialog>
-      <Modal
-        open={!!details}
-        onClose={() => setDetails(null)}
-        title={tr("View institution branding")}
-        size="lg"
-      >
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border bg-card p-3">
-            <p className="text-xs font-semibold text-muted-foreground">{tr("Portal")}</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{tr(portalLabel(details))}</p>
-          </div>
-          {FIELDS.map(([key, label]) => (
-            <div key={key} className="rounded-xl border border-border bg-card p-3">
-              <p className="text-xs font-semibold text-muted-foreground">{tr(label)}</p>
-              <div className="mt-1 break-words text-sm font-semibold text-foreground">
-                {key.includes("color") ? (
-                  <ColorValue color={details?.[key]} />
-                ) : IMAGE_KEYS.has(key) ? (
-                  <StoredFilePreview value={details?.[key]} download={brandingDownload(details?.inst_profile_id)} />
-                ) : (
-                  value(details, key)
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 flex justify-end">
-          <StatusBadge
-            status={String(details?.status_name ?? details?.auth_status ?? details?.status ?? "")}
-          />
-        </div>
-      </Modal>
-      {audit && (
-        <AuditModal
-          title={row.display_name ?? `Branding #${row.id}`}
-          fields={[["portal", "Portal"], ...FIELDS]}
-          onClose={() => setAudit(false)}
-          fetchAudit={(page, limit) =>
-            institutionBrandingApi.audit({ id: row.id, page, limit }).then((r) => ({
-              entries: Array.isArray(r?.data) ? r.data : [],
-              totalPages: r?.pagination?.totalPages ?? 1,
-            }))
-          }
-        />
-      )}
-    </>
+    <InstitutionRowActions
+      row={row}
+      api={institutionBrandingApi}
+      what={tr("Institution Branding")}
+      facts={[[tr("Portal"), tr(portalLabel(row))], ...FIELDS.map(([key, label]) => [tr(label), show(key)])]}
+      auditTitle={row.display_name ?? `#${row.id}`}
+      auditFields={[["portal", tr("Portal")], ...FIELDS]}
+      onEdit={onEdit}
+      onRefresh={onRefresh}
+      detailsSize="lg"
+    />
   );
 }
 
@@ -219,9 +124,9 @@ export function InstitutionBranding() {
   const list = useServerList({ api: API_ENDPOINTS.INSTITUTION.INSTITUTION_BRANDING.LIST, call: institutionBrandingApi.list });
   const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
-  const add = useInstitutionBrandingMutation("add");
-  const edit = useInstitutionBrandingMutation("edit");
-  const submitDraft = useInstitutionBrandingMutation("submit");
+  const add = useApiMutation(institutionBrandingApi, "add");
+  const edit = useApiMutation(institutionBrandingApi, "edit");
+  const submitDraft = useApiMutation(institutionBrandingApi, "submit");
   const columns = mergeStatusColumns([
     {
       key: "display_name",

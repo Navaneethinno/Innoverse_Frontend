@@ -9,145 +9,44 @@ import { DateInput } from "@/Components/Common/DateInput";
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
 import { useAuth } from "@/Hooks/useAuth";
+import { useApiMutation } from "@/Hooks/useApiMutation";
 import { useState } from "react";
 import { AlertCircle, Plus, X } from "lucide-react";
-import { RowActions } from "@/Components/Common/RowActions";
+
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
-import { ConfirmDialog } from "@/Components/Common/ConfirmDialog";
+
 import { Modal } from "@/Components/Common/Modal";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { notifications } from "@/Utils/Lib/notifications";
-import { AuditModal } from "@/Components/Common/AuditModal";
-import {
-  useInstitutionModuleMutation,
-} from "@/Hooks/Institution/institutionModuleHooks";
+
 import { institutionModuleApi } from "@/Services/Institution/institutionModule.api";
-import {
-  useActiveInstitutionsQuery,
-  useHasInstitutionAction,
-} from "@/Hooks/Institution/institutionHooks";
+import { useActiveInstitutionsQuery, useHasInstitutionAction } from "@/Hooks/Institution/institutionHooks";
 import { useMasterModules } from "@/Hooks/Sidebar/useMasterModules";
-import { getMakerCheckerButtons } from "@/Components/MakerChecker/buttonVisibility";
+
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { InstitutionRowActions } from "@/Components/Institution/InstitutionRowActions";
 
 const displayValue = (value) => value ?? "—";
 
 function ModuleActions({ row, onRefresh, onEdit }) {
   const tr = useConfigLabel();
-  const canAdd = useHasInstitutionAction("Add");
-  const canEdit = useHasInstitutionAction("Edit");
-  const canAuthorize = useHasInstitutionAction("Authorize");
-  const canDelete = useHasInstitutionAction("Delete");
-  const canChangeStatus = useHasInstitutionAction("Change Status");
-  const [action, setAction] = useState(null);
-  const [narration, setNarration] = useState("");
-  const [details, setDetails] = useState(null);
-  const [auditOpen, setAuditOpen] = useState(false);
-  const mutation = useInstitutionModuleMutation(action?.method ?? "submit");
-  const execute = async () => {
-    try {
-      if (action?.method === "pending") {
-        setDetails(await mutation.mutateAsync({ id: row.id }));
-      } else {
-        await mutation.mutateAsync({ id: row.id, narration: narration.trim() });
-        await onRefresh();
-        setAction(null);
-        setNarration("");
-      }
-    } catch {
-      /* mutation hook already shows the error toast */
-    }
-  };
-  // Single shared status-based visibility engine — see buttonVisibility.js
-  // for the full status_name/process_status_name matrix this is built from.
-  const visibility = getMakerCheckerButtons(row, { canAdd, canEdit, canAuthorize, canChangeStatus, canDelete });
-  const pendingType = visibility.isPendingDelete ? "deleteAuth" : "auth";
   return (
-    <>
-      <RowActions
-        buttons={visibility}
-        onView={() => {
-          setAction({ method: "view", label: "View" });
-          setDetails(row);
-        }}
-        onEdit={onEdit}
-        onAudit={() => setAuditOpen(true)}
-        onSubmit={() => setAction({ method: "submit", label: "Submit" })}
-        onAuthorize={() => setAction({ method: pendingType, label: "Authorize" })}
-        onDeauthorize={() => setAction({ method: "deauth", label: "Deauthorize" })}
-        onDeactivate={() => setAction({ method: "deactivate", label: "Deactivate" })}
-        onReactivate={() => setAction({ method: "reactivate", label: "Activate" })}
-        onDelete={() => setAction({ method: "delete", label: "Delete" })}
-      />
-      <ConfirmDialog
-        open={!!action && !details}
-        title={`${action?.label ?? "Action"} institution module`}
-        confirmLabel={action?.label ?? "Confirm"}
-        destructive={["deauth", "delete", "deleteAuth"].includes(action?.method)}
-        pending={mutation.isPending}
-        confirmDisabled={action?.method === "deauth" && !narration.trim()}
-        onClose={() => setAction(null)}
-        onConfirm={() => void execute()}
-      >
-        {!action?.method.includes("audit") && !action?.method.includes("pending") && (
-          <textarea
-            value={narration}
-            onChange={(event) => setNarration(event.target.value)}
-            placeholder="Narration"
-            className="mt-3 min-h-20 w-full rounded-xl border border-border p-3 text-sm outline-none focus:border-primary"
-          />
-        )}
-      </ConfirmDialog>
-      <Modal
-        open={!!details}
-        onClose={() => {
-          setDetails(null);
-          setAction(null);
-        }}
-        title={tr("View institution module")}
-        size="md"
-      >
-        <div className="space-y-4">
-          {[
-            ["Module", details?.module_name ?? details?.module_id],
-            ...(canChooseInstitution() ? [["Institution", details?.inst_profile_name ?? details?.inst_profile_id]] : []),
-            ["Effective from", details?.effective_from],
-            ["Effective to", details?.effective_to],
-          ].map(([label, value]) => (
-            <label key={label} className="block text-sm font-medium text-slate-700">
-              {label}
-              <div className="mt-1.5 w-full rounded-xl border border-border bg-card p-3 text-sm text-slate-700">
-                {displayValue(value)}
-              </div>
-            </label>
-          ))}
-          <div className="flex justify-end">
-            <StatusBadge
-              status={String(details?.status_name ?? details?.auth_status ?? details?.status ?? "")}
-            />
-          </div>
-        </div>
-      </Modal>
-      {auditOpen && (
-        <AuditModal
-          title={row.module_name ?? `Module #${row.module_id}`}
-          fields={[
-            ["module_name", "Module"],
-            ["inst_profile_name", "Institution"],
-            ["effective_from", "Effective From"],
-            ["effective_to", "Effective To"],
-          ]}
-          onClose={() => setAuditOpen(false)}
-          fetchAudit={(page, limit) =>
-            institutionModuleApi.audit({ id: row.id, page, limit }).then((response) => ({
-              entries: Array.isArray(response?.data) ? response.data : [],
-              totalPages: response?.pagination?.totalPages ?? 1,
-            }))
-          }
-        />
-      )}
-    </>
+    <InstitutionRowActions
+      row={row}
+      api={institutionModuleApi}
+      what={tr("Institution Module")}
+      facts={[
+        [tr("Module"), displayValue(row.module_name ?? row.module_id)],
+        ...(canChooseInstitution() ? [[tr("Institution"), row.inst_profile_name ?? row.inst_profile_id]] : []),
+        [tr("Effective from"), displayValue(row.effective_from)],
+        [tr("Effective to"), displayValue(row.effective_to)],
+      ]}
+      auditTitle={row.module_name ?? `#${row.module_id}`}
+      auditFields={[["module_name", tr("Module")], ["inst_profile_name", tr("Institution")], ["effective_from", tr("Effective from")], ["effective_to", tr("Effective to")]]}
+      onEdit={onEdit}
+      onRefresh={onRefresh}
+    />
   );
 }
 
@@ -160,8 +59,8 @@ export function InstitutionModule() {
   const query = asQuery(list);
   const institutions = useActiveInstitutionsQuery();
   const { masterModules } = useMasterModules();
-  const addMutation = useInstitutionModuleMutation("add");
-  const editMutation = useInstitutionModuleMutation("edit");
+  const addMutation = useApiMutation(institutionModuleApi, "add");
+  const editMutation = useApiMutation(institutionModuleApi, "edit");
   const columns = mergeStatusColumns([
     {
       key: "module_name",

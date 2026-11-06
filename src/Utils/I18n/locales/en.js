@@ -247,6 +247,17 @@ export const common = {
   auditAction_REACTIVATED: "Reactivated",
   auditAction_MIGRATED: "Migrated",
   auditAction_SELF: "Changed (no approval needed)",
+  "actionCompleted": "Done.",
+  "actionFailed": "The action failed.",
+  "action_submit": "Submit",
+  "action_auth": "Authorize",
+  "action_deauth": "Deauthorize",
+  "action_delete": "Delete",
+  "action_deleteAuth": "Authorize",
+  "action_deactivate": "Deactivate",
+  "action_reactivate": "Reactivate",
+  "narration": "Narration",
+  "actionTitle": "{{action}}: {{what}}",
 };
 
 export const auth = {

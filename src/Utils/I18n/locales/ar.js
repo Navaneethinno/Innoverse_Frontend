@@ -2808,6 +2808,17 @@ export const common = {
   "auditAction_REACTIVATED": "أُعيد التفعيل",
   "auditAction_MIGRATED": "مُرحَّل",
   "auditAction_SELF": "تغيّر (لا حاجة لموافقة)",
+  "actionCompleted": "تم.",
+  "actionFailed": "فشل الإجراء.",
+  "action_submit": "إرسال",
+  "action_auth": "اعتماد",
+  "action_deauth": "رفض",
+  "action_delete": "حذف",
+  "action_deleteAuth": "اعتماد",
+  "action_deactivate": "إلغاء التفعيل",
+  "action_reactivate": "إعادة التفعيل",
+  "narration": "البيان",
+  "actionTitle": "{{action}}: {{what}}",
 };
 
 export const auth = {

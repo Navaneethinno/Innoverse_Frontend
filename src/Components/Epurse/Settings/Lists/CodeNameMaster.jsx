@@ -114,7 +114,7 @@ export function CodeNameMaster({ list: listKey, permission, idKey, api, endpoint
       setActionPending(false);
     }
   };
-  const ask = (type, row) => setAction({ type, row, label: t(`action_${type}`), reason: "" });
+  const ask = (type, row) => setAction({ type, row, label: t(`common:action_${type}`), reason: "" });
 
   const facts = (row) => [
     [t("code"), row.code],
@@ -272,8 +272,8 @@ export function CodeNameMaster({ list: listKey, permission, idKey, api, endpoint
           <textarea
             value={action.reason ?? ""}
             onChange={(e) => setAction({ ...action, reason: e.target.value })}
-            placeholder={t("narration")}
-            aria-label={t("narration")}
+            placeholder={t("common:narration")}
+            aria-label={t("common:narration")}
             className="mt-3 min-h-20 w-full rounded-xl border p-3"
           />
         </ConfirmDialog>

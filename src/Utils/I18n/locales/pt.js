@@ -244,6 +244,17 @@ export const common = {
   "approvalEvent_EXPIRED": "Expirado",
   "myApprovals": "As minhas aprovações",
   "myApprovalsEmpty": "Nada aguarda a sua aprovação.",
+  "actionCompleted": "Concluído.",
+  "actionFailed": "A ação falhou.",
+  "action_submit": "Submeter",
+  "action_auth": "Autorizar",
+  "action_deauth": "Rejeitar",
+  "action_delete": "Eliminar",
+  "action_deleteAuth": "Autorizar",
+  "action_deactivate": "Desativar",
+  "action_reactivate": "Reativar",
+  "narration": "Narração",
+  "actionTitle": "{{action}}: {{what}}",
 };
 
 export const auth = {
