@@ -60,7 +60,7 @@ export function MyApprovalsButton() {
           className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:bg-primary-light hover:text-primary"
         >
           <ListChecks size={15} strokeWidth={1.8} />
-          {count > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">{count > 99 ? "99+" : count}</span>}
+          {count > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-bold text-white">{count > 99 ? "99+" : count}</span>}
         </button>
       </UiTooltip>
       {open && (

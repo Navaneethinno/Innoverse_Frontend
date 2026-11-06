@@ -18,6 +18,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 
 import { Button } from "@/Components/Common/Button";
 import { actorText } from "@/Utils/Lib/actor";
+import { LinkButton } from "@/Components/Common/TextButtons";
 const first = (response) => rowsOf(response)[0] ?? null;
 
 // A customer's current AML result (screening/customer shape, also the `aml`
@@ -166,9 +167,9 @@ export function CustomerAmlBadge({ aml, adverseMedia, customerKind: kind, refere
       {aml && <span className="text-[11px] text-muted-foreground">{t("partiesMatched", { matched: aml.matched_parties ?? 0, parties: aml.parties ?? 0 })}</span>}
       <AdverseMediaBadge media={media} customerKind={referenceId ? customerKind : undefined} referenceId={referenceId} />
       {canView && referenceId && (
-        <button type="button" onClick={() => setOpen(true)} className="ml-auto text-[11px] font-bold text-primary">
+        <LinkButton onClick={() => setOpen(true)} className="ml-auto text-[11px]">
           {t("viewScreenings")}
-        </button>
+        </LinkButton>
       )}
       {open && <CustomerAmlModal customerKind={customerKind} referenceId={referenceId} onClose={() => setOpen(false)} />}
     </div>

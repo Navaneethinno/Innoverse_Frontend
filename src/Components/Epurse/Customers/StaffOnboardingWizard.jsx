@@ -583,9 +583,9 @@ export function StaffOnboardingWizard({ kind, api, referenceId, forceReadOnly = 
             <div className="grid gap-3">
               {rows.map((row, i) => renderRow(row, i))}
               {canAddRow && (
-                <button type="button" onClick={addRow} className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-primary px-3 py-1.5 text-xs font-bold text-primary">
+                <Button onClick={addRow} variant="dashed" size="xs" className="w-fit">
                   <Plus size={13} /> {t("formBuilder:addAnotherRow")}
-                </button>
+                </Button>
               )}
             </div>
           ) : (

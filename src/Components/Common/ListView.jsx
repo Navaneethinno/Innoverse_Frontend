@@ -157,7 +157,7 @@ export function TabButton({ active, onClick, children }) {
       type="button"
       onClick={onClick}
       className={cn("flex h-8 shrink-0 items-center whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-colors", !active && "text-muted-foreground hover:bg-muted hover:text-slate-700")}
-      style={active ? { background: "var(--primary-light)", color: "var(--primary)" } : undefined}
+      style={active ? { background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" } : undefined}
     >
       {children}
     </button>

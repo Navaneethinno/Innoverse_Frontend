@@ -17,6 +17,7 @@ import { AdjustmentChips, AlsoOnChips, EffectiveResult, EntityRecord, NameText, 
 import { actorText } from "@/Utils/Lib/actor";
 import { Button } from "@/Components/Common/Button";
 import { useLatest } from "@/Hooks/useLatest";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const first = (response) => rowsOf(response)[0] ?? (Array.isArray(response?.data) ? null : response?.data) ?? null;
 const MAX_COMMENT = 2000;
@@ -165,10 +166,10 @@ function MatchCard({ match, draft, onDraft, reviewing }) {
               <History size={14} />
             </button>
           )}
-          <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex items-center gap-1 text-[11px] font-bold text-primary">
+          <LinkButton aria-expanded={open} onClick={() => setOpen(!open)} className="flex items-center gap-1 text-[11px]">
             {t("listedRecord")}
             <ChevronDown size={13} className={open ? "rotate-180" : ""} />
-          </button>
+          </LinkButton>
         </div>
       </div>
       <div className="mt-2 space-y-2">

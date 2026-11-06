@@ -52,11 +52,14 @@ function Layout() {
         >
           <TopBar />
           <WorkspaceContainer>
-            <KeysLockedBanner />
-            <ExpiryBanner />
-            <PageBreadcrumbs />
-            {/* A new Institution filter reloads the page's lists. */}
-            <PageAccessGate key={institution} />
+            {/* The page's main region for screen readers; `contents` keeps the layout as it was. */}
+            <main className="contents">
+              <KeysLockedBanner />
+              <ExpiryBanner />
+              <PageBreadcrumbs />
+              {/* A new Institution filter reloads the page's lists. */}
+              <PageAccessGate key={institution} />
+            </main>
           </WorkspaceContainer>
         </div>
       </div>

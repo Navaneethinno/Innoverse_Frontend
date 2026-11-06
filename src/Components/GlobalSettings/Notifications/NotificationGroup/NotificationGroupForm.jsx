@@ -9,6 +9,7 @@ import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { FormFooter, InstitutionField, codeOf, inputClass, labelClass, saveRecord } from "../notificationShared";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
 import { Button } from "@/Components/Common/Button";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 const emptyMember = () => ({ type: "EMAIL", value: "" });
 
@@ -114,14 +115,7 @@ export function NotificationGroupForm({ editing, onClose, onSaved }) {
                   className="min-w-0 flex-1 rounded-xl border px-3 py-2 text-sm"
                 />
                 <UiTooltip label={t("notification:removeRecipient")}>
-                  <button
-                    type="button"
-                    disabled={form.members.length === 1}
-                    onClick={() => setForm({ ...form, members: form.members.filter((_, i) => i !== index) })}
-                    className="rounded-lg p-2 text-muted-foreground hover:text-destructive disabled:opacity-30"
-                  >
-                    <X size={14} />
-                  </button>
+                  <ActionIconButton label={t("common:remove")} intent="delete" icon={X} disabled={form.members.length === 1} onClick={() => setForm({ ...form, members: form.members.filter((_, i) => i !== index) })} />
                 </UiTooltip>
               </div>
             ))}

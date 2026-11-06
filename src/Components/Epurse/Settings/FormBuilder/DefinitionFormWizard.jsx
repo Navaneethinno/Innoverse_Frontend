@@ -26,6 +26,7 @@ import { UntranslatedConfirm, untranslatedOf } from "./Translations";
 
 import { Button } from "@/Components/Common/Button";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 // The form on a definition (Admin portal handoff: onboarding form builder,
 // §5), shared by individual and corporate: Basics (the definition's own
 // columns), the ordered sections, the rules, the uses (which fields serve
@@ -49,15 +50,9 @@ const EDITABLE_PROCESS_STATUSES = new Set([9, 5, 1, 6, 7, 12, 15]);
 function MoveButtons({ index, count, onMove, onRemove, t }) {
   return (
     <>
-      <button type="button" disabled={index === 0} onClick={() => onMove(-1)} className="rounded-lg p-1.5 text-slate-500 hover:bg-muted disabled:opacity-30" aria-label={t("formBuilder:moveUp")}>
-        <ArrowUp size={14} />
-      </button>
-      <button type="button" disabled={index === count - 1} onClick={() => onMove(1)} className="rounded-lg p-1.5 text-slate-500 hover:bg-muted disabled:opacity-30" aria-label={t("formBuilder:moveDown")}>
-        <ArrowDown size={14} />
-      </button>
-      <button type="button" onClick={onRemove} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-        <Trash2 size={14} />
-      </button>
+      <ActionIconButton label={t("formBuilder:moveUp")} intent="audit" icon={ArrowUp} disabled={index === 0} onClick={() => onMove(-1)} />
+      <ActionIconButton label={t("formBuilder:moveDown")} intent="audit" icon={ArrowDown} disabled={index === count - 1} onClick={() => onMove(1)} />
+      <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={onRemove} />
     </>
   );
 }
@@ -210,16 +205,14 @@ function RuleEditor({ rule, onChange, fieldOptions, conditionFields, sectionOpti
                 options={[{ value: "", label: effect.target === "section" ? t("formBuilder:pickSection") : t("formBuilder:pickField") }, ...(effect.target === "section" ? sectionOptions : fieldOptions)]}
               />
               {!disabled && (
-                <button type="button" onClick={() => removeAt("effects", i)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-                  <Trash2 size={14} />
-                </button>
+                <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={() => removeAt("effects", i)} />
               )}
             </div>
           ))}
           {!disabled && (
-            <button type="button" onClick={() => set({ effects: [...(rule.effects ?? []), { action: "REQUIRE", target: "field", key: "" }] })} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+            <Button onClick={() => set({ effects: [...(rule.effects ?? []), { action: "REQUIRE", target: "field", key: "" }] })} variant="dashed" size="xs" className="flex w-fit">
               <Plus size={13} /> {t("formBuilder:addEffect")}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -667,22 +660,19 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-sm font-bold text-slate-800">{rule.name || rule.code || t("formBuilder:ruleN", { n: index + 1 })}</p>
                     {!readOnly && (
-                      <button type="button" onClick={() => change({ rules: form.rules.filter((_, i) => i !== index) })} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-                        <Trash2 size={14} />
-                      </button>
+                      <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={() => change({ rules: form.rules.filter((_, i) => i !== index) })} />
                     )}
                   </div>
                   <RuleEditor t={t} rule={rule} disabled={readOnly} fieldOptions={fieldOptions} conditionFields={formFields} sectionOptions={sectionOptions} onChange={(next) => change({ rules: form.rules.map((r, i) => (i === index ? next : r)) })} />
                 </div>
               ))}
               {!readOnly && (
-                <button
-                  type="button"
+                <Button
                   onClick={() => change({ rules: [...form.rules, { code: "", name: "", priority: 100, enabled: true, conditions: [{ field: "", operator: "EQ" }], effects: [{ action: "REQUIRE", target: "field", key: "" }] }] })}
-                  className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-bold text-primary"
+                  variant="dashed" size="sm" className="flex w-fit"
                 >
                   <Plus size={13} /> {t("formBuilder:addRule")}
-                </button>
+                </Button>
               )}
             </div>
           )}

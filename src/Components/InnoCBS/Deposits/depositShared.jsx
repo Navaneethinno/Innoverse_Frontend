@@ -43,13 +43,13 @@ export function Section({ title, action, children, className, collapsible = fals
     <section className={cn("min-w-0 rounded-2xl border border-border bg-card p-4", className)}>
       {collapsible ? (
         <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className={cn("flex w-full items-center justify-between gap-2 text-left", open && "mb-3")}>
-          <h3 className="text-sm font-bold text-foreground">{title}</h3>
+          <h2 className="text-sm font-bold text-foreground">{title}</h2>
           <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
         </button>
       ) : (
         (title || action) && (
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-bold text-foreground">{title}</h3>
+            <h2 className="text-sm font-bold text-foreground">{title}</h2>
             {action}
           </div>
         )

@@ -5,6 +5,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { RISK_KINDS, RiskPointsTable } from "./riskShared";
 import { useRiskOptions } from "./useRiskOptions";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 // A customer's risk as the customer APIs return it. For now it is only
 // recorded and shown — onboarding carries on the same whatever the action.
@@ -79,11 +80,10 @@ function RiskScores({ kind, instProfileId, entries }) {
               </span>
               <RiskBadge result={result} colour={colours[levelOf(result).code]} />
               {note && <span className="text-[11px] text-muted-foreground">{note}</span>}
-              <button
-                type="button"
+              <LinkButton
                 aria-expanded={open === key}
                 onClick={() => setOpen(open === key ? null : key)}
-                className="ml-auto flex items-center gap-1 text-[11px] font-bold text-primary"
+                className="ml-auto flex items-center gap-1 text-[11px]"
               >
                 {t("whyScore")}
                 <ChevronDown
@@ -92,7 +92,7 @@ function RiskScores({ kind, instProfileId, entries }) {
                     open === key ? "rotate-180 transition-transform" : "transition-transform"
                   }
                 />
-              </button>
+              </LinkButton>
             </div>
             {open === key && (
               <RiskWhy kind={kind} instProfileId={instProfileId} points={result.points} />

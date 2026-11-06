@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Copy, Layers, Plus } from "lucide-react";
 import { Modal } from "@/Components/Common/Modal";
 import { LoadingAnimation } from "@/Components/Common/LoadingAnimation";
-import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { notifications, apiMessage } from "@/Utils/Lib/notifications";
 import { kycSchemeApi, kycSchemeOps, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { LifecycleList } from "../OnboardingConfiguration/LifecycleList";
@@ -14,6 +13,7 @@ import { useFieldLibrary } from "../FormBuilder/formBuilderHooks";
 
 import { Button } from "@/Components/Common/Button";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 // KYC scheme wizard (guide §7): a scheme is a ladder of levels; save_config
 // replaces ALL levels atomically, validate is a dry run of the submit checks.
 // An approved scheme's levels are edited like any maker-checker record
@@ -395,24 +395,17 @@ export function KycSchemes() {
         }
         renderExtra={(row) => (
           <>
-            <UiTooltip label={t("onboarding:levels")}>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditorReadOnly(!isEditable(row));
-                  setEditor(row);
-                }}
-                className="rounded-lg p-1.5 text-cyan-700 hover:bg-cyan-50"
-              >
-                <Layers size={14} />
-              </button>
-            </UiTooltip>
+            <ActionIconButton
+              label={t("onboarding:levels")}
+              intent="rules"
+              icon={Layers}
+              onClick={() => {
+                setEditorReadOnly(!isEditable(row));
+                setEditor(row);
+              }}
+            />
             {Number(row.status) === 1 && (
-              <UiTooltip label={t("onboarding:clone")}>
-                <button type="button" onClick={() => setClone({ source: row, code: "", name: `${row.name} (copy)` })} className="rounded-lg p-1.5 text-violet-700 hover:bg-violet-50">
-                  <Copy size={14} />
-                </button>
-              </UiTooltip>
+              <ActionIconButton label={t("onboarding:clone")} intent="clone" icon={Copy} onClick={() => setClone({ source: row, code: "", name: `${row.name} (copy)` })} />
             )}
           </>
         )}

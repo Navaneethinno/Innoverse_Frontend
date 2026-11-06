@@ -73,7 +73,7 @@ export function ModuleDashboard({ moduleName }) {
             {createElement(getModuleIcon(moduleName), { size: 20 })}
           </span>
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>
               {t("md.overview")}
             </p>
             <h1 className="text-2xl font-black leading-none tracking-tight text-slate-800">{data?.module_label ?? moduleName}</h1>

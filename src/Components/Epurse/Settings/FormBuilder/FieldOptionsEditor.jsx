@@ -6,6 +6,8 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { LIST_TYPES } from "./formBuilderHooks";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { Button } from "@/Components/Common/Button";
 
 export const inputClass = "mt-1.5 w-full rounded-xl border px-3 py-2.5 text-sm font-normal disabled:bg-muted";
 
@@ -43,16 +45,14 @@ function ChoicesEditor({ value, onChange, disabled }) {
             }}
           />
           {!disabled && (
-            <button type="button" aria-label={t("remove")} onClick={() => onChange(rows.filter((_, i) => i !== index))} className="rounded-lg p-2 text-red-600 hover:bg-red-50">
-              <Trash2 size={14} />
-            </button>
+            <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => onChange(rows.filter((_, i) => i !== index))} />
           )}
         </div>
       ))}
       {!disabled && (
-        <button type="button" onClick={() => onChange([...rows, { value: "", label: "" }])} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+        <Button onClick={() => onChange([...rows, { value: "", label: "" }])} variant="dashed" size="xs" className="flex w-fit">
           <Plus size={13} /> {t("addChoice")}
-        </button>
+        </Button>
       )}
     </div>
   );

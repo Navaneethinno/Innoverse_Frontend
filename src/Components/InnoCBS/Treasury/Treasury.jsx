@@ -490,9 +490,9 @@ function PositionCard({ p }) {
         ]}
       />
       {(p.obligation_gls ?? []).length > 0 && (
-        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-2 flex items-center gap-1 text-xs font-bold text-primary">
+        <LinkButton onClick={() => setOpen((v) => !v)} className="mt-2 flex items-center gap-1">
           <ChevronDown size={13} className={cn("transition-transform", open && "rotate-180")} /> {t("obligationGls")}
-        </button>
+        </LinkButton>
       )}
       {open && (
         <ul className="mt-2 grid gap-1 text-xs">

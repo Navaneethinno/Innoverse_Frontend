@@ -655,14 +655,13 @@ export function Disclosure({ disclosure: d, eligibility: e, live = false }) {
       )}
       {d.schedule?.installments?.length > 0 && (
         <div>
-          <button
-            type="button"
+          <LinkButton
             onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1 text-xs font-bold text-primary"
+            className="flex items-center gap-1"
           >
             <ChevronDown size={14} className={cn("transition-transform", open && "rotate-180")} />{" "}
             {t(open ? "hideSchedule" : "showSchedule", { count: d.schedule.installments.length })}
-          </button>
+          </LinkButton>
           {open && (
             <div className="mt-2">
               <ScheduleTable installments={d.schedule.installments} currency={cur} />

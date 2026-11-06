@@ -54,7 +54,7 @@ export function ControlSpacePage() {
         className="mb-6 flex flex-wrap items-end justify-between gap-4"
       >
         <div>
-          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>
             {t("controlSpace")}
           </p>
           <h1 className="text-2xl font-black leading-none tracking-tight text-slate-800">

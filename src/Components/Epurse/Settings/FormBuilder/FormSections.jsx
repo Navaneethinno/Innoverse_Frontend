@@ -66,15 +66,9 @@ function PlacementRow({ placement, index, count, libraryField, typeName, disable
         </button>
         {!disabled && (
           <>
-            <button type="button" disabled={index === 0} onClick={() => onMove(-1)} className="rounded-lg p-1.5 text-slate-500 hover:bg-muted disabled:opacity-30" aria-label={t("formBuilder:moveUp")}>
-              <ArrowUp size={14} />
-            </button>
-            <button type="button" disabled={index === count - 1} onClick={() => onMove(1)} className="rounded-lg p-1.5 text-slate-500 hover:bg-muted disabled:opacity-30" aria-label={t("formBuilder:moveDown")}>
-              <ArrowDown size={14} />
-            </button>
-            <button type="button" onClick={onRemove} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-              <Trash2 size={14} />
-            </button>
+            <ActionIconButton label={t("formBuilder:moveUp")} intent="audit" icon={ArrowUp} disabled={index === 0} onClick={() => onMove(-1)} />
+            <ActionIconButton label={t("formBuilder:moveDown")} intent="audit" icon={ArrowDown} disabled={index === count - 1} onClick={() => onMove(1)} />
+            <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={onRemove} />
           </>
         )}
       </div>

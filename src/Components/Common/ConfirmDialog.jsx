@@ -2,6 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@/Components/Common/Modal";
 import { Spinner } from "@/Components/Common/Spinner";
+import { Button } from "@/Components/Common/Button";
 
 // Generic confirm-action dialog built on the shared Modal shell (gradient
 // bar, circular close, tinted footer) — used for auth/deauth/delete
@@ -31,13 +32,12 @@ export function ConfirmDialog({
       size="sm"
       footer={
         <>
-          <button
-            type="button"
+          <Button
             onClick={onClose}
-            className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100"
+            variant="ghost" size="sm"
           >
             {cancelLabel ?? t("common:cancel")}
-          </button>
+          </Button>
           <button
             type="button"
             disabled={pending || confirmDisabled}

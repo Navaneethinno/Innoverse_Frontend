@@ -29,6 +29,7 @@ import { ActionButtons, Problems, inputClass, labelClass } from "../InnoCBS/Depo
 import { ProductStatus } from "../InnoCBS/Settings/DepositProducts/productShared";
 import { GlType, glAmount, useGlAccounts, useRecordActions } from "./accountingShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 
 // Finance > Finance Transaction (the manual journal API): moving money
@@ -286,9 +287,7 @@ function JournalLine({ line: l, gls, glOptions, code, decimals, onChange, onRemo
       <AmountInput className={inputClass} value={l.amount} decimals={decimals} onChange={(amount) => onChange({ amount })} />
       <input className={inputClass} placeholder={t("note")} value={l.note} onChange={(e) => onChange({ note: e.target.value })} />
       {onRemove ? (
-        <button type="button" onClick={onRemove} aria-label={t("removeLine")} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive">
-          <X size={14} />
-        </button>
+        <ActionIconButton label={t("removeLine")} intent="delete" icon={X} onClick={onRemove} />
       ) : (
         <span />
       )}

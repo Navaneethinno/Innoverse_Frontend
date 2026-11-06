@@ -112,7 +112,7 @@ export function LanguageDropdown({ className }) {
                     "flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-xs font-medium hover:bg-muted",
                     !active && "text-slate-600",
                   )}
-                  style={active ? { color: "var(--primary)" } : undefined}
+                  style={active ? { color: "var(--primary-ink, var(--primary))" } : undefined}
                 >
                   {languageLabel(language)}
                   {active && <Check size={13} className="shrink-0" />}

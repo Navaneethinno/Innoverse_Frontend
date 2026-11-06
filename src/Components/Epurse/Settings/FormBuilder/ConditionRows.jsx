@@ -2,6 +2,8 @@ import { Plus, Trash2 } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { inputClass } from "./FieldOptionsEditor";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { Button } from "@/Components/Common/Button";
 
 // The condition rows shared by Rules, Flows and Checkpoints: field,
 // operator, value. All rows must hold.
@@ -128,16 +130,14 @@ export function ConditionRows({ conditions, onChange, fields, guardian = false, 
           />
           {valueInput(c, i)}
           {!disabled && (
-            <button type="button" onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-              <Trash2 size={14} />
-            </button>
+            <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={() => onChange(rows.filter((_, j) => j !== i))} />
           )}
         </div>
       ))}
       {!disabled && (
-        <button type="button" onClick={() => onChange([...rows, { field: "", operator: "EQ" }])} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+        <Button onClick={() => onChange([...rows, { field: "", operator: "EQ" }])} variant="dashed" size="xs" className="flex w-fit">
           <Plus size={13} /> {t("formBuilder:addCondition")}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -17,9 +17,9 @@ import { LinkButton } from "@/Components/Common/TextButtons";
 function SortIcon({ direction }) {
   if (!direction) return <ArrowUpDown size={12} className="text-slate-300" />;
   return direction === "asc" ? (
-    <ChevronUp size={13} style={{ color: "var(--primary)" }} />
+    <ChevronUp size={13} style={{ color: "var(--primary-ink, var(--primary))" }} />
   ) : (
-    <ChevronDown size={13} style={{ color: "var(--primary)" }} />
+    <ChevronDown size={13} style={{ color: "var(--primary-ink, var(--primary))" }} />
   );
 }
 
@@ -63,7 +63,8 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
             )}
           >
             {!sortable || col.sortable === false || (col.key === "actions" && col.sortable !== true) ? (
-              col.label
+              // A column with no title still needs a name for screen readers.
+              col.label || <span className="sr-only">{t("actions")}</span>
             ) : (
               <button
                 type="button"
@@ -79,7 +80,7 @@ function TableHead({ columns, sort, onSort, selectable = false, allSelected = fa
                   // text.
                   "inline-flex items-center gap-1 text-xs hover:text-slate-800",
                 )}
-                style={sort.key === col.key ? { color: "var(--primary)" } : undefined}
+                style={sort.key === col.key ? { color: "var(--primary-ink, var(--primary))" } : undefined}
               >
                 {col.label}
                 <SortIcon direction={sort.key === col.key ? sort.direction : null} />

@@ -14,6 +14,8 @@ const VARIANTS = {
   secondary: "border border-border bg-card text-muted-foreground hover:text-primary hover:border-[var(--primary-light)]",
   ghost: "text-muted-foreground hover:bg-[var(--primary-light)] hover:text-primary",
   danger: "bg-[var(--destructive)] text-white shadow-sm hover:opacity-90 hover:shadow-md",
+  // "+ Add a row" under a list of rows.
+  dashed: "border border-dashed border-primary/50 text-primary hover:bg-[var(--primary-light)]",
 };
 const SIZES = {
   xs: "gap-1.5 rounded-lg px-3 py-1.5 text-xs",

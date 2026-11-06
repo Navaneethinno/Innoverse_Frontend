@@ -58,7 +58,7 @@ function Section({ icon: Icon, title, children }) {
   return (
     <section className="rounded-2xl border p-5" style={glass}>
       <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}>
           <Icon size={14} />
         </span>
         {title}
@@ -152,7 +152,7 @@ export function MyProfilePage() {
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {u.profile_name && (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+                    <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold" style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}>
                       <ShieldCheck size={12} /> {u.profile_name}
                     </span>
                   )}

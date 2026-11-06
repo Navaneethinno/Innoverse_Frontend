@@ -55,9 +55,9 @@ export function ExpectedCreditLoss() {
                 </label>
               ))}
             </div>
-            <h3 className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("eclDefaults")}</h3>
+            <h2 className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("eclDefaults")}</h2>
             <StageGrid stages={shown?.stages ?? blankStages()} disabled={!editing} onChange={(stages) => set({ stages })} />
-            <h3 className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("eclProducts")}</h3>
+            <h2 className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t("eclProducts")}</h2>
             <RowsEditor
               rows={(shown?.products ?? []).map((p) => ({ ...p, loan_product_id: p.loan_product_id ? String(p.loan_product_id) : "" }))}
               disabled={!editing}
@@ -92,7 +92,7 @@ function StageGrid({ stages, disabled, onChange }) {
               <td className="px-3 py-2 font-bold">{t("stageN", { n: i + 1 })}</td>
               {["pd", "lgd"].map((key) => (
                 <td key={key} className="px-3 py-1.5">
-                  <Field field={{ type: "percent" }} disabled={disabled} value={s[key]} onChange={(v) => set(i, { [key]: v })} />
+                  <Field field={{ type: "percent", ariaLabel: `${t("stageN", { n: i + 1 })} ${t(key)}` }} disabled={disabled} value={s[key]} onChange={(v) => set(i, { [key]: v })} />
                 </td>
               ))}
             </tr>

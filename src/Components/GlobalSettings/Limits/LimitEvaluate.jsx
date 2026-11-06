@@ -10,6 +10,7 @@ import { currencyCode, useLimitLists } from "./useLimitLists";
 
 import { Button } from "@/Components/Common/Button";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 // "Test a customer" (handoff: Try it, evaluate): what limits would apply to
 // a customer / merchant, or to a group with the values typed in, and
 // whether an amount would pass given what's already used this period.
@@ -135,14 +136,12 @@ export function LimitEvaluate({ group, onClose }) {
                 <FilterSelect value={u.type} onChange={(v) => setUsed(used.map((x, j) => (j === i ? { ...x, type: v } : x)))} options={[{ value: "", label: t("pick") }, ...(lists?.limitTypes ?? []).map((l) => ({ value: l.code, label: l.name ?? l.code }))]} />
                 <input type="number" placeholder={t("amount")} className="rounded-xl border px-2 py-2 text-sm" value={u.amount} onChange={(e) => setUsed(used.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))} />
                 <input type="number" placeholder={t("count")} className="rounded-xl border px-2 py-2 text-sm" value={u.count} onChange={(e) => setUsed(used.map((x, j) => (j === i ? { ...x, count: e.target.value } : x)))} />
-                <button type="button" onClick={() => setUsed(used.filter((_, j) => j !== i))} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("remove")}>
-                  <Trash2 size={14} />
-                </button>
+                <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => setUsed(used.filter((_, j) => j !== i))} />
               </div>
             ))}
-            <button type="button" onClick={() => setUsed([...used, { type: "", amount: "", count: "" }])} className="flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+            <Button onClick={() => setUsed([...used, { type: "", amount: "", count: "" }])} variant="dashed" size="xs" className="flex">
               <Plus size={13} /> {t("addUsed")}
-            </button>
+            </Button>
           </div>
         </div>
 

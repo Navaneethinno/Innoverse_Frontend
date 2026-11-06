@@ -73,7 +73,7 @@ export function RecentOnboardingWidget() {
                     <td className="px-1 py-2.5">
                       <span
                         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-                        style={staff ? { background: "var(--muted)", color: "var(--muted-foreground)" } : { background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
+                        style={staff ? { background: "var(--muted)", color: "var(--muted-foreground)" } : { background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary-ink, var(--primary))" }}
                       >
                         <Icon size={10} />
                         {sourceLabel(t, row.source)}
@@ -97,7 +97,7 @@ function ChannelPill({ on, icon: Icon, label }) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-      style={on ? { background: "var(--success-soft)", color: "var(--success)" } : { background: "var(--muted)", color: "var(--muted-foreground)" }}
+      style={on ? { background: "var(--success-soft)", color: "var(--success-ink, var(--success))" } : { background: "var(--muted)", color: "var(--muted-foreground)" }}
     >
       <Icon size={10} /> {label}
     </span>
@@ -154,7 +154,7 @@ export function QuickActionsWidget() {
               type="button"
               onClick={() => navigate(pathOf(a), { state: { menuClick: Date.now() } })}
               className="flex items-center justify-between gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-bold transition-colors hover:bg-[var(--primary-light)]"
-              style={{ color: "var(--primary)", borderColor: "var(--primary-light)" }}
+              style={{ color: "var(--primary-ink, var(--primary))", borderColor: "var(--primary-light)" }}
             >
               <span className="min-w-0">
                 {a.menu_label ?? a.menu_name}

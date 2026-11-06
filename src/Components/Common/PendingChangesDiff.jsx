@@ -223,7 +223,7 @@ export function PendingChangesDiff({ data, isLoading, error, renderValue }) {
                     <td className="whitespace-pre-line px-3 py-1.5 text-muted-foreground">{show(change.current)}</td>
                   )}
                   {!isDelete && (
-                    <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary)" }}>{show(change.proposed)}</td>
+                    <td className="whitespace-pre-line px-3 py-1.5 font-medium" style={{ color: "var(--primary-ink, var(--primary))" }}>{show(change.proposed)}</td>
                   )}
                 </tr>
               );

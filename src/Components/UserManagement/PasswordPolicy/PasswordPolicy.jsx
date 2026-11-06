@@ -257,9 +257,9 @@ function PolicyForm({ open, form, setForm, editing, onSave, onClose, pending, pr
       size="xl"
       footer={
         <>
-          <button type="button" onClick={onClose} className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100">
+          <Button onClick={onClose} variant="ghost" size="sm">
             Cancel
-          </button>
+          </Button>
           <Button disabled={pending} onClick={() => onSave(true)} variant="secondary" size="sm">
             Save as draft
           </Button>

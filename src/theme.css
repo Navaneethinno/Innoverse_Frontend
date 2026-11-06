@@ -58,6 +58,8 @@
 
   /* Status */
   --success: #20c997;
+  /* --success as text on light surfaces (4.5:1). */
+  --success-ink: #0b7a5f;
   --warning: #f59e0b;
   --pending: #ff8a70;
 
@@ -160,6 +162,7 @@
   --destructive-foreground: #ffffff;
 
   --success: #34d399;
+  --success-ink: #34d399;
   --warning: #fbbf24;
   --pending: #fb8b72;
 
@@ -999,4 +1002,23 @@ textarea:disabled {
   .card-tilt:hover {
     transform: none;
   }
+}
+
+/*
+ * Brand color as text. A bright brand (yellow) fails contrast as text on
+ * white, so text and links use --primary-ink (colorTheme.js darkens it to
+ * 4.5:1); fills and buttons keep --primary. Unlayered, so it beats the
+ * utilities of the same name.
+ */
+.text-primary,
+.text-\[var\(--primary\)\],
+.hover\:text-primary:hover,
+.hover\:text-\[var\(--primary\)\]:hover,
+.group:hover .group-hover\:text-primary {
+  color: var(--primary-ink, var(--primary));
+}
+
+.text-success,
+.text-\[var\(--success\)\] {
+  color: var(--success-ink, var(--success));
 }

@@ -31,13 +31,12 @@ export function EditUser({
       footer={
         !viewingOnly && (
           <>
-            <button
-              type="button"
+            <Button
               onClick={onClose}
-              className="rounded-lg px-3.5 py-2 text-xs font-bold text-muted-foreground hover:bg-slate-100"
+              variant="ghost" size="sm"
             >
               {t("common:cancel")}
-            </button>
+            </Button>
             <Button
               type="submit"
               form="user-form"

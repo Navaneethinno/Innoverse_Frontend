@@ -26,7 +26,7 @@ export function PortalSourceBadge({ record }) {
   return (
     <span
       className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-      style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary)" }}
+      style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)", color: "var(--primary-ink, var(--primary))" }}
     >
       <Globe size={10} /> {t("customerPortal")}
     </span>

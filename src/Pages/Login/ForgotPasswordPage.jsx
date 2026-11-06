@@ -148,7 +148,7 @@ export function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB] px-4">
       <div className="w-full max-w-sm rounded-3xl border border-white/90 bg-white/85 p-8 text-center shadow-xl" style={{ boxShadow: "0 20px 25px -5px var(--primary-light)" }}>
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}>
           <LockKeyhole size={22} />
         </div>
         <h1 className="text-lg font-semibold text-slate-800">{t("title")}</h1>

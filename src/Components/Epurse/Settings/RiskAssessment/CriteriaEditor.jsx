@@ -12,6 +12,7 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { round2 } from "./riskShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 const scoreInput = "w-20 rounded-lg border px-2 py-1.5 text-right text-sm tabular-nums";
 
@@ -77,9 +78,7 @@ function BandEditor({ bands, onChange }) {
           <input type="number" min="0" aria-label={t("bandFrom")} className={cell} value={b.from_years} onChange={(e) => put(i, { from_years: e.target.value })} />
           <input type="number" min="0" aria-label={t("bandTo")} placeholder={t("bandNoEnd")} className={cell} value={b.to_years} onChange={(e) => put(i, { to_years: e.target.value })} />
           <input type="number" min="0" max="100" step="any" aria-label={t("score")} className={cell} value={b.score} onChange={(e) => put(i, { score: percentInput(e.target.value) })} />
-          <button type="button" aria-label={t("removeBand")} onClick={() => onChange(bands.filter((_, n) => n !== i))} className="rounded-lg p-1.5 text-muted-foreground hover:text-destructive">
-            <X size={14} />
-          </button>
+          <ActionIconButton label={t("removeBand")} intent="delete" icon={X} onClick={() => onChange(bands.filter((_, n) => n !== i))} />
         </div>
       ))}
       <Button size="sm" variant="secondary" icon={Plus} className="w-fit" onClick={() => onChange([...bands, { from_years: bands[bands.length - 1]?.to_years ?? "", to_years: "", score: "" }])}>
@@ -190,9 +189,7 @@ export function CriteriaEditor({ risk, criteria, onChange }) {
                   %
                 </label>
                 <UiTooltip label={t("removeCriterion")}>
-                  <button type="button" onClick={() => onChange(criteria.filter((_, i) => i !== index))} className="rounded-lg p-2 text-muted-foreground hover:text-destructive">
-                    <X size={14} />
-                  </button>
+                  <ActionIconButton label={t("common:remove")} intent="delete" icon={X} onClick={() => onChange(criteria.filter((_, i) => i !== index))} />
                 </UiTooltip>
               </div>
               {expanded && (

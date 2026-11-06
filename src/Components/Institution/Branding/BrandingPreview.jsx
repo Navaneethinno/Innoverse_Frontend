@@ -64,7 +64,7 @@ export function BrandingPreview({ form, download }) {
             <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
               <LayoutGrid size={11} /> Module
             </div>
-            <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5" style={{ background: "var(--primary-light)", color: "var(--primary)" }}>
+            <div className="flex items-center gap-1.5 rounded-lg px-2 py-1.5" style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}>
               <Users size={11} /> Active menu
             </div>
           </aside>
@@ -78,7 +78,7 @@ export function BrandingPreview({ form, download }) {
               </span>
             </div>
             <div className="flex-1 rounded-lg p-3" style={{ background: s.panel, border: `1px solid ${s.border}` }}>
-              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "var(--primary)" }}>Pending requests</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>Pending requests</p>
               <p className="mt-1 text-2xl font-black">12</p>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--primary-light)" }}>
                 <div className="h-full w-2/3 rounded-full" style={{ background: "var(--primary)" }} />
@@ -86,7 +86,7 @@ export function BrandingPreview({ form, download }) {
               <div className="mt-3 flex flex-wrap gap-1">
                 <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>Primary</span>
                 <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>Secondary</span>
-                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary)" }}>Outline</span>
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold" style={{ border: "1px solid var(--primary)", color: "var(--primary-ink, var(--primary))" }}>Outline</span>
               </div>
             </div>
           </div>

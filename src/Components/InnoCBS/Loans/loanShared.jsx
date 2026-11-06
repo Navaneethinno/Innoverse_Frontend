@@ -105,6 +105,8 @@ export function Field({ field, value, onChange, disabled, decimals = 2, invalid 
       type={type === "date" ? "date" : "text"}
       inputMode={clean && type !== "code" ? (type === "int" ? "numeric" : "decimal") : undefined}
       name={field.key}
+      // For an input with no visible label (a grid cell).
+      aria-label={field.ariaLabel}
       aria-invalid={invalid || undefined}
       className={cn(
         inputClass,
@@ -310,6 +312,8 @@ export function MiniTable({
         "overflow-auto rounded-xl border border-border bg-card",
         rows.length > LONG_TABLE && "max-h-[28rem]",
       )}
+      // A scrolling table can be scrolled from the keyboard.
+      tabIndex={rows.length > LONG_TABLE ? 0 : undefined}
     >
       <table className="w-full text-xs">
         <thead className="sticky top-0 z-[1] bg-card text-left text-[10px] uppercase tracking-wider text-muted-foreground shadow-[0_1px_0_var(--border)]">
@@ -322,7 +326,7 @@ export function MiniTable({
                   (c.align === "right" || c.amount) && "text-right",
                 )}
               >
-                {c.label}
+                {c.label || <span className="sr-only">{t("common:actions")}</span>}
                 {c.amount && currency && (
                   <span className="ml-1 font-semibold normal-case text-muted-foreground/70">
                     ({currency})

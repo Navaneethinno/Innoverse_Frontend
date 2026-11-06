@@ -6,6 +6,7 @@ import { codeOf } from "../../../GlobalSettings/Notifications/notificationShared
 import { percentInput } from "@/Components/InnoCBS/Deposits/depositShared";
 import { LevelBar } from "./riskShared";
 import { Button } from "@/Components/Common/Button";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 // Levels must cover 0–100 with no gaps or overlaps, so only each level's
 // maximum is edited: the first starts at 0 and every other starts where the
@@ -91,9 +92,7 @@ export function LevelsEditor({ levels, riskActions, merchantRiskActions, onChang
             )}
 
             <UiTooltip label={t("removeLevel")}>
-              <button type="button" disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:text-destructive disabled:opacity-30">
-                <X size={14} />
-              </button>
+              <ActionIconButton label={t("common:remove")} intent="delete" icon={X} disabled={levels.length === 1} onClick={() => onChange(chainLevels(levels.filter((_, i) => i !== index)))} className="ml-auto" />
             </UiTooltip>
           </li>
         ))}

@@ -9,6 +9,7 @@ import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { caseDate } from "./caseShared";
 import { actorText } from "@/Utils/Lib/actor";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 const KINDS = ["FIELDS", "SECTION", "DOCUMENT", "QUESTION"];
 const REQUEST_TONE = {
@@ -241,9 +242,7 @@ export function RequestDialog({ api, referenceId, busy, onClose, onSave }) {
             <div className="mb-3 flex items-center justify-between gap-2">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("requestN", { n: i + 1 })}</p>
               {items.length > 1 && (
-                <button type="button" onClick={() => setItems((list) => list.filter((_, j) => j !== i))} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50" aria-label={t("remove")}>
-                  <Trash2 size={14} />
-                </button>
+                <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => setItems((list) => list.filter((_, j) => j !== i))} />
               )}
             </div>
             <div className="grid gap-3 sm:grid-cols-[1fr_120px]">

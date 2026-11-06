@@ -8,6 +8,8 @@ import { UiTooltip } from "@/Components/Common/UiTooltip";
 import { formUseRolesApi, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/cn";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { Button } from "@/Components/Common/Button";
 
 // Step 4 of the definition wizard ("Admin portal: simpler Uses step"): the
 // same form.uses as before, built from a few plain questions instead of one
@@ -356,19 +358,12 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <p className="text-xs font-semibold text-slate-700">{index === 0 ? t("usesDuplicateRule") : t("usesDuplicateRuleOr")}</p>
                   {index > 0 && !readOnly && (
-                    <button
-                      type="button"
-                      aria-label={t("remove")}
-                      onClick={() => {
+                    <ActionIconButton label={t("remove")} intent="delete" icon={X} onClick={() => {
                         // Later rules move up so there's no gap.
                         const rest = DUPLICATE.map((r) => get(r)).filter((_, i) => i !== index);
                         set(Object.fromEntries(DUPLICATE.map((r, i) => [r, rest[i] ?? []])));
                         setExtraDuplicateRules(shownRules - 1);
-                      }}
-                      className="rounded-lg p-1 text-red-600 hover:bg-red-50"
-                    >
-                      <X size={14} />
-                    </button>
+                      }} />
                   )}
                 </div>
                 <OrderedChips fields={comparable} value={keys} disabled={readOnly} isDisabled={(f) => (section && f.section !== section ? t("usesSameSectionOnly") : null)} onChange={(next) => set({ [role]: next })} />
@@ -376,9 +371,9 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
             );
           })}
           {shownRules < 3 && !readOnly && (
-            <button type="button" onClick={() => setExtraDuplicateRules(shownRules + 1)} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+            <Button onClick={() => setExtraDuplicateRules(shownRules + 1)} variant="dashed" size="xs" className="flex w-fit">
               <Plus size={13} /> {t("usesAddDuplicateRule")}
-            </button>
+            </Button>
           )}
         </>
       )}

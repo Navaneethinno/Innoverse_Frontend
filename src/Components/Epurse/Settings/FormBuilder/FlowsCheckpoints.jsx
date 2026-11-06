@@ -5,6 +5,8 @@ import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { cn } from "@/Utils/Lib/cn";
 import { inputClass } from "./FieldOptionsEditor";
 import { ConditionRows } from "./ConditionRows";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { Button } from "@/Components/Common/Button";
 
 // Two steps of the definition wizard (Admin handoff "onboarding flows and
 // checkpoints"). A flow asks a group of sections only when its conditions
@@ -39,9 +41,7 @@ function ItemCard({ icon: Icon, title, summary, invalid, startOpen, onRemove, re
           <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
         </button>
         {!readOnly && (
-          <button type="button" onClick={onRemove} className="rounded-lg p-1.5 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-            <Trash2 size={14} />
-          </button>
+          <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={onRemove} />
         )}
       </div>
       {open && <div className="flex flex-col gap-4 border-t px-4 py-4">{children}</div>}
@@ -157,16 +157,15 @@ export function FlowsStep({ flows, onChange, fields, sections, readOnly, problem
         );
       })}
       {!readOnly && (
-        <button
-          type="button"
+        <Button
           onClick={() => {
             setFresh((s) => new Set(s).add(list.length));
             onChange([...list, { code: "", name: "", enabled: true, conditions: [{ field: "", operator: "EQ" }], sections: [] }]);
           }}
-          className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-bold text-primary"
+          variant="dashed" size="sm" className="flex w-fit"
         >
           <Plus size={13} /> {t("formBuilder:addFlow")}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -264,16 +263,14 @@ export function CheckpointsStep({ checkpoints, onChange, fields, sections, readO
                       <span />
                     )}
                     {!readOnly && (
-                      <button type="button" onClick={() => set({ actions: actions.filter((_, k) => k !== j) })} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("formBuilder:remove")}>
-                        <Trash2 size={14} />
-                      </button>
+                      <ActionIconButton label={t("formBuilder:remove")} intent="delete" icon={Trash2} onClick={() => set({ actions: actions.filter((_, k) => k !== j) })} />
                     )}
                   </div>
                 ))}
                 {!readOnly && (
-                  <button type="button" onClick={() => set({ actions: [...actions, { code: "EDIT", section: "" }] })} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+                  <Button onClick={() => set({ actions: [...actions, { code: "EDIT", section: "" }] })} variant="dashed" size="xs" className="flex w-fit">
                     <Plus size={13} /> {t("formBuilder:addButton")}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -281,16 +278,15 @@ export function CheckpointsStep({ checkpoints, onChange, fields, sections, readO
         );
       })}
       {!readOnly && (
-        <button
-          type="button"
+        <Button
           onClick={() => {
             setFresh((s) => new Set(s).add(list.length));
             onChange([...list, { code: "", name: "", at: "", priority: 100, enabled: true, outcome: "CONTINUE", conditions: [], actions: [] }]);
           }}
-          className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-bold text-primary"
+          variant="dashed" size="sm" className="flex w-fit"
         >
           <Plus size={13} /> {t("formBuilder:addCheckpoint")}
-        </button>
+        </Button>
       )}
     </div>
   );

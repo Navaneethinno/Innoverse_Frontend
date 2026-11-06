@@ -38,6 +38,7 @@ const BRAND_TOKENS = [
   "--primary-hover",
   "--primary-light",
   "--primary-foreground",
+  "--primary-ink",
   "--secondary",
   "--secondary-foreground",
   "--ring",

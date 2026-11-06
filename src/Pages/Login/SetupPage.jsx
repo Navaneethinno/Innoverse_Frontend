@@ -58,7 +58,7 @@ export function SetupPage() {
                   i < step
                     ? { background: "var(--primary)" }
                     : i === step
-                      ? { borderColor: "var(--primary)", background: "var(--primary-light)", color: "var(--primary)" }
+                      ? { borderColor: "var(--primary)", background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }
                       : undefined
                 }
               >
@@ -157,10 +157,10 @@ export function SetupPage() {
                     className="flex items-start gap-3 p-4 rounded-xl border"
                     style={{ background: "var(--primary-light)", borderColor: "var(--primary-light)" }}
                   >
-                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: "var(--primary)" }} />
+                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: "var(--primary-ink, var(--primary))" }} />
                     <div>
-                      <p className="text-sm font-medium" style={{ color: "var(--primary)" }}>{t("autoSaveEnabled")}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "var(--primary)" }}>
+                      <p className="text-sm font-medium" style={{ color: "var(--primary-ink, var(--primary))" }}>{t("autoSaveEnabled")}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--primary-ink, var(--primary))" }}>
                         {t("autoSaveDescription")}
                       </p>
                     </div>

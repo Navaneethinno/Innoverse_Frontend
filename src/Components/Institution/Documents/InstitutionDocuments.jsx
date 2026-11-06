@@ -26,6 +26,7 @@ import { institutionDocumentsApi as api } from "@/Services/Institution/instituti
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
 import { actorText } from "@/Utils/Lib/actor";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 // The status tabs, as the list call filters them (Pending is its own call).
 const CODE = /^[A-Z0-9_]{1,64}$/;
@@ -579,9 +580,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
                     {t("format")}
                     <Field field={{ type: "select", options: (options.content_formats ?? ["MARKDOWN", "PLAIN", "HTML"]).map((f) => ({ value: f, label: t(`format_${f}`, { defaultValue: f }) })) }} value={x.content_format} onChange={(v) => setText(i, { content_format: v })} />
                   </label>
-                  <button type="button" onClick={() => setConfig((c) => ({ ...c, texts: c.texts.filter((_, k) => k !== i) }))} className="self-end rounded-lg p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600" aria-label={t("removeText")}>
-                    <Trash2 size={15} />
-                  </button>
+                  <ActionIconButton label={t("removeText")} intent="delete" icon={Trash2} onClick={() => setConfig((c) => ({ ...c, texts: c.texts.filter((_, k) => k !== i) }))} className="self-end" />
                 </div>
                 <label className={cn(labelClass, "mt-3 block")}>
                   {t("content")}

@@ -60,6 +60,25 @@ function luminance(hex) {
   return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
 }
 
+function contrast(a, b) {
+  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+
+// The brand color as text: darkened (light mode) or lightened (dark mode) in
+// small steps until it reads at 4.5:1 on every surface it sits on (cards, the
+// slate panels, the brand's own light tint), so a bright brand like yellow
+// stays the fill color while its links and labels stay legible.
+export function inkFor(hex, mode = "light") {
+  const dark = mode === "dark";
+  const surfaces = dark ? ["#0f172a", "#1e293b", mix(hex, -0.75)] : ["#ffffff", "#f1f5f9", mix(hex, 0.9)];
+  const step = dark ? 0.05 : -0.05;
+  const legible = (ink) => surfaces.every((s) => contrast(ink, s) >= 4.6);
+  let ink = hex;
+  for (let i = 1; i <= 19 && !legible(ink); i++) ink = mix(hex, step * i);
+  return ink;
+}
+
 function bestForeground(hex) {
   return luminance(hex) > 0.5 ? "#0b1220" : "#ffffff";
 }
@@ -90,10 +109,11 @@ export function deriveBrandThemeVars({ primary, secondary }, mode = "light") {
     vars["--primary-hover"] = isDark ? mix(primaryHex, 0.2) : mix(primaryHex, -0.15);
     vars["--primary-light"] = isDark ? mix(primaryHex, -0.75) : mix(primaryHex, 0.9);
     vars["--primary-foreground"] = bestForeground(primaryHex);
+    vars["--primary-ink"] = inkFor(primaryHex, mode);
     vars["--ring"] = primaryHex;
     vars["--sidebar-primary"] = primaryHex;
     vars["--sidebar-primary-foreground"] = bestForeground(primaryHex);
-    vars["--accent-foreground"] = primaryHex;
+    vars["--accent-foreground"] = vars["--primary-ink"];
     vars["--chart-1"] = primaryHex;
     vars["--gradient-start"] = primaryHex;
     vars["--gradient-end"] = primaryHex;

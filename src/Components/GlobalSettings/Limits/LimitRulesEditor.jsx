@@ -13,6 +13,7 @@ import { cn } from "@/Utils/Lib/cn";
 import { currencyCode, useLimitLists, useProviderSources } from "./useLimitLists";
 
 import { Button } from "@/Components/Common/Button";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 // The rules of one limit group (Global Settings > Limit handoff, "The rules
 // (config)"). The whole list is sent every time: save_config replaces it.
 // A draft / rejected group saves with save_config; an approved one opens a
@@ -187,17 +188,15 @@ function RuleCard({ rule, index, onChange, onRemove, lists, disabled, t }) {
                       <ConditionValues dimension={dimension} operator={operator} values={d.values ?? []} lists={lists} disabled={disabled} t={t} onChange={(values) => setAt("dimensions", i, { values })} />
                     </div>
                     {!disabled && (
-                      <button type="button" onClick={() => removeAt("dimensions", i)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("remove")}>
-                        <Trash2 size={14} />
-                      </button>
+                      <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => removeAt("dimensions", i)} />
                     )}
                   </div>
                 );
               })}
               {!disabled && (
-                <button type="button" onClick={() => set({ dimensions: [...rule.dimensions, { dimension_code: "", operator_code: "", values: [] }] })} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+                <Button onClick={() => set({ dimensions: [...rule.dimensions, { dimension_code: "", operator_code: "", values: [] }] })} variant="dashed" size="xs" className="flex w-fit">
                   <Plus size={13} /> {t("addCondition")}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -250,18 +249,16 @@ function RuleCard({ rule, index, onChange, onRemove, lists, disabled, t }) {
                       <span />
                     )}
                     {!disabled && (
-                      <button type="button" onClick={() => removeAt("thresholds", i)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label={t("remove")}>
-                        <Trash2 size={14} />
-                      </button>
+                      <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => removeAt("thresholds", i)} />
                     )}
                   </div>
                 );
               })}
               {rule.thresholds.length === 0 && <p className="text-xs font-semibold text-amber-700">{t("needsALimit")}</p>}
               {!disabled && (
-                <button type="button" onClick={() => set({ thresholds: [...rule.thresholds, { limit_type_code: "" }] })} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-1.5 text-xs font-bold text-primary">
+                <Button onClick={() => set({ thresholds: [...rule.thresholds, { limit_type_code: "" }] })} variant="dashed" size="xs" className="flex w-fit">
                   <Plus size={13} /> {t("addLimit")}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -496,9 +493,9 @@ export function LimitRulesEditor({ group, forceReadOnly = false, onClose, onSave
                 <RuleCard key={index} rule={rule} index={index} lists={lists} disabled={readOnly} t={t} onChange={(next) => change(rules.map((r, i) => (i === index ? next : r)))} onRemove={() => change(rules.filter((_, i) => i !== index))} />
               ))}
               {!readOnly && (
-                <button type="button" onClick={() => change([...rules, newRule(rules.length + 1)])} className="flex w-fit items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-bold text-primary">
+                <Button onClick={() => change([...rules, newRule(rules.length + 1)])} variant="dashed" size="sm" className="flex w-fit">
                   <Plus size={13} /> {t("addRule")}
-                </button>
+                </Button>
               )}
             </>
           )}

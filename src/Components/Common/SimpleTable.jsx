@@ -15,7 +15,7 @@ export function SimpleTable({ columns, className, children }) {
             const { label, align, className: cell } = column && typeof column === "object" && "label" in column ? column : { label: column };
             return (
               <th key={i} scope="col" className={cn("px-3 py-2", ALIGN[align], cell)}>
-                {label}
+                {label || <span className="sr-only">—</span>}
               </th>
             );
           })}

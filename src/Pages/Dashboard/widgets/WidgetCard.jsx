@@ -31,7 +31,8 @@ export function WidgetCard({ title, icon: Icon, action, className, children }) {
           {action && <div className="shrink-0 whitespace-nowrap">{action}</div>}
         </div>
       )}
-      <div className="flex min-h-0 flex-1 flex-col overflow-auto">{children}</div>
+      {/* tabIndex: a widget that scrolls can be scrolled from the keyboard. */}
+      <div tabIndex={0} className="flex min-h-0 flex-1 flex-col overflow-auto">{children}</div>
     </div>
   );
 }

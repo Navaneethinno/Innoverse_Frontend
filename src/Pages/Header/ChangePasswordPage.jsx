@@ -67,7 +67,7 @@ export function ChangePasswordPage() {
         <div className="mb-6 flex items-center gap-3">
           <div
             className="flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+            style={{ background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }}
           >
             <Lock size={18} />
           </div>

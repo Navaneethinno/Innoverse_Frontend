@@ -16,6 +16,8 @@ import { amlBlacklistApi } from "@/Services/InnoAML/aml.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { countryNameOf } from "../Shared/amlShared";
 import { BIRTH_DATE, ENTITY_TYPES, IDENTIFIER_TYPES, MAX_ALIASES, MAX_IDENTIFIERS, REASONS, identifierProblem } from "./blacklistShared";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
+import { LinkButton } from "@/Components/Common/TextButtons";
 
 const lines = (text) =>
   String(text ?? "")
@@ -151,9 +153,9 @@ export function BlacklistForm({ editing, onClose, onSaved }) {
           <div className="flex items-center justify-between gap-2">
             <p className={labelClass}>{t("aml:identifiers")}</p>
             {form.identifiers.length < MAX_IDENTIFIERS && (
-              <button type="button" onClick={() => setForm((f) => ({ ...f, identifiers: [...f.identifiers, { type: "PHONE", number: "", country: "" }] }))} className="flex items-center gap-1 text-xs font-bold text-primary">
+              <LinkButton onClick={() => setForm((f) => ({ ...f, identifiers: [...f.identifiers, { type: "PHONE", number: "", country: "" }] }))} className="flex items-center gap-1">
                 <Plus size={13} /> {t("aml:addIdentifier")}
-              </button>
+              </LinkButton>
             )}
           </div>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{t("aml:identifiersHint")}</p>
@@ -174,9 +176,7 @@ export function BlacklistForm({ editing, onClose, onSaved }) {
                       onChange={(v) => setIdentifier(index, { country: v })}
                       options={[{ value: "", label: t("aml:anyCountry") }, ...countries.map((c) => ({ value: c.name, label: c.name }))]}
                     />
-                    <button type="button" aria-label={t("common:delete")} onClick={() => setForm((f) => ({ ...f, identifiers: f.identifiers.filter((_, j) => j !== index) }))} className="justify-self-end rounded-lg p-1.5 text-red-600 hover:bg-red-50">
-                      <Trash2 size={14} />
-                    </button>
+                    <ActionIconButton label={t("common:delete")} intent="delete" icon={Trash2} onClick={() => setForm((f) => ({ ...f, identifiers: f.identifiers.filter((_, j) => j !== index) }))} className="justify-self-end" />
                   </li>
                 );
               })}

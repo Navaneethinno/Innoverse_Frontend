@@ -351,10 +351,10 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
           className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2"
           style={{ borderColor: "var(--primary-light)", background: "var(--primary-light)" }}
         >
-          <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "var(--primary)" }}>
+          <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: "var(--primary-ink, var(--primary))" }}>
             {t("profiles:allModules")}
           </span>
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
+          <span className="flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary-ink, var(--primary))" }}>
             <input
               type="checkbox"
               checked={allModulesGranted}
@@ -427,7 +427,7 @@ export function ProfilePermissionTree({ selected, onChange, readOnly = false }) 
                   )}
                 </button>
                 {!readOnly && (
-                  <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary)" }}>
+                  <label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-[11px] font-semibold" style={{ color: "var(--primary-ink, var(--primary))" }}>
                     <input
                       type="checkbox"
                       checked={allGranted}

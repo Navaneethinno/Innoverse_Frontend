@@ -52,7 +52,7 @@ export function SegmentedSwitch({ options, value, onChange, className = "" }) {
             onClick={() => !active && onChange(option.value)}
             className={
               "relative z-10 rounded-full px-4 py-1.5 text-xs font-bold transition-colors duration-300 " +
-              (active ? "text-white" : "text-muted-foreground hover:text-primary")
+              (active ? "text-primary-foreground" : "text-muted-foreground hover:text-primary")
             }
           >
             {option.label}

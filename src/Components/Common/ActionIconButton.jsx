@@ -9,7 +9,7 @@ import { cn } from "@/Utils/Lib/utils";
 export function ActionIconButton({ label, intent = "view", icon: Icon, onClick, className, ...props }) {
   return (
     <UiTooltip label={label}>
-      <button type="button" aria-label={label} onClick={onClick} className={cn("group/action", actionButtonClass(intent), className)} {...props}>
+      <button type="button" aria-label={label} onClick={onClick} className={cn("group/action disabled:pointer-events-none disabled:opacity-30", actionButtonClass(intent), className)} {...props}>
         <Icon size={14} className="transition-transform duration-200 ease-out group-hover/action:scale-110" />
       </button>
     </UiTooltip>

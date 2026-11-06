@@ -87,7 +87,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
               )}
               style={
                 isActive
-                  ? { background: "var(--primary-light)", color: "var(--primary)" }
+                  ? { background: "var(--primary-light)", color: "var(--primary-ink, var(--primary))" }
                   : undefined
               }
             >
@@ -95,7 +95,7 @@ export function StatusFilterTabs({ tabs = TABS, rows = [], value, onChange, sear
                 size={14}
                 strokeWidth={2}
                 className={isActive ? undefined : "text-muted-foreground"}
-                style={isActive ? { color: "var(--primary)" } : undefined}
+                style={isActive ? { color: "var(--primary-ink, var(--primary))" } : undefined}
               />
               {t(labelKey)}
               {countFor(key) != null && <span

@@ -23,6 +23,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { CARD_DIRECTIONS, SECTIONS, code, groupFits, onUsIn, rangeProblem, specificity, toBody, toForm } from "./routingShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 
 // The routing setups (one per institution, maker-checker as a whole, like
 // External Providers): list, view (in effect, waiting, history) and editor.
@@ -605,15 +606,9 @@ function MembersEditor({ members, choices, onChange }) {
           <input className={cn(inputClass, "w-28")} inputMode="decimal" placeholder={t("maxAmount")} value={m.max_amount ?? ""} onChange={(e) => set(i, { max_amount: e.target.value.replace(/[^\d.]/g, "") })} />
           <Toggle checked={Boolean(m.active)} onChange={(active) => set(i, { active })} label={t("active")} />
           <span className="ms-auto flex gap-0.5">
-            <button type="button" aria-label={t("moveUp")} disabled={i === 0} onClick={() => onChange(moveItem(members, i, i - 1))} className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30">
-              <ArrowUp size={13} />
-            </button>
-            <button type="button" aria-label={t("moveDown")} disabled={i === members.length - 1} onClick={() => onChange(moveItem(members, i, i + 1))} className="rounded p-1 text-muted-foreground hover:bg-muted disabled:opacity-30">
-              <ArrowDown size={13} />
-            </button>
-            <button type="button" aria-label={t("remove")} onClick={() => onChange(members.filter((_, j) => j !== i))} className="rounded p-1 text-muted-foreground hover:bg-red-50 hover:text-red-600">
-              <Trash2 size={13} />
-            </button>
+            <ActionIconButton label={t("moveUp")} intent="audit" icon={ArrowUp} disabled={i === 0} onClick={() => onChange(moveItem(members, i, i - 1))} />
+            <ActionIconButton label={t("moveDown")} intent="audit" icon={ArrowDown} disabled={i === members.length - 1} onClick={() => onChange(moveItem(members, i, i + 1))} />
+            <ActionIconButton label={t("remove")} intent="delete" icon={Trash2} onClick={() => onChange(members.filter((_, j) => j !== i))} />
           </span>
         </div>
       ))}
