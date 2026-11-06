@@ -75,9 +75,9 @@ export function CustomerSourcesWidget() {
     <WidgetCard title={t("customerSources")} icon={PieIcon}>
       <WidgetBody loading={loading} failed={failed} empty={!items.length}>
         {/* The list below says the same in text, so screen readers skip the drawing. */}
-        <div className="relative min-h-28 flex-1" aria-hidden="true">
+        <div className="relative min-h-28 flex-1" aria-hidden="true" {...{ inert: "" }}>
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
+            <PieChart accessibilityLayer={false}>
               <Pie data={drawn.length ? drawn : [{ source: "none", count: 1 }]} dataKey="count" nameKey="label" innerRadius="62%" outerRadius="90%" paddingAngle={drawn.length > 1 ? 3 : 0} stroke="none">
                 {(drawn.length ? drawn : [{ source: "none" }]).map((s) => (
                   <Cell key={s.source} fill={SOURCE_COLORS[s.source] ?? "var(--muted)"} />

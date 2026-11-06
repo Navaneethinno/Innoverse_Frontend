@@ -59,7 +59,7 @@
   /* Status */
   --success: #20c997;
   /* --success as text on light surfaces (4.5:1). */
-  --success-ink: #0b7a5f;
+  --success-ink: #0a6e55;
   --warning: #f59e0b;
   /* Tones for drawn graphs and score marks (SVG fills, rings), one place.  */
   --tone-danger: #dc2626;

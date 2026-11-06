@@ -298,7 +298,7 @@ export function Profile() {
               whileHover={{ scale: 1.03, y: -1 }}
               whileTap={{ scale: 0.97 }}
               onClick={openCreate}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[var(--primary-foreground)]"
               style={{ background: "var(--primary)" }}
             >
               <Plus size={14} /> {t("newProfile")}
