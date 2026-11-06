@@ -1,7 +1,7 @@
 import { DateInput } from "@/Components/Common/DateInput";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
@@ -191,4 +191,36 @@ export function useReportDetail() {
     window.requestAnimationFrame(() => window.scrollTo({ top: scrollY.current }));
   }, []);
   return { open, show, back };
+}
+
+// A detail page's section; `collapsible` (history) stays closed until clicked.
+export function ReportSection({ title, children, collapsible = false }) {
+  const [open, setOpen] = useState(!collapsible);
+  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
+  return (
+    <section className="space-y-2">
+      {collapsible ? (
+        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
+          {heading}
+          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+      ) : (
+        heading
+      )}
+      {open && children}
+    </section>
+  );
+}
+
+// "Score from – to" (0 to 100) for a list of scored records.
+export function ScoreRangeFilter({ value, onChange, inputClassName }) {
+  const { t } = useTranslation("reports");
+  return (
+    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+      {t("scoreRange")}
+      <input type="number" min={0} max={100} value={value.min_score} onChange={(e) => onChange({ min_score: e.target.value })} placeholder="0" aria-label={t("scoreFrom")} className={inputClassName} />
+      –
+      <input type="number" min={0} max={100} value={value.max_score} onChange={(e) => onChange({ max_score: e.target.value })} placeholder="100" aria-label={t("scoreTo")} className={inputClassName} />
+    </span>
+  );
 }

@@ -5064,6 +5064,8 @@ export const reports = {
   screeningHistory: "سجل الفحوصات",
   allCustomerRiskActions: "إجراء المخاطر (العملاء)",
   allMerchantRiskActions: "إجراء المخاطر (التجار)",
+  "scoreFrom": "أدنى درجة",
+  "scoreTo": "أعلى درجة",
 };
 
 export const guide = {

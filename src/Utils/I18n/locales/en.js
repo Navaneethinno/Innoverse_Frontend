@@ -2649,6 +2649,8 @@ export const reports = {
   screeningHistory: "Screening history",
   allCustomerRiskActions: "Risk action (customers)",
   allMerchantRiskActions: "Risk action (merchants)",
+  "scoreFrom": "Lowest score",
+  "scoreTo": "Highest score",
 };
 
 export const guide = {

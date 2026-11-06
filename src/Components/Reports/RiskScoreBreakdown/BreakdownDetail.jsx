@@ -1,35 +1,15 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, ChevronDown, Info } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { Spinner } from "@/Components/Common/Spinner";
 import { riskBreakdownApi } from "@/Services/Reports/riskBreakdown.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
-import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
+import { BandChip, ReportDetailPage, atIst, ReportSection as Section } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { useLatest } from "@/Hooks/useLatest";
-
-// `collapsible` (history): closed until clicked.
-function Section({ title, children, collapsible = false }) {
-  const [open, setOpen] = useState(!collapsible);
-  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
-  return (
-    <section className="space-y-2">
-      {collapsible ? (
-        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
-          {heading}
-          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </button>
-      ) : (
-        heading
-      )}
-      {open && children}
-    </section>
-  );
-}
-
 // 0–100 split into the setup's bands, with a marker at the score. The band
 // the assessment fell in is outlined.
 function ScoreBar({ levels, score, levelCode }) {
@@ -50,7 +30,6 @@ function ScoreBar({ levels, score, levelCode }) {
     </div>
   );
 }
-
 // The customer's value for a criterion: "Not given", "not scored in this
 // setup", or several values with the one that counted (the riskiest).
 function CriterionValue({ c }) {
@@ -75,7 +54,6 @@ function CriterionValue({ c }) {
     </span>
   );
 }
-
 // One assessment (risk_breakdown/get): how the score was reached, what
 // changed since the previous one, and the customer's assessment history —
 // clicking a history entry loads that assessment here.
@@ -83,7 +61,6 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
   const { t } = useTranslation("reports");
   const [id, setId] = useState(assessmentId);
   const [item, setItem] = useState(null);
-
   const latest = useLatest({ onClose });
   useEffect(() => {
     const { onClose } = latest.current;
@@ -100,11 +77,9 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
       cancelled = true;
     };
   }, [customerKind, id, latest]);
-
   const b = item?.breakdown ?? {};
   const criteria = b.criteria ?? [];
   const bandChanged = item?.previous && item.previous.level_code !== item.level_code;
-
   return (
     <ReportDetailPage onBack={onClose} title={item ? item.customer_name : t("breakdownTitle")}>
       {!item ? (
@@ -122,18 +97,15 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
             </span>
             {!item.is_latest && <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold">{t("earlier")}</span>}
           </div>
-
           {b.from_current_setup && (
             <p className="flex items-start gap-2 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
               <Info size={14} className="mt-0.5 shrink-0" /> {t("fromCurrentSetup")}
             </p>
           )}
-
           <Section title={t("scoreAndBands")}>
             <ScoreBar levels={b.levels} score={item.risk_score} levelCode={item.level_code} />
             {b.max_score != null && <p className="text-[11px] text-muted-foreground">{t("highestPossible", { max: b.max_score })}</p>}
           </Section>
-
           <Section title={t("criteria")}>
             <SimpleTable columns={[{ label: t("criterion"), className: "py-1 pr-2" }, { label: t("weight"), align: "right", className: "py-1 pr-2" }, { label: t("customerValue"), className: "py-1 pr-2" }, { label: t("valueScore"), align: "right", className: "py-1 pr-2" }, { label: t("points"), align: "right", className: "py-1" }]}>
               <tbody className="tabular-nums">
@@ -161,7 +133,6 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
               </tbody>
             </SimpleTable>
           </Section>
-
           {item.previous && (
             <Section title={t("sincePrevious", { score: item.previous.risk_score, band: item.previous.level_name })}>
               {item.changes?.length ? (
@@ -191,7 +162,6 @@ export function BreakdownDetail({ customerKind, assessmentId, onClose }) {
               )}
             </Section>
           )}
-
           {item.history?.length > 1 && (
             <Section title={t("assessmentHistory")} collapsible>
               <ol className="relative space-y-2 border-l pl-4">

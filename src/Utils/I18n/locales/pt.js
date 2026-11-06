@@ -2558,6 +2558,8 @@ export const reports = {
   screeningHistory: "Histórico de triagens",
   allCustomerRiskActions: "Ação de risco (clientes)",
   allMerchantRiskActions: "Ação de risco (comerciantes)",
+  "scoreFrom": "Pontuação mínima",
+  "scoreTo": "Pontuação máxima",
 };
 
 export const guide = {

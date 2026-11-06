@@ -21,6 +21,7 @@ import {
   glassCard,
   periodBody,
   useReportDetail,
+  ScoreRangeFilter,
 } from "../Shared/reportShared";
 import { BreakdownDetail } from "./BreakdownDetail";
 import { actorText } from "@/Utils/Lib/actor";
@@ -304,28 +305,7 @@ export function RiskScoreBreakdown() {
               onChange={(v) => set({ source: v })}
               options={opt(SOURCES, "source_", "allSources")}
             />
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-              {t("scoreRange")}
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={filters.min_score}
-                onChange={(e) => set({ min_score: e.target.value })}
-                placeholder="0"
-                className={numberInput}
-              />
-              –
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={filters.max_score}
-                onChange={(e) => set({ max_score: e.target.value })}
-                placeholder="100"
-                className={numberInput}
-              />
-            </span>
+            <ScoreRangeFilter value={filters} onChange={set} inputClassName={numberInput} />
           </div>
           <PeriodChips value={filters} onChange={set} allTime />
         </div>

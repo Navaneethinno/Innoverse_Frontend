@@ -7,29 +7,11 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { LevelBar } from "@/Components/Epurse/Settings/RiskAssessment/riskShared";
 import { AlsoOnChips, EntityRecord, ReviewStateBadge, WeightNote, matchScore, scoreTone } from "@/Components/InnoAML/Shared/amlShared";
-import { BandChip, ReportDetailPage, atIst } from "../Shared/reportShared";
+import { BandChip, ReportDetailPage, atIst, ReportSection as Section } from "../Shared/reportShared";
 import { actorText } from "@/Utils/Lib/actor";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { useLatest } from "@/Hooks/useLatest";
 
-// `collapsible` (history): closed until clicked.
-function Section({ title, children, collapsible = false }) {
-  const [open, setOpen] = useState(!collapsible);
-  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
-  return (
-    <section className="space-y-2">
-      {collapsible ? (
-        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
-          {heading}
-          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </button>
-      ) : (
-        heading
-      )}
-      {open && children}
-    </section>
-  );
-}
 
 const pct = (n) => `${Math.max(0, Math.min(100, Number(n) || 0))}%`;
 

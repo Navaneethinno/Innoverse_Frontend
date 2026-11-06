@@ -1,37 +1,16 @@
 import { canChooseInstitution } from "@/Utils/Lib/institutionScope";
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/Components/Common/Spinner";
 import { userActivityApi } from "@/Services/Reports/userActivity.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { ReportDetailPage, atIst } from "../Shared/reportShared";
+import { ReportDetailPage, atIst, ReportSection as Section } from "../Shared/reportShared";
 import { fieldLabel, useIdNames } from "../Shared/idNames";
 import { Fields, Value } from "../Shared/RecordValues";
 import { RoleBadge, recordText } from "./activityFormat";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { useLatest } from "@/Hooks/useLatest";
-
-// `collapsible` (history): closed until clicked.
-function Section({ title, children, collapsible = false }) {
-  const [open, setOpen] = useState(!collapsible);
-  const heading = <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">{title}</h3>;
-  return (
-    <section className="space-y-2">
-      {collapsible ? (
-        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className="flex w-full items-center justify-between gap-2 text-left">
-          {heading}
-          <ChevronDown size={14} className={`shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
-        </button>
-      ) : (
-        heading
-      )}
-      {open && children}
-    </section>
-  );
-}
-
 // One activity (user_activity/get): what changed against the record as it
 // last stood approved, the values the action left, and the history of the
 // same change (submit → approve/reject → resubmit…).
@@ -40,7 +19,6 @@ export function ActivityDetail({ activityId, onClose }) {
   const [item, setItem] = useState(null);
   // ids in the values/changes shown as their names.
   const name = useIdNames(item?.entity, item?.values, (item?.changes ?? []).flatMap((c) => [{ [c.field]: c.before }, { [c.field]: c.after }]));
-
   const latest = useLatest({ onClose });
   useEffect(() => {
     const { onClose } = latest.current;
@@ -56,7 +34,6 @@ export function ActivityDetail({ activityId, onClose }) {
       cancelled = true;
     };
   }, [activityId, latest]);
-
   return (
     <ReportDetailPage onBack={onClose} title={item ? `${item.action_name} · ${recordText(item)}` : t("activity")}>
       {!item ? (
@@ -81,7 +58,6 @@ export function ActivityDetail({ activityId, onClose }) {
               </div>
             ))}
           </dl>
-
           <Section title={t("whatChanged")}>
             {item.is_new ? (
               <p className="rounded-lg bg-muted p-2.5 text-xs font-semibold">{t("newRecord")}</p>
@@ -105,13 +81,11 @@ export function ActivityDetail({ activityId, onClose }) {
               <p className="text-xs text-muted-foreground">{t("noFieldChanges")}</p>
             )}
           </Section>
-
           {item.values && Object.keys(item.values).length > 0 && (
             <Section title={t("values")}>
               <Fields values={item.values} name={name} />
             </Section>
           )}
-
           {item.history?.length > 0 && (
             <Section title={t("history")} collapsible>
               <ol className="relative space-y-3 border-l pl-4">
