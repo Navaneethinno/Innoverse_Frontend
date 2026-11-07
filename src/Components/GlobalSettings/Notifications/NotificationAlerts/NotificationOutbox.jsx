@@ -1,7 +1,7 @@
 import { useListSearch } from "@/Hooks/useListSearch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, BellRing, CheckCircle2, Clock3, ListChecks, Loader2, Mail, MessageSquare, XCircle } from "lucide-react";
+import { Send, AlertTriangle, BellRing, CheckCircle2, Clock3, ListChecks, Loader2, Mail, MessageSquare, XCircle } from "lucide-react";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
@@ -14,6 +14,9 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ViewItem } from "../notificationShared";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
+import { Button } from "@/Components/Common/Button";
+import { usePagePermission } from "@/Hooks/usePermission";
+import { TestSendDialog } from "./TestSendDialog";
 
 // Tabs are delivery_status (the maker-checker `filter` tabs don't apply).
 const TABS = [
@@ -48,6 +51,9 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
   const { body: searchBody, latest: latestList, bind: searchBind } = useListSearch(() => setPage(1));
   const [view, setView] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  // Test send (email/SMS): Edit on Notifications.
+  const can = usePagePermission();
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     notificationAlertApi
@@ -158,6 +164,11 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
           searchPlaceholder={t("notification:searchOutbox")}
           actions={
             <div className="flex items-center gap-2">
+              {can("Edit") && (
+                <Button size="sm" icon={Send} onClick={() => setTesting(true)}>
+                  {t("campaigns:testSendButton")}
+                </Button>
+              )}
               <FilterSelect
                 size="sm"
                 className="w-32"
@@ -240,6 +251,7 @@ export function NotificationOutbox({ alertId, onAlertChange }) {
           </dl>
         </Modal>
       )}
+      {testing && <TestSendDialog onClose={() => setTesting(false)} onSent={() => void load({ silent: true })} />}
     </>
   );
 }

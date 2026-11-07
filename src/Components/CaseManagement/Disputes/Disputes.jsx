@@ -35,7 +35,11 @@ const DISPUTE_QUEUE = {
   titleKey: "disputesTitle",
   subtitleKey: "disputesSubtitle",
   emptyHintKey: "noDisputesHint",
-  columns: (t) => [{ key: "rrn", label: t("rrn"), render: (c) => <RrnLink rrn={c.rrn} /> }],
+  columns: (t) => [
+    { key: "rrn", label: t("rrn"), render: (c) => <RrnLink rrn={c.rrn} /> },
+    // Raised by the daily DISPUTE_ESCALATION job from the Dispute Settings matrix (0 = none).
+    { key: "escalation_level", label: t("ops:escalationLevel"), render: (c) => (Number(c.escalation_level) > 0 ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">{t("ops:escalationLevelN", { level: c.escalation_level })}</span> : <span className="text-xs text-muted-foreground">—</span>) },
+  ],
   HeaderAction: RaiseDisputeButton,
   TopPanel: DisputeTransaction,
 };

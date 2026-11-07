@@ -17,9 +17,13 @@ export const issuanceGroupsApi = cardSetup(API_ENDPOINTS.CARD.ISSUANCE_GROUP);
 export const cardNumberLayoutsApi = calls(API_ENDPOINTS.CARD.NUMBER_LAYOUT, [...SETUP, "preview"]);
 
 // Operations: Cards (198), Card Requests (199), Card Orders (200), Card Stock (201).
-export const cardsApi = calls(API_ENDPOINTS.CARD.INSTANCE, ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue"]);
+export const cardsApi = calls(API_ENDPOINTS.CARD.INSTANCE, ["options", "list", "get", "issue", "activate", "status", "pin_clear", "reissue", "controls", "controls_set", "reveal_start", "reveal"]);
 export const cardRequestsApi = calls(API_ENDPOINTS.CARD.REQUEST, ["list", "get", "add", "accept", "reject", "deliver"]);
 export const cardOrdersApi = calls(API_ENDPOINTS.CARD.ORDER, ["options", "holders", "holder_wallets", "list", "get", "add", "auth", "deauth", "cancel", "emboss", "receive", "receive_auth", "receive_deauth"]);
+// Card Returns (252): a holder sends instant cards back; a checker decides each card.
+export const cardReturnsApi = calls(API_ENDPOINTS.CARD.RETURN, ["list", "get", "add", "auth"]);
+// Card Reports (253): stock by holder, cards by status group, cards expiring soon.
+export const cardReportsApi = { ...calls(API_ENDPOINTS.CARD.REPORT, ["stock", "status", "expiring"]), listPath: `${API_ENDPOINTS.CARD.REPORT}/status` };
 export const cardStockApi = calls(API_ENDPOINTS.CARD.STOCK, ["options", "list", "assign", "issue"]);
 // PRE Files (158): one emboss file from cards across an issuance group's orders.
 export const preFilesApi = calls(API_ENDPOINTS.CARD.PREFILE, ["list", "generate", "jobs"]);

@@ -19,6 +19,7 @@ import { MenuBadgeContext, useMenuBadges } from "./menuBadges";
 import { moduleLabel } from "@/Components/Layout/Menu/menuLabels";
 import { findMenuByPath, findModuleByDashboardPath, moduleDashboardPath } from "@/Components/Layout/Menu/menuRouteMap";
 import { filterSidebarMenus, findOrphanedMenuItems } from "./menuSearchUtils";
+import { isRightOnlyMenu } from "@/Components/Layout/Menu/menuNames";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
 
 const SIDEBAR_EXPANDED_W = 256;
@@ -91,7 +92,7 @@ export function DynamicSidebar() {
   // Only active menus are ever considered for navigation/hierarchy — a
   // menu's own status (not its actions[] status) gates visibility.
   const activeMenuArray = useMemo(
-    () => (menuArray || []).filter((item) => item?.status === 1),
+    () => (menuArray || []).filter((item) => item?.status === 1 && !isRightOnlyMenu(item)),
     [menuArray],
   );
 

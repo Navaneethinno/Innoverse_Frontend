@@ -8,6 +8,7 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
 import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { OwnerFinder } from "../InnoCBS/Deposits/TermDeposits/OpenDeposit";
+import { usePickupLocations } from "./Settings/PickupLocations";
 import { inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 
 // Pieces shared by the Card Operations screens (Cards, Card Requests, Card
@@ -175,10 +176,18 @@ export function Labelled({ label, hint, required = false, children, className })
 }
 
 // Delivery of a physical card: the mode and the address / pick-up point.
+// BRANCH_PICKUP picks one of the card pickup locations (pickup_branch_id).
 export function DeliveryFields({ modes, value, onChange }) {
-  const { t } = useTranslation("cards");
+  const { t } = useTranslation(["cards", "ops"]);
+  const pickup = usePickupLocations();
+  const showPickup = value.delivery_mode === "BRANCH_PICKUP" && pickup?.enabled;
   return (
     <div className="grid gap-3 sm:grid-cols-2">
+      {showPickup && (
+        <Labelled label={t("ops:pickupBranch")} required={pickup.required} hint={pickup.options.length ? null : t("ops:noPickup")} className="sm:col-span-2">
+          <FilterSelect value={value.pickup_branch_id ?? ""} onChange={(v) => onChange({ ...value, pickup_branch_id: String(v ?? "") })} options={[{ value: "", label: t("ops:chooseBranch") }, ...pickup.options]} />
+        </Labelled>
+      )}
       <Labelled label={t("deliveryMode")}>
         <FilterSelect value={value.delivery_mode} onChange={(v) => onChange({ ...value, delivery_mode: v })} options={(modes ?? ["BRANCH_PICKUP", "COURIER", "AGENT"]).map((m) => ({ value: m, label: cardWord(t, "opt", m) }))} />
       </Labelled>
@@ -189,3 +198,6 @@ export function DeliveryFields({ modes, value, onChange }) {
   );
 }
 
+
+// The pickup branch to send with a card request or reissue (BRANCH_PICKUP only).
+export const pickupBody = (delivery) => (delivery?.delivery_mode === "BRANCH_PICKUP" && Number(delivery.pickup_branch_id) > 0 ? { pickup_branch_id: Number(delivery.pickup_branch_id) } : {});

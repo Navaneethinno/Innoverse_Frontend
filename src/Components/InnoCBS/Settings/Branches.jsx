@@ -3,9 +3,10 @@ import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { cbsBranchesApi } from "@/Services/Accounting/accounting.api";
 import { RowsEditor } from "../Loans/loanShared";
 import { SectionScreen } from "./SectionScreen";
+import { positionOf, positionProblem } from "@/Utils/Lib/geoPosition";
 
 // A saved branch keeps its code (branches are matched by code).
-const toForm = (rows) => (rows ?? []).map((b) => ({ ...b, head_office_type: b.head_office_type ?? (b.head_office ? "OPERATIONAL" : ""), _saved: true }));
+const toForm = (rows) => (rows ?? []).map((b) => ({ ...b, latitude: b.latitude ?? "", longitude: b.longitude ?? "", head_office_type: b.head_office_type ?? (b.head_office ? "OPERATIONAL" : ""), _saved: true }));
 const toValue = (rows) =>
   rows.map((b) => ({
     code: b.code,
@@ -18,6 +19,8 @@ const toValue = (rows) =>
     // above it the branch can't close its day. "0": no limit.
     cash_holding_limit: String(b.cash_holding_limit || "0"),
     status: b.status || "OPEN",
+    // App locator position: both or neither (null clears it).
+    ...positionOf(b),
   }));
 // One head office at least, one of each type, codes once.
 function problemOf(t, rows) {
@@ -26,6 +29,8 @@ function problemOf(t, rows) {
   const types = rows.map((b) => b.head_office_type).filter(Boolean);
   if (rows.length && !types.length) return t("oneHeadOffice");
   if (new Set(types).size !== types.length) return t("headOfficeTypeOnce");
+  const position = rows.map((b) => positionProblem(t, b)).find(Boolean);
+  if (position) return position;
   return "";
 }
 
@@ -44,7 +49,7 @@ export function Branches() {
               rows={shown ?? []}
               disabled={!editing}
               onChange={setForm}
-              blank={() => ({ code: "", name: "", address: "", head_office_type: shown?.length ? "" : "OPERATIONAL", cash_holding_limit: "0", status: "OPEN" })}
+              blank={() => ({ code: "", name: "", address: "", head_office_type: shown?.length ? "" : "OPERATIONAL", cash_holding_limit: "0", status: "OPEN", latitude: "", longitude: "" })}
               addLabel={t("addBranch")}
               columns="lg:grid-cols-6"
               fields={[
@@ -53,6 +58,8 @@ export function Branches() {
                 { key: "address", label: t("address") },
                 { key: "status", label: t("status"), type: "select", options: named(data.options?.branch_statuses ?? ["OPEN", "CLOSED"], "branch_statuses") },
                 { key: "head_office_type", label: t("branchType"), type: "select", options: named(data.options?.head_office_types ?? ["", "OPERATIONAL", "ADMINISTRATIVE"], "head_office_types") },
+                { key: "latitude", label: t("campaigns:latitude"), placeholder: "-25.9653" },
+                { key: "longitude", label: t("campaigns:longitude"), placeholder: "32.5892" },
                 { key: "cash_holding_limit", label: t("cashHoldingLimit"), type: "amount", disabledIf: (r) => r.head_office_type === "ADMINISTRATIVE" },
               ]}
             />

@@ -3,7 +3,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { useServerList } from "@/Hooks/useServerList";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ban, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Timer, Unlink, XCircle } from "lucide-react";
+import { Ban, Lock, CheckCircle2, KeyRound, Link2, Pencil, Plus, Power, RotateCcw, Smartphone, Timer, Unlink, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
@@ -21,6 +21,9 @@ import { MmsStatus, mmsDate, pageOf, partyKey, partyRef } from "../mmsShared";
 import { LoadMasterKey } from "../LoadMasterKey";
 import { actorText } from "@/Utils/Lib/actor";
 import { useLatest } from "@/Hooks/useLatest";
+import { useMenuPermission } from "@/Hooks/usePermission";
+import { CloseBatchDialog } from "../Ops/TerminalBatches";
+import { errorText } from "../Ops/opsShared";
 
 // "POS terminal · PAX A920" (no make or model: just the type).
 const typeLabel = (x) => [x.terminal_type_name ?? x.terminal_type, [x.make, x.model].filter(Boolean).join(" ")].filter(Boolean).join(" · ");
@@ -35,6 +38,9 @@ export function Terminals() {
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
   const [policy, setPolicy] = useState(false);
+  // "Close batch" belongs to MMS > Terminal Batches (230, Edit).
+  const batchCan = useMenuPermission("Terminal Batches");
+  const [closing, setClosing] = useState(null);
   // TID, serial number or name.
 
   const list = useServerList({ api: terminalsApi.listPath, call: terminalsApi.list });
@@ -76,7 +82,17 @@ export function Terminals() {
       ),
     },
     { key: "last_seen_at", label: t("lastSeen"), render: (r) => <span className="whitespace-nowrap text-xs">{mmsDate(r.last_seen_at)}</span> },
-    { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setViewing(r)} /> },
+    { key: "actions", label: t("common:actions"), sortable: false, render: (r) => (
+        <div className="flex items-center gap-1">
+          <RowActions buttons={{ view: true }} onView={() => setViewing(r)} />
+          {r.status === "ACTIVE" && batchCan("View") && (
+            <Button size="sm" variant="secondary" icon={Lock} disabled={!batchCan("Edit")} disabledReason={t("ops:whyNoPermission")} onClick={() => setClosing(r)}>
+              {t("ops:closeBatch")}
+            </Button>
+          )}
+        </div>
+      ),
+    },
   ];
 
   const listActions = (
@@ -116,6 +132,7 @@ export function Terminals() {
         />
       )}
       {editing && <TerminalForm terminal={editing.id ? editing : null} onClose={() => setEditing(null)} onSaved={load} />}
+      {closing && <CloseBatchDialog terminalId={closing.id} tid={closing.tid} onClose={() => setClosing(null)} onDone={load} />}
       {policy && <PosPolicyDialog canEdit={can("Edit")} onClose={() => setPolicy(false)} />}
     </div>
   );
@@ -129,6 +146,8 @@ function PosPolicyDialog({ canEdit, onClose }) {
   const [instId, setInstId] = useState("");
   const [policy, setPolicy] = useState(null);
   const [seconds, setSeconds] = useState("");
+  // Monitoring and batch fields (minutes; batch_close_time "HH:MM" or "" = off).
+  const [extra, setExtra] = useState({ offline_alert_minutes: "", heartbeat_logout_minutes: "", health_log_minutes: "", batch_close_time: "" });
   const [busy, setBusy] = useState(false);
   const ready = !isPlatform || Boolean(instId);
 
@@ -141,20 +160,34 @@ function PosPolicyDialog({ canEdit, onClose }) {
         const row = rowsOf(r)[0] ?? null;
         setPolicy(row);
         setSeconds(String(row?.idle_seconds ?? row?.default_seconds ?? ""));
+        setExtra({
+          offline_alert_minutes: String(row?.offline_alert_minutes ?? 30),
+          heartbeat_logout_minutes: String(row?.heartbeat_logout_minutes ?? 15),
+          health_log_minutes: String(row?.health_log_minutes ?? 15),
+          batch_close_time: row?.batch_close_time ?? "",
+        });
       })
       .catch((error) => notifications.error(error.message));
   }, [ready, isPlatform, instId]);
 
   const value = Number(seconds);
-  const bad = !(Number.isInteger(value) && value >= 60 && value <= 86400);
+  const inRange = (v, min) => Number.isInteger(Number(v)) && Number(v) >= min && Number(v) <= 1440;
+  const extraBad = !inRange(extra.offline_alert_minutes, 5) || !inRange(extra.heartbeat_logout_minutes, 2) || !inRange(extra.health_log_minutes, 1) || (extra.batch_close_time !== "" && !/^([01]\d|2[0-3]):[0-5]\d$/.test(extra.batch_close_time));
+  const idleBad = !(Number.isInteger(value) && value >= 60 && value <= 86400);
+  const bad = idleBad || extraBad;
   const save = async () => {
     setBusy(true);
     try {
-      const r = await terminalsApi.setPosPolicy({ inst_profile_id: isPlatform ? Number(instId) : policy.inst_profile_id, idle_seconds: value });
+      const r = await terminalsApi.setPosPolicy({ inst_profile_id: isPlatform ? Number(instId) : policy.inst_profile_id, idle_seconds: value,
+        offline_alert_minutes: Number(extra.offline_alert_minutes),
+        heartbeat_logout_minutes: Number(extra.heartbeat_logout_minutes),
+        health_log_minutes: Number(extra.health_log_minutes),
+        batch_close_time: extra.batch_close_time,
+      });
       if (r?.message) notifications.success(r.message);
       onClose();
     } catch (error) {
-      notifications.error(error.message);
+      notifications.error(errorText(t, error));
     } finally {
       setBusy(false);
     }
@@ -185,11 +218,31 @@ function PosPolicyDialog({ canEdit, onClose }) {
           <label className={labelClass}>
             {t("posIdleSeconds")} <span className="text-red-500">*</span>
             <input className={`${inputClass} mt-1.5`} inputMode="numeric" disabled={!policy || !canEdit} value={seconds} onChange={(e) => setSeconds(e.target.value.replace(/\D/g, ""))} />
-            <span className={`mt-1 block text-[11px] font-normal ${seconds && bad ? "text-red-600" : "text-muted-foreground"}`}>
-              {seconds && !bad ? t("posIdleMinutes", { minutes: Math.round((value / 60) * 10) / 10 }) : t("posIdleRange")}
+            <span className={`mt-1 block text-[11px] font-normal ${seconds && idleBad ? "text-red-600" : "text-muted-foreground"}`}>
+              {seconds && !idleBad ? t("posIdleMinutes", { minutes: Math.round((value / 60) * 10) / 10 }) : t("posIdleRange")}
               {policy && ` · ${t("posIdleDefault", { seconds: policy.default_seconds })}`}
             </span>
           </label>
+        )}
+        {ready && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["offline_alert_minutes", 5],
+              ["heartbeat_logout_minutes", 2],
+              ["health_log_minutes", 1],
+            ].map(([key, min]) => (
+              <label key={key} className={labelClass}>
+                {t(`ops:policy_${key}`)}
+                <input className={`${inputClass} mt-1.5`} inputMode="numeric" disabled={!policy || !canEdit} value={extra[key]} onChange={(e) => setExtra((x) => ({ ...x, [key]: e.target.value.replace(/\D/g, "") }))} />
+                <span className={`mt-1 block text-[11px] font-normal ${extra[key] && !inRange(extra[key], min) ? "text-red-600" : "text-muted-foreground"}`}>{t(`ops:policyHint_${key}`, { min })}</span>
+              </label>
+            ))}
+            <label className={labelClass}>
+              {t("ops:policy_batch_close_time")}
+              <input type="time" className={`${inputClass} mt-1.5`} disabled={!policy || !canEdit} value={extra.batch_close_time} onChange={(e) => setExtra((x) => ({ ...x, batch_close_time: e.target.value }))} />
+              <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("ops:policyHint_batch_close_time")}</span>
+            </label>
+          </div>
         )}
         {actorText(policy, "updated_by", "") && <p className="text-[11px] text-muted-foreground">{t("posIdleUpdated", { by: actorText(policy, "updated_by", ""), at: mmsDate(policy.updated_at) })}</p>}
       </div>

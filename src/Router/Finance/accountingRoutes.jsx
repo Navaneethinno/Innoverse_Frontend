@@ -10,6 +10,8 @@ const PAGES = {
   manualjournal: page(() => import("@/Components/Finance/ManualJournal.jsx"), "ManualJournal"),
   glreports: page(() => import("@/Components/Finance/GlReports.jsx"), "GlReports"),
   accountingsettings: page(() => import("@/Components/Finance/Settings/AccountingSettings.jsx"), "AccountingSettings"),
+  glbalancealerts: page(() => import("@/Components/Finance/Settings/GlBalanceAlerts.jsx"), "GlBalanceAlerts"),
+  bulkpayouts: page(() => import("@/Components/Finance/BulkPayouts/BulkPayouts.jsx"), "BulkPayouts"),
   accountingperiods: page(() => import("@/Components/Finance/Settings/AccountingPeriods.jsx"), "AccountingPeriods"),
 };
 

@@ -3,6 +3,14 @@
 // still refuses the data. Notifications is left out: /notifications is also
 // every user's own inbox.
 export const SCREEN_MENUS = [
+  "Agent Float Limits",
+  "Customer Blocks",
+  "Dispute Settings",
+  "POS Profile Templates",
+  "Product Catalogue",
+  "SAF Queue",
+  "Terminal Batches",
+  "Terminal Monitor",
   "AML Cases",
   "AML Score Breakdown",
   "AML Setup",
@@ -31,6 +39,11 @@ export const SCREEN_MENUS = [
   "Card Products",
   "Card Requests",
   "Card Stock",
+  "Card Returns",
+  "Card Reports",
+  "Bulk Payouts",
+  "Merchant Bulk Payouts",
+  "GL Balance Alerts",
   "Cards",
   "Channels",
   "Chart of Accounts",
@@ -149,3 +162,8 @@ export const SCREEN_MENUS = [
   "Visa Type",
   "Whitelist",
 ];
+
+// Menus that are rights, not screens (granted on a profile, never shown in
+// the sidebar): Card Number Reveal (260).
+export const RIGHT_ONLY_MENUS = ["card number reveal"];
+export const isRightOnlyMenu = (menu) => RIGHT_ONLY_MENUS.includes(String(menu?.menu_name ?? "").trim().toLowerCase());

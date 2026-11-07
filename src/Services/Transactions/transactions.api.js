@@ -36,3 +36,9 @@ export const extProvidersApi = calls(API_ENDPOINTS.GLOBAL.EXT_PROVIDER, ["option
 // where a transaction would go on the live routing; decisions: the log;
 // validate: the warnings an unsaved setup would be refused for (saves nothing).
 export const routingApi = { ...calls(API_ENDPOINTS.GLOBAL.ROUTING, ["options", "list", "pending", "get", "audit", "add", "edit", "submit", "auth", "deauth", "deactivate", "reactivate", "delete", "health", "health_set", "simulate", "decisions", "validate"]), decisionsPath: API_ENDPOINTS.GLOBAL.ROUTING_DECISIONS };
+
+// Finance > Bulk Payouts (menu 222): a payout file checked, filed, then paid
+// in the background once a checker authorises it.
+export const bulkPayoutsApi = calls(API_ENDPOINTS.TRANSACTION.BULK_PAYOUT, ["template", "check", "add", "list", "get", "auth", "deauth", "cancel", "retry", "result_file"]);
+// MMS > Merchant Bulk Payouts (menu 223): the merchants own batches, read only.
+export const merchantBulkPayoutsApi = calls(API_ENDPOINTS.MERCHANT_ADMIN.BULK_PAYOUT, ["list", "get", "result_file"]);

@@ -23,4 +23,8 @@ export const notificationAlertApi = {
 export const notificationOutboxApi = {
   listPath: API_ENDPOINTS.NOTIFICATION.OUTBOX_LIST,
   list: (payload = {}) => request(API_ENDPOINTS.NOTIFICATION.OUTBOX_LIST, payload),
+  // {channel EMAIL|SMS, recipient, wait_seconds, inst_profile_id (platform
+  // users)} -> outbox_id, delivery_status, attempts, last_error, sent_time,
+  // settled. 5 per user per 10 minutes (429 notification.test_rate_limited).
+  testSend: (payload) => request(API_ENDPOINTS.NOTIFICATION.OUTBOX_TEST_SEND, payload),
 };

@@ -21,7 +21,7 @@ import { DragGrip, moveItem, useDragReorder } from "@/Components/Common/dragReor
 import { cn } from "@/Utils/Lib/utils";
 import { UsesStep } from "./UsesStep";
 import { ConditionRows, cleanCondition } from "./ConditionRows";
-import { CheckpointsStep, FlowsStep } from "./FlowsCheckpoints";
+import { CheckpointsStep, DecisionRulesStep, FlowsStep } from "./FlowsCheckpoints";
 import { UntranslatedConfirm, untranslatedOf } from "./Translations";
 
 import { Button } from "@/Components/Common/Button";
@@ -36,7 +36,7 @@ import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 // Flows and checkpoints (Admin handoff "onboarding flows and checkpoints")
 // follow the rules; a form saved before them has neither key.
 const STEPS = ["basics", "sections", "rules", "flows", "checkpoints", "uses", "review"];
-const EMPTY_FORM = { sections: [], rules: [], flows: [], checkpoints: [], uses: {}, guardian: { min_kyc_level: 0 } };
+const EMPTY_FORM = { sections: [], rules: [], flows: [], checkpoints: [], decision_rules: [], uses: {}, guardian: { min_kyc_level: 0 } };
 
 const ACTIONS = ["SHOW", "HIDE", "REQUIRE", "OPTIONAL"];
 
@@ -280,7 +280,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
         if (cancelled) return;
         const d = data.definition ?? definition;
         setDef(d);
-        setForm({ ...EMPTY_FORM, ...(data.form ?? {}), flows: data.form?.flows ?? [], checkpoints: data.form?.checkpoints ?? [], guardian: data.form?.guardian ?? EMPTY_FORM.guardian });
+        setForm({ ...EMPTY_FORM, ...(data.form ?? {}), flows: data.form?.flows ?? [], checkpoints: data.form?.checkpoints ?? [], decision_rules: data.form?.decision_rules ?? [], guardian: data.form?.guardian ?? EMPTY_FORM.guardian });
         setSnapshot(data.snapshot ?? null);
         setBasics({
           minor_age_years: d.minor_age_years ?? 18,
@@ -402,6 +402,14 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
       conditions: (c.conditions ?? []).map(cleanCondition),
       // Sent as set: an EDIT with no section comes back as a problem.
       actions: (c.actions ?? []).map((a) => ((a.code ?? "EDIT") === "EDIT" ? { code: "EDIT", section: a.section ?? "" } : { code: a.code })),
+    })),
+    // At submission: a rule that holds sends to review or rejects.
+    decision_rules: (form.decision_rules ?? []).map((d) => ({
+      code: d.code,
+      name: d.name,
+      enabled: d.enabled !== false,
+      conditions: (d.conditions ?? []).map(cleanCondition),
+      outcome: d.outcome === "REJECT" ? "REJECT" : "REVIEW",
     })),
     guardian: { min_kyc_level: Number(form.guardian?.min_kyc_level) || 0 },
     // A channel left out uses the scheme's entry level.
@@ -678,6 +686,7 @@ export function DefinitionFormWizard({ kind, api, ops, definition, forceReadOnly
           )}
 
           {step === "flows" && <FlowsStep t={t} flows={form.flows} onChange={(flows) => change({ flows })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
+          {step === "checkpoints" && <DecisionRulesStep t={t} rules={form.decision_rules} onChange={(decision_rules) => change({ decision_rules })} fields={formFields} readOnly={readOnly} />}
 
           {step === "checkpoints" && <CheckpointsStep t={t} checkpoints={form.checkpoints} onChange={(checkpoints) => change({ checkpoints })} fields={formFields} sections={sectionHeadings} readOnly={readOnly} problems={problems} />}
 

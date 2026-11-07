@@ -3,7 +3,7 @@ import { countryNameOf } from "../Shared/amlShared";
 
 export const ENTITY_TYPES = ["PERSON", "ORGANIZATION"];
 export const REASONS = ["FRAUD", "REGULATOR", "COURT_ORDER", "INTERNAL", "OTHER"];
-export const IDENTIFIER_TYPES = ["NATIONAL_ID", "PASSPORT", "TRADE_LICENCE", "TAX_ID", "PHONE", "EMAIL", "ACCOUNT", "OTHER"];
+export const IDENTIFIER_TYPES = ["NATIONAL_ID", "PASSPORT", "TRADE_LICENCE", "TAX_ID", "PHONE", "EMAIL", "ACCOUNT", "FACE", "OTHER"];
 export const MAX_ALIASES = 50;
 export const MAX_IDENTIFIERS = 20;
 

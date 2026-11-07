@@ -23,6 +23,7 @@ void i18n
     fallbackLng: "en",
     defaultNS: "common",
     ns: [
+      "campaigns",
       "common",
       "cards",
       "auth",
@@ -75,6 +76,8 @@ void i18n
       "labels",
       "masters",
       "appVersions",
+      "ops",
+      "paysePay",
       "keyCustody",
       "corebank",
     ],

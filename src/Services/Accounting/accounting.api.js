@@ -82,3 +82,10 @@ export const accountingPeriodsApi = calls(API_ENDPOINTS.ACCOUNTING.PERIOD, ["lis
 export const tellerApi = calls(API_ENDPOINTS.TELLER.ROOT, ["list", "get", "add", "edit", "deactivate", "reactivate", "open", "close", "deposit", "withdraw", "loan_repay", "transfer_request", "transfer_approve", "transfer_reject", "transfer_cancel", "transfers", "transfer_get", "close_approve", "close_reject", "proof", "vault_count", "vault_counts", "eod_report", "day_close", "day_reopen"]);
 // A till session's proof sheet as Excel or CSV.
 export const tellerProofExport = (body) => downloadAttachment(API_ENDPOINTS.TELLER.PROOF_EXPORT, body, `proof.${body.format === "CSV" ? "csv" : "xlsx"}`);
+
+// GL Balance Alerts (menu 219): a low and/or high limit on one GL in one
+// currency; maker-checker like Fee Schedules. `alerts` is the history of
+// alerts raised.
+export const glThresholdsApi = calls(API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD, ["options", "list", "pending", "get", "audit", "alerts", "add", "edit", "delete", "deactivate", "reactivate", "auth", "deauth"]);
+export const glThresholdAlertsPath = `${API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD}/alerts`;
+export const glThresholdPendingPath = `${API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD}/pending`;

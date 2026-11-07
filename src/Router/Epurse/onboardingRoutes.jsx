@@ -71,6 +71,10 @@ onboardingRoutes.push({ path: "customercases", element: pageElement(CustomerCase
 const Disputes = lazy(() => import("@/Components/CaseManagement/Disputes/Disputes").then((m) => ({ default: m.Disputes })));
 onboardingRoutes.push({ path: "disputes", element: pageElement(Disputes) }, { path: "disputes/:id", element: pageElement(Disputes) });
 
+// EPURSE > Bill Autopay (menu 247): settings and schedules.
+const BillAutopay = lazy(() => import("@/Components/GlobalSettings/PaysePay/BillAutopay.jsx").then((m) => ({ default: m.BillAutopay })));
+onboardingRoutes.push({ path: "billautopay", element: pageElement(BillAutopay) });
+
 // Term Deposits (Admin Portal: Term Deposits handoff): TERM DEPOSITS >
 // Deposit Products (180) and Deposits (181), EPURSE > Balance Adjustments
 // (182), GLOBAL SETTINGS > Scheduled Jobs (183).
@@ -117,7 +121,10 @@ onboardingRoutes.push(
     cardorders: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.CardOrders }))),
     receivecards: lazy(() => import("@/Components/InnoCMS/CardOrders.jsx").then((m) => ({ default: m.ReceiveCards }))),
     cardstock: lazy(() => import("@/Components/InnoCMS/CardStock.jsx").then((m) => ({ default: m.CardStock }))),
+    cardreturns: lazy(() => import("@/Components/InnoCMS/CardReturns.jsx").then((m) => ({ default: m.CardReturns }))),
+    cardreports: lazy(() => import("@/Components/InnoCMS/CardReports.jsx").then((m) => ({ default: m.CardReports }))),
     prefiles: lazy(() => import("@/Components/InnoCMS/PreFiles.jsx").then((m) => ({ default: m.PreFiles }))),
+    cardriskrules: lazy(() => import("@/Components/GlobalSettings/PaysePay/CardRiskRules.jsx").then((m) => ({ default: m.CardRiskRules }))),
   }).flatMap(([path, Page]) => [
     { path, element: pageElement(Page) },
     { path: `${path}/:id`, element: pageElement(Page) },

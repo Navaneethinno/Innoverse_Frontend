@@ -25,7 +25,9 @@ const SCREENING = ["screening_name", "screening_birth_date", "screening_country"
 const DUPLICATE = ["duplicate_key", "duplicate_key_2", "duplicate_key_3"];
 const KYC = ["kyc_document_type", "kyc_document_front", "kyc_document_back"];
 const RELATED = ["related_party_name", "related_party_role", "related_party_birth_date", "related_party_country", "related_party_pep"];
-const RISK_ROLES = ["pep", "residence_country", "operating_country"];
+// mcc: the merchant form's MCC field (TEXT or a list), read by the risk
+// setup's @mcc criterion.
+const RISK_ROLES = ["pep", "residence_country", "operating_country", "mcc"];
 // Every role a question below asks about; any other the API lists gets a plain picker.
 const ASKED = new Set(["display_name", "contact_phone", "contact_email", "residency", "guardian_phone", "guardian_relation", ...RISK_ROLES]);
 const SUBMIT_CHANNELS = ["APP", "WEB", "USSD"];
@@ -475,6 +477,9 @@ export function UsesStep({ kind, fields, uses, onChange, readOnly, problems, gua
           <Pick label={roleText("pep").label} optional={roleText("pep").description} fields={ofType(["YES_NO"])} value={get("pep")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ pep: keys })} />
           <Pick label={roleText("residence_country").label} optional={roleText("residence_country").description} fields={countries} value={get("residence_country")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ residence_country: keys })} />
         </div>
+      )}
+      {roles.some((r) => r.role === "mcc") && (
+        <Pick label={roleText("mcc").label} optional={roleText("mcc").description} fields={ofType(["TEXT", ...LISTS])} value={get("mcc")[0]} disabled={readOnly} emptyLabel={t("usesNotUsed")} onChange={(keys) => set({ mcc: keys })} />
       )}
     </Card>
   );

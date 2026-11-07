@@ -174,7 +174,7 @@ function UploadDialog({ onClose, onDone }) {
 // Make a date's switch file now, for a SWITCH source generated from the ledger.
 function GenerateDialog({ onClose, onDone }) {
   const { t } = useTranslation("recon");
-  const sources = useChoices(reconSourcesApi.list).filter((s) => s.generated_from === "LEDGER" && s.status === "ACTIVE");
+  const sources = useChoices(reconSourcesApi.list).filter((s) => ["LEDGER", "POS_BATCH"].includes(s.generated_from) && s.status === "ACTIVE");
   const [sourceId, setSourceId] = useState("");
   const [date, setDate] = useState("");
   const [busy, setBusy] = useState(false);

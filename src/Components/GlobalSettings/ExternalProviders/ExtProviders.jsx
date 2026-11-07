@@ -57,11 +57,22 @@ const toBody = (c) => ({
     country_id: Number(p.country_id) || 0,
     ...(p.kind === "BANK" ? { account_format: formatOf(p) } : {}),
     ...(p.kind === "BILLER" ? { biller: billerBody(p.biller) } : {}),
+    // Call tuning (ext.tuning_invalid): timeout_ms 1000-12000 (default 10000),
+    // retries 0-2 (lookup and status calls only, never push/pull).
+    settings: { ...(p.settings ?? {}), timeout_ms: tuningOf(p).timeout_ms, retries: tuningOf(p).retries },
   })),
   groups: (c.groups ?? []).map((g) => ({ code: code(g.code), name: str(g.name, ""), providers: g.providers ?? [], active: Boolean(g.active) })),
 });
 
-const providerReady = (p) => code(p.code) && str(p.name, "") && p.currency_code && (!usesPrefixes(p) || p.prefixes?.length) && (p.kind !== "BILLER" || billerReady(p.biller));
+const tuningOf = (p) => ({
+  timeout_ms: String(p.timeout_ms ?? "").trim() === "" ? 10000 : Number(p.timeout_ms),
+  retries: String(p.retries ?? "").trim() === "" ? 0 : Number(p.retries),
+});
+const tuningOk = (p) => {
+  const { timeout_ms, retries } = tuningOf(p);
+  return timeout_ms >= 1000 && timeout_ms <= 12000 && retries >= 0 && retries <= 2;
+};
+const providerReady = (p) => tuningOk(p) && code(p.code) && str(p.name, "") && p.currency_code && (!usesPrefixes(p) || p.prefixes?.length) && (p.kind !== "BILLER" || billerReady(p.biller));
 
 // One tab per provider kind (the options' order, then any other kind a
 // provider has), with how many providers each holds.
@@ -333,7 +344,10 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
     if (!options || started.current) return;
     started.current = true;
     const source = setup ? (setup.draft ?? setup.pending?.config ?? setup.config) : null;
-    setConfig(structuredClone(source ?? { providers: [], groups: [] }));
+    const loaded = structuredClone(source ?? { providers: [], groups: [] });
+    // The tuning lives in each provider's settings; edit it as flat fields.
+    loaded.providers = (loaded.providers ?? []).map((p) => ({ ...p, timeout_ms: p.timeout_ms ?? p.settings?.timeout_ms ?? "", retries: p.retries ?? p.settings?.retries ?? "" }));
+    setConfig(loaded);
   }, [options, setup]);
 
   const { tab: kind, setTab: setKind, tabs: kindTabs } = useKindTabs(config?.providers ?? [], options?.kinds);
@@ -417,6 +431,8 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
             { key: "min_amount", label: t("minAmount"), type: "amount" },
             { key: "max_amount", label: t("maxAmount"), type: "amount" },
             { key: "priority", label: t("priority"), type: "int" },
+            { key: "timeout_ms", label: t("campaigns:timeoutMs"), type: "int", placeholder: "10000" },
+            { key: "retries", label: t("campaigns:retries"), type: "int", placeholder: "0" },
             { key: "allow_push", label: t("send"), type: "bool" },
             { key: "allow_pull", label: t("topUp"), type: "bool", showIf: canPull },
             { key: "name_lookup", label: t("nameLookup"), type: "bool", showIf: canLookUp },
@@ -432,6 +448,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
                 </label>
               )}
               {provider.kind === "BILLER" && <BillerEditor biller={provider.biller} onChange={(biller) => patch({ biller })} />}
+              {!tuningOk(provider) && <p className="mt-2 text-[11px] text-red-600">{t("campaigns:tuningInvalid")}</p>}
               {provider.connection_only && <p className="mt-2 text-[11px] text-muted-foreground">{t("connectionOnlyHint")}</p>}
             </>
           )}

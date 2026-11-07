@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, GitBranch, Plus, Signpost, Trash2 } from "lucide-react";
+import { ChevronDown, GitBranch, Plus, Scale, Signpost, Trash2 } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { cn } from "@/Utils/Lib/cn";
@@ -286,6 +286,73 @@ export function CheckpointsStep({ checkpoints, onChange, fields, sections, readO
           variant="dashed" size="sm" className="flex w-fit"
         >
           <Plus size={13} /> {t("formBuilder:addCheckpoint")}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// --- Decision rules --------------------------------------------------------
+
+// form.decision_rules, beside the checkpoints: at submission a rule whose
+// conditions hold sends the customer to review (REVIEW) or rejects them
+// (REJECT), reason DECISION_RULE.
+const DECISION_OUTCOMES = ["REVIEW", "REJECT"];
+
+export function DecisionRulesStep({ rules, onChange, fields, readOnly, t }) {
+  const list = rules ?? [];
+  const [fresh, setFresh] = useState(() => new Set());
+  const setAt = (i, patch) => onChange(list.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="mt-6 flex flex-col gap-3 border-t border-dashed pt-4">
+      <p className="text-sm font-bold text-slate-800">{t("campaigns:decisionRules")}</p>
+      <p className="text-xs text-muted-foreground">{t("campaigns:decisionRulesHint")}</p>
+      {!list.length && <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">{t("campaigns:noDecisionRules")}</p>}
+      {list.map((rule, i) => {
+        const set = (patch) => setAt(i, patch);
+        return (
+          <ItemCard
+            key={i}
+            icon={Scale}
+            t={t}
+            readOnly={readOnly}
+            startOpen={fresh.has(i)}
+            invalid={!rule.code || !CODE.test(rule.code) || !(rule.conditions ?? []).length}
+            title={[rule.code, rule.name].filter(Boolean).join(" · ") || t("campaigns:decisionRuleN", { n: i + 1 })}
+            summary={[t(`campaigns:decisionOutcome_${rule.outcome ?? "REVIEW"}`), rule.enabled === false && t("formBuilder:disabled")].filter(Boolean).join(" · ")}
+            onRemove={() => onChange(list.filter((_, j) => j !== i))}
+          >
+            <CodeName
+              item={rule}
+              set={set}
+              disabled={readOnly}
+              t={t}
+              extra={
+                <label className="text-xs font-semibold text-slate-700">
+                  {t("formBuilder:outcome")}
+                  <FilterSelect className="mt-1.5" disabled={readOnly} value={rule.outcome ?? "REVIEW"} onChange={(outcome) => set({ outcome })} options={DECISION_OUTCOMES.map((o) => ({ value: o, label: t(`campaigns:decisionOutcome_${o}`) }))} />
+                </label>
+              }
+            />
+            <CheckboxPill className="self-start" checked={rule.enabled !== false} disabled={readOnly} onChange={(on) => set({ enabled: on })} label={t("formBuilder:enabled")} />
+            <div>
+              <Label>{t("campaigns:decisionWhen")}</Label>
+              <ConditionRows t={t} disabled={readOnly} fields={fields} conditions={rule.conditions} onChange={(conditions) => set({ conditions })} />
+            </div>
+          </ItemCard>
+        );
+      })}
+      {!readOnly && (
+        <Button
+          onClick={() => {
+            setFresh((s) => new Set(s).add(list.length));
+            onChange([...list, { code: "", name: "", enabled: true, outcome: "REVIEW", conditions: [] }]);
+          }}
+          variant="dashed"
+          size="sm"
+          className="flex w-fit"
+        >
+          <Plus size={13} /> {t("campaigns:addDecisionRule")}
         </Button>
       )}
     </div>

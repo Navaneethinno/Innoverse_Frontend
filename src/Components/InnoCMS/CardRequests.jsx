@@ -18,7 +18,7 @@ import { cardOrdersApi, cardRequestsApi, cardStockApi, cardsApi, idempotencyKey 
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../InnoCBS/Deposits/depositShared";
-import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord } from "./cardOpsShared";
+import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord, pickupBody } from "./cardOpsShared";
 import { actorText } from "@/Utils/Lib/actor";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
@@ -309,6 +309,7 @@ function NewCardRequest({ options, onClose, onDone }) {
         entity_id: holder.entity_id,
         ...(name.trim() ? { name_on_card: name.trim() } : {}),
         delivery_mode: delivery.delivery_mode,
+        ...pickupBody(delivery),
         ...(delivery.delivery_ref.trim() ? { delivery_ref: delivery.delivery_ref.trim() } : {}),
         idempotency_key: key,
       });

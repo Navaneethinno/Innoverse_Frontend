@@ -21,8 +21,9 @@ import { NewRequest } from "@/Components/Finance/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../InnoCBS/Deposits/depositShared";
-import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord } from "./cardOpsShared";
+import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord, pickupBody } from "./cardOpsShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
+import { CardControls, RevealDialog } from "./cardInstanceExtras";
 
 const allows = (product, key, value) => String(product?.[key] ?? "").split(",").includes(value);
 
@@ -209,6 +210,8 @@ function CardView({ id, options, onBack, onOpen }) {
   const can = usePagePermission();
   const canRequest = useMenuPermission("Card Requests");
   const canTxn = useMenuPermission("Transactions");
+  // Card Number Reveal (menu 260) is a right, not a screen.
+  const canReveal = useMenuPermission("Card Number Reveal");
   const [card, setCard] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -270,15 +273,18 @@ function CardView({ id, options, onBack, onOpen }) {
   }
 
   const a = card.actions ?? {};
+  // What staff may change the status to: the card's own list, else the options' status_actions.
+  const statusChanges = card.status_changes ?? options.status_actions?.[card.ops_status] ?? [];
   const product = options.card_products?.find((p) => p.id === card.card_product_id);
   const issued = card.issuance_status === "ISSUED";
   const buttons = [
     a.activate && can("Change Status") && { key: "activate", label: t("activate"), icon: Power, variant: "primary", run: () => setDialog("activate") },
-    a.status && can("Change Status") && card.status_changes?.length > 0 && { key: "status", label: t("changeStatus"), icon: ShieldAlert, run: () => setDialog("status") },
+    a.status && can("Change Status") && statusChanges.length > 0 && { key: "status", label: t("changeStatus"), icon: ShieldAlert, run: () => setDialog("status") },
     a.pin_clear && can("Edit") && { key: "pin", label: t("clearPin"), icon: KeyRound, run: () => setDialog("pin") },
     a.load && canTxn("Add") && { key: "load", label: t("load"), icon: ArrowDownToLine, variant: "primary", run: () => setDialog("CARD_LOAD") },
     a.unload && canTxn("Add") && { key: "unload", label: t("unload"), icon: ArrowUpFromLine, run: () => setDialog("CARD_UNLOAD") },
     a.reissue && can("Add") && { key: "reissue", label: t("reissue"), icon: Repeat, run: () => setDialog("reissue") },
+    canReveal("View") && { key: "reveal", label: t("rev_title"), icon: KeyRound, run: () => setDialog("reveal") },
     issued && card.form_factor === "VIRTUAL" && product?.allow_virtual_to_physical && canRequest("Add") && { key: "plastic", label: t("orderPlastic"), icon: Truck, run: () => setDialog("plastic") },
   ];
   const yes = (v) => t(v ? "yes" : "no");
@@ -339,6 +345,8 @@ function CardView({ id, options, onBack, onOpen }) {
         />
       </Section>
 
+      <CardControls card={card} canEdit={can("Edit")} />
+
       <Section title={t("history")} collapsible>
         <AuditTimeline
           audit={(card.history ?? []).map((h) => ({
@@ -357,7 +365,8 @@ function CardView({ id, options, onBack, onOpen }) {
       </Section>
 
       <ConfirmDialog open={dialog === "activate"} title={t("activateTitle")} description={t("activateHint")} confirmLabel={t("activate")} pending={busy} onClose={() => setDialog(null)} onConfirm={() => act(() => cardsApi.activate({ id }))} />
-      {dialog === "status" && <StatusDialog card={card} busy={busy} onClose={() => setDialog(null)} onSave={(to, reason) => act(() => cardsApi.status({ id, to, reason }))} />}
+      {dialog === "reveal" && <RevealDialog card={card} onClose={() => setDialog(null)} />}
+      {dialog === "status" && <StatusDialog card={{ ...card, status_changes: statusChanges }} busy={busy} onClose={() => setDialog(null)} onSave={(to, reason) => act(() => cardsApi.status({ id, to, reason }))} />}
       {dialog === "pin" && (
         <NarrationDialog title={t("clearPinTitle")} hint={t("clearPinHint")} label={t("reason")} confirmLabel={t("clearPin")} variant="danger" required busy={busy} onClose={() => setDialog(null)} onSave={(reason) => act(() => cardsApi.pin_clear({ id, reason }))} />
       )}
@@ -455,7 +464,7 @@ function ReissueDialog({ card, onClose, onDone }) {
         reason,
         idempotency_key: key,
         ...(name.trim() ? { name_on_card: name.trim() } : {}),
-        ...(physical ? { delivery_mode: delivery.delivery_mode, ...(delivery.delivery_ref.trim() ? { delivery_ref: delivery.delivery_ref.trim() } : {}) } : {}),
+        ...(physical ? { delivery_mode: delivery.delivery_mode, ...pickupBody(delivery), ...(delivery.delivery_ref.trim() ? { delivery_ref: delivery.delivery_ref.trim() } : {}) } : {}),
         ...(narration.trim() ? { narration: narration.trim() } : {}),
       });
       notifications.success(response?.message ?? t("reissued"));

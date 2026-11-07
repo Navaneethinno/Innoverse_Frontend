@@ -23,7 +23,27 @@ const AppVersions = lazy(() => import("@/Components/GlobalSettings/AppVersions/A
 const ApprovalPolicies = lazy(() => import("@/Components/GlobalSettings/Approvals/ApprovalPolicies.jsx").then((m) => ({ default: m.ApprovalPolicies })));
 const ApprovalDelegations = lazy(() => import("@/Components/GlobalSettings/Approvals/ApprovalDelegations.jsx").then((m) => ({ default: m.ApprovalDelegations })));
 
+// GLOBAL SETTINGS > Request Money & QR (220), Payment Requests (221), Device
+// Security (224), Bound Devices (225), Guest Payments (244), Partner API (261).
+const RequestMoney = lazy(() => import("@/Components/GlobalSettings/PaysePay/RequestMoney.jsx").then((m) => ({ default: m.RequestMoney })));
+const PaymentRequests = lazy(() => import("@/Components/GlobalSettings/PaysePay/PaymentRequests.jsx").then((m) => ({ default: m.PaymentRequests })));
+const DeviceSecurity = lazy(() => import("@/Components/GlobalSettings/PaysePay/DeviceSecurity.jsx").then((m) => ({ default: m.DeviceSecurity })));
+const BoundDevices = lazy(() => import("@/Components/GlobalSettings/PaysePay/BoundDevices.jsx").then((m) => ({ default: m.BoundDevices })));
+const GuestPayments = lazy(() => import("@/Components/GlobalSettings/PaysePay/GuestPayments.jsx").then((m) => ({ default: m.GuestPayments })));
+const PartnerApi = lazy(() => import("@/Components/GlobalSettings/PaysePay/PartnerApi.jsx").then((m) => ({ default: m.PartnerApi })));
+
+// GLOBAL SETTINGS > Campaigns (menu 248) and EPURSE > Campaigns (226,
+// rewards): one slug, the menu picks the page.
+const CampaignsMenu = lazy(() => import("@/Components/Campaigns/CampaignsMenu.jsx").then((m) => ({ default: m.CampaignsMenu })));
+
 export const globalSettingsRoutes = [
+  { path: "campaigns", element: pageElement(CampaignsMenu) },
+  { path: "requestmoneyqr", element: pageElement(RequestMoney) },
+  { path: "paymentrequests", element: pageElement(PaymentRequests) },
+  { path: "devicesecurity", element: pageElement(DeviceSecurity) },
+  { path: "bounddevices", element: pageElement(BoundDevices) },
+  { path: "guestpayments", element: pageElement(GuestPayments) },
+  { path: "partnerapi", element: pageElement(PartnerApi) },
   { path: "appversions", element: pageElement(AppVersions) },
   { path: "approvalpolicies", element: pageElement(ApprovalPolicies) },
   { path: "approvalpolicies/:id", element: pageElement(ApprovalPolicies) },

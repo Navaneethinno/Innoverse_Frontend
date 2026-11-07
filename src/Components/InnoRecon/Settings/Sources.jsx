@@ -96,7 +96,9 @@ function SourceForm({ source, onClose, onSaved }) {
   const text = (key) => (e) => set(key)(e.target.value);
   // The code is fixed once the source is approved or has files.
   const codeLocked = Boolean(source) && (source.status !== "PENDING" || source.files > 0);
-  const generated = form.kind === "SWITCH" && form.generated_from === "LEDGER";
+  // SWITCH files can be made from the ledger, POS_TERMINAL files from closed terminal batches.
+  const generatedKind = form.kind === "SWITCH" || form.kind === "POS_TERMINAL";
+  const generated = (form.kind === "SWITCH" && form.generated_from === "LEDGER") || (form.kind === "POS_TERMINAL" && form.generated_from === "POS_BATCH");
   const sftp = !generated && Number(form.sftp_profile_id) > 0;
 
   useEffect(() => {
@@ -116,7 +118,7 @@ function SourceForm({ source, onClose, onSaved }) {
         name: form.name.trim(),
         max_file_mb: Number(form.max_file_mb) || 0,
         layout_id: Number(form.layout_id) || 0,
-        generated_from: form.kind === "SWITCH" ? form.generated_from : "",
+        generated_from: generatedKind ? form.generated_from : "",
         cutoff_time: generated ? form.cutoff_time : "",
         ...(sftp ? { sftp_profile_id: Number(form.sftp_profile_id), sftp_poll_minutes: Number(form.sftp_poll_minutes) || 15 } : { sftp_profile_id: 0, sftp_dir: "", sftp_move_dir: "" }),
       };
@@ -173,10 +175,10 @@ function SourceForm({ source, onClose, onSaved }) {
         <Field label={t("description")} className="sm:col-span-2">
           <input className={inputClass} value={form.description} maxLength={255} onChange={text("description")} />
         </Field>
-        {form.kind === "SWITCH" && (
+        {generatedKind && (
           <>
             <Field label={t("generatedFrom")}>
-              <FilterSelect value={form.generated_from ?? ""} onChange={set("generated_from")} options={(options?.generated_from ?? [{ value: "", label: t("filesAreSent") }]).map((o) => ({ value: o.value, label: o.label }))} />
+              <FilterSelect value={form.generated_from ?? ""} onChange={set("generated_from")} options={(options?.generated_from ?? [{ value: "", label: t("filesAreSent") }]).filter((o) => !o.value || (form.kind === "POS_TERMINAL" ? o.value === "POS_BATCH" : o.value !== "POS_BATCH")).map((o) => ({ value: o.value, label: o.label }))} />
             </Field>
             {generated && (
               <Field label={t("cutoffTime")} required hint={t("cutoffHint")}>
@@ -186,7 +188,7 @@ function SourceForm({ source, onClose, onSaved }) {
           </>
         )}
         {generated ? (
-          <p className="text-xs text-muted-foreground sm:col-span-2">{t("generatedPattern", { pattern: options?.switch_file_pattern ?? "" })}</p>
+          <p className="text-xs text-muted-foreground sm:col-span-2">{t(form.kind === "POS_TERMINAL" ? "generatedPosPattern" : "generatedPattern", { pattern: (form.kind === "POS_TERMINAL" ? options?.pos_batch_file_pattern : options?.switch_file_pattern) ?? "" })}</p>
         ) : (
           <div className="sm:col-span-2">
             <PatternField value={form.file_name_pattern} onChange={set("file_name_pattern")} tokens={options?.file_name_tokens ?? []} />

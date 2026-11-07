@@ -6,7 +6,7 @@ import { Field } from "../Loans/loanShared";
 import { SectionScreen } from "./SectionScreen";
 
 const toValue = (s) => ({ ...s, enabled: Boolean(s.enabled), minimum_score: Number(s.minimum_score) || 0, valid_days: Number(s.valid_days) || 0, required_for_approval: Boolean(s.required_for_approval) });
-const problemOf = (t, s) => (s.enabled && s.provider === "HTTP" && (!/^https:\/\//.test(s.url ?? "") || !s.api_key_env) ? t("bureauHttpNeeds") : "");
+const problemOf = (t, s) => (s.enabled && s.provider === "HTTP" && (!/^https:\/\//.test(s.url ?? "") || !s.api_key_env) ? t("bureauHttpNeeds") : s.enabled && s.provider === "HTTP" && !String(s.api_key_env).startsWith("INNOVERSE_CB_") ? t("campaigns:bureauKeyPrefix") : "");
 
 // InnoCBS > Settings > Credit Bureau (menu 209): provider and connection.
 export function CreditBureau() {
@@ -46,8 +46,9 @@ export function CreditBureau() {
                 </label>
                 <label className={labelClass}>
                   {t("apiKeyEnv")}
-                  <Field field={{ placeholder: "BUREAU_API_KEY" }} disabled={!editing} value={shown?.api_key_env} onChange={(v) => set({ api_key_env: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} />
+                  <Field field={{ placeholder: "INNOVERSE_CB_API_KEY" }} disabled={!editing} value={shown?.api_key_env} onChange={(v) => set({ api_key_env: v.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} />
                   <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("apiKeyEnvHint")}</span>
+                  <span className={`mt-0.5 block text-[11px] font-normal ${shown?.api_key_env && !String(shown.api_key_env).startsWith("INNOVERSE_CB_") ? "text-red-600" : "text-muted-foreground"}`}>{t("campaigns:bureauKeyPrefix")}</span>
                 </label>
               </div>
             ) : (

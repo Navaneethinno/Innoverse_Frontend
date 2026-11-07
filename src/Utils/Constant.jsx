@@ -8,7 +8,7 @@ if (!configuredBaseUrl) throw new Error("VITE_API_BASE_URL is not set: add it to
 // /config/master/... and 404s it. Live channels are host + path + /live.
 
 export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, "");
-export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME || "webadmin";
+export const AUTH_BASIC_USERNAME = import.meta.env.VITE_AUTH_BASIC_USERNAME;
 export const AUTH_BASIC_PASSWORD = import.meta.env.VITE_AUTH_BASIC_PASSWORD;
 
 // The numeric `status` code meaning "Draft" (not yet submitted) on an
@@ -859,6 +859,8 @@ export const API_ENDPOINTS = {
     GROUP: "/config/notification/group",
     ALERT: "/config/notification/alert",
     OUTBOX_LIST: "/config/notification/outbox/list",
+    // Edit on Notifications (169): send one test email/SMS and wait for it.
+    OUTBOX_TEST_SEND: "/config/notification/outbox/test_send",
   },
   // EPURSE > Risk Assessment (Risk Assessment handoff, 2026-09): standard
   // maker-checker verbs plus `options` (form) and `score` (try a setup).
@@ -936,6 +938,7 @@ export const API_ENDPOINTS = {
     GL_JOURNAL: "/config/accounting/gl_journal",
     GL_MAPPING: "/config/accounting/gl_mapping",
     GL_REPORT: "/config/accounting/gl_report",
+    GL_THRESHOLD: "/config/accounting/gl_threshold",
     GL_UPLOAD: "/config/accounting/gl_upload",
     GL_UPLOAD_ADD: "/config/accounting/gl_upload/add",
     GL_UPLOAD_TEMPLATE: "/config/accounting/gl_upload/template",
@@ -963,6 +966,8 @@ export const API_ENDPOINTS = {
     PREFILE_LIST: "/config/card/prefile/list",
     PRODUCT: "/config/card/product",
     REQUEST: "/config/card/request",
+    REPORT: "/config/card/report",
+    RETURN: "/config/card/return",
     STOCK: "/config/card/stock",
   },
   CASE: {
@@ -992,6 +997,25 @@ export const API_ENDPOINTS = {
     CONTRACT: "/config/deposit/contract",
     CONTRACT_LIST: "/config/deposit/contract/list",
     PRODUCT: "/config/deposit/product",
+  },
+  // GLOBAL SETTINGS > Campaigns (248): one-off messages to an audience,
+  // maker-checker; sent by the CAMPAIGNS job. EPURSE > Rewards > Campaigns
+  // (226): cashback / points rules, maker-checker.
+  CAMPAIGN: "/config/campaign",
+  REWARDS_CAMPAIGN: "/config/rewards/campaign",
+  // PaysePay settings documents (one per institution, maker-checker) and their lists.
+  PAYSE_DOC: {
+    AUTOPAY_SETUP: "/config/autopay/setup",
+    AUTOPAY_SCHEDULE_LIST: "/config/autopay/schedule/list",
+    PAY_REQUEST: "/config/global/pay_request",
+    PAYMENT_REQUEST_LIST: "/config/global/payment_request/list",
+    DEVICE_SECURITY: "/config/global/device_security",
+    BOUND_DEVICE: "/config/global/bound_device",
+    BOUND_DEVICE_LIST: "/config/global/bound_device/list",
+    GUEST_PAY: "/config/global/guest_pay",
+    PARTNER_API: "/config/global/partner_api",
+    PARTNER_API_KEY_ISSUE: "/config/global/partner_api/key_issue",
+    CARD_RISK: "/config/card/risk",
   },
   GLOBAL: {
     APP_VERSION_AUTH: "/config/global/app_version/auth",
@@ -1079,6 +1103,21 @@ export const API_ENDPOINTS = {
     AGENT: "/merchant/admin/agent",
     STORE: "/merchant/admin/store",
     TERMINAL: "/merchant/admin/terminal",
+    TERMINAL_BATCH: "/merchant/admin/terminal_batch",
+    TERMINAL_MONITOR: "/merchant/admin/terminal_monitor",
+    BULK_PAYOUT: "/config/merchant/bulk_payout",
+  },
+  // InnoMMS documents (240, 263, 264), SAF Queue (232), Customer Blocks (242),
+  // Dispute Settings (243), card pickup locations (155).
+  OPS: {
+    FLOAT_LIMIT: "/config/merchant/float_limit",
+    POS_TEMPLATE: "/config/merchant/pos_template",
+    CATALOGUE: "/config/merchant/catalogue",
+    SAF: "/config/saf",
+    PARTY_BLOCK: "/config/party_block",
+    PARTY_BLOCK_REASON: "/config/party_block/reason",
+    DISPUTE_SETTING: "/config/case/dispute_setting",
+    PICKUP_LOCATION: "/config/card/pickup_location",
   },
   SCHEDULER: {
     JOB: "/config/scheduler/job",
@@ -1090,6 +1129,7 @@ export const API_ENDPOINTS = {
   },
   TRANSACTION: {
     ROOT: "/config/transaction",
+    BULK_PAYOUT: "/config/transaction/bulk_payout",
     EXPORT: "/config/transaction/export",
     LIST: "/config/transaction/list",
     REQUEST: "/config/transaction/request",

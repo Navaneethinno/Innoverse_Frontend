@@ -39,7 +39,11 @@ const toBody = (c) => ({
   name: String(c.name ?? "").trim(),
   description: String(c.description ?? "").trim(),
   audience: c.audience,
-  requires_acceptance: Boolean(c.requires_acceptance),
+  // DOCUMENT (default) or TUTORIAL (one app tutorial screen); a tutorial
+  // can't require acceptance. sort_order 0-9999 orders the tutorial screens.
+  purpose: c.purpose || "DOCUMENT",
+  sort_order: Number(c.sort_order) || 0,
+  requires_acceptance: c.purpose === "TUTORIAL" ? false : Boolean(c.requires_acceptance),
   texts: (c.texts ?? []).map((x) => ({ channel: x.channel, language: x.language ?? "", title: String(x.title ?? "").trim(), content: x.content ?? "", content_format: x.content_format || "MARKDOWN" })),
 });
 
@@ -98,6 +102,7 @@ export function InstitutionDocuments() {
     },
     { key: "audience", label: t("audience"), render: (d) => <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">{t(`audience_${d.audience}`, { defaultValue: d.audience })}</span> },
     { key: "text_count", label: t("texts"), render: (d) => <span className="tabular-nums">{d.text_count ?? "—"}</span> },
+    { key: "purpose", label: t("campaigns:purpose"), render: (d) => <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold">{t(`campaigns:purpose_${d.purpose ?? "DOCUMENT"}`)}{d.purpose === "TUTORIAL" && d.sort_order != null ? ` · ${d.sort_order}` : ""}</span> },
     { key: "requires_acceptance", label: t("acceptance"), render: (d) => (d.requires_acceptance ? t("mustAccept") : t("infoOnly")) },
     { key: "inst_profile_name", label: t("institution"), render: (d) => d.inst_profile_name ?? "—" },
     { key: "status", label: t("status"), sortValue: (d) => d.status_name ?? "", render: (d) => (d.status_name ? <StatusBadge status={String(d.status_name)} /> : "—") },
@@ -436,7 +441,7 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
     if (!options || started.current) return;
     started.current = true;
     const source = doc ? (doc.draft ?? doc.pending?.config ?? doc.config) : options.defaults;
-    setConfig(structuredClone(source ?? { audience: "ALL", requires_acceptance: false, texts: [] }));
+    setConfig(structuredClone(source ?? { audience: "ALL", purpose: "DOCUMENT", sort_order: "", requires_acceptance: false, texts: [] }));
   }, [options, doc]);
 
   if (!config || !options) return <PageSkeleton />;
@@ -525,8 +530,20 @@ function DocumentEditor({ doc, scope, onClose, onSaved }) {
             {t("description")}
             <Field field={{ placeholder: "What the customer agrees to" }} value={config.description} onChange={(v) => setConfig((c) => ({ ...c, description: v }))} />
           </label>
+          <label className={labelClass}>
+            {t("campaigns:purpose")}
+            <Field field={{ type: "select", options: ["DOCUMENT", "TUTORIAL"].map((p) => ({ value: p, label: t(`campaigns:purpose_${p}`) })) }} value={config.purpose || "DOCUMENT"} onChange={(v) => setConfig((c) => ({ ...c, purpose: v, ...(v === "TUTORIAL" ? { requires_acceptance: false } : {}) }))} />
+          </label>
+          {config.purpose === "TUTORIAL" && (
+            <label className={labelClass}>
+              {t("campaigns:sortOrder")}
+              <Field field={{ type: "int", placeholder: "0" }} value={config.sort_order ?? ""} onChange={(v) => setConfig((c) => ({ ...c, sort_order: v === "" ? "" : String(Math.min(9999, Number(v))) }))} />
+              <span className="mt-1 block text-[10px] font-normal text-muted-foreground">{t("campaigns:sortOrderHint")}</span>
+            </label>
+          )}
           <div className={cn(labelClass, "self-end")}>
-            <Field field={{ type: "bool", label: t("mustAcceptLabel") }} value={config.requires_acceptance} onChange={(v) => setConfig((c) => ({ ...c, requires_acceptance: v }))} />
+            <Field field={{ type: "bool", label: t("mustAcceptLabel") }} disabled={config.purpose === "TUTORIAL"} value={config.purpose === "TUTORIAL" ? false : config.requires_acceptance} onChange={(v) => setConfig((c) => ({ ...c, requires_acceptance: v }))} />
+            {config.purpose === "TUTORIAL" && <span className="mt-1 block text-[10px] font-normal text-muted-foreground">{t("campaigns:tutorialNoAcceptance")}</span>}
           </div>
         </div>
       </Section>

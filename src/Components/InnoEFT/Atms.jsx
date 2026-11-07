@@ -24,6 +24,7 @@ import { mmsDate } from "../InnoMMS/mmsShared";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { useConfigLabel } from "@/Utils/I18n/configFieldLabels";
+import { positionOf, positionProblem } from "@/Utils/Lib/geoPosition";
 
 // InnoEFT > ATMs (menu 187): the bank's ATMs, each listening on its own
 // switch port; their keys, commands and events.
@@ -108,7 +109,7 @@ function AtmList() {
   );
 }
 
-const blankAtm = { atm_id: "", name: "", location: "", luno: "", ip_address: "", listen_port: "", length_header: "binary2", download_profile_id: "", chip_enabled: true, supply_counters: false };
+const blankAtm = { atm_id: "", name: "", location: "", luno: "", ip_address: "", listen_port: "", length_header: "binary2", download_profile_id: "", chip_enabled: true, supply_counters: false, latitude: "", longitude: "" };
 
 function AtmForm({ atm, onClose, onSaved }) {
   const tr = useConfigLabel();
@@ -137,11 +138,13 @@ function AtmForm({ atm, onClose, onSaved }) {
     ip_address: !/^(\d{1,3}\.){3}\d{1,3}$/.test(form.ip_address),
     listen_port: !(Number(form.listen_port) >= 1024 && Number(form.listen_port) <= 65535),
   };
-  const valid = !Object.values(bad).some(Boolean) && form.name.trim() && form.download_profile_id && (!isPlatform || atm || instId);
+  // Map position (app locator): both or neither, in range.
+  const positionError = positionProblem(t, form);
+  const valid = !positionError && !Object.values(bad).some(Boolean) && form.name.trim() && form.download_profile_id && (!isPlatform || atm || instId);
   const save = async () => {
     setSaving(true);
     try {
-      const body = { ...form, name: form.name.trim(), location: form.location.trim(), listen_port: Number(form.listen_port), download_profile_id: Number(form.download_profile_id) };
+      const body = { ...form, name: form.name.trim(), location: form.location.trim(), listen_port: Number(form.listen_port), download_profile_id: Number(form.download_profile_id), ...positionOf(form) };
       const response = atm ? await atmsApi.edit({ id: atm.id, ...body }) : await atmsApi.add({ ...body, ...(isPlatform ? { inst_profile_id: Number(instId) } : {}) });
       if (response?.message) notifications.success(response.message);
       onClose();
@@ -170,7 +173,7 @@ function AtmForm({ atm, onClose, onSaved }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button loading={saving} disabled={!valid} disabledReason={t("common:blockedFillRequired")} onClick={() => void save()}>
+          <Button loading={saving} disabled={!valid} disabledReason={positionError || t("common:blockedFillRequired")} onClick={() => void save()}>
             {t("save")}
           </Button>
         </>
@@ -187,6 +190,15 @@ function AtmForm({ atm, onClose, onSaved }) {
         <label className={`${labelClass} sm:col-span-2`}>
           {t("location")}
           <input className={`${inputClass} mt-1.5`} maxLength={200} value={form.location} onChange={text("location")} />
+        </label>
+        <label className={labelClass}>
+          {t("campaigns:latitude")}
+          <input className={`${inputClass} mt-1.5 font-mono`} inputMode="decimal" value={form.latitude ?? ""} onChange={(e) => set("latitude")(e.target.value.replace(/[^\d.-]/g, ""))} placeholder="-25.9653" />
+        </label>
+        <label className={labelClass}>
+          {t("campaigns:longitude")}
+          <input className={`${inputClass} mt-1.5 font-mono`} inputMode="decimal" value={form.longitude ?? ""} onChange={(e) => set("longitude")(e.target.value.replace(/[^\d.-]/g, ""))} placeholder="32.5892" />
+          {positionError && <span className="mt-1 block text-[11px] font-normal text-red-600">{positionError}</span>}
         </label>
         {field("luno", t("luno"), <input className={`${inputClass} font-mono`} inputMode="numeric" maxLength={9} value={form.luno} onChange={(e) => set("luno")(e.target.value.replace(/\D/g, ""))} placeholder="001" />, t("lunoHint"))}
         {field("ip_address", t("ipAddress"), <input className={`${inputClass} font-mono`} value={form.ip_address} onChange={(e) => set("ip_address")(e.target.value.replace(/[^\d.]/g, ""))} placeholder="10.20.0.15" />, t("ipHint"))}
@@ -318,6 +330,7 @@ function AtmDetail({ atm, onClose, onEdit, onChanged }) {
   const rows = [
     ["institution", a.inst_profile_name],
     ["location", a.location],
+    ["campaigns:position", a.latitude != null && a.longitude != null ? `${a.latitude}, ${a.longitude}` : "—"],
     ["luno", a.luno],
     ["address", `${a.ip_address} → :${a.listen_port} (${t(`header_${a.length_header}`)})`],
     ["downloadProfile", [a.download_profile_code, a.protocol].filter(Boolean).join(" · ")],
