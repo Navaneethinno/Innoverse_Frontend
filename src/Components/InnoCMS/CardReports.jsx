@@ -1,3 +1,4 @@
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
@@ -8,7 +9,7 @@ import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { Facts, Section, inputClass } from "@/Components/InnoCBS/Deposits/depositShared";
-import { Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
+import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { useClientPage } from "@/Hooks/useClientPage";
 import { usePagedList } from "@/Hooks/usePagedList";
 import { Pager } from "@/Components/Common/Pager";
@@ -38,7 +39,7 @@ export function CardReports() {
         <PageTitle>{t("rep_title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("rep_subtitle")}</p>
       </div>
-      <Tabs tabs={[{ key: "stock" }, { key: "status" }, { key: "expiring" }]} value={tab} onChange={setTab} labelOf={(k) => t(`rep_tab_${k}`)} />
+      <SegmentedSwitch className="mb-3" options={[{ key: "stock" }, { key: "status" }, { key: "expiring" }].map(({ key }) => ({ value: key, label: ((k) => t(`rep_tab_${k}`))(key) }))} value={tab} onChange={setTab} />
       {tab === "stock" && <StockReport />}
       {tab === "status" && <StatusReport products={products} />}
       {tab === "expiring" && <ExpiringReport products={products} />}

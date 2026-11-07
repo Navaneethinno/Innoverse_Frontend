@@ -71,6 +71,8 @@ export function findMenuByPath(menuItems, pathname) {
 const indvCorp = (slug) => ({ views: [{ key: "individual", slug }, { key: "corporate", slug: `corp${slug}` }] });
 const ACCOUNT_CONFIGS = ["productownership", "productpartytype", "producttransaction", "productchannel", "productbalanceconfiguration", "productgroupconfiguration", "interestconfiguration", "jointconfiguration", "lifecycleconfiguration", "dormancyconfiguration", "minorconfiguration", "alertconfiguration", "nomineeconfiguration", "numberingconfiguration", "openingconfiguration", "statementconfiguration"];
 const MENU_PAGES = {
+  // Global Settings: the "&" would not slug cleanly.
+  "request money & qr": "requestmoneyqr",
   // Institution
   profile: "institutionprofile",
   modules: "institutionmodule",

@@ -1,3 +1,4 @@
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Facts, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
@@ -6,7 +7,6 @@ import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { accountDate } from "@/Components/InnoCBS/Accounts/accountShared";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
-import { Button } from "@/Components/Common/Button";
 
 // One document's plain fields: Facts when read, inputs when editing.
 // `fields`: [{ key, label, type (bool | int | amount | percent | text | select | multi), options, hint }].
@@ -137,15 +137,7 @@ export const when = (x) => (x ? accountDate(x) : "—");
 
 // A row of page tabs (Settings | list).
 export function PillTabs({ tabs, value, onChange }) {
-  return (
-    <div className="mb-4 flex flex-wrap gap-2">
-      {tabs.map(([key, label]) => (
-        <Button key={key} size="sm" variant={value === key ? "primary" : "secondary"} onClick={() => onChange(key)}>
-          {label}
-        </Button>
-      ))}
-    </div>
-  );
+  return <SegmentedSwitch className="mb-3" options={tabs.map(([key, label]) => ({ value: key, label }))} value={value} onChange={onChange} />;
 }
 
 // Every plain value of a record as Facts (a detail whose fields the spec leaves open).

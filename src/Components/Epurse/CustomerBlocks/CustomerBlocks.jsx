@@ -1,3 +1,4 @@
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, LockOpen, XCircle } from "lucide-react";
@@ -9,7 +10,7 @@ import { PageTitle } from "@/Components/Common/PageTitle";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { NarrationDialog, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
-import { RowsEditor, Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
+import { RowsEditor, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { useMenuContext } from "@/Components/Layout/Menu/menuContext";
 import { menuLabel } from "@/Components/Layout/Menu/menuLabels";
@@ -35,7 +36,7 @@ export function CustomerBlocks() {
   const [page, setPage] = useState("blocks");
   return (
     <div className="pb-8 pt-4">
-      <Tabs tabs={PAGES.map((key) => ({ key }))} value={page} onChange={setPage} labelOf={(k) => t(`blocksTab_${k}`)} />
+      <SegmentedSwitch className="mb-3" options={PAGES.map((key) => ({ key })).map(({ key }) => ({ value: key, label: ((k) => t(`blocksTab_${k}`))(key) }))} value={page} onChange={setPage} />
       {page === "blocks" && <Blocks />}
       {page === "dormant" && <Dormant />}
       {page === "reasons" && <BlockReasons />}

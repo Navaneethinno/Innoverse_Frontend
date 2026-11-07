@@ -42,9 +42,16 @@ export function Section({ title, action, children, className, collapsible = fals
   return (
     <section className={cn("min-w-0 rounded-2xl border border-border bg-card p-4", className)}>
       {collapsible ? (
-        <button type="button" aria-expanded={open} onClick={() => setOpen((x) => !x)} className={cn("flex w-full items-center justify-between gap-2 text-left", open && "mb-3")}>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((x) => !x)}
+          className={cn("-m-2 flex w-[calc(100%+1rem)] cursor-pointer items-center justify-between gap-2 rounded-xl p-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", open && "mb-1")}
+        >
           <h2 className="text-sm font-bold text-foreground">{title}</h2>
-          <ChevronDown size={16} className={cn("shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-background text-foreground">
+            <ChevronDown size={16} aria-hidden className={cn("pointer-events-none transition-transform", open && "rotate-180")} />
+          </span>
         </button>
       ) : (
         (title || action) && (

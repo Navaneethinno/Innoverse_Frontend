@@ -1,6 +1,6 @@
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Tabs } from "@/Components/InnoCBS/Loans/loanShared";
 import { PickupLocations } from "./PickupLocations";
 import { CardSetupPage } from "./CardSetup";
 import { binKind, groupKind, layoutKind, productKind } from "./cardKinds";
@@ -13,7 +13,7 @@ export function CardProducts() {
   return (
     <div>
       <div className="pt-4">
-        <Tabs tabs={[{ key: "products" }, { key: "pickup" }]} value={tab} onChange={setTab} labelOf={(k) => t(`cardProductsTab_${k}`)} />
+        <SegmentedSwitch className="mb-3" options={[{ key: "products" }, { key: "pickup" }].map(({ key }) => ({ value: key, label: ((k) => t(`cardProductsTab_${k}`))(key) }))} value={tab} onChange={setTab} />
       </div>
       {tab === "products" ? <CardSetupPage key="products" kind={productKind} /> : <PickupLocations />}
     </div>

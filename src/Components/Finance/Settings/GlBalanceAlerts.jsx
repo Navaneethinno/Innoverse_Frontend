@@ -1,10 +1,11 @@
+import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { ArrowLeft, BellRing, CheckCircle2, Pencil, Plus, Power, RotateCcw, Save, Trash2, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { Button } from "@/Components/Common/Button";
-import { ListTable, TabButton } from "@/Components/Common/ListView";
+import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -15,7 +16,7 @@ import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocu
 import { accountDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { ActionButtons, AuditTimeline, Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
-import { Field, Tabs, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
+import { Field, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { useServerList } from "@/Hooks/useServerList";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
@@ -89,13 +90,7 @@ export function GlBalanceAlerts() {
         <PageTitle>{t("gta_title")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("gta_subtitle")}</p>
       </div>
-      <div className="mb-3 flex flex-wrap gap-1">
-        {VIEWS.map((v) => (
-          <TabButton key={v} active={view === v} onClick={() => setView(v)}>
-            {t(`gta_view_${v}`)}
-          </TabButton>
-        ))}
-      </div>
+      <SegmentedSwitch className="mb-3" options={VIEWS.map((v) => ({ value: v, label: t(`gta_view_${v}`) }))} value={view} onChange={setView} />
       {view === "setups" && <ListTable list={setups} actions={addButton} columns={columns} rowKey={(r) => r.id} title={t("gta_title")} emptyTitle={t("gta_none")} emptyDescription={t("gta_noneHint")} />}
       {view === "pending" && <ListTable list={pending} columns={columns} rowKey={(r) => r.id} title={t("gta_view_pending")} emptyTitle={t("gta_nonePending")} emptyDescription={t("gta_nonePendingHint")} />}
       {view === "alerts" && <AlertsTable list={alerts} onOpen={setOpenId} />}
@@ -270,7 +265,7 @@ function ThresholdView({ id, onBack, onEdit, editing, onCloseEdit }) {
       )}
       {(record.config || record.pending) && <VersionSections side record={record} render={(setup) => <SetupFacts setup={setup} currency={cur} />} />}
 
-      <Tabs tabs={[{ key: "history" }, { key: "alerts" }]} value={tab} onChange={setTab} labelOf={(k) => t(`gta_tab_${k}`)} />
+      <SegmentedSwitch className="mb-3" options={[{ key: "history" }, { key: "alerts" }].map(({ key }) => ({ value: key, label: ((k) => t(`gta_tab_${k}`))(key) }))} value={tab} onChange={setTab} />
       {tab === "history" && (
         <Section title={t("gta_tab_history")}>
           <AuditTimeline audit={audit} />
