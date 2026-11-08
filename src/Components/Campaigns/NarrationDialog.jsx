@@ -5,7 +5,7 @@ import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 
 // Confirm one action on a record with an optional narration (required to
 // reject). `run(narration)` makes the call; `onDone` after it succeeds.
-export function NarrationDialog({ title, confirmLabel, destructive = false, needsNarration = false, withNarration = true, run, onClose, onDone }) {
+export function NarrationDialog({ title, confirmLabel, destructive = false, needsNarration = false, withNarration = true, run, onClose, onDone, onRefused }) {
   const { t } = useTranslation(["campaigns", "common"]);
   const [narration, setNarration] = useState("");
   const [busy, setBusy] = useState(false);
@@ -20,6 +20,7 @@ export function NarrationDialog({ title, confirmLabel, destructive = false, need
       onDone();
     } catch (e) {
       notifications.error(e.message);
+      onRefused?.(e);
     } finally {
       setBusy(false);
     }

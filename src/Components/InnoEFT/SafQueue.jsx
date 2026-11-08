@@ -114,8 +114,7 @@ function SafDetail({ id, onClose, onChanged }) {
 
   const x = data?.item ?? {};
   const replays = data?.replays ?? [];
-  const pendingReplay = replays.find((r) => r.status === "PENDING");
-  const isPending = x.status === "REVERSAL_PENDING";
+  const a = x.actions ?? {};
   const act = async (verb, narration) => {
     setBusy(true);
     try {
@@ -131,25 +130,27 @@ function SafDetail({ id, onClose, onChanged }) {
     }
   };
 
-  const replayWhy = !can("Edit") ? t("whyNoPermission") : !isPending ? t("whyNotPending") : x.pending_replay || pendingReplay ? t("whyReplayPending") : "";
+  const replayWhy = !can("Edit") ? t("whyNoPermission") : "";
   const checkWhy = !can("Authorize") ? t("whyNoPermission") : "";
   return (
     <Modal open onClose={onClose} size="xl" title={t("safItemTitle", { rrn: x.rrn ?? "" })}>
       {!data ? null : (
         <div className="grid gap-4">
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="secondary" icon={RotateCcw} disabled={Boolean(replayWhy) || busy} disabledReason={replayWhy} onClick={() => setDialog("replay")}>
-              {t("replay")}
-            </Button>
-            {(x.pending_replay || pendingReplay) && (
-              <>
-                <Button size="sm" variant="danger" icon={XCircle} disabled={Boolean(checkWhy) || busy} disabledReason={checkWhy} onClick={() => setDialog("deauth")}>
-                  {t("rejectReplay")}
-                </Button>
-                <Button size="sm" icon={CheckCircle2} disabled={Boolean(checkWhy) || busy} disabledReason={checkWhy} onClick={() => setDialog("auth")}>
-                  {t("approveReplay")}
-                </Button>
-              </>
+            {a.replay && (
+              <Button size="sm" variant="secondary" icon={RotateCcw} disabled={Boolean(replayWhy) || busy} disabledReason={replayWhy} onClick={() => setDialog("replay")}>
+                {t("replay")}
+              </Button>
+            )}
+            {a.deauth && (
+              <Button size="sm" variant="danger" icon={XCircle} disabled={Boolean(checkWhy) || busy} disabledReason={checkWhy} onClick={() => setDialog("deauth")}>
+                {t("rejectReplay")}
+              </Button>
+            )}
+            {a.auth && (
+              <Button size="sm" icon={CheckCircle2} disabled={Boolean(checkWhy) || busy} disabledReason={checkWhy} onClick={() => setDialog("auth")}>
+                {t("approveReplay")}
+              </Button>
             )}
           </div>
           <Facts

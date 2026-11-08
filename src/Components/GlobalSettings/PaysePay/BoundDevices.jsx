@@ -10,6 +10,7 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { boundDeviceApi } from "@/Services/PaysePay/paysePay.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { CheckCircle2, Clock, ListChecks, Unlink } from "lucide-react";
+import { usePagePermission } from "@/Hooks/usePermission";
 import { usePagedList, when } from "./docShared";
 
 const TABS = [
@@ -18,13 +19,13 @@ const TABS = [
   ["PENDING", "paysePay:bd_tab_PENDING", Clock],
   ["UNBOUND", "paysePay:bd_tab_UNBOUND", Unlink],
 ];
-// An unbind waiting for a checker (the row's pending_unbind fields).
-const unbindPending = (r) => Boolean(r.pending_unbind ?? r.pending_unbind_by ?? r.pending_unbind_at);
+const unbindPending = (r) => Boolean(r.pending_unbind);
 
 // GLOBAL SETTINGS > Bound Devices (menu 225): the customers' bound devices.
 // Unbind is proposed by one user and authorised by another (Self at once).
 export function BoundDevices() {
   const { t } = useTranslation(["paysePay", "common"]);
+  const can = usePagePermission();
   const [status, setStatus] = useState("BOUND");
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
@@ -67,7 +68,7 @@ export function BoundDevices() {
       label: t("bd_customer"),
       render: (r) => (
         <div>
-          <p className="text-xs font-semibold">{r.entity_name ?? r.party_name ?? r.login_id ?? "—"}</p>
+          <p className="text-xs font-semibold">{r.login_id ?? "—"}</p>
           <p className="font-mono text-[10px] text-muted-foreground">{[r.party, r.entity_type, r.entity_id].filter(Boolean).join(" · ")}</p>
         </div>
       ),
@@ -84,9 +85,9 @@ export function BoundDevices() {
         <RowActions
           buttons={{
             view: true,
-            delete: r.status === "BOUND" && !unbindPending(r),
-            authorize: unbindPending(r) && Boolean(r.can_authorize),
-            deauthorize: unbindPending(r) && Boolean(r.can_authorize),
+            delete: Boolean(r.can_unbind) && can("Delete"),
+            authorize: Boolean(r.can_authorize) && can("Authorize"),
+            deauthorize: Boolean(r.can_authorize) && can("Authorize"),
           }}
           onView={() => setOpen(r)}
           onDelete={() => setDialog({ verb: "unbind", row: r })}
@@ -110,8 +111,7 @@ export function BoundDevices() {
         <Modal open onClose={() => setOpen(null)} title={open.device_name || open.device_id} size="lg">
           <Facts
             rows={[
-              [t("common:institution"), open.inst_profile_name ?? open.institution],
-              [t("bd_customer"), open.entity_name ?? open.party_name],
+              [t("common:institution"), open.inst_name],
               [t("bd_party"), [open.party, open.entity_type, open.entity_id].filter(Boolean).join(" · ")],
               [t("bd_login"), open.login_id],
               [t("bd_deviceId"), open.device_id],
@@ -127,6 +127,9 @@ export function BoundDevices() {
               unbindPending(open) && [t("bd_unbindBy"), open.pending_unbind_by],
               unbindPending(open) && [t("bd_unbindAt"), when(open.pending_unbind_at)],
               unbindPending(open) && [t("bd_unbindReason"), open.pending_unbind_reason],
+              open.unbound_at && [t("bd_unboundAt"), when(open.unbound_at)],
+              open.unbound_by && [t("bd_unboundBy"), open.unbound_by],
+              open.unbind_reason && [t("bd_unbindReason"), open.unbind_reason],
             ]}
           />
         </Modal>

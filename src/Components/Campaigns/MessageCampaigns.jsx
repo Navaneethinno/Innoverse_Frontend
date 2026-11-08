@@ -9,12 +9,12 @@ import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { RowActions } from "@/Components/Common/RowActions";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
-import { DigitChips } from "@/Components/Common/DigitChips";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Facts } from "@/Components/InnoCBS/Deposits/depositShared";
+import { Field, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagePermission } from "@/Hooks/usePermission";
 import { campaignApi } from "@/Services/Campaigns/campaigns.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
@@ -39,6 +39,26 @@ const CHANNELS = ["PUSH", "SMS", "INBOX", "EMAIL"];
 const DEFAULT_CHANNELS = ["PUSH", "SMS", "INBOX"];
 const HOURS = Array.from({ length: 24 }, (_, h) => ({ value: String(h), label: `${String(h).padStart(2, "0")}:00` }));
 const ID_LISTS = ["kyc_level_ids", "acct_product_ids", "digital_product_ids", "branch_ids"];
+const OPTION_OF = { kyc_level_ids: "kyc_levels", acct_product_ids: "acct_products", digital_product_ids: "digital_products", branch_ids: "branches" };
+const picksOf = (options, key) => (options?.[OPTION_OF[key]] ?? []).map((x) => ({ value: x.id, label: x.name }));
+const namesOf = (ids, options, key) => (ids ?? []).map((id) => picksOf(options, key).find((p) => String(p.value) === String(id))?.label ?? id);
+
+// The institution's choices for the audience (/config/campaign/options).
+function useCampaignOptions() {
+  const { scope } = useInstitutionScope();
+  const [options, setOptions] = useState({});
+  useEffect(() => {
+    let cancelled = false;
+    campaignApi
+      .options(scope())
+      .then((r) => !cancelled && setOptions(firstOf(r) ?? {}))
+      .catch((e) => !cancelled && notifications.error(e.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [scope]);
+  return options;
+}
 
 const blank = () => ({
   name: "",
@@ -61,7 +81,7 @@ function toForm(c) {
     body: c.body ?? "",
     audience: {
       party_kinds: a.party_kinds ?? [],
-      ...Object.fromEntries(ID_LISTS.map((k) => [k, (a[k] ?? []).map(String)])),
+      ...Object.fromEntries(ID_LISTS.map((k) => [k, a[k] ?? []])),
       active_within_days: a.active_within_days ? String(a.active_within_days) : "",
       inactive_for_days: a.inactive_for_days ? String(a.inactive_for_days) : "",
     },
@@ -84,7 +104,8 @@ const audienceBody = (a) => ({
 const days = (v) => String(v).replace(/\D/g, "").slice(0, 4);
 
 // The audience: who gets it. Empty lists mean anyone.
-function AudienceBuilder({ value, onChange, t }) {
+function AudienceBuilder({ value, onChange, options, t }) {
+  const kinds = options.party_kinds?.length ? options.party_kinds : PARTY_KINDS;
   const set = (patch) => onChange({ ...value, ...patch });
   const [size, setSize] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -105,17 +126,17 @@ function AudienceBuilder({ value, onChange, t }) {
       <div>
         <p className={labelClass}>{t("partyKinds")}</p>
         <div className="mt-1.5 flex flex-wrap gap-2">
-          {PARTY_KINDS.map((k) => (
+          {kinds.map((k) => (
             <CheckboxPill key={k} checked={value.party_kinds.includes(k)} label={t(`party_${k}`)} onChange={(on) => set({ party_kinds: on ? [...value.party_kinds, k] : value.party_kinds.filter((x) => x !== k) })} />
           ))}
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {ID_LISTS.map((k) => (
-          <label key={k} className={labelClass}>
+          <div key={k} className={labelClass}>
             {t(k)}
-            <DigitChips className="mt-1.5" value={value[k]} onChange={(list) => set({ [k]: list })} placeholder="12" />
-          </label>
+            <Field field={{ type: "multi", options: picksOf(options, k) }} value={value[k]} onChange={(list) => set({ [k]: list })} />
+          </div>
         ))}
         <label className={labelClass}>
           {t("activeWithinDays")}
@@ -176,6 +197,7 @@ function CampaignForm({ campaign, onClose, onSaved }) {
   const [form, setForm] = useState(() => (campaign ? toForm(campaign) : blank()));
   const [busy, setBusy] = useState(false);
   const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const options = useCampaignOptions();
   const missing = !form.name.trim() || !form.title.trim() || !form.body.trim() || !form.channels.length;
   const save = async () => {
     setBusy(true);
@@ -197,6 +219,8 @@ function CampaignForm({ campaign, onClose, onSaved }) {
       onSaved();
     } catch (e) {
       notifications.error(e.message);
+      // Someone else changed it meanwhile: this form is out of date.
+      if (e.code === "campaign.not_editable" || e.code === "campaign.pending") onSaved();
     } finally {
       setBusy(false);
     }
@@ -222,18 +246,18 @@ function CampaignForm({ campaign, onClose, onSaved }) {
         <div className="grid gap-3 md:grid-cols-2">
           <label className={labelClass}>
             {t("name")} <span className="text-red-500">*</span>
-            <input className={inputClass} maxLength={100} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="Year-end savings promotion" />
+            <input className={inputClass} maxLength={128} value={form.name} onChange={(e) => set({ name: e.target.value })} placeholder="Year-end savings promotion" />
           </label>
           <label className={labelClass}>
             {t("messageTitle")} <span className="text-red-500">*</span>
-            <input className={inputClass} maxLength={120} value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="Save more this December" />
+            <input className={inputClass} maxLength={255} value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="Save more this December" />
           </label>
           <label className={`${labelClass} md:col-span-2`}>
             {t("messageBody")} <span className="text-red-500">*</span>
-            <textarea className={`${inputClass} min-h-24`} value={form.body} onChange={(e) => set({ body: e.target.value })} placeholder="Open a savings account this month and earn a bonus." />
+            <textarea className={`${inputClass} min-h-24`} maxLength={1000} value={form.body} onChange={(e) => set({ body: e.target.value })} placeholder="Open a savings account this month and earn a bonus." />
           </label>
         </div>
-        <AudienceBuilder t={t} value={form.audience} onChange={(audience) => set({ audience })} />
+        <AudienceBuilder t={t} options={options} value={form.audience} onChange={(audience) => set({ audience })} />
         <ChannelOrder t={t} value={form.channels} onChange={(channels) => set({ channels })} />
         <div className="grid gap-3 md:grid-cols-3">
           <label className={labelClass}>
@@ -300,6 +324,7 @@ function CampaignView({ id, onClose }) {
       cancelled = true;
     };
   }, [id, onClose]);
+  const options = useCampaignOptions();
   const s = c?.stats ?? {};
   const a = c?.audience ?? {};
   return (
@@ -318,7 +343,7 @@ function CampaignView({ id, onClose }) {
               [t("sendAt"), c.send_at ? formatDateTime(c.send_at) : t("onceAuthorised")],
               [t("quietHours"), `${c.quiet_start_hour ?? 21}:00 → ${c.quiet_end_hour ?? 8}:00`],
               [t("partyKinds"), (a.party_kinds ?? []).map((k) => t(`party_${k}`)).join(", ") || t("anyone")],
-              ...ID_LISTS.map((k) => [t(k), (a[k] ?? []).join(", ") || t("anyone")]),
+              ...ID_LISTS.map((k) => [t(k), namesOf(a[k], options, k).join(", ") || t("anyone")]),
               [t("activeWithinDays"), a.active_within_days || "—"],
               [t("inactiveForDays"), a.inactive_for_days || "—"],
               [t("fallbacks"), s.fallbacks ?? 0],
@@ -371,13 +396,13 @@ export function MessageCampaigns() {
         return (
           <div className="flex items-center justify-center gap-1">
             <RowActions
-              buttons={{ view: true, edit: Boolean(a.edit), authorize: Boolean(a.auth), deauthorize: Boolean(a.deauth) }}
+              buttons={{ view: true, edit: Boolean(a.edit) && can("Edit"), authorize: Boolean(a.auth) && can("Authorize"), deauthorize: Boolean(a.deauth) && can("Authorize") }}
               onView={() => setViewing(r.id)}
               onEdit={() => void open(r)}
               onAuthorize={() => setAction({ verb: "auth", row: r })}
               onDeauthorize={() => setAction({ verb: "deauth", row: r })}
             />
-            {a.cancel && <ActionIconButton label={t("cancelCampaign")} intent="delete" icon={Ban} onClick={() => setAction({ verb: "cancel", row: r })} />}
+            {a.cancel && (can("Edit") || can("Delete")) && <ActionIconButton label={t("cancelCampaign")} intent="delete" icon={Ban} onClick={() => setAction({ verb: "cancel", row: r })} />}
           </div>
         );
       },
@@ -434,6 +459,12 @@ export function MessageCampaigns() {
           onDone={() => {
             setAction(null);
             list.reload();
+          }}
+          onRefused={(e) => {
+            if (e.code === "campaign.not_pending" || e.code === "campaign.not_editable") {
+              setAction(null);
+              list.reload();
+            }
           }}
         />
       )}

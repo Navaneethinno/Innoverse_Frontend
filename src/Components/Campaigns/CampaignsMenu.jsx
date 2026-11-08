@@ -6,7 +6,8 @@ const RewardsCampaigns = lazy(() => import("./RewardsCampaigns.jsx").then((m) =>
 
 // Two menus share the name "Campaigns" (so the slug "campaigns"): 248
 // (Global Settings, messages) and 226 (ePurse rewards). The menu the page
-// was opened from picks which.
+// was opened from picks which. SQL 267 renames 226 "Rewards Campaigns" (its
+// own slug); until it lands on UAT this keeps the old name working.
 const REWARDS_MENU_ID = 226;
 
 export function CampaignsMenu() {

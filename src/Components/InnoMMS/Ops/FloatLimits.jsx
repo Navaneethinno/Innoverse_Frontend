@@ -23,7 +23,7 @@ function problemOf(t, form) {
     if (r.max_balance !== "" && r.min_balance !== "" && r.max_balance != null && r.min_balance != null && Number(r.min_balance) > Number(r.max_balance)) return t("minAboveMax");
   }
   if (form.tiers.some((r) => !r.role)) return t("fillRequired");
-  if (form.agents.some((r) => !r.entity_type || !r.entity_id)) return t("fillRequired");
+  if (form.agents.some((r) => !r.agent)) return t("fillRequired");
   const seen = new Set(form.tiers.map((r) => `${r.role}-${r.currency_code}`));
   if (seen.size !== form.tiers.length) return t("tierOnce");
   return "";
@@ -41,27 +41,33 @@ export function FloatLimits() {
       valueKey="setup"
       fallbackTitle={t("floatTitle")}
       subtitle={t("floatSubtitle")}
-      toForm={(s) => ({ alert_pct: s?.alert_pct ?? 90, tiers: (s?.tiers ?? []).map((r) => ({ ...r })), agents: (s?.agents ?? []).map((r) => ({ ...r })) })}
+      toForm={(s) => ({ alert_pct: s?.alert_pct ?? 90, tiers: (s?.tiers ?? []).map((r) => ({ ...r })), agents: (s?.agents ?? []).map((r) => ({ ...r, agent: agentKey(r) })) })}
       bodyOf={(f) => ({
         alert_pct: Number(f.alert_pct),
         tiers: f.tiers.map((r) => ({ role: r.role, currency_code: r.currency_code, max_balance: num(r.max_balance), min_balance: num(r.min_balance) })),
-        agents: f.agents.map((r) => ({ entity_type: r.entity_type, entity_id: Number(r.entity_id), currency_code: r.currency_code, max_balance: num(r.max_balance), min_balance: num(r.min_balance) })),
+        agents: f.agents.map((r) => ({ entity_type: String(r.agent).split(":")[0], entity_id: Number(String(r.agent).split(":")[1]), currency_code: r.currency_code, max_balance: num(r.max_balance), min_balance: num(r.min_balance) })),
       })}
       problemOf={(_, form) => problemOf(t, form)}
       before={() => <NearLimitReport />}
     >
-      {({ shown, editing, setForm }) => <FloatDoc doc={shown ?? {}} editing={editing} setForm={setForm} />}
+      {({ data, shown, editing, setForm }) => <FloatDoc doc={shown ?? {}} choices={data?.choices ?? {}} editing={editing} setForm={setForm} />}
     </SectionScreen>
   );
 }
 
-function FloatDoc({ doc, editing, setForm }) {
+const agentKey = (r) => `${r.entity_type}:${r.entity_id}`;
+
+function FloatDoc({ doc, choices, editing, setForm }) {
   const { t } = useTranslation("ops");
   const tiers = doc.tiers ?? [];
   const agents = doc.agents ?? [];
   const patch = (p) => setForm((f) => ({ ...f, ...p }));
+  const roles = choices.roles ?? ROLES;
+  const currencies = (choices.currencies ?? []).map((c) => ({ value: c, label: c }));
+  const agentChoices = (choices.agents ?? []).map((a) => ({ value: agentKey(a), label: a.role ? `${a.name} · ${t(`role_${a.role}`, { defaultValue: a.role })}` : a.name }));
+  const agentName = (r) => agentChoices.find((a) => a.value === agentKey(r))?.label ?? `${r.entity_type} ${r.entity_id}`;
   const money2 = [
-    { key: "currency_code", label: t("currency"), placeholder: "USD" },
+    { key: "currency_code", label: t("currency"), type: "select", blank: t("chooseOne"), options: currencies },
     { key: "max_balance", label: t("maxBalance"), type: "amount" },
     { key: "min_balance", label: t("minBalance"), type: "amount" },
   ];
@@ -74,15 +80,15 @@ function FloatDoc({ doc, editing, setForm }) {
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("alertPctHint")}</span>
         </label>
         <p className="text-sm font-bold">{t("tiers")}</p>
-        <RowsEditor rows={tiers} onChange={(rows) => patch({ tiers: rows })} blank={() => ({ role: "AGENT", currency_code: "", max_balance: "", min_balance: "" })} addLabel={t("addTier")} fields={[{ key: "role", label: t("role"), type: "select", options: ROLES.map((r) => ({ value: r, label: t(`role_${r}`) })) }, ...money2]} />
+        <RowsEditor rows={tiers} onChange={(rows) => patch({ tiers: rows })} blank={() => ({ role: "AGENT", currency_code: "", max_balance: "", min_balance: "" })} addLabel={t("addTier")} fields={[{ key: "role", label: t("role"), type: "select", options: roles.map((r) => ({ value: r, label: t(`role_${r}`) })) }, ...money2]} />
         <p className="text-sm font-bold">{t("agentOverrides")}</p>
         <RowsEditor
           rows={agents}
           onChange={(rows) => patch({ agents: rows })}
-          blank={() => ({ entity_type: "", entity_id: "", currency_code: "", max_balance: "", min_balance: "" })}
+          blank={() => ({ agent: "", currency_code: "", max_balance: "", min_balance: "" })}
           addLabel={t("addAgent")}
-          columns="lg:grid-cols-5"
-          fields={[{ key: "entity_type", label: t("entityType"), placeholder: "CORP" }, { key: "entity_id", label: t("entityId"), type: "int" }, ...money2]}
+          columns="lg:grid-cols-4"
+          fields={[{ key: "agent", label: t("agent"), type: "select", blank: t("chooseOne"), options: agentChoices }, ...money2]}
         />
       </div>
     );
@@ -112,9 +118,7 @@ function FloatDoc({ doc, editing, setForm }) {
           <tbody>
             {agents.map((r) => (
               <tr key={`${r.entity_type}-${r.entity_id}-${r.currency_code}`} className="border-t border-border">
-                <td className="px-3 py-2 font-mono">
-                  {r.entity_type} {r.entity_id}
-                </td>
+                <td className="px-3 py-2">{agentName(r)}</td>
                 <td className="px-3 py-2">{r.currency_code}</td>
                 <td className="px-3 py-2 tabular-nums">{money(r.max_balance)}</td>
                 <td className="px-3 py-2 tabular-nums">{money(r.min_balance)}</td>
@@ -145,15 +149,16 @@ function NearLimitReport() {
         search={search}
         onSearch={setSearch}
         searchPlaceholder={t("searchAgent")}
-        rowKey={(r, i) => `${r.wallet ?? r.wallet_id ?? i}-${i}`}
+        rowKey={(r) => `${r.entity_type}-${r.entity_id}-${r.currency_code}`}
         empty={t("noFloatRows")}
         columns={[
-          { label: t("agent"), render: (r) => (typeof r.agent === "object" ? r.agent?.name ?? `${r.agent?.entity_type} ${r.agent?.entity_id}` : r.agent ?? r.agent_name ?? "—") },
-          { label: t("wallet"), render: (r) => <span className="font-mono">{typeof r.wallet === "object" ? r.wallet?.acct_num ?? r.wallet?.id : r.wallet ?? "—"}</span> },
+          { label: t("agent"), render: (r) => <span>{r.agent_name}<span className="block text-[10px] text-muted-foreground">{r.tier ? t(`role_${r.tier}`, { defaultValue: r.tier }) : ""}</span></span> },
+          { label: t("wallet"), render: (r) => <span className="font-mono">{r.acct_num}</span> },
           { label: t("balance"), render: (r) => <span className="tabular-nums">{money(r.balance, r.currency_code)}</span> },
           { label: t("maxBalance"), render: (r) => <span className="tabular-nums">{money(r.max_balance)}</span> },
           { label: t("minBalance"), render: (r) => <span className="tabular-nums">{money(r.min_balance)}</span> },
           { label: t("usedPct"), render: (r) => (r.used_pct == null ? "—" : `${r.used_pct}%`) },
+          { label: t("limitFrom"), render: (r) => (r.limit_from ? t(`limitFrom_${r.limit_from}`, { defaultValue: r.limit_from }) : "—") },
           { label: t("state"), render: (r) => <StatusBadge status={STATE_TONE[r.state] ?? r.state} label={t(`floatState_${r.state}`, { defaultValue: r.state })} /> },
         ]}
       />

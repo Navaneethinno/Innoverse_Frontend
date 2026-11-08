@@ -23,8 +23,9 @@ import { useInstitutionScope } from "../Loans/loanShared";
 // settings (App Versions, Expiry Rules) use it too: `ns` holds their texts
 // (pendingBy, showProposed, confirm_*), `valueKey` where the document sits
 // in the reply, `bodyOf` how an edit sends it, `subtitle` and `before` what
-// shows above the document; `framed={false}` when the document draws its own cards.
-export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", subtitle, before, framed = true, children }) {
+// shows above the document; `framed={false}` when the document draws its own
+// cards; `warningsOf` lines the propose dialog shows (they do not block it).
+export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = "value", toForm = structuredClone, toValue = (form) => form, bodyOf, problemOf = () => "", warningsOf = () => [], subtitle, before, framed = true, children }) {
   const { t } = useTranslation([ns, "loans"]);
   const can = usePagePermission();
   const menu = useMenuContext()?.menu;
@@ -139,7 +140,15 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
           busy={busy}
           onClose={() => setDialog(null)}
           onSave={(narration) => act(dialog, { ...(dialog === "edit" ? (bodyOf ? bodyOf(form) : { value: toValue(form) }) : {}), ...(narration ? { narration } : {}) })}
-        />
+        >
+          {dialog === "edit" &&
+            form &&
+            warningsOf(form, data).map((warning) => (
+              <p key={warning} className="mb-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                {warning}
+              </p>
+            ))}
+        </NarrationDialog>
       )}
     </div>
   );

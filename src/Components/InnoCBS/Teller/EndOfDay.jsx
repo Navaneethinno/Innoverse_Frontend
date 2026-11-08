@@ -1,5 +1,5 @@
 import { LinkButton } from "@/Components/Common/TextButtons";
-import { todayDate } from "@/Utils/Lib/dateFormat";
+import { platformToday } from "@/Utils/Lib/dateFormat";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,7 +90,7 @@ export function EndOfDay() {
   // The user's own branch first (from the sign-in), else the first open one.
   const home = useAuth((x) => x.user?.branch?.branch_id);
   const [branch, setBranch] = useState(home ? String(home) : "");
-  const [date, setDate] = useState(todayDate());
+  const [date, setDate] = useState(platformToday());
   const [report, setReport] = useState(null);
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -127,7 +127,7 @@ export function EndOfDay() {
   };
   const ready = report?.readiness ?? {};
   const closed = report?.status === "CLOSED";
-  const isToday = !date || date === todayDate();
+  const isToday = !date || date === platformToday();
   const cashOf = (code) => (report?.cash ?? []).find((c) => c.code === code);
   return (
     <div className="grid gap-4">
@@ -135,7 +135,7 @@ export function EndOfDay() {
         <div className="w-64">
           <Field field={{ type: "select", options: branches.length ? branches : [{ value: "", label: t("noBranches") }] }} value={branchId} onChange={setBranch} />
         </div>
-        <DateInput className={cn(inputClass, "w-44")} value={date} max={todayDate()} onChange={(e) => setDate(e.target.value)} />
+        <DateInput className={cn(inputClass, "w-44")} value={date} max={platformToday()} onChange={(e) => setDate(e.target.value)} />
         {branchId && (
           <span className="ml-auto flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             {t("branchTrialBalance")}

@@ -1,5 +1,5 @@
 import { dayDate, money } from "@/Components/InnoCBS/Accounts/accountShared";
-import { atIst } from "../Shared/reportShared";
+import { atIst, atIstPlain } from "../Shared/reportShared";
 
 // The report builder's pure parts: filter rules, the definition sent to
 // `run` and saved in templates, and cell values for the table and files.
@@ -154,7 +154,7 @@ export function cellText(value, column, row, index, optionLabels) {
 export function fileValue(value, column, optionLabels) {
   if (value == null) return null;
   if (NUMBER_TYPES.includes(column.type)) return Number(value);
-  if (column.type === "datetime") return atIst(value);
+  if (column.type === "datetime") return atIstPlain(value);
   if (column.type === "bool") return value ? "Yes" : "No";
   if (column.type === "enum") return optionLabels?.[column.key]?.[value] ?? String(value);
   return String(value);

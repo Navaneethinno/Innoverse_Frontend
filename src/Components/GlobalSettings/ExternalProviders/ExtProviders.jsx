@@ -346,7 +346,7 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
     const source = setup ? (setup.draft ?? setup.pending?.config ?? setup.config) : null;
     const loaded = structuredClone(source ?? { providers: [], groups: [] });
     // The tuning lives in each provider's settings; edit it as flat fields.
-    loaded.providers = (loaded.providers ?? []).map((p) => ({ ...p, timeout_ms: p.timeout_ms ?? p.settings?.timeout_ms ?? "", retries: p.retries ?? p.settings?.retries ?? "" }));
+    loaded.providers = (loaded.providers ?? []).map((p) => ({ ...p, timeout_ms: p.settings?.timeout_ms ?? "", retries: p.settings?.retries ?? "" }));
     setConfig(loaded);
   }, [options, setup]);
 
@@ -431,8 +431,8 @@ function SetupEditor({ setup, scope, onClose, onSaved }) {
             { key: "min_amount", label: t("minAmount"), type: "amount" },
             { key: "max_amount", label: t("maxAmount"), type: "amount" },
             { key: "priority", label: t("priority"), type: "int" },
-            { key: "timeout_ms", label: t("campaigns:timeoutMs"), type: "int", placeholder: "10000" },
-            { key: "retries", label: t("campaigns:retries"), type: "int", placeholder: "0" },
+            { key: "timeout_ms", label: t("campaigns:timeoutMs"), type: "int", placeholder: "10000", hint: t("campaigns:timeoutRange") },
+            { key: "retries", label: t("campaigns:retries"), type: "int", placeholder: "0", hint: t("campaigns:retriesRange") },
             { key: "allow_push", label: t("send"), type: "bool" },
             { key: "allow_pull", label: t("topUp"), type: "bool", showIf: canPull },
             { key: "name_lookup", label: t("nameLookup"), type: "bool", showIf: canLookUp },

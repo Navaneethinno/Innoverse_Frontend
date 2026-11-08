@@ -408,9 +408,12 @@ function BatchView({ id, onBack }) {
   const processing = batch?.batch_status === "PROCESSING";
   useVisiblePoll(reload, 4000, processing);
 
+  const [started, setStarted] = useState(false);
   const decide = async (verb, narration) => {
     setBusy(verb);
     setDialog(null);
+    // One click only: a second start of a running batch is refused (409 bulk.running).
+    if (verb === "auth") setStarted(true);
     try {
       const response = await api[verb]({ id, ...(narration ? { narration } : {}) });
       if (response?.message) notifications.success(response.message);
@@ -419,6 +422,7 @@ function BatchView({ id, onBack }) {
       else await reload();
     } catch (error) {
       notifications.error(error.message);
+      if (verb === "auth" && error.code !== "bulk.running") setStarted(false);
       await reload();
     } finally {
       setBusy("");
@@ -441,7 +445,7 @@ function BatchView({ id, onBack }) {
   const buttons = [
     a.result_file && { key: "file", label: t("resultFile"), icon: FileDown, variant: "outline", run: resultFile },
     a.deauth && can("Authorize") && { key: "deauth", label: t("reject"), icon: XCircle, variant: "danger", run: () => setDialog("deauth") },
-    a.auth && can("Authorize") && { key: "auth", label: t("authorise"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
+    a.auth && can("Authorize") && { key: "auth", label: t("authorise"), icon: CheckCircle2, variant: "primary", disabled: started, disabledReason: t("common:alreadyStarted"), run: () => setDialog("auth") },
   ];
   const columns = [
     { key: "row_no", label: t("row"), render: (r) => <span className="text-xs tabular-nums">{r.row_no}</span> },

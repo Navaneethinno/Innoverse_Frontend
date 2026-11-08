@@ -21,6 +21,7 @@ import { NewRequest } from "@/Components/Finance/Transactions/NewRequest";
 import { transactionRequestsApi } from "@/Services/Transactions/transactions.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, Section, inputClass, AuditTimeline } from "../InnoCBS/Deposits/depositShared";
+import { pickupBlocked, usePickupLocations } from "./Settings/PickupLocations";
 import { CardFace, CardNumber, CardPill, ProductCardPreview, WithCard, DeliveryFields, HolderPicker, Labelled, cardWord, pickupBody } from "./cardOpsShared";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { CardControls, RevealDialog } from "./cardInstanceExtras";
@@ -444,7 +445,8 @@ function StatusDialog({ card, busy, onClose, onSave }) {
 // physical card in use) or a renewal. A virtual card is replaced at once;
 // a physical one becomes a request for the plastic.
 function ReissueDialog({ card, onClose, onDone }) {
-  const { t } = useTranslation("cards");
+  const { t } = useTranslation(["cards", "ops"]);
+  const pickup = usePickupLocations();
   const reasons = card.reissue_reasons ?? [];
   const [reason, setReason] = useState(reasons[0] ?? "");
   const [name, setName] = useState(card.name_on_card ?? "");
@@ -487,7 +489,7 @@ function ReissueDialog({ card, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Repeat} loading={busy} disabled={!reason} disabledReason={t("common:blockedFillRequired")} onClick={send}>
+          <Button icon={Repeat} loading={busy} disabled={!reason || Boolean(physical && pickupBlocked(t, pickup, delivery))} disabledReason={(physical && pickupBlocked(t, pickup, delivery)) || t("common:blockedFillRequired")} onClick={send}>
             {t("reissue")}
           </Button>
         </>
@@ -501,7 +503,7 @@ function ReissueDialog({ card, onClose, onDone }) {
         <Labelled label={t("nameOnCard")}>
           <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />
         </Labelled>
-        {physical && <DeliveryFields value={delivery} onChange={setDelivery} />}
+        {physical && <DeliveryFields value={delivery} onChange={setDelivery} pickup={pickup} />}
         <Labelled label={t("narration")}>
           <input className={inputClass} value={narration} onChange={(e) => setNarration(e.target.value)} />
         </Labelled>
@@ -514,8 +516,10 @@ function ReissueDialog({ card, onClose, onDone }) {
 // The plastic of a virtual card: a VIRTUAL_TO_PHYSICAL request (Card
 // Requests), made and delivered like a personalised card.
 function PlasticDialog({ card, onClose, onDone }) {
-  const { t } = useTranslation("cards");
+  const { t } = useTranslation(["cards", "ops"]);
+  const pickup = usePickupLocations();
   const [delivery, setDelivery] = useState({ delivery_mode: "BRANCH_PICKUP", delivery_ref: "" });
+  const pickupWhy = pickupBlocked(t, pickup, delivery);
   const [key] = useState(idempotencyKey);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -530,6 +534,7 @@ function PlasticDialog({ card, onClose, onDone }) {
         entity_type: card.entity_type,
         entity_id: card.entity_id,
         delivery_mode: delivery.delivery_mode,
+        ...pickupBody(delivery),
         ...(delivery.delivery_ref.trim() ? { delivery_ref: delivery.delivery_ref.trim() } : {}),
         idempotency_key: key,
       });
@@ -553,7 +558,7 @@ function PlasticDialog({ card, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={Truck} loading={busy} onClick={send}>
+          <Button icon={Truck} loading={busy} disabled={Boolean(pickupWhy)} disabledReason={pickupWhy} onClick={send}>
             {t("requestCard")}
           </Button>
         </>
@@ -561,7 +566,7 @@ function PlasticDialog({ card, onClose, onDone }) {
     >
       <div className="grid gap-3">
         <p className="text-sm text-muted-foreground">{t("plasticHint", { card: card.pan_masked })}</p>
-        <DeliveryFields value={delivery} onChange={setDelivery} />
+        <DeliveryFields value={delivery} onChange={setDelivery} pickup={pickup} />
         <Problems message={error} />
       </div>
     </Modal>

@@ -79,13 +79,14 @@ export function CatalogueProducts() {
         searchPlaceholder={t("searchProduct")}
         empty={t("noProducts")}
         columns={[
-          { label: t("merchant"), render: (r) => r.merchant_name ?? r.merchant?.name ?? "—" },
+          { label: t("merchant"), render: (r) => r.merchant_name },
           { label: t("code"), render: (r) => <span className="font-mono">{r.code}</span> },
           { label: t("name"), render: (r) => r.name },
           { label: t("category"), render: (r) => r.category || "—" },
           { label: t("unit"), render: (r) => r.unit || "—" },
-          { label: t("price"), render: (r) => (r.price != null ? money(r.price, r.currency_code) : r.currency_code ?? "—") },
-          { label: t("common:status"), render: (r) => <StatusBadge status={r.active === false ? "INACTIVE" : "ACTIVE"} /> },
+          { label: t("price"), render: (r) => (r.price != null ? money(r.price, r.currency_code) : "—") },
+          { label: t("storePrices"), render: (r) => <span className="tabular-nums">{r.store_prices ?? 0}</span> },
+          { label: t("common:status"), render: (r) => <StatusBadge status={r.status} /> },
         ]}
       />
     </Section>

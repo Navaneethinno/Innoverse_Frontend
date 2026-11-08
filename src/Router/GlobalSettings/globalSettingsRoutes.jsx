@@ -35,9 +35,18 @@ const PartnerApi = lazy(() => import("@/Components/GlobalSettings/PaysePay/Partn
 // GLOBAL SETTINGS > Campaigns (menu 248) and EPURSE > Campaigns (226,
 // rewards): one slug, the menu picks the page.
 const CampaignsMenu = lazy(() => import("@/Components/Campaigns/CampaignsMenu.jsx").then((m) => ({ default: m.CampaignsMenu })));
+// EPURSE rewards: Rewards Campaigns (226), Loyalty & Referral (227), Vouchers (228), Rewards Report (229).
+const RewardsCampaigns = lazy(() => import("@/Components/Campaigns/RewardsCampaigns.jsx").then((m) => ({ default: m.RewardsCampaigns })));
+const LoyaltyReferral = lazy(() => import("@/Components/Campaigns/LoyaltyReferral.jsx").then((m) => ({ default: m.LoyaltyReferral })));
+const Vouchers = lazy(() => import("@/Components/Campaigns/Vouchers.jsx").then((m) => ({ default: m.Vouchers })));
+const RewardsReport = lazy(() => import("@/Components/Campaigns/RewardsReport.jsx").then((m) => ({ default: m.RewardsReport })));
 
 export const globalSettingsRoutes = [
   { path: "campaigns", element: pageElement(CampaignsMenu) },
+  { path: "rewardscampaigns", element: pageElement(RewardsCampaigns) },
+  { path: "loyaltyreferral", element: pageElement(LoyaltyReferral) },
+  { path: "vouchers", element: pageElement(Vouchers) },
+  { path: "rewardsreport", element: pageElement(RewardsReport) },
   { path: "requestmoneyqr", element: pageElement(RequestMoney) },
   { path: "paymentrequests", element: pageElement(PaymentRequests) },
   { path: "devicesecurity", element: pageElement(DeviceSecurity) },

@@ -73,6 +73,7 @@ const ACCOUNT_CONFIGS = ["productownership", "productpartytype", "producttransac
 const MENU_PAGES = {
   // Global Settings: the "&" would not slug cleanly.
   "request money & qr": "requestmoneyqr",
+  "loyalty & referral": "loyaltyreferral",
   // Institution
   profile: "institutionprofile",
   modules: "institutionmodule",

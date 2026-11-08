@@ -8,7 +8,6 @@ import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { cn } from "@/Utils/Lib/utils";
 import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { OwnerFinder } from "../InnoCBS/Deposits/TermDeposits/OpenDeposit";
-import { usePickupLocations } from "./Settings/PickupLocations";
 import { inputClass, labelClass } from "../InnoCBS/Deposits/depositShared";
 
 // Pieces shared by the Card Operations screens (Cards, Card Requests, Card
@@ -177,9 +176,8 @@ export function Labelled({ label, hint, required = false, children, className })
 
 // Delivery of a physical card: the mode and the address / pick-up point.
 // BRANCH_PICKUP picks one of the card pickup locations (pickup_branch_id).
-export function DeliveryFields({ modes, value, onChange }) {
+export function DeliveryFields({ modes, value, onChange, pickup }) {
   const { t } = useTranslation(["cards", "ops"]);
-  const pickup = usePickupLocations();
   const showPickup = value.delivery_mode === "BRANCH_PICKUP" && pickup?.enabled;
   return (
     <div className="grid gap-3 sm:grid-cols-2">

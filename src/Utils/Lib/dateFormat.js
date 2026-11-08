@@ -35,13 +35,18 @@ export function formatDay(value) {
   return Number.isNaN(d.getTime()) ? String(value) : ymd(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+// A date and time with no zone ("2026-10-31 12:35:28"): the server's platform
+// time, as written. A value ending in Z or an offset is an instant instead.
+export const isPlatformClock = (value) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/.test(value.trim());
+
 // A timestamp in local time: the date in the institution's format, then
-// HH:mm (24-hour).
+// HH:mm (24-hour). Marked IST only for a platform-time value, which shows as
+// written in any browser; an instant or a Date shows the browser's own clock.
 export function formatDateTime(value) {
   if (!value) return "—";
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
-  return `${ymd(d.getFullYear(), d.getMonth(), d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${ymd(d.getFullYear(), d.getMonth(), d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}${isPlatformClock(value) ? " IST" : ""}`;
 }
 
 // Calendar dates (YYYY-MM-DD) as the user sees them: their own day, not UTC's.
@@ -54,3 +59,8 @@ export const tomorrowDate = () => {
   return localDay(date);
 };
 export const monthStartDate = () => `${todayDate().slice(0, 8)}01`;
+
+// Today on the platform's calendar (Asia/Kolkata), whatever the browser's zone:
+// the default for teller dates and manual journal posting dates.
+const PLATFORM_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" });
+export const platformToday = () => PLATFORM_DAY.format(new Date());

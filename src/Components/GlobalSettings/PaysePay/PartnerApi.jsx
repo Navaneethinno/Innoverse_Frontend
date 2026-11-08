@@ -89,7 +89,9 @@ function Clients({ data, clients, onIssued }) {
   const can = usePagePermission();
   const [issue, setIssue] = useState(null);
   const keys = data?.keys ?? [];
-  const inForce = new Set((data?.setup?.clients ?? []).map((c) => c.client_id));
+  // Only clients of the setup in force qualify (key_issue_clients).
+  const issuable = new Set(data?.key_issue_clients ?? []);
+  const keyIssueOn = Boolean(data?.actions?.key_issue);
   const keyOf = (id) => keys.find((k) => k.client_id === id);
   if (!clients.length) return <EmptyNote>{t("pa_none")}</EmptyNote>;
   return (
@@ -99,7 +101,7 @@ function Clients({ data, clients, onIssued }) {
           <tbody>
             {clients.map((c) => {
               const k = keyOf(c.client_id);
-              const blocked = !can("Authorize") ? t("pa_noRight") : !inForce.has(c.client_id) ? t("pa_notInForce") : "";
+              const blocked = !can("Authorize") ? t("pa_noRight") : !keyIssueOn || !issuable.has(c.client_id) ? t("pa_notInForce") : "";
               return (
                 <tr key={c.client_id} className="border-t border-border align-top">
                   <td className="px-3 py-2 font-mono font-semibold">{c.client_id}</td>

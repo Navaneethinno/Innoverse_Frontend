@@ -9,7 +9,7 @@ import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { pickupLocationApi } from "@/Services/Merchant/ops.api";
 import { recordOf } from "@/Services/Loans/loans.api";
 
-const branchOpts = (list) => (list ?? []).map((b) => ({ value: String(b.id ?? b.branch_id ?? b.value), label: b.name ?? b.label ?? b.branch_name ?? String(b.id) }));
+const branchOpts = (list) => (list ?? []).map((b) => ({ value: String(b.id), label: b.name }));
 
 // InnoCMS > Card Products, Pickup Locations tab: the branches where a card
 // can be collected (delivery BRANCH_PICKUP) and whether one must be chosen.
@@ -97,6 +97,13 @@ export function PickupLocations() {
   );
 }
 
+// Why a card request or reissue cannot go yet: the setup requires a pickup
+// branch and none is picked ("" when it can). `delivery` is the DeliveryFields value.
+export function pickupBlocked(t, pickup, delivery) {
+  if (!pickup?.enabled || !pickup.required || delivery?.delivery_mode !== "BRANCH_PICKUP" || Number(delivery.pickup_branch_id) > 0) return "";
+  return t(pickup.options.length ? "ops:pickupRequiredHint" : "ops:noPickup");
+}
+
 // The pickup branches in force, for a BRANCH_PICKUP card request or reissue:
 // { enabled, required, options: [{ value, label }] } (null while loading).
 export function usePickupLocations() {
@@ -110,7 +117,7 @@ export function usePickupLocations() {
         const names = branchOpts(d.choices?.branches);
         const options = (s.locations ?? [])
           .filter((l) => l.enabled !== false)
-          .map((l) => ({ value: String(l.branch_id), label: [names.find((b) => b.value === String(l.branch_id))?.label ?? l.branch_name ?? l.branch_id, l.note].filter(Boolean).join(" · ") }));
+          .map((l) => ({ value: String(l.branch_id), label: [names.find((b) => b.value === String(l.branch_id))?.label ?? l.branch_id, l.note].filter(Boolean).join(" · ") }));
         setState({ enabled: Boolean(s.enabled), required: Boolean(s.required), options });
       })
       .catch(() => setState({ enabled: false, required: false, options: [] }));

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, PackageX, Undo2, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, PackageX, Plus, Undo2, XCircle } from "lucide-react";
 import { BackButton } from "@/Components/Common/TextButtons";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
-import { TabButton } from "@/Components/Common/ListView";
+import { ListTable, TabButton } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
@@ -19,7 +19,8 @@ import { ActionButtons, Facts, Problems, Section, inputClass } from "@/Component
 import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { usePagedList } from "@/Hooks/usePagedList";
 import { usePagePermission } from "@/Hooks/usePermission";
-import { cardReturnsApi } from "@/Services/Cards/cards.api";
+import { useServerList } from "@/Hooks/useServerList";
+import { cardReturnsApi, cardStockApi } from "@/Services/Cards/cards.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { cn } from "@/Utils/Lib/utils";
@@ -37,8 +38,10 @@ export const cardErrorText = (t, e) => (e?.code ? t(`cards:err_${String(e.code).
 export function CardReturns() {
   const { t } = useTranslation(["cards", "common"]);
   const { scope } = useInstitutionScope();
+  const can = usePagePermission();
   const location = useLocation();
   const [openId, setOpenId] = useState(location.state?.recordId ?? null);
+  const [starting, setStarting] = useState(false);
   const [status, setStatus] = useState("");
   const [holderType, setHolderType] = useState("");
   const list = usePagedList(cardReturnsApi.list, scope({ ...(status ? { status } : {}), ...(holderType ? { holder_type: holderType } : {}) }), { livePath: cardReturnsApi.listPath, enabled: !openId });
@@ -77,8 +80,17 @@ export function CardReturns() {
   return (
     <div className="pt-1 pb-6">
       <div className="mb-5">
-        <PageTitle>{t("ret_title")}</PageTitle>
-        <p className="mt-1 text-sm text-muted-foreground">{t("ret_subtitle")}</p>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <PageTitle>{t("ret_title")}</PageTitle>
+            <p className="mt-1 text-sm text-muted-foreground">{t("ret_subtitle")}</p>
+          </div>
+          {can("Add") && (
+            <Button size="sm" icon={Plus} onClick={() => setStarting(true)}>
+              {t("ret_new")}
+            </Button>
+          )}
+        </div>
       </div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap gap-1">
@@ -94,8 +106,97 @@ export function CardReturns() {
         <FilterSelect className="w-48" value={holderType} onChange={setHolderType} options={[{ value: "", label: t("ret_anyHolder") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`ret_holder_${h}`) }))]} />
       </div>
       <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.id} title={t("ret_title")} emptyTitle={t("ret_none")} emptyDescription={t("ret_noneHint")} />
+      {starting && (
+        <StartReturn
+          onClose={() => setStarting(false)}
+          onDone={() => {
+            setStarting(false);
+            list.reload();
+          }}
+        />
+      )}
     </div>
   );
+}
+
+// Start a return from a holder: pick who holds the cards, tick theirs (the
+// ASSIGNED cards of /card/stock/list), then the usual return dialog.
+function StartReturn({ onClose, onDone }) {
+  const { t } = useTranslation(["cards", "common"]);
+  const { scope } = useInstitutionScope();
+  const [options, setOptions] = useState({});
+  const [type, setType] = useState("");
+  const [holderId, setHolderId] = useState("");
+  const [picked, setPicked] = useState([]);
+  const [confirming, setConfirming] = useState(false);
+  useEffect(() => {
+    cardStockApi
+      .options(scope())
+      .then((r) => setOptions(rowsOf(r)[0] ?? {}))
+      .catch((e) => notifications.error(e.message));
+  }, [scope]);
+  const holders = holderChoices(options, type);
+  const filter = { inventory_status: "ASSIGNED", assignee_type: type, assignee_id: Number(holderId) };
+  const stock = useServerList({ api: cardStockApi.listPath, call: cardStockApi.list, prefix: "retnew_", extra: { ...filter, filters: filter }, enabled: Boolean(type && holderId) });
+  const choose = (next) => {
+    setPicked([]);
+    setHolderId(next);
+  };
+  const toggle = (card) => setPicked((list) => (list.some((c) => c.id === card.id) ? list.filter((c) => c.id !== card.id) : [...list, card]));
+  const holderName = holders.find((h) => h.value === holderId)?.label ?? "";
+  const blocked = !holderId ? t("ret_pickHolder") : !picked.length ? t("common:blockedSelectRows") : "";
+  if (confirming) return <ReturnDialog holder={{ type, id: holderId, name: holderName }} cards={picked} onClose={() => setConfirming(false)} onDone={onDone} />;
+  const columns = [
+    { key: "pick", label: "", sortable: false, render: (s) => <input type="checkbox" aria-label={t("select")} checked={picked.some((c) => c.id === s.id)} onChange={() => toggle(s)} className="accent-[var(--primary)]" /> },
+    { key: "pan_masked", label: t("card"), align: "left", render: (s) => <span className="font-mono text-xs">{s.pan_masked}</span> },
+    { key: "product_code", label: t("product"), render: (s) => <span className="text-xs">{s.product_code}</span> },
+    { key: "assigned_at", label: t("since"), render: (s) => <span className="whitespace-nowrap text-xs">{s.assigned_at ? accountDate(s.assigned_at) : "—"}</span> },
+  ];
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      size="xl"
+      title={t("ret_new")}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t("cancel")}
+          </Button>
+          <Button icon={Undo2} disabled={Boolean(blocked)} disabledReason={blocked} onClick={() => setConfirming(true)}>
+            {t("ret_add", { count: picked.length })}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Labelled label={t("ret_holderType")} required>
+            <FilterSelect
+              value={type}
+              onChange={(v) => {
+                setType(v);
+                choose("");
+              }}
+              options={[{ value: "", label: t("ret_choose") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`ret_holder_${h}`) }))]}
+            />
+          </Labelled>
+          <Labelled label={t("ret_holder")} required>
+            <FilterSelect value={holderId} onChange={choose} options={[{ value: "", label: t("ret_choose") }, ...holders]} />
+          </Labelled>
+        </div>
+        {holderId && <ListTable list={stock} columns={columns} rowKey={(s) => s.id} title={t("ret_cards")} emptyTitle={t("ret_noCardsHeld")} />}
+      </div>
+    </Modal>
+  );
+}
+
+// The holders of /card/stock/options for one assignee type.
+export function holderChoices(options, type) {
+  if (type === "USER") return (options.users ?? []).map((u) => ({ value: String(u.id), label: u.user_name }));
+  if (type === "AGENT") return (options.agents ?? []).map((a) => ({ value: String(a.id), label: a.role ? `${a.name} · ${a.role}` : a.name }));
+  if (type === "BRANCH") return (options.branches ?? []).map((b) => ({ value: String(b.id), label: b.code ? `${b.name} (${b.code})` : b.name }));
+  return [];
 }
 
 // Send back cards one holder holds (picked in Card Stock).
@@ -189,7 +290,7 @@ function ReturnView({ id, onBack }) {
   }, [reload]);
 
   if (!r) return <PageSkeleton />;
-  const buttons = [r.status === "PENDING" && can("Authorize") && { key: "decide", label: t("ret_decide"), icon: CheckCircle2, variant: "primary", run: () => setDeciding(true) }];
+  const buttons = [r.actions?.decide && can("Authorize") && { key: "decide", label: t("ret_decide"), icon: CheckCircle2, variant: "primary", run: () => setDeciding(true) }];
 
   return (
     <div className="pt-1 pb-6">

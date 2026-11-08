@@ -1003,6 +1003,9 @@ export const API_ENDPOINTS = {
   // (226): cashback / points rules, maker-checker.
   CAMPAIGN: "/config/campaign",
   REWARDS_CAMPAIGN: "/config/rewards/campaign",
+  REWARDS_PROGRAM: "/config/rewards/program",
+  REWARDS_VOUCHER: "/config/rewards/voucher",
+  REWARDS_REPORT: "/config/rewards/report",
   // PaysePay settings documents (one per institution, maker-checker) and their lists.
   PAYSE_DOC: {
     AUTOPAY_SETUP: "/config/autopay/setup",

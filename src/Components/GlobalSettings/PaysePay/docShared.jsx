@@ -62,7 +62,7 @@ const optionLabel = (f, x) => (f.options ?? []).find((o) => typeof o === "object
 export function typed(fields, form) {
   const out = { ...form };
   for (const f of fields) {
-    if (f.type === "int") out[f.key] = form?.[f.key] === "" || form?.[f.key] == null ? null : Number(form[f.key]);
+    if (f.type === "int") out[f.key] = form?.[f.key] === "" || form?.[f.key] == null ? (f.emptyAs ?? null) : Number(form[f.key]);
     if (f.type === "amount" || f.type === "percent") out[f.key] = form?.[f.key] == null ? "" : String(form[f.key]);
     if (f.type === "bool") out[f.key] = Boolean(form?.[f.key]);
     if (f.type === "list" || f.type === "multi") out[f.key] = (Array.isArray(form?.[f.key]) ? form[f.key] : []).map((x) => (typeof x === "string" ? x.trim() : x)).filter((x) => x !== "");
@@ -84,6 +84,7 @@ export function rangeProblem(t, fields, form) {
     const raw = form?.[f.key];
     if ((raw === "" || raw == null) && f.optional) continue;
     const n = Number(raw);
+    if (f.zeroOk && n === 0) continue;
     if (raw === "" || raw == null || !Number.isInteger(n) || n < f.min || n > f.max) return t("outOfRange", { field: f.label, min: f.min, max: f.max });
   }
   return "";
@@ -107,8 +108,8 @@ export function usePagedList(call, body, { sizeKey = "limit" } = {}) {
       .then((r) => {
         if (id !== seq.current) return;
         const data = Array.isArray(r?.data) ? r.data : [];
-        const inner = data.length === 1 && Array.isArray(data[0]?.rows) ? data[0] : null;
-        const rows = inner ? inner.rows : Array.isArray(r?.rows) ? r.rows : data;
+        const inner = data.length === 1 && (Array.isArray(data[0]?.rows) || Array.isArray(data[0]?.items)) ? data[0] : null;
+        const rows = inner ? (inner.rows ?? inner.items) : Array.isArray(r?.rows) ? r.rows : data;
         const total = inner?.total ?? r?.total ?? r?.pagination?.totalRecords ?? rows.length;
         setState({ rows, total, loading: false });
       })

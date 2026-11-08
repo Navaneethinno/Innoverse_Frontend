@@ -7,7 +7,8 @@ import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { disputeSettingApi } from "@/Services/Merchant/ops.api";
 
 const num = (v) => (v === "" || v == null ? null : Number(v));
-const opts = (list, label) => (list ?? []).map((x) => (typeof x === "string" ? { value: x, label: label?.(x) ?? x } : { value: x.value ?? x.code, label: x.label ?? x.name ?? x.value ?? x.code }));
+const opts = (list, label) => (list ?? []).map((x) => (typeof x === "string" ? { value: x, label: label?.(x) ?? x } : { value: x.code ?? x.id, label: x.name }));
+const uid = (v) => (v === "" || v == null ? "" : String(v));
 
 function problemOf(t, f) {
   if (!(Number(f.default_window_days) >= 1)) return t("windowRequired");
@@ -37,7 +38,7 @@ export function DisputeSettings() {
         other_types_allowed: Boolean(s?.other_types_allowed),
         reasons: (s?.reasons ?? []).map((r) => ({ ...r })),
         types: (s?.types ?? []).map((r) => ({ ...r, reasons: [...(r.reasons ?? [])] })),
-        escalation: (s?.escalation ?? []).map((r) => ({ ...r })),
+        escalation: (s?.escalation ?? []).map((r) => ({ ...r, assign_user_id: uid(r.assign_user_id) })),
       })}
       bodyOf={(f) => ({
         setup: {
@@ -59,6 +60,7 @@ function Doc({ data, s, editing, setForm }) {
   const { t } = useTranslation(["ops", "common"]);
   const choices = data?.choices ?? {};
   const txnTypes = opts(choices.txn_types);
+  const users = (choices.users ?? []).map((u) => ({ value: String(u.id), label: u.name }));
   const priorities = opts(choices.priorities ?? ["LOW", "NORMAL", "HIGH", "URGENT"], (p) => t(`cases:priority_${p}`, { defaultValue: p }));
   const reasons = s.reasons ?? [];
   const types = s.types ?? [];
@@ -89,7 +91,7 @@ function Doc({ data, s, editing, setForm }) {
           blank={() => ({ txn_type: "", allowed: true, window_days: "", reasons: [] })}
           addLabel={t("addTxnType")}
           fields={[
-            { key: "txn_type", label: t("txnType"), type: txnTypes.length ? "select" : "text", options: txnTypes },
+            { key: "txn_type", label: t("txnType"), type: "select", options: txnTypes },
             { key: "allowed", label: t("allowed"), type: "bool" },
             { key: "window_days", label: t("windowDays"), type: "int" },
             { key: "reasons", label: t("allowedReasons"), type: "multi", options: reasonOpts },
@@ -107,7 +109,7 @@ function Doc({ data, s, editing, setForm }) {
             { key: "level", label: t("level"), type: "int" },
             { key: "after_hours", label: t("afterHours"), type: "int" },
             { key: "priority", label: t("priority"), type: "select", options: [{ value: "", label: t("keepPriority") }, ...priorities] },
-            { key: "assign_user_id", label: t("assignUserId"), type: "int" },
+            { key: "assign_user_id", label: t("assignUser"), type: "select", blank: t("noAssignee"), options: users },
             { key: "note", label: t("internalNote") },
           ]}
         />
@@ -143,14 +145,14 @@ function Doc({ data, s, editing, setForm }) {
       )}
       <p className="text-sm font-bold">{t("escalationMatrix")}</p>
       {escalation.length ? (
-        <SimpleTable columns={[t("level"), t("afterHours"), t("priority"), t("assignUserId"), t("internalNote")]}>
+        <SimpleTable columns={[t("level"), t("afterHours"), t("priority"), t("assignUser"), t("internalNote")]}>
           <tbody>
             {escalation.map((r) => (
               <tr key={r.level} className="border-t border-border">
                 <td className="px-3 py-2 font-semibold">{r.level}</td>
                 <td className="px-3 py-2">{r.after_hours}</td>
                 <td className="px-3 py-2">{r.priority ? labelOf(priorities, r.priority) : "—"}</td>
-                <td className="px-3 py-2">{r.assign_user_name ?? r.assign_user_id ?? "—"}</td>
+                <td className="px-3 py-2">{labelOf(users, String(r.assign_user_id ?? "")) || "—"}</td>
                 <td className="px-3 py-2">{r.note || "—"}</td>
               </tr>
             ))}

@@ -83,11 +83,14 @@ export function useGlAccounts(enabled = true) {
 // The maker-checker buttons a record's `actions` allow (and the menu's
 // rights), each asking for a narration first; deauth needs one. `run(verb,
 // narration)` performs it.
-export function useRecordActions({ actions, run, labels = {} }) {
+export function useRecordActions({ actions, run, labels = {}, once = null }) {
   const { t } = useTranslation(["accounting", "fees"]);
   const can = usePagePermission();
   const [dialog, setDialog] = useState(null);
   const [busy, setBusy] = useState(false);
+  // `once`: a verb that starts a batch; one click only, a second start is
+  // refused (409 bulk.running).
+  const [started, setStarted] = useState(false);
   const a = actions ?? {};
   const ask = (verb) => () => setDialog(verb);
   const buttons = [
@@ -99,21 +102,24 @@ export function useRecordActions({ actions, run, labels = {} }) {
     a.cancel && { key: "cancel", label: t("cancelIt"), icon: XCircle, run: ask("cancel") },
     a.reverse && can("Add") && { key: "reverse", label: t("reverse"), icon: RotateCcw, run: ask("reverse") },
     a.deauth && can("Authorize") && { key: "deauth", label: t("fees:reject"), icon: XCircle, variant: "danger", run: ask("deauth") },
-    a.auth && can("Authorize") && { key: "auth", label: t("fees:approve"), icon: CheckCircle2, variant: "primary", run: ask("auth") },
+    a.auth && can("Authorize") && { key: "auth", label: t("fees:approve"), icon: CheckCircle2, variant: "primary", disabled: once === "auth" && started, disabledReason: t("common:alreadyStarted"), run: ask("auth") },
   ];
   const confirm = useCallback(
     async (narration) => {
       setBusy(true);
+      if (dialog === once) setStarted(true);
       try {
         await run(dialog, narration);
         setDialog(null);
       } catch (e) {
         notifications.error(e.message);
+        if (dialog === once && e.code !== "bulk.running") setStarted(false);
+        if (e.code === "bulk.running") setDialog(null);
       } finally {
         setBusy(false);
       }
     },
-    [dialog, run],
+    [dialog, run, once],
   );
   const dialogEl = dialog && (
     <NarrationDialog

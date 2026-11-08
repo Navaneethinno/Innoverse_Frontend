@@ -76,6 +76,11 @@ function Blocks() {
       paged.reload();
     } catch (e) {
       notifications.error(e.message);
+      // Changed meanwhile: the row on screen is out of date.
+      if (e.code === "party_block.not_active" || e.code === "party_block.not_pending") {
+        setDialog(null);
+        paged.reload();
+      }
     } finally {
       setBusy(false);
     }
@@ -127,11 +132,12 @@ function Blocks() {
     {
       label: t("common:actions"),
       render: (r) => {
+        const a = r.actions ?? {};
         const pending = ["PENDING", "LIFT_PENDING"].includes(r.status);
-        const checkWhy = !can("Authorize") ? t("whyNoPermission") : !r.can_authorize ? t("whyMaker") : "";
+        const checkWhy = !can("Authorize") ? t("whyNoPermission") : !a.auth ? t("whyMaker") : "";
         return (
           <div className="flex flex-wrap gap-1">
-            {r.status === "ACTIVE" && (
+            {a.lift && (
               <Button size="sm" variant="secondary" icon={LockOpen} disabled={!can("Edit")} disabledReason={t("whyNoPermission")} onClick={() => setDialog({ kind: "lift", row: r })}>
                 {t("lift")}
               </Button>
@@ -279,10 +285,10 @@ function Dormant() {
         searchPlaceholder={t("searchDormant")}
         empty={t("noDormant")}
         columns={[
-          { label: t("account"), render: (r) => <span className="font-mono">{r.acct_num ?? r.acct_id}</span> },
-          { label: t("owner"), render: (r) => <span>{r.party_name ?? r.owner_name ?? "—"}<span className="block font-mono text-[10px] text-muted-foreground">{r.entity_type} {r.entity_id}</span></span> },
-          { label: t("product"), render: (r) => r.product_name ?? r.acct_product_name ?? "—" },
-          { label: t("since"), render: (r) => mmsDate(r.restricted_at ?? r.dormant_since ?? r.since) },
+          { label: t("account"), render: (r) => <span className="font-mono">{r.acct_num}</span> },
+          { label: t("owner"), render: (r) => <span>{r.party_name}<span className="block font-mono text-[10px] text-muted-foreground">{r.entity_type} {r.entity_id}</span></span> },
+          { label: t("availableBalance"), render: (r) => <span className="tabular-nums">{r.avail_bal}</span> },
+          { label: t("lastTxnAt"), render: (r) => (r.last_txn_at ? mmsDate(r.last_txn_at) : "—") },
           {
             label: t("common:actions"),
             render: (r) => (

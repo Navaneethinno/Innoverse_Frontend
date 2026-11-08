@@ -38,6 +38,8 @@ export function SetRuns({ set, onChanged }) {
   const can = usePagePermission();
   const [date, setDate] = useState("");
   const [running, setRunning] = useState(null);
+  // One click per date: a second start of a running batch is refused (409 bulk.running).
+  const [starting, setStarting] = useState(false);
   const [shown, setShown] = useState(null);
   const [signingOff, setSigningOff] = useState(false);
   const list = useServerList({ api: reconRunsApi.listPath, call: reconRunsApi.list, prefix: "run_", extra: { filters: { set_id: set.id } } });
@@ -64,13 +66,16 @@ export function SetRuns({ set, onChanged }) {
   }, [running, reload, onChanged]);
 
   const start = async () => {
+    setStarting(true);
     try {
       setRunning(rowsOf(await reconRunsApi.start({ set_id: set.id, business_date: date }))[0] ?? null);
+      setStarting(false);
     } catch (error) {
       notifications.error(error.message);
+      if (error.code !== "bulk.running") setStarting(false);
     }
   };
-  const busy = running?.status === "RUNNING";
+  const busy = starting || running?.status === "RUNNING";
   const columns = [
     { key: "business_date", label: t("businessDate"), render: (r) => <span className="whitespace-nowrap text-xs font-semibold">{formatDay(r.business_date)}</span> },
     { key: "window_from", label: t("windowFrom"), render: (r) => <span className="text-xs">{r.window_from}</span> },
@@ -87,7 +92,7 @@ export function SetRuns({ set, onChanged }) {
             <Field label={t("businessDate")} required>
               <DateInput className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
-            <Button icon={Play} loading={busy} disabled={!date || busy} disabledReason={!date ? t("common:blockedFillRequired") : undefined} onClick={() => void start()}>
+            <Button icon={Play} loading={busy} disabled={!date || busy} disabledReason={!date ? t("common:blockedFillRequired") : t("common:alreadyStarted")} onClick={() => void start()}>
               {busy ? t("running") : t("run")}
             </Button>
             <Button variant="secondary" icon={Stamp} disabled={!date} disabledReason={t("common:blockedFillRequired")} onClick={() => setSigningOff(true)}>

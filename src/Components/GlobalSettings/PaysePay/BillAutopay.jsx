@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DataTable } from "@/Components/Common/DataTable";
+import { Facts } from "@/Components/InnoCBS/Deposits/depositShared";
+import { TabButton } from "@/Components/Common/ListView";
+import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { Modal } from "@/Components/Common/Modal";
 import { RowActions } from "@/Components/Common/RowActions";
 import { SearchBox } from "@/Components/Common/SearchBox";
@@ -13,7 +16,7 @@ import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { autopayApi } from "@/Services/PaysePay/paysePay.api";
 import { recordOf } from "@/Services/Loans/loans.api";
 import { notifications } from "@/Utils/Lib/notifications";
-import { DocFields, PillTabs, RecordFacts, asForm, rangeProblem, typed, usePagedList, when } from "./docShared";
+import { DocFields, PillTabs, asForm, rangeProblem, typed, usePagedList, when } from "./docShared";
 
 const fieldsOf = (t) => [
   { key: "enabled", label: t("ap_enabled"), type: "bool" },
@@ -55,8 +58,12 @@ function AutopaySettings() {
   );
 }
 
+const SCHEDULE_STATUSES = ["ACTIVE", "PAUSED", "CANCELLED", "ENDED"];
+const RUN_COLUMNS = ["due_date", "attempt", "status", "amount", "rrn", "reason", "created_time"];
+
 function Schedules() {
   const { t } = useTranslation(["paysePay", "common"]);
+  const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(null);
@@ -64,22 +71,34 @@ function Schedules() {
     const id = window.setTimeout(() => setQ(search.trim()), 400);
     return () => window.clearTimeout(id);
   }, [search]);
-  const list = usePagedList(autopayApi.schedules, q ? { search: q } : {});
+  const list = usePagedList(autopayApi.schedules, { ...(status ? { status } : {}), ...(q ? { search: q } : {}) });
   const columns = [
-    { key: "ref", label: t("ap_ref"), render: (r) => <span className="font-mono text-xs font-semibold">{r.ref ?? "—"}</span> },
-    { key: "party_name", label: t("ap_party"), render: (r) => <span className="text-xs">{r.party_name ?? "—"}</span> },
-    { key: "bill_account", label: t("ap_billAccount"), render: (r) => <span className="font-mono text-xs">{r.bill_account ?? "—"}</span> },
-    { key: "max_amount", label: t("ap_amount"), render: (r) => <span className="text-xs">{r.max_amount ?? r.amount ?? "—"}</span> },
-    { key: "status", label: t("common:status"), render: (r) => <StatusBadge status={r.status} /> },
-    { key: "next_run_at", label: t("ap_nextRun"), render: (r) => <span className="text-xs">{when(r.next_run_at)}</span> },
+    { key: "ref", label: t("ap_ref"), render: (r) => <span className="font-mono text-xs font-semibold">{r.ref}</span> },
+    { key: "entity", label: t("ap_party"), render: (r) => <span className="font-mono text-xs">{r.entity_type} {r.entity_id}<span className="block text-[10px] text-muted-foreground">{r.from_acct_num}</span></span> },
+    { key: "bill_account", label: t("ap_billAccount"), render: (r) => <span className="text-xs">{r.provider_name}<span className="block font-mono text-[10px] text-muted-foreground">{r.bill_account}{r.nickname ? ` · ${r.nickname}` : ""}</span></span> },
+    { key: "amount", label: t("ap_amount"), render: (r) => <span className="text-xs tabular-nums">{r.amount_mode === "BILL" ? t("ap_billAmount", { max: money(r.max_amount, r.currency_code) }) : money(r.amount, r.currency_code)}</span> },
+    { key: "frequency", label: t("ap_frequency"), render: (r) => <span className="text-xs">{t(`ap_freq_${r.frequency}`, { defaultValue: r.frequency })}</span> },
+    { key: "status", label: t("common:status"), render: (r) => <StatusBadge status={r.status} label={t(`ap_status_${r.status}`, { defaultValue: r.status })} /> },
+    { key: "next_run_date", label: t("ap_nextRun"), render: (r) => <span className="whitespace-nowrap text-xs">{r.next_run_date || "—"}</span> },
+    { key: "last_status", label: t("ap_lastRun"), render: (r) => (r.last_status ? <StatusBadge status={r.last_status} label={t(`ap_run_${r.last_status}`, { defaultValue: r.last_status })} variant="subtle" /> : "—") },
     { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpen(r.ref)} /> },
   ];
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="border-b border-border p-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+        <div className="flex flex-wrap gap-1">
+          <TabButton active={!status} onClick={() => setStatus("")}>
+            {t("ap_all")}
+          </TabButton>
+          {SCHEDULE_STATUSES.map((s) => (
+            <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
+              {t(`ap_status_${s}`)}
+            </TabButton>
+          ))}
+        </div>
         <SearchBox search={search} onSearch={setSearch} placeholder={t("ap_searchHint")} />
       </div>
-      <DataTable bare serverSorted rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.ref ?? r.id} title={t("ap_tabSchedules")} emptyTitle={t("ap_noSchedules")} />
+      <DataTable bare serverSorted rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.id} title={t("ap_tabSchedules")} emptyTitle={t("ap_noSchedules")} />
       {open && <ScheduleDetail reference={open} onClose={() => setOpen(null)} />}
     </div>
   );
@@ -87,34 +106,57 @@ function Schedules() {
 
 // One schedule with its runs (the list call with `ref`).
 function ScheduleDetail({ reference, onClose }) {
-  const { t } = useTranslation("paysePay");
+  const { t } = useTranslation(["paysePay", "common"]);
   const { scope } = useInstitutionScope();
   const [item, setItem] = useState(null);
   useEffect(() => {
     autopayApi
       .schedules(scope({ ref: reference, page: 1, limit: 1 }))
-      .then((r) => setItem(recordOf(r) ?? {}))
+      .then((r) => setItem(recordOf(r)?.items?.[0] ?? {}))
       .catch((e) => (notifications.error(e.message), onClose()));
   }, [reference, scope, onClose]);
   const runs = item?.runs ?? [];
-  const runKeys = runs.length ? Object.keys(runs[0]).filter((k) => runs[0][k] == null || typeof runs[0][k] !== "object") : [];
   return (
     <Modal open onClose={onClose} title={t("ap_scheduleTitle", { ref: reference })} size="lg">
       {!item ? (
         <PageSkeleton />
       ) : (
         <div className="grid gap-4">
-          <RecordFacts record={item} skip={["runs"]} />
+          <Facts
+            rows={[
+              [t("ap_party"), `${item.entity_type} ${item.entity_id}`],
+              [t("ap_fromAccount"), item.from_acct_num],
+              [t("ap_provider"), [item.provider_name, item.service, item.product].filter(Boolean).join(" · ")],
+              [t("ap_billAccount"), item.bill_account],
+              [t("ap_nickname"), item.nickname || "—"],
+              [t("ap_amountMode"), t(`ap_mode_${item.amount_mode}`, { defaultValue: item.amount_mode })],
+              [t("ap_amount"), item.amount != null && item.amount !== "" ? money(item.amount, item.currency_code) : "—"],
+              [t("ap_maxAmount"), item.max_amount ? money(item.max_amount, item.currency_code) : "—"],
+              [t("ap_frequency"), t(`ap_freq_${item.frequency}`, { defaultValue: item.frequency })],
+              [t("ap_runDay"), item.run_day ?? "—"],
+              [t("ap_period"), `${item.start_date ?? "—"} → ${item.end_date || "—"}`],
+              [t("ap_nextRun"), item.next_run_date || "—"],
+              [t("ap_attempt"), item.attempt ?? 0],
+              [t("ap_retryAt"), when(item.retry_at)],
+              [t("ap_runsPaid"), item.runs_paid ?? 0],
+              [t("ap_runsFailed"), item.runs_failed ?? 0],
+              [t("ap_lastRun"), when(item.last_run_at)],
+              [t("ap_lastReason"), item.last_reason || "—"],
+              [t("common:status"), t(`ap_status_${item.status}`, { defaultValue: item.status })],
+              [t("ap_consent"), [when(item.consent_at), item.consent_channel].filter(Boolean).join(" · ")],
+              [t("ap_created"), when(item.created_time)],
+            ]}
+          />
           <h3 className="text-sm font-bold">{t("ap_runs")}</h3>
           {runs.length ? (
             <div className="overflow-x-auto rounded-xl border border-border">
-              <SimpleTable columns={runKeys.map((k) => k.replace(/_/g, " "))}>
+              <SimpleTable columns={RUN_COLUMNS.map((k) => t(`ap_col_${k}`))}>
                 <tbody>
                   {runs.map((run, i) => (
-                    <tr key={run.id ?? i} className="border-t border-border">
-                      {runKeys.map((k) => (
+                    <tr key={`${run.due_date}-${run.attempt}-${i}`} className="border-t border-border">
+                      {RUN_COLUMNS.map((k) => (
                         <td key={k} className="px-3 py-2 text-xs">
-                          {k === "status" ? <StatusBadge status={run[k]} /> : /(_at|_time)$/.test(k) ? when(run[k]) : String(run[k] ?? "—")}
+                          {k === "status" ? <StatusBadge status={run.status} label={t(`ap_run_${run.status}`, { defaultValue: run.status })} /> : k === "created_time" ? when(run[k]) : k === "amount" ? money(run.amount, item.currency_code) : String(run[k] ?? "—")}
                         </td>
                       ))}
                     </tr>

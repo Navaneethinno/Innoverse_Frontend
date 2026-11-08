@@ -42,6 +42,10 @@ function entriesProblem(t, form) {
   return "";
 }
 
+// An edit replaces the whole list: a platform in effect (setup.platforms) that
+// the proposal leaves out is removed once approved.
+const droppedPlatforms = (data, form) => (data?.setup?.platforms ?? []).map((r) => r.platform).filter((p) => !form.platforms.some((r) => r.platform === p));
+
 // GLOBAL SETTINGS > App Versions (menu 218): per platform the latest app
 // version and the minimum still supported. Below the minimum the app must
 // update; below the latest it may. One document under maker-checker.
@@ -57,6 +61,7 @@ export function AppVersions() {
       toForm={(setup) => ({ platforms: (setup?.platforms ?? []).map((r) => ({ ...r })) })}
       bodyOf={(form) => ({ platforms: toBody(form.platforms) })}
       problemOf={(_, form) => entriesProblem(t, form)}
+      warningsOf={(form, data) => droppedPlatforms(data, form).map((p) => t("platformDropped", { platform: t(`platform_${p}`, { defaultValue: p }) }))}
     >
       {({ data, shown, editing, setForm }) => <Platforms data={data} entries={shown?.platforms ?? []} editing={editing} setForm={setForm} />}
     </SectionScreen>
@@ -65,7 +70,8 @@ export function AppVersions() {
 
 function Platforms({ data, entries, editing, setForm }) {
   const { t } = useTranslation("appVersions");
-  const choices = Array.isArray(data?.platforms) && data.platforms.every((p) => typeof p === "string") ? data.platforms : PLATFORMS;
+  // The choices sit at the top of the reply; setup.platforms is what is in effect.
+  const choices = Array.isArray(data?.platforms) && data.platforms.length && data.platforms.every((p) => typeof p === "string") ? data.platforms : PLATFORMS;
   const platformLabel = (p) => t(`platform_${p}`, { defaultValue: p });
 
   if (editing) {

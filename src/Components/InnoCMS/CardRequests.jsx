@@ -18,6 +18,7 @@ import { cardOrdersApi, cardRequestsApi, cardStockApi, cardsApi, idempotencyKey 
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, Facts, NarrationDialog, Problems, inputClass } from "../InnoCBS/Deposits/depositShared";
+import { pickupBlocked, usePickupLocations } from "./Settings/PickupLocations";
 import { CardPill, DeliveryFields, HolderPicker, Labelled, ProductCardPreview, WithCard, cardWord, pickupBody } from "./cardOpsShared";
 import { actorText } from "@/Utils/Lib/actor";
 
@@ -287,16 +288,18 @@ function AcceptRequest({ request, busy, onClose, onSave }) {
 // product, the holder, the name on the card and how it reaches them. The
 // fee is charged from the holder's wallet now.
 function NewCardRequest({ options, onClose, onDone }) {
-  const { t } = useTranslation("cards");
+  const { t } = useTranslation(["cards", "ops", "common"]);
   const products = (options.card_products ?? []).filter((p) => allows(p, "allowed_form_factors", "PHYSICAL") && allows(p, "allowed_perso_modes", "PERSONALIZED"));
   const [productId, setProductId] = useState(products[0] ? String(products[0].id) : "");
   const [holder, setHolder] = useState(null);
   const [name, setName] = useState("");
   const [delivery, setDelivery] = useState({ delivery_mode: "BRANCH_PICKUP", delivery_ref: "" });
+  const pickup = usePickupLocations();
   const [key] = useState(idempotencyKey);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const product = products.find((p) => String(p.id) === productId);
+  const pickupWhy = pickupBlocked(t, pickup, delivery);
 
   const send = async () => {
     setBusy(true);
@@ -333,7 +336,7 @@ function NewCardRequest({ options, onClose, onDone }) {
           <Button variant="ghost" onClick={onClose}>
             {t("cancel")}
           </Button>
-          <Button icon={CheckCircle2} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim())} disabledReason={t("common:blockedFillRequired")} onClick={send}>
+          <Button icon={CheckCircle2} loading={busy} disabled={!productId || !holder || (product?.emboss_name_required && !name.trim()) || Boolean(pickupWhy)} disabledReason={pickupWhy || t("common:blockedFillRequired")} onClick={send}>
             {t("requestCard")}
           </Button>
         </>
@@ -350,7 +353,7 @@ function NewCardRequest({ options, onClose, onDone }) {
         <Labelled required={Boolean(product?.emboss_name_required)} label={t("nameOnCard")} hint={product?.emboss_name_required ? t("nameRequired") : t("nameDefaults")}>
           <input className={inputClass} maxLength={26} value={name} onChange={(e) => setName(e.target.value.toUpperCase())} />
         </Labelled>
-        <DeliveryFields modes={options.delivery_modes} value={delivery} onChange={setDelivery} />
+        <DeliveryFields modes={options.delivery_modes} value={delivery} onChange={setDelivery} pickup={pickup} />
         <Problems message={error} />
       </WithCard>
     </Modal>

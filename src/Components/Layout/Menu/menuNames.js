@@ -4,6 +4,10 @@
 // every user's own inbox.
 export const SCREEN_MENUS = [
   "Agent Float Limits",
+  "Rewards Campaigns",
+  "Loyalty & Referral",
+  "Vouchers",
+  "Rewards Report",
   "Customer Blocks",
   "Dispute Settings",
   "POS Profile Templates",

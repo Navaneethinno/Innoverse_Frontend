@@ -289,6 +289,7 @@ function UploadDetail({ id, onClose, onChanged }) {
   }, [id]);
   const { buttons, busy, dialog } = useRecordActions({
     actions: upload?.actions,
+    once: "auth",
     run: async (verb, narration) => {
       const r = await glUploadsApi[verb]({ id, ...(narration ? { narration } : {}) });
       notifications.success(r?.message ?? t("done"));

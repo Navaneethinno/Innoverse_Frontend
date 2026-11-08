@@ -1,27 +1,22 @@
 import { useTranslation } from "react-i18next";
 import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { guestPayApi } from "@/Services/PaysePay/paysePay.api";
-import { DocFields, asForm, typed } from "./docShared";
+import { DocFields, asForm, rangeProblem, typed } from "./docShared";
 
-// Choices for a list field: from the reply's `choices` when it sends them.
-const choicesOf = (data, key) => (Array.isArray(data?.choices?.[key]) ? data.choices[key].map((c) => (typeof c === "object" ? { value: c.value ?? c.code, label: c.label ?? c.name ?? c.value ?? c.code } : { value: c, label: c })) : []);
-
-// Picked from the choices, or typed with commas when the reply sends none.
-const listOf = (data, key) => {
-  const options = choicesOf(data, key);
-  return options.length ? { type: "multi", options } : { type: "list", hint: "" };
-};
+// choices.types (AIRTIME, PREPAID_ELECTRICITY, BILL_PAYMENT) and
+// choices.sources (EXT_WALLET).
+const pick = (t, list, prefix) => ({ type: "multi", options: (list ?? []).map((v) => ({ value: v, label: t(`${prefix}${v}`, { defaultValue: v }) })) });
 
 const fieldsOf = (t, data) => [
   { key: "enabled", label: t("gp_enabled"), type: "bool" },
   { key: "otp_required", label: t("gp_otpRequired"), type: "bool" },
-  { key: "allowed_types", label: t("gp_allowedTypes"), ...listOf(data, "allowed_types") },
-  { key: "sources", label: t("gp_sources"), ...listOf(data, "sources") },
+  { key: "allowed_types", label: t("gp_allowedTypes"), ...pick(t, data?.choices?.types, "gp_type_") },
+  { key: "sources", label: t("gp_sources"), ...pick(t, data?.choices?.sources, "gp_source_") },
   { key: "max_amount", label: t("gp_maxAmount"), type: "amount", emptyText: t("noLimit"), hint: t("emptyNoLimit") },
   { key: "daily_device_cap", label: t("gp_dailyDeviceCap"), type: "amount", emptyText: t("noLimit"), hint: t("emptyNoLimit") },
   { key: "daily_phone_cap", label: t("gp_dailyPhoneCap"), type: "amount", emptyText: t("noLimit"), hint: t("emptyNoLimit") },
-  { key: "daily_count", label: t("gp_dailyCount"), type: "int" },
-  { key: "session_mins", label: t("gp_sessionMins"), type: "int" },
+  { key: "daily_count", label: t("gp_dailyCount"), type: "int", min: 0, max: 100, optional: true, emptyAs: 0, hint: t("gp_dailyCountHint") },
+  { key: "session_mins", label: t("gp_sessionMins"), type: "int", min: 5, max: 60, optional: true, zeroOk: true, emptyAs: 0, hint: t("gp_sessionMinsHint") },
 ];
 
 // GLOBAL SETTINGS > Guest Payments (menu 244): payments by people without an
@@ -38,6 +33,7 @@ export function GuestPayments() {
       subtitle={t("gp_subtitle")}
       toForm={(setup) => asForm(fields, setup ?? {})}
       bodyOf={(form) => typed(fields, form)}
+      problemOf={(_, form) => rangeProblem(t, fields, form)}
     >
       {({ data, shown, editing, setForm }) => <DocFields fields={fieldsOf(t, data)} value={shown} editing={editing} onChange={setForm} />}
     </SectionScreen>

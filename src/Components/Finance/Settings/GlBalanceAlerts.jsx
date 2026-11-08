@@ -291,7 +291,7 @@ function ThresholdView({ id, onBack, onEdit, editing, onCloseEdit }) {
 
 // The problem texts of a gl_threshold.invalid refusal, by their stable keys.
 function problemLines(t, e) {
-  const keys = e?.problemKeys ?? e?.data?.problem_keys ?? [];
+  const keys = e?.data?.problem_keys ?? [];
   const texts = e?.data?.problems ?? [];
   if (!keys.length) return [e?.message].filter(Boolean);
   return keys.map((k, i) => {
@@ -341,9 +341,9 @@ function ThresholdDialog({ record, scope, onClose, onSaved }) {
     .filter((c) => !taken.includes(c))
     .map((c) => {
       const cur = (options?.currencies ?? []).find((x) => String(x.id) === c);
-      return { value: c, label: cur ? [cur.code ?? cur.alpha_code, cur.name].filter(Boolean).join(" · ") : `#${c}` };
+      return { value: c, label: cur?.name ?? `#${c}` };
     });
-  const glLabel = (g) => [g.name, g.number ?? g.gl_account_number ?? g.account_number, g.purpose ?? g.gl_purpose].filter(Boolean).join(" · ");
+  const glLabel = (g) => [g.name, g.account_number, g.purpose].filter(Boolean).join(" · ");
   const hasLimit = String(form.low_balance).trim() || String(form.high_balance).trim();
   const hasRecipient = form.group_ids.length || form.user_ids.length;
   const blocked = !form.gl_account_id || !form.currency_id ? t("common:blockedFillRequired") : !hasLimit ? t("gta_blockedNoLimit") : !hasRecipient ? t("gta_blockedNoRecipient") : null;
@@ -423,7 +423,7 @@ function ThresholdDialog({ record, scope, onClose, onSaved }) {
           </div>
           <div className={`${labelClass} sm:col-span-2`}>
             {t("gta_users")}
-            <Field field={{ type: "multi", options: (options.users ?? []).map((u) => ({ value: u.id, label: u.name ?? u.user_name })) }} value={form.user_ids} onChange={set("user_ids")} />
+            <Field field={{ type: "multi", options: (options.users ?? []).map((u) => ({ value: u.id, label: u.name })) }} value={form.user_ids} onChange={set("user_ids")} />
           </div>
           <p className="-mt-1 text-[11px] text-muted-foreground sm:col-span-2">{t("gta_recipientHint")}</p>
           <Field field={{ type: "bool", label: t("gta_sendEmail") }} value={form.send_email} onChange={set("send_email")} />

@@ -81,7 +81,7 @@ export function TerminalBatches() {
       render: (r) => (
         <div className="flex items-center gap-1">
           <RowActions buttons={{ view: true }} onView={() => setViewing(r)} />
-          {r.status === "OPEN" && (
+          {r.actions?.close && (
             <Button size="sm" variant="secondary" icon={Lock} disabled={!can("Edit")} disabledReason={t("whyNoPermission")} onClick={() => setClosing(r)}>
               {t("closeBatch")}
             </Button>

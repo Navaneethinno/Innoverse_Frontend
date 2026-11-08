@@ -66,7 +66,7 @@ function formatValue(value) {
 function formatTimestamp(value) {
   if (!value || (typeof value === "string" && value.startsWith("0001-01-01"))) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : formatDateTime(date);
+  return Number.isNaN(date.getTime()) ? value : formatDateTime(value);
 }
 
 // Keyed off the real auth_status values seen across Institution/Profile/User

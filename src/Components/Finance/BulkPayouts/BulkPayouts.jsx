@@ -82,12 +82,12 @@ function BulkPayoutScreen({ api, readOnly = false }) {
       align: "left",
       render: (b) => (
         <button type="button" onClick={() => setOpenId(b.id)} className="text-left">
-          <p className="font-mono text-xs font-bold text-primary hover:underline">{b.batch_ref ?? b.reference ?? `#${b.id}`}</p>
+          <p className="font-mono text-xs font-bold text-primary hover:underline">{b.batch_ref}</p>
           <p className="text-[10px] text-muted-foreground">{b.file_name}</p>
         </button>
       ),
     },
-    readOnly && { key: "merchant", label: t("bp_merchant"), render: (b) => <span className="text-xs">{b.merchant_name ?? b.owner_name ?? "—"}</span> },
+    readOnly && { key: "merchant", label: t("bp_merchant"), render: (b) => <span className="text-xs">{b.from_name ?? "—"}</span> },
     { key: "from", label: t("bp_fromWallet"), render: (b) => <span className="font-mono text-xs">{b.from_acct_num ?? "—"}</span> },
     { key: "narration", label: t("bp_narration"), render: (b) => <span className="text-xs">{b.narration || "—"}</span> },
     { key: "rows", label: t("bp_rows"), render: (b) => <span className="text-xs tabular-nums">{b.valid_count ?? b.row_count ?? "—"}</span> },
@@ -150,7 +150,7 @@ function RowStatus({ status }) {
   return <StatusBadge status={status === "VALID" ? "OK" : status === "INVALID" ? "FAILED" : status} label={status ? t(`bp_row_${status}`, { defaultValue: status }) : undefined} variant="subtle" />;
 }
 
-const payeeOf = (r) => (r.payee_type === "BANK" ? [r.bank_account, r.bank_provider].filter(Boolean).join(" · ") : r.acct_num || r.phone_number) || "—";
+const payeeOf = (r) => [r.payee_account || r.payee_phone, r.bank_provider].filter(Boolean).join(" · ") || "—";
 
 // The rows of a check or a batch, paged in memory (a file holds up to 1000).
 function PayoutRows({ rows, currency, showPosting = false }) {
@@ -161,13 +161,13 @@ function PayoutRows({ rows, currency, showPosting = false }) {
       <SimpleTable columns={[t("bp_rowNo"), t("bp_payeeType"), t("bp_payee"), t("bp_name"), t("bp_nameCheck"), { label: t("bp_amount"), align: "right" }, { label: t("bp_fee"), align: "right" }, t("bp_rowStatus"), showPosting && t("bp_rrn"), t("bp_reason")].filter((c) => c !== false)}>
         <tbody>
           {shown.map((r, i) => (
-            <tr key={r.id ?? r.row_no ?? i} className="border-b border-border/60">
+            <tr key={r.row_no ?? i} className="border-b border-border/60">
               <td className="px-3 py-2 tabular-nums">{r.row_no ?? i + 1}</td>
               <td className="px-3 py-2">{t(`bp_payee_${r.payee_type}`, { defaultValue: r.payee_type ?? "—" })}</td>
               <td className="px-3 py-2 font-mono">{payeeOf(r)}</td>
               <td className="px-3 py-2">
-                {r.name || "—"}
-                {r.enquiry_name && r.enquiry_name !== r.name && <span className="block text-[10px] text-muted-foreground">{r.enquiry_name}</span>}
+                {r.payee_name || r.expected_name || "—"}
+                {r.expected_name && r.payee_name && r.expected_name !== r.payee_name && <span className="block text-[10px] text-muted-foreground">{r.expected_name}</span>}
               </td>
               <td className="px-3 py-2">{r.name_check ? <span className={cn("font-semibold", r.name_check === "MISMATCH" && "text-red-700", r.name_check === "MATCH" && "text-emerald-700")}>{t(`bp_nameCheck_${r.name_check}`)}</span> : "—"}</td>
               <td className="px-3 py-2 text-right tabular-nums">{money(r.amount, currency)}</td>
@@ -190,8 +190,19 @@ function PayoutRows({ rows, currency, showPosting = false }) {
 function Totals({ totals, currency }) {
   const { t } = useTranslation("txn");
   if (!totals) return null;
-  const amountKeys = ["total_amount", "total_fee", "total_debit", "amount", "fee"];
-  return <Facts rows={Object.entries(totals).filter(([, v]) => v == null || typeof v !== "object").map(([k, v]) => [t(`bp_total_${k}`, { defaultValue: k.replace(/_/g, " ") }), amountKeys.includes(k) ? money(v, currency) : v])} />;
+  return (
+    <Facts
+      rows={[
+        [t("bp_total_row_count"), totals.row_count],
+        [t("bp_total_valid_count"), totals.valid_count],
+        [t("bp_total_invalid_count"), totals.invalid_count],
+        [t("bp_total_total_amount"), money(totals.total_amount, currency)],
+        [t("bp_totalDebit"), money(totals.total_debit, currency)],
+        [t("bp_total_free_balance"), money(totals.free_balance, currency)],
+        [t("bp_total_funds_ok"), t(totals.funds_ok ? "bp_yes" : "bp_no")],
+      ]}
+    />
+  );
 }
 
 // Upload: template, the file, the wallet; check (writes nothing), then file
@@ -242,7 +253,7 @@ function UploadDialog({ scope, onClose, onFiled }) {
 
   const rows = checked?.rows ?? [];
   const valid = rows.filter((r) => r.row_status !== "INVALID").length;
-  const currency = checked?.totals?.currency_code ?? checked?.currency_code;
+  const currency = checked?.totals?.currency_code;
   const ready = acct.trim() && file;
   const addBlocked = !checked ? t("bp_blockedCheckFirst") : !valid ? t("bp_blockedNoValid") : checked.duplicate ? t("bp_blockedDuplicate") : !narration.trim() ? t("common:blockedFillRequired") : null;
 
@@ -395,10 +406,10 @@ function BatchView({ id, api, readOnly, onBack }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-black">{batch.batch_ref ?? batch.reference ?? `#${batch.id}`}</h1>
+              <h1 className="font-mono text-xl font-black">{batch.batch_ref}</h1>
               <BatchStatus batch={batch} />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">{[batch.file_name, batch.from_acct_num, batch.narration, batch.inst_profile_name].filter(Boolean).join(" · ")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{[batch.file_name, batch.from_name, batch.from_acct_num, batch.narration, batch.inst_profile_name].filter(Boolean).join(" · ")}</p>
           </div>
           <ActionButtons buttons={buttons} busy={busy} />
         </div>
@@ -415,15 +426,18 @@ function BatchView({ id, api, readOnly, onBack }) {
         <Facts
           rows={[
             [t("bp_totalDebit"), money(batch.total_debit, cur)],
-            batch.total_amount != null && [t("bp_total_total_amount"), money(batch.total_amount, cur)],
-            batch.total_fee != null && [t("bp_total_total_fee"), money(batch.total_fee, cur)],
-            [t("bp_createdBy"), batch.created_by_name ?? batch.created_by],
+            [t("bp_total_total_amount"), money(batch.total_amount, cur)],
+            [t("bp_total_row_count"), batch.row_count],
+            [t("bp_total_valid_count"), batch.valid_count],
+            [t("bp_postedFailed"), `${batch.posted_count ?? 0} / ${batch.failed_count ?? 0}`],
+            [t("bp_createdBy"), batch.created_by],
             [t("bp_created"), accountDate(batch.created_time)],
-            batch.auth_by && [t("bp_decidedBy"), batch.auth_by_name ?? batch.auth_by],
+            batch.decided_by && [t("bp_decidedBy"), batch.decided_by],
+            batch.decided_time && [t("bp_decidedAt"), accountDate(batch.decided_time)],
+            batch.decision_narration && [t("bp_decisionNote"), batch.decision_narration],
             batch.file_sha256 && [t("bp_fileHash"), <span key="h" className="break-all font-mono text-[10px]">{batch.file_sha256}</span>],
           ]}
         />
-        {batch.totals && <Totals totals={batch.totals} currency={cur} />}
       </Section>
       <Section title={t("bp_rows")}>
         <PayoutRows rows={batch.items ?? []} currency={cur} showPosting />

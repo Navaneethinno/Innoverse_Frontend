@@ -13,9 +13,9 @@ function groupsOf(t, data) {
   return {
     binding: [
       { key: "mode", label: t("ds_mode"), type: "select", options: modes, hint: t("ds_bindingModeHint") },
-      { key: "max_devices", label: t("ds_maxDevices"), type: "int", min: 1, max: 5 },
+      { key: "max_devices", label: t("ds_maxDevices"), type: "int", min: 1, max: 5, hint: t("ds_range", { min: 1, max: 5 }) },
       { key: "secondary_allowed", label: t("ds_secondaryAllowed"), type: "bool" },
-      { key: "cooling_mins", label: t("ds_coolingMins"), type: "int" },
+      { key: "cooling_mins", label: t("ds_coolingMins"), type: "int", min: 0, max: 43200, hint: t("ds_coolingMinsHint") },
       { key: "cooling_cap", label: t("ds_coolingCap"), type: "amount", hint: t("ds_coolingCapHint"), emptyText: t("noLimit") },
       { key: "alerts", label: t("ds_alerts"), type: "bool" },
     ],
@@ -25,7 +25,7 @@ function groupsOf(t, data) {
       { key: "android_package", label: t("ds_androidPackage"), placeholder: "com.example.app" },
       { key: "ios_bundle_id", label: t("ds_iosBundle"), placeholder: "com.example.app" },
       { key: "ios_team_id", label: t("ds_iosTeam") },
-      { key: "nonce_ttl_secs", label: t("ds_nonceTtl"), type: "int" },
+      { key: "nonce_ttl_secs", label: t("ds_nonceTtl"), type: "int", min: 30, max: 3600, hint: t("ds_range", { min: 30, max: 3600 }) },
       { key: "require_strong", label: t("ds_requireStrong"), type: "bool" },
       { key: "allow_unverified", label: t("ds_allowUnverified"), type: "bool" },
     ],
@@ -34,8 +34,8 @@ function groupsOf(t, data) {
       { key: "on_pin_reset", label: t("ds_faceOnPinReset"), type: "bool" },
       { key: "above_amount", label: t("ds_faceAboveAmount"), type: "amount", hint: t("ds_faceAboveAmountHint"), emptyText: t("noLimit") },
       { key: "blacklist_check", label: t("ds_faceBlacklist"), type: "bool" },
-      { key: "max_failures", label: t("ds_faceMaxFailures"), type: "int" },
-      { key: "block_mins", label: t("ds_faceBlockMins"), type: "int" },
+      { key: "max_failures", label: t("ds_faceMaxFailures"), type: "int", min: 1, max: 20, hint: t("ds_range", { min: 1, max: 20 }) },
+      { key: "block_mins", label: t("ds_faceBlockMins"), type: "int", min: 1, max: 10080, hint: t("ds_range", { min: 1, max: 10080 }) },
     ],
   };
 }

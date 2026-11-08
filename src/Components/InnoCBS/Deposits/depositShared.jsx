@@ -74,7 +74,7 @@ export function ActionButtons({ buttons, busy }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       {list.map((b) => (
-        <Button key={b.key} variant={b.variant ?? "secondary"} size="sm" icon={b.icon} disabled={busy} onClick={b.run}>
+        <Button key={b.key} variant={b.variant ?? "secondary"} size="sm" icon={b.icon} disabled={busy || b.disabled} disabledReason={b.disabledReason} onClick={b.run}>
           {b.label}
         </Button>
       ))}
