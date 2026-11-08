@@ -1,3 +1,4 @@
+import { platformToday } from "@/Utils/Lib/dateFormat";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
@@ -19,7 +20,7 @@ export const runExporter = (body, name, optionLabels) => async (format) => {
   const { columns = [], rows = [] } = rowsOf(r)[0] ?? {};
   const head = columns.map((c) => c.label);
   const data = rows.map((row) => row.map((v, i) => fileValue(v, columns[i], optionLabels)));
-  const file = `${String(name || "report").replace(/[^\w-]+/g, "_")}_${new Date().toISOString().slice(0, 10)}`;
+  const file = `${String(name || "report").replace(/[^\w-]+/g, "_")}_${platformToday()}`;
   return format === "CSV" ? { blob: new Blob([csvText(head, data)], { type: "text/csv;charset=utf-8" }), fileName: `${file}.csv` } : { blob: xlsxBlob(head, data), fileName: `${file}.xlsx` };
 };
 

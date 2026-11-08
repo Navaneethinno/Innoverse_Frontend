@@ -21,13 +21,14 @@ import { useLatest } from "@/Hooks/useLatest";
 // `select(reply)`: the rows, when a page shapes them itself (default: data).
 // The list reloads on its live channel (another user's change) and on the
 // window event `reloadOn` (this tab's own saves). `enabled: false` (a tab not
-// on screen) loads nothing until it is true.
+// on screen) loads nothing until it is true. `describe: false`: the route is
+// not a registered list, so /config/list/options would refuse it.
 const SEARCH_DELAY = 400;
 const optionsCache = new Map();
 
 const isSet = (v) => v !== undefined && v !== null && v !== "" && v !== false;
 
-export function useServerList({ api, call, prefix = "", extra = null, select = null, reloadOn = null, enabled = true }) {
+export function useServerList({ api, call, prefix = "", extra = null, select = null, reloadOn = null, enabled = true, describe = true }) {
   const [params, setParams] = useSearchParams();
   const institution = useInstitutionFilter();
   const [options, setOptions] = useState(null);
@@ -41,6 +42,10 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
   const inst = canChooseInstitution() ? institution : "";
   useEffect(() => {
     if (!enabled) return undefined;
+    if (!describe) {
+      setOptions({});
+      return undefined;
+    }
     if (!api) {
       // A page wired without its list path: nothing can load.
       console.error("useServerList: no list path given");
@@ -66,7 +71,7 @@ export function useServerList({ api, call, prefix = "", extra = null, select = n
     return () => {
       cancelled = true;
     };
-  }, [api, inst, enabled]);
+  }, [api, inst, enabled, describe]);
 
   // The search box shows what is typed at once; the list follows 400 ms
   // after typing stops.

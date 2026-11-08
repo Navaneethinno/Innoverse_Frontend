@@ -137,7 +137,7 @@ function StartReturn({ onClose, onDone }) {
   }, [scope]);
   const holders = holderChoices(options, type);
   const filter = { inventory_status: "ASSIGNED", assignee_type: type, assignee_id: Number(holderId) };
-  const stock = useServerList({ api: cardStockApi.listPath, call: cardStockApi.list, prefix: "retnew_", extra: { ...filter, filters: filter }, enabled: Boolean(type && holderId) });
+  const stock = useServerList({ api: cardStockApi.listPath, call: cardStockApi.list, prefix: "retnew_", extra: filter, enabled: Boolean(type && holderId) });
   const choose = (next) => {
     setPicked([]);
     setHolderId(next);

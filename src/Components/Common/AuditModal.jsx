@@ -1,3 +1,4 @@
+import { istIfDateTime } from "@/Utils/Lib/dateFormat";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { formatDateTime } from "@/Utils/Lib/dateFormat";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
@@ -60,7 +61,7 @@ function formatValue(value) {
     const entries = Object.entries(value).filter(([, v]) => !isEmptyPlaceholder(v));
     return entries.length === 0 ? "—" : entries.map(([k, v]) => `${k.replaceAll("_", " ")}: ${formatValue(v)}`).join("\n");
   }
-  return isEmptyPlaceholder(value) ? "—" : String(value);
+  return isEmptyPlaceholder(value) ? "—" : String(istIfDateTime(value));
 }
 
 function formatTimestamp(value) {

@@ -1,3 +1,4 @@
+import { istToUtc } from "@/Utils/Lib/dateFormat";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CheckCircle2, Plus, Trash2, XCircle } from "lucide-react";
@@ -40,7 +41,7 @@ export function LimitEvaluate({ group, onClose }) {
         ...(form.channel_id ? { channel_id: Number(form.channel_id) } : {}),
         ...(form.kyc_level_no !== "" ? { kyc_level_no: Number(form.kyc_level_no) } : {}),
         ...(form.registration_days !== "" ? { registration_days: Number(form.registration_days) } : {}),
-        ...(form.at ? { at: new Date(form.at).toISOString() } : {}),
+        ...(form.at ? { at: istToUtc(form.at) } : {}),
         ...(form.currency_code ? { currency_code: form.currency_code } : {}),
         ...(form.amount !== "" ? { amount: Number(form.amount) } : {}),
       };

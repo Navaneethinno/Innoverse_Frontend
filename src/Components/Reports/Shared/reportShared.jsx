@@ -6,7 +6,7 @@ import { Spinner } from "@/Components/Common/Spinner";
 import { saveBlob } from "@/Services/api/fileTransfer";
 import { notifications } from "@/Utils/Lib/notifications";
 import { useBrandTheme } from "@/Hooks/Providers/BrandThemeProvider";
-import { formatDay, isPlatformClock } from "@/Utils/Lib/dateFormat";
+import { formatIstPlain } from "@/Utils/Lib/dateFormat";
 import { Button } from "@/Components/Common/Button";
 
 // Shared by every Reports screen (read-only; handoffs 08–09).
@@ -14,21 +14,13 @@ import { Button } from "@/Components/Common/Button";
 export const glassCard = { background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "1px solid var(--glass-border)", boxShadow: "var(--glass-shadow)" };
 const dateInput = "w-auto min-w-[8.5rem] rounded-lg border px-2.5 py-1.5 text-xs";
 
-// JSON times are UTC; reports show them in platform time (IST), the date
-// in the institution's date format.
-const IST = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+// Times in reports are IST, the date in the institution's date format.
 // Unlabelled: for files people's tools read.
-export const atIstPlain = (value) => {
-  const d = value ? new Date(value) : null;
-  if (!d || Number.isNaN(d.getTime())) return "-";
-  const p = Object.fromEntries(IST.formatToParts(d).map((x) => [x.type, x.value]));
-  return `${formatDay(`${p.year}-${p.month}-${p.day}`)} ${p.hour}:${p.minute}:${p.second}`;
-};
-// On screen. A value with no zone is read in the browser's zone first, so it
-// is IST for certain only when it carries its zone: only then is it marked.
+export const atIstPlain = (value) => formatIstPlain(value) ?? "-";
+// On screen: labelled, except a date-only value, which has no time.
 export const atIst = (value) => {
   const text = atIstPlain(value);
-  return text === "-" || isPlatformClock(value) ? text : `${text} IST`;
+  return text === "-" || /^\d{4}-\d{2}-\d{2}$/.test(String(value).trim()) ? text : `${text} IST`;
 };
 
 // "22 Sep – 28 Sep 2026" for a resolved range of YYYY-MM-DD days.

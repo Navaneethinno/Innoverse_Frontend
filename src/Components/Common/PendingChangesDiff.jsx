@@ -1,3 +1,4 @@
+import { istIfDateTime } from "@/Utils/Lib/dateFormat";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
@@ -74,7 +75,7 @@ function displayValue(value) {
     const entries = Object.entries(value).filter(([, v]) => v !== "" && v != null);
     return entries.length === 0 ? "—" : entries.map(([k, v]) => `${fieldLabel(k)}: ${displayValue(v)}`).join("\n");
   }
-  return String(value);
+  return String(istIfDateTime(value));
 }
 
 const isNestedValue = (v) => v != null && typeof v === "object";

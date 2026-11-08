@@ -14,7 +14,7 @@ const COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--cha
 const tooltipStyle = { background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 };
 const axisTick = { fontSize: 11, fill: "var(--muted-foreground)" };
 
-// "2 hours ago", from the reply's "2026-10-31 12:35:28".
+// "2 hours ago", from the reply's UTC timestamp.
 function relative(at, lang) {
   const then = new Date(String(at).replace(" ", "T")).getTime();
   if (!Number.isFinite(then)) return at ?? "";

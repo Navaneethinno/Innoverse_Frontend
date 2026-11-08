@@ -24,7 +24,9 @@ export const cardOrdersApi = calls(API_ENDPOINTS.CARD.ORDER, ["options", "holder
 export const cardReturnsApi = calls(API_ENDPOINTS.CARD.RETURN, ["list", "get", "add", "auth"]);
 // Card Reports (253): stock by holder, cards by status group, cards expiring soon.
 export const cardReportsApi = { ...calls(API_ENDPOINTS.CARD.REPORT, ["stock", "status", "expiring"]), listPath: `${API_ENDPOINTS.CARD.REPORT}/status` };
-export const cardStockApi = calls(API_ENDPOINTS.CARD.STOCK, ["options", "list", "assign", "issue"]);
+// list takes its filters at the top level only, never in `filters`.
+const cardStockCalls = calls(API_ENDPOINTS.CARD.STOCK, ["options", "list", "assign", "issue"]);
+export const cardStockApi = { ...cardStockCalls, list: ({ filters, ...body } = {}) => cardStockCalls.list({ ...body, ...filters }) };
 // PRE Files (158): one emboss file from cards across an issuance group's orders.
 export const preFilesApi = calls(API_ENDPOINTS.CARD.PREFILE, ["list", "generate", "jobs"]);
 

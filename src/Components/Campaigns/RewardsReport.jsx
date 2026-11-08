@@ -19,24 +19,26 @@ const DECISIONS = ["CREDITED", "SKIPPED", "FAILED", "REVERSED"];
 const FILTERS = {
   decisions: ["campaign_id", "decision", "txn_id", "entity"],
   points: ["entity"],
-  campaigns: ["campaign_id"],
-  referrals: ["entity"],
-  redemptions: ["entity"],
+  campaigns: [],
+  referrals: [],
+  redemptions: [],
+};
+// Each report's fields, in order. Every value is a string or null.
+const COLUMNS = {
+  decisions: ["id", "inst_profile_id", "created_at", "txn_rrn", "txn_type", "txn_amount", "kind", "campaign_code", "campaign_name", "entity_type", "entity_id", "decision", "reason", "amount", "points", "reward_rrn"],
+  points: ["id", "created_at", "entity_type", "entity_id", "op", "points", "remaining", "expires_at", "txn_rrn", "reason"],
+  campaigns: ["id", "code", "name", "reward_kind", "start_date", "end_date", "status", "budget_used", "credited", "skipped", "failed", "reversed", "customers"],
+  referrals: ["id", "created_at", "code", "referrer_entity_type", "referrer_entity_id", "referee_entity_type", "referee_entity_id", "status", "reason", "rewarded_at"],
+  redemptions: ["id", "created_at", "entity_type", "entity_id", "voucher_code", "points", "amount", "rrn"],
 };
 
-// The handoff gives no row fields for these reports, so the columns follow
-// the reply's plain values.
-function columnsOf(rows, t) {
-  const first = rows[0] ?? {};
-  return Object.keys(first)
-    .filter((k) => first[k] == null || typeof first[k] !== "object")
-    .map((k) => ({
-      key: k,
-      label: t(`rep_col_${k}`, { defaultValue: k.replace(/_/g, " ") }),
-      sortable: false,
-      render: (r) => <span className="whitespace-nowrap text-xs">{/(_at|_time)$/.test(k) ? when(r[k]) : String(r[k] ?? "—")}</span>,
-    }));
-}
+const columnsOf = (report, t) =>
+  COLUMNS[report].map((k) => ({
+    key: k,
+    label: t(`rep_col_${k}`),
+    sortable: false,
+    render: (r) => <span className="whitespace-nowrap text-xs">{/_at$/.test(k) ? when(r[k]) : (r[k] ?? "—")}</span>,
+  }));
 
 // EPURSE > Rewards Report (menu 229): why a transaction did or did not earn
 // a reward, points, campaign spend, referrals and redemptions.
@@ -125,7 +127,7 @@ export function RewardsReport() {
         )}
       </div>
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <DataTable bare columns={columnsOf(list.rows, t)} rows={list.rows} rowKey={(r, i) => r.id ?? i} isLoading={list.loading} title={t(`rep_${report}`)} emptyTitle={t("reportEmpty")} serverPagination={list.pagination} />
+        <DataTable bare columns={columnsOf(report, t)} rows={list.rows} rowKey={(r, i) => r.id ?? i} isLoading={list.loading} title={t(`rep_${report}`)} emptyTitle={t("reportEmpty")} serverPagination={list.pagination} />
       </div>
     </div>
   );

@@ -15,7 +15,7 @@ const pointFields = (t, options) => [
   { key: "points_per_unit", label: t("points_per_unit"), type: "amount", hint: t("pointsPerUnitHint") },
   { key: "unit_amount", label: t("unit_amount"), type: "amount" },
   { key: "point_value", label: t("point_value"), type: "amount", hint: t("pointValueHint") },
-  { key: "min_redeem_points", label: t("min_redeem_points"), type: "int" },
+  { key: "min_redeem_points", label: t("min_redeem_points"), type: "amount" },
   { key: "expiry_days", label: t("expiry_days"), type: "int" },
 ];
 const referralFields = (t, options) => [
@@ -60,7 +60,7 @@ export function LoyaltyReferral() {
       ...numbersOf(points, f),
       currency_id: Number(f.currency_id),
       earn_txn_type_ids: (f.earn_txn_type_ids ?? []).map(Number),
-      tiers: f.tiers.map((x) => ({ code: x.code.trim(), name: x.name.trim(), min_points: Number(x.min_points), multiplier: String(x.multiplier) })),
+      tiers: f.tiers.map((x) => ({ code: x.code.trim(), name: x.name.trim(), min_points: String(x.min_points), multiplier: String(x.multiplier) })),
       referral: { ...numbersOf(referral, f.referral ?? {}), txn_type_ids: (f.referral?.txn_type_ids ?? []).map(Number) },
     },
   });
@@ -87,7 +87,7 @@ export function LoyaltyReferral() {
                   fields={[
                     { key: "code", label: t("code"), type: "code", placeholder: "GOLD" },
                     { key: "name", label: t("name"), placeholder: "Gold" },
-                    { key: "min_points", label: t("min_points"), type: "int" },
+                    { key: "min_points", label: t("min_points"), type: "amount" },
                     { key: "multiplier", label: t("multiplier"), type: "amount" },
                   ]}
                 />

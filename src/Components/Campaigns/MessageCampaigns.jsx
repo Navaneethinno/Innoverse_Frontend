@@ -1,3 +1,4 @@
+import { istInputValue } from "@/Utils/Lib/dateFormat";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowDown, ArrowUp, Ban, CalendarClock, CheckCircle2, Clock3, FilePen, ListChecks, Plus, Send, Trash2, Users, XCircle } from "lucide-react";
@@ -88,8 +89,8 @@ function toForm(c) {
     channels: c.channels?.length ? c.channels : [...DEFAULT_CHANNELS],
     quiet_start_hour: String(c.quiet_start_hour ?? 21),
     quiet_end_hour: String(c.quiet_end_hour ?? 8),
-    // "YYYY-MM-DD HH:MM" for the datetime box.
-    send_at: c.send_at ? String(c.send_at).replace(" ", "T").slice(0, 16) : "",
+    // The IST clock, for the datetime box.
+    send_at: istInputValue(c.send_at),
     narration: "",
   };
 }
@@ -402,7 +403,7 @@ export function MessageCampaigns() {
               onAuthorize={() => setAction({ verb: "auth", row: r })}
               onDeauthorize={() => setAction({ verb: "deauth", row: r })}
             />
-            {a.cancel && (can("Edit") || can("Delete")) && <ActionIconButton label={t("cancelCampaign")} intent="delete" icon={Ban} onClick={() => setAction({ verb: "cancel", row: r })} />}
+            {a.cancel && can("Edit") && <ActionIconButton label={t("cancelCampaign")} intent="delete" icon={Ban} onClick={() => setAction({ verb: "cancel", row: r })} />}
           </div>
         );
       },

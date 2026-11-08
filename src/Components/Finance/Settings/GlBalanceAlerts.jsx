@@ -39,7 +39,7 @@ export function GlBalanceAlerts() {
   const [editing, setEditing] = useState(null);
 
   const setups = useServerList({ api: glThresholdsApi.listPath, call: glThresholdsApi.list, enabled: !openId && view === "setups" });
-  const pending = useServerList({ api: glThresholdPendingPath, call: glThresholdsApi.pending, prefix: "p_", enabled: !openId && view === "pending" });
+  const pending = useServerList({ api: glThresholdPendingPath, call: glThresholdsApi.pending, prefix: "p_", describe: false, enabled: !openId && view === "pending" });
   const alerts = useServerList({ api: glThresholdAlertsPath, call: glThresholdsApi.alerts, prefix: "a_", enabled: !openId && view === "alerts" });
 
   if (openId) {

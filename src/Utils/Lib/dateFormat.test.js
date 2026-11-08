@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { formatDateTime, monthStartDate, platformToday, todayDate, tomorrowDate } from "./dateFormat";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { formatDateTime, formatDay, formatIstPlain, istInputValue, istToUtc, monthStartDate, platformToday, todayDate, tomorrowDate } from "./dateFormat";
 
 describe("calendar dates", () => {
   afterEach(() => vi.useRealTimers());
@@ -44,15 +44,37 @@ describe("platformToday", () => {
   });
 });
 
-describe("formatDateTime IST label", () => {
-  it("marks a value in platform time, as written", () => {
+describe.each(["America/New_York", "Pacific/Auckland", "UTC", "Asia/Kolkata"])("IST display in a browser on %s", (zone) => {
+  beforeEach(() => vi.stubEnv("TZ", zone));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("converts the API's UTC value and labels it", () => {
+    expect(formatDateTime("2026-10-31T07:05:28.000000Z")).toBe("2026-10-31 12:35 IST");
+    expect(formatIstPlain("2026-10-31T07:05:28.000000Z")).toBe("2026-10-31 12:35:28");
+  });
+
+  it("crosses midnight on the IST calendar", () => {
+    expect(formatDateTime("2026-10-31T18:30:00.000000Z")).toBe("2026-11-01 00:00 IST");
+    expect(formatDay("2026-10-31T18:30:00.000000Z")).toBe("2026-11-01");
+  });
+
+  it("converts a Date the same way", () => {
+    expect(formatDateTime(new Date("2026-10-31T07:05:28Z"))).toBe("2026-10-31 12:35 IST");
+  });
+
+  it("reads a value with no zone as platform time", () => {
     expect(formatDateTime("2026-10-31 12:35:28")).toBe("2026-10-31 12:35 IST");
     expect(formatDateTime("2026-10-31T12:35:28.5")).toBe("2026-10-31 12:35 IST");
   });
 
-  it("leaves instants and Date objects unmarked", () => {
-    expect(formatDateTime("2026-10-31T12:35:28Z")).not.toContain("IST");
-    expect(formatDateTime("2026-10-31T12:35:28+05:30")).not.toContain("IST");
-    expect(formatDateTime(new Date(2026, 9, 31, 12, 35))).toBe("2026-10-31 12:35");
+  it("never shifts a date-only value", () => {
+    expect(formatDay("2026-10-31")).toBe("2026-10-31");
+    expect(formatDateTime("2026-10-31")).toBe("2026-10-31");
+    expect(formatIstPlain("2026-10-31")).toBe("2026-10-31");
+  });
+
+  it("fills and reads a datetime box on the IST clock", () => {
+    expect(istInputValue("2026-10-31T07:05:28.000000Z")).toBe("2026-10-31T12:35");
+    expect(istToUtc("2026-10-31T12:35")).toBe("2026-10-31T07:05:00.000Z");
   });
 });

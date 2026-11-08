@@ -1,4 +1,4 @@
-import { formatDay } from "@/Utils/Lib/dateFormat";
+import { formatDay, istToUtc } from "@/Utils/Lib/dateFormat";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, PowerOff, Trash2, UserCog } from "lucide-react";
@@ -55,8 +55,8 @@ function DelegationForm({ users, canDelegateOthers, onClose, onSaved }) {
       const response = await delegationApi.add({
         ...(canDelegateOthers && form.from_userid ? { from_userid: Number(form.from_userid) } : {}),
         to_userid: Number(form.to_userid),
-        from_time: new Date(`${form.from}T00:00:00`).toISOString(),
-        to_time: new Date(`${form.to}T23:59:59`).toISOString(),
+        from_time: istToUtc(`${form.from}T00:00:00`),
+        to_time: istToUtc(`${form.to}T23:59:59`),
         reason: form.reason.trim(),
       });
       notifications.success(apiMessage(response, t("delegationSaved")));

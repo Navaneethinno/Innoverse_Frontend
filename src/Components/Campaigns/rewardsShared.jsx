@@ -57,7 +57,8 @@ export const labelsOf = (ids, options) => (ids ?? []).map((id) => options.find((
 export const shownSetup = (r) => r?.setup ?? r?.pending ?? {};
 export const editedSetup = (r) => r?.pending ?? r?.setup ?? {};
 
-export const statusProduct = (t, r) => ({ ...r, status_name: t(`recordStatus_${r.status}`, { defaultValue: String(r.status ?? "-") }) });
+// The row's translated names. process_status 1: nothing waiting.
+export const statusProduct = (r) => ({ ...r, pending: null, pending_action: Number(r.process_status) > 1 ? (r.process_status_name ?? "") : "" });
 
 // The `history` of a get: [{ action, payload, narration, actor, at }].
 export function RewardHistory({ history }) {
@@ -108,7 +109,7 @@ export function RecordDialogFrame({ title, record, history, children, onClose })
         <p className="text-sm text-muted-foreground">{t("common:loading", { defaultValue: "Loading…" })}</p>
       ) : (
         <div className="grid gap-4">
-          <ProductStatus product={statusProduct(t, record)} />
+          <ProductStatus product={statusProduct(record)} />
           {children}
           <p className="text-sm font-bold">{t("history")}</p>
           <RewardHistory history={history} />
@@ -147,7 +148,7 @@ export function RewardRecords({ api, title, subtitle, addLabel, searchPlaceholde
   };
   const all = [
     ...columns,
-    { key: "status", label: t("common:status"), render: (r) => <ProductStatus product={statusProduct(t, r)} /> },
+    { key: "status", label: t("common:status"), render: (r) => <ProductStatus product={statusProduct(r)} /> },
     {
       key: "actions",
       label: t("common:actions"),
