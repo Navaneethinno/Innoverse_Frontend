@@ -172,7 +172,7 @@ function ChannelOrder({ value, onChange, t }) {
       <p className="text-sm font-bold text-slate-800">{t("channels")}</p>
       <p className="text-[11px] text-muted-foreground">{t("channelsHint")}</p>
       {value.map((c, i) => (
-        <div key={c} className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm">
+        <div key={c} className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm">
           <span className="w-6 font-bold tabular-nums">{i + 1}.</span>
           <span className="flex-1 font-semibold">{t(`channel_${c}`)}</span>
           {i > 0 && <ActionIconButton label={t("moveUp")} intent="view" icon={ArrowUp} onClick={() => move(i, -1)} />}

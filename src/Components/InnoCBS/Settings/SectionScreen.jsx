@@ -77,12 +77,13 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
 
   return (
     <div className="pt-1 pb-6">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3 sm:flex-nowrap">
+        <div className="min-w-0">
           <PageTitle>{menu ? menuLabel(menu) : fallbackTitle}</PageTitle>
           {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         {data && !data.missing && !form && (
+          <div className="shrink-0">
           <ActionButtons
             busy={busy}
             buttons={[
@@ -91,6 +92,7 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
               a.auth && can("Authorize") && { key: "auth", label: t("loans:approve"), icon: CheckCircle2, variant: "primary", run: () => setDialog("auth") },
             ]}
           />
+          </div>
         )}
       </div>
 

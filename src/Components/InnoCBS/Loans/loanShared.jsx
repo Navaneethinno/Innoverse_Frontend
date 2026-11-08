@@ -144,6 +144,7 @@ export function MultiPick({ options, value, onChange, disabled }) {
         ))}
       </div>
     ) : null;
+  if (!options.length) return <p className="mt-1.5 text-[11px] font-normal text-muted-foreground">{t("noChoicesAvailable")}</p>;
   const needle = q.trim().toLowerCase();
   const shown = many
     ? options

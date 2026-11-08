@@ -290,7 +290,7 @@ const TEXT_COLOR_BY_PILL = {
 // A raw backend code that slipped through untranslated (e.g. "NEW_WAIT")
 // reads better as "New Wait" than shouted. Anything with lowercase letters
 // is already a display name (translated via x-api-lang) and is left alone.
-function humanizeCode(value) {
+export function humanizeCode(value) {
   const text = String(value ?? "");
   if (!/^[A-Z0-9_ ]+$/.test(text) || !/[A-Z]/.test(text)) return text;
   return text

@@ -91,11 +91,13 @@ export function PagedTable({ paged, columns, rowKey = (r) => r.id, empty, search
   );
 }
 
-// Count tiles; a tile with onClick is a filter.
+// Count tiles; a tile with onClick is a filter. The row is always filled.
+const TILE_COLUMNS = { 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4", 5: "lg:grid-cols-5" };
 export function Tiles({ items }) {
+  const shown = items.filter(Boolean);
   return (
-    <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-      {items.filter(Boolean).map((x) => {
+    <div className={cn("mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3", TILE_COLUMNS[shown.length] ?? "lg:grid-cols-6")}>
+      {shown.map((x) => {
         const Tag = x.onClick ? "button" : "div";
         return (
           <Tag

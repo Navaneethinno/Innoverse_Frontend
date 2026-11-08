@@ -105,7 +105,9 @@ export function CardReturns() {
         </div>
         <FilterSelect className="w-48" value={holderType} onChange={setHolderType} options={[{ value: "", label: t("ret_anyHolder") }, ...HOLDER_TYPES.map((h) => ({ value: h, label: t(`ret_holder_${h}`) }))]} />
       </div>
-      <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.id} title={t("ret_title")} emptyTitle={t("ret_none")} emptyDescription={t("ret_noneHint")} />
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(r) => r.id} title={t("ret_title")} emptyTitle={t("ret_none")} emptyDescription={t("ret_noneHint")} />
+      </div>
       {starting && (
         <StartReturn
           onClose={() => setStarting(false)}

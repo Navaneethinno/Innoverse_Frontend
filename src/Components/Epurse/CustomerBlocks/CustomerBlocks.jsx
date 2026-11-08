@@ -6,6 +6,7 @@ import { Button } from "@/Components/Common/Button";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { Modal } from "@/Components/Common/Modal";
+import { TabButton } from "@/Components/Common/ListView";
 import { PageTitle } from "@/Components/Common/PageTitle";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -35,7 +36,7 @@ export function CustomerBlocks() {
   const { t } = useTranslation("ops");
   const [page, setPage] = useState("blocks");
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <SegmentedSwitch className="mb-3" options={PAGES.map((key) => ({ key })).map(({ key }) => ({ value: key, label: ((k) => t(`blocksTab_${k}`))(key) }))} value={page} onChange={setPage} />
       {page === "blocks" && <Blocks />}
       {page === "dormant" && <Dormant />}
@@ -173,9 +174,9 @@ function Blocks() {
       </div>
       <div className="mb-3 flex flex-wrap gap-1">
         {STATUSES.map((s) => (
-          <Button key={s} size="sm" variant={status === s ? "primary" : "ghost"} onClick={() => setStatus(s)}>
+          <TabButton key={s} active={status === s} onClick={() => setStatus(s)}>
             {t(`blockStatus_${s}`)}
-          </Button>
+          </TabButton>
         ))}
       </div>
       <PagedTable
@@ -184,7 +185,7 @@ function Blocks() {
         onSearch={setSearch}
         searchPlaceholder={t("searchBlocks")}
         empty={t("noBlocks")}
-        actions={<FilterSelect size="sm" className="w-44" value={party} onChange={(v) => setParty(String(v ?? ""))} options={[{ value: "", label: t("anyParty") }, ...["CUSTOMER", "MERCHANT"].map((p) => ({ value: p, label: t(`applies_${p}`) }))]} />}
+        actions={<FilterSelect size="sm" className="w-60" value={party} onChange={(v) => setParty(String(v ?? ""))} options={[{ value: "", label: t("anyParty") }, ...["CUSTOMER", "MERCHANT"].map((p) => ({ value: p, label: t(`applies_${p}`) }))]} />}
         columns={columns}
       />
       {dialog?.kind === "place" && <PlaceDialog preset={dialog.preset} busy={busy} onClose={() => setDialog(null)} onSave={(body) => run("place", body)} />}

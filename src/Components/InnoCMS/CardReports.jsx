@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { DataTable } from "@/Components/Common/DataTable";
+import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { TabButton } from "@/Components/Common/ListView";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -67,6 +68,7 @@ function StockReport() {
   return (
     <div className="grid gap-4">
       <Facts
+        className="lg:grid-cols-3"
         rows={[
           [t("rep_pendingPrefile"), report.pending_prefile ?? 0],
           [t("rep_prefiled"), report.prefiled ?? 0],
@@ -94,7 +96,7 @@ function StockReport() {
             {pager && <Pager {...pager} className="mt-2" />}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">{t("rep_noStock")}</p>
+          <EmptyNote>{t("rep_noStock")}</EmptyNote>
         )}
       </Section>
     </div>
@@ -134,7 +136,9 @@ function StatusReport({ products }) {
         </div>
         <FilterSelect className="w-56" value={product} onChange={setProduct} options={productOptions(t, products)} />
       </div>
-      <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_status")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noCardsHint")} />
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_status")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noCardsHint")} />
+      </div>
     </>
   );
 }
@@ -161,7 +165,9 @@ function ExpiringReport({ products }) {
         <FilterSelect className="w-56" value={product} onChange={setProduct} options={productOptions(t, products)} />
       </div>
       <p className="mb-2 text-xs text-muted-foreground">{t("rep_expiringHint", { days: applied })}</p>
-      <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_expiring")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noExpiringHint")} />
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(c) => c.id} title={t("rep_tab_expiring")} emptyTitle={t("rep_noCards")} emptyDescription={t("rep_noExpiringHint")} />
+      </div>
     </>
   );
 }

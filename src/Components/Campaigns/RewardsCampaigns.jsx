@@ -11,7 +11,7 @@ import { Field, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShare
 import { rewardsCampaignApi } from "@/Services/Campaigns/campaigns.api";
 import { apiMessage, notifications } from "@/Utils/Lib/notifications";
 import { idsOf } from "./usePagedList";
-import { RecordDialogFrame, RewardRecords, amount, byCode, byId, editedSetup, inputClass, labelClass, labelsOf, shownSetup, useRewardOptions, useRewardRecord, whole } from "./rewardsShared";
+import { RecordDialogFrame, RewardRecords, amount, byCode, byId, byTxnType, editedSetup, inputClass, labelClass, labelsOf, shownSetup, useRewardOptions, useRewardRecord, whole } from "./rewardsShared";
 
 const REWARD_KINDS = ["CASHBACK", "POINTS"];
 const PARTIES = ["ANY", "CUSTOMER", "MERCHANT"];
@@ -113,8 +113,8 @@ function RewardForm({ record, onClose, onSaved }) {
       {hint && <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{hint}</span>}
     </label>
   );
-  const multi = (key, picks) => (
-    <div className={labelClass}>
+  const multi = (key, picks, span = "") => (
+    <div className={`${labelClass} ${span}`}>
       {t(key)}
       <Field field={{ type: "multi", options: picks }} value={form[key]} onChange={(list) => set({ [key]: list })} />
     </div>
@@ -166,10 +166,10 @@ function RewardForm({ record, onClose, onSaved }) {
           <input className={inputClass} inputMode="numeric" value={form.priority} onChange={(e) => set({ priority: whole(e.target.value) })} placeholder="0" />
           <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("priorityHint")}</span>
         </label>
-        {multi("txn_type_ids", byId(options.txn_types))}
+        {multi("txn_type_ids", byTxnType(options.txn_types), "md:col-span-3")}
         {multi("channel_ids", byId(options.channels))}
         {multi("digital_product_ids", byId(options.digital_products))}
-        <div className={`${labelClass} md:col-span-3`}>
+        <div className={labelClass}>
           {t("tier_codes")}
           <Field field={{ type: "multi", options: byCode(options.tiers) }} value={form.tier_codes} onChange={(tier_codes) => set({ tier_codes })} />
         </div>
@@ -225,7 +225,7 @@ function RewardView({ id, onClose }) {
           [t("party"), s.party && t(`party_${s.party}`)],
           [t("priority"), s.priority ?? 0],
           [t("tier_codes"), list(s.tier_codes, byCode(options.tiers))],
-          [t("txn_type_ids"), list(s.txn_type_ids, byId(options.txn_types))],
+          [t("txn_type_ids"), list(s.txn_type_ids, byTxnType(options.txn_types))],
           [t("channel_ids"), list(s.channel_ids, byId(options.channels))],
           [t("digital_product_ids"), list(s.digital_product_ids, byId(options.digital_products))],
           ...AMOUNTS.filter((k) => k !== "reward_value").map((k) => [t(k), s[k] || "—"]),

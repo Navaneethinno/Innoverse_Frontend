@@ -72,7 +72,7 @@ function Doc({ data, s, editing, setForm }) {
   if (editing)
     return (
       <div className="grid gap-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
           <label className={labelClass}>
             {t("defaultWindowDays")}
             <Field field={{ type: "int" }} value={s.default_window_days} onChange={(v) => patch({ default_window_days: v })} />

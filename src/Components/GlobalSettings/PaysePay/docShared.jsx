@@ -19,11 +19,11 @@ export function DocFields({ value, fallback, editing, onChange, fields, columns 
   useEffect(() => {
     if (seed) onChange(fallback);
   }, [seed]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!editing) return <Facts rows={fields.map((f) => [f.label, shownValue(t, f, v[f.key])])} />;
+  if (!editing) return <Facts className={factColumns(fields.length)} rows={fields.map((f) => [f.label, shownValue(t, f, v[f.key])])} />;
   return (
     <div className={cn("grid gap-3 sm:grid-cols-2", columns)}>
       {fields.map((f) => (
-        <label key={f.key} className={cn(labelClass, f.type === "bool" && "flex items-center justify-between gap-2 self-end rounded-xl border border-border px-3 py-2")}>
+        <label key={f.key} className={cn(labelClass, f.type === "bool" && "flex items-center justify-between gap-2 self-start rounded-xl border border-border px-3 py-2 sm:mt-5", f.type === "multi" && (f.options?.length ?? 0) > 6 && "col-span-full")}>
           {f.label}
           {f.type === "list" ? (
             <ListInput field={f} value={v[f.key]} onChange={(x) => onChange({ ...v, [f.key]: x })} />
@@ -36,6 +36,9 @@ export function DocFields({ value, fallback, editing, onChange, fields, columns 
     </div>
   );
 }
+
+// Read-only tiles per row, chosen so a last row is not one lonely tile.
+const factColumns = (n) => (n % 4 === 0 || (n > 4 && n % 3 === 1) ? "lg:grid-cols-4" : "lg:grid-cols-3");
 
 // Several free values typed with commas (codes, IP ranges); kept as a list.
 export function ListInput({ field, value, onChange }) {

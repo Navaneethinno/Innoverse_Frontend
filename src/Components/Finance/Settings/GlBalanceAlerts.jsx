@@ -9,6 +9,7 @@ import { ListTable } from "@/Components/Common/ListView";
 import { Modal } from "@/Components/Common/Modal";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
 import { PageTitle } from "@/Components/Common/PageTitle";
+import { Toggle } from "@/Components/Common/Toggle";
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { RowActions } from "@/Components/Common/RowActions";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -426,8 +427,8 @@ function ThresholdDialog({ record, scope, onClose, onSaved }) {
             <Field field={{ type: "multi", options: (options.users ?? []).map((u) => ({ value: u.id, label: u.name })) }} value={form.user_ids} onChange={set("user_ids")} />
           </div>
           <p className="-mt-1 text-[11px] text-muted-foreground sm:col-span-2">{t("gta_recipientHint")}</p>
-          <Field field={{ type: "bool", label: t("gta_sendEmail") }} value={form.send_email} onChange={set("send_email")} />
-          <Field field={{ type: "bool", label: t("gta_sendSms") }} value={form.send_sms} onChange={set("send_sms")} />
+          <Toggle showLabel label={t("gta_sendEmail")} checked={Boolean(form.send_email)} onChange={set("send_email")} />
+          <Toggle showLabel label={t("gta_sendSms")} checked={Boolean(form.send_sms)} onChange={set("send_sms")} />
           <label className={`${labelClass} sm:col-span-2`}>
             {t("gta_remarks")}
             <Field field={{}} value={form.remarks} onChange={set("remarks")} />

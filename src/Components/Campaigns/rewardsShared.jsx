@@ -11,6 +11,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { StatusFilterTabs } from "@/Components/Common/StatusFilterTabs";
 import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
+import { humanizeCode } from "@/Components/MakerChecker/StatusBadge";
 import { ProductStatus } from "@/Components/InnoCBS/Settings/DepositProducts/productShared";
 import { usePagedList } from "@/Hooks/usePagedList";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -49,6 +50,8 @@ export function useRewardOptions() {
 }
 
 export const byId = (list) => (list ?? []).map((x) => ({ value: x.id, label: x.code && x.name !== x.code ? `${x.name} (${x.code})` : x.name }));
+// Transaction types come from the server as bare codes (AGENT_CASH_IN).
+export const byTxnType = (list) => byId(list).map((o) => ({ ...o, label: humanizeCode(o.label) }));
 export const byCode = (list) => (list ?? []).map((x) => ({ value: x.code, label: x.name }));
 export const labelsOf = (ids, options) => (ids ?? []).map((id) => options.find((o) => String(o.value) === String(id))?.label ?? id);
 

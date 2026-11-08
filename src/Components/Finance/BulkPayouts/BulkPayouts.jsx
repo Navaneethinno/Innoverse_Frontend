@@ -123,7 +123,9 @@ function BulkPayoutScreen({ api, readOnly = false }) {
         </div>
         <SearchBox search={search} onSearch={setSearch} placeholder={t("bp_searchHint")} className="max-w-sm" />
       </div>
-      <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(b) => b.id} title={t("bp_title")} emptyTitle={t("bp_none")} emptyDescription={t(readOnly ? "bp_noneMerchantHint" : "bp_noneHint")} />
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <DataTable bare rows={list.rows} isLoading={list.loading} serverPagination={list.pagination} columns={columns} rowKey={(b) => b.id} title={t("bp_title")} emptyTitle={t("bp_none")} emptyDescription={t(readOnly ? "bp_noneMerchantHint" : "bp_noneHint")} />
+      </div>
       {uploading && (
         <UploadDialog
           scope={scope}
@@ -310,7 +312,7 @@ function UploadDialog({ scope, onClose, onFiled }) {
                 setFile(e.target.files?.[0] ?? null);
                 setChecked(null);
               }}
-              className={cn(inputClass, "mt-1.5")}
+              className={cn(inputClass, "mt-1.5 py-2 file:me-3 file:cursor-pointer file:rounded-lg file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-semibold file:text-foreground")}
             />
           </label>
         </div>

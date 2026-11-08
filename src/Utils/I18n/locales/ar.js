@@ -1514,7 +1514,7 @@ export const accounting = {
   gta_event: "الحدث",
   gta_event_FIRED: "أُرسل التنبيه",
   gta_event_RESTORED: "عاد للوضع الطبيعي",
-  gta_threshold: "الحد",
+  gta_threshold: "العتبة",
   gta_balance: "الرصيد",
   gta_rrn: "القيد",
   gta_recipients: "الرسائل",
@@ -6628,6 +6628,7 @@ export const corebank = {
 
 export const loans = {
   "searchOptions": "بحث… ({{count}} مختار)",
+  "noChoicesAvailable": "لا توجد خيارات بعد.",
   "facilitiesTab_loans": "القروض",
   "facilitiesTab_portfolio": "جودة المحفظة",
   "nonAccrual": "متوقف عن الاستحقاق",

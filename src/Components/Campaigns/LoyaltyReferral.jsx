@@ -6,12 +6,12 @@ import { Section } from "@/Components/InnoCBS/Deposits/depositShared";
 import { RowsEditor } from "@/Components/InnoCBS/Loans/loanShared";
 import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
 import { rewardsProgramApi } from "@/Services/Campaigns/campaigns.api";
-import { byId, useRewardOptions } from "./rewardsShared";
+import { byId, byTxnType, useRewardOptions } from "./rewardsShared";
 
 const pointFields = (t, options) => [
   { key: "points_enabled", label: t("points_enabled"), type: "bool" },
   { key: "currency_id", label: t("currency_id"), type: "select", blank: t("choose"), options: byId(options?.currencies).map((o) => ({ ...o, value: String(o.value) })) },
-  { key: "earn_txn_type_ids", label: t("earn_txn_type_ids"), type: "multi", options: byId(options?.txn_types), hint: t("emptyMeansAll") },
+  { key: "earn_txn_type_ids", label: t("earn_txn_type_ids"), type: "multi", options: byTxnType(options?.txn_types), hint: t("emptyMeansAll") },
   { key: "points_per_unit", label: t("points_per_unit"), type: "amount", hint: t("pointsPerUnitHint") },
   { key: "unit_amount", label: t("unit_amount"), type: "amount" },
   { key: "point_value", label: t("point_value"), type: "amount", hint: t("pointValueHint") },
@@ -22,7 +22,7 @@ const referralFields = (t, options) => [
   { key: "enabled", label: t("referralEnabled"), type: "bool" },
   { key: "referrer_reward", label: t("referrer_reward"), type: "amount" },
   { key: "referee_reward", label: t("referee_reward"), type: "amount" },
-  { key: "txn_type_ids", label: t("txn_type_ids"), type: "multi", options: byId(options?.txn_types), hint: t("emptyMeansAll") },
+  { key: "txn_type_ids", label: t("txn_type_ids"), type: "multi", options: byTxnType(options?.txn_types), hint: t("emptyMeansAll") },
   { key: "min_amount", label: t("min_amount"), type: "amount" },
   { key: "window_days", label: t("window_days"), type: "int" },
   { key: "max_per_referrer", label: t("max_per_referrer"), type: "int" },

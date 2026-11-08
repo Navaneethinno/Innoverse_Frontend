@@ -4025,6 +4025,7 @@ export const deposits = {
 
 export const loans = {
   "searchOptions": "Pesquisar… ({{count}} escolhidos)",
+  "noChoicesAvailable": "Ainda não há opções.",
   "facilitiesTab_loans": "Empréstimos",
   "facilitiesTab_portfolio": "Qualidade da carteira",
   "nonAccrual": "Sem acréscimo de juros",
@@ -7096,7 +7097,7 @@ export const accounting = {
   gta_event: "Evento",
   gta_event_FIRED: "Alerta enviado",
   gta_event_RESTORED: "Reposto",
-  gta_threshold: "Limite",
+  gta_threshold: "Valor-limite",
   gta_balance: "Saldo",
   gta_rrn: "Lançamento",
   gta_recipients: "Mensagens",

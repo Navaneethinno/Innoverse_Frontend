@@ -29,6 +29,7 @@ function HealthLine({ health }) {
   const { t } = useTranslation(["ops", "common"]);
   if (!health) return <span className="text-xs text-muted-foreground">—</span>;
   const faults = ["paper_out", "printer_error", "reader_error"].filter((k) => health[k]);
+  if (health.battery_level == null && !health.network_type && !faults.length) return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <div className="text-[11px]">
       {health.battery_level != null && (
@@ -63,7 +64,7 @@ export function TerminalMonitor() {
         </div>
       ),
     },
-    { key: "store_name", label: t("store"), render: (r) => <span className="text-xs">{r.store_name ?? "—"}</span> },
+    { key: "store_name", label: t("store"), render: (r) => <span className="text-xs">{r.store_name || "—"}</span> },
     { key: "online", label: t("online"), render: (r) => <span className={`text-xs font-bold ${ONLINE_TONE[r.online] ?? ""}`}>{t(`online_${r.online}`, { defaultValue: r.online })}</span> },
     { key: "status", label: t("common:status"), render: (r) => <MmsStatus value={r.status} /> },
     { key: "last_seen_at", label: t("lastSeen"), render: (r) => <span className="whitespace-nowrap text-xs">{mmsDate(r.last_seen_at)}</span> },
@@ -83,7 +84,7 @@ export function TerminalMonitor() {
   ];
 
   return (
-    <div className="pb-8 pt-4">
+    <div className="pt-1 pb-6">
       <div className="mb-5">
         <PageTitle>{menu ? menuLabel(menu) : t("monitorTitle")}</PageTitle>
         <p className="mt-1 text-sm text-muted-foreground">{t("monitorSubtitle")}</p>
