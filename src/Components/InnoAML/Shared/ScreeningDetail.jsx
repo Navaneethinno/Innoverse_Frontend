@@ -424,7 +424,7 @@ export function ScreeningDetail({ screening, onChange }) {
 }
 
 // Loads one screening (or lookup) by id and shows it in a modal.
-export function ScreeningDetailModal({ id, lookup = false, onClose, onChanged }) {
+export function ScreeningDetailModal({ id, lookup = false, title, onClose, onChanged }) {
   const { t } = useTranslation("aml");
   const [screening, setScreening] = useState(null);
   const latest = useLatest({ onClose });
@@ -443,7 +443,7 @@ export function ScreeningDetailModal({ id, lookup = false, onClose, onChanged })
     };
   }, [id, lookup, latest]);
   return (
-    <Modal open onClose={onClose} size="xl" title={lookup ? t("lookupTitle") : t("screeningTitle")}>
+    <Modal open onClose={onClose} size="xl" title={title ?? (lookup ? t("lookupTitle") : t("screeningTitle"))}>
       {!screening ? (
         <div className="flex justify-center py-10">
           <Spinner size={22} />

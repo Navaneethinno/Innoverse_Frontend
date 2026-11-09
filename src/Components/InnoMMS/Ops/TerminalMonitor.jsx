@@ -120,8 +120,8 @@ function HealthDialog({ terminal, onClose }) {
             [t("lastSeen"), mmsDate(terminal.last_seen_at)],
             [t("lastTxn"), mmsDate(terminal.last_txn_at)],
             [t("appVersion"), terminal.app_version],
-            [t("owner"), terminal.entity_type ? `${terminal.entity_type} ${terminal.entity_id}` : "—"],
-            ...HEALTH_KEYS.map((k) => [t(`health_${k}`), healthValue(t, k, h[k])]),
+            [t("owner"), terminal.owner_name || (terminal.entity_type ? `${terminal.entity_type} ${terminal.entity_id}` : "—")],
+            ...HEALTH_KEYS.filter((k) => k !== "app_version").map((k) => [t(`health_${k}`), healthValue(t, k, h[k])]),
           ]}
         />
         <div>

@@ -1,9 +1,11 @@
 import { RequiredMark } from "@/Components/Common/RequiredMark";
 import { useCanChooseInstitution } from "@/Hooks/useInstitutionScope";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, Check, Eye, EyeOff } from "lucide-react";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { Facts } from "@/Components/InnoCBS/Deposits/depositShared";
+import { masterApi } from "@/Services/Master/master.api";
 import { cn } from "@/Utils/Lib/cn";
 import { checkPasswordRequirements } from "@/Utils/Lib/password-policy";
 import { phoneInput } from "@/Utils/Lib/phoneInput";
@@ -146,6 +148,34 @@ export function UserForm({
   const credential = (key) => key === "user_name" || key === "user_pwd";
   const passwordRequirements = checkPasswordRequirements(form.user_pwd, selectedPolicy);
   const policyRequirements = checkPasswordRequirements("", selectedPolicy);
+  const [genders, setGenders] = useState([]);
+  useEffect(() => {
+    if (readOnly) masterApi.genderList().then(setGenders).catch(() => setGenders([]));
+  }, [readOnly]);
+
+  if (readOnly) {
+    const nameOf = (key, value) => {
+      if (value === "" || value == null) return "—";
+      if (key === "profile_id") return profiles.find((p) => String(p.profile_id ?? p.id) === String(value))?.profile_name ?? value;
+      if (key === "inst_id") {
+        const inst = institutions.find((i) => String(i.inst_profile_id ?? i.institution_id ?? i.inst_id ?? i.id) === String(value));
+        return inst?.institution_name ?? inst?.inst_name ?? inst?.name ?? value;
+      }
+      if (key === "gender") {
+        const match = genders.find((g) => [g.code, g.gender_code, g.id, g.name, g.gender_name].some((x) => String(x ?? "").toUpperCase() === String(value).toUpperCase()));
+        return match?.name ?? match?.gender_name ?? value;
+      }
+      return value;
+    };
+    return (
+      <Facts
+        className="sm:grid-cols-2 lg:grid-cols-2"
+        rows={fields
+          .filter(([key]) => key !== "user_pwd" && (canChooseInstitution || key !== "inst_id"))
+          .map(([key, label]) => [t(FIELD_LABEL_KEYS[key], label ?? key), nameOf(key, form[key])])}
+      />
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} id="user-form" autoComplete="off" className="grid grid-cols-1 gap-4 md:grid-cols-2">

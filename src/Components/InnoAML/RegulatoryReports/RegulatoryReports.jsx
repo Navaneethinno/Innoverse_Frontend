@@ -1,3 +1,4 @@
+import { DataTable } from "@/Components/Common/DataTable";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { CopyButton } from "@/Components/Common/CopyButton";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -94,10 +95,11 @@ function StrList({ openId }) {
       {!rows ? (
         <PageSkeleton />
       ) : (
-        <MiniTable
+        <DataTable
           rows={rows}
           rowKey={(r) => r.id}
-          empty={t("noStr")}
+          title={t("tabStr", { defaultValue: "STR" })}
+          emptyTitle={t("noStr")}
           columns={[
             {
               key: "reference",
@@ -455,10 +457,11 @@ function CtrList() {
       {!rows ? (
         <PageSkeleton />
       ) : (
-        <MiniTable
+        <DataTable
           rows={rows}
           rowKey={(r) => r.id}
-          empty={t("noCtr")}
+          title={t("tabCtr", { defaultValue: "CTR" })}
+          emptyTitle={t("noCtr")}
           columns={[
             can("Edit") && {
               key: "pick",

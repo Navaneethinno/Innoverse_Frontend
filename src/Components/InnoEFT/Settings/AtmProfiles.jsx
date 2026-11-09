@@ -43,7 +43,6 @@ export function AtmProfiles() {
             rows={[
               [t("protocol"), viewing.protocol],
               [t("pageSize"), viewing.page_size],
-              [t("loadedFrom"), viewing.loaded_from],
               ...Object.entries(viewing.records ?? {}).map(([key, count]) => [key.replaceAll("_", " "), count]),
             ]}
           />

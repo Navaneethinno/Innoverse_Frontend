@@ -86,6 +86,14 @@ export const tellerProofExport = (body) => downloadAttachment(API_ENDPOINTS.TELL
 // GL Balance Alerts (menu 219): a low and/or high limit on one GL in one
 // currency; maker-checker like Fee Schedules. `alerts` is the history of
 // alerts raised.
-export const glThresholdsApi = calls(API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD, ["options", "list", "pending", "get", "audit", "alerts", "add", "edit", "delete", "deactivate", "reactivate", "auth", "deauth"]);
+const glThresholdCalls = calls(API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD, ["options", "list", "pending", "get", "audit", "alerts", "add", "edit", "delete", "deactivate", "reactivate", "auth", "deauth"]);
+// `pending` replies data[0].items with the total beside it, not the list standard.
+const asListReply = (reply) => {
+  const page = Array.isArray(reply?.data) ? reply.data[0] : null;
+  if (!Array.isArray(page?.items)) return reply;
+  const limit = page.page_size ?? page.limit ?? (page.items.length || 1);
+  return { ...reply, data: page.items, pagination: { totalRecords: page.total ?? page.items.length, currentPage: page.page ?? 1, pageSize: limit, totalPages: Math.max(1, Math.ceil((page.total ?? page.items.length) / limit)) } };
+};
+export const glThresholdsApi = { ...glThresholdCalls, pending: (body) => glThresholdCalls.pending(body).then(asListReply) };
 export const glThresholdAlertsPath = `${API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD}/alerts`;
 export const glThresholdPendingPath = `${API_ENDPOINTS.ACCOUNTING.GL_THRESHOLD}/pending`;

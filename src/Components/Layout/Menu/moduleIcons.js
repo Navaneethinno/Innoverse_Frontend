@@ -47,6 +47,7 @@ import {
   FolderOpen,
   FolderCog,
   Gavel,
+  Gift,
   House,
   KeyRound,
   Landmark,
@@ -75,6 +76,7 @@ import {
 } from "lucide-react";
 
 const MODULE_ICON_RULES = [
+  [/innolrms/i, Gift],
   [/^finance$/i, Calculator],
   [/innocbs/i, Landmark],
   [/innoeft/i, Banknote],

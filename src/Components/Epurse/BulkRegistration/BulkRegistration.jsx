@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, CheckCircle2, FileDown, FileUp, ListChecks, Plus, Send, Users, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
+import { Modal } from "@/Components/Common/Modal";
 import { DataTable } from "@/Components/Common/DataTable";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
 import { PageSkeleton } from "@/Components/Common/PageSkeleton";
@@ -118,6 +119,7 @@ export function BulkRegistration() {
   const list = useServerList({ api: api.listPath, call: api.list });
   const load = list.reload;
   const [screen, setScreen] = useState(null);
+  const [sampling, setSampling] = useState(false);
 
   useLiveChannel(api.listPath, () => load());
 
@@ -167,18 +169,75 @@ export function BulkRegistration() {
         </div>
         <div className="flex gap-2">
           {can("Add") && (
+            <Button size="sm" variant="secondary" icon={FileDown} onClick={() => setSampling(true)}>
+              {t("sampleFile")}
+            </Button>
+          )}
+          {can("Add") && (
             <Button size="sm" icon={Plus} onClick={() => setScreen("new")}>
               {t("newBatch")}
             </Button>
           )}
         </div>
       </div>
+      {sampling && <SampleFile onClose={() => setSampling(false)} />}
       <ListTable list={list} columns={columns}
         title={t("title")}
         emptyTitle={t("noBatches")}
         emptyDescription={t("noBatchesHint")}
       />
     </div>
+  );
+}
+
+// The upload's columns depend on the customer type, so the sample asks for it.
+function SampleFile({ onClose }) {
+  const { t } = useTranslation(["bulkReg", "common"]);
+  const chooser = canChooseInstitution();
+  const [institution, setInstitution] = useState(() => (chooser ? getInstitutionFilter() : ""));
+  const inst = useMemo(() => (institution ? { inst_profile_id: Number(institution) } : {}), [institution]);
+  const [types, setTypes] = useState([]);
+  const [type, setType] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    setType("");
+    setTypes([]);
+    if (chooser && !institution) return;
+    api
+      .options(inst)
+      .then((r) => setTypes(rowsOf(r)[0]?.customer_types ?? []))
+      .catch((e) => notifications.error(e.message));
+  }, [chooser, institution, inst]);
+  const download = async () => {
+    setBusy(true);
+    try {
+      const reply = rowsOf(await api.template({ ...inst, ownership_sub_type_id: Number(type) }))[0];
+      if (reply?.csv_base64) saveBlob(base64Blob(reply.csv_base64), reply.file_name ?? "bulk_registration_template.csv");
+      onClose();
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal
+      open
+      title={t("sampleFile")}
+      onClose={onClose}
+      footer={
+        <Button loading={busy} icon={FileDown} disabled={!type} disabledReason={t("common:blockedFillRequired")} onClick={download}>
+          {t("downloadTemplate")}
+        </Button>
+      }
+    >
+      <div className="grid gap-3">
+        {chooser && <InstitutionField value={institution} onChange={setInstitution} />}
+        <Labelled required label={t("customerType")}>
+          <FilterSelect value={type} onChange={(v) => setType(String(v ?? ""))} options={[{ value: "", label: t("choose") }, ...types.map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))]} />
+        </Labelled>
+      </div>
+    </Modal>
   );
 }
 

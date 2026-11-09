@@ -367,7 +367,7 @@ export function Whitelist() {
       {adding && <AddEntryDialog busy={working} onClose={() => setAdding(false)} onSave={(body) => void run(amlWhitelistApi.add, body, t("aml:whitelistChangeSubmitted"))} />}
       {renewing && <RenewDialog row={renewing} busy={working} onClose={() => setRenewing(null)} onSave={(body) => void run(amlWhitelistApi.renew, body, t("aml:whitelistChangeSubmitted"))} />}
       {historyFor && <ReviewHistory matchId={historyFor} load={amlWhitelistApi.history} onClose={() => setHistoryFor(null)} />}
-      {screening && <ScreeningDetailModal id={screening.id} lookup={screening.lookup} onClose={() => setScreening(null)} onChanged={reloadAll} />}
+      {screening && <ScreeningDetailModal title={t("aml:whitelistEntry")} id={screening.id} lookup={screening.lookup} onClose={() => setScreening(null)} onChanged={reloadAll} />}
     </div>
   );
 }

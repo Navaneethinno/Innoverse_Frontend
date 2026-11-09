@@ -368,7 +368,7 @@ function SubmissionView({ id, onBack }) {
           {
             key: "borrower",
             label: t("borrower"),
-            render: (r) => `${loanLabel(t, r.borrower_type)} #${r.borrower_id}`,
+            render: (r) => r.borrower_name || `${loanLabel(t, r.borrower_type)} #${r.borrower_id}`,
           },
           { key: "product_code", label: t("product") },
           {

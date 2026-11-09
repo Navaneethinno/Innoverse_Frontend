@@ -37,6 +37,8 @@ export function GlBalanceAlerts() {
   // An inbox message (GL_THRESHOLD_LOW / _HIGH) opens its alert.
   const [openId, setOpenId] = useState(location.state?.recordId ?? null);
   const [view, setView] = useState("setups");
+  const [decision, setDecision] = useState(null);
+  const [deciding, setDeciding] = useState(false);
   const [editing, setEditing] = useState(null);
 
   const setups = useServerList({ api: glThresholdsApi.listPath, call: glThresholdsApi.list, enabled: !openId && view === "setups" });
@@ -79,6 +81,36 @@ export function GlBalanceAlerts() {
     { key: "actions", label: t("common:actions"), sortable: false, render: (r) => <RowActions buttons={{ view: true }} onView={() => setOpenId(r.id)} /> },
   ];
 
+  const decide = async (verb, narration) => {
+    setDeciding(true);
+    try {
+      const response = await glThresholdsApi[verb]({ id: decision.id, narration: narration ?? "" });
+      if (response?.message) notifications.success(response.message);
+      setDecision(null);
+      pending.reload();
+      setups.reload();
+    } catch (e) {
+      notifications.error(e.message);
+    } finally {
+      setDeciding(false);
+    }
+  };
+  const pendingColumns = columns.map((c) =>
+    c.key === "actions"
+      ? {
+          ...c,
+          render: (r) => (
+            <RowActions
+              buttons={{ view: true, authorize: can("Authorize") && (r.actions?.auth ?? true), deauthorize: can("Authorize") && (r.actions?.deauth ?? true) }}
+              onView={() => setOpenId(r.id)}
+              onAuthorize={() => setDecision({ id: r.id, verb: "auth" })}
+              onDeauthorize={() => setDecision({ id: r.id, verb: "deauth" })}
+            />
+          ),
+        }
+      : c,
+  );
+
   const addButton = can("Add") && (
     <Button size="sm" icon={Plus} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setEditing({ record: null })}>
       {t("gta_add")}
@@ -93,7 +125,8 @@ export function GlBalanceAlerts() {
       </div>
       <SegmentedSwitch className="mb-3" options={VIEWS.map((v) => ({ value: v, label: t(`gta_view_${v}`) }))} value={view} onChange={setView} />
       {view === "setups" && <ListTable list={setups} actions={addButton} columns={columns} rowKey={(r) => r.id} title={t("gta_title")} emptyTitle={t("gta_none")} emptyDescription={t("gta_noneHint")} />}
-      {view === "pending" && <ListTable list={pending} columns={columns} rowKey={(r) => r.id} title={t("gta_view_pending")} emptyTitle={t("gta_nonePending")} emptyDescription={t("gta_nonePendingHint")} />}
+      <VerbDialog dialog={decision?.verb ?? null} t={(key, o) => t(`gta_${key}`, o)} busy={deciding} onClose={() => setDecision(null)} onSave={(narration) => decide(decision.verb, narration)} />
+      {view === "pending" && <ListTable list={pending} columns={pendingColumns} rowKey={(r) => r.id} title={t("gta_view_pending")} emptyTitle={t("gta_nonePending")} emptyDescription={t("gta_nonePendingHint")} />}
       {view === "alerts" && <AlertsTable list={alerts} onOpen={setOpenId} />}
       {editing && (
         <ThresholdDialog

@@ -1,5 +1,5 @@
 import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Ban, CheckCircle2, LockOpen, XCircle } from "lucide-react";
 import { Button } from "@/Components/Common/Button";
@@ -22,6 +22,7 @@ import { partyBlockApi, partyBlockReasonApi } from "@/Services/Merchant/ops.api"
 import { recordOf } from "@/Services/Loans/loans.api";
 import { actorText } from "@/Utils/Lib/actor";
 import { notifications } from "@/Utils/Lib/notifications";
+import { rowsOf } from "@/Services/Epurse/onboarding.api";
 
 const SCOPES = ["SIGN_IN", "DEBIT", "CREDIT", "ALL"];
 const APPLIES = ["CUSTOMER", "MERCHANT", "BOTH"];
@@ -205,6 +206,26 @@ function Blocks() {
   );
 }
 
+// Staff find the customer or merchant by name, phone number or id.
+function PartyPicker({ value, onChange, preset }) {
+  const { t } = useTranslation("ops");
+  const presetOption = preset?.entity_type ? [{ value: `${preset.entity_type}:${preset.entity_id}`, label: preset.party_name ?? `${preset.entity_type} ${preset.entity_id}` }] : [];
+  const [found, setFound] = useState(presetOption);
+  const latest = useRef(0);
+  const search = (text) => {
+    if (!text) return;
+    const ticket = ++latest.current;
+    partyBlockApi
+      .parties({ search: text, page_size: 20 })
+      .then((r) => {
+        if (ticket !== latest.current) return;
+        setFound(rowsOf(r).map((p) => ({ value: `${p.entity_type}:${p.entity_id}`, label: [p.name, p.phone_number, p.status_name].filter(Boolean).join(" · ") })));
+      })
+      .catch((e) => notifications.error(e.message));
+  };
+  return <FilterSelect className="mt-1.5" value={value} onChange={(v) => onChange(String(v ?? ""))} onSearch={search} options={[{ value: "", label: t("typeToFindParty") }, ...found]} />;
+}
+
 export function PlaceDialog({ preset, busy, onClose, onSave }) {
   const { t } = useTranslation(["ops", "common"]);
   const reasons = useReasons();
@@ -230,14 +251,10 @@ export function PlaceDialog({ preset, busy, onClose, onSave }) {
       }
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className={labelClass}>
-          {t("entityType")} <span className="text-red-500">*</span>
-          <input className={`${inputClass} mt-1.5 font-mono`} value={form.entity_type} onChange={set("entity_type")} placeholder="INDV" />
-        </label>
-        <label className={labelClass}>
-          {t("entityId")} <span className="text-red-500">*</span>
-          <input className={`${inputClass} mt-1.5 font-mono`} inputMode="numeric" value={form.entity_id} onChange={(e) => setForm((f) => ({ ...f, entity_id: e.target.value.replace(/\D/g, "") }))} />
-        </label>
+        <div className={`${labelClass} sm:col-span-2`}>
+          {t("customerOrMerchant")} <span className="text-red-500">*</span>
+          <PartyPicker preset={preset} value={form.entity_type ? `${form.entity_type}:${form.entity_id}` : ""} onChange={(v) => setForm((f) => ({ ...f, entity_type: v ? v.split(":")[0] : "", entity_id: v ? v.split(":")[1] : "" }))} />
+        </div>
         <label className={`${labelClass} sm:col-span-2`}>
           {t("reason")} <span className="text-red-500">*</span>
           <FilterSelect className="mt-1.5" value={form.reason_code} onChange={set("reason_code")} options={[{ value: "", label: t("chooseReason") }, ...reasons.map((r) => ({ value: r.code, label: `${r.name} (${t(`scope_${r.scope}`, { defaultValue: r.scope })})` }))]} />
@@ -331,14 +348,14 @@ function BlockReasons() {
             <RowsEditor
               rows={reasons}
               onChange={(rows) => setForm({ reasons: rows })}
-              blank={() => ({ code: "", name: "", scope: "ALL", applies_to: "BOTH", message: "", enabled: true })}
+              blank={() => ({ code: "", name: "", scope: "", applies_to: "", message: "", enabled: true })}
               addLabel={t("addReason")}
               columns="lg:grid-cols-3"
               fields={[
                 { key: "code", label: t("code"), placeholder: "FRAUD" },
                 { key: "name", label: t("name"), placeholder: "Suspected fraud" },
-                { key: "scope", label: t("scope"), type: "select", options: SCOPES.map((s) => ({ value: s, label: t(`scope_${s}`) })) },
-                { key: "applies_to", label: t("appliesTo"), type: "select", options: APPLIES.map((s) => ({ value: s, label: t(`applies_${s}`) })) },
+                { key: "scope", label: t("scope"), type: "select", blank: t("choose"), options: SCOPES.map((s) => ({ value: s, label: t(`scope_${s}`) })) },
+                { key: "applies_to", label: t("appliesTo"), type: "select", blank: t("choose"), options: APPLIES.map((s) => ({ value: s, label: t(`applies_${s}`) })) },
                 { key: "message", label: t("customerMessage"), placeholder: "Your access is restricted. Please contact us." },
                 { key: "enabled", label: t("enabled"), type: "bool" },
               ]}

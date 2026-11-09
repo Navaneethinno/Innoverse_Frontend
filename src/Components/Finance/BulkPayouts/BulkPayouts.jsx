@@ -105,9 +105,25 @@ function BulkPayoutScreen({ api, readOnly = false }) {
           <p className="mt-1 text-sm text-muted-foreground">{t(readOnly ? "bp_merchantSubtitle" : "bp_subtitle")}</p>
         </div>
         {!readOnly && can("Add") && (
+          <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={Download}
+            onClick={() =>
+              api
+                .template({})
+                .then((r) => rowsOf(r)[0] ?? {})
+                .then((tpl) => saveBase64(tpl.csv_base64, tpl.file_name ?? "bulk_payout_template.csv"))
+                .catch((e) => notifications.error(e.message))
+            }
+          >
+            {t("bp_template")}
+          </Button>
           <Button size="sm" icon={Upload} disabled={chooser && !institution} disabledReason={t("common:blockedNeedsInstitution")} onClick={() => setUploading(true)}>
             {t("bp_upload")}
           </Button>
+          </div>
         )}
       </div>
       <div className="mb-3 flex flex-wrap items-center gap-2">

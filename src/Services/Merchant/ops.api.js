@@ -20,7 +20,7 @@ export const posTemplateApi = docApi(E.POS_TEMPLATE, ["txn_types"]);
 export const catalogueApi = { listPath: `${E.CATALOGUE}/list`, ...docApi(E.CATALOGUE, ["list"]) };
 // ePurse > Customer Blocks (242).
 export const partyBlockReasonApi = docApi(E.PARTY_BLOCK_REASON);
-export const partyBlockApi = { listPath: `${E.PARTY_BLOCK}/list`, dormantPath: `${E.PARTY_BLOCK}/dormant_list`, ...calls(E.PARTY_BLOCK, ["list", "place", "lift", "auth", "deauth", "dormant_list"]) };
+export const partyBlockApi = { listPath: `${E.PARTY_BLOCK}/list`, dormantPath: `${E.PARTY_BLOCK}/dormant_list`, ...calls(E.PARTY_BLOCK, ["list", "parties", "place", "lift", "auth", "deauth", "dormant_list"]) };
 // Case Management > Dispute Settings (243); InnoCMS card pickup locations (155).
 export const disputeSettingApi = docApi(E.DISPUTE_SETTING);
 export const pickupLocationApi = docApi(E.PICKUP_LOCATION);

@@ -486,7 +486,7 @@ export function KYC() {
                   {label}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  {normalizeForm(viewRow)[key] || "-"}
+                  {(key === "user_id" ? viewRow.user_name : null) || normalizeForm(viewRow)[key] || "-"}
                 </p>
               </div>
             ))}

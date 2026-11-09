@@ -6,9 +6,11 @@ import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { money } from "@/Components/InnoCBS/Accounts/accountShared";
 import { RowsEditor } from "@/Components/InnoCBS/Loans/loanShared";
 import { SectionScreen } from "@/Components/InnoCBS/Settings/SectionScreen";
-import { posTemplateApi } from "@/Services/Merchant/ops.api";
+import { floatLimitApi, posTemplateApi } from "@/Services/Merchant/ops.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 
+// Amounts stay strings so they never pass through floating point.
+const text = (v) => (v === "" || v == null ? null : String(v));
 const num = (v) => (v === "" || v == null ? null : Number(v));
 const toBody = (f) => ({
   templates: f.templates.map((x) => ({
@@ -16,17 +18,18 @@ const toBody = (f) => ({
     name: String(x.name ?? "").trim(),
     description: String(x.description ?? "").trim(),
     currency_code: x.currency_code,
-    daily_debit_limit: num(x.daily_debit_limit),
-    daily_credit_limit: num(x.daily_credit_limit),
+    daily_debit_limit: text(x.daily_debit_limit),
+    daily_credit_limit: text(x.daily_credit_limit),
     manager_assignable: Boolean(x.manager_assignable),
     active: Boolean(x.active),
-    transactions: (x.transactions ?? []).map((r) => ({ txn_type: r.txn_type, max_amount: num(r.max_amount), daily_count: num(r.daily_count), daily_amount: num(r.daily_amount) })),
+    transactions: (x.transactions ?? []).map((r) => ({ txn_type: r.txn_type, max_amount: text(r.max_amount), daily_count: num(r.daily_count), daily_amount: text(r.daily_amount) })),
   })),
 });
 
 function problemOf(t, f) {
   if (f.templates.some((x) => !String(x.code ?? "").trim() || !String(x.name ?? "").trim() || !x.currency_code)) return t("fillRequired");
   if (new Set(f.templates.map((x) => x.code.trim())).size !== f.templates.length) return t("codeOnce");
+  if (f.templates.some((x) => !(x.transactions ?? []).length)) return t("templateNeedsTxn");
   if (f.templates.some((x) => (x.transactions ?? []).some((r) => !r.txn_type))) return t("fillRequired");
   return "";
 }
@@ -41,6 +44,13 @@ export function PosTemplates() {
       .txn_types()
       .then((r) => setTypes(rowsOf(r).flat().map((x) => (typeof x === "string" ? { value: x, label: x } : { value: x.txn_type ?? x.code, label: x.name ?? x.txn_type ?? x.code }))))
       .catch(() => setTypes([]));
+  }, []);
+  const [currencies, setCurrencies] = useState([]);
+  useEffect(() => {
+    floatLimitApi
+      .get({})
+      .then((r) => setCurrencies(rowsOf(r)[0]?.choices?.currencies ?? []))
+      .catch(() => setCurrencies([]));
   }, []);
   const typeLabel = (v) => types.find((x) => x.value === v)?.label ?? v;
   return (
@@ -66,7 +76,7 @@ export function PosTemplates() {
               fields={[
                 { key: "code", label: t("code"), placeholder: "CASHIER" },
                 { key: "name", label: t("name"), placeholder: "Cashier" },
-                { key: "currency_code", label: t("currency"), placeholder: "USD" },
+                { key: "currency_code", label: t("currency"), ...(currencies.length ? { type: "select", blank: t("choose"), options: currencies.map((c) => ({ value: c, label: c })) } : { placeholder: "USD" }) },
                 { key: "description", label: t("description") },
                 { key: "daily_debit_limit", label: t("dailyDebitLimit"), type: "amount" },
                 { key: "daily_credit_limit", label: t("dailyCreditLimit"), type: "amount" },

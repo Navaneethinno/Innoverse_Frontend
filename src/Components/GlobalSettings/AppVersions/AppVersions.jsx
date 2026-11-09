@@ -1,3 +1,5 @@
+import { Plus } from "lucide-react";
+import { Button } from "@/Components/Common/Button";
 import { useTranslation } from "react-i18next";
 import { EmptyNote } from "@/Components/Common/EmptyNote";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
@@ -76,13 +78,14 @@ function Platforms({ data, entries, editing, setForm }) {
 
   if (editing) {
     const missing = choices.find((p) => !entries.some((r) => r.platform === p));
+    const absent = choices.filter((p) => !entries.some((r) => r.platform === p));
     return (
+      <div className="grid gap-2">
       <RowsEditor
         rows={entries}
         onChange={(platforms) => setForm({ platforms })}
         blank={() => ({ platform: missing ?? "", latest_version: "", min_supported_version: "" })}
-        addLabel={missing && t("addPlatform", { platform: platformLabel(missing) })}
-        canAdd={Boolean(missing)}
+        canAdd={false}
         columns="lg:grid-cols-3"
         fields={[
           { key: "platform", label: t("platform"), type: "select", options: choices.map((p) => ({ value: p, label: platformLabel(p) })) },
@@ -100,6 +103,16 @@ function Platforms({ data, entries, editing, setForm }) {
           </label>
         )}
       />
+      {absent.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {absent.map((p) => (
+            <Button key={p} variant="outline" size="sm" icon={Plus} className="w-fit" onClick={() => setForm({ platforms: [...entries, { platform: p, latest_version: "", min_supported_version: "" }] })}>
+              {t("addPlatform", { platform: platformLabel(p) })}
+            </Button>
+          ))}
+        </div>
+      )}
+      </div>
     );
   }
   if (!entries.length) return <EmptyNote>{t("none")}</EmptyNote>;

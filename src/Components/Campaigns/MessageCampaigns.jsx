@@ -11,6 +11,7 @@ import { RowActions } from "@/Components/Common/RowActions";
 import { ActionIconButton } from "@/Components/Common/ActionIconButton";
 import { CheckboxPill } from "@/Components/Common/CheckboxPill";
 import { FilterSelect } from "@/Components/Common/FilterSelect";
+import { DateInput } from "@/Components/Common/DateInput";
 import { NoAccess } from "@/Components/Common/NoAccess";
 import { SimpleTable } from "@/Components/Common/SimpleTable";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
@@ -269,11 +270,14 @@ function CampaignForm({ campaign, onClose, onSaved }) {
             {t("quietEnd")}
             <FilterSelect className="mt-1.5" value={form.quiet_end_hour} onChange={(v) => set({ quiet_end_hour: v })} options={HOURS} />
           </label>
-          <label className={labelClass}>
+          <div className={labelClass}>
             {t("sendAt")}
-            <input type="datetime-local" className={inputClass} value={form.send_at} onChange={(e) => set({ send_at: e.target.value })} />
+            <div className="mt-1.5 flex gap-2">
+              <DateInput className="w-full min-w-0 flex-1" value={form.send_at.slice(0, 10)} onChange={(e) => set({ send_at: e.target.value ? `${e.target.value}T${form.send_at.slice(11, 16) || "00:00"}` : "" })} />
+              <input type="time" aria-label={t("sendAt")} className={`${inputClass} !mt-0 !w-28 shrink-0`} disabled={!form.send_at} value={form.send_at.slice(11, 16)} onChange={(e) => set({ send_at: `${form.send_at.slice(0, 10)}T${e.target.value || "00:00"}` })} />
+            </div>
             <span className="mt-1 block text-[11px] font-normal text-muted-foreground">{t("sendAtHint")}</span>
-          </label>
+          </div>
         </div>
         <p className="-mt-2 text-[11px] text-muted-foreground">{t("quietHint")}</p>
         <label className={labelClass}>

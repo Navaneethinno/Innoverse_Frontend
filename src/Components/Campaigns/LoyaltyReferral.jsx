@@ -22,7 +22,7 @@ const referralFields = (t, options) => [
   { key: "enabled", label: t("referralEnabled"), type: "bool" },
   { key: "referrer_reward", label: t("referrer_reward"), type: "amount" },
   { key: "referee_reward", label: t("referee_reward"), type: "amount" },
-  { key: "txn_type_ids", label: t("txn_type_ids"), type: "multi", options: byTxnType(options?.txn_types), hint: t("emptyMeansAll") },
+  { key: "txn_type_ids", label: t("referral_txn_type_ids"), type: "multi", options: byTxnType(options?.txn_types), hint: t("emptyMeansAll") },
   { key: "min_amount", label: t("min_amount"), type: "amount" },
   { key: "window_days", label: t("window_days"), type: "int" },
   { key: "max_per_referrer", label: t("max_per_referrer"), type: "int" },
