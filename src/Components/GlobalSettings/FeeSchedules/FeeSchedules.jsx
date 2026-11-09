@@ -23,7 +23,7 @@ import { cn } from "@/Utils/Lib/utils";
 import { LinkButton } from "@/Components/Common/TextButtons";
 import { VerbDialog, VersionSections } from "@/Components/MakerChecker/SetupDocument";
 
-const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
+const blankRule = () => ({ rule_code: "", fee_name: "", txn_type_id: "", channel_id: "", digital_product_id: "", ext_provider_id: "", ext_provider_group_id: "", minimum_amount: "0", maximum_amount: "0", calculation_type: "FIXED", fixed_amount: "0", percent_value: "0", minimum_fee: "0", maximum_fee: "0", pay_from: "SENDER", merchant_pay_from: "", segment_code: "", amount_mode: "EXCLUSIVE", tax_percent: "0", shares: [] });
 // GLOBAL SETTINGS > Fee Schedules (menu 190): one schedule per institution
 // and currency, its rules approved or rejected as a whole.
 export function FeeSchedules() {
@@ -435,6 +435,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             { key: "txn_type_id", label: t("txnType"), ...sel(options.txn_types, t("choose")) },
             { key: "channel_id", label: t("channel"), ...sel(options.channels, t("anyChannel")) },
             { key: "digital_product_id", label: t("digitalProduct"), ...sel(options.digital_products, t("anyProduct")) },
+            options.fee_segments?.length > 0 && { key: "segment_code", label: t("feeSegment"), type: "select", blank: t("everyone"), options: options.fee_segments.map((x) => ({ value: x.code, label: x.name })) },
             // Only one of the two shows once either is picked.
             options.ext_providers?.length > 0 && { key: "ext_provider_id", label: t("extProvider"), showIf: (r) => !r.ext_provider_group_id, ...sel(options.ext_providers, t("anyProvider")) },
             options.ext_provider_groups?.length > 0 && { key: "ext_provider_group_id", label: t("extProviderGroup"), showIf: (r) => !r.ext_provider_id, ...sel(options.ext_provider_groups, t("anyProviderGroup")) },
@@ -447,6 +448,7 @@ function ScheduleEditor({ schedule, scope, onClose, onSaved, onOpen }) {
             { key: "maximum_fee", label: t("maximumFee"), type: "amount" },
             { key: "tax_percent", label: t("taxPercent"), type: "percent" },
             { key: "pay_from", label: <>{t("feePaidBy")}<RequiredMark /></>, ...codes(options.pay_from, options.names?.pay_from) },
+            { key: "merchant_pay_from", label: t("merchantPaidBy"), ...codes(options.pay_from, options.names?.pay_from), blank: t("sameAsAbove") },
             { key: "amount_mode", label: <>{t("amountMode")}<RequiredMark /></>, showIf: (r) => r.pay_from === "SENDER", ...codes(options.amount_modes, options.names?.amount_modes) },
           ].filter(Boolean)}
           renderExtra={(rule, patch) => (

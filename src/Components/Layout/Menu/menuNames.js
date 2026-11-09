@@ -5,6 +5,9 @@
 export const SCREEN_MENUS = [
   "Agent Float Limits",
   "Agent Card Stock",
+  "Agent Network",
+  "Fee Segments",
+  "Fraud Feed",
   "Rewards Campaigns",
   "Loyalty & Referral",
   "Vouchers",

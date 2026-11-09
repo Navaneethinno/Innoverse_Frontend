@@ -1114,6 +1114,9 @@ export const API_ENDPOINTS = {
   // Dispute Settings (243), card pickup locations (155).
   OPS: {
     FLOAT_LIMIT: "/config/merchant/float_limit",
+    FEE_SEGMENT: "/config/global/fee_segment",
+    AGENT_NETWORK: "/config/global/agent_network",
+    FRAUD_FEED: "/config/global/fraud_feed",
     POS_TEMPLATE: "/config/merchant/pos_template",
     CATALOGUE: "/config/merchant/catalogue",
     SAF: "/config/saf",

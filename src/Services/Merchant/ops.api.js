@@ -19,6 +19,9 @@ export const floatLimitApi = { listPath: `${E.FLOAT_LIMIT}/list`, ...docApi(E.FL
 export const posTemplateApi = docApi(E.POS_TEMPLATE, ["txn_types"]);
 export const catalogueApi = { listPath: `${E.CATALOGUE}/list`, ...docApi(E.CATALOGUE, ["list"]) };
 // ePurse > Customer Blocks (242).
+export const feeSegmentApi = docApi(E.FEE_SEGMENT);
+export const agentNetworkApi = docApi(E.AGENT_NETWORK);
+export const fraudFeedApi = docApi(E.FRAUD_FEED);
 export const partyBlockReasonApi = docApi(E.PARTY_BLOCK_REASON);
 export const partyBlockApi = { listPath: `${E.PARTY_BLOCK}/list`, dormantPath: `${E.PARTY_BLOCK}/dormant_list`, ...calls(E.PARTY_BLOCK, ["list", "parties", "place", "lift", "auth", "deauth", "dormant_list"]) };
 // Case Management > Dispute Settings (243); InnoCMS card pickup locations (155).

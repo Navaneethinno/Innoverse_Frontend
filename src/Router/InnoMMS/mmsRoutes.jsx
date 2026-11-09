@@ -16,6 +16,9 @@ const opsPage = (load, name) => lazy(() => load().then((m) => ({ default: m[name
 const OPS_PAGES = {
   terminalbatches: opsPage(() => import("@/Components/InnoMMS/Ops/TerminalBatches.jsx"), "TerminalBatches"),
   terminalmonitor: opsPage(() => import("@/Components/InnoMMS/Ops/TerminalMonitor.jsx"), "TerminalMonitor"),
+  agentnetwork: opsPage(() => import("@/Components/GlobalSettings/PaysePay/AgentNetwork.jsx"), "AgentNetwork"),
+  feesegments: opsPage(() => import("@/Components/GlobalSettings/PaysePay/FeeSegments.jsx"), "FeeSegments"),
+  fraudfeed: opsPage(() => import("@/Components/GlobalSettings/PaysePay/FraudFeed.jsx"), "FraudFeed"),
   agentcardstock: opsPage(() => import("@/Components/InnoMMS/Ops/AgentCardStock.jsx"), "AgentCardStock"),
   agentfloatlimits: opsPage(() => import("@/Components/InnoMMS/Ops/FloatLimits.jsx"), "FloatLimits"),
   posprofiletemplates: opsPage(() => import("@/Components/InnoMMS/Ops/PosTemplates.jsx"), "PosTemplates"),

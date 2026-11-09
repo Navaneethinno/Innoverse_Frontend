@@ -16,7 +16,7 @@ import { agentsApi } from "@/Services/Merchant/mms.api";
 import { rowsOf } from "@/Services/Epurse/onboarding.api";
 import { notifications } from "@/Utils/Lib/notifications";
 import { ActionButtons, NarrationDialog, labelClass } from "../../InnoCBS/Deposits/depositShared";
-import { MiniTable, Tabs } from "../../InnoCBS/Loans/loanShared";
+import { Field, MiniTable, Tabs } from "../../InnoCBS/Loans/loanShared";
 import { MerchantStores } from "../Stores/Stores";
 import { MmsStatus, RoleBadge, pageOf, partyKey, partyRef } from "../mmsShared";
 import { actorText } from "@/Utils/Lib/actor";
@@ -348,6 +348,8 @@ function ChangeRole({ party, onClose, onDone }) {
   const [tier, setTier] = useState(party.tier ?? "");
   const [parent, setParent] = useState(party.parent ? partyKey(party.parent) : "");
   const [superAgents, setSuperAgents] = useState(null);
+  const [overdraft, setOverdraft] = useState(party.float_overdraft_limit ?? "");
+  const [commission, setCommission] = useState(party.parent_commission_pct ?? "");
   const [busy, setBusy] = useState(false);
 
   // The super agents to pick from (a party is never its own).
@@ -370,6 +372,8 @@ function ChangeRole({ party, onClose, onDone }) {
         ...partyRef(party),
         tier,
         ...(chosen ? { parent: partyRef(chosen) } : {}),
+        ...(tier && String(overdraft) !== "" ? { float_overdraft_limit: String(overdraft) } : {}),
+        ...(tier && String(commission) !== "" ? { parent_commission_pct: String(commission) } : {}),
         reason,
       });
       notifications.success(response?.message ?? t("roleRequested"));
@@ -396,6 +400,18 @@ function ChangeRole({ party, onClose, onDone }) {
       onSave={save}
     >
       <div className="mb-3 grid gap-3">
+        {tier && (
+          <div className="order-last grid gap-3 sm:grid-cols-2">
+            <label className={labelClass}>
+              {t("floatOverdraft")}
+              <Field field={{ type: "amount", placeholder: t("tierDefault") }} value={overdraft} onChange={setOverdraft} />
+            </label>
+            <label className={labelClass}>
+              {t("parentCommission")}
+              <Field field={{ type: "percent", placeholder: t("tierDefault") }} value={commission} onChange={setCommission} />
+            </label>
+          </div>
+        )}
         <label className={labelClass}>
           {t("tier")}
           <FilterSelect

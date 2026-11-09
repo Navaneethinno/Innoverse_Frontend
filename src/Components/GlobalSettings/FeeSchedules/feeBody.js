@@ -27,6 +27,8 @@ export const toBody = (c) => ({
     minimum_fee: str(r.minimum_fee),
     maximum_fee: str(r.maximum_fee),
     pay_from: r.pay_from,
+    merchant_pay_from: str(r.merchant_pay_from, ""),
+    segment_code: str(r.segment_code, ""),
     // Only a fee the sender pays can be included in the amount.
     amount_mode: r.pay_from === "SENDER" ? r.amount_mode || "EXCLUSIVE" : "EXCLUSIVE",
     tax_percent: str(r.tax_percent),

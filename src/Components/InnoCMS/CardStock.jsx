@@ -141,9 +141,9 @@ export function CardStock() {
 }
 
 // Hand the picked cards to a staff user, or back to the vault.
-function AssignDialog({ ids, options, onClose, onDone }) {
+export function AssignDialog({ ids, options, initialType = VAULT, onClose, onDone }) {
   const { t } = useTranslation(["cards", "common"]);
-  const [type, setType] = useState(VAULT);
+  const [type, setType] = useState(initialType);
   const [to, setTo] = useState("");
   const choices = holderChoices(options, type);
   const types = options.assignee_types ?? [VAULT];

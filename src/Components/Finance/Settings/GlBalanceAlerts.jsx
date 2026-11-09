@@ -42,7 +42,7 @@ export function GlBalanceAlerts() {
   const [editing, setEditing] = useState(null);
 
   const setups = useServerList({ api: glThresholdsApi.listPath, call: glThresholdsApi.list, enabled: !openId && view === "setups" });
-  const pending = useServerList({ api: glThresholdPendingPath, call: glThresholdsApi.pending, prefix: "p_", describe: false, enabled: !openId && view === "pending" });
+  const pending = useServerList({ api: glThresholdPendingPath, call: glThresholdsApi.pending, prefix: "p_", enabled: !openId && view === "pending" });
   const alerts = useServerList({ api: glThresholdAlertsPath, call: glThresholdsApi.alerts, prefix: "a_", enabled: !openId && view === "alerts" });
 
   if (openId) {
@@ -101,7 +101,7 @@ export function GlBalanceAlerts() {
           ...c,
           render: (r) => (
             <RowActions
-              buttons={{ view: true, authorize: can("Authorize") && (r.actions?.auth ?? true), deauthorize: can("Authorize") && (r.actions?.deauth ?? true) }}
+              buttons={{ view: true, authorize: can("Authorize") && Boolean(r.actions?.auth), deauthorize: can("Authorize") && Boolean(r.actions?.deauth) }}
               onView={() => setOpenId(r.id)}
               onAuthorize={() => setDecision({ id: r.id, verb: "auth" })}
               onDeauthorize={() => setDecision({ id: r.id, verb: "deauth" })}

@@ -63,7 +63,7 @@ export function SectionScreen({ api, fallbackTitle, ns = "corebank", valueKey = 
       await load();
     } catch (e) {
       setDialog(null);
-      if (verb === "edit") setError(e.message);
+      if (verb === "edit") setError(e?.data?.problems?.length ? e.data.problems.join(" · ") : e.message);
       else notifications.error(e.message);
     } finally {
       setBusy(false);
