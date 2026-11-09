@@ -10660,7 +10660,7 @@ export const ops = {
   "customerOrMerchant": "Cliente ou comerciante",
   "templateNeedsTxn": "Adicione pelo menos uma transação permitida a cada modelo.",
   "agentCardStock": "Stock de cartões dos agentes",
-  "agentCardStockSub": "Cartões instantâneos detidos por agentes, apenas leitura.",
+  "agentCardStockSub": "Cartões instantâneos detidos por agentes. Entregue cartões do cofre a um agente ou recolha-os.",
   "noAgentCards": "Nenhum cartão detido por agentes",
   "templatesSubtitle": "Perfis de utilizador POS prontos a usar pelos comerciantes: limites e transações permitidas. Uma alteração aguarda um verificador.",
   "addTemplate": "Adicionar modelo",

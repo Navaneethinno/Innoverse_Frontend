@@ -10636,7 +10636,7 @@ export const ops = {
   "customerOrMerchant": "Customer or merchant",
   "templateNeedsTxn": "Add at least one allowed transaction to each template.",
   "agentCardStock": "Agent Card Stock",
-  "agentCardStockSub": "Instant cards held by agents, read only.",
+  "agentCardStockSub": "Instant cards held by agents. Hand vault cards to an agent or take cards back.",
   "noAgentCards": "No cards are held by agents",
   "templatesSubtitle": "Ready-made POS user profiles merchants start from: limits and the transactions allowed. A change waits for a checker.",
   "addTemplate": "Add template",
