@@ -1,4 +1,4 @@
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronRight, LayoutGrid } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -21,6 +21,19 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpen
   const { t } = useTranslation("sidebar");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
+  // The list scrolls inside the space left below the control, so its last
+  // modules never fall past the bottom of the sidebar, which clips them.
+  const [maxHeight, setMaxHeight] = useState(null);
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+    const fit = () => {
+      const box = containerRef.current?.getBoundingClientRect();
+      if (box) setMaxHeight(Math.max(160, window.innerHeight - box.bottom - 28));
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [isOpen]);
 
   // The sidebar shows only the module list while it is open.
   useEffect(() => onOpenChange?.(isOpen), [isOpen, onOpenChange]);
@@ -75,8 +88,9 @@ export function ModuleDropdown({ modules, selectedModule, onSelectModule, onOpen
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -4, scale: 0.98 }}
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="origin-top thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 max-h-[70vh] overflow-y-auto"
+          className="origin-top thin-scrollbar absolute left-0 right-0 top-full mt-2 z-50 flex flex-col gap-1.5 rounded-xl border p-2 overflow-y-auto overscroll-contain"
           style={{
+            maxHeight: maxHeight ?? "60vh",
             background: "var(--popover)",
             borderColor: "var(--border)",
             boxShadow: "var(--glass-shadow)",

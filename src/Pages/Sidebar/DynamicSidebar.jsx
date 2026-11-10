@@ -203,10 +203,12 @@ export function DynamicSidebar() {
     return groups.length ? groups : [{ module: null, items: [] }];
   }, [isSearching, filteredMenuItems, filteredModules]);
 
-  // A module's own dashboard, from picking it or clicking its name.
+  // A module's own dashboard, from picking it or clicking its name. On a phone
+  // the drawer stays open, so the user can go on to pick one of its menus;
+  // only choosing a menu closes it.
   const openModuleDashboard = (module) => {
     const name = activeMenuArray.find((m) => Number(m.module_id) === Number(module.module_id))?.module_name ?? module.module_name;
-    if (name) handleNavigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
+    if (name) navigate(moduleDashboardPath(name), { state: { menuClick: Date.now() } });
   };
 
   const focusSearch = useCallback(() => searchInputRef.current?.focus(), []);
