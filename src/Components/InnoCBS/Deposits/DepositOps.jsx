@@ -196,6 +196,26 @@ function RdView({ id, onBack }) {
       {settle && (
         <Section title={L(settle.kind === "PRECLOSURE" ? "Pre-closure quote" : "Maturity quote")} className="mb-4">
           <Facts rows={Object.entries(settle).filter(([k, v]) => k !== "kind" && (typeof v !== "object" || v === null)).map(([k, v]) => [L(k), String(v ?? "—")])} />
+          {(settle.instalments ?? []).length > 0 && (
+            <div className="mt-3">
+              <RowsTable
+                rows={settle.instalments}
+                columns={[
+                  { key: "instalment_number", label: "#" },
+                  { key: "paid_on", label: L("paid_on"), render: (x) => dateCell(x.paid_on) },
+                  { key: "amount", label: L("amount"), numeric: true },
+                  { key: "rate", label: L("rate"), render: (x) => pct(x.rate) },
+                  { key: "interest", label: L("interest"), numeric: true },
+                  { key: "delayed", label: L("delayed"), render: (x) => (x.delayed ? "✓" : "—") },
+                ]}
+              />
+            </div>
+          )}
+          {(settle.notes ?? []).map((n) => (
+            <p key={n} className="mt-2 text-xs text-muted-foreground">
+              {n}
+            </p>
+          ))}
           <div className="mt-3 flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => setSettle(null)}>
               {L("Close")}

@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/Utils/Constant";
 import { useEffect, useState } from "react";
-import { CheckCircle2, FileCheck2, Play, Plus, ReceiptText, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, FileCheck2, Play, Plus, Printer, ReceiptText, ShieldCheck, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/Components/Common/Button";
 import { ListTable } from "@/Components/Common/ListView";
@@ -865,6 +865,21 @@ function MandateRecords() {
   );
 }
 
+// The yearly tax certificate as a printable page (the browser's print gives the PDF).
+function printTaxCertificate(c) {
+  const w = window.open("", "_blank", "width=820,height=700");
+  if (!w) return;
+  const esc = (v) => String(v ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+  const rows = (c.lines ?? []).map((l) => `<tr><td>${esc(l.date)}</td><td>${esc(l.source)}</td><td>${esc(l.reference)}</td><td class="n">${esc(l.gross_interest)}</td><td class="n">${esc(l.tax_withheld)}</td><td class="n">${esc(l.net_interest)}</td></tr>`).join("");
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Tax certificate ${esc(c.year)}</title>
+<style>body{font-family:Arial,sans-serif;margin:36px;color:#111}h1{margin:0}table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}th,td{border-bottom:1px solid #ddd;padding:6px;text-align:left}.n{text-align:right}tfoot td{font-weight:bold}</style></head><body>
+<h1>Interest and tax withheld · ${esc(c.year)}</h1><p>${esc(c.name)} (${esc(c.entity_type)} ${esc(c.entity_id)})${c.tax_profile ? ` · TIN ${esc(c.tax_profile.tax_identification_number)} · ${esc(c.tax_profile.exemption_type)}` : ""}</p>
+<table><thead><tr><th>Date</th><th>Source</th><th>Reference</th><th class="n">Gross interest</th><th class="n">Tax withheld</th><th class="n">Net interest</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No interest was paid in this year.</td></tr>'}</tbody>
+<tfoot><tr><td colspan="3">Total</td><td class="n">${esc(c.total_gross_interest)}</td><td class="n">${esc(c.total_tax_withheld)}</td><td class="n">${esc(c.total_net_interest)}</td></tr></tfoot></table>
+<p style="font-size:12px;color:#555;margin-top:24px">Issued ${esc(c.issued_at)}</p><script>window.onload=function(){window.print()}</script></body></html>`);
+  w.document.close();
+}
+
 function TaxCertificate({ record }) {
   const L = useL();
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -885,6 +900,11 @@ function TaxCertificate({ record }) {
         <Button size="sm" icon={ReceiptText} disabled={!year} disabledReason={L("Enter a year.")} onClick={run}>
           {L("Show certificate")}
         </Button>
+        {c && (
+          <Button size="sm" variant="secondary" icon={Printer} onClick={() => printTaxCertificate(c)}>
+            {L("Print")}
+          </Button>
+        )}
       </div>
       {c && (
         <>

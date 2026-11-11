@@ -14,6 +14,7 @@ import { SegmentedSwitch } from "@/Components/Common/SegmentedSwitch";
 import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { StatusBadge } from "@/Components/MakerChecker/StatusBadge";
 import { Facts, Section, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
+import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { CatalogueReports } from "@/Components/InnoCBS/Deposits/DepositOps";
 import { OpDialog, ownerOf, RowsTable, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -68,12 +69,14 @@ const memberCell = (r) => (
 const shareOptionsApi = calls(SH, ["options"]);
 function useShareOptions(memberId) {
   const [o, setO] = useState({});
+  const { scope, institution } = useInstitutionScope();
   useEffect(() => {
     shareOptionsApi
-      .options(memberId ? { member_id: Number(memberId) } : {})
+      .options(memberId ? { member_id: Number(memberId) } : scope({}))
       .then((r) => setO(first(r) ?? {}))
       .catch(() => {});
-  }, [memberId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberId, institution]);
   return o;
 }
 function useCategories() {

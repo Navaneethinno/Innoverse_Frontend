@@ -9,7 +9,7 @@ import { RecordScreen } from "@/Components/MakerChecker/RecordScreen";
 import { ActionButtons, Facts, Section, inputClass, labelClass } from "@/Components/InnoCBS/Deposits/depositShared";
 import { CatalogueReports } from "@/Components/InnoCBS/Deposits/DepositOps";
 import { FacilityPick } from "@/Components/InnoCBS/Loans/LoanScreens";
-import { Field } from "@/Components/InnoCBS/Loans/loanShared";
+import { Field, useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 import { OpDialog, RowsInput, RowsTable, byId, cell, codes, dateCell, first, pct, splitParty, sv, useL, words } from "@/Components/InnoCBS/cbsOps";
 import { OpsList, Status, isPending, runCall } from "@/Components/InnoCBS/OpsList";
 import { usePagePermission } from "@/Hooks/usePermission";
@@ -103,17 +103,19 @@ const grams = (v) => (v === "" || v == null ? "—" : `${v} g`);
 // Active records of a master as choices.
 function useActive(api, label = (r) => `${r.code} · ${r.name}`) {
   const [rows, setRows] = useState([]);
+  const { scope, institution } = useInstitutionScope();
   useEffect(() => {
     api
-      .active({})
+      .active(scope({}))
       .then((r) => setRows(rowsOf(r).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
       .catch(() => {});
-  }, [api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, institution]);
   return rows.map((r) => ({ value: r.code, label: label(r), row: r }));
 }
 
 // A valuation, picked from the latest ones (number, customer).
-function useValuations(filter) {
+function useValuations(filter, keep = () => true) {
   const [rows, setRows] = useState([]);
   useEffect(() => {
     valuationApi
@@ -122,7 +124,7 @@ function useValuations(filter) {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return rows.map((v) => ({ value: String(v.id), label: `${v.valuation_number} · ${v.customer ?? ""} · ${words(v.status)}` }));
+  return rows.filter(keep).map((v) => ({ value: String(v.id), label: `${v.valuation_number} · ${v.customer ?? ""} · ${words(v.status)}` }));
 }
 const facilityInput = (L) => (form, setForm) => (
   <div className={`${labelClass} mb-3`}>
@@ -368,30 +370,39 @@ export function LockerManagement() {
 
 // ---------- New gold loan ----------
 
-const ORNAMENT_BLANK = () => ({ category: "", description: "", gross_weight: "", stone_weight: "", other_weight: "", purity_code: "", testing_method: "" });
+const ORNAMENT_BLANK = () => ({ category: "", condition: "", description: "", gross_weight: "", stone_weight: "", other_weight: "", purity_code: "", testing_method: "", photos: [] });
 
-function ValuationNew({ onClose, onDone }) {
+function ValuationNew({ onClose, onDone, previous }) {
   const L = useL();
   useGoldOptions();
   const products = useActive(productApi);
   const purities = useActive(purityApi);
   const [quote, setQuote] = useState(null);
   const methods = [...new Set(purities.flatMap((p) => p.row.testing_methods ?? []))].map((m) => ({ value: m, label: m }));
-  const body = (x) => ({ product_code: x.product_code, ...splitParty(x.party), ornaments: (x.ornaments ?? []).map((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== ""))) });
+  const body = (x) => ({ product_code: x.product_code, ...splitParty(x.party), ornaments: (x.ornaments ?? []).map((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== "" && !(Array.isArray(v) && !v.length)))) });
   return (
     <OpDialog
       size="lg"
-      title={L("New valuation")}
+      title={previous ? `${L("Revise valuation")} · ${previous.valuation_number}` : L("New valuation")}
       hint={L("Weigh and test each ornament. An independent appraiser (another user) approves the valuation.")}
       fields={[
         { key: "product_code", label: L("product"), type: "select", required: true, options: products },
         { key: "party", label: L("Customer"), type: "party", required: true },
         { key: "requested_amount", label: L("requested_amount"), type: "amount" },
       ]}
-      initial={{ ornaments: [ORNAMENT_BLANK()] }}
+      initial={
+        previous
+          ? {
+              product_code: previous.product_code,
+              party: `${previous.entity_type}:${previous.entity_id}`,
+              requested_amount: previous.requested_amount ?? "",
+              ornaments: (previous.ornaments ?? []).map((o) => ({ category: o.category, condition: o.condition, description: o.description, gross_weight: o.gross_weight, stone_weight: o.stone_weight, other_weight: o.other_weight, purity_code: o.purity_code, testing_method: o.testing_method, photos: o.photos ?? [] })),
+            }
+          : { ornaments: [ORNAMENT_BLANK()] }
+      }
       needs={(x) => (x.ornaments ?? []).length && x.ornaments.every((o) => o.gross_weight && o.purity_code)}
       confirmLabel={L("Save for approval")}
-      run={(x) => valuationApi.add({ ...body(x), requested_amount: x.requested_amount })}
+      run={(x) => valuationApi.add({ ...body(x), requested_amount: x.requested_amount, ...(previous ? { previous_id: previous.id } : {}) })}
       onClose={onClose}
       onDone={onDone}
     >
@@ -413,6 +424,25 @@ function ValuationNew({ onClose, onDone }) {
                 { key: "gross_weight", label: L("gross_weight"), type: "amount" },
                 { key: "stone_weight", label: L("stone_weight"), type: "amount" },
                 { key: "other_weight", label: L("other_weight"), type: "amount" },
+                {
+                  key: "photos",
+                  label: L("Photos"),
+                  render: (v, set) => (
+                    <div>
+                      <GoldUpload kind="ORNAMENT_PHOTO" value="" onChange={(p) => set([...(v ?? []), p])} />
+                      {(v ?? []).map((p) => (
+                        <span key={p} className="mr-2 inline-flex items-center gap-1 text-[11px]">
+                          <button type="button" className="text-primary underline" onClick={() => viewGoldFile(p)}>
+                            {p.split("/").pop()}
+                          </button>
+                          <button type="button" aria-label={L("remove")} className="text-red-600" onClick={() => set((v ?? []).filter((x) => x !== p))}>
+                            ✕
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  ),
+                },
               ]}
             />
           </div>
@@ -503,6 +533,7 @@ function ValuationView({ id, onBack }) {
     a.book && { key: "book", label: L("Book the loan"), icon: HandCoins, variant: "primary", run: () => setDialog("book") },
     a.pack && { key: "pack", label: L("Pack and seal"), icon: Package, run: () => setDialog("pack") },
     a.release && { key: "release", label: L("Request a release"), icon: Undo2, run: () => setDialog("release") },
+    a.revise && { key: "revise", label: L("Revise"), icon: RefreshCcw, run: () => setDialog("revise") },
   ];
   return (
     <div className="pt-1 pb-6">
@@ -529,6 +560,7 @@ function ValuationView({ id, onBack }) {
         <RowsTable rows={v.rate_snapshot} columns={[{ key: "purity_code", label: L("purity") }, { key: "rate_per_gram", label: L("rate_per_gram"), numeric: true }, { key: "rate_date", label: L("rate_date"), render: (x) => `${x.rate_date} ${x.rate_time}` }, { key: "rule", label: L("rule"), render: (x) => `${words(x.rule)}${x.fallback ? " · fallback" : ""}${x.exception ? " · exception" : ""}` }]} />
       </Section>
       {dialog === "ack" && <OpDialog title={L("Customer acknowledges")} hint={L("The customer accepted the inventory and value.")} fields={[{ key: "acknowledgement_method", label: L("acknowledgement_method"), type: "select", required: true, options: gl("acknowledgement_methods", ["SIGNED_INVENTORY"]) }]} initial={{ acknowledgement_method: "SIGNED_INVENTORY" }} run={(x) => valuationApi.acknowledge({ id, ...x })} onClose={close} onDone={done} />}
+      {dialog === "revise" && <ValuationNew previous={v} onClose={close} onDone={done} />}
       {dialog === "pack" && (
         <OpDialog
           title={L("Pack and seal")}
@@ -634,7 +666,7 @@ export function GoldOrnamentInventory() {
 export function PacketManagement() {
   const L = useL();
   useGoldOptions();
-  const valuations = useValuations({ status: "BOOKED" });
+  const valuations = useValuations(null, (v) => v.actions?.pack);
   return (
     <OpsList
       api={packetApi}

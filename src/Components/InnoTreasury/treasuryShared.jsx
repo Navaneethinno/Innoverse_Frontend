@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { recordApi } from "@/Services/api/recordApi";
 import { request, rowsOf } from "@/Services/Epurse/onboarding.api";
 import { useL } from "@/Components/InnoCBS/cbsOps";
+import { useInstitutionScope } from "@/Components/InnoCBS/Loans/loanShared";
 
 // InnoTreasury (Admin 24): shared record APIs and choices.
 export const T = API_ENDPOINTS.TREASURY.ROOT;
@@ -24,12 +25,14 @@ export const fixedAssetApi = recordApi(`${T}/fixed_asset`, ["action", "depreciat
 // Active records of a treasury master as choices ({ value: code, label, row }).
 export function useActive(api, { value = (r) => r.code, label = (r) => `${r.code} · ${r.name}` } = {}) {
   const [rows, setRows] = useState([]);
+  const { scope, institution } = useInstitutionScope();
   useEffect(() => {
     api
-      .active({})
+      .active(scope({}))
       .then((r) => setRows(rowsOf(r).map((x) => ({ ...x, ...(x.setup ?? {}) }))))
       .catch(() => {});
-  }, [api]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api, institution]);
   return rows.map((r) => ({ value: String(value(r)), label: label(r), row: r }));
 }
 
@@ -40,10 +43,12 @@ let treasuryLoad = null;
 // branches, users, GL accounts (loaded once).
 export function useTreasuryOptions() {
   const [, bump] = useState(0);
+  const { scope } = useInstitutionScope();
   useEffect(() => {
     if (treasuryOptions) return;
-    treasuryLoad ??= optionsCall({}).then((r) => (treasuryOptions = rowsOf(r)[0] ?? r?.data ?? {}));
+    treasuryLoad ??= optionsCall(scope({})).then((r) => (treasuryOptions = rowsOf(r)[0] ?? r?.data ?? {}));
     treasuryLoad.then(() => bump((n) => n + 1)).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return treasuryOptions ?? {};
 }

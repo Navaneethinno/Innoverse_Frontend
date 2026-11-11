@@ -37,7 +37,7 @@ const historyApi = calls(`${BASE}/history`, ["list"]);
 
 // Codes shown as words: TERM_DEPOSIT -> Term deposit.
 const words = (code) => {
-  const s = String(code ?? "").replace(/_/g, " ").toLowerCase();
+  const s = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
   return s ? s[0].toUpperCase() + s.slice(1) : "";
 };
 const codes = (key) => (c) => (c[key] ?? []).map((v) => ({ value: v, label: words(v) }));

@@ -18,7 +18,7 @@ import { cn } from "@/Utils/Lib/utils";
 
 // A code as words: TERM_DEPOSIT -> Term deposit.
 export const words = (code) => {
-  const s = String(code ?? "").replace(/_/g, " ").toLowerCase();
+  const s = String(code ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
   return s ? s[0].toUpperCase() + s.slice(1) : "";
 };
 // Choices from an options reply: a list of codes, or of { code, name } / { id, name }.
@@ -230,7 +230,12 @@ export function RowsInput({ value, onChange, columns, blank, addLabel }) {
       {rows.map((r, i) => (
         <div key={i} className="grid items-end gap-2 rounded-xl border border-border p-2 sm:grid-cols-4">
           {columns.map((c) =>
-            c.type === "bool" ? (
+            c.render ? (
+              <div key={c.key} className="text-[11px] font-semibold text-muted-foreground sm:col-span-2">
+                {c.label}
+                {c.render(r[c.key], (v) => set(i, { [c.key]: v }), r)}
+              </div>
+            ) : c.type === "bool" ? (
               <div key={c.key} className="self-end pb-2">
                 <Field field={{ type: "bool", label: c.label }} value={r[c.key]} onChange={(v) => set(i, { [c.key]: v })} />
               </div>
